@@ -1,2 +1,2 @@
-# Contested
-CU Contest Environment
+# Gradel
+CU AUTOGRADER Environment
