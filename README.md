@@ -1,2 +1,6 @@
 # Gradel
-CU Contest Environment
+
+Structure:
+
+ - symfony_project: is the web application
+
