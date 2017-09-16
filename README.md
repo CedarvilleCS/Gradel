@@ -1,2 +1,0 @@
-# Gradel
-CU AUTOGRADER Environment
