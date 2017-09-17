@@ -10,6 +10,28 @@ use Doctrine\Common\Collections\ArrayCollection;
  * @ORM\Table(name="course")
  */
 class Course{
+		
+	public function __construct(){
+		
+		$a = func_get_args();
+		$i = func_num_args();
+		
+		if(method_exists($this, $f='__construct'.$i)) {
+			call_user_func_array(array($this,$f),$a);
+		} else if($i != 0){
+			throw new Exception('Contructor does not accept '.$i.' arguments');
+		}
+		
+		$this->sections = new ArrayCollection();
+	}
+	
+	public function __construct4($cd, $nm, $desc, $contest){
+		$this->code = $cd;
+		$this->name = $nm;
+		$this->description = $desc;
+		$this->is_contest = $contest;
+	}
+
 
 	/** 
 	* @ORM\Column(type="integer")
@@ -19,13 +41,9 @@ class Course{
 	private $id;
 
 	/**
-	* @ORM\OneToMany(targetEntity="Section", mappedBy="course_id")
+	* @ORM\OneToMany(targetEntity="Section", mappedBy="course")
 	*/
 	private $sections;
-
-	public function __construct() {
-		$this->sections = new ArrayCollection();
-	}	
 
 	/**
 	* @ORM\Column(type="string", length=100)

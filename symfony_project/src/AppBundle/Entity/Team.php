@@ -10,6 +10,27 @@ use Doctring\Common\Collections\ArrayCollection;
  * @ORM\Table(name="team")
  */
 class Team{
+	
+	public function __construct(){
+		
+		$a = func_get_args();
+		$i = func_num_args();
+		
+		if(method_exists($this, $f='__construct'.$i)) {
+			call_user_func_array(array($this,$f),$a);
+		} else if($i != 0) {
+			throw new Exception('Contructor does not accept '.$i.' arguments');
+		}
+		
+		$this->users = new ArrayCollection();
+		$this->submissions = new ArrayCollection();
+	}
+	
+	public function __construct2($nm, $assign){
+		$this->name = $name;
+		$this->assignment = $assign;		
+	}
+	
 	/** 
 	* @ORM\Column(type="integer")
 	* @ORM\Id
@@ -18,7 +39,7 @@ class Team{
 	private $id;
 
 	/**
-	* @ORM\OneToMany(targetEntity="Submission", mappedBy="team_id")
+	* @ORM\OneToMany(targetEntity="Submission", mappedBy="team")
 	*/
 	private $submissions;
 	
@@ -33,7 +54,6 @@ class Team{
 	*/
 	private $assignment;
 
-
 	/**
 	* @ORM\ManyToMany(targetEntity="User")
 	* @ORM\JoinTable(name="userteam",
@@ -43,14 +63,6 @@ class Team{
 	*/
 	private $users;
 
-	public function __construct() {
-		$this->users = new \Doctrine\Common\Collections\ArrayCollection();
-		$this->submissions = new ArrayCollection();
-	}
-	
-	public function addUserToTeam($newuser){
-		$users[] = $newuser;
-	}
 	
 	# SETTERS
 	public function setName($nm) {
@@ -59,6 +71,10 @@ class Team{
 	
 	public function setAssignment($assig) {
 		$this->assignment = $assig;
+	}
+	
+	public function addUserToTeam($newuser){
+		$users[] = $newuser;
 	}
 	
 	#GETTERZ

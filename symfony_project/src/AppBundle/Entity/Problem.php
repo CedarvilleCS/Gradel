@@ -10,6 +10,35 @@ use Doctrine\Common\Collections\ArrayCollection;
  * @ORM\Table(name="problem")
  */
 class Problem{
+	
+	public function __construct(){
+		
+		$a = func_get_args();
+		$i = func_num_args();
+		
+		if(method_exists($this, $f='__construct'.$i)) {
+			call_user_func_array(array($this,$f),$a);
+		} else if($i != 0) {
+			throw new Exception('Contructor does not accept '.$i.' arguments');
+		}
+		
+		$this->testcases = new ArrayCollection();
+	}
+	
+	public function __construct11($assign, $nm, $desc, $inst, $lang, $default, $wght, $grdmeth, $attempts, $limit, $credit){
+		$this->assignment = $assign;
+		$this->name = $name;
+		$this->description = $desc;
+		$this->instructions = $inst;
+		$this->language = $lang;
+		$this->default_code = $default;
+		$this->weight = $wght;
+		$this->gradingmethod = $grdmeth;
+		$this->attempts_allowed = $attempts;
+		$this->time_limit = $limit;
+		$this->is_extra_credit = $credit;
+	}
+	
 	/** 
 	* @ORM\Column(type="integer")
 	* @ORM\Id
@@ -18,16 +47,12 @@ class Problem{
 	private $id;
 
 	/**
-	* @ORM\OneToMany(targetEntity="Testcase", mappedBy="problem_id")
+	* @ORM\OneToMany(targetEntity="Testcase", mappedBy="problem")
 	*/
 	private $testcases;
 
-	public function __construct() {
-		$this->testcases = new ArrayCollection();
-	}
-
 	/**
-	* @ORM\ManyToOne(targetEntity="Assignment")
+	* @ORM\ManyToOne(targetEntity="Assignment", inversedBy="problems")
 	* @ORM\JoinColumn(name="assignment_id", referencedColumnName="id")
 	*/
 	private $assignment;
@@ -54,7 +79,7 @@ class Problem{
 	private $language;
 
 	/**
-	* @ORM\Column(type="string", length=65535)
+	* @ORM\Column(type="string", length=10000)
 	*/
 	private $default_code;
 

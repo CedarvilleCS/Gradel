@@ -11,6 +11,30 @@ use Doctrine\Common\Collections\ArrayCollection;
  */
 class Section{
 
+	public function __construct(){
+		
+		$a = func_get_args();
+		$i = func_num_args();
+		
+		if(method_exists($this, $f='__construct'.$i)) {
+			call_user_func_array(array($this,$f),$a);
+		} else if($i != 0){
+			throw new Exception('Contructor does not accept '.$i.' arguments');
+		}
+		
+		$this->assignments = new ArrayCollection();
+	}
+	
+	public function __construct7($crs, $nm, $sem, $yr, $start, $end, $own){
+		$this->course = $crs;
+		$this->name = $nm;
+		$this->semester = $sem;
+		$this->year = $yr;
+		$this->start_time = $start;
+		$this->end_time = $end;
+		$this->owner = $own;
+	}
+
 	/** 
 	* @ORM\Column(type="integer")
 	* @ORM\Id
@@ -19,16 +43,12 @@ class Section{
 	private $id;
 
 	/**
-	* @ORM\OneToMany(targetEntity="Assignment", mappedBy="section_id")
+	* @ORM\OneToMany(targetEntity="Assignment", mappedBy="section")
 	*/
 	private $assignments;
 
-	public function __construct() {
-		$this->assignments = new ArrayCollection();
-	}
-
 	/**
-	* @ORM\ManyToOne(targetEntity="Course")
+	* @ORM\ManyToOne(targetEntity="Course", inversedBy="sections")
 	* @ORM\JoinColumn(name="course_id", referencedColumnName="id")
 	*/
 	private $course;

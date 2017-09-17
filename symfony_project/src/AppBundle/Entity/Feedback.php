@@ -7,8 +7,24 @@ use Doctrine\ORM\Mapping as ORM;
 *@ORM\Entity
 *@ORM\Table(name="feedback")
 **/
-class Feedback
-{
+class Feedback {
+		
+	public function __construct(){
+		
+		$a = func_get_args();
+		$i = func_num_args();
+		
+		if(method_exists($this, $f='__construct'.$i)) {
+			call_user_func_array(array($this,$f),$a);
+		} else if($i != 0){
+			throw new Exception('Contructor does not accept '.$i.' arguments');
+		}
+	}
+	
+	public function __construct2($short, $long){
+		$this->short_response = $short;
+		$this->long_response = $long;
+	}
 
 	/**
 	*@ORM\Column(type="integer")
@@ -37,7 +53,7 @@ class Feedback
 		$this->long_response = $longo_response;
 	}
 	
-	#GETTERZ
+	# GETTERS
 	public function getShortResponse(){
 		return $this->short_response;
 	}

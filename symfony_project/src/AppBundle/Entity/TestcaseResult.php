@@ -7,8 +7,27 @@ use Doctrine\ORM\Mapping as ORM;
 *@ORM\Entity
 *@ORM\Table(name="testcaseresult")
 **/
-class TestcaseResult
-{
+class TestcaseResult {
+	
+	public function __construct(){
+		
+		$a = func_get_args();
+		$i = func_num_args();
+		
+		if(method_exists($this, $f='__construct'.$i)) {
+			call_user_func_array(array($this,$f),$a);
+		} else if($i != 0) {
+			throw new Exception('Contructor does not accept '.$i.' arguments');
+		}
+	}
+	
+	public function __construct4($sub, $test, $correct, $time){
+		$this->submission = $sub;
+		$this->testcase = $test;
+		$this->is_correct = $correct;
+		$this->execution_time = $time;
+	}
+	
 
 	/**
 	*@ORM\Column(type="integer")
@@ -18,7 +37,7 @@ class TestcaseResult
 	private $id;
 
 	/**
-     * @ORM\ManyToOne(targetEntity="Submission")
+     * @ORM\ManyToOne(targetEntity="Submission", inversedBy="testcaseresults")
      * @ORM\JoinColumn(name="submission_id", referencedColumnName="id")
      */
 	private $submission;
@@ -38,6 +57,7 @@ class TestcaseResult
 	*@ORM\Column(type="integer")
 	*/
 	private $execution_time;
+	
 	
 	#SETTERS
 	public function setSubmission($sub) {

@@ -10,6 +10,32 @@ use Doctrine\Common\Collections\ArrayCollection;
  * @ORM\Table(name="assignment")
  */
 class Assignment{
+	
+	public function __construct(){
+		
+		$a = func_get_args();
+		$i = func_num_args();
+		
+		if(method_exists($this, $f='__construct'.$i)) {
+			call_user_func_array(array($this,$f),$a);
+		} else if($i != 0) {
+			throw new Exception('Contructor does not accept '.$i.' arguments');
+		}
+		
+		$this->problems = new ArrayCollection();
+	}
+	
+	public function __construct8($sect, $nm, $desc, $start, $end, $wght, $open, $extra){
+		$this->section = $sect;
+		$this->name = $nm;
+		$this->description = $desc;
+		$this->start_time = $start;
+		$this->end_time = $end;
+		$this->weight = $wght;
+		$this->is_open = $open;
+		$this->is_extra_credit = $extra;
+	}
+	
 	/** 
 	* @ORM\Column(type="integer")
 	* @ORM\Id
@@ -18,16 +44,12 @@ class Assignment{
 	private $id;
 
 	/**
-	* @ORM\OneToMany(targetEntity="Problem", mappedBy="assignment_id")
+	* @ORM\OneToMany(targetEntity="Problem", mappedBy="assignment")
 	*/
 	private $problems;
-	
-	public function __construct() {
-		$this->problems = new ArrayCollection();
-	}
 
 	/**
-	* @ORM\ManyToOne(targetEntity="Section")
+	* @ORM\ManyToOne(targetEntity="Section", inversedBy="assignments")
 	* @ORM\JoinColumn(name="section_id", referencedColumnName="id")
 	*/
 	private $section;

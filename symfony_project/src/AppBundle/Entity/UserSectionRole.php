@@ -9,6 +9,24 @@ use Doctrine\ORM\Mapping as ORM;
  * @ORM\Table(name="usersectionrole")
  */
 class UserSectionRole{
+	
+	public function __construct(){
+		
+		$a = func_get_args();
+		$i = func_num_args();
+		
+		if(method_exists($this, $f='__construct'.$i)) {
+			call_user_func_array(array($this,$f),$a);
+		} else if($i != 0) {
+			throw new Exception('Contructor does not accept '.$i.' arguments');
+		}
+	}
+	
+	public function __construct3($usr, $sect, $rl){
+		$this->user = $usr;
+		$this->section = $sect;
+		$this->role = $rl;
+	}	
 
 	/**
 	* @ORM\Id

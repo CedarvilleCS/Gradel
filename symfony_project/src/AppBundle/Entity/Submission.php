@@ -8,8 +8,32 @@ use Doctrine\Common\Collections\ArrayCollection;
 *@ORM\Entity
 *@ORM\Table(name="submission")
 **/
-class Submission
-{
+class Submission {
+
+	public function __construct(){
+		
+		$a = func_get_args();
+		$i = func_num_args();
+		
+		if(method_exists($this, $f='__construct'.$i)) {
+			call_user_func_array(array($this,$f),$a);
+		} else if($i != 0) {
+			throw new Exception('Contructor does not accept '.$i.' arguments');
+		}
+		
+		$this->testcaseresults = new ArrayCollection();
+	}
+	
+	public function __construct8($prob, $tm, $time, $acc, $filename, $filetype, $lang, $perc){
+		$this->problem = $prob;
+		$this->team = $time;
+		$this->timestamp = $time;
+		$this->is_accepted = $acc;
+		$this->submitted_filename = $filename;
+		$this->submitted_filetype = $filetype;
+		$this->language = $lang;
+		$this->percentage = $perc;
+	}
 
 	/**
 	*@ORM\Column(type="integer")
@@ -19,13 +43,9 @@ class Submission
 	private $id;
 
 	/**
-	* @ORM\OneToMany(targetEntity="Testcase", mappedBy="submission_id")
+	* @ORM\OneToMany(targetEntity="TestcaseResult", mappedBy="submission")
 	*/
 	private $testcaseresults;
-	
-	public function __construct() {
-		$this->testcaseresults = new ArrayCollection();
-	}
 	
 	/**
      * Many Submissions have One Problem.
@@ -36,7 +56,7 @@ class Submission
 	
 	/**
      * Many Submissions have One Team.
-     * @ORM\ManyToOne(targetEntity="Team")
+     * @ORM\ManyToOne(targetEntity="Team", inversedBy="submissions")
      * @ORM\JoinColumn(name="team_id", referencedColumnName="id")
      */
 	private $team;
@@ -44,7 +64,7 @@ class Submission
 	/**
 	*@ORM\Column(type="datetime")
 	*/
-	private $time;
+	private $timestamp;
 
 	/**
 	*@ORM\Column(type="boolean")
@@ -62,9 +82,10 @@ class Submission
 	private $submitted_filetype;
 	
 	/**
-	*@ORM\Column(type="integer")
+	* @ORM\ManyToOne(targetEntity="Language")
+	* @ORM\JoinColumn(name="language_id", referencedColumnName="id")
 	*/
-	private $language_id;
+	private $language;
 	
 	/**
 	*@ORM\Column(type="decimal", precision=12, scale=8)
