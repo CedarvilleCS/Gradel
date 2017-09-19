@@ -31,17 +31,17 @@ class Feedback {
 	*@ORM\Id
 	*@ORM\GeneratedValue(strategy="AUTO")
 	*/
-	private $id;
+	public $id;
 
 	/**
 	*@ORM\Column(type="string", length=100)
 	*/
-	private $short_response;
+	public $short_response;
 
 	/**
 	*@ORM\Column(type="string", length=255)
 	*/
-	private $long_response;
+	public $long_response;
 
 	
 	# SETTERS

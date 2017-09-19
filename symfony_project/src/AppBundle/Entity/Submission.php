@@ -40,57 +40,57 @@ class Submission {
 	*@ORM\Id
 	*@ORM\GeneratedValue(strategy="AUTO")
 	*/
-	private $id;
+	public $id;
 
 	/**
 	* @ORM\OneToMany(targetEntity="TestcaseResult", mappedBy="submission")
 	*/
-	private $testcaseresults;
+	public $testcaseresults;
 	
 	/**
      * Many Submissions have One Problem.
      * @ORM\ManyToOne(targetEntity="Problem")
      * @ORM\JoinColumn(name="problem_id", referencedColumnName="id")
      */
-	private $problem;
+	public $problem;
 	
 	/**
      * Many Submissions have One Team.
      * @ORM\ManyToOne(targetEntity="Team", inversedBy="submissions")
      * @ORM\JoinColumn(name="team_id", referencedColumnName="id")
      */
-	private $team;
+	public $team;
 	
 	/**
 	*@ORM\Column(type="datetime")
 	*/
-	private $timestamp;
+	public $timestamp;
 
 	/**
 	*@ORM\Column(type="boolean")
 	*/
-	private $is_accepted;
+	public $is_accepted;
 	
 	/**
 	*@ORM\Column(type="string", length=255)
 	*/
-	private $submitted_filename;
+	public $submitted_filename;
 	
 	/**
 	*@ORM\Column(type="integer")
 	*/
-	private $submitted_filetype;
+	public $submitted_filetype;
 	
 	/**
 	* @ORM\ManyToOne(targetEntity="Language")
 	* @ORM\JoinColumn(name="language_id", referencedColumnName="id")
 	*/
-	private $language;
+	public $language;
 	
 	/**
 	*@ORM\Column(type="decimal", precision=12, scale=8)
 	*/
-	private $percentage;
+	public $percentage;
 	
 	# SETTERS
 	public function setProblem($prob) {

@@ -4,18 +4,38 @@
     <div id="wrapper">
         <div id="container">
             <div id="welcome">
-                <h1>Welcome to Gradel Demo!</h1>
-				<h3>Here are the current users</h3>
+                <h1>Welcome to the Gradel Demo!</h1>
             </div>
 
             <div id="status">
-                <p>
-				
+			
+				<hr>
+			
+				<p>
+				<h2>Here are all the users:</h2>			
+				<ul>
 				{% for user in users %}
-					<h2>{{user['first_name']}} {{user['last_name']}}</h2>												
-				{% endfor %}
-				
+					<h4>{{user.first_name}} {{user.last_name}} - {{user.access_level.role_name}}</h4>				
+				{% endfor %}				
+				</ul>
 				</p>
+				
+				<hr>
+				
+				<p>
+				<h2>Here are all the courses:</h2>			
+				{% for course in courses %}
+					<h4>{{course.code}} {{course.name}}</h4>
+					<ul>
+					{% for section in course.sections %}
+						<li> {{section.name}} ({% if course.is_contest == false %}{{section.semester}} {% endif %}{{section.year}}) - <i>{{section.owner.first_name}} {{section.owner.last_name}}</i></li>
+					{% endfor %}
+					</ul>
+				{% endfor %}				
+				</p>
+
+				<hr>
+				
             </div>
 
         </div>

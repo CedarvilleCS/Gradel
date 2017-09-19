@@ -41,53 +41,53 @@ class Assignment{
 	* @ORM\Id
 	* @ORM\GeneratedValue(strategy="AUTO")
 	*/
-	private $id;
+	public $id;
 
 	/**
 	* @ORM\OneToMany(targetEntity="Problem", mappedBy="assignment")
 	*/
-	private $problems;
+	public $problems;
 
 	/**
 	* @ORM\ManyToOne(targetEntity="Section", inversedBy="assignments")
 	* @ORM\JoinColumn(name="section_id", referencedColumnName="id")
 	*/
-	private $section;
+	public $section;
 
 	/**
 	* @ORM\Column(type="string", length=100)
 	*/
-	private $name;
+	public $name;
 
 	/**
 	* @ORM\Column(type="string", length=255)
 	*/
-	private $description;
+	public $description;
 
 	/**
 	* @ORM\Column(type="datetime")
 	*/
-	private $start_time;
+	public $start_time;
 
 	/**
 	* @ORM\Column(type="datetime")
 	*/
-	private $end_time;
+	public $end_time;
 
 	/**
 	* @ORM\Column(type="decimal", precision=12, scale=8)
 	*/
-	private $weight;
+	public $weight;
 
 	/**
 	* @ORM\Column(type="boolean")
 	*/
-	private $is_open;
+	public $is_open;
 
 	/**
 	* @ORM\Column(type="boolean")
 	*/
-	private $is_extra_credit;
+	public $is_extra_credit;
 
 
 	# SETTERS

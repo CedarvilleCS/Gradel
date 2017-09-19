@@ -35,41 +35,41 @@ class Testcase {
 	*@ORM\Id
 	*@ORM\GeneratedValue(strategy="AUTO")
 	*/
-	private $id;
+	public $id;
 
 	/**
      * Multiple TC per Problem
      * @ORM\ManyToOne(targetEntity="Problem", inversedBy="testcases")
      * @ORM\JoinColumn(name="problem_id", referencedColumnName="id")
      */
-	private $problem;
+	public $problem;
 	
 	/**
 	*@ORM\Column(type="integer")
 	*/
-	private $seq_num;
+	public $seq_num;
 
 	/**
 	*@ORM\Column(type="string", length=1044)
 	*/
-	private $input;
+	public $input;
 	
 	/**
 	*@ORM\Column(type="string", length=1044)
 	*/
-	private $correct_output;
+	public $correct_output;
 
 	/**
      * Multiple FB per TC
      * @ORM\ManyToOne(targetEntity="Feedback")
      * @ORM\JoinColumn(name="feedback_id", referencedColumnName="id")
      */
-	private $feedback;
+	public $feedback;
 	
 	/**
 	*@ORM\Column(type="decimal", precision=9, scale=8)
 	*/
-	private $weight;
+	public $weight;
 	
 
 	# SETTERS

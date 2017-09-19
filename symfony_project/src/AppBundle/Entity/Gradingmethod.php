@@ -31,17 +31,17 @@ class Gradingmethod {
 	*@ORM\Id
 	*@ORM\GeneratedValue(strategy="AUTO")
 	*/
-	private $id;
+	public $id;
 
 	/**
 	*@ORM\Column(type="string", length=100)
 	*/
-	private $name;
+	public $name;
 
 	/**
 	*@ORM\Column(type="string", length=255)
 	*/
-	private $description;
+	public $description;
 	
 	# SETTERS
 	public function setName($name) {

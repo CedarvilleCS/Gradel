@@ -33,21 +33,21 @@ class UserSectionRole{
 	* @ORM\ManyToOne(targetEntity="User")
 	* @ORM\JoinColumn(name="user_id", referencedColumnName="id")
 	*/
-	private $user;
+	public $user;
 
 	/**
 	* @ORM\Id
 	* @ORM\ManyToOne(targetEntity="Section")
 	* @ORM\JoinColumn(name="section_id", referencedColumnName="id")
 	*/
-	private $section;
+	public $section;
 
 	/**
 	* @ORM\Id
 	* @ORM\ManyToOne(targetEntity="Role")
 	* @ORM\JoinColumn(name="role_id", referencedColumnName="id")
 	*/
-	private $role;
+	public $role;
 
 
 

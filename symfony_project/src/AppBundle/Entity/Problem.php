@@ -44,70 +44,70 @@ class Problem{
 	* @ORM\Id
 	* @ORM\GeneratedValue(strategy="AUTO")
 	*/
-	private $id;
+	public $id;
 
 	/**
 	* @ORM\OneToMany(targetEntity="Testcase", mappedBy="problem")
 	*/
-	private $testcases;
+	public $testcases;
 
 	/**
 	* @ORM\ManyToOne(targetEntity="Assignment", inversedBy="problems")
 	* @ORM\JoinColumn(name="assignment_id", referencedColumnName="id")
 	*/
-	private $assignment;
+	public $assignment;
 
 	/**
 	* @ORM\Column(type="string", length=100)
 	*/
-	private $name;
+	public $name;
 
 	/**
 	* @ORM\Column(type="string", length=100)
 	*/
-	private $description;
+	public $description;
 
 	/**
 	* @ORM\Column(type="string", length=100)
 	*/
-	private $instructions;
+	public $instructions;
 
 	/**
 	* @ORM\ManyToOne(targetEntity="Language")
 	* @ORM\JoinColumn(name="language_id", referencedColumnName="id")
 	*/
-	private $language;
+	public $language;
 
 	/**
 	* @ORM\Column(type="string", length=10000)
 	*/
-	private $default_code;
+	public $default_code;
 
 	/**
 	* @ORM\Column(type="decimal", precision=12, scale=8)
 	*/
-	private $weight;
+	public $weight;
 
 	/**
 	* @ORM\ManyToOne(targetEntity="Gradingmethod")
 	* @ORM\JoinColumn(name="gradingmethod_id", referencedColumnName="id")
 	*/
-	private $gradingmethod;
+	public $gradingmethod;
 
 	/**
 	* @ORM\Column(type="integer")
 	*/
-	private $attempts_allowed;
+	public $attempts_allowed;
 
 	/**
 	* @ORM\Column(type="integer")
 	*/
-	private $time_limit;
+	public $time_limit;
 
 	/**
 	* @ORM\Column(type="boolean")
 	*/
-	private $is_extra_credit;
+	public $is_extra_credit;
 
 
 	

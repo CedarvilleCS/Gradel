@@ -2,11 +2,17 @@
 
 namespace AppBundle\Entity;
 
+use Symfony\Component\Validator\Constraints as Assert;
 use Doctrine\ORM\Mapping as ORM;
+
+// DON'T forget this use statement!!!
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+
 
 /**
  * @ORM\Entity
  * @ORM\Table(name="user")
+ * @UniqueEntity("email")
  */
 class User{
 		
@@ -35,33 +41,35 @@ class User{
 	* @ORM\Id
 	* @ORM\GeneratedValue(strategy="AUTO")
 	*/
-	private $id;
+	public $id;
 
 	/**
 	* @ORM\Column(type="string", length=100)
 	*/
-	private $first_name;
+	public $first_name;
 
 	/**
 	* @ORM\Column(type="string", length=100)
 	*/
-	private $last_name;
+	public $last_name;
 
 	/**
-	* @ORM\Column(type="string", length=100)
+	* @var string $email
+	*
+	* @ORM\Column(name="email", type="string", length=255, unique=true)
 	*/
-	private $email;
+	public $email;
 
 	/**
 	* @ORM\Column(type="datetime")
 	*/
-	private $last_login;
+	public $last_login;
 
 	/**
 	* @ORM\ManyToOne(targetEntity="Role")
 	* @ORM\JoinColumn(name="access_level", referencedColumnName="id")
 	*/
-	private $access_level;
+	public $access_level;
 
 
 

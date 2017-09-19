@@ -25,7 +25,7 @@ class Section{
 		$this->assignments = new ArrayCollection();
 	}
 	
-	public function __construct7($crs, $nm, $sem, $yr, $start, $end, $own){
+	public function __construct9($crs, $nm, $sem, $yr, $start, $end, $own, $public, $deleted){
 		$this->course = $crs;
 		$this->name = $nm;
 		$this->semester = $sem;
@@ -33,6 +33,8 @@ class Section{
 		$this->start_time = $start;
 		$this->end_time = $end;
 		$this->owner = $own;
+		$this->is_deleted = $deleted; 
+		$this->is_public = $public;
 	}
 
 	/** 
@@ -40,50 +42,60 @@ class Section{
 	* @ORM\Id
 	* @ORM\GeneratedValue(strategy="AUTO")
 	*/
-	private $id;
+	public $id;
 
 	/**
 	* @ORM\OneToMany(targetEntity="Assignment", mappedBy="section")
 	*/
-	private $assignments;
+	public $assignments;
 
 	/**
 	* @ORM\ManyToOne(targetEntity="Course", inversedBy="sections")
 	* @ORM\JoinColumn(name="course_id", referencedColumnName="id")
 	*/
-	private $course;
+	public $course;
 
 	/**
 	* @ORM\Column(type="string", length=100)
 	*/
-	private $name;
+	public $name;
 
 	/**
 	* @ORM\Column(type="string", length=100)
 	*/
-	private $semester;
+	public $semester;
 
 	/**
 	* @ORM\Column(type="integer")
 	*/
-	private $year;
+	public $year;
 
 	/**
 	* @ORM\Column(type="datetime")
 	*/
-	private $start_time;
+	public $start_time;
 
 	/**
 	* @ORM\Column(type="datetime")
 	*/
-	private $end_time;
+	public $end_time;
 
 	/**
 	* A user has a reference to an access level
 	* @ORM\ManyToOne(targetEntity="User")
 	* @ORM\JoinColumn(name="owner_id", referencedColumnName="id")
 	*/
-	private $owner;
+	public $owner;
+	
+	/**
+	* @ORM\Column(type="boolean")
+	*/
+	public $is_deleted;
+	
+	/**
+	* @ORM\Column(type="boolean")
+	*/
+	public $is_public;
 
 
 	# SETTERS
@@ -114,6 +126,14 @@ class Section{
 	public function setOwner($owner){
 		$this->owner;
 	}
+	
+	public function setIsDeleted($deleted){
+		$this->is_deleted = $deleted;
+	}
+	
+	public function setIsPublic($public){
+		$this->is_public = $public;
+	}
 
 	
 	# GETTERS
@@ -143,6 +163,14 @@ class Section{
 
 	public function getOwner(){
 		return $this->owner;
+	}
+	
+	public function getIsDeleted(){
+		return $this->is_deleted;
+	}
+	
+	public function getIsPublic($public){
+		return $this->is_public;
 	}
 
 }

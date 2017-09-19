@@ -30,12 +30,12 @@ class Language {
 	*@ORM\Id
 	*@ORM\GeneratedValue(strategy="AUTO")
 	*/
-	private $id;
+	public $id;
 
 	/**
 	*@ORM\Column(type="string", length=255)
 	*/
-	private $name;
+	public $name;
 	
 	#SETTERS
 	public function setName($name) {

@@ -36,23 +36,23 @@ class Team{
 	* @ORM\Id
 	* @ORM\GeneratedValue(strategy="AUTO")
 	*/
-	private $id;
+	public $id;
 
 	/**
 	* @ORM\OneToMany(targetEntity="Submission", mappedBy="team")
 	*/
-	private $submissions;
+	public $submissions;
 	
 	/**
 	* @ORM\Column(type="string", length=50)
 	*/
-	private $name;
+	public $name;
 
 	/**
 	* @ORM\ManyToOne(targetEntity="Assignment")
 	* @ORM\JoinColumn(name="assignment_id", referencedColumnName="id")
 	*/
-	private $assignment;
+	public $assignment;
 
 	/**
 	* @ORM\ManyToMany(targetEntity="User")
@@ -61,7 +61,7 @@ class Team{
 	*	inverseJoinColumns={@ORM\JoinColumn(name="team_id", referencedColumnName="id")}
 	*	)
 	*/
-	private $users;
+	public $users;
 
 	
 	# SETTERS

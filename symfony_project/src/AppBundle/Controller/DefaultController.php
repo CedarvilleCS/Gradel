@@ -3,6 +3,8 @@
 namespace AppBundle\Controller;
 
 use AppBundle\Entity\User;
+use AppBundle\Entity\Course;
+use AppBundle\Entity\UserSectionRole;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
@@ -19,23 +21,18 @@ class DefaultController extends Controller
 		$query = $em->createQuery('SELECT u FROM AppBundle\Entity\User u WHERE 1=1');
 		$users = $query->getResult();
 		
+		$query = $em->createQuery('SELECT c FROM AppBundle\Entity\Course c WHERE 1=1');
+		$courses = $query->getResult();
 		
-		$users2 = [];
-		foreach($users as $user){
-			
-			$user2 = [];
-			$user2['first_name'] = $user->getFirstName();
-			$user2['last_name'] = $user->getLastName();
-			
-			$users2[] = $user2;
-		}
-		
-		
+		$query = $em->createQuery('SELECT usr FROM AppBundle\Entity\UserSectionRole usr WHERE usr.section=22');
+		$course = $query->getResult();
 		
         // replace this example code with whatever you need
         return $this->render('default/index.html.twig', [
             'base_dir' => realpath($this->getParameter('kernel.project_dir')).DIRECTORY_SEPARATOR,
-			'users' => $users2,
+			'users' => $users,
+			'courses' => $courses,
+			'course' => $course,
         ]);
     }
 }

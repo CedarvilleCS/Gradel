@@ -34,29 +34,29 @@ class TestcaseResult {
 	*@ORM\Id
 	*@ORM\GeneratedValue(strategy="AUTO")
 	*/
-	private $id;
+	public $id;
 
 	/**
      * @ORM\ManyToOne(targetEntity="Submission", inversedBy="testcaseresults")
      * @ORM\JoinColumn(name="submission_id", referencedColumnName="id")
      */
-	private $submission;
+	public $submission;
 	
 	/**
      * @ORM\ManyToOne(targetEntity="Testcase")
      * @ORM\JoinColumn(name="testcase_id", referencedColumnName="id")
      */
-	private $testcase;
+	public $testcase;
 
 	/**
 	*@ORM\Column(type="boolean")
 	*/
-	private $is_correct;
+	public $is_correct;
 	
 	/**
 	*@ORM\Column(type="integer")
 	*/
-	private $execution_time;
+	public $execution_time;
 	
 	
 	#SETTERS

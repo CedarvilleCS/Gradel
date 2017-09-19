@@ -25,11 +25,13 @@ class Course{
 		$this->sections = new ArrayCollection();
 	}
 	
-	public function __construct4($cd, $nm, $desc, $contest){
+	public function __construct6($cd, $nm, $desc, $contest, $public, $deleted){
 		$this->code = $cd;
 		$this->name = $nm;
 		$this->description = $desc;
 		$this->is_contest = $contest;
+		$this->is_public = $public;
+		$this->is_deleted = $deleted;
 	}
 
 
@@ -38,32 +40,42 @@ class Course{
 	* @ORM\Id
 	* @ORM\GeneratedValue(strategy="AUTO")
 	*/
-	private $id;
+	public $id;
 
 	/**
 	* @ORM\OneToMany(targetEntity="Section", mappedBy="course")
 	*/
-	private $sections;
+	public $sections;
 
 	/**
 	* @ORM\Column(type="string", length=100)
 	*/
-	private $code;
+	public $code;
 
 	/**
 	* @ORM\Column(type="string", length=100)
 	*/
-	private $name;
+	public $name;
 
 	/**
 	* @ORM\Column(type="string", length=255)
 	*/
-	private $description;
+	public $description;
 
 	/**
 	* @ORM\Column(type="boolean")
 	*/
-	private $is_contest;
+	public $is_contest;	
+	
+	/**
+	* @ORM\Column(type="boolean")
+	*/
+	public $is_deleted;	
+	
+	/**
+	* @ORM\Column(type="boolean")
+	*/
+	public $is_public;
 
 
 
@@ -82,6 +94,14 @@ class Course{
 
 	public function setIsContest($contest){
 		$this->is_contest = $contest;
+	}
+	
+	public function setIsDeleted($deleted){
+		$this->is_deleted = $deleted;
+	}
+	
+	public function setIsPublic($public){
+		$this->is_public = $public;
 	}
 
 	
@@ -104,6 +124,14 @@ class Course{
 
 	public function getIsContest(){
 		return $this->is_contest;
+	}
+		
+	public function getIsDeleted(){
+		return $this->is_deleted;
+	}
+	
+	public function getIsPublic(){
+		return $this->is_public;
 	}
 
 }

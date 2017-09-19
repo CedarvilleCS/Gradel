@@ -34,12 +34,12 @@ class Role{
 	* @ORM\Id
 	* @ORM\GeneratedValue(strategy="AUTO")
 	*/
-	private $id;
+	public $id;
 
 	/**
 	* @ORM\Column(type="string", length=255)
 	*/
-	private $role_name;
+	public $role_name;
 
 	# SETTERS
 	public function setRoleName($name){
