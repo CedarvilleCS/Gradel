@@ -1,6 +1,6 @@
 <?php
 
-/* default/index.html.twig */
+/* :default:index.html.twig */
 class __TwigTemplate_5da4dd3a4201d8b26389485bafe4ad341040066b4b28157931b9616cfd2cc256 extends Twig_Template
 {
     public function __construct(Twig_Environment $env)
@@ -8,7 +8,7 @@ class __TwigTemplate_5da4dd3a4201d8b26389485bafe4ad341040066b4b28157931b9616cfd2
         parent::__construct($env);
 
         // line 1
-        $this->parent = $this->loadTemplate("base.html.twig", "default/index.html.twig", 1);
+        $this->parent = $this->loadTemplate("base.html.twig", ":default:index.html.twig", 1);
         $this->blocks = array(
             'body' => array($this, 'block_body'),
             'stylesheets' => array($this, 'block_stylesheets'),
@@ -28,107 +28,26 @@ class __TwigTemplate_5da4dd3a4201d8b26389485bafe4ad341040066b4b28157931b9616cfd2
     // line 3
     public function block_body($context, array $blocks = array())
     {
-        // line 4
-        echo "    <div id=\"wrapper\">
-        <div id=\"container\">
-            <div id=\"welcome\">
-                <h1>Welcome to the Gradel Demo!</h1>
-            </div>
-
-            <div id=\"status\">
-\t\t\t
-\t\t\t\t<hr>
-\t\t\t
-\t\t\t\t<p>
-\t\t\t\t<h2>Here are all the users:</h2>\t\t\t
-\t\t\t\t<ul>
-\t\t\t\t";
-        // line 17
-        $context['_parent'] = $context;
-        $context['_seq'] = twig_ensure_traversable((isset($context["users"]) ? $context["users"] : null));
-        foreach ($context['_seq'] as $context["_key"] => $context["user"]) {
-            // line 18
-            echo "\t\t\t\t\t<h4>";
-            echo twig_escape_filter($this->env, $this->getAttribute($context["user"], "first_name", array()), "html", null, true);
-            echo " ";
-            echo twig_escape_filter($this->env, $this->getAttribute($context["user"], "last_name", array()), "html", null, true);
-            echo " - ";
-            echo twig_escape_filter($this->env, $this->getAttribute($this->getAttribute($context["user"], "access_level", array()), "role_name", array()), "html", null, true);
-            echo "</h4>\t\t\t\t
-\t\t\t\t";
-        }
-        $_parent = $context['_parent'];
-        unset($context['_seq'], $context['_iterated'], $context['_key'], $context['user'], $context['_parent'], $context['loop']);
-        $context = array_intersect_key($context, $_parent) + $_parent;
-        // line 19
-        echo "\t\t\t\t
-\t\t\t\t</ul>
-\t\t\t\t</p>
-\t\t\t\t
-\t\t\t\t<hr>
-\t\t\t\t
-\t\t\t\t<p>
-\t\t\t\t<h2>Here are all the courses:</h2>\t\t\t
-\t\t\t\t";
-        // line 27
-        $context['_parent'] = $context;
-        $context['_seq'] = twig_ensure_traversable((isset($context["courses"]) ? $context["courses"] : null));
-        foreach ($context['_seq'] as $context["_key"] => $context["course"]) {
-            // line 28
-            echo "\t\t\t\t\t<h4>";
-            echo twig_escape_filter($this->env, $this->getAttribute($context["course"], "code", array()), "html", null, true);
-            echo " ";
-            echo twig_escape_filter($this->env, $this->getAttribute($context["course"], "name", array()), "html", null, true);
-            echo "</h4>
-\t\t\t\t\t<ul>
-\t\t\t\t\t";
-            // line 30
-            $context['_parent'] = $context;
-            $context['_seq'] = twig_ensure_traversable($this->getAttribute($context["course"], "sections", array()));
-            foreach ($context['_seq'] as $context["_key"] => $context["section"]) {
-                // line 31
-                echo "\t\t\t\t\t\t<li> ";
-                echo twig_escape_filter($this->env, $this->getAttribute($context["section"], "name", array()), "html", null, true);
-                echo " (";
-                if (($this->getAttribute($context["course"], "is_contest", array()) == false)) {
-                    echo twig_escape_filter($this->env, $this->getAttribute($context["section"], "semester", array()), "html", null, true);
-                    echo " ";
-                }
-                echo twig_escape_filter($this->env, $this->getAttribute($context["section"], "year", array()), "html", null, true);
-                echo ") - <i>";
-                echo twig_escape_filter($this->env, $this->getAttribute($this->getAttribute($context["section"], "owner", array()), "first_name", array()), "html", null, true);
-                echo " ";
-                echo twig_escape_filter($this->env, $this->getAttribute($this->getAttribute($context["section"], "owner", array()), "last_name", array()), "html", null, true);
-                echo "</i></li>
-\t\t\t\t\t";
-            }
-            $_parent = $context['_parent'];
-            unset($context['_seq'], $context['_iterated'], $context['_key'], $context['section'], $context['_parent'], $context['loop']);
-            $context = array_intersect_key($context, $_parent) + $_parent;
-            // line 33
-            echo "\t\t\t\t\t</ul>
-\t\t\t\t";
-        }
-        $_parent = $context['_parent'];
-        unset($context['_seq'], $context['_iterated'], $context['_key'], $context['course'], $context['_parent'], $context['loop']);
-        $context = array_intersect_key($context, $_parent) + $_parent;
-        // line 34
-        echo "\t\t\t\t
-\t\t\t\t</p>
-
-\t\t\t\t<hr>
-\t\t\t\t
-            </div>
-
-        </div>
-    </div>
+        echo " 
+\t<div id = \"wrapper\">
+\t\t<div id=\"container\">
+\t\t\t<div id=\"welcome\">
+\t\t\t\t<form>
+\t\t\t\t\t<h1>Hello! Welcome to Gradel!!</h1>
+\t\t\t\t\t<input style=\"text\">username</input>
+\t\t\t\t\t<input style=\"password\">password</input>
+\t\t\t\t\t<button>login</button>
+\t\t\t\t</form>
+\t\t\t</div>
+\t\t</div>
+\t</div>
 ";
     }
 
-    // line 45
+    // line 18
     public function block_stylesheets($context, array $blocks = array())
     {
-        // line 46
+        // line 19
         echo "<style>
     body { background: #F5F5F5; font: 18px/1.5 sans-serif; }
     h1, h2 { line-height: 1.2; margin: 0 0 .5em; }
@@ -139,7 +58,7 @@ class __TwigTemplate_5da4dd3a4201d8b26389485bafe4ad341040066b4b28157931b9616cfd2
     a:hover { text-decoration: none; }
     code { background: #F5F5F5; max-width: 100px; padding: 2px 6px; word-wrap: break-word; }
     #wrapper { background: #FFF; margin: 1em auto; max-width: 800px; width: 95%; }
-    #container { padding: 2em; }
+    #container { padding: 2em; 
     #welcome, #status { margin-bottom: 2em; }
     #welcome h1 span { display: block; font-size: 75%; }
     #icon-status, #icon-book { float: left; height: 64px; margin-right: 1em; margin-top: -4px; width: 64px; }
@@ -160,7 +79,7 @@ class __TwigTemplate_5da4dd3a4201d8b26389485bafe4ad341040066b4b28157931b9616cfd2
 
     public function getTemplateName()
     {
-        return "default/index.html.twig";
+        return ":default:index.html.twig";
     }
 
     public function isTraitable()
@@ -170,7 +89,7 @@ class __TwigTemplate_5da4dd3a4201d8b26389485bafe4ad341040066b4b28157931b9616cfd2
 
     public function getDebugInfo()
     {
-        return array (  132 => 46,  129 => 45,  116 => 34,  109 => 33,  90 => 31,  86 => 30,  78 => 28,  74 => 27,  64 => 19,  51 => 18,  47 => 17,  32 => 4,  29 => 3,  11 => 1,);
+        return array (  51 => 19,  48 => 18,  29 => 3,  11 => 1,);
     }
 
     /** @deprecated since 1.27 (to be removed in 2.0). Use getSourceContext() instead */
@@ -183,6 +102,6 @@ class __TwigTemplate_5da4dd3a4201d8b26389485bafe4ad341040066b4b28157931b9616cfd2
 
     public function getSourceContext()
     {
-        return new Twig_Source("", "default/index.html.twig", "/var/www/gradel_dev/tgsmith/Gradel/symfony_project/app/Resources/views/default/index.html.twig");
+        return new Twig_Source("", ":default:index.html.twig", "/var/www/gradel_dev/brauns/Gradel/symfony_project/app/Resources/views/default/index.html.twig");
     }
 }

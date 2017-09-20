@@ -36,7 +36,7 @@ class Problem extends \AppBundle\Entity\Problem implements \Doctrine\ORM\Proxy\P
      *
      * @see \Doctrine\Common\Persistence\Proxy::__getLazyProperties
      */
-    public static $lazyPropertiesDefaults = ['testcases' => NULL, 'assignment' => NULL, 'name' => NULL, 'description' => NULL, 'instructions' => NULL, 'language' => NULL, 'default_code' => NULL, 'weight' => NULL, 'gradingmethod' => NULL, 'attempts_allowed' => NULL, 'time_limit' => NULL, 'is_extra_credit' => NULL];
+    public static $lazyPropertiesDefaults = ['testcases' => NULL, 'assignment' => NULL, 'name' => NULL, 'description' => NULL, 'instructions' => NULL, 'language' => NULL, 'default_code' => NULL, 'linking_option' => NULL, 'compilation_mode' => NULL, 'weight' => NULL, 'gradingmethod' => NULL, 'attempts_allowed' => NULL, 'time_limit' => NULL, 'is_extra_credit' => NULL];
 
 
 
@@ -46,7 +46,7 @@ class Problem extends \AppBundle\Entity\Problem implements \Doctrine\ORM\Proxy\P
      */
     public function __construct($initializer = null, $cloner = null)
     {
-        unset($this->testcases, $this->assignment, $this->name, $this->description, $this->instructions, $this->language, $this->default_code, $this->weight, $this->gradingmethod, $this->attempts_allowed, $this->time_limit, $this->is_extra_credit);
+        unset($this->testcases, $this->assignment, $this->name, $this->description, $this->instructions, $this->language, $this->default_code, $this->linking_option, $this->compilation_mode, $this->weight, $this->gradingmethod, $this->attempts_allowed, $this->time_limit, $this->is_extra_credit);
 
         $this->__initializer__ = $initializer;
         $this->__cloner__      = $cloner;
@@ -108,7 +108,7 @@ class Problem extends \AppBundle\Entity\Problem implements \Doctrine\ORM\Proxy\P
     public function __sleep()
     {
         if ($this->__isInitialized__) {
-            return ['__isInitialized__', 'id', 'testcases', 'assignment', 'name', 'description', 'instructions', 'language', 'default_code', 'weight', 'gradingmethod', 'attempts_allowed', 'time_limit', 'is_extra_credit'];
+            return ['__isInitialized__', 'id', 'testcases', 'assignment', 'name', 'description', 'instructions', 'language', 'default_code', 'linking_option', 'compilation_mode', 'weight', 'gradingmethod', 'attempts_allowed', 'time_limit', 'is_extra_credit'];
         }
 
         return ['__isInitialized__', 'id'];
@@ -133,7 +133,7 @@ class Problem extends \AppBundle\Entity\Problem implements \Doctrine\ORM\Proxy\P
                 }
             };
 
-            unset($this->testcases, $this->assignment, $this->name, $this->description, $this->instructions, $this->language, $this->default_code, $this->weight, $this->gradingmethod, $this->attempts_allowed, $this->time_limit, $this->is_extra_credit);
+            unset($this->testcases, $this->assignment, $this->name, $this->description, $this->instructions, $this->language, $this->default_code, $this->linking_option, $this->compilation_mode, $this->weight, $this->gradingmethod, $this->attempts_allowed, $this->time_limit, $this->is_extra_credit);
         }
     }
 
@@ -221,12 +221,12 @@ class Problem extends \AppBundle\Entity\Problem implements \Doctrine\ORM\Proxy\P
     /**
      * {@inheritDoc}
      */
-    public function __construct11($assign, $nm, $desc, $inst, $lang, $default, $wght, $grdmeth, $attempts, $limit, $credit)
+    public function __construct13($assign, $nm, $desc, $inst, $lang, $default, $comp, $meth, $wght, $grdmeth, $attempts, $limit, $credit)
     {
 
-        $this->__initializer__ && $this->__initializer__->__invoke($this, '__construct11', [$assign, $nm, $desc, $inst, $lang, $default, $wght, $grdmeth, $attempts, $limit, $credit]);
+        $this->__initializer__ && $this->__initializer__->__invoke($this, '__construct13', [$assign, $nm, $desc, $inst, $lang, $default, $comp, $meth, $wght, $grdmeth, $attempts, $limit, $credit]);
 
-        return parent::__construct11($assign, $nm, $desc, $inst, $lang, $default, $wght, $grdmeth, $attempts, $limit, $credit);
+        return parent::__construct13($assign, $nm, $desc, $inst, $lang, $default, $comp, $meth, $wght, $grdmeth, $attempts, $limit, $credit);
     }
 
     /**
@@ -282,6 +282,28 @@ class Problem extends \AppBundle\Entity\Problem implements \Doctrine\ORM\Proxy\P
         $this->__initializer__ && $this->__initializer__->__invoke($this, 'setLanguage', [$lang]);
 
         return parent::setLanguage($lang);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function setCompilationMode($comp)
+    {
+
+        $this->__initializer__ && $this->__initializer__->__invoke($this, 'setCompilationMode', [$comp]);
+
+        return parent::setCompilationMode($comp);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function setLinkingOption($meth)
+    {
+
+        $this->__initializer__ && $this->__initializer__->__invoke($this, 'setLinkingOption', [$meth]);
+
+        return parent::setLinkingOption($meth);
     }
 
     /**
@@ -414,6 +436,28 @@ class Problem extends \AppBundle\Entity\Problem implements \Doctrine\ORM\Proxy\P
         $this->__initializer__ && $this->__initializer__->__invoke($this, 'getDefaultCode', []);
 
         return parent::getDefaultCode();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function getCompilationMode()
+    {
+
+        $this->__initializer__ && $this->__initializer__->__invoke($this, 'getCompilationMode', []);
+
+        return parent::getCompilationMode();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function getLinkingOption()
+    {
+
+        $this->__initializer__ && $this->__initializer__->__invoke($this, 'getLinkingOption', []);
+
+        return parent::getLinkingOption();
     }
 
     /**

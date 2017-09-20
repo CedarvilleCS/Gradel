@@ -1,6 +1,6 @@
 <?php
 
-/* base.html.twig */
+/* ::base.html.twig */
 class __TwigTemplate_2bbd627db2a8dafc9af44da08576275e3a4dd4e12a48f797519da88d404077b2 extends Twig_Template
 {
     public function __construct(Twig_Environment $env)
@@ -74,7 +74,7 @@ class __TwigTemplate_2bbd627db2a8dafc9af44da08576275e3a4dd4e12a48f797519da88d404
 
     public function getTemplateName()
     {
-        return "base.html.twig";
+        return "::base.html.twig";
     }
 
     public function isTraitable()
@@ -97,6 +97,6 @@ class __TwigTemplate_2bbd627db2a8dafc9af44da08576275e3a4dd4e12a48f797519da88d404
 
     public function getSourceContext()
     {
-        return new Twig_Source("", "base.html.twig", "/var/www/gradel_dev/tgsmith/Gradel/symfony_project/app/Resources/views/base.html.twig");
+        return new Twig_Source("", "::base.html.twig", "/var/www/gradel_dev/brauns/Gradel/symfony_project/app/Resources/views/base.html.twig");
     }
 }
