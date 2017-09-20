@@ -32,7 +32,7 @@ class Fixtures extends Fixture {
 		$student_role = new Role("Student");
 		$manager->persist($student_role);
 
-	    $prof_role = new Role("Professer");
+	    $prof_role = new Role("Professor");
 		$manager->persist($prof_role);
 
 	    $admin_role = new Role("Administrator");

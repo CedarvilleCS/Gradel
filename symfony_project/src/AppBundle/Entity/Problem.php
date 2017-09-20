@@ -25,13 +25,15 @@ class Problem{
 		$this->testcases = new ArrayCollection();
 	}
 	
-	public function __construct11($assign, $nm, $desc, $inst, $lang, $default, $wght, $grdmeth, $attempts, $limit, $credit){
+	public function __construct13($assign, $nm, $desc, $inst, $lang, $default, $comp, $meth, $wght, $grdmeth, $attempts, $limit, $credit){
 		$this->assignment = $assign;
 		$this->name = $name;
 		$this->description = $desc;
 		$this->instructions = $inst;
 		$this->language = $lang;
 		$this->default_code = $default;
+		$this->compilation_mode = $comp;
+		$this->linking_option = $meth;
 		$this->weight = $wght;
 		$this->gradingmethod = $grdmeth;
 		$this->attempts_allowed = $attempts;
@@ -82,6 +84,16 @@ class Problem{
 	* @ORM\Column(type="string", length=10000)
 	*/
 	public $default_code;
+	
+	/**
+	* @ORM\Column(type="string", length=10000)
+	*/
+	public $linking_option;
+	
+	/**
+	* @ORM\Column(type="string", length=10000)
+	*/
+	public $compilation_mode;
 
 	/**
 	* @ORM\Column(type="decimal", precision=12, scale=8)
@@ -130,6 +142,14 @@ class Problem{
 
 	public function setLanguage($lang){
 		$this->language = $lang;
+	}
+	
+	public function setCompilationMode($comp){
+		$this->compilation_mode = $comp;
+	}
+	
+	public function setLinkingOption($meth){
+		$this->linking_option = $meth;
 	}
 
 	public function setDefaultCode($code){
@@ -181,7 +201,15 @@ class Problem{
 	public function getDefaultCode(){
 		return $this->default_code;
 	}
+	
+	public function getCompilationMode(){
+		return $this->compilation_mode;
+	}
 
+	public function getLinkingOption(){
+		return $this->linking_option;
+	}
+	
 	public function getWeight(){
 		return $this->weight;
 	}
