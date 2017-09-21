@@ -33,7 +33,7 @@ class Language {
 	public $id;
 
 	/**
-	*@ORM\Column(type="string", length=255)
+	*@ORM\Column(type="string", length=100)
 	*/
 	public $name;
 	

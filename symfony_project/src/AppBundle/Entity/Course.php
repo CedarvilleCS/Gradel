@@ -58,7 +58,7 @@ class Course{
 	public $name;
 
 	/**
-	* @ORM\Column(type="string", length=255)
+	* @ORM\Column(type="text")
 	*/
 	public $description;
 
