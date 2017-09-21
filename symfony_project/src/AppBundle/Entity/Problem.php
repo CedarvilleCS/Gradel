@@ -60,17 +60,17 @@ class Problem{
 	public $assignment;
 
 	/**
-	* @ORM\Column(type="string", length=100)
+	* @ORM\Column(type="string", length=255)
 	*/
 	public $name;
 
 	/**
-	* @ORM\Column(type="string", length=100)
+	* @ORM\Column(type="text")
 	*/
 	public $description;
 
 	/**
-	* @ORM\Column(type="string", length=100)
+	* @ORM\Column(type="text")
 	*/
 	public $instructions;
 
@@ -81,17 +81,17 @@ class Problem{
 	public $language;
 
 	/**
-	* @ORM\Column(type="string", length=10000)
+	* @ORM\Column(type="text")
 	*/
 	public $default_code;
 	
 	/**
-	* @ORM\Column(type="string", length=10000)
+	* @ORM\Column(type="text")
 	*/
 	public $linking_option;
 	
 	/**
-	* @ORM\Column(type="string", length=10000)
+	* @ORM\Column(type="text")
 	*/
 	public $compilation_mode;
 

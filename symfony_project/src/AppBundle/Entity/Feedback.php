@@ -34,12 +34,12 @@ class Feedback {
 	public $id;
 
 	/**
-	*@ORM\Column(type="string", length=100)
+	*@ORM\Column(type="text")
 	*/
 	public $short_response;
 
 	/**
-	*@ORM\Column(type="string", length=255)
+	*@ORM\Column(type="text")
 	*/
 	public $long_response;
 

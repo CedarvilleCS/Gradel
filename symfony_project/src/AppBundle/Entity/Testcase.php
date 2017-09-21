@@ -50,12 +50,12 @@ class Testcase {
 	public $seq_num;
 
 	/**
-	*@ORM\Column(type="string", length=1044)
+	*@ORM\Column(type="text")
 	*/
 	public $input;
 	
 	/**
-	*@ORM\Column(type="string", length=1044)
+	*@ORM\Column(type="text")
 	*/
 	public $correct_output;
 
