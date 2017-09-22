@@ -72,7 +72,7 @@ class Submission {
 	public $is_accepted;
 	
 	/**
-	*@ORM\Column(type="string", length=255)
+	*@ORM\Column(type="string", length=1023)
 	*/
 	public $submitted_filename;
 	
