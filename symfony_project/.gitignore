@@ -1,4 +1,2 @@
-var/cache/*
-var/logs/*
-var/sessions/*
-var/
+var/*
+var
