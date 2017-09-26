@@ -1,2 +1,3 @@
-var/*
-var
+var/cache/*
+var/sessions/*
+var/logs/*
