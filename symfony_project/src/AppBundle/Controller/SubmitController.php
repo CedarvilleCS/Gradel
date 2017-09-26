@@ -1,16 +1,19 @@
-// src/AppBundle/Controller/SubmitController.php
+<?php
+
 namespace AppBundle\Controller;
 
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-use Symfony\Component\HttpFoundation\Response;
+use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 
 class SubmitController extends Controller
 {
     /**
-     * @Route("/submit/submit")
+     * @Route("/submit", name="submit")
      */
-    public function submit()
+    public function submitAction()
     {
-        return $this->render('submit/submit.html.twig);
+        return $this->render('AppBundle:Submit:submit.html.twig', array(
+            // ...
+        ));
     }
 }
+?>
