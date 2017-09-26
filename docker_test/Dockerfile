@@ -23,8 +23,12 @@ RUN export uid=1000 gid=1000 && \
 	echo "abc:x:${uid}:${gid}:Abc,,,:/home/abc:/bin/bash" >> /etc/passwd && \
 	echo "abc:x:${uid}:" >> /etc/group && \
 	echo "abc ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/abc && \
-	chmod 0440 /etc/sudoers.d/abc && \
-	chown ${uid}:${gid} -R /home/abc
+	chmod 0440 /etc/sudoers.d/abc
+	
+COPY compiler_scripts/*.sh /home/abc/
+
+RUN chown root.root /home/abc/*.sh && \
+	chmod 4755 /home/abc/*.sh
 
 USER abc
 ENV HOME /home/abc
