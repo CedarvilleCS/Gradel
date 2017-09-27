@@ -35,13 +35,26 @@ class appProdProjectContainerUrlMatcher extends Symfony\Bundle\FrameworkBundle\R
         }
 
 
-        // homepage
-        if ('' === $trimmedPathinfo) {
-            if (substr($pathinfo, -1) !== '/') {
-                return $this->redirect($pathinfo.'/', 'homepage');
+        if (0 === strpos($pathinfo, '/account')) {
+            // account_show
+            if ('/account' === $pathinfo) {
+                return array (  '_controller' => 'AppBundle\\Controller\\AccountController::indexAction',  '_route' => 'account_show',);
             }
 
-            return array (  '_controller' => 'AppBundle\\Controller\\DefaultController::indexAction',  '_route' => 'homepage',);
+            // account
+            if ('/account' === $pathinfo) {
+                return array (  '_controller' => 'AppBundle\\Controller\\DefaultController::accountAction',  '_route' => 'account',);
+            }
+
+        }
+
+        // index
+        if ('' === $trimmedPathinfo) {
+            if (substr($pathinfo, -1) !== '/') {
+                return $this->redirect($pathinfo.'/', 'index');
+            }
+
+            return array (  '_controller' => 'AppBundle\\Controller\\DefaultController::indexAction',  '_route' => 'index',);
         }
 
         throw 0 < count($allow) ? new MethodNotAllowedException(array_unique($allow)) : new ResourceNotFoundException();
