@@ -34,5 +34,12 @@ class DefaultController extends Controller
 			'courses' => $courses,
 			'course' => $course,
         ]);
-    }
+	}
+	
+	/**
+	* @Route("/submit", name="submit")
+	*/
+	public function submitAction() {
+		return $this->render('default/index.html.twig');
+	}
 }
