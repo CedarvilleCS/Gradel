@@ -53,7 +53,7 @@ class __TwigTemplate_2bbd627db2a8dafc9af44da08576275e3a4dd4e12a48f797519da88d404
     // line 5
     public function block_title($context, array $blocks = array())
     {
-        echo "Welcome!";
+        echo "Welcome1!";
     }
 
     // line 7
@@ -97,6 +97,6 @@ class __TwigTemplate_2bbd627db2a8dafc9af44da08576275e3a4dd4e12a48f797519da88d404
 
     public function getSourceContext()
     {
-        return new Twig_Source("", "::base.html.twig", "/var/www/gradel_dev/brauns/Gradel/symfony_project/app/Resources/views/base.html.twig");
+        return new Twig_Source("", "::base.html.twig", "/var/www/gradel_dev/wolf/gradel/symfony_project/app/Resources/views/base.html.twig");
     }
 }

@@ -44,6 +44,6 @@ class __TwigTemplate_ac17664cac7af828a57e5be349f499d4e20c53f1108b187e462f87965f8
 
     public function getSourceContext()
     {
-        return new Twig_Source("", "@Framework/Form/radio_widget.html.php", "/var/www/gradel_dev/brauns/Gradel/symfony_project/vendor/symfony/symfony/src/Symfony/Bundle/FrameworkBundle/Resources/views/Form/radio_widget.html.php");
+        return new Twig_Source("", "@Framework/Form/radio_widget.html.php", "/var/www/gradel_dev/wolf/gradel/symfony_project/vendor/symfony/symfony/src/Symfony/Bundle/FrameworkBundle/Resources/views/Form/radio_widget.html.php");
     }
 }

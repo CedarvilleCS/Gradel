@@ -43,6 +43,6 @@ class __TwigTemplate_a78e2b2f85bb66e4fb8794f215915d114cb6759de512e217e2c758f14d9
 
     public function getSourceContext()
     {
-        return new Twig_Source("", "@Framework/Form/collection_widget.html.php", "/var/www/gradel_dev/brauns/Gradel/symfony_project/vendor/symfony/symfony/src/Symfony/Bundle/FrameworkBundle/Resources/views/Form/collection_widget.html.php");
+        return new Twig_Source("", "@Framework/Form/collection_widget.html.php", "/var/www/gradel_dev/wolf/gradel/symfony_project/vendor/symfony/symfony/src/Symfony/Bundle/FrameworkBundle/Resources/views/Form/collection_widget.html.php");
     }
 }

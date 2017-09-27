@@ -183,6 +183,6 @@ class __TwigTemplate_36d59754419c5936cb74e2539d00ca493939e62e51c2d396a24ff43635f
 
     public function getSourceContext()
     {
-        return new Twig_Source("", ":default:old.index.html.twig", "/var/www/gradel_dev/brauns/Gradel/symfony_project/app/Resources/views/default/old.index.html.twig");
+        return new Twig_Source("", ":default:old.index.html.twig", "/var/www/gradel_dev/wolf/gradel/symfony_project/app/Resources/views/default/old.index.html.twig");
     }
 }

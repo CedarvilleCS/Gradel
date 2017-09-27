@@ -40,6 +40,6 @@ class __TwigTemplate_dd6f58bc6b895c3dd787bfd2447aef0fc2bd18846c7cfc66abddc83f6bb
 
     public function getSourceContext()
     {
-        return new Twig_Source("", "@Twig/images/symfony-ghost.svg", "/var/www/gradel_dev/brauns/Gradel/symfony_project/vendor/symfony/symfony/src/Symfony/Bundle/TwigBundle/Resources/views/images/symfony-ghost.svg");
+        return new Twig_Source("", "@Twig/images/symfony-ghost.svg", "/var/www/gradel_dev/wolf/gradel/symfony_project/vendor/symfony/symfony/src/Symfony/Bundle/TwigBundle/Resources/views/images/symfony-ghost.svg");
     }
 }

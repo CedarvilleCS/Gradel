@@ -44,6 +44,6 @@ class __TwigTemplate_f5ee84d4c5e70907fad1e600737074bc293a0e980c6241a9d42b8bc8108
 
     public function getSourceContext()
     {
-        return new Twig_Source("", "@Framework/Form/checkbox_widget.html.php", "/var/www/gradel_dev/brauns/Gradel/symfony_project/vendor/symfony/symfony/src/Symfony/Bundle/FrameworkBundle/Resources/views/Form/checkbox_widget.html.php");
+        return new Twig_Source("", "@Framework/Form/checkbox_widget.html.php", "/var/www/gradel_dev/wolf/gradel/symfony_project/vendor/symfony/symfony/src/Symfony/Bundle/FrameworkBundle/Resources/views/Form/checkbox_widget.html.php");
     }
 }

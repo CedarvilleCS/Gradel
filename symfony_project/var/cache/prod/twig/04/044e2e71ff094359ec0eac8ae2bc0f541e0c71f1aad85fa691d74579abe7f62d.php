@@ -33,7 +33,7 @@ class __TwigTemplate_5da4dd3a4201d8b26389485bafe4ad341040066b4b28157931b9616cfd2
 \t\t<div id=\"container\">
 \t\t\t<div id=\"welcome\">
 \t\t\t\t<form>
-\t\t\t\t\t<h1>Hello! Welcome to Gradel!!</h1>
+\t\t\t\t\t<h1>Hello! Welcome to Gradel1!</h1>
 \t\t\t\t\t<input style=\"text\">username</input>
 \t\t\t\t\t<input style=\"password\">password</input>
 \t\t\t\t\t<button>login</button>
@@ -102,6 +102,6 @@ class __TwigTemplate_5da4dd3a4201d8b26389485bafe4ad341040066b4b28157931b9616cfd2
 
     public function getSourceContext()
     {
-        return new Twig_Source("", ":default:index.html.twig", "/var/www/gradel_dev/brauns/Gradel/symfony_project/app/Resources/views/default/index.html.twig");
+        return new Twig_Source("", ":default:index.html.twig", "/var/www/gradel_dev/wolf/gradel/symfony_project/app/Resources/views/default/index.html.twig");
     }
 }

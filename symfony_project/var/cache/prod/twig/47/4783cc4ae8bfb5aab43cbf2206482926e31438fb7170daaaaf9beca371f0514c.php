@@ -40,6 +40,6 @@ class __TwigTemplate_b243ec1ad41c320e4804d1a1cbd6f13cbdd5b8b38e6a9e8cb39eb95ccc2
 
     public function getSourceContext()
     {
-        return new Twig_Source("", "@Twig/images/chevron-right.svg", "/var/www/gradel_dev/brauns/Gradel/symfony_project/vendor/symfony/symfony/src/Symfony/Bundle/TwigBundle/Resources/views/images/chevron-right.svg");
+        return new Twig_Source("", "@Twig/images/chevron-right.svg", "/var/www/gradel_dev/wolf/gradel/symfony_project/vendor/symfony/symfony/src/Symfony/Bundle/TwigBundle/Resources/views/images/chevron-right.svg");
     }
 }

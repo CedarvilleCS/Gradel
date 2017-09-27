@@ -47,6 +47,6 @@ class __TwigTemplate_6cddb45a2529856ec12fd940b6ee71b0e710251ff82c2f8166fc7201539
 
     public function getSourceContext()
     {
-        return new Twig_Source("", "@Framework/Form/money_widget.html.php", "/var/www/gradel_dev/brauns/Gradel/symfony_project/vendor/symfony/symfony/src/Symfony/Bundle/FrameworkBundle/Resources/views/Form/money_widget.html.php");
+        return new Twig_Source("", "@Framework/Form/money_widget.html.php", "/var/www/gradel_dev/wolf/gradel/symfony_project/vendor/symfony/symfony/src/Symfony/Bundle/FrameworkBundle/Resources/views/Form/money_widget.html.php");
     }
 }

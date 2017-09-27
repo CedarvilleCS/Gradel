@@ -43,6 +43,6 @@ class __TwigTemplate_44759b7cdaefd1287afd2d6b72696f03224215f02be1c3a9d454cbe03e5
 
     public function getSourceContext()
     {
-        return new Twig_Source("", "@Doctrine/Collector/icon.svg", "/var/www/gradel_dev/brauns/Gradel/symfony_project/vendor/doctrine/doctrine-bundle/Resources/views/Collector/icon.svg");
+        return new Twig_Source("", "@Doctrine/Collector/icon.svg", "/var/www/gradel_dev/wolf/gradel/symfony_project/vendor/doctrine/doctrine-bundle/Resources/views/Collector/icon.svg");
     }
 }

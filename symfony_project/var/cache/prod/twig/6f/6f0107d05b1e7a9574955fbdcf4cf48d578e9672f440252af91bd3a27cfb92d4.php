@@ -40,6 +40,6 @@ class __TwigTemplate_418beb5f3757b0b6217ddfce4a0782979ee153a200ac2d335b9651af2da
 
     public function getSourceContext()
     {
-        return new Twig_Source("", "@Framework/Form/hidden_row.html.php", "/var/www/gradel_dev/brauns/Gradel/symfony_project/vendor/symfony/symfony/src/Symfony/Bundle/FrameworkBundle/Resources/views/Form/hidden_row.html.php");
+        return new Twig_Source("", "@Framework/Form/hidden_row.html.php", "/var/www/gradel_dev/wolf/gradel/symfony_project/vendor/symfony/symfony/src/Symfony/Bundle/FrameworkBundle/Resources/views/Form/hidden_row.html.php");
     }
 }

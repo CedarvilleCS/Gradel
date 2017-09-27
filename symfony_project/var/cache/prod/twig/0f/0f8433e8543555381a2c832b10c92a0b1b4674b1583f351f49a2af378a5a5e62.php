@@ -121,6 +121,6 @@ class __TwigTemplate_b06a182b113d0a92b7706a7080ea7adc16b34a85c8d321b4930fc104ff6
 
     public function getSourceContext()
     {
-        return new Twig_Source("", "DoctrineBundle:Collector:explain.html.twig", "/var/www/gradel_dev/brauns/Gradel/symfony_project/vendor/doctrine/doctrine-bundle/Resources/views/Collector/explain.html.twig");
+        return new Twig_Source("", "DoctrineBundle:Collector:explain.html.twig", "/var/www/gradel_dev/wolf/gradel/symfony_project/vendor/doctrine/doctrine-bundle/Resources/views/Collector/explain.html.twig");
     }
 }

@@ -40,6 +40,6 @@ class __TwigTemplate_b42f3bdcd3ab61e6a1e8db80dc99df8de901d7eb5268ac5f96bb82eb70e
 
     public function getSourceContext()
     {
-        return new Twig_Source("", "@Framework/Form/percent_widget.html.php", "/var/www/gradel_dev/brauns/Gradel/symfony_project/vendor/symfony/symfony/src/Symfony/Bundle/FrameworkBundle/Resources/views/Form/percent_widget.html.php");
+        return new Twig_Source("", "@Framework/Form/percent_widget.html.php", "/var/www/gradel_dev/wolf/gradel/symfony_project/vendor/symfony/symfony/src/Symfony/Bundle/FrameworkBundle/Resources/views/Form/percent_widget.html.php");
     }
 }

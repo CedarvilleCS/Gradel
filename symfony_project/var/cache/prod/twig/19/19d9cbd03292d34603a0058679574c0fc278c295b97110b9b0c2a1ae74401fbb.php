@@ -77,6 +77,6 @@ class __TwigTemplate_b961505850d749e1e1dde36330d87d52a12d61ff60ec488fe7bf813b805
 
     public function getSourceContext()
     {
-        return new Twig_Source("", "TwigBundle:Exception:exception.xml.twig", "/var/www/gradel_dev/brauns/Gradel/symfony_project/vendor/symfony/symfony/src/Symfony/Bundle/TwigBundle/Resources/views/Exception/exception.xml.twig");
+        return new Twig_Source("", "TwigBundle:Exception:exception.xml.twig", "/var/www/gradel_dev/wolf/gradel/symfony_project/vendor/symfony/symfony/src/Symfony/Bundle/TwigBundle/Resources/views/Exception/exception.xml.twig");
     }
 }
