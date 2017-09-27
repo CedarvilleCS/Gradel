@@ -1,9 +1,7 @@
 #! /bin/bash
 
-cd symfony_project
-php composer.phar install
+php symfony_project/composer.phar install
 
-chmod -R 777 var/
-
-cd ..
-
+chown -R $UID symfony_project/*
+chmod -R 775 symfony_project/*
+chgrp -R 2018 symfony_project/*

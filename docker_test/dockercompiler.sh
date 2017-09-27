@@ -94,9 +94,6 @@ fi
 # run the sandbox
 docker run -u abc --name=gradelone --rm -v $SUBMISSION_DIRECTORY:/home/abc/shareddir -v $PWD/code_to_submit:/home/abc/code_to_submit gradel sudo /home/abc/$compile_script.sh $6 $file_name $timestamp
 
-echo "submitted code: "
-ls -l $CODE_DIRECTORY
-
 # display the output
 echo "output: "
 cat $OUTPUT_DIRECTORY/*.log
