@@ -85,4 +85,6 @@
   '::base.html.twig' => __DIR__.'/../../../app/Resources/views/base.html.twig',
   ':default:old.index.html.twig' => __DIR__.'/../../../app/Resources/views/default/old.index.html.twig',
   ':default:index.html.twig' => __DIR__.'/../../../app/Resources/views/default/index.html.twig',
+  ':default/account:index.html.twig' => __DIR__.'/../../../app/Resources/views/default/account/index.html.twig',
+  ':default:test.html.twig' => __DIR__.'/../../../app/Resources/views/default/test.html.twig',
 );
