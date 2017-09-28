@@ -1,36 +1,56 @@
-{% extends 'base.html.twig' %}
+{% if app.user %}
+<div class="loggedin-page">
+    <h1> What more do you want from me? </h1>
+    <a href="{{ logout_url("secured_area") }}">
+        <button>Logout</button>
+    </a>
+</div>
+{% else %}
+<script src="https://cdn.auth0.com/js/lock/10.20/lock.min.js"></script>
+<script>
+  var options = {
+      theme: {
+          logo: 'https://files.slack.com/files-pri/T6WHHNNLA-F6ZKV8PD5/test.png',
+          primaryColor: '#76b852'
+      },
+      languageDictionary: {
+          title: "Gradel"
+      },
+      auth: {
+      redirect: false,
+      responseType: 'code',
+      params: {
+        scope: 'openid email' // Learn about scopes: https://auth0.com/docs/scopes
+      }
+    }
+    
 
-{% block javascripts %}
-	{{ parent() }}
-	<script src="{{ asset('	js/login.js') }}"></script>
-{% endblock %}
+}
 
-{% block body %}
+  var lock = new Auth0Lock('NqRZ1h0EE7kE4Z917YsDfrgkuw6kMjwz', 'gradel.auth0.com', options);
+</script>
+<script type="text/javascript">
+    window.onload = function() {
+    lock.show();
+}
+</script>
+    <div class="login-page">
 
-<div class="login-page">
-  <div class="form">
-    <form class="register-form">
-      <input type="text" placeholder="name"/>
-      <input type="password" placeholder="password"/>
-      <input type="text" placeholder="email address"/>
-      <button href="/account">create</button>
-      <p class="message">Already registered? <a href="#">Sign In</a></p>
-    </form>
-    <form class="login-form">
-      <input type="text" placeholder="username"/>
-      <input type="password" placeholder="password"/>
-      <a href="{{path('account')}}">Login</a>
-      <p class="message">Not registered? <a href="#">Create an account</a></p>
-    </form>
+<button onload="lock.show();">Login</button>
   </div>
 </div>
-{% endblock %}
-
+{% endif %}
 {% block stylesheets %}
 <style>
   @import url(https://fonts.googleapis.com/css?family=Roboto:300);
 
   .login-page {
+  width: 360px;
+  padding: 8% 0 0;
+  margin: auto;
+  }
+
+  .loggedin-page {
   width: 360px;
   padding: 8% 0 0;
   margin: auto;
@@ -53,10 +73,10 @@
   border: 0;
   margin: 0 0 15px;
   padding: 15px;
-  box-sizing: border-box;
+  box-sizing: border-box; 
   font-size: 14px;
   }
-  .form button {
+  button {
   font-family: "Roboto", sans-serif;
   text-transform: uppercase;
   outline: 0;
@@ -70,7 +90,7 @@
   transition: all 0.3 ease;
   cursor: pointer;
   }
-  .form button:hover,.form button:active,.form button:focus {
+  button:hover,.form button:active,.form button:focus {
   background: #43A047;
   }
   .form .message {
@@ -130,3 +150,4 @@
   }
 </style>
 {% endblock %}
+

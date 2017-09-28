@@ -67,3 +67,13 @@ swiftmailer:
     username: '%mailer_user%'
     password: '%mailer_password%'
     spool: { type: memory }
+
+hwi_oauth:
+    firewall_names: [secured_area]
+    resource_owners:
+        auth0:
+            type:                auth0
+            base_url:            https://gradel.auth0.com
+            client_id:           2Ea1x0z0nSMqq3WWBs24pnzZFcqfA567
+            client_secret:       T5ZhU-bvX5RlTAigtWQIyRe4x_nfvDIxV8FylaotMmI0RI-WLyRt4fgMXMG4wpEH
+            scope: "openid profile"
