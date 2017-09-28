@@ -18,7 +18,7 @@ class DefaultController extends Controller
     /**
      * @Route("/", name="index")
      */
-    public function indexAction(Request $request) {
+    public function indexAction(LoggerInterface $logger) {
 
 		// $em = $this->getDoctrine()->getManager();
 		// $query = $em->createQuery('SELECT u FROM AppBundle\Entity\User u WHERE 1=1');
@@ -37,8 +37,9 @@ class DefaultController extends Controller
 		// 	'courses' => $courses,
 		// 	'course' => $course,
     //     ]);
-
-    return $this->render('default/index.html.twig');
+      $logger->info("CHRIS'S LG");
+      $logger->error("I got an error");
+      return $this->render('default/index.html.twig');
     }
 
     /**
@@ -46,7 +47,8 @@ class DefaultController extends Controller
     *
     * @Route("/account", name="account")
     */
-    public function accountAction(Request $request, LoggerInterface $logger) {
+    public function accountAction(LoggerInterface $logger) {
+      $logger->error("This is the beginning of indexAction");
       $em = $this->getDoctrine()->getManager();
   		$query = $em->createQuery('SELECT u FROM AppBundle\Entity\User u WHERE 1=1');
   		$users = $query->getResult();
@@ -57,7 +59,13 @@ class DefaultController extends Controller
   		$query = $em->createQuery('SELECT usr FROM AppBundle\Entity\UserSectionRole usr WHERE usr.section=22');
   		$course = $query->getResult();
 
-      $logger->urgent("Chris's First Log!!!!!!");
+      $logger->info("CHRIS'S LOG!!!!!!");
+      $logger->info("USERS");
+      $logger->info(json_encode($users));
+      $logger->info("COURSES");
+      $logger->info (json_encode($courses));
+      $logger->info("COURSE");
+      $logger->info(json_encode($course));
 
           // replace this example code with whatever you need
           return $this->render('default/account/index.html.twig', [
