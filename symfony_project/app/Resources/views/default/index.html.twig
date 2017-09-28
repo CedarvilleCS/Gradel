@@ -1,16 +1,18 @@
 {% if app.user %}
-    Welcome, {{ app.user.username }}!<br/>
+<div class="loggedin-page">
+    <h1> What more do you want from me? </h1>
     <a href="{{ logout_url("secured_area") }}">
         <button>Logout</button>
     </a>
+</div>
 {% else %}
-
+    <script src="https://cdn.auth0.com/js/lock/10.x.y/lock.min.js"></script>
     <script src="https://cdn.auth0.com/js/auth0/8.9/auth0.min.js"></script>
     <script type="text/javascript">
         var webAuth = new auth0.WebAuth({
             domain: 'gradel.auth0.com',
             clientID: '2Ea1x0z0nSMqq3WWBs24pnzZFcqfA567',
-            redirectUri: 'http://localhost:8000/auth0/callback',
+            redirectUri: 'http://joseph.cedarville.edu/gradel_dev/wolf/gradel/symfony_project/web/auth0/callback',
             audience: `https://gradel.auth0.com/userinfo`,
             responseType: 'code',
             scope: 'openid profile'
@@ -21,28 +23,22 @@
         }
     </script>
     <div class="login-page">
-  <div class="form">
-    <form class="register-form">
-      <input type="text" placeholder="name"/>
-      <input type="password" placeholder="password"/>
-      <input type="text" placeholder="email address"/>
-      <button href="/account">create</button>
-      <p class="message">Already registered? <a href="#">Sign In</a></p>
-    </form>
-    <form class="login-form">
-      <input type="text" placeholder="username"/>
-      <input type="password" placeholder="password"/>
-      <p class="message">Not registered? <a href="#">Create an account</a></p>
-    </form>
-<button onclick="window.signin();">Log1in</button>
+
+<button onclick="window.signin();">Login</button>
   </div>
 </div>
-
+{% endif %}
 {% block stylesheets %}
 <style>
   @import url(https://fonts.googleapis.com/css?family=Roboto:300);
 
   .login-page {
+  width: 360px;
+  padding: 8% 0 0;
+  margin: auto;
+  }
+
+  .loggedin-page {
   width: 360px;
   padding: 8% 0 0;
   margin: auto;
@@ -143,4 +139,3 @@
 </style>
 {% endblock %}
 
-{% endif %}
