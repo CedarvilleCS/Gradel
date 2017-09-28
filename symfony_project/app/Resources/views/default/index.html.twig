@@ -6,27 +6,39 @@
     </a>
 </div>
 {% else %}
-    <script src="https://cdn.auth0.com/js/lock/10.x.y/lock.min.js"></script>
-    <script src="https://cdn.auth0.com/js/auth0/8.9/auth0.min.js"></script>
-    <script type="text/javascript">
-        var webAuth = new auth0.WebAuth({
-            domain: 'gradel.auth0.com',
-            clientID: '2Ea1x0z0nSMqq3WWBs24pnzZFcqfA567',
-            redirectUri: 'http://joseph.cedarville.edu/gradel_dev/wolf/gradel/symfony_project/web/auth0/callback',
-            audience: `https://gradel.auth0.com/userinfo`,
-            responseType: 'code',
-            scope: 'openid profile'
-        });
+<script src="https://cdn.auth0.com/js/lock/10.20/lock.min.js"></script>
+<script>
+  var options = {
+      theme: {
+          logo: 'https://files.slack.com/files-pri/T6WHHNNLA-F6ZKV8PD5/test.png',
+          primaryColor: '#76b852'
+      },
+      languageDictionary: {
+          title: "Gradel"
+      },
+      auth: {
+	<!--redirect: false, ->
+      redirectUrl: 'http://joseph.cedarville.edu/gradel_dev/wolf/gradel/symfony_project/web/account',
+      responseType: 'code',
+      params: {
+        scope: 'openid email' // Learn about scopes: https://auth0.com/docs/scopes
+      }
+    }
+    
 
-        function signin() {
-            webAuth.authorize();
-        }
-    </script>
+}
+
+  var lock = new Auth0Lock('NqRZ1h0EE7kE4Z917YsDfrgkuw6kMjwz', 'gradel.auth0.com', options);
+</script>
+<script type="text/javascript">
+    window.onload = function() {
+    lock.show();
+}
+</script>
     <div class="login-page">
 
-<button onclick="window.signin();">Login</button>
-  </div>
-</div>
+<button onload="lock.show();">Login</button>
+     </div>
 {% endif %}
 {% block stylesheets %}
 <style>
@@ -138,4 +150,3 @@
   }
 </style>
 {% endblock %}
-
