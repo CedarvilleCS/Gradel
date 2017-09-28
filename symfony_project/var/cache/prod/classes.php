@@ -5238,6 +5238,36 @@ return $controller;
 }
 namespace Symfony\Component\Security\Http
 {
+use Symfony\Component\HttpFoundation\Request;
+interface AccessMapInterface
+{
+public function getPatterns(Request $request);
+}
+}
+namespace Symfony\Component\Security\Http
+{
+use Symfony\Component\HttpFoundation\RequestMatcherInterface;
+use Symfony\Component\HttpFoundation\Request;
+class AccessMap implements AccessMapInterface
+{
+private $map = array();
+public function add(RequestMatcherInterface $requestMatcher, array $attributes = array(), $channel = null)
+{
+$this->map[] = array($requestMatcher, $attributes, $channel);
+}
+public function getPatterns(Request $request)
+{
+foreach ($this->map as $elements) {
+if (null === $elements[0] || $elements[0]->matches($request)) {
+return array($elements[1], $elements[2]);
+}
+}
+return array(null, null);
+}
+}
+}
+namespace Symfony\Component\Security\Http
+{
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\Event\FinishRequestEvent;
@@ -5764,11 +5794,11 @@ namespace
 {
 class Twig_Environment
 {
-const VERSION ='1.34.4';
-const VERSION_ID = 13404;
+const VERSION ='1.35.0';
+const VERSION_ID = 13500;
 const MAJOR_VERSION = 1;
-const MINOR_VERSION = 34;
-const RELEASE_VERSION = 4;
+const MINOR_VERSION = 35;
+const RELEASE_VERSION = 0;
 const EXTRA_VERSION ='';
 protected $charset;
 protected $loader;
@@ -5804,6 +5834,7 @@ private $extensionsByClass = array();
 private $runtimeLoaders = array();
 private $runtimes = array();
 private $optionsHash;
+private $loading = array();
 public function __construct(Twig_LoaderInterface $loader = null, $options = array())
 {
 if (null !== $loader) {
@@ -5984,7 +6015,18 @@ throw new Twig_Error_Runtime(sprintf('Failed to load Twig template "%s", index "
 if (!$this->runtimeInitialized) {
 $this->initRuntime();
 }
-return $this->loadedTemplates[$cls] = new $cls($this);
+if (isset($this->loading[$cls])) {
+throw new Twig_Error_Runtime(sprintf('Circular reference detected for Twig template "%s", path: %s.', $name, implode(' -> ', array_merge($this->loading, array($name)))));
+}
+$this->loading[$cls] = $name;
+try {
+$this->loadedTemplates[$cls] = new $cls($this);
+unset($this->loading[$cls]);
+} catch (\Exception $e) {
+unset($this->loading[$cls]);
+throw $e;
+}
+return $this->loadedTemplates[$cls];
 }
 public function createTemplate($template)
 {

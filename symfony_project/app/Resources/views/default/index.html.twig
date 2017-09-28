@@ -1,13 +1,26 @@
-{% extends 'base.html.twig' %}
+{% if app.user %}
+    Welcome, {{ app.user.username }}!<br/>
+    <a href="{{ logout_url("secured_area") }}">
+        <button>Logout</button>
+    </a>
+{% else %}
 
-{% block javascripts %}
-	{{ parent() }}
-	<script src="{{ asset('	js/login.js') }}"></script>
-{% endblock %}
+    <script src="https://cdn.auth0.com/js/auth0/8.9/auth0.min.js"></script>
+    <script type="text/javascript">
+        var webAuth = new auth0.WebAuth({
+            domain: 'gradel.auth0.com',
+            clientID: '2Ea1x0z0nSMqq3WWBs24pnzZFcqfA567',
+            redirectUri: 'http://localhost:8000/auth0/callback',
+            audience: `https://gradel.auth0.com/userinfo`,
+            responseType: 'code',
+            scope: 'openid profile'
+        });
 
-{% block body %}
-
-<div class="login-page">
+        function signin() {
+            webAuth.authorize();
+        }
+    </script>
+    <div class="login-page">
   <div class="form">
     <form class="register-form">
       <input type="text" placeholder="name"/>
@@ -19,12 +32,11 @@
     <form class="login-form">
       <input type="text" placeholder="username"/>
       <input type="password" placeholder="password"/>
-      <button>login</button>
       <p class="message">Not registered? <a href="#">Create an account</a></p>
     </form>
+<button onclick="window.signin();">Log1in</button>
   </div>
 </div>
-{% endblock %}
 
 {% block stylesheets %}
 <style>
@@ -53,10 +65,10 @@
   border: 0;
   margin: 0 0 15px;
   padding: 15px;
-  box-sizing: border-box;
+  box-sizing: border-box; 
   font-size: 14px;
   }
-  .form button {
+  button {
   font-family: "Roboto", sans-serif;
   text-transform: uppercase;
   outline: 0;
@@ -70,7 +82,7 @@
   transition: all 0.3 ease;
   cursor: pointer;
   }
-  .form button:hover,.form button:active,.form button:focus {
+  button:hover,.form button:active,.form button:focus {
   background: #43A047;
   }
   .form .message {
@@ -130,3 +142,5 @@
   }
 </style>
 {% endblock %}
+
+{% endif %}

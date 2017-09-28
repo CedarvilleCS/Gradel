@@ -61,6 +61,10 @@ class ComposerStaticInit536f82e6fd30baebdc554abc134e9082
         array (
             'Incenteev\\ParameterHandler\\' => 27,
         ),
+        'H' => 
+        array (
+            'HWI\\Bundle\\OAuthBundle\\' => 23,
+        ),
         'F' => 
         array (
             'Fig\\Link\\' => 9,
@@ -77,6 +81,10 @@ class ComposerStaticInit536f82e6fd30baebdc554abc134e9082
         'C' => 
         array (
             'Composer\\CaBundle\\' => 18,
+        ),
+        'B' => 
+        array (
+            'Buzz\\' => 5,
         ),
         'A' => 
         array (
@@ -189,6 +197,10 @@ class ComposerStaticInit536f82e6fd30baebdc554abc134e9082
         array (
             0 => __DIR__ . '/..' . '/incenteev/composer-parameter-handler',
         ),
+        'HWI\\Bundle\\OAuthBundle\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/hwi/oauth-bundle',
+        ),
         'Fig\\Link\\' => 
         array (
             0 => __DIR__ . '/..' . '/fig/link-util/src',
@@ -220,6 +232,10 @@ class ComposerStaticInit536f82e6fd30baebdc554abc134e9082
         'Composer\\CaBundle\\' => 
         array (
             0 => __DIR__ . '/..' . '/composer/ca-bundle/src',
+        ),
+        'Buzz\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/kriswallsmith/buzz/lib/Buzz',
         ),
         'AppBundle\\' => 
         array (
