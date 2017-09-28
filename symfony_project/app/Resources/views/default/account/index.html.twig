@@ -14,10 +14,17 @@
 
 	<table>
 	  <tr>
-	    <th>Company</th>
-	    <th>Contact</th>
-	    <th>Country</th>
-	  </tr>
+	    <th>Name</th>
+	    <th>Stuff</th>
+	    <th>More stuff</th>
+		</tr>
+			{% for user in users %}
+				<tr>
+					<th>{{ user.first_name }}</th>
+					<th></th>
+					<th></th>
+				</tr>
+			{% endfor %}
 	</table>
 
 {% endblock %}

@@ -1,4 +1,7 @@
-app:
-  resource: '@AppBundle/Controller'
-  type: annotation
-  
+index:
+  path: '/'
+  defaults: {_controller: AppBundle:Blog:index}
+
+account:
+  path: '/account'
+  defaults: {_controller: AppBundle:Default:account}
