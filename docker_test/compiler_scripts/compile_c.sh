@@ -1,21 +1,36 @@
 #! /bin/bash
 
-if [ "$#" -ne 3 ]; then
-	echo "usage: ./compile_c.sh is_zipped input_name output_name"
-	exit 1
+if [ "$#" -ne 1 ] && [ "$#" -ne 0]; then
+	echo "usage: ./compile_c.sh <(1)compiler_flags>"
+	exit 55
 fi
 
-gcc submission/code/*.c -o a.out
+if [ "$#" -eq 1 ]; then
+	compiler_flags="$1"
+else 
+	compiler_flags=""
+fi
 
-rm -rf code_to_submit/*
+touch submission/compiler.log
+chmod 775 submission/compiler.log
+gcc submission/code/*.c $compiler_flags -o a.out > submission/compiler.log
 
-count=1
+if [ $? -ne 0 ]; then
+	echo "error with compiling"
+	exit $?
+fi
+
+touch submssion/script_running.log
+chmod 775 submission/script_running.log
+
 for f in input/*.in; do
 
-	touch submission/output/$count.out
-	chmod 775 submission/output/$count.out
-	./a.out < $f > submission/output/$count.out
-	
-	count=$((count+1))
+	filename=$(basename $f .in)
+
+	touch submission/output/$filename.out
+	chmod 775 submission/output/$filename.out
+	./a.out < $f > submission/output/$filename.out
 	
 done
+
+exit 0

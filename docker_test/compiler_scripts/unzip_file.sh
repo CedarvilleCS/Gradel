@@ -15,3 +15,5 @@ if [ "$is_zipped" = true ]; then
 else
 	cp code_to_submit/$input_name submission/code/
 fi
+
+exit 0;
