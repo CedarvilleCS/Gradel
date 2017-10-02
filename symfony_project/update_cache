@@ -1,9 +1,0 @@
-php bin/console cache:clear --no-warmup --env=prod
-php bin/console cache:warmup --env=prod
-
-php bin/console cache:clear --env=dev
-php bin/console cache:warmup --env=dev
-
-chown -R $UID var/
-chmod -R 777 var/
-chgrp -R 2018 var/
