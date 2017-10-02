@@ -21,12 +21,12 @@ class TestcaseResult {
 		}
 	}
 	
-	public function __construct5($sub, $test, $correct, $output, $time){
+  public function __construct5($sub, $test, $correct, $time, $out){
 		$this->submission = $sub;
 		$this->testcase = $test;
 		$this->is_correct = $correct;
 		$this->execution_time = $time;
-		$this->output_filename = $output;
+		$this->output = $out;
 	}
 	
 
@@ -48,6 +48,11 @@ class TestcaseResult {
      * @ORM\JoinColumn(name="testcase_id", referencedColumnName="id")
      */
 	public $testcase;
+	
+	/**
+	 * @ORM\Column(type="blob")
+	 */
+	public $output;
 
 	/**
 	* @ORM\Column(type="string", length=1023)
@@ -86,6 +91,10 @@ class TestcaseResult {
 		$this->output_filename = $output;
 	}
 	
+	public function setOutput($output) {
+		$this->output = $output;
+	}
+	
 	#GETTERS
 	public function getSubmission(){
 		return $this->submission;
@@ -105,6 +114,10 @@ class TestcaseResult {
 
 	public function getExecutionTime(){
 		return $this->execution_time;
+	}
+	
+	public function getOutput(){
+		return $this->output;
 	}
 }
 ?>

@@ -24,12 +24,12 @@ class Submission {
 		$this->testcaseresults = new ArrayCollection();
 	}
 	
-	public function __construct8($prob, $tm, $time, $acc, $filename, $filetype, $lang, $perc){
+	public function __construct8($prob, $tm, $time, $acc, $subm, $filetype, $lang, $perc){
 		$this->problem = $prob;
 		$this->team = $time;
 		$this->timestamp = $time;
 		$this->is_accepted = $acc;
-		$this->submitted_filename = $filename;
+		$this->submission = $subm;
 		$this->submitted_filetype = $filetype;
 		$this->language = $lang;
 		$this->percentage = $perc;
@@ -72,9 +72,9 @@ class Submission {
 	public $is_accepted;
 	
 	/**
-	*@ORM\Column(type="string", length=1023)
+	*@ORM\Column(type="blob")
 	*/
-	public $submitted_filename;
+	public $submission;
 	
 	/**
 	*@ORM\Column(type="integer")
@@ -112,8 +112,8 @@ class Submission {
 		$this->is_accepted = $accept;
 	}
 	
-	public function setSubmittedFilename($subnm) {
-		$this->submitted_filename = $subnm;
+	public function setSubmission($subnm) {
+		$this->submission = $subnm;
 	}
 	
 	public function setSubmittedFiletype($subft) {
@@ -145,8 +145,8 @@ class Submission {
 		return $this->is_accepted;
 	}
 	
-	public function getSubmittedFilename(){
-		return $this->submitted_filename;
+	public function getSubmission(){
+		return $this->submission;
 	}
 	
 	public function getSubmittedFiletype(){
