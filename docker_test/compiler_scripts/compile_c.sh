@@ -1,6 +1,6 @@
 #! /bin/bash
 
-if [ "$#" -ne 1 ] && [ "$#" -ne 0]; then
+if [ "$#" -ne 1 ] && [ "$#" -ne 0 ]; then
 	echo "usage: ./compile_c.sh <(1)compiler_flags>"
 	exit 55
 fi

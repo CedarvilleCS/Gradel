@@ -1,6 +1,6 @@
 #! /bin/bash
 
-if [ "$#" -ne 4 ] && [ "$#" -ne 3]; then
+if [ "$#" -ne 4 ] && [ "$#" -ne 3 ]; then
 	echo "usage: ./compile_code.sh (1)language_id (2)is_zipped"
 	echo "(3)file_name <(4)compiler_flags>"
 	exit 55
