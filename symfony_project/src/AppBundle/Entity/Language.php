@@ -33,18 +33,8 @@ class Language {
 	public $id;
 
 	/**
-	*@ORM\Column(type="string", length=100)
+	*@ORM\Column(type="string", length=255)
 	*/
 	public $name;
-	
-	#SETTERS
-	public function setName($name) {
-		$this->name = $name;
-	}
-	
-	#GETTERS
-	public function getName(){
-		return $this->name;
-	}
 }
 ?>

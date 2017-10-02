@@ -77,63 +77,6 @@ class Course{
 	*/
 	public $is_public;
 
-
-
-	# SETTERS
-	public function setCode($cd){
-		$this->code = $cd;
-	}
-
-	public function setName($nm){
-		$this->name = $nm;
-	}
-
-	public function setDescription($desc){
-		$this->description = $desc;
-	}
-
-	public function setIsContest($contest){
-		$this->is_contest = $contest;
-	}
-	
-	public function setIsDeleted($deleted){
-		$this->is_deleted = $deleted;
-	}
-	
-	public function setIsPublic($public){
-		$this->is_public = $public;
-	}
-
-	
-	# GETTERS
-	public function getSections(){
-		return $this->sections;
-	}
-
-	public function getCode(){
-		return $this->code;
-	}
-	
-	public function getName(){
-		return $this->name;
-	}
-
-	public function getDescription(){
-		return $this->description;
-	}
-
-	public function getIsContest(){
-		return $this->is_contest;
-	}
-		
-	public function getIsDeleted(){
-		return $this->is_deleted;
-	}
-	
-	public function getIsPublic(){
-		return $this->is_public;
-	}
-
 }
 
 ?>

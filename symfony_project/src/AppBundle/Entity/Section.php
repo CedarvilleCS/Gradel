@@ -33,8 +33,8 @@ class Section{
 		$this->start_time = $start;
 		$this->end_time = $end;
 		$this->owner = $own;
-		$this->is_deleted = $deleted; 
 		$this->is_public = $public;
+		$this->is_deleted = $deleted; 
 	}
 
 	/** 
@@ -56,12 +56,12 @@ class Section{
 	public $course;
 
 	/**
-	* @ORM\Column(type="string", length=100)
+	* @ORM\Column(type="string", length=255)
 	*/
 	public $name;
 
 	/**
-	* @ORM\Column(type="string", length=100)
+	* @ORM\Column(type="string", length=255)
 	*/
 	public $semester;
 
@@ -96,83 +96,6 @@ class Section{
 	* @ORM\Column(type="boolean")
 	*/
 	public $is_public;
-
-
-	# SETTERS
-	public function setCourse($curse){
-		$this->course = $curse;
-	}
-
-	public function setName($nm){
-		$this->name = $nm;
-	}
-
-	public function setSemester($sem){
-		$this->semester = $sem;
-	}
-
-	public function setYear($yr){
-		$this->year = $yr;
-	}
-
-	public function setStartTime($time){
-		$this->start_time;
-	}
-	
-	public function setEndTime($time){
-		$this->end_time;
-	}
-
-	public function setOwner($owner){
-		$this->owner;
-	}
-	
-	public function setIsDeleted($deleted){
-		$this->is_deleted = $deleted;
-	}
-	
-	public function setIsPublic($public){
-		$this->is_public = $public;
-	}
-
-	
-	# GETTERS
-	public function getCourse(){
-		return $this->course;
-	}
-
-	public function getName(){
-		return $this->name;
-	}
-
-	public function getSemester(){
-		return $this->semester;
-	}
-
-	public function	getYear(){
-		return $this->year;
-	}
-
-	public function getStartTime(){
-		return $this->start_time;
-	}
-
-	public function getEndTime(){
-		return $this->end_time;
-	}
-
-	public function getOwner(){
-		return $this->owner;
-	}
-	
-	public function getIsDeleted(){
-		return $this->is_deleted;
-	}
-	
-	public function getIsPublic($public){
-		return $this->is_public;
-	}
-
 }
 
 ?>

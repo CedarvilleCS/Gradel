@@ -40,16 +40,6 @@ class Role{
 	* @ORM\Column(type="string", length=255)
 	*/
 	public $role_name;
-
-	# SETTERS
-	public function setRoleName($name){
-		$this->role_name = $name;
-	}
-
-	# GETTERS
-	public function getRoleName(){
-		return $this->role_name;
-	}
 }
 
 ?>
