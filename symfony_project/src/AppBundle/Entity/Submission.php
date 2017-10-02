@@ -24,13 +24,16 @@ class Submission {
 		$this->testcaseresults = new ArrayCollection();
 	}
 	
-	public function __construct8($prob, $tm, $time, $acc, $subm, $filetype, $lang, $perc){
+	public function __construct11($prob, $tm, $time, $acc, $subm, $filetype, $mainclass, $compout, $didcomp, $lang, $perc){
 		$this->problem = $prob;
-		$this->team = $time;
+		$this->team = $tm;
 		$this->timestamp = $time;
 		$this->is_accepted = $acc;
 		$this->submission = $subm;
 		$this->submitted_filetype = $filetype;
+		$this->main_class_name = $mainclass;
+		$this->compiler_output = $compout;
+		$this->did_compile = $didcomp;
 		$this->language = $lang;
 		$this->percentage = $perc;
 	}
@@ -48,14 +51,12 @@ class Submission {
 	public $testcaseresults;
 	
 	/**
-     * Many Submissions have One Problem.
      * @ORM\ManyToOne(targetEntity="Problem")
      * @ORM\JoinColumn(name="problem_id", referencedColumnName="id")
      */
 	public $problem;
 	
 	/**
-     * Many Submissions have One Team.
      * @ORM\ManyToOne(targetEntity="Team", inversedBy="submissions")
      * @ORM\JoinColumn(name="team_id", referencedColumnName="id")
      */
@@ -67,19 +68,34 @@ class Submission {
 	public $timestamp;
 
 	/**
-	*@ORM\Column(type="boolean")
+	* @ORM\Column(type="boolean")
 	*/
 	public $is_accepted;
 	
 	/**
-	*@ORM\Column(type="blob")
+	* @ORM\Column(type="blob")
 	*/
 	public $submission;
 	
 	/**
-	*@ORM\Column(type="integer")
+	* @ORM\Column(type="integer")
 	*/
 	public $submitted_filetype;
+	
+	/**
+	* @ORM\Column(type="string", length=255)
+	*/
+	public $main_class_name;
+	
+	/**
+	* @ORM\Column(type="blob")
+	*/
+	public $compiler_output;
+	
+	/**
+	* @ORM\Column(type="boolean")
+	*/
+	public $compiler_error;
 	
 	/**
 	* @ORM\ManyToOne(targetEntity="Language")
@@ -91,75 +107,5 @@ class Submission {
 	*@ORM\Column(type="decimal", precision=12, scale=8)
 	*/
 	public $percentage;
-	
-	# SETTERS
-	public function setProblem($prob) {
-		$this->problem = $prob;
-	}
-
-	public function setTeam($team) {
-		$this->team = $team;
-	}
-	public function setTime($time) {
-		$this->time = $time;
-	}
-	
-	public function updateTime($time) {
-		$this->time = new \DateTime("now");
-	}
-	
-	public function setIsAccepted($accept) {
-		$this->is_accepted = $accept;
-	}
-	
-	public function setSubmission($subnm) {
-		$this->submission = $subnm;
-	}
-	
-	public function setSubmittedFiletype($subft) {
-		$this->submitted_filetype = $subft;
-	}
-	
-	public function setLanguageId($langid) {
-		$this->language_id = $langid;
-	}
-	
-	public function setPercentage($perc) {
-		$this->percentage = $perc;
-	}
-	
-	#GETTERZ
-	public function getProblem(){
-		return $this->problem;
-	}
-	
-	public function getTeam(){
-		return $this->team;
-	}
-	
-	public function getTime(){
-		return $this->time;
-	}
-	
-	public function getIsAccepted(){
-		return $this->is_accepted;
-	}
-	
-	public function getSubmission(){
-		return $this->submission;
-	}
-	
-	public function getSubmittedFiletype(){
-		return $this->submitted_filetype;
-	}
-	
-	public function getLanguageId(){
-		return $this->language_id;
-	}
-	
-	public function getPercentage(){
-		return $this->percentage;
-	}
-	
 }
 ?>

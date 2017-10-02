@@ -21,10 +21,12 @@ class TestcaseResult {
 		}
 	}
 	
-  public function __construct5($sub, $test, $correct, $time, $out){
+	public function __construct7($sub, $test, $correct, $runout, $runerror, $time, $out){
 		$this->submission = $sub;
 		$this->testcase = $test;
 		$this->is_correct = $correct;
+		$this->runtime_output = $runout;
+		$this->runtime_error = $runerror;
 		$this->execution_time = $time;
 		$this->output = $out;
 	}
@@ -52,12 +54,17 @@ class TestcaseResult {
 	/**
 	 * @ORM\Column(type="blob")
 	 */
-	public $output;
-
+	public $std_output;
+	
 	/**
-	* @ORM\Column(type="string", length=1023)
+	* @ORM\Column(type="blob")
 	*/
-	public $output_filename;
+	public $runtime_output;
+	
+	/**
+	* @ORM\Column(type="boolean")
+	*/
+	public $runtime_error;
 
 	/**
 	*@ORM\Column(type="boolean")
@@ -68,56 +75,5 @@ class TestcaseResult {
 	*@ORM\Column(type="integer")
 	*/
 	public $execution_time;
-	
-	
-	#SETTERS
-	public function setSubmission($sub) {
-		$this->submission = $sub;
-	}
-	
-	public function setTestcase($tc) {
-		$this->testcase = $tc;
-	}
-	
-	public function setIsCorrect($correct) {
-		$this->is_correct = $correct;
-	}
-	
-	public function setExecutionTime($time) {
-		$this->execution_time = $time;
-	}
-
-	public function setOutputFilename($output) {
-		$this->output_filename = $output;
-	}
-	
-	public function setOutput($output) {
-		$this->output = $output;
-	}
-	
-	#GETTERS
-	public function getSubmission(){
-		return $this->submission;
-	}
-	
-	public function getTestcase(){
-		return $this->testcase;
-	}
-	
-	public function getIsCorrect(){
-		return $this->is_correct;
-	}
-	
-	public function getOutputFilename(){
-		return $this->output_filename;
-	}
-
-	public function getExecutionTime(){
-		return $this->execution_time;
-	}
-	
-	public function getOutput(){
-		return $this->output;
-	}
 }
 ?>

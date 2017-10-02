@@ -44,7 +44,7 @@ class Team{
 	public $submissions;
 	
 	/**
-	* @ORM\Column(type="string", length=50)
+	* @ORM\Column(type="string", length=255)
 	*/
 	public $name;
 
@@ -62,37 +62,6 @@ class Team{
 	*	)
 	*/
 	public $users;
-
-	
-	# SETTERS
-	public function setName($nm) {
-		$this->name = $nm;
-	}
-	
-	public function setAssignment($assig) {
-		$this->assignment = $assig;
-	}
-	
-	public function addUserToTeam($newuser){
-		$users[] = $newuser;
-	}
-	
-	#GETTERZ
-	public function getName(){
-		return $this->name;
-	}
-	
-	public function getAssignment(){
-		return $this->assignment;
-	}
-	
-	public function getUsers(){
-		return $this->users;
-	}
-	
-	public function getSubmissions(){
-		return $this->submissions;
-	}
 }
 
 ?>

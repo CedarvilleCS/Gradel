@@ -25,15 +25,14 @@ class Problem{
 		$this->testcases = new ArrayCollection();
 	}
 	
-	public function __construct13($assign, $nm, $desc, $inst, $lang, $default, $comp, $meth, $wght, $grdmeth, $attempts, $limit, $credit){
+	public function __construct12($assign, $nm, $desc, $inst, $lang, $default, $comp, $wght, $grdmeth, $attempts, $limit, $credit){
 		$this->assignment = $assign;
-		$this->name = $name;
+		$this->name = $nm;
 		$this->description = $desc;
 		$this->instructions = $inst;
 		$this->language = $lang;
 		$this->default_code = $default;
-		$this->compilation_mode = $comp;
-		$this->linking_option = $meth;
+		$this->compilation_options = $comp;
 		$this->weight = $wght;
 		$this->gradingmethod = $grdmeth;
 		$this->attempts_allowed = $attempts;
@@ -65,12 +64,12 @@ class Problem{
 	public $name;
 
 	/**
-	* @ORM\Column(type="text")
+	* @ORM\Column(type="blob")
 	*/
 	public $description;
 
 	/**
-	* @ORM\Column(type="text")
+	* @ORM\Column(type="blob")
 	*/
 	public $instructions;
 
@@ -81,19 +80,14 @@ class Problem{
 	public $language;
 
 	/**
-	* @ORM\Column(type="text")
+	* @ORM\Column(type="blob")
 	*/
 	public $default_code;
-	
+
 	/**
 	* @ORM\Column(type="text")
 	*/
-	public $linking_option;
-	
-	/**
-	* @ORM\Column(type="text")
-	*/
-	public $compilation_mode;
+	public $compilation_options;
 
 	/**
 	* @ORM\Column(type="decimal", precision=12, scale=8)
@@ -120,116 +114,6 @@ class Problem{
 	* @ORM\Column(type="boolean")
 	*/
 	public $is_extra_credit;
-
-
-	
-	# SETTERS
-	public function setAssignment($assign){
-		$this->assignment = $assign;
-	}
-
-	public function setName($nm){
-		$this->name = $nm;
-	}
-
-	public function setDescription($desc){
-		$this->description = $desc;
-	}
-
-	public function setInstructions($ins){
-		$this->instructions = $ins;
-	}
-
-	public function setLanguage($lang){
-		$this->language = $lang;
-	}
-	
-	public function setCompilationMode($comp){
-		$this->compilation_mode = $comp;
-	}
-	
-	public function setLinkingOption($meth){
-		$this->linking_option = $meth;
-	}
-
-	public function setDefaultCode($code){
-		$this->default_code = $code;
-	}
-
-	public function setWeight($wght){
-		$this->weight = $wght;
-	}
-
-	public function setGradingmethod($grade){
-		$this->gradingmethod = $grade;
-	}
-
-	public function setAttemptAllowed($att){
-		$this->attempts_allowed = $att;
-	}
-
-	public function setTimeLimit($time){
-		$this->time_limit = $time;
-	}
-
-	public function setIsExtraCredit($extra){
-		$this->is_extra_credit = $extra;
-	}
-
-
-	# GETTERS
-	public function getAssignment(){
-		return $this->assignment;
-	}
-
-	public function getName(){
-		return $this->name;
-	}
-
-	public function getDescription(){
-		return $this->description;
-	}
-
-	public function getInstructions(){
-		return $this->instructions;
-	}
-
-	public function getLanguage(){
-		return $this->language;
-	}
-
-	public function getDefaultCode(){
-		return $this->default_code;
-	}
-	
-	public function getCompilationMode(){
-		return $this->compilation_mode;
-	}
-
-	public function getLinkingOption(){
-		return $this->linking_option;
-	}
-	
-	public function getWeight(){
-		return $this->weight;
-	}
-
-	public function getGradingmethod(){
-		return $this->gradingmethod;
-	}
-
-	public function getAttemptsAllowed(){
-		return $this->attempts_allowed;
-	}
-
-	public function getTimeLimit(){
-		return $this->time_limit;
-	}
-
-	public function getIsExtraCredit(){
-		return $this->is_extra_credit;
-	}
-
 }
 
 ?>

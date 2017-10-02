@@ -70,57 +70,5 @@ class Testcase {
 	*@ORM\Column(type="decimal", precision=9, scale=8)
 	*/
 	public $weight;
-	
-
-	# SETTERS
-	public function setProblem($prob) {
-		$this->problem = $prob;
-	}
-	
-	public function setSeqNum($seqnum) {
-		$this->seq_num = $seqnum;
-	}
-	
-	public function setInput($input) {
-		$this->input = $input;
-	}
-	
-	public function setCorrectOutput($corrout) {
-		$this->correct_output = $corrout;
-	}
-	
-	public function setFeedback($fb) {
-		$this->feedback = $fb;
-	}
-	
-	public function setWeight($weight) {
-		$this->weight = $weight;
-	}
-	
-	#GETTERS
-	public function getProblem(){
-		return $this->problem;
-	}
-	
-	public function getSeqNum(){
-		return $this->seq_num;
-	}
-	
-	public function getInput(){
-		return $this->input;
-	}
-	
-	public function getCorrectOutput(){
-		return $this->correct_output;
-	}
-	
-	public function getFeedback(){
-		return $this->feedback;
-	}
-	
-	public function getWeight(){
-		return $this->weight;
-	}
-
 }
 ?>

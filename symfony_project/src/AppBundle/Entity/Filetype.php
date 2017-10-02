@@ -36,16 +36,6 @@ class Filetype {
 	*@ORM\Column(type="string", length=100)
 	*/
 	public $extension;
-
-	#SETTERS
-	public function setExtension($ext) {
-		$this->extension = $ext;
-	}
-	
-	#GETTERS
-	public function getExtension(){
-		return $this->extension;
-	}
 	
 }
 ?>

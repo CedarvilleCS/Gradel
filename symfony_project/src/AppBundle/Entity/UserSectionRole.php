@@ -48,39 +48,6 @@ class UserSectionRole{
 	* @ORM\JoinColumn(name="role_id", referencedColumnName="id")
 	*/
 	public $role;
-
-
-
-	# SETTERS
-	public function setUser($user){
-		$this->user = $user;
-	}
-
-	public function setSection($section){
-		$this->section = $section;
-	}
 	
-	public function setRole($role){
-		$this->role = $role;
-	}
-
-	
-	
-	# GETTERS
-	public function getUser(){
-		return $this->user;
-	}
-
-	public function getSection(){
-		return $this->section;
-	}
-
-	public function getRole(){
-		return $this->role;
-	}
-
-
-
 }
-
 ?>
