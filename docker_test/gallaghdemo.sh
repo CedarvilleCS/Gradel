@@ -65,8 +65,6 @@ echo "output: stores the output for each test case"
 
 echo ""
 
-rm -rf problems/$problem_id
-
 read -n 1 -s -r -p "Thanks for joining us! Press any key to exit this good demo!"
 echo ""
 clear
