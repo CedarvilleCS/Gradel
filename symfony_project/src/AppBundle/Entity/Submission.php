@@ -88,7 +88,7 @@ class Submission {
 	public $main_class_name;
 	
 	/**
-	* @ORM\Column(type="blob")
+	* @ORM\Column(type="blob", nullable=true)
 	*/
 	public $compiler_output;
 	

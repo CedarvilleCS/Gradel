@@ -52,12 +52,12 @@ class TestcaseResult {
 	public $testcase;
 	
 	/**
-	 * @ORM\Column(type="blob")
+	 * @ORM\Column(type="blob", nullable=true)
 	 */
 	public $std_output;
 	
 	/**
-	* @ORM\Column(type="blob")
+	* @ORM\Column(type="blob", nullable=true)
 	*/
 	public $runtime_output;
 	
