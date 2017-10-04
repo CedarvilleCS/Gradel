@@ -34,7 +34,7 @@ class Gradingmethod {
 	public $id;
 
 	/**
-	*@ORM\Column(type="string", length=255)
+	*@ORM\Column(type="string", length=255, unique=true)
 	*/
 	public $name;
 
