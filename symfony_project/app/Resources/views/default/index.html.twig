@@ -6,38 +6,9 @@
     </a>
 </div>
 {% else %}
-<script src="https://cdn.auth0.com/js/lock/10.20/lock.min.js"></script>
-<script>
-  var options = {
-      theme: {
-          logo: 'https://files.slack.com/files-pri/T6WHHNNLA-F6ZKV8PD5/test.png',
-          primaryColor: '#76b852'
-      },
-      languageDictionary: {
-          title: "Gradel"
-      },
-      auth: {
-      redirect: false,
-      responseType: 'code',
-      params: {
-        scope: 'openid email' // Learn about scopes: https://auth0.com/docs/scopes
-      }
-    }
-    
+<div class="login-page">
 
-}
-
-  var lock = new Auth0Lock('NqRZ1h0EE7kE4Z917YsDfrgkuw6kMjwz', 'gradel.auth0.com', options);
-</script>
-<script type="text/javascript">
-    window.onload = function() {
-    lock.show();
-}
-</script>
-    <div class="login-page">
-
-<button onload="lock.show();">Login</button>
-  </div>
+<a href="{{path('account')}}">Login</a>
 </div>
 {% endif %}
 {% block stylesheets %}
@@ -73,7 +44,7 @@
   border: 0;
   margin: 0 0 15px;
   padding: 15px;
-  box-sizing: border-box; 
+  box-sizing: border-box;
   font-size: 14px;
   }
   button {
@@ -150,4 +121,3 @@
   }
 </style>
 {% endblock %}
-

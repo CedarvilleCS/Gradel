@@ -56,8 +56,10 @@ class DefaultController extends Controller
   		$query = $em->createQuery('SELECT c FROM AppBundle\Entity\Course c WHERE 1=1');
   		$courses = $query->getResult();
 
-  		$query = $em->createQuery('SELECT usr FROM AppBundle\Entity\UserSectionRole usr WHERE usr.section=22');
-  		$course = $query->getResult();
+  		$query = $em->createQuery('SELECT usr FROM AppBundle\Entity\UserSectionRole usr WHERE usr.section=7');
+  	  $userSectionRole= $query->getResult();
+
+      // $query = $em->createQuery('SELECT usr from AppBundle\Entity')
 
       $logger->info("CHRIS'S LOG!!!!!!");
       $logger->info("USERS");
@@ -65,14 +67,14 @@ class DefaultController extends Controller
       $logger->info("COURSES");
       $logger->info (json_encode($courses));
       $logger->info("COURSE");
-      $logger->info(json_encode($course));
+      $logger->info(json_encode($userSectionRole));
 
           // replace this example code with whatever you need
           return $this->render('default/account/index.html.twig', [
               'base_dir' => realpath($this->getParameter('kernel.project_dir')).DIRECTORY_SEPARATOR,
   			'users' => $users,
   			'courses' => $courses,
-  			'course' => $course,
+  			'userSectionRole' => $userSectionRole,
           ]);
       // return $this->render('default/account/index.html.twig');
     }
