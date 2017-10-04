@@ -3,11 +3,12 @@
 namespace AppBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-use Doctring\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\ORM\Mapping\UniqueConstraint;
 
 /**
  * @ORM\Entity
- * @ORM\Table(name="team")
+ * @ORM\Table(name="team", uniqueConstraints={@UniqueConstraint(name="team_name_assignment", columns={"name", "assignment_id"})})
  */
 class Team{
 	
@@ -27,7 +28,7 @@ class Team{
 	}
 	
 	public function __construct2($nm, $assign){
-		$this->name = $name;
+		$this->name = $nm;
 		$this->assignment = $assign;		
 	}
 	
@@ -57,8 +58,8 @@ class Team{
 	/**
 	* @ORM\ManyToMany(targetEntity="User")
 	* @ORM\JoinTable(name="userteam",
-	*	joinColumns={@ORM\JoinColumn(name="user_id", referencedColumnName="id")},
-	*	inverseJoinColumns={@ORM\JoinColumn(name="team_id", referencedColumnName="id")}
+	*	joinColumns={@ORM\JoinColumn(name="team_id", referencedColumnName="id")},
+	*	inverseJoinColumns={@ORM\JoinColumn(name="user_id", referencedColumnName="id")}
 	*	)
 	*/
 	public $users;

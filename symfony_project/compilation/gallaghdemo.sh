@@ -34,13 +34,13 @@ echo ""
 echo ""
 echo "We can now create a docker container, copy the files over, run the code in a safe environment, and test the output against the correct output"
 echo "Here is the command that we are about to issue:"
-echo "./dockercompiler.sh $problem_id $team_id /var/www/dev/tgsmith/Gradel/docker_test/test_code sum.c c false 3 '' gallaghdemo"
+echo "./dockercompiler.sh $problem_id $team_id /var/www/dev/tgsmith/Gradel/symfony_project/compilation/test_code sum.c c false 3 '' gallaghdemo"
 echo ""
 echo ""
 read -n 1 -s -r -p "Press any key to automatically compile and run the code!"
 
 touch temp.file
-./dockercompiler.sh $problem_id $team_id /var/www/dev/tgsmith/Gradel/docker_test/test_code sum.c c false 3 "" gallaghdemo > temp.file
+./dockercompiler.sh $problem_id $team_id /var/www/dev/tgsmith/Gradel/symfony_project/compilation/test_code sum.c c false 3 "" gallaghdemo > temp.file
 
 echo ""
 echo "Done!"

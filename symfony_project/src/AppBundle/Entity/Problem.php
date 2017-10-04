@@ -64,12 +64,12 @@ class Problem{
 	public $name;
 
 	/**
-	* @ORM\Column(type="blob")
+	* @ORM\Column(type="blob", nullable=true)
 	*/
 	public $description;
 
 	/**
-	* @ORM\Column(type="blob")
+	* @ORM\Column(type="blob", nullable=true)
 	*/
 	public $instructions;
 
@@ -80,7 +80,7 @@ class Problem{
 	public $language;
 
 	/**
-	* @ORM\Column(type="blob")
+	* @ORM\Column(type="blob", nullable=true)
 	*/
 	public $default_code;
 
