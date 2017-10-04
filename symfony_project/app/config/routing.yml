@@ -1,3 +1,11 @@
 app:
     resource: '@AppBundle/Controller/'
     type: annotation
+
+submit: 
+    path: "/submit"
+    defaults: {_controller: AppBundle:Default:submit}
+
+index: 
+    path: "/"
+    defaults: {_controller: AppBundle:Default:index}

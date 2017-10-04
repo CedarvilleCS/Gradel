@@ -40,6 +40,6 @@ class DefaultController extends Controller
 	* @Route("/submit", name="submit")
 	*/
 	public function submitAction() {
-		return $this->render('default/index.html.twig');
+		return $this->render('default/submit.html.twig');
 	}
 }
