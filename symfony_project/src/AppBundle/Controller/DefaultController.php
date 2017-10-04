@@ -15,37 +15,11 @@ use Psr\Log\LoggerInterface;
 
 class DefaultController extends Controller
 {
-    /**
-     * @Route("/", name="index")
-     */
     public function indexAction(Request $request) {
-
-		// $em = $this->getDoctrine()->getManager();
-		// $query = $em->createQuery('SELECT u FROM AppBundle\Entity\User u WHERE 1=1');
-		// $users = $query->getResult();
-    //
-		// $query = $em->createQuery('SELECT c FROM AppBundle\Entity\Course c WHERE 1=1');
-		// $courses = $query->getResult();
-    //
-		// $query = $em->createQuery('SELECT usr FROM AppBundle\Entity\UserSectionRole usr WHERE usr.section=22');
-		// $course = $query->getResult();
-    //
-    //     // replace this example code with whatever you need
-    //     return $this->render('default/index.html.twig', [
-    //         'base_dir' => realpath($this->getParameter('kernel.project_dir')).DIRECTORY_SEPARATOR,
-		// 	'users' => $users,
-		// 	'courses' => $courses,
-		// 	'course' => $course,
-    //     ]);
 
     return $this->render('default/index.html.twig');
     }
 
-    /**
-    *
-    *
-    * @Route("/account", name="account")
-    */
     public function accountAction(Request $request, LoggerInterface $logger) {
       $em = $this->getDoctrine()->getManager();
   		$query = $em->createQuery('SELECT u FROM AppBundle\Entity\User u WHERE 1=1');
