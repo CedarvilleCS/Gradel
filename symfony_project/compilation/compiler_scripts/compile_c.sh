@@ -17,10 +17,10 @@ gcc submission/code/*.c $compiler_flags -o a.out > submission/compiler.log
 
 if [ $? -ne 0 ]; then
 	echo "error with compiling"
-	exit $?
+	exit 123
 fi
 
-touch submssion/script_running.log
+touch submission/script_running.log
 chmod 775 submission/script_running.log
 
 for f in input/*.in; do

@@ -6,6 +6,8 @@ if [ "$#" -ne 4 ] && [ "$#" -ne 3 ]; then
 	exit 55
 fi
 
+touch submission/hello.c
+
 # get variables from the command line
 language_id="$1"
 is_zipped="$2"
@@ -17,23 +19,23 @@ else
 	compiler_flags=""
 fi
 
-./unzip_file.sh $file_name 
+./unzip_file.sh $file_name $is_zipped
 
 if [ $? -ne 0 ]; then
 	echo "error with ./unzip_file.sh"
-	exit $?
+	exit 200
 fi
 
 # decide which script to run
-if [ "$language_id" == "c" ]; then
+if [ "$language_id" == "C" ]; then
 	compile_script="compile_c"
-elif [ "$language_id" == "java" ]; then
+elif [ "$language_id" == "Java" ]; then
 	compile_script="compile_java"
-elif [ "$language_id" == "cpp" ]; then
+elif [ "$language_id" == "C++" ]; then
 	compile_script="compile_cpp"
 else
 	echo "language_id is unknown"
-	exit 1
+	exit 54
 fi
 
 ./$compile_script.sh $linker_flags $compiler_flags
@@ -41,5 +43,5 @@ fi
 # delete the code to submit
 rm -rf code_to_submit/*
 
-exit $?
+exit 0
 

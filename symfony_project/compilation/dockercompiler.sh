@@ -5,7 +5,7 @@ if [ "$#" -ne 9 ]; then
 	echo "$#"
 	echo "usage: ./dockercompiler.sh"
 	echo "(1)problem_id (2)team_id"
-	echo "(3)submitted_file_path (4)submitted_file_name (5)submitted_file_type "
+	echo "(3)submitted_file_path (4)submitted_file_name (5)submitted_language_name "
 	echo "(6)is_zipped (7)time_limit (8)compiler_flags"
 	echo "(9)output_folder_name"
 	exit 1
@@ -31,15 +31,17 @@ echo "The output_folder_name is $output_folder_name"
 echo "The team_id is $team_id"
 echo "The problem_id is $problem_id"
 
-TEAM_DIRECTORY="$PWD/submissions/$team_id"
-PROBLEM_DIRECTORY="$PWD/submissions/$team_id/$problem_id"
-SUBMISSION_DIRECTORY="$PWD/submissions/$team_id/$problem_id/$output_folder_name"
-CODE_DIRECTORY="$PWD/submissions/$team_id/$problem_id/$output_folder_name/code"
-STUDENT_OUTPUT_DIRECTORY="$PWD/submissions/$team_id/$problem_id/$output_folder_name/output"
-LOG_DIRECTORY="$PWD/submissions/$team_id/$problem_id/$output_folder_name/logs"
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-INPUT_DIRECTORY="problems/$problem_id/input"
-EXPECTED_OUTPUT_DIRECTORY="problems/$problem_id/output"
+TEAM_DIRECTORY="$SCRIPT_DIR/submissions/$team_id"
+PROBLEM_DIRECTORY="$SCRIPT_DIR/submissions/$team_id/$problem_id"
+SUBMISSION_DIRECTORY="$SCRIPT_DIR/submissions/$team_id/$problem_id/$output_folder_name"
+CODE_DIRECTORY="$SCRIPT_DIR/submissions/$team_id/$problem_id/$output_folder_name/code"
+STUDENT_OUTPUT_DIRECTORY="$SCRIPT_DIR/submissions/$team_id/$problem_id/$output_folder_name/output"
+LOG_DIRECTORY="$SCRIPT_DIR/submissions/$team_id/$problem_id/$output_folder_name/logs"
+
+INPUT_DIRECTORY="$SCRIPT_DIR/temp/$output_folder_name"
+EXPECTED_OUTPUT_DIRECTORY="$SCRIPT_DIR/temp/$output_folder_name"
 
 echo "team_id directory: $TEAM_DIRECTORY"
 echo "problem_id directory: $PROBLEM_DIRECTORY"
@@ -80,15 +82,17 @@ else
 fi
 
 # check if the problem has input files
-if [ ! -d "$INPUT_DIRECTORY" ]; then
+if [ ! -d "$INPUT_DIRECTORY" ] || [ ! -d "$EXPECTED_OUTPUT_DIRECTORY" ]; then
 
-	echo "$INPUT_DIRECTORY does not exist"
+	echo "$INPUT_DIRECTORY or $EXPECTED_OUTPUT_DIRECTORY does not exist"
 	exit 1
 	
 else
 	
 	file_count=$(find $INPUT_DIRECTORY -maxdepth 1 -name "*.in" | wc -l)
 	other_file_count=$(find $EXPECTED_OUTPUT_DIRECTORY -maxdepth 1 -name "*.out" | wc -l)
+	
+	ls -l $INPUT_DIRECTORY;
 	
 	if [ $file_count -lt 1 ]; then
 		echo "this problem has no input test cases"
@@ -97,7 +101,7 @@ else
 		echo "this problem does not have the same number of input and output files"
 		exit 1	
 	else
-		echo "$PWD/problems/$problem_id/input exists and has $file_count input cases"
+		echo "$INPUT_DIRECTORY exists and has $file_count input cases"
 	fi
 
 fi
@@ -115,24 +119,31 @@ echo "created output directory"
 # make the log directory
 mkdir "$LOG_DIRECTORY"
 chmod 775 "$LOG_DIRECTORY"
-echo "created output directory"
+echo "created log directory"
 
 # copy the submitted file over into the mounted directory
 if [ -f "$file_path/$file_name" ]; then
-	cp "$file_path/$file_name" "$PWD/code_to_submit/$file_name"
+
+	echo "Found submitted file $file_path/$file_name. Copying to submit directory..."
+	cp "$file_path/$file_name" "$SCRIPT_DIR/code_to_submit/$file_name"
+
+else
+	echo "Cannot find submitted file $file_path/$file_name"
+	exit 1
 fi	
 
 # run the sandbox
 echo ""
 echo "Creating the docker sandbox to run student code..."
 
-docker run --name=gradelone -d -v $SUBMISSION_DIRECTORY:/home/abc/submission -v $PWD/code_to_submit:/home/abc/code_to_submit -v $PWD/problems/$problem_id/input:/home/abc/input gradel /home/abc/compile_code.sh $file_type $is_zipped $file_name $linker_flags $compiler_flags
+echo "docker run --name=gd$output_folder_name -d -v $SUBMISSION_DIRECTORY:/home/abc/submission -v $SCRIPT_DIR/code_to_submit:/home/abc/code_to_submit -v $INPUT_DIRECTORY:/home/abc/input gradel /home/abc/compile_code.sh $file_type $is_zipped $file_name $linker_flags $compiler_flags"
+echo $(docker run --name=gd$output_folder_name -d -v $SUBMISSION_DIRECTORY:/home/abc/submission -v $SCRIPT_DIR/code_to_submit:/home/abc/code_to_submit -v $INPUT_DIRECTORY:/home/abc/input gradel /home/abc/compile_code.sh $file_type $is_zipped $file_name $linker_flags $compiler_flags 2>&1)
 
-echo "timeout $time_limit docker wait gradelone"
-code=$(timeout "$time_limit"s docker wait gradelone || true)
+echo "timeout 20 docker wait gd$output_folder_name"
 
-docker kill gradelone
-docker rm gradelone
+code=$(timeout 20 docker wait gd$output_folder_name 2>&1 || true)
+echo $(docker kill "gd$output_folder_name" 2>&1)
+echo $(docker rm "gd$output_folder_name" 2>&1)
 
 echo -n 'status: '
 if [ -z "$code" ]; then
@@ -150,11 +161,12 @@ echo "Comparing student output with expected output..."
 STUDENT_OUTPUT_FILES=($STUDENT_OUTPUT_DIRECTORY/*.out)
 EXPECTED_OUTPUT_FILES=($EXPECTED_OUTPUT_DIRECTORY/*.out)
 
-student_file_count=$(find $INPUT_DIRECTORY -maxdepth 1 -name "*.in" | wc -l)
+student_file_count=$(find $STUDENT_OUTPUT_DIRECTORY -maxdepth 1 -name "*.out" | wc -l)
 expect_file_count=$(find $EXPECTED_OUTPUT_DIRECTORY -maxdepth 1 -name "*.out" | wc -l)
 	
 if [ $student_file_count -ne $expect_file_count ]; then
 	echo "student output does not have the same number of files"
+	echo $student_file_count - $expect_file_count
 	exit 1
 fi
 
