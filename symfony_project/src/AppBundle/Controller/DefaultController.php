@@ -38,7 +38,7 @@ class DefaultController extends Controller
 		// 	'course' => $course,
     //     ]);
       $logger->info("CHRIS'S LG");
-      $logger->error("I got an error");
+      $logger->error(error);
       return $this->render('default/index.html.twig');
     }
 

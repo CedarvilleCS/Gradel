@@ -18,7 +18,7 @@ auth0_logout:
 
 index:
   path: '/'
-  defaults: {_controller: AppBundle:Blog:index}
+  defaults: {_controller: AppBundle:Default:index}
 
 account:
   path: '/account'
