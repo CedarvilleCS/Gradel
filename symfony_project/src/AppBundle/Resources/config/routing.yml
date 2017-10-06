@@ -1,12 +1,11 @@
+# submit:
+#     path:     /submit
+#     defaults: { _controller: AppBundle:SubmitController:submit }
 
-submit:
-    path:     /submit
-    defaults: { _controller: AppBundle:Submit:submit }
+# student_submit:
+    # path:     /studentSubmit
+    # defaults: { _controller: AppBundle:Submit:studentSubmit }
 
-student_submit:
-    path:     /studentSubmit
-    defaults: { _controller: AppBundle:Submit:studentSubmit }
-
-submit:
-    path:     /submit
-    defaults: { _controller: AppBundle:Submit:submit }
+# submit:
+#     path:     /submit
+#     defaults: { _controller: AppBundle:Submit:submit }
