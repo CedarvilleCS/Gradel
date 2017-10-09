@@ -1,34 +1,24 @@
 {% extends 'base.html.twig' %}
 
-{% block javascripts %}
-	{{ parent() }}
-	<script src="{{ asset('	js/login.js') }}"></script>
-{% endblock %}
-
 {% block body %}
 	<div class="topnav" id="myTopnav">
 	  <a>Home</a>
 	  <a>Account</a>
 	</div>
-	<div>Welcome to the page!!</div>
+
 	<table>
 	  <tr>
-	    <th>Section</th>
 	    <th>Name</th>
-	    <th>Year</th>
-			<th>Semester</th>
 		</tr>
-			{% for cp in coursePerson %}
-				<tr>
-					<th>{{ cp.section.name }}</th>
-					<th>
-						<a href="{{path('section', {'userId': userId, "sectionId": cp.section.id})}}">
-							{{ cp.section.course.name }}
-						</a>
-					</th>
-					<th>{{ cp.section.year}}</th>
-					<th>{{ cp.section.semester}}</th>
-			{% endfor %}
+    {% for assignment in section.assignments %}
+      <tr>
+        <th>
+          <a href="{{path('assignment', {'userId': userId, 'sectionId': sectionId, 'assignmentId': assignment.id})}}">
+            {{assignment.name}}
+          </a>
+        </th>
+      </tr>
+    {% endfor %}
 	</table>
 
 {% endblock %}
