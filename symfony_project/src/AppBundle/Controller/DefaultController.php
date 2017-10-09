@@ -31,7 +31,7 @@ class DefaultController extends Controller
   		$query = $em->createQuery('SELECT usr FROM AppBundle\Entity\UserSectionRole usr WHERE usr.section=22');
   		$course = $query->getResult();
 
-      $logger->urgent("Chris's First Log!!!!!!");
+      #$logger->urgent("Chris's First Log!!!!!!");
 
           // replace this example code with whatever you need
           return $this->render('default/account/index.html.twig', [
