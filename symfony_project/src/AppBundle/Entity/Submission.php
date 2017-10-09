@@ -13,15 +13,15 @@ class Submission {
 	public function __construct(){
 		
 		$a = func_get_args();
-		$i = func_num_args();
-		
-		$this->testcaseresults = new ArrayCollection();		
+		$i = func_num_args();	
 		
 		if(method_exists($this, $f='__construct'.$i)) {
 			call_user_func_array(array($this,$f),$a);
 		} else if($i != 0) {
 			throw new Exception('Contructor does not accept '.$i.' arguments');
 		}
+		
+		$this->testcaseresults = new ArrayCollection();	
 	}
 	
 	public function __construct2($prob, $tm){

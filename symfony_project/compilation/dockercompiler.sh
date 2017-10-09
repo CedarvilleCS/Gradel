@@ -7,7 +7,7 @@ if [ "$#" -ne 9 ]; then
 	echo "(1)problem_id (2)team_id"
 	echo "(3)submitted_file_path (4)submitted_file_name (5)submitted_language_name "
 	echo "(6)is_zipped (7)time_limit (8)compiler_flags"
-	echo "(9)output_folder_name"
+	echo "(9)submission_id"
 	exit 1
 fi
 
@@ -23,11 +23,11 @@ time_limit="$7"
 
 compiler_flags="$8"
 
-output_folder_name="$9"
+submission_id="$9"
 
 echo "Variable names..."
 
-echo "The output_folder_name is $output_folder_name"
+echo "The submission_id is $submission_id"
 echo "The team_id is $team_id"
 echo "The problem_id is $problem_id"
 
@@ -35,13 +35,15 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 TEAM_DIRECTORY="$SCRIPT_DIR/submissions/$team_id"
 PROBLEM_DIRECTORY="$SCRIPT_DIR/submissions/$team_id/$problem_id"
-SUBMISSION_DIRECTORY="$SCRIPT_DIR/submissions/$team_id/$problem_id/$output_folder_name"
-CODE_DIRECTORY="$SCRIPT_DIR/submissions/$team_id/$problem_id/$output_folder_name/code"
-STUDENT_OUTPUT_DIRECTORY="$SCRIPT_DIR/submissions/$team_id/$problem_id/$output_folder_name/output"
-LOG_DIRECTORY="$SCRIPT_DIR/submissions/$team_id/$problem_id/$output_folder_name/logs"
+SUBMISSION_DIRECTORY="$SCRIPT_DIR/submissions/$team_id/$problem_id/$submission_id"
+CODE_DIRECTORY="$SCRIPT_DIR/submissions/$team_id/$problem_id/$submission_id/code"
+STUDENT_OUTPUT_DIRECTORY="$SCRIPT_DIR/submissions/$team_id/$problem_id/$submission_id/output"
+LOG_DIRECTORY="$SCRIPT_DIR/submissions/$team_id/$problem_id/$submission_id/logs"
 
-INPUT_DIRECTORY="$SCRIPT_DIR/temp/$output_folder_name"
-EXPECTED_OUTPUT_DIRECTORY="$SCRIPT_DIR/temp/$output_folder_name"
+CODE_TO_SUBMIT_DIRECTORY="$SCRIPT_DIR/code_to_submit/$submission_id/"
+
+INPUT_DIRECTORY="$SCRIPT_DIR/temp/$submission_id/input"
+EXPECTED_OUTPUT_DIRECTORY="$SCRIPT_DIR/temp/$submission_id/output"
 
 echo "team_id directory: $TEAM_DIRECTORY"
 echo "problem_id directory: $PROBLEM_DIRECTORY"
@@ -124,8 +126,9 @@ echo "created log directory"
 # copy the submitted file over into the mounted directory
 if [ -f "$file_path/$file_name" ]; then
 
+	mkdir -p $CODE_TO_SUBMIT_DIRECTORY
 	echo "Found submitted file $file_path/$file_name. Copying to submit directory..."
-	cp "$file_path/$file_name" "$SCRIPT_DIR/code_to_submit/$file_name"
+	cp "$file_path/$file_name" "$CODE_TO_SUBMIT_DIRECTORY$file_name"
 
 else
 	echo "Cannot find submitted file $file_path/$file_name"
@@ -136,14 +139,24 @@ fi
 echo ""
 echo "Creating the docker sandbox to run student code..."
 
-echo "docker run --name=gd$output_folder_name -d -v $SUBMISSION_DIRECTORY:/home/abc/submission -v $SCRIPT_DIR/code_to_submit:/home/abc/code_to_submit -v $INPUT_DIRECTORY:/home/abc/input gradel /home/abc/compile_code.sh $file_type $is_zipped $file_name $linker_flags $compiler_flags"
-echo $(docker run --name=gd$output_folder_name -d -v $SUBMISSION_DIRECTORY:/home/abc/submission -v $SCRIPT_DIR/code_to_submit:/home/abc/code_to_submit -v $INPUT_DIRECTORY:/home/abc/input gradel /home/abc/compile_code.sh $file_type $is_zipped $file_name $linker_flags $compiler_flags 2>&1)
+submission_mount_option="-v $SUBMISSION_DIRECTORY:/home/abc/submission"
+code_to_submit_mount_option="-v $CODE_TO_SUBMIT_DIRECTORY:/home/abc/code_to_submit"
+input_testcases_mount_option="-v $INPUT_DIRECTORY:/home/abc/input"
+output_testcases_mount_option="-v $EXPECTED_OUTPUT_DIRECTORY:/home/abc/output"
 
-echo "timeout 20 docker wait gd$output_folder_name"
+script_command="/home/abc/compile_code.sh $file_type $is_zipped $file_name $linker_flags $compiler_flags"
 
-code=$(timeout 20 docker wait gd$output_folder_name 2>&1 || true)
-echo $(docker kill "gd$output_folder_name" 2>&1)
-echo $(docker rm "gd$output_folder_name" 2>&1)
+container_name="gd$submission_id"
+
+echo "docker run --name=gd$submission_id -d $submission_mount_option $code_to_submit_mount_option $input_testcases_mount_option $output_testcases_mount_option gradel $script_command"
+echo $(docker run --name=$container_name -d $submission_mount_option $code_to_submit_mount_option $input_testcases_mount_option $output_testcases_mount_option gradel $script_command)
+
+echo "timeout 20 docker wait gd$submission_id"
+
+code=$(timeout 20 docker wait gd$submission_id 2>&1 || true)
+
+echo $(docker kill $container_name 2>&1)
+echo $(docker rm $container_name 2>&1)
 
 echo -n 'status: '
 if [ -z "$code" ]; then
@@ -151,36 +164,3 @@ if [ -z "$code" ]; then
 else
     echo exited with $code
 fi
-
-
-# diff through the outputs to see how they compare
-
-echo ""
-echo "Comparing student output with expected output..."
-
-STUDENT_OUTPUT_FILES=($STUDENT_OUTPUT_DIRECTORY/*.out)
-EXPECTED_OUTPUT_FILES=($EXPECTED_OUTPUT_DIRECTORY/*.out)
-
-student_file_count=$(find $STUDENT_OUTPUT_DIRECTORY -maxdepth 1 -name "*.out" | wc -l)
-expect_file_count=$(find $EXPECTED_OUTPUT_DIRECTORY -maxdepth 1 -name "*.out" | wc -l)
-	
-if [ $student_file_count -ne $expect_file_count ]; then
-	echo "student output does not have the same number of files"
-	echo $student_file_count - $expect_file_count
-	exit 1
-fi
-
-right=0
-for ((i=0;i<${#STUDENT_OUTPUT_FILES[@]};++i)); do  
-	echo "diff ${STUDENT_OUTPUT_FILES[i]} ${EXPECTED_OUTPUT_FILES[i]}"    
-	cmp=$(diff ${STUDENT_OUTPUT_FILES[i]} ${EXPECTED_OUTPUT_FILES[i]})
-  
-	if [ "$cmp" != "" ]; then
-		echo "$((i+1))) Wrong answer!"
-	else
-		echo "$((i+1))) Correct!"
-		right=$((right+1))
-	fi
-done
-
-echo "$right/$expect_file_count correct"

@@ -28,7 +28,7 @@ class TestcaseResult {
 		$this->runtime_output = $runout;
 		$this->runtime_error = $runerror;
 		$this->execution_time = $time;
-		$this->output = $out;
+		$this->std_output = $out;
 	}
 	
 

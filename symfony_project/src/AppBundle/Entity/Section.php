@@ -45,7 +45,7 @@ class Section{
 	public $id;
 
 	/**
-	* @ORM\OneToMany(targetEntity="Assignment", mappedBy="section")
+	* @ORM\OneToMany(targetEntity="Assignment", mappedBy="section", fetch="EAGER")
 	*/
 	public $assignments;
 

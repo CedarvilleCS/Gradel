@@ -6,8 +6,6 @@ if [ "$#" -ne 4 ] && [ "$#" -ne 3 ]; then
 	exit 55
 fi
 
-touch submission/hello.c
-
 # get variables from the command line
 language_id="$1"
 is_zipped="$2"
