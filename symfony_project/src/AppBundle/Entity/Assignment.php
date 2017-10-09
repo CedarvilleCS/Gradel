@@ -45,7 +45,7 @@ class Assignment{
 	public $id;
 
 	/**
-	* @ORM\OneToMany(targetEntity="Problem", mappedBy="assignment")
+	* @ORM\OneToMany(targetEntity="Problem", mappedBy="assignment", cascade={"persist", "remove"})
 	*/
 	public $problems;
 

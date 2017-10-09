@@ -61,7 +61,7 @@ class Submission {
 	public $id;
 
 	/**
-	* @ORM\OneToMany(targetEntity="TestcaseResult", mappedBy="submission")
+	* @ORM\OneToMany(targetEntity="TestcaseResult", mappedBy="submission", cascade={"persist", "remove"})
 	*/
 	public $testcaseresults;
 	
