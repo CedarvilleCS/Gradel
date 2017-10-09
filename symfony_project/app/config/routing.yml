@@ -13,6 +13,13 @@ auth0_logout:
     path: /auth0/logout
 
 account:
-  path: '/account'
+  path: '/account/{userId}'
   defaults: {_controller: AppBundle:Default:account}
 
+section:
+  path: '/account/{userId}/section/{sectionId}'
+  defaults: {_controller: AppBundle:Section:section}
+
+assignment:
+  path: '/account/{userId}/section/{sectionId}/assignment/{assignmentId}'
+  defaults: {_controller: AppBundle:Assignment:assignment}
