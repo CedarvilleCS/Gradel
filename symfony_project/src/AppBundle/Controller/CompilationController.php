@@ -16,12 +16,59 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 
-class CompilationController extends Controller
-{
+class CompilationController extends Controller {
+	
+	
 	/* name=problem */
 	public function problemAction($problem_id=1) {
 		
-		# these need to be passed in from the site that they submit it on		
+		# query for the current problem
+		$em = $this->getDoctrine()->getManager();
+		$qb = $em->createQueryBuilder();
+		$qb->select('p')
+			->from('AppBundle\Entity\Problem', 'p')
+			->where('p.id = ?1')
+			->setParameter(1, $problem_id);
+			
+		$query = $qb->getQuery();
+		$problem = $query->getSingleResult();
+		
+		$description = stream_get_contents($problem->description);
+		$instructions = stream_get_contents($problem->instructions);		
+		$default_code = stream_get_contents($problem->default_code);
+		
+		# save the input/output files to a temp folder
+		# deblobinate the input/output files
+		foreach($problem->testcases as &$tc){
+			
+			// write the input file to the temp directory
+			$tc->input = stream_get_contents($tc->input);			
+			// write the output file to the temp directory
+			$tc->correct_output = stream_get_contents($tc->correct_output);
+			
+			// save the feedback blobs			
+			if(is_resource($tc->feedback->short_response) && get_resource_type($tc->feedback->short_response) == "stream"){
+				$tc->feedback->short_response = stream_get_contents($tc->feedback->short_response);
+			}
+			if(is_resource($tc->feedback->long_response) && get_resource_type($tc->feedback->long_response) == "stream"){
+				$tc->feedback->long_response = stream_get_contents($tc->feedback->long_response);
+			}
+		}
+		
+				
+        return $this->render('compilation/problem/index.html.twig', [
+			'problem' => $problem,
+			'default_code' => $default_code,
+			'instructions' => $instructions,
+			'description' => $description,
+        ]);	
+	}
+	
+	
+	/* name=submit */
+	public function submitAction($problem_id=1) {
+		
+		# these need to be passed in from the controller that they submit it on		
 		$web_dir = $this->get('kernel')->getProjectDir();
 		$submission_file_path = $web_dir."/compilation/test_code/sum.c";
 		$filetype_id = 1;		
