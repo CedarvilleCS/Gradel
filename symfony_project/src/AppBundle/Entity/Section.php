@@ -12,19 +12,19 @@ use Doctrine\Common\Collections\ArrayCollection;
 class Section{
 
 	public function __construct(){
-		
+
 		$a = func_get_args();
 		$i = func_num_args();
-		
+
 		if(method_exists($this, $f='__construct'.$i)) {
 			call_user_func_array(array($this,$f),$a);
 		} else if($i != 0){
 			throw new Exception('Contructor does not accept '.$i.' arguments');
 		}
-		
+
 		$this->assignments = new ArrayCollection();
 	}
-	
+
 	public function __construct9($crs, $nm, $sem, $yr, $start, $end, $own, $public, $deleted){
 		$this->course = $crs;
 		$this->name = $nm;
@@ -34,10 +34,10 @@ class Section{
 		$this->end_time = $end;
 		$this->owner = $own;
 		$this->is_public = $public;
-		$this->is_deleted = $deleted; 
+		$this->is_deleted = $deleted;
 	}
 
-	/** 
+	/**
 	* @ORM\Column(type="integer")
 	* @ORM\Id
 	* @ORM\GeneratedValue(strategy="AUTO")
@@ -45,7 +45,7 @@ class Section{
 	public $id;
 
 	/**
-	* @ORM\OneToMany(targetEntity="Assignment", mappedBy="section")
+	* @ORM\OneToMany(targetEntity="Assignment", mappedBy="section", fetch="EAGER")
 	*/
 	public $assignments;
 
@@ -86,12 +86,12 @@ class Section{
 	* @ORM\JoinColumn(name="owner_id", referencedColumnName="id")
 	*/
 	public $owner;
-	
+
 	/**
 	* @ORM\Column(type="boolean")
 	*/
 	public $is_deleted;
-	
+
 	/**
 	* @ORM\Column(type="boolean")
 	*/
