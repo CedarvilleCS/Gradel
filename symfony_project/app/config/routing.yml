@@ -2,10 +2,19 @@ app:
     resource: '@AppBundle/Controller/'
     type: annotation
 
+index: 
+    path: "/"
+    defaults: {_controller: AppBundle:Default:index}
+
+courses:
+    path: "/courses"
+    defaults: {_controller: AppBundle:Courses:courses}
+
+assignments:
+    path: "/courses/assignments"
+    defaults: {_controller: AppBundle:Assignments:assignments}
+
 submit: 
     path: "/submit"
     defaults: {_controller: AppBundle:Submit:submit}
 
-index: 
-    path: "/"
-    defaults: {_controller: AppBundle:Default:index}
