@@ -15,7 +15,5 @@ assignments:
     defaults: {_controller: AppBundle:Assignments:assignments}
 
 submit: 
-    path: "/courses/assignments/submit/{problem_id}"
-    defaults: {_controller: AppBundle:Submit:submit, problem_id: 1}
-    requirements:
-        problem_id: '\d+'
+    path: "/courses/assignments/submit/{project_id}"
+    defaults: {_controller: AppBundle:Submit:submit}
