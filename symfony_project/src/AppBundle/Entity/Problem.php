@@ -48,7 +48,7 @@ class Problem{
 	public $id;
 
 	/**
-	* @ORM\OneToMany(targetEntity="Testcase", mappedBy="problem")
+	* @ORM\OneToMany(targetEntity="Testcase", mappedBy="problem", cascade={"persist", "remove"})
 	*/
 	public $testcases;
 

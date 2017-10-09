@@ -40,7 +40,7 @@ class Team{
 	public $id;
 
 	/**
-	* @ORM\OneToMany(targetEntity="Submission", mappedBy="team")
+	* @ORM\OneToMany(targetEntity="Submission", mappedBy="team", cascade={"persist", "remove"})
 	*/
 	public $submissions;
 	

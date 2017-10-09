@@ -17,6 +17,7 @@ RUN apt-get install -y software-properties-common
 
 RUN apt-get install -y sudo
 RUN apt-get install -y bc
+RUN apt-get install -y time
 
 COPY compiler_scripts/*.sh /home/abc/
 
