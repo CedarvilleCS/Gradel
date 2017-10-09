@@ -5,10 +5,7 @@ temp/*
 submissions/*
 !submissions
 !submissions/.gitkeep
-problems/*
-!problems
-!problems/.gitkeep
 
+code_to_submit/*
+!code_to_submit
 !code_to_submit/.gitkeep
-!test_code/.gitkeep
-
