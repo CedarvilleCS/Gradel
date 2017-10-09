@@ -45,13 +45,12 @@ class Section{
 	public $id;
 
 	/**
-	* @ORM\OneToMany(targetEntity="Assignment", mappedBy="section")
+	* @ORM\OneToMany(targetEntity="Assignment", mappedBy="section", cascade={"persist", "remove"})
 	*/
 	public $assignments;
 
 	/**
 	* @ORM\ManyToOne(targetEntity="Course", inversedBy="sections")
-	* @ORM\JoinColumn(name="course_id", referencedColumnName="id")
 	*/
 	public $course;
 

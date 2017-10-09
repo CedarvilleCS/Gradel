@@ -1,3 +1,7 @@
+temp/*
+!temp
+!temp/.gitkeep
+
 submissions/*
 !submissions
 !submissions/.gitkeep

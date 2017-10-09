@@ -226,7 +226,7 @@ class Fixtures extends Fixture {
 		$desc_file_02 = fopen($folder_path."2.desc", "r") or die("Unable to open 2.desc");
 		
 		$problem_01 = new Problem($assignment_01, "Calculate the Sum", $desc_file_01, NULL, $language_04, NULL, "", 0.0, $method_nopenalty, 0, 1000, false);
-		$problem_02 = new Problem($assignment_01, "Calculate the Product", $desc_file_02, NULL, $language_04, NULL, "", 0.0, $method_10penalty, 10, 1000, false);
+		$problem_02 = new Problem($assignment_01, "Calculate the Difference", $desc_file_02, NULL, $language_04, NULL, "", 0.0, $method_10penalty, 10, 1000, false);
 		
 		$manager->persist($problem_01);		
 		$manager->persist($problem_02);

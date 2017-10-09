@@ -43,3 +43,5 @@ class DefaultController extends Controller
       // return $this->render('default/account/index.html.twig');
     }
 }
+
+?>

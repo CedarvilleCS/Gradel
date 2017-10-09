@@ -5,6 +5,8 @@ int main(){
 	int a;
 	int b;
 	
+	for(asdfjasdkl;fja;slkjflkasjf;ajwe) {}
+	
 	scanf("%d", &a);
 	scanf("%d", &b);
 
