@@ -1,11 +1,59 @@
 {% block head %}
-<title>Page Name</title>
+<title>Gradel | Submit Code</title>
 {% endblock %}
 
 
 {% block body %}
 
-<p>This is the body of the HTML Page</p>
+<body>        
+    <nav class="problems">
+        <ul>
+            <li>Problem 1</li>
+            <li>Problem 2</li>
+            <li>Problem 3</li>
+            <li>Problem 4</li>
+            <li>Problem 5</li>
+            <li>Problem 6</li>
+            <li>Problem 7</li>
+            <li>Problem 8</li>
+            <li>Problem 9</li>
+            <li>Problem 10</li>
+            <li>Problem 11</li>
+            <li>Problem 12</li>
+            <li>Problem 13</li>
+            <li>Problem 14</li>
+            <li>Problem 15</li>
+            <li>Problem 16</li>
+            <li>Problem 17</li>
+            <li>Problem 18</li>
+            <li>Problem 19</li>
+            <li>Problem 20</li>
+            <li>Problem 21</li>
+            <li>Problem 22</li>
+            <li>Problem 23</li>
+            <li>Problem 24</li>
+            <li>Problem 25</li>
+        </ul>
+    </nav>
+
+    <section id="problemSpec"> <!-- FIXME: This ID name doesn't make sense -->
+        <!-- TODO: Change the contents of this using routing when you click on the link on the left -->
+        <h1>Problem 1</h1>                              
+        <p>This is info about the problem</p>           
+        <textarea>Enter your code here.</textarea>      <!-- TODO: Add a syntax highlighting plugin-->
+
+        <!-- <pre><code><textarea></textarea></code></pre> -->
+
+        <button class="btn">Submit</button>
+
+        <div id="file-upload-wrapper">
+            <input type="file" name="files[]" multiple id="file-upload"> <!-- FIXME: To get hover effects these need to be in the other order, but that is making you not able to clock on the file input thing. -->
+            <button class="btn">Upload Files</button>
+        </div>
+
+    </section>
+    
+</body>
 
 {% endblock %}
 
@@ -17,6 +65,90 @@
         padding: 0px;
         margin: 0px;
     }
+    
+    nav.problems {
+        float: left;
+        position: fixed;
+        overflow-x: scroll;
+        border-right: 1px solid grey;
+        background-color: #8DC26F;
+        color: white;
+        height: 100vh;
+        width: 200px;
+    
+        -webkit-box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
+        -moz-box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
+        box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
+    }
+    
+    nav > ul {
+        list-style: none;
+        font-family: sans-serif;
+        line-height: 25pt;
+        font-size: 14pt;
+        text-align: left;
+        padding: 10px;
+        margin-top: 30px;
+        margin-bottom: 30px;
+    }
+    
+    nav > ul > li {
+        border-bottom: 1px dotted grey;
+        padding: 3px;
+    }
+    
+    nav > ul > li:hover {
+        background-color: #76b852;
+    }
+    
+    #problemSpec {
+        margin-left: 200px;
+        width: calc(100% - 200px);
+        padding: 10px;
+    }
+    
+    textarea {
+        width: calc(100% - 20px);
+        height: 300px;
+        border-radius: 10px;
+        border: 1px solid #8DC26F;
+        padding: 10px;
+        font-family: monospace;
+        font-size: 10pt;
+    
+        -webkit-box-shadow: inset 3px 3px 10px -4px rgba(0,0,0,0.64);
+        -moz-box-shadow: inset 3px 3px 10px -4px rgba(0,0,0,0.64);
+        box-shadow: inset 3px 3px 10px -4px rgba(0,0,0,0.64);
+    }
+    
+    .btn {
+        margin-top: 10px;
+        width: 100px;
+        height: 30px;
+        background-color: #8DC26F;
+        color: white;
+        /* border-radius: 5px; */
+        border: none;
+    }
+    
+    .btn:hover {
+        background-color: #76b852;
+    }
+    
+    #file-upload {
+        margin-top: 10px;
+        position: absolute;
+        opacity: 0;
+        /* top: 0;
+        right: 0; */
+        width: 100px;
+        height: 30px;
+    }
+    
+    #file-upload-wrapper {
+        display: inline-block;
+    }
+    
 </style>
 
 {% endblock %}
@@ -26,6 +158,6 @@
 
 <!-- JQuery -->
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
-<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script> -->
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 
 {% endblock %}
