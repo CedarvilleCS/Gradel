@@ -4,7 +4,7 @@ app:
 
 submit: 
     path: "/submit"
-    defaults: {_controller: AppBundle:Default:submit}
+    defaults: {_controller: AppBundle:Submit:submit}
 
 index: 
     path: "/"

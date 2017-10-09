@@ -1,1 +1,5 @@
 php bin/console cache:clear --env=prod
+php bin/console cache:clear --env=dev
+
+chown -R budd var/
+chmod -R 777 var/
