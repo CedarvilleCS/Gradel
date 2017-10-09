@@ -11,10 +11,11 @@ courses:
     defaults: {_controller: AppBundle:Courses:courses}
 
 assignments:
-    path: "/courses/assignments"
+    path: "/courses/assignments/{course_number}"
     defaults: {_controller: AppBundle:Assignments:assignments}
 
 submit: 
-    path: "/submit"
-    defaults: {_controller: AppBundle:Submit:submit}
-
+    path: "/courses/assignments/submit/{problem_id}"
+    defaults: {_controller: AppBundle:Submit:submit, problem_id: 1}
+    requirements:
+        problem_id: '\d+'

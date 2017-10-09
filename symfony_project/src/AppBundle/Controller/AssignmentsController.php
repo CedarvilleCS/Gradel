@@ -10,8 +10,10 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 class AssignmentsController extends Controller
 {
  
-  public function assignmentsAction() {
-    return $this->render('courses/assignments/index.html.twig');
+  public function assignmentsAction($course_number='CS-1210') {
+    return $this->render('courses/assignments/index.html.twig', [
+			'course_number' => $course_number,
+    ]);
   }
 }
 
