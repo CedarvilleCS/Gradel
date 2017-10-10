@@ -1,28 +1,49 @@
-{% if app.user %}
-    Welcome, {{ app.user.username }}!<br/>
-{{ render(controller('AppBundle:Default:addUser',{ 'userName': app.user.username })) }}
-<div><?php echo $userInfo['name'] ?></div>
-    <a href="{{ logout_url("secured_area") }}">
-        <button>Logout</button>
-    </a>
-{% else %}
-    <h1>Symfony Auth0 Quickstart</h1>
-    <script src="https://cdn.auth0.com/js/auth0/8.10.1/auth0.min.js"></script>
-    <script type="text/javascript">
-        var webAuth = new auth0.WebAuth({
-            domain: 'gradel.auth0.com',
-            clientID: '2Ea1x0z0nSMqq3WWBs24pnzZFcqfA567',
-            redirectUri: 'http://joseph.cedarville.edu/gradel_dev/wolf/gradel/symfony_project/web/auth0/callback',
-            audience: `https://gradel.auth0.com/userinfo`,
-            responseType: 'code',
-            scope: 'openid profile'
-        });
+	{% if app.user %}
+Welcome, {{app.user.username}}!
+	<div class="loggedin-page">
+		<h1> What more do you want from me? </h1>
+		<a href="{{ logout_url("secured_area") }}">
+			<button>Logout</button>
+		</a>
+	</div>
+	{% else %}
+	<script src="https://cdn.auth0.com/js/lock/10.20/lock.min.js"></script>
+	<script>
+	var options = {
+		auth: {
 
-        function signin() {
-            webAuth.authorize();
-        }
-    </script>
-    <button onclick="window.signin();">Login</button>
+			params: {
+				scope: 'openid profile email'		  }
+			}
+	}
+	  var lock = new Auth0Lock('2Ea1x0z0nSMqq3WWBs24pnzZFcqfA567', 'gradel.auth0.com', options);
+	</script>
+	<script type="text/javascript">
+		window.onload = function() {
+		lock.show()
+
+	}
+	</script>
+		<title>Welcome to Gradel!</title>
+		<div class="login-page">
+			<button onload="lock.show();">Login</button>
+		</div>
+<script>
+lock.on("authenticated", function(authResult) {
+  lock.getUserInfo(authResult.accessToken, function(error, profile) {
+    if (error) {
+      return;
+    }
+
+    // Save token and profile locally
+    localStorage.setItem("accessToken", authResult.accessToken);
+    localStorage.setItem("profile", JSON.stringify(profile));
+    alert("hello, " + profile.given_name + " " + profile.family_name + " " + profile.email);
+	render(controller('AppBundle:Default:addUser',{ 'userName': profile.name }))
+  });
+});
+</script>
+
 {% endif %}
 {% block stylesheets %}
 <style>

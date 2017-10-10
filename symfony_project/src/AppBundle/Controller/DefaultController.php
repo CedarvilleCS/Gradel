@@ -40,31 +40,12 @@ class DefaultController extends Controller
 	public function addUserAction($userName){	
 
 	
-	$auth0 = new Auth0([
- 	 'domain' => 'gradel.auth0.com',
- 	 'client_id' => '2Ea1x0z0nSMqq3WWBs24pnzZFcqfA567',
- 	 'client_secret' => 'T5ZhU-bvX5RlTAigtWQIyRe4x_nfvDIxV8FylaotMmI0RI-WLyRt4fgMXMG4wpEH',
- 	 'redirect_uri' => 'http://joseph.cedarville.edu/gradel_dev/wolf/gradel/symfony_project/web/account',
- 	 'audience' => 'https://gradel.auth0.com/userinfo',
-  	'persist_id_token' => true,
- 	 'persist_access_token' => true,
- 	 'persist_refresh_token' => true,
-	]);
-	$userInfo = $auth0->getUser();
-	if (!$userInfo) {
-	    echo json_encode("sad");
-	    // redirect to Login
-	} else {
-	    echo json_encode("He1y");
-	    // Say hello to $userInfo['name']
-	    // print logout button
-	}	
 		//$em = $this->getDoctrine()->getManager();
 		//$new_user = new User($userName, "Wolf", "", new \DateTime("now"), "");
 		//$em->persist($new_user);
 		//echo json_encode("He1y");
-		//echo json_encode($userName);
-		//return $this->render('default/account/index.html.twig');
+		echo json_encode(yo, $userName);
+		return $this->render('default/account/index.html.twig');
 	}
 	
 
