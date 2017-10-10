@@ -4,6 +4,8 @@
 
 	{% if app.user %}
 	<div class="loggedin-page">
+	
+		<h1> Welcome, {{app.}}! </h1>
 		<h1> What more do you want from me? </h1>
 		<a href="{{ logout_url("secured_area") }}">
 			<button>Logout</button>
@@ -22,7 +24,7 @@
 		  },
 		  auth: {
 		<!--redirect: false, ->
-		  redirectUrl: 'http://joseph.cedarville.edu/gradel_dev/wolf/gradel/symfony_project/web/account',
+		  redirectUrl: 'http://joseph.cedarville.edu/gradel_dev/tgsmith/Gradel/symfony_project/web/auth0/callback',
 		  responseType: 'code',
 		  params: {
 			scope: 'openid email' // Learn about scopes: https://auth0.com/docs/scopes
@@ -30,7 +32,7 @@
 		}
 	}
 
-	  var lock = new Auth0Lock('2Ea1x0z0nSMqq3WWBs24pnzZFcqfA567', 'gradel.auth0.com', options);
+	var lock = new Auth0Lock('2Ea1x0z0nSMqq3WWBs24pnzZFcqfA567', 'gradel.auth0.com', options);
 	</script>
 	<script type="text/javascript">
 		window.onload = function() {
