@@ -164,3 +164,5 @@ if [ -z "$code" ]; then
 else
     echo exited with $code
 fi
+
+rm -rf $CODE_TO_SUBMIT_DIRECTORY
