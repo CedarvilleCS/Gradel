@@ -1,79 +1,122 @@
-{% extends 'base.html.twig' %}
-
-{% block body %}
-    <div id="wrapper">
-        <div id="container">
-            <div id="welcome">
-                <h1>{{problem.name}}</h1>
-				<h2>{{problem.assignment.name}}</h2>
-            </div>
-
-            <div id="status">
-				<h3>Description: {{description}}</h3>
-				
-				{% if problem.instructions != "" %}
-					<h3>Instructions: {{instructions}}</h3>
-				{% endif %}
-				
-				
-				{% if default_code != "" %}					
-					<textarea onkeydown="if(event.keyCode===9){var v=this.value,s=this.selectionStart,e=this.selectionEnd;this.value=v.substring(0, s)+'\t'+v.substring(e);this.selectionStart=this.selectionEnd=s+1;return false;}" style=" box-sizing: border-box; width:100%; height:200px; resize: none; border: none; background: black; color:white; padding:15px">{{default_code}}</textarea>
-				{% endif %}
-					
-			
-				<br>	
-				<h3>Test Cases</h3> 
-				<hr>
-				{% for tc in problem.testcases %}
-					<h4>Input: <p> {{tc.input}}</p>
-						Output: <p>{{tc.correct_output}}</p>
-						Long Feedback: <p>{{tc.feedback.long_response}}</p>
-						Short Feedback: <p>{{tc.feedback.short_response}}</p>
-						
-					</h4>
-					<hr>
-				{% endfor %}
-            </div>
-
-			
-			
-			<a href="http://joseph.cedarville.edu/gradel_dev/tgsmith/Gradel/symfony_project/web/compilation/submit/{{problem.id}}"> Submit! </a>
-			
-			<hr>
-			
-			<a href="http://joseph.cedarville.edu/gradel_dev/tgsmith/Gradel/symfony_project/web/compilation/error/{{problem.id}}"> Submit Compile Error! </a>
-			
-        </div>
-    </div>
+{% block head %}
+<title>Gradel | Project {{project_id}}</title>
 {% endblock %}
+{% block body %}
+<body>
+    <nav class="problems">
+        <ul>
+          <li>test</li>
+        </ul>
+    </nav>
+    <section id="problemSpec"> <!-- FIXME: This ID name doesn't make sense -->
+        <!-- TODO: Change the contents of this using routing when you click on the link on the left -->
+        <h1>Problem 1</h1>
+        <p>This is info about the problem</p>
+        <textarea>Enter your code here.</textarea>      <!-- TODO: Add a syntax highlighting plugin-->
+        <!-- <pre><code><textarea></textarea></code></pre> -->
+        <button class="btn">Submit</button>
+        <div id="file-upload-wrapper">
+            <input type="file" name="files[]" multiple id="file-upload"> <!-- FIXME: To get hover effects these need to be in the other order, but that is making you not able to clock on the file input thing. -->
+            <button class="btn">Upload Files</button>
+        </div>
+    </section>
 
+</body>
+{% endblock %}
 {% block stylesheets %}
 <style>
-    body { background: #F5F5F5; font: 18px/1.5 sans-serif;}
-    h1, h2 { line-height: 1.2; margin: 0 0 .5em; }
-    h1 { font-size: 36px; }
-    h2 { font-size: 21px; margin-bottom: 1em; }
-	h3 { font-size: 18px; }
-	h4 { font-family: "Courier New", Courier, monospace; }
-    p { margin: 0 0 1em 0; }
-    a { color: #0000F0; }
-    a:hover { text-decoration: none; }
-    code { background: #F5F5F5; max-width: 100px; padding: 2px 6px; word-wrap: break-word; }
-    #wrapper { background: #FFF; margin: 1em auto; max-width: 800px; width: 95%; }
-    #container { padding: 2em; }
-    #welcome, #status { margin-bottom: 2em; }
-    #welcome h1 span { display: block; font-size: 75%; }
-    #icon-status, #icon-book { float: left; height: 64px; margin-right: 1em; margin-top: -4px; width: 64px; }
-    #icon-book { display: none; }
-
-    @media (min-width: 768px) {
-        #wrapper { width: 80%; margin: 2em auto; }
-        #icon-book { display: inline-block; }
-        #status a, #next a { display: block; }
-
-        @-webkit-keyframes fade-in { 0% { opacity: 0; } 100% { opacity: 1; } }
-        @keyframes fade-in { 0% { opacity: 0; } 100% { opacity: 1; } }
-        .sf-toolbar { opacity: 0; -webkit-animation: fade-in 1s .2s forwards; animation: fade-in 1s .2s forwards;}
+    html, body {
+        padding: 0px;
+        margin: 0px;
     }
+
+    nav.problems {
+        float: left;
+        position: fixed;
+        overflow-x: scroll;
+        border-right: 1px solid grey;
+        background-color: #8DC26F;
+        color: white;
+        height: 100vh;
+        width: 200px;
+
+        -webkit-box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
+        -moz-box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
+        box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
+    }
+
+    nav > ul {
+        list-style: none;
+        font-family: sans-serif;
+        line-height: 25pt;
+        font-size: 14pt;
+        text-align: left;
+        padding: 10px;
+        margin-top: 30px;
+        margin-bottom: 30px;
+    }
+
+    nav > ul > li {
+        border-bottom: 1px dotted grey;
+        padding: 3px;
+    }
+
+    nav > ul > li:hover {
+        background-color: #76b852;
+    }
+
+    #problemSpec {
+        margin-left: 200px;
+        width: calc(100% - 200px);
+        padding: 10px;
+    }
+
+    textarea {
+        width: calc(100% - 20px);
+        height: 300px;
+        border-radius: 10px;
+        border: 1px solid #8DC26F;
+        padding: 10px;
+        font-family: monospace;
+        font-size: 10pt;
+
+        -webkit-box-shadow: inset 3px 3px 10px -4px rgba(0,0,0,0.64);
+        -moz-box-shadow: inset 3px 3px 10px -4px rgba(0,0,0,0.64);
+        box-shadow: inset 3px 3px 10px -4px rgba(0,0,0,0.64);
+    }
+
+    .btn {
+        margin-top: 10px;
+        width: 100px;
+        height: 30px;
+        background-color: #8DC26F;
+        color: white;
+        /* border-radius: 5px; */
+        border: none;
+    }
+
+    .btn:hover {
+        background-color: #76b852;
+    }
+
+    #file-upload {
+        margin-top: 10px;
+        position: absolute;
+        opacity: 0;
+        /* top: 0;
+        right: 0; */
+        width: 100px;
+        height: 30px;
+    }
+
+    #file-upload-wrapper {
+        display: inline-block;
+    }
+
 </style>
+{% endblock %}
+{% block scripts %}
+<!-- JQuery -->
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 {% endblock %}

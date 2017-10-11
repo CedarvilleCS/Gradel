@@ -31,6 +31,12 @@ class AssignmentController extends Controller
 
       return $this->render('default/assignment/index.html.twig', [
         'assignment' => $assignment,
+        'userId' => $userId,
+        'sectionId' => $sectionId,
+        'assignmentId' => $assignmentId,
+        'currentProblem' => $assignment->problems[0],
+        'currentProblemDescription' => stream_get_contents($assignment->problems[0]->description),
+        'currentProblemCode' => stream_get_contents($assignment->problems[0]->default_code)
       ]);
     }
 }
