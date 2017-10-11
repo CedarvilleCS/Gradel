@@ -25,23 +25,24 @@ assignment:
   path: '/account/{userId}/section/{sectionId}/assignment/{assignmentId}'
   defaults: {_controller: AppBundle:Assignment:assignment}
 
-  
-  
-  
-  
-
-submit:
-    path: '/compilation/submit/{problem_id}'
-    defaults: {_controller: AppBundle:Compilation:submit, problem_id: 1}
-    requirements:
-        problem_id: '\d+'
-        
 problem:
-    path: '/compilation/problem/{problem_id}'
+    path: '/account/{userId}/section/{sectionId}/assignment/{assignmentId}/problem/{problem_id}'
     defaults: {_controller: AppBundle:Compilation:problem, problem_id: 1}
     requirements:
         problem_id: '\d+'
-        
+
+submit:
+    path: '/account/{userId}/section/{sectionId}/assignment/{assignmentId/problem/{problem_id}/submit'
+    defaults: {_controller: AppBundle:Compilation:submit, problem_id: 1}
+    requirements:
+        problem_id: '\d+'
+
+error:
+    path: '/compilation/error/{problem_id}'
+    defaults: {_controller: AppBundle:Compilation:error, problem_id: 1}
+    requirements:
+        problem_id: '\d+'
+
 submission_results:
     path: '/compilation/submission_results/{submission_id}'
     defaults: {_controller: AppBundle:Compilation:submission}
