@@ -50,7 +50,4 @@ hwi_oauth_login:
     prefix:   /login
     
 user_logout:
-    path: /logout
-    
-google_login:
-    path: /connect/check-google
+    path: /user/logout
