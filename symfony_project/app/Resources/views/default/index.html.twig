@@ -6,7 +6,11 @@
 
 	Hello, {{app.user.username}}!
 	
-	Here is your name in php: {{username}}!
+	<br>
+	
+	<hr>
+	<a href="{{ path('user_logout') }}">Logout</a>
+	</hr>
 	
 {% else %}
 
@@ -15,6 +19,12 @@
 	</a>
 	
 {%endif %}
+
+
+	
+	
+	
+	{{app.user.roles|json_encode}}
 
 {% endblock %}
 

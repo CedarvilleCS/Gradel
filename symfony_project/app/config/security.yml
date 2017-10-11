@@ -17,12 +17,19 @@ security:
                 # Declare the OAuth Callback URLs for every resource owner
                 # They will be added in the routing.yml file too later
                 resource_owners:
-                    google: "/user/login"
+                    google: "/"
                 ## Provide the original login path of your application (fosuserroute)
                 ## and the failure route when the authentication fails.
-                login_path:     /
+                login_path:     /user/login
                 use_forward:    false
-                failure_path:   /
+                failure_path:   /user/login
                 # Inject a service that will be created in the step #6
                 oauth_user_provider:
                     service: app.fos_user.oauth_provider
+            logout: 
+                path: user_logout
+                target: index
+                    
+    access_control:
+        - { path: ^/user, roles: IS_AUTHENTICATED_ANONYMOUSLY  }
+        - { path: ^/, roles: ROLE_USER }

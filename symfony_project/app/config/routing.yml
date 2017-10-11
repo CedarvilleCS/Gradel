@@ -2,7 +2,7 @@ index:
   path: '/'
   defaults: {_controller: AppBundle:Default:index}
   
-cool:
+user_login:
   path: '/user/login'
   defaults: {_controller: AppBundle:Default:index}
   
@@ -48,6 +48,9 @@ hwi_oauth_connect:
 hwi_oauth_login:
     resource: "@HWIOAuthBundle/Resources/config/routing/login.xml"
     prefix:   /login
+    
+user_logout:
+    path: /logout
     
 google_login:
     path: /connect/check-google

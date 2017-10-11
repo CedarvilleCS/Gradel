@@ -18,17 +18,15 @@ class DefaultController extends Controller
     public function indexAction(Request $request, LoggerInterface $logger) {
       $logger->info("This should output somewhere!");
 	  
-	  //$usr= $this->get('security.token_storage')->getToken()->getUser();
-	  //$name = $usr->getUsername();
+	  $usr= $this->get('security.token_storage')->getToken()->getUser();
+	  
+	  if(get_class($usr)){
+		$name = $usr->getUsername();
+	  }
 	  
       return $this->render('default/index.html.twig', [
-		  //'username' => $name,
+		  'username' => $name,
       ]);
-    }
-	
-	public function loginAction(Request $request, LoggerInterface $logger) {
-      $logger->info("This should output somewhere!");
-      return $this->render('default/index.html.twig');
     }
 
     public function accountAction(LoggerInterface $logger, $userId) {
