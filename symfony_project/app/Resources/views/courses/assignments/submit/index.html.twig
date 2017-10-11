@@ -5,7 +5,7 @@
 
 {% block body %}
 
-<body>        
+<body>
     <nav class="problems">
         <ul>
             <li>Problem 1</li>
@@ -50,6 +50,15 @@
             <input type="file" name="files[]" multiple id="file-upload"> <!-- FIXME: To get hover effects these need to be in the other order, but that is making you not able to clock on the file input thing. -->
             <button class="btn">Upload Files</button>
         </div>
+
+
+        <form action="upload.php" method="post" enctype="multipart/form-data">
+            Select file to upload:
+            <input type="file" name="fileToUpload" id="fileToUpload">
+            <input type="submit" value="Upload File" name="submit">
+        </form>
+
+        <p>{{upload_message}}</p>
 
     </section>
     
