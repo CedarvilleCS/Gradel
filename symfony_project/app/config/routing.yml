@@ -1,18 +1,11 @@
-
 index:
   path: '/'
   defaults: {_controller: AppBundle:Default:index}
-
-hwi_oauth_login:
-    resource: "@HWIOAuthBundle/Resources/config/routing/login.xml"
-    prefix:   /login
-
-auth0_login:
-    path:    /auth0/callback
-
-auth0_logout:
-    path: /auth0/logout
-
+  
+cool:
+  path: '/user/login'
+  defaults: {_controller: AppBundle:Default:index}
+  
 account:
   path: '/account/{userId}'
   defaults: {_controller: AppBundle:Default:account}
@@ -24,12 +17,7 @@ section:
 assignment:
   path: '/account/{userId}/section/{sectionId}/assignment/{assignmentId}'
   defaults: {_controller: AppBundle:Assignment:assignment}
-
   
-  
-  
-  
-
 submit:
     path: '/compilation/submit/{problem_id}'
     defaults: {_controller: AppBundle:Compilation:submit, problem_id: 1}
@@ -47,3 +35,19 @@ submission_results:
     defaults: {_controller: AppBundle:Compilation:submission}
     requirements:
         submission_id: '\d+'
+        
+        
+hwi_oauth_redirect:
+    resource: "@HWIOAuthBundle/Resources/config/routing/redirect.xml"
+    prefix:   /connect
+    
+hwi_oauth_connect:
+    resource: "@HWIOAuthBundle/Resources/config/routing/connect.xml"
+    prefix:   /connect
+
+hwi_oauth_login:
+    resource: "@HWIOAuthBundle/Resources/config/routing/login.xml"
+    prefix:   /login
+    
+google_login:
+    path: /connect/check-google

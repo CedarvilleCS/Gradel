@@ -2,49 +2,19 @@
 
 {% block body %}
 
-	{% if app.user %}
-	<div class="loggedin-page">
+{% if app.user %}
+
+	Hello, {{app.user.username}}!
 	
-		<h1> Welcome, {{app.}}! </h1>
-		<h1> What more do you want from me? </h1>
-		<a href="{{ logout_url("secured_area") }}">
-			<button>Logout</button>
-		</a>
-	</div>
-	{% else %}
-	<script src="https://cdn.auth0.com/js/lock/10.20/lock.min.js"></script>
-	<script>
-	  var options = {
-		  theme: {
-			  logo: 'https://files.slack.com/files-pri/T6WHHNNLA-F6ZKV8PD5/test.png',
-			  primaryColor: '#76b852'
-		  },
-		  languageDictionary: {
-			  title: "Gradel"
-		  },
-		  auth: {
-		<!--redirect: false, ->
-		  redirectUrl: 'http://joseph.cedarville.edu/gradel_dev/tgsmith/Gradel/symfony_project/web/auth0/callback',
-		  responseType: 'code',
-		  params: {
-			scope: 'openid email' // Learn about scopes: https://auth0.com/docs/scopes
-		  }
-		}
-	}
+	Here is your name in php: {{username}}!
+	
+{% else %}
 
-	var lock = new Auth0Lock('2Ea1x0z0nSMqq3WWBs24pnzZFcqfA567', 'gradel.auth0.com', options);
-	</script>
-	<script type="text/javascript">
-		window.onload = function() {
-		lock.show();
-	}
-	</script>
-		<title>Welcome to Gradel!</title>
-		<div class="login-page">
-			<button onload="lock.show();">Login</button>
-		</div>
-
-	{% endif %}
+	<a href="{{ path('hwi_oauth_service_redirect', {'service': 'google' }) }}">
+		<span>Google</span>
+	</a>
+	
+{%endif %}
 
 {% endblock %}
 

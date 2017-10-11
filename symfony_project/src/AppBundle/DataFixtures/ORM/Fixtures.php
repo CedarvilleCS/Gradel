@@ -56,15 +56,16 @@ class Fixtures extends Fixture {
 		# USER Testing
 		# make a student, a teacher, a superuser, and a TA
 		{
-		$prof_user1 = new User("Keith", "Shomper", "kshomper@cedarville.edu", new \DateTime("now"), $prof_role);
+		$prof_user1 = new User("kshomper", "kshomper@cedarville.edu");
 		$manager->persist($prof_user1);
 		
-		$prof_user2 = new User("Patrick", "Dudenhofer", "patrickdude@cedarville.edu", new \DateTime("now"), $prof_role);
+		$prof_user2 = new User("pdude", "patrickdude@cedarville.edu");
 		$manager->persist($prof_user2);
 		
-		$admin_user = new User("David", "Gallagher", "gallaghd@cedarville.edu", new \DateTime("now"), $admin_role);
+		$admin_user = new User("gallaghd", "gallaghd@cedarville.edu");
 		$manager->persist($admin_user);
 
+		/*
 		$wolf_user = new User("Emily", "Wolf", "ewolf@cedarville.edu", new \DateTime("now"), $student_role);
 		$manager->persist($wolf_user);
 		
@@ -82,6 +83,7 @@ class Fixtures extends Fixture {
 		
 		$ta_user2 = new User("Tyler", "Drake", "tylerdrake@cedarville.edu", new \DateTime("now"), $student_role);
 		$manager->persist($ta_user2);
+		*/
 		}
 		
 		# COURSE Testing
@@ -120,28 +122,28 @@ class Fixtures extends Fixture {
 		# USERSECTIONROLE Testing
 		# make all of the user/section mappings
 		{
-		$manager->persist(new UserSectionRole($wolf_user, $section_one, $takes_role));
-		$manager->persist(new UserSectionRole($budd_user, $section_one, $takes_role));
+		//$manager->persist(new UserSectionRole($wolf_user, $section_one, $takes_role));
+		//$manager->persist(new UserSectionRole($budd_user, $section_one, $takes_role));
 		$manager->persist(new UserSectionRole($prof_user1, $section_one, $teach_role));
-		$manager->persist(new UserSectionRole($ta_user1, $section_one, $helps_role));
+		//$manager->persist(new UserSectionRole($ta_user1, $section_one, $helps_role));
 		
-		$manager->persist(new UserSectionRole($brauns_user, $section_two, $takes_role));
-		$manager->persist(new UserSectionRole($smith_user, $section_two, $takes_role));
+		//$manager->persist(new UserSectionRole($brauns_user, $section_two, $takes_role));
+		//$manager->persist(new UserSectionRole($smith_user, $section_two, $takes_role));
 		$manager->persist(new UserSectionRole($prof_user2, $section_two, $teach_role));
-		$manager->persist(new UserSectionRole($ta_user2, $section_two, $helps_role));
+		//$manager->persist(new UserSectionRole($ta_user2, $section_two, $helps_role));
 		
-		$manager->persist(new UserSectionRole($brauns_user, $section_three, $takes_role));
-		$manager->persist(new UserSectionRole($budd_user, $section_three, $takes_role));
+		//$manager->persist(new UserSectionRole($brauns_user, $section_three, $takes_role));
+		//$manager->persist(new UserSectionRole($budd_user, $section_three, $takes_role));
 		$manager->persist(new UserSectionRole($admin_user, $section_three, $teach_role));
 		
-		$manager->persist(new UserSectionRole($wolf_user, $section_four, $takes_role));
-		$manager->persist(new UserSectionRole($smith_user, $section_four, $takes_role));
+		//$manager->persist(new UserSectionRole($wolf_user, $section_four, $takes_role));
+		//$manager->persist(new UserSectionRole($smith_user, $section_four, $takes_role));
 		$manager->persist(new UserSectionRole($prof_user2, $section_four, $teach_role));
 		
-		$manager->persist(new UserSectionRole($wolf_user, $section_contest1, $takes_role));
-		$manager->persist(new UserSectionRole($budd_user, $section_contest1, $takes_role));
-		$manager->persist(new UserSectionRole($brauns_user, $section_contest1, $takes_role));
-		$manager->persist(new UserSectionRole($smith_user, $section_contest1, $takes_role));
+		//$manager->persist(new UserSectionRole($wolf_user, $section_contest1, $takes_role));
+		//$manager->persist(new UserSectionRole($budd_user, $section_contest1, $takes_role));
+		//$manager->persist(new UserSectionRole($brauns_user, $section_contest1, $takes_role));
+		//$manager->persist(new UserSectionRole($smith_user, $section_contest1, $takes_role));
 		$manager->persist(new UserSectionRole($prof_user1, $section_contest1, $judge_role));
 		$manager->persist(new UserSectionRole($prof_user2, $section_contest1, $judge_role));
 		$manager->persist(new UserSectionRole($admin_user, $section_contest1, $judge_role));		
@@ -175,7 +177,7 @@ class Fixtures extends Fixture {
 		$manager->persist($assignment_02);
 		$manager->persist($assignment_03);
 		}
-		
+		/*
 		# TEAM Testing
 		# make some teams for one of the classes
 		{
@@ -201,7 +203,7 @@ class Fixtures extends Fixture {
 		$manager->persist($team_04);
 		$manager->persist($team_05);
 		}
-		
+		*/
 		# LANGUAGE Testing
 		{
 		$language_00 = new Language("No Language Restriction");		
