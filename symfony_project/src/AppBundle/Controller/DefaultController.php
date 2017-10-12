@@ -6,6 +6,7 @@ use AppBundle\Entity\User;
 use AppBundle\Entity\Course;
 use AppBundle\Entity\UserSectionRole;
 
+use Auth0\SDK\Auth0;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
@@ -60,6 +61,19 @@ class DefaultController extends Controller
           ]);
       // return $this->render('default/account/index.html.twig');
     }
+	
+	public function addUserAction($userName){	
+
+	
+		//$em = $this->getDoctrine()->getManager();
+		//$new_user = new User($userName, "Wolf", "", new \DateTime("now"), "");
+		//$em->persist($new_user);
+		//echo json_encode("He1y");
+		echo json_encode(yo, $userName);
+		return $this->render('default/account/index.html.twig');
+	}
+	
+
 }
 
 ?>
