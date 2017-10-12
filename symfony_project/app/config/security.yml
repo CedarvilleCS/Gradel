@@ -4,25 +4,33 @@ security:
 
     # https://symfony.com/doc/current/security.html#b-configuring-how-users-are-loaded
     providers:
-        hwi:
-            id: hwi_oauth.user.provider
+        our_users:
+            entity:
+                class: AppBundle\Entity\User
+                property: email
 
     firewalls:
-        secured_area:
+        # Set the config on your firewall
+        main:
             anonymous: ~
             oauth:
+                # Declare the OAuth Callback URLs for every resource owner
+                # They will be added in the routing.yml file too later
                 resource_owners:
-                    auth0: "/auth0/callback"
-                login_path:        /login
-                use_forward:       false
-                failure_path:      /login
-
+                    google: "/"
+                ## Provide the original login path of your application (fosuserroute)
+                ## and the failure route when the authentication fails.
+                login_path:     /user/login
+                use_forward:    false
+                failure_path:   /user/login
+                # Inject a service that will be created in the step #6
                 oauth_user_provider:
-                    service: hwi_oauth.user.provider
-            logout:
-                path:   /auth0/logout
-                target: /
-
+                    service: app.fos_user.oauth_provider
+            logout: 
+                path: user_logout
+                target: index
+                    
     access_control:
-        - { path: ^/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
-        - { path: ^/secured, roles: ROLE_OAUTH_USER }
+        - { path: ^/user, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/connect, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/, roles: ROLE_USER }

@@ -16,23 +16,48 @@ use Psr\Log\LoggerInterface;
 
 class DefaultController extends Controller
 {
-    public function indexAction(LoggerInterface $logger) {
-      return $this->render('default/index.html.twig');
+    public function indexAction(Request $request, LoggerInterface $logger) {
+      $logger->info("This should output somewhere!");
+	  
+	  $usr= $this->get('security.token_storage')->getToken()->getUser();
+	  
+	  if(get_class($usr)){
+		$name = $usr->getUsername();
+	  }
+	  
+      return $this->render('default/index.html.twig', [
+		  'username' => $name,
+      ]);
     }
 
-    public function accountAction() {
+    public function accountAction(LoggerInterface $logger, $userId) {
       $em = $this->getDoctrine()->getManager();
-  		$query = $em->createQuery('SELECT u FROM AppBundle\Entity\User u WHERE 1=1');
-  		$users = $query->getResult();
+      # get the user entity
+      $b2 = $em->createQueryBuilder();
+      $b2->select('u')
+          ->from('AppBundle\Entity\User', 'u')
+          ->where('u.id = ?1')
+          ->setParameter(1, $userId);
 
-  		$query = $em->createQuery('SELECT c FROM AppBundle\Entity\Course c WHERE 1=1');
-  		$courses = $query->getResult();
+      $q2 = $b2->getQuery();
+      $keith = $q2->getSingleResult();
 
+      # get the user section role entities using the user entity as the where
+      $b = $em->createQueryBuilder();
+      $b->select('usr')
+          ->from('AppBundle\Entity\UserSectionRole', 'usr')
+          ->where('usr.user = ?1')
+          ->setParameter(1, $keith);
+
+      $q = $b->getQuery();
+      $coursePerson = $q->getResult();
+
+      $logger->info("WHAT UP FOOL");
           // replace this example code with whatever you need
           return $this->render('default/account/index.html.twig', [
               'base_dir' => realpath($this->getParameter('kernel.project_dir')).DIRECTORY_SEPARATOR,
-  			'users' => $users,
-  			'courses' => $courses,
+  			      'coursePerson' => $coursePerson,
+              'userId' => $userId
           ]);
       // return $this->render('default/account/index.html.twig');
     }
@@ -50,3 +75,5 @@ class DefaultController extends Controller
 	
 
 }
+
+?>

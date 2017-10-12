@@ -21,11 +21,14 @@ class TestcaseResult {
 		}
 	}
 	
-	public function __construct4($sub, $test, $correct, $time){
+	public function __construct7($sub, $test, $correct, $runout, $runerror, $time, $out){
 		$this->submission = $sub;
 		$this->testcase = $test;
 		$this->is_correct = $correct;
+		$this->runtime_output = $runout;
+		$this->runtime_error = $runerror;
 		$this->execution_time = $time;
+		$this->std_output = $out;
 	}
 	
 
@@ -47,6 +50,21 @@ class TestcaseResult {
      * @ORM\JoinColumn(name="testcase_id", referencedColumnName="id")
      */
 	public $testcase;
+	
+	/**
+	 * @ORM\Column(type="blob", nullable=true)
+	 */
+	public $std_output;
+	
+	/**
+	* @ORM\Column(type="blob", nullable=true)
+	*/
+	public $runtime_output;
+	
+	/**
+	* @ORM\Column(type="boolean")
+	*/
+	public $runtime_error;
 
 	/**
 	*@ORM\Column(type="boolean")
@@ -57,40 +75,5 @@ class TestcaseResult {
 	*@ORM\Column(type="integer")
 	*/
 	public $execution_time;
-	
-	
-	#SETTERS
-	public function setSubmission($sub) {
-		$this->submission = $sub;
-	}
-	
-	public function setTestcase($tc) {
-		$this->testcase = $tc;
-	}
-	
-	public function setIsCorrect($correct) {
-		$this->is_correct = $correct;
-	}
-	
-	public function setExecutionTime($time) {
-		$this->execution_time = $time;
-	}
-	
-	#GETTERS
-	public function getSubmission(){
-		return $this->submission;
-	}
-	
-	public function getTestcase(){
-		return $this->testcase;
-	}
-	
-	public function getIsCorrect(){
-		return $this->is_correct;
-	}
-	
-	public function getExecutionTime(){
-		return $this->execution_time;
-	}
 }
 ?>

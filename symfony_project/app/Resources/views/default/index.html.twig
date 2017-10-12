@@ -1,50 +1,32 @@
-	{% if app.user %}
-Welcome, {{app.user.username}}!
-	<div class="loggedin-page">
-		<h1> What more do you want from me? </h1>
-		<a href="{{ logout_url("secured_area") }}">
-			<button>Logout</button>
-		</a>
-	</div>
-	{% else %}
-	<script src="https://cdn.auth0.com/js/lock/10.20/lock.min.js"></script>
-	<script>
-	var options = {
-		auth: {
+{% extends 'base.html.twig' %}
 
-			params: {
-				scope: 'openid profile email'		  }
-			}
-	}
-	  var lock = new Auth0Lock('2Ea1x0z0nSMqq3WWBs24pnzZFcqfA567', 'gradel.auth0.com', options);
-	</script>
-	<script type="text/javascript">
-		window.onload = function() {
-		lock.show()
+{% block body %}
 
-	}
-	</script>
-		<title>Welcome to Gradel!</title>
-		<div class="login-page">
-			<button onload="lock.show();">Login</button>
-		</div>
-<script>
-lock.on("authenticated", function(authResult) {
-  lock.getUserInfo(authResult.accessToken, function(error, profile) {
-    if (error) {
-      return;
-    }
+{% if app.user %}
 
-    // Save token and profile locally
-    localStorage.setItem("accessToken", authResult.accessToken);
-    localStorage.setItem("profile", JSON.stringify(profile));
-    alert("hello, " + profile.given_name + " " + profile.family_name + " " + profile.email);
-	render(controller('AppBundle:Default:addUser',{ 'userName': profile.name }))
-  });
-});
-</script>
+	Hello, {{app.user.username}}!
+	
+	<br>
+	
+	<hr>
+	<a href="{{ path('user_logout') }}">Logout</a>
+	</hr>
+	
+{% else %}
 
-{% endif %}
+	<a href="{{ path('hwi_oauth_service_redirect', {'service': 'google' }) }}">
+		<span>Google</span>
+	</a>
+	
+{%endif %}
+
+
+	
+	
+	
+	{{app.user.roles|json_encode}}
+
+{% endblock %}
 {% block stylesheets %}
 <style>
   @import url(https://fonts.googleapis.com/css?family=Roboto:300);
@@ -154,6 +136,4 @@ lock.on("authenticated", function(authResult) {
   -moz-osx-font-smoothing: grayscale;
   }
 </style>
-
 {% endblock %}
-

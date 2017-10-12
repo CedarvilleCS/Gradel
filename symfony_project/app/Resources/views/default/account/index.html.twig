@@ -9,21 +9,26 @@
 	<div class="topnav" id="myTopnav">
 	  <a>Home</a>
 	  <a>Account</a>
-		<div> Welcome, Dr. Smith</div>
 	</div>
-	<div><?php echo $userInfo['name'] ?></div>
+	<div>Welcome to the page!!</div>
+	
 	<table>
 	  <tr>
+	    <th>Section</th>
 	    <th>Name</th>
-	    <th>Stuff</th>
-	    <th>More stuff</th>
+	    <th>Year</th>
+			<th>Semester</th>
 		</tr>
-			{% for user in users %}
+			{% for cp in coursePerson %}
 				<tr>
-					<th>{{ user.first_name }}</th>
-					<th></th>
-					<th></th>
-				</tr>
+					<th>{{ cp.section.name }}</th>
+					<th>
+						<a href="{{path('section', {'userId': userId, "sectionId": cp.section.id})}}">
+							{{ cp.section.course.name }}
+						</a>
+					</th>
+					<th>{{ cp.section.year}}</th>
+					<th>{{ cp.section.semester}}</th>
 			{% endfor %}
 	</table>
 
@@ -87,11 +92,11 @@
 
 		body {
 		margin: 0px;
-	  background: #76b852; /* fallback for old browsers */
-	  background: -webkit-linear-gradient(right, #76b852, #8DC26F);
-	  background: -moz-linear-gradient(right, #76b852, #8DC26F);
-	  background: -o-linear-gradient(right, #76b852, #8DC26F);
-	  background: linear-gradient(to left, #76b852, #8DC26F);
+	  background: #ffffff; /* fallback for old browsers */
+	  background: -webkit-linear-gradient(right, #f2f2f2, #ffffff);
+	  background: -moz-linear-gradient(right, #f2f2f2, #ffffff);
+	  background: -o-linear-gradient(right, #f2f2f2, #ffffff);
+	  background: linear-gradient(to left, #f2f2f2, #ffffff);
 	  font-family: "Roboto", sans-serif;
 	  -webkit-font-smoothing: antialiased;
 	  -moz-osx-font-smoothing: grayscale;

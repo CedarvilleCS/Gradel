@@ -3,11 +3,12 @@
 namespace AppBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-use Doctring\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\ORM\Mapping\UniqueConstraint;
 
 /**
  * @ORM\Entity
- * @ORM\Table(name="team")
+ * @ORM\Table(name="team", uniqueConstraints={@UniqueConstraint(name="team_name_assignment", columns={"name", "assignment_id"})})
  */
 class Team{
 	
@@ -27,7 +28,7 @@ class Team{
 	}
 	
 	public function __construct2($nm, $assign){
-		$this->name = $name;
+		$this->name = $nm;
 		$this->assignment = $assign;		
 	}
 	
@@ -39,12 +40,12 @@ class Team{
 	public $id;
 
 	/**
-	* @ORM\OneToMany(targetEntity="Submission", mappedBy="team")
+	* @ORM\OneToMany(targetEntity="Submission", mappedBy="team", cascade={"persist", "remove"})
 	*/
 	public $submissions;
 	
 	/**
-	* @ORM\Column(type="string", length=50)
+	* @ORM\Column(type="string", length=255)
 	*/
 	public $name;
 
@@ -57,42 +58,11 @@ class Team{
 	/**
 	* @ORM\ManyToMany(targetEntity="User")
 	* @ORM\JoinTable(name="userteam",
-	*	joinColumns={@ORM\JoinColumn(name="user_id", referencedColumnName="id")},
-	*	inverseJoinColumns={@ORM\JoinColumn(name="team_id", referencedColumnName="id")}
+	*	joinColumns={@ORM\JoinColumn(name="team_id", referencedColumnName="id")},
+	*	inverseJoinColumns={@ORM\JoinColumn(name="user_id", referencedColumnName="id")}
 	*	)
 	*/
 	public $users;
-
-	
-	# SETTERS
-	public function setName($nm) {
-		$this->name = $nm;
-	}
-	
-	public function setAssignment($assig) {
-		$this->assignment = $assig;
-	}
-	
-	public function addUserToTeam($newuser){
-		$users[] = $newuser;
-	}
-	
-	#GETTERZ
-	public function getName(){
-		return $this->name;
-	}
-	
-	public function getAssignment(){
-		return $this->assignment;
-	}
-	
-	public function getUsers(){
-		return $this->users;
-	}
-	
-	public function getSubmissions(){
-		return $this->submissions;
-	}
 }
 
 ?>

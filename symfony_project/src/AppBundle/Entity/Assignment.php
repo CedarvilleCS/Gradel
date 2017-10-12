@@ -25,15 +25,16 @@ class Assignment{
 		$this->problems = new ArrayCollection();
 	}
 	
-	public function __construct8($sect, $nm, $desc, $start, $end, $wght, $open, $extra){
+	public function __construct9($sect, $nm, $desc, $start, $end, $cutoff, $wght, $grade, $extra){
 		$this->section = $sect;
 		$this->name = $nm;
 		$this->description = $desc;
 		$this->start_time = $start;
 		$this->end_time = $end;
+		$this->cutoff_time = $cutoff;
 		$this->weight = $wght;
-		$this->is_open = $open;
 		$this->is_extra_credit = $extra;
+		$this->gradingmethod = $grade;
 	}
 	
 	/** 
@@ -44,7 +45,7 @@ class Assignment{
 	public $id;
 
 	/**
-	* @ORM\OneToMany(targetEntity="Problem", mappedBy="assignment")
+	* @ORM\OneToMany(targetEntity="Problem", mappedBy="assignment", cascade={"persist", "remove"})
 	*/
 	public $problems;
 
@@ -60,7 +61,7 @@ class Assignment{
 	public $name;
 
 	/**
-	* @ORM\Column(type="string", length=255)
+	* @ORM\Column(type="blob")
 	*/
 	public $description;
 
@@ -73,90 +74,27 @@ class Assignment{
 	* @ORM\Column(type="datetime")
 	*/
 	public $end_time;
+	
+	/**
+	* @ORM\Column(type="datetime")
+	*/
+	public $cutoff_time;
 
 	/**
 	* @ORM\Column(type="decimal", precision=12, scale=8)
 	*/
 	public $weight;
-
+	
 	/**
-	* @ORM\Column(type="boolean")
+	* @ORM\ManyToOne(targetEntity="Gradingmethod")
+	* @ORM\JoinColumn(name="gradingmethod_id", referencedColumnName="id")
 	*/
-	public $is_open;
+	public $gradingmethod;
 
 	/**
 	* @ORM\Column(type="boolean")
 	*/
 	public $is_extra_credit;
-
-
-	# SETTERS
-	public function setSection($sect){
-		$this->section = $sect;
-	}
-
-	public function setName($nm){
-		$this->name = $nm;
-	}
-
-	public function setDescription($desc){
-		$this->description = $desc;
-	}
-	
-	public function setStartTime($time){
-		$this->start_time = $time;	
-	}
-	
-	public function setEndTime($time){
-		$this->end_time = $time;
-	}
-
-	public function setWeight($wght){
-		$this->weight = $wght;
-	}
-
-	public function setIsOpen($open){
-		$this->is_open = $open;
-	}
-
-	public function setIsExtraCredit($credit){
-		$this->is_extra_credit = $credit;
-	}
-
-	
-	# GETTERS
-	public function getSection(){
-		return $this->section;
-	}
-
-	public function getName(){
-		return $this->name;
-	}
-	
-	public function getDescription(){
-		return $this->description;
-	}
-
-	public function getStartTime(){
-		return $this->start_time;
-	}
-
-	public function getEndTime(){
-		return $this->end_time;
-	}
-
-	public function getWeight(){
-		return $this->weight;
-	}
-
-	public function getIsOpen(){
-		return $this->is_open;
-	}
-
-	public function getIsExtraCredit(){
-		return $this->is_extra_credit;
-	}
-
 }
 
 ?>
