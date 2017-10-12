@@ -31,5 +31,3 @@ security:
                 target: index
                     
     access_control:
-        - { path: ^/user, roles: IS_AUTHENTICATED_ANONYMOUSLY  }
-        - { path: ^/, roles: ROLE_USER }

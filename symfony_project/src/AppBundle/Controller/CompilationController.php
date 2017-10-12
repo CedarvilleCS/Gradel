@@ -18,6 +18,7 @@ use AppBundle\Entity\Filetype;
 use AppBundle\Entity\Feedback;
 use AppBundle\Entity\TestcaseResult;
 
+use Psr\Log\LoggerInterface;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
@@ -25,62 +26,26 @@ use Symfony\Component\HttpFoundation\Request;
 
 class CompilationController extends Controller {
 	
-	
-	/* name=problem */
-	public function problemAction($problem_id=1) {
-		
-		# query for the current problem
-		$em = $this->getDoctrine()->getManager();
-		$qb = $em->createQueryBuilder();
-		$qb->select('p')
-			->from('AppBundle\Entity\Problem', 'p')
-			->where('p.id = ?1')
-			->setParameter(1, $problem_id);
-			
-		$query = $qb->getQuery();
-		$problem = $query->getSingleResult();
-		
-		$description = stream_get_contents($problem->description);
-		$instructions = stream_get_contents($problem->instructions);		
-		$default_code = stream_get_contents($problem->default_code);
-		
-		# save the input/output files to a temp folder
-		# deblobinate the input/output files
-		foreach($problem->testcases as &$tc){
-			
-			// write the input file to the temp directory
-			$tc->input = stream_get_contents($tc->input);			
-			// write the output file to the temp directory
-			$tc->correct_output = stream_get_contents($tc->correct_output);
-			
-			// save the feedback blobs			
-			if(is_resource($tc->feedback->short_response) && get_resource_type($tc->feedback->short_response) == "stream"){
-				$tc->feedback->short_response = stream_get_contents($tc->feedback->short_response);
-			}
-			if(is_resource($tc->feedback->long_response) && get_resource_type($tc->feedback->long_response) == "stream"){
-				$tc->feedback->long_response = stream_get_contents($tc->feedback->long_response);
-			}
-		}
-		
-				
-        return $this->render('compilation/problem/index.html.twig', [
-			'problem' => $problem,
-			'default_code' => $default_code,
-			'instructions' => $instructions,
-			'description' => $description,
-        ]);	
-	}
-	
-	
 	/* name=submit */
 	public function submitAction($problem_id=1) {
 		
-		# these need to be passed in from the controller that they submit it on		
+		$logger = $this->get('logger');
+		
 		$web_dir = $this->get('kernel')->getProjectDir();
+		
+		# these need to be passed in from the problem controller	
 		$submission_file_path = $web_dir."/compilation/test_code/sum.c";
 		$filetype_id = 1;		
 		$language_id = 3;
+		
+		// this should be queried from the security token manager
+		$user_id = 1;	
+		
+		// this should be queried based on the user ID
 		$team_id = 1;
+		
+		
+		
 		$em = $this->getDoctrine()->getManager();
 		
 		# query for the current problem
@@ -91,10 +56,15 @@ class CompilationController extends Controller {
 			->setParameter(1, $problem_id);
 			
 		$query = $qb->getQuery();
-		$problem_entity = $query->getSingleResult();
+		$problem_entity = $query->getOneorNullResult();
+		
+		if(!$problem_entity){
+			$logger->critical("problem with id=".$problem_id." does not exist.");
+			die("PROBLEM DOES NOT EXIST");
+		}
 		
 		# query for the current team
-		# add checks to make sure this user is allowed to submit for this problem in this situation
+		# TODO: add checks to make sure this user is allowed to submit for this problem in this situation
 		$qb_team = $em->createQueryBuilder();
 		$qb_team->select('t')
 				->from('AppBundle\Entity\Team', 't')
@@ -102,10 +72,17 @@ class CompilationController extends Controller {
 				->setParameter(1, $team_id);
 				
 		$query_team = $qb_team->getQuery();
-		$team_entity = $query_team->getSingleResult();			
+		$team_entity = $query_team->getOneorNullResult();	
+
+		if(!$team_entity){
+			$logger->critical("team with id=".$team_id." does not exist.");
+			die("TEAM DOES NOT EXIST");
+		}
 		
-		# create a submission to edit in this controller
-		$submission_entity = new Submission($problem_entity, $team_entity);
+		
+		# create a submission to edit in this controller 
+		// and persist it to get the id number for later
+		$submission_entity = new Submission($problem_entity, $team_entity);	
 		
 		$em->persist($submission_entity);
 		$em->flush();					
@@ -184,29 +161,29 @@ class CompilationController extends Controller {
 		$docker_output = shell_exec($docker_script);	
 		#echo nl2br($docker_output);
 			
-		# PARSE THROUGH THE COMPILATION LOG
-		$output_directory = $web_dir."/compilation/submissions/".$team_entity->id."/".$problem_entity->id."/".$submission_entity->id."/";
+		# PARSE THROUGH THE LOGS
+		$submissions_directory = $web_dir."/compilation/submissions/".$team_entity->id."/".$problem_entity->id."/".$submission_entity->id."/";
 				
 		# check for compilation error
-		if(file_exists($output_directory."compiler_errors.log")){
+		if(file_exists($submissions_directory."compiler_errors.log")){
 			
-			$compile_log = fopen($output_directory."compiler_errors.log", "r") or die("Unable to open file for reading!");
+			$compile_log = fopen($submissions_directory."compiler_errors.log", "r") or die("Unable to open file for reading!");
 			$is_compile_error = true;
 			
 		} else {
 		
-			$compile_log = fopen($output_directory."compiler_warnings.log", "r") or die("Unable to open file for reading!");
+			$compile_log = fopen($submissions_directory."compiler_warnings.log", "r") or die("Unable to open file for reading!");
 			$is_compile_error = false;
 		
 			# get the diff file to see how they did on the test cases
-			$diff_log = fopen($output_directory."testcase_diff.log", "r") or die("Unable to open file for reading!");
-			$time_log = fopen($output_directory."testcase_exectime.log", "r") or die("Unable to open file for reading!");
+			$diff_log = fopen($submissions_directory."testcase_diff.log", "r") or die("Unable to open file for reading!");
+			$time_log = fopen($submissions_directory."testcase_exectime.log", "r") or die("Unable to open file for reading!");
 			
 			$num_testcases = count($problem_entity->testcases);
 			$percentage = 0.0;
 
 			foreach($problem_entity->testcases as &$tc){
-				$file_dir = $output_directory."output/".$tc->seq_num;
+				$file_dir = $submissions_directory."output/".$tc->seq_num;
 				
 				$result = fgets($diff_log);		
 				$result = str_replace(array("\r", "\n"), '',$result);

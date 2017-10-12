@@ -78,6 +78,12 @@ class Submission {
 	public $team;
 	
 	/**
+     * @ORM\ManyToOne(targetEntity="User")
+     * @ORM\JoinColumn(name="user_id", referencedColumnName="id")
+     */
+	public $user;
+	
+	/**
 	*@ORM\Column(type="datetime")
 	*/
 	public $timestamp;
