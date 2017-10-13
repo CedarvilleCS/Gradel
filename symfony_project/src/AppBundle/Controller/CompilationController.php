@@ -190,95 +190,118 @@ class CompilationController extends Controller {
 			
 		} else {
 		
-			$compile_log = fopen($submissions_directory."compiler_warnings.log", "r") or die("Unable to open compiler_warnings file for reading!");
-			$is_compile_error = false;
-		
-			# get the diff file to see how they did on the test cases
-			$time_log = fopen($submissions_directory."testcase_exectime.log", "r") or die("Unable to open testcase_exectime file for reading!");
-			
 			$num_testcases = count($problem_entity->testcases);
 			$percentage = 0.0;
-			
-			
-
-			foreach($problem_entity->testcases as &$tc){
-				$out_dir = $submissions_directory."output/".$tc->seq_num.".out";
-				$log_dir = $submissions_directory."logs/".$tc->seq_num.".log";
+		
+			# get the diff file to see how they did on the test cases
+			# if this file does not exist we assume a time limit exception
+			if(file_exists($submissions_directory."testcase_exectime.log") && file_exists($submissions_directory."compiler_warnings.log")){
 				
-				$time = -1;
-				$testcase_is_correct = false;
-				$did_exceed_time_limit = false;
+				$compile_log = fopen($submissions_directory."compiler_warnings.log", "r") or die("Unable to open compiler_warnings file for reading!");
+				$is_compile_error = false;
 				
-				# check for runtime error
-				if(file_exists($log_dir) &&  0 < filesize($log_dir)){
+				$time_log = fopen($submissions_directory."testcase_exectime.log", "r") or die("Unable to open testcase_exectime file for reading!");
+			
+				foreach($problem_entity->testcases as &$tc){
+					$log_dir = $submissions_directory."logs/".$tc->seq_num.".log";
+					$testcase_diff_dir = $submissions_directory."testcase_diff".$tc->seq_num.".log";
 					
-					$run_error_log = fopen($log_dir, "r") or die("Unable to open log file for reading!");
-					$out_log = null;
+					$time = -1;
+					$testcase_is_correct = false;
+					$did_exceed_time_limit = false;
+					
+					# check for runtime error
+					if(file_exists($log_dir) &&  0 < filesize($log_dir)){
+						
+						$run_error_log = fopen($log_dir, "r") or die("Unable to open log file for reading!");
+						$out_log = null;
 
-					$is_runerror = true;
-					
-				} 
-				# see if the diff file worked			
-				else if(file_exists($submissions_directory."testcase_diff".$tc->seq_num.".log")){
-					
-					$diff_log = fopen($submissions_directory."testcase_diff".$tc->seq_num.".log", "r") or die("Unable to open testcase_diff".$tc->seq_num." file for reading!");
+						$is_runerror = true;
 						
-					$result = fgets($diff_log);		
-					$result = str_replace(array("\r", "\n"), '',$result);
-					
-					$is_runerror = false;				
-					
-					# get the runtime 
-					$time_line = fgets($time_log);			
-					$n = sscanf($time_line, "user %dm%d.%ds", $minutes, $seconds, $milliseconds);
-					$time = $seconds*1000+$milliseconds;
-										
-					$run_error_log = null;
-					$out_log = fopen($out_dir, "r") or die("Unable to open out file for reading!");
-					
-					echo $result."</br>";
-					
-					if(strcmp("YES", $result) == 0){
+					} 
+					# see if the diff file worked			
+					else if(file_exists($testcase_diff_dir)){
 						
-						# check the time limits
-						if($problem_entity->time_limit >= $time && $time >= 0){
-						
-							$testcase_is_correct = true;					
+						$diff_log = fopen($testcase_diff_dir, "r") or die("Unable to open testcase_diff".$tc->seq_num." file for reading!");
 							
-							$num_right++;
+						$result = fgets($diff_log);		
+						$result = str_replace(array("\r", "\n"), '',$result);
+						
+						$is_runerror = false;				
+						
+						# get the runtime 
+						$time_line = fgets($time_log);			
+						$n = sscanf($time_line, "user %dm%d.%ds", $minutes, $seconds, $milliseconds);
+						$time = $seconds*1000+$milliseconds;
+											
+						$run_error_log = null;
+						
+						
+						$out_dir = $submissions_directory."output/".$tc->seq_num.".out";
+						
+						if(file_exists($out_dir)){
 							
-							if($tc->weight == 0){
-								$percentage += 1.0/$num_testcases;
-							} else {
-								$percentage += $tc->weight;
+							$out_log = fopen($out_dir, "r") or die("Unable to open out file for reading!");
+						
+							if(strcmp("YES", $result) == 0){
+								
+								# check the time limits
+								if($problem_entity->time_limit >= $time && $time >= 0){
+								
+									$testcase_is_correct = true;					
+									
+									$num_right++;
+									
+									if($tc->weight == 0){
+										$percentage += 1.0/$num_testcases;
+									} else {
+										$percentage += $tc->weight;
+									}
+								} else {
+									
+									$testcase_is_correct = false;							
+									$did_exceed_time_limit = true;						
+								}
 							}
-						} else {
+							#docker quit in the middle of the running of this problem							
+							else if(strcmp("TIME LIMIT", $result) == 0){	
+								
+								# do not count this test case and exit
+								break;
+								
+							}
+						} 
+						# the output file did not exist
+						else {
 							
-							$testcase_is_correct = false;							
-							$did_exceed_time_limit = true;						
+							# do not count this test case
+							continue;
+							
 						}
-					} else if(strcmp("TIME LIMIT", $result) == 0){
-	
-						# docker quit in the middle of the running of this problem
-						break;
+						
+					}
+					# the testcase diff file did not exist
+					else {
+						
+						continue;
 						
 					}
 					
-				} else {
+					$testcase_result = new TestcaseResult($submission_entity, $tc, $testcase_is_correct, $run_error_log, $is_runerror, $time, $did_exceed_time_limit, $out_log);
 					
-					continue;
+					# set the submission to be runtime or time limit if any test case exceeded
+					$submission_entity->exceeded_time_limit = ($submission_entity->exceeded_time_limit || $did_exceed_time_limit);
+					$submission_entity->runtime_error = ($submission_entity->runtime_error || $is_runerror);
 					
+					
+					$em->persist($testcase_result);
+					$em->flush();					
 				}
 				
-				$testcase_result = new TestcaseResult($submission_entity, $tc, $testcase_is_correct, $run_error_log, $is_runerror, $time, $did_exceed_time_limit, $out_log);
-				
-				# set the submission to be runtime or time limit if any test case exceeded
-				$submission_entity->exceeded_time_limit = ($submission_entity->exceeded_time_limit || $did_exceed_time_limit);
-				$submission_entity->runtime_error = ($submission_entity->runtime_error || $is_runerror);
-				
-				
-				$em->persist($testcase_result);
-				$em->flush();
+			} 
+			# compiler_warnings or testcase_exectime is missing
+			else {					
+				$submission_entity->exceeded_time_limit = true;			
 			}
 			
 			fclose($diff_log);

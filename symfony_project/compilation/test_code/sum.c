@@ -2,16 +2,15 @@
 
 int main(){
 
-	int a;
-	int b;
+	int x;
+	int y;
 		
-	scanf("%d", &a);
-	scanf("%d", &b);
-
-	int c = a + b;
+	scanf("%d", &x);
+	scanf("%d", &y);
 	
-
-	printf("%d\n", c);
+	x = x+y;
+	
+	printf("%d\n", x);
 
 	return 0;
 }

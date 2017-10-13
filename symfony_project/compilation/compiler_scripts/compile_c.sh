@@ -12,6 +12,16 @@ else
 	compiler_flags=""
 fi
 
+# CHOWN
+chown -R root input/
+chown -R root output/
+
+chmod -R 444 input/
+chmod -R 444 output/
+
+chown -R abc submission/*
+chmod -R 666 submission/*
+
 # COMPILATION
 # compile the code and check for compiler error
 gcc submission/code/*.c $compiler_flags -o a.out 2> submission/compiler_errors.log
