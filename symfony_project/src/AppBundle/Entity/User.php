@@ -70,7 +70,7 @@ class User extends BaseUser{
 	}
 
 	public function setName($name) {
-		$this->name = "Emily";
+		$this->name = $name;
 
 		return $this;
 	}

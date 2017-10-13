@@ -39,6 +39,7 @@ class FOSUBUserProvider extends BaseClass {
     public function loadUserByOAuthUserResponse(UserResponseInterface $response) {
         $data = $response->getResponse();
         $username = $response->getUsername();
+        $name = $response->getFirstName();
         $email = $response->getEmail() ? $response->getEmail() : $username;
         $user = $this->userManager->findUserBy(array($this->getProperty($response) => $username));
         
@@ -55,8 +56,9 @@ class FOSUBUserProvider extends BaseClass {
             
             //I have set all requested data with the user's username
             //modify here with relevant data
-            $user->setUsername($this->generateRandomUsername($username, $response->getResourceOwner()->getName()));
+            $user->setUsername($email);
             $user->setEmail($email);
+            $user->setName($name);
             $user->setPassword($username);
             $user->setEnabled(true);
             $this->userManager->updateUser($user);
@@ -84,11 +86,5 @@ class FOSUBUserProvider extends BaseClass {
      * @param type $serviceName
      * @return type
      */
-    private function generateRandomUsername($username, $serviceName){
-        if(!$username){
-            $username = "user". uniqid((rand()), true) . $serviceName;
-        }
-        
-        return $username. "_" . $serviceName;
-    }
+
 }
