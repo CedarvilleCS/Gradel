@@ -34,12 +34,13 @@ class Submission {
 		$this->main_class_name = "";
 		#this->compiler_output
 		$this->compiler_error = false;
+		$this->exceeded_time_limit = false;
 		#this->language		
 		$this->percentage = 0.0;
 	}
 		
 	
-	public function __construct11($prob, $tm, $time, $acc, $subm, $ft, $mainclass, $compout, $didcomp, $lang, $perc){
+	public function __construct11($prob, $tm, $time, $acc, $subm, $ft, $mainclass, $compout, $didcomp, $time_limit, $lang, $perc){
 		$this->problem = $prob;
 		$this->team = $tm;
 		$this->timestamp = $time;
@@ -49,6 +50,7 @@ class Submission {
 		$this->main_class_name = $mainclass;
 		$this->compiler_output = $compout;
 		$this->compiler_error = $didcomp;
+		$this->exceeded_time_limit = $time_limit;
 		$this->language = $lang;
 		$this->percentage = $perc;
 	}
@@ -118,6 +120,11 @@ class Submission {
 	* @ORM\Column(type="boolean")
 	*/
 	public $compiler_error;
+	
+	/**
+	* @ORM\Column(type="boolean")
+	*/
+	public $exceeded_time_limit;
 	
 	/**
 	* @ORM\ManyToOne(targetEntity="Language")

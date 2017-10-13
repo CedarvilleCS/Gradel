@@ -24,6 +24,8 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 
+use Symfony\Component\HttpFoundation\Response;
+
 class CompilationController extends Controller {
 	
 	/* name=submit */
@@ -154,7 +156,8 @@ class CompilationController extends Controller {
 				
 		
 		# RUN THE DOCKER COMPILATION
-		$docker_script = $web_dir."/compilation/dockercompiler.sh ".$problem_entity->id." ".$team_entity->id." ".dirname($submission_file_path)." ".basename($submission_file_path)." ".$language_entity->name." ".$is_zipped." 5 '".$problem_entity->compilation_options."' ".$submission_entity->id;
+		$docker_time_limit = intval(count($problem_entity->testcases) * ceil(floatval($problem_entity->time_limit)/1000.0)) + 10;
+		$docker_script = $web_dir."/compilation/dockercompiler.sh ".$problem_entity->id." ".$team_entity->id." ".dirname($submission_file_path)." ".basename($submission_file_path)." ".$language_entity->name." ".$is_zipped." ".$docker_time_limit." '".$problem_entity->compilation_options."' ".$submission_entity->id;
 		
 		#echo($docker_script);
 		
@@ -167,17 +170,16 @@ class CompilationController extends Controller {
 		# check for compilation error
 		if(file_exists($submissions_directory."compiler_errors.log")){
 			
-			$compile_log = fopen($submissions_directory."compiler_errors.log", "r") or die("Unable to open file for reading!");
+			$compile_log = fopen($submissions_directory."compiler_errors.log", "r") or die("Unable to open compiler_errors file for reading!");
 			$is_compile_error = true;
 			
 		} else {
 		
-			$compile_log = fopen($submissions_directory."compiler_warnings.log", "r") or die("Unable to open file for reading!");
+			$compile_log = fopen($submissions_directory."compiler_warnings.log", "r") or die("Unable to open compiler_warnings file for reading!");
 			$is_compile_error = false;
 		
 			# get the diff file to see how they did on the test cases
-			$diff_log = fopen($submissions_directory."testcase_diff.log", "r") or die("Unable to open file for reading!");
-			$time_log = fopen($submissions_directory."testcase_exectime.log", "r") or die("Unable to open file for reading!");
+			$time_log = fopen($submissions_directory."testcase_exectime.log", "r") or die("Unable to open testcase_exectime file for reading!");
 			
 			$num_testcases = count($problem_entity->testcases);
 			$percentage = 0.0;
@@ -185,47 +187,82 @@ class CompilationController extends Controller {
 			foreach($problem_entity->testcases as &$tc){
 				$file_dir = $submissions_directory."output/".$tc->seq_num;
 				
-				$result = fgets($diff_log);		
-				$result = str_replace(array("\r", "\n"), '',$result);
+				$time = 999999999;
 				
-				$is_correct = false;
-				$is_runerror = false;
-				
-				# check for runtime error
-				if(file_exists($file_dir.".log")){
+				# see if the diff file worked
+				if(file_exists($submissions_directory."testcase_diff".$tc->seq_num.".log")){
 					
-					$run_error_log = fopen($file_dir.".log", "r") or die("Unable to open file for reading!");
-					$out_log = null;
+					$diff_log = fopen($submissions_directory."testcase_diff".$tc->seq_num.".log", "r") or die("Unable to open testcase_diff".$tc->seq_num." file for reading!");
+						
+					$result = fgets($diff_log);		
+					$result = str_replace(array("\r", "\n"), '',$result);
+					
+					$testcase_is_correct = false;
+					$is_runerror = false;				
+					
+					# get the runtime 
+					$time_line = fgets($time_log);			
+					$n = sscanf($time_line, "user %dm%d.%ds", $minutes, $seconds, $milliseconds);
+					$time = $seconds*1000+$milliseconds;
+					$did_exceed_time_limit = false;
+					
+					# check for runtime error
+					if(file_exists($file_dir.".log") && filesize(fopen($file_dir.".log", "r")) > 0){
+						
+						$run_error_log = fopen($file_dir.".log", "r") or die("Unable to open log file for reading!");
+						$out_log = null;
 
-					$is_runerror = true;
+						$is_runerror = true;
+						
+					} else{
 					
-				} else{
-				
-					$run_error_log = null;
-					$out_log = fopen($file_dir.".out", "r") or die("Unable to open file for reading!");
-					if(strcmp("YES", $result) == 0){
-						$is_correct = true;						
+						$run_error_log = null;
+						$out_log = fopen($file_dir.".out", "r") or die("Unable to open out file for reading!");
 						
-						$num_right++;
+						echo $result."</br>";
 						
-						if($tc->weight == 0){
-							$percentage += 1.0/$num_testcases;
-						} else {
-							$percentage += $tc->weight;
+						if(strcmp("YES", $result) == 0){
+							
+							# check the time limits
+							if($problem_entity->time_limit >= $time){
+							
+								$testcase_is_correct = true;					
+								
+								$num_right++;
+								
+								if($tc->weight == 0){
+									$percentage += 1.0/$num_testcases;
+								} else {
+									$percentage += $tc->weight;
+								}
+							} else {
+								
+								$testcase_is_correct = false;							
+								$did_exceed_time_limit = true;						
+							}
+						} else if(strcmp("TIME LIMIT", $result) == 0){
+		
+							# docker quit in the middle of the running of this problem
+							break;
+							
 						}
 					}
+					
+				} else {
+					
+					continue;
+					
 				}
 				
-				$time_line = fgets($time_log);
+				$testcase_result = new TestcaseResult($submission_entity, $tc, $testcase_is_correct, $run_error_log, $is_runerror, $time, $did_exceed_time_limit, $out_log);
+				
+				$submission_entity->exceeded_time_limit = ($submission_entity->exceeded_time_limit || $did_exceed_time_limit);
 				
 				
-				$n = sscanf($time_line, "user %dm%d.%ds", $minutes, $seconds, $milliseconds);
-				$time = $seconds*1000+$milliseconds;
-				
-				$testcase_result = new TestcaseResult($submission_entity, $tc, $is_correct, $run_error_log, $is_runerror, $time, $out_log);
 				$em->persist($testcase_result);
 				$em->flush();
 			}
+			
 			fclose($diff_log);
 		}
 		
@@ -244,6 +281,7 @@ class CompilationController extends Controller {
 		shell_exec("rm -rf ".$temp_folder);
 		
         return $this->redirectToRoute('submission_results', array('submission_id' => $submission_entity->id));
+		//return new Response();
 	}
 		
 	/* name=submission_results */
