@@ -1,40 +1,14 @@
-index:
-  path: '/'
-  defaults: {_controller: AppBundle:Default:index}
-  
-user_login:
-  path: '/user/login'
-  defaults: {_controller: AppBundle:Default:index}
-  
-account:
-  path: '/account/{userId}'
-  defaults: {_controller: AppBundle:Default:account}
-
-section:
-  path: '/account/{userId}/section/{sectionId}'
-  defaults: {_controller: AppBundle:Section:section}
-
-assignment:
-  path: '/account/{userId}/section/{sectionId}/assignment/{assignmentId}'
-  defaults: {_controller: AppBundle:Assignment:assignment}
-  
 submit:
     path: '/compilation/submit/{problem_id}'
     defaults: {_controller: AppBundle:Compilation:submit, problem_id: 1}
     requirements:
         problem_id: '\d+'
-        
-problem:
-    path: '/compilation/problem/{problem_id}'
-    defaults: {_controller: AppBundle:Compilation:problem, problem_id: 1}
-    requirements:
-        problem_id: '\d+'
-        
+   
 submission_results:
     path: '/compilation/submission_results/{submission_id}'
     defaults: {_controller: AppBundle:Compilation:submission}
     requirements:
-        submission_id: '\d+'
+	 submission_id: '\d+'
         
         
 hwi_oauth_redirect:
@@ -51,3 +25,4 @@ hwi_oauth_login:
     
 user_logout:
     path: /user/logout
+>>>>>>> auth

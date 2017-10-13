@@ -19,8 +19,11 @@ RUN apt-get install -y sudo
 RUN apt-get install -y bc
 RUN apt-get install -y time
 
+RUN useradd -ms /bin/bash abc
+
 COPY compiler_scripts/*.sh /home/abc/
 
+USER abc
 ENV HOME /home/abc
 WORKDIR $HOME
 CMD /bin/bash

@@ -151,9 +151,9 @@ container_name="gd$submission_id"
 echo "docker run --name=gd$submission_id -d $submission_mount_option $code_to_submit_mount_option $input_testcases_mount_option $output_testcases_mount_option gradel $script_command"
 echo $(docker run --name=$container_name -d $submission_mount_option $code_to_submit_mount_option $input_testcases_mount_option $output_testcases_mount_option gradel $script_command)
 
-echo "timeout 20 docker wait gd$submission_id"
+echo "timeout $time_limit docker wait gd$submission_id"
 
-code=$(timeout 20 docker wait gd$submission_id 2>&1 || true)
+code=$(timeout $time_limit docker wait gd$submission_id 2>&1 || true)
 
 echo $(docker kill $container_name 2>&1)
 echo $(docker rm $container_name 2>&1)
