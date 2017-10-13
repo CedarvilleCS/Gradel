@@ -174,7 +174,7 @@ class CompilationController extends Controller {
 		$docker_time_limit = intval(count($problem_entity->testcases) * ceil(floatval($problem_entity->time_limit)/1000.0)) + 10;
 		$docker_script = $web_dir."/compilation/dockercompiler.sh ".$problem_entity->id." ".$team_entity->id." ".dirname($submission_file_path)." ".basename($submission_file_path)." ".$language_entity->name." ".$is_zipped." ".$docker_time_limit." '".$problem_entity->compilation_options."' ".$submission_entity->id;
 		
-		#echo($docker_script);
+		#die($docker_script);
 		
 		$docker_output = shell_exec($docker_script);	
 		#echo nl2br($docker_output);
