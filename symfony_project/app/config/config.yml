@@ -45,7 +45,6 @@ doctrine:
     dbal:
         driver: pdo_mysql
         host: '%database_host%'
-        port: '%database_port%'
         dbname: '%database_name%'
         user: '%database_user%'
         password: '%database_password%'
@@ -77,7 +76,7 @@ fos_user:
     from_email:
         address: you@example.com
         sender_name: You    
-    
+
 hwi_oauth:
     # Define which firewalls will be used for oauth
     # Usually, its only the main, but you can add it if you have a custom one

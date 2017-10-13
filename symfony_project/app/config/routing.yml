@@ -8,4 +8,21 @@ submission_results:
     path: '/compilation/submission_results/{submission_id}'
     defaults: {_controller: AppBundle:Compilation:submission}
     requirements:
-        submission_id: '\d+'
+	 submission_id: '\d+'
+        
+        
+hwi_oauth_redirect:
+    resource: "@HWIOAuthBundle/Resources/config/routing/redirect.xml"
+    prefix:   /connect
+    
+hwi_oauth_connect:
+    resource: "@HWIOAuthBundle/Resources/config/routing/connect.xml"
+    prefix:   /connect
+
+hwi_oauth_login:
+    resource: "@HWIOAuthBundle/Resources/config/routing/login.xml"
+    prefix:   /login
+    
+user_logout:
+    path: /user/logout
+>>>>>>> auth
