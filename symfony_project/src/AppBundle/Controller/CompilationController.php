@@ -81,10 +81,24 @@ class CompilationController extends Controller {
 			die("TEAM DOES NOT EXIST");
 		}
 		
+		$qb_user = $em->createQueryBuilder();
+		$qb_user->select('u')
+				->from('AppBundle\Entity\User', 'u')
+				->where('u.id = ?1')
+				->setParameter(1, $user_id);
+				
+		$query_user = $qb_user->getQuery();
+		$user_entity = $query_user->getOneorNullResult();	
+
+		if(!$user_entity){
+			$logger->critical("user with id=".$user_id." does not exist.");
+			die("USER DOES NOT EXIST");
+		}
+		
 		
 		# create a submission to edit in this controller 
 		// and persist it to get the id number for later
-		$submission_entity = new Submission($problem_entity, $team_entity);	
+		$submission_entity = new Submission($problem_entity, $team_entity, $user_entity);	
 		
 		$em->persist($submission_entity);
 		$em->flush();					
@@ -121,6 +135,7 @@ class CompilationController extends Controller {
 		
 		
 		# SUBMISSION CREATION AND COMPILATION
+		# open the submitted file and prep for compilation
 		# open the submitted file and prep for compilation
 		$submitted_file = fopen($submission_file_path, "r") or die ("Unable to open submitted file: ".$submission_entity_file_path);
 		$submission_entity->submission = $submitted_file;
@@ -183,69 +198,70 @@ class CompilationController extends Controller {
 			
 			$num_testcases = count($problem_entity->testcases);
 			$percentage = 0.0;
+			
+			
 
 			foreach($problem_entity->testcases as &$tc){
-				$file_dir = $submissions_directory."output/".$tc->seq_num;
+				$out_dir = $submissions_directory."output/".$tc->seq_num.".out";
+				$log_dir = $submissions_directory."logs/".$tc->seq_num.".log";
 				
-				$time = 999999999;
+				$time = -1;
+				$testcase_is_correct = false;
+				$did_exceed_time_limit = false;
 				
-				# see if the diff file worked
-				if(file_exists($submissions_directory."testcase_diff".$tc->seq_num.".log")){
+				# check for runtime error
+				if(file_exists($log_dir) &&  0 < filesize($log_dir)){
+					
+					$run_error_log = fopen($log_dir, "r") or die("Unable to open log file for reading!");
+					$out_log = null;
+
+					$is_runerror = true;
+					
+				} 
+				# see if the diff file worked			
+				else if(file_exists($submissions_directory."testcase_diff".$tc->seq_num.".log")){
 					
 					$diff_log = fopen($submissions_directory."testcase_diff".$tc->seq_num.".log", "r") or die("Unable to open testcase_diff".$tc->seq_num." file for reading!");
 						
 					$result = fgets($diff_log);		
 					$result = str_replace(array("\r", "\n"), '',$result);
 					
-					$testcase_is_correct = false;
 					$is_runerror = false;				
 					
 					# get the runtime 
 					$time_line = fgets($time_log);			
 					$n = sscanf($time_line, "user %dm%d.%ds", $minutes, $seconds, $milliseconds);
 					$time = $seconds*1000+$milliseconds;
-					$did_exceed_time_limit = false;
+										
+					$run_error_log = null;
+					$out_log = fopen($out_dir, "r") or die("Unable to open out file for reading!");
 					
-					# check for runtime error
-					if(file_exists($file_dir.".log") && filesize(fopen($file_dir.".log", "r")) > 0){
-						
-						$run_error_log = fopen($file_dir.".log", "r") or die("Unable to open log file for reading!");
-						$out_log = null;
-
-						$is_runerror = true;
-						
-					} else{
+					echo $result."</br>";
 					
-						$run_error_log = null;
-						$out_log = fopen($file_dir.".out", "r") or die("Unable to open out file for reading!");
+					if(strcmp("YES", $result) == 0){
 						
-						echo $result."</br>";
+						# check the time limits
+						if($problem_entity->time_limit >= $time && $time >= 0){
 						
-						if(strcmp("YES", $result) == 0){
+							$testcase_is_correct = true;					
 							
-							# check the time limits
-							if($problem_entity->time_limit >= $time){
+							$num_right++;
 							
-								$testcase_is_correct = true;					
-								
-								$num_right++;
-								
-								if($tc->weight == 0){
-									$percentage += 1.0/$num_testcases;
-								} else {
-									$percentage += $tc->weight;
-								}
+							if($tc->weight == 0){
+								$percentage += 1.0/$num_testcases;
 							} else {
-								
-								$testcase_is_correct = false;							
-								$did_exceed_time_limit = true;						
+								$percentage += $tc->weight;
 							}
-						} else if(strcmp("TIME LIMIT", $result) == 0){
-		
-							# docker quit in the middle of the running of this problem
-							break;
+						} else {
 							
+							$testcase_is_correct = false;							
+							$did_exceed_time_limit = true;						
 						}
+					} else if(strcmp("TIME LIMIT", $result) == 0){
+	
+						# docker quit in the middle of the running of this problem
+						break;
+						
 					}
 					
 				} else {
@@ -256,7 +272,9 @@ class CompilationController extends Controller {
 				
 				$testcase_result = new TestcaseResult($submission_entity, $tc, $testcase_is_correct, $run_error_log, $is_runerror, $time, $did_exceed_time_limit, $out_log);
 				
+				# set the submission to be runtime or time limit if any test case exceeded
 				$submission_entity->exceeded_time_limit = ($submission_entity->exceeded_time_limit || $did_exceed_time_limit);
+				$submission_entity->runtime_error = ($submission_entity->runtime_error || $is_runerror);
 				
 				
 				$em->persist($testcase_result);
@@ -308,7 +326,7 @@ class CompilationController extends Controller {
 			
 			$tc_output[] = $output;			
 		}
-			
+					
         return $this->render('compilation/submission/index.html.twig', [
 			'submission' => $submission,
 			'testcases_output' => $tc_output,

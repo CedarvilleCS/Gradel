@@ -24,9 +24,10 @@ class Submission {
 		$this->testcaseresults = new ArrayCollection();	
 	}
 	
-	public function __construct2($prob, $tm){
+	public function __construct3($prob, $tm, $user){
 		$this->problem = $prob;
-		$this->team = $tm;		
+		$this->team = $tm;
+		$this->user = $user;
 		$this->timestamp = new \DateTime("now");
 		$this->is_accepted = false;
 		#this->submission
@@ -35,13 +36,15 @@ class Submission {
 		#this->compiler_output
 		$this->compiler_error = false;
 		$this->exceeded_time_limit = false;
+		$this->runtime_error = false;
 		#this->language		
 		$this->percentage = 0.0;
 	}
 		
 	
-	public function __construct11($prob, $tm, $time, $acc, $subm, $ft, $mainclass, $compout, $didcomp, $time_limit, $lang, $perc){
+	public function __construct13($prob, $tm, $user, $time, $acc, $subm, $ft, $mainclass, $compout, $didcomp, $didtime, $didrun, $lang, $perc){
 		$this->problem = $prob;
+		$this->user = $user;
 		$this->team = $tm;
 		$this->timestamp = $time;
 		$this->is_accepted = $acc;
@@ -50,7 +53,8 @@ class Submission {
 		$this->main_class_name = $mainclass;
 		$this->compiler_output = $compout;
 		$this->compiler_error = $didcomp;
-		$this->exceeded_time_limit = $time_limit;
+		$this->exceeded_time_limit = $didtime;
+		$this->runtime_error = $didrun;
 		$this->language = $lang;
 		$this->percentage = $perc;
 	}
@@ -125,6 +129,12 @@ class Submission {
 	* @ORM\Column(type="boolean")
 	*/
 	public $exceeded_time_limit;
+	
+	
+	/**
+	* @ORM\Column(type="boolean")
+	*/
+	public $runtime_error;
 	
 	/**
 	* @ORM\ManyToOne(targetEntity="Language")

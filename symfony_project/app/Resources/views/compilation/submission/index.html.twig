@@ -14,6 +14,8 @@
 						COMPILER ERROR!
 						{% elseif submission.exceeded_time_limit %}
 						TIME LIMIT EXCEEEDED!
+						{% elseif submission.runtime_error %}
+						RUNTIME ERROR!
 						{% else %}
 						WRONG ANSWER!
 						{% endif %}
@@ -29,6 +31,13 @@
 				<hr>
 				{{compiler_output}}			
 				<hr>
+			{% elseif submission.runtime_error %}
+				<h2> RUNTIME ERROR </h2>
+				<hr>
+				{% for tc in testcases_output %}
+					{{tc.runtime_output}}<br/>			
+					<hr>			
+				{% endfor %}
 			{% endif %}
 			
 			{% if submission_file != "" %}	

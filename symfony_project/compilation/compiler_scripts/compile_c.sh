@@ -50,14 +50,14 @@ for ((i=0;i<${#INPUT_FILES[@]};++i)); do
 	
 	echo "TIME LIMIT" > $diff_log_name
 	
-	mytime="$((time ( ./a.out  < ${INPUT_FILES[i]} > submission/output/$seq_num.out 2> submission/output/$seq_num.log ) 2>&1 ) | grep user)"
+	mytime="$((time ( sh -c 'trap "" 11; ./a.out'  < ${INPUT_FILES[i]} 1> submission/output/$seq_num.out 2> submission/logs/$seq_num.log ) 2>&1 ) | grep user)"
 	echo $mytime >> submission/testcase_exectime.log
 	
 	# get the runtime errors stored
-	file_size="$(wc -c submission/output/$seq_num.log | awk '{print $1}')"
-	if [ "$file_size" -eq 0 ]; then
-		rm -f submission/output/$seq_num.log
-	fi	
+#	file_size="$(wc -c submission/output/$seq_num.log | awk '{print $1}')"
+#	if [ "$file_size" -eq 0 ]; then
+#		rm -f submission/output/$seq_num.log
+#	fi	
 	
 	# COMPARE THE RESULTS
 	cmp=$(diff submission/output/$seq_num.out ${EXPECTED_OUTPUT_FILES[i]})
