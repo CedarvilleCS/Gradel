@@ -149,6 +149,9 @@ script_command="/home/abc/compile_code.sh $file_type $is_zipped $file_name $link
 container_name="gd$submission_id"
 
 echo "docker run --name=gd$submission_id -d $submission_mount_option $code_to_submit_mount_option $input_testcases_mount_option $output_testcases_mount_option gradel $script_command"
+
+return
+
 echo $(docker run --name=$container_name -d $submission_mount_option $code_to_submit_mount_option $input_testcases_mount_option $output_testcases_mount_option gradel $script_command)
 
 echo "timeout $time_limit docker wait gd$submission_id"

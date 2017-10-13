@@ -23,6 +23,23 @@ RUN useradd -ms /bin/bash abc
 
 COPY compiler_scripts/*.sh /home/abc/
 
+RUN mkdir /home/abc/submission
+RUN mkdir /home/abc/code_to_submit
+RUN mkdir /home/abc/input
+RUN mkdir /home/abc/output
+
+RUN chown -R root /home/abc
+RUN chown -R root /home/abc/submission
+RUN chown -R root /home/abc/code_to_submit
+RUN chown -R root /home/abc/input
+RUN chown -R root /home/abc/output
+
+RUN chmod -R 777 /home/abc
+RUN chmod -R 777 /home/abc/submission
+RUN chmod -R 777 /home/abc/code_to_submit
+RUN chmod -R 777 /home/abc/input
+RUN chmod -R 777 /home/abc/output
+
 USER abc
 ENV HOME /home/abc
 WORKDIR $HOME
