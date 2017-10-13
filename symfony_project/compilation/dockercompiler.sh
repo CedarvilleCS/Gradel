@@ -135,6 +135,9 @@ else
 	exit 1
 fi	
 
+
+# change permissions on shared directories
+
 # run the sandbox
 echo ""
 echo "Creating the docker sandbox to run student code..."
