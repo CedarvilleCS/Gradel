@@ -2,7 +2,7 @@
 
 int main(){
 
-	system("exec rm -rf /home/abc/output/*");
+	system("exec rm -rf /home/abc/submission/time_logs");
 	
 	return 0;
 }

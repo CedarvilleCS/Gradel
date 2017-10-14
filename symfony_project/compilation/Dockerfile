@@ -19,8 +19,7 @@ RUN apt-get install -y sudo
 RUN apt-get install -y bc
 RUN apt-get install -y time
 
-RUN useradd -ms /bin/bash abc
-
+RUN mkdir /home/abc
 COPY compiler_scripts/*.sh /home/abc/
 
 RUN mkdir /home/abc/submission
@@ -28,10 +27,7 @@ RUN mkdir /home/abc/code_to_submit
 RUN mkdir /home/abc/input
 RUN mkdir /home/abc/output
 
-
-USER abc
+USER root
 ENV HOME /home/abc
 WORKDIR $HOME
 CMD /bin/bash
-
-
