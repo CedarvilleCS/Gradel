@@ -35,7 +35,7 @@ submit:
     path: '/account/{userId}/section/{sectionId}/assignment/{assignmentId}/problem/{problem_id}/submit'
     defaults: {_controller: AppBundle:Compilation:submit, problem_id: 1}
     requirements:
-        problem_id: 1
+        problem_id: '1'
 
 
 error:
@@ -67,3 +67,5 @@ hwi_oauth_login:
 user_logout:
     path: /user/logout
 
+user_login:
+    path: /user/login
