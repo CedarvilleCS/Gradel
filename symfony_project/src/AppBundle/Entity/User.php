@@ -49,12 +49,17 @@ class User extends BaseUser{
 	*/
 	public $id;
 	
+	/** @ORM\Column(name="access_level", type="integer", nullable=true) */
+	protected $access_level;
+	
+	/** @ORM\Column(name="last_name", type="string", length=255, nullable=true) */
+	protected $last_name;
+	
+	/** @ORM\Column(name="first_name", type="string", length=255, nullable=true) */
+	protected $first_name;
 	
 	/** @ORM\Column(name="google_id", type="string", length=255, nullable=true) */
 	protected $google_id;
-
-	/** @ORM\Column(name="name", type="string", length=255, nullable=true) */
-	protected $name;
 
 	/** @ORM\Column(name="google_access_token", type="string", length=255, nullable=true) */
 	protected $google_access_token;
@@ -69,14 +74,24 @@ class User extends BaseUser{
 		return $this->google_id;
 	}
 
-	public function setName($name) {
-		$this->name = $name;
+	public function setFirstName($first_name) {
+		$this->first_name = $first_name;
 
 		return $this;
 	}
 
-	public function getName() {
-		return $this->name;
+	public function getFirstName() {
+		return $this->first_name;
+	}
+	
+	public function setLastName($last_name) {
+		$this->last_name = $last_name;
+
+		return $this;
+	}
+
+	public function getLastName() {
+		return $this->last_name;
 	}
 
 	public function setGoogleAccessToken($googleAccessToken) {
