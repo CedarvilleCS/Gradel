@@ -1,94 +1,126 @@
-{% extends 'base.html.twig' %}
-
-{% block body %}
-	<div class="topnav" id="myTopnav">
-	  <a>Home</a>
-	  <a>Account</a>
-	</div>
-
-	<table>
-	  <tr>
-	    <th>Name</th>
-		</tr>
-			{% for problem in assignment.problems %}
-				<tr>
-					<th>
-						<a>
-							{{problem.name}}
-						</a>
-					</th>
-				</tr>
-			{% endfor %}
-	</table>
-
+{% block head %}
+<title>Gradel | Project {{project_id}}</title>
 {% endblock %}
+{% block body %}
+<body>
+    <nav class="problems">
+        <ul>
+          {% for problem in assignment.problems %}
+            <li>
+              <a href="{{path("assignment", {'userId': 1, 'sectionId': 1, 'assignmentId': 1, 'problemId': problem.id})}}">{{ problem.name }}</a>
+            </li>
+          {% endfor %}
+        </ul>
+    </nav>
+    <section id="problemSpec"> <!-- FIXME: This ID name doesn't make sense -->
+        <!-- TODO: Change the contents of this using routing when you click on the link on the left -->
+        <h1>{{currentProblem.name}}</h1>
+        <p>{{currentProblemDescription}}</p>
+        <textarea>Enter your code here.</textarea>      <!-- TODO: Add a syntax highlighting plugin-->
+        <!-- <pre><code><textarea></textarea></code></pre> -->
+        <button class="btn">Submit</button>
+        <div id="file-upload-wrapper">
+            <input type="file" name="files[]" multiple id="file-upload"> <!-- FIXME: To get hover effects these need to be in the other order, but that is making you not able to clock on the file input thing. -->
+            <button class="btn">Upload Files</button>
+        </div>
+    </section>
 
+</body>
+{% endblock %}
 {% block stylesheets %}
 <style>
-		@import url(https://fonts.googleapis.com/css?family=Roboto:300);
+    html, body {
+        padding: 0px;
+        margin: 0px;
+    }
 
-		table {
-		    font-family: arial, sans-serif;
-		    border-collapse: collapse;
-				margin: 0 auto;
-				margin-top: 50px;
-		    min-width: 350px;
-				max-width: 550px;
-		}
+    nav.problems {
+        float: left;
+        position: fixed;
+        overflow-x: scroll;
+        border-right: 1px solid grey;
+        background-color: #8DC26F;
+        color: white;
+        height: 100vh;
+        width: 200px;
 
-		td, th {
-		    border: 1px solid #dddddd;
-		    text-align: left;
-		    padding: 8px;
-		}
+        -webkit-box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
+        -moz-box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
+        box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
+    }
 
-		tr:nth-child(even) {
-		    background-color: #dddddd;
-		}
+    nav > ul {
+        list-style: none;
+        font-family: sans-serif;
+        line-height: 25pt;
+        font-size: 14pt;
+        text-align: left;
+        padding: 10px;
+        margin-top: 30px;
+        margin-bottom: 30px;
+    }
 
-		.topnav {
-    background-color: #333;
-    overflow: hidden;
-		}
+    nav > ul > li {
+        border-bottom: 1px dotted grey;
+        padding: 3px;
+    }
 
-		/* Style the links inside the navigation bar */
-		.topnav a {
-		    float: left;
-		    display: block;
-		    color: #f2f2f2;
-		    text-align: center;
-		    padding: 14px 16px;
-		    text-decoration: none;
-		    font-size: 17px;
-		}
+    nav > ul > li:hover {
+        background-color: #76b852;
+    }
 
-		/* Change the color of links on hover */
-		.topnav a:hover {
-		    background-color: #ddd;
-		    color: black;
-		}
+    #problemSpec {
+        margin-left: 200px;
+        width: calc(100% - 200px);
+        padding: 10px;
+    }
 
-		/* Add a color to the active/current link */
-		.topnav a.active {
-		    background-color: #4CAF50;
-		    color: white;
-		}
+    textarea {
+        width: calc(100% - 20px);
+        height: 300px;
+        border-radius: 10px;
+        border: 1px solid #8DC26F;
+        padding: 10px;
+        font-family: monospace;
+        font-size: 10pt;
 
-		h1 {
-			font-family: "Robot", sans-serif;
-			font-size: 16px;
-		}
+        -webkit-box-shadow: inset 3px 3px 10px -4px rgba(0,0,0,0.64);
+        -moz-box-shadow: inset 3px 3px 10px -4px rgba(0,0,0,0.64);
+        box-shadow: inset 3px 3px 10px -4px rgba(0,0,0,0.64);
+    }
 
-		body {
-		margin: 0px;
-	  background: #ffffff; /* fallback for old browsers */
-	  background: -webkit-linear-gradient(right, #f2f2f2, #ffffff);
-	  background: -moz-linear-gradient(right, #f2f2f2, #ffffff);
-	  background: -o-linear-gradient(right, #f2f2f2, #ffffff);
-	  background: linear-gradient(to left, #f2f2f2, #ffffff);
-	  font-family: "Roboto", sans-serif;
-	  -webkit-font-smoothing: antialiased;
-	  -moz-osx-font-smoothing: grayscale;
-	  }
+    .btn {
+        margin-top: 10px;
+        width: 100px;
+        height: 30px;
+        background-color: #8DC26F;
+        color: white;
+        /* border-radius: 5px; */
+        border: none;
+    }
+
+    .btn:hover {
+        background-color: #76b852;
+    }
+
+    #file-upload {
+        margin-top: 10px;
+        position: absolute;
+        opacity: 0;
+        /* top: 0;
+        right: 0; */
+        width: 100px;
+        height: 30px;
+    }
+
+    #file-upload-wrapper {
+        display: inline-block;
+    }
+
 </style>
+{% endblock %}
+{% block scripts %}
+<!-- JQuery -->
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 {% endblock %}

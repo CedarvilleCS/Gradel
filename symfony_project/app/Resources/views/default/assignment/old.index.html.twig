@@ -10,15 +10,15 @@
 	  <tr>
 	    <th>Name</th>
 		</tr>
-    {% for assignment in section.assignments %}
-      <tr>
-        <th>
-          <a href="{{path('assignment', {'userId': userId, 'sectionId': sectionId, 'assignmentId': assignment.id, 'problemId': 1})}}">
-            {{assignment.name}}
-          </a>
-        </th>
-      </tr>
-    {% endfor %}
+			{% for problem in assignment.problems %}
+				<tr>
+					<th>
+						<a>
+							{{problem.name}}
+						</a>
+					</th>
+				</tr>
+			{% endfor %}
 	</table>
 
 {% endblock %}

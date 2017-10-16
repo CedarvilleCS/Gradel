@@ -1,11 +1,18 @@
+
 index:
   path: '/'
   defaults: {_controller: AppBundle:Default:index}
-  
-user_login:
-  path: '/user/login'
-  defaults: {_controller: AppBundle:Default:index}
-  
+
+hwi_oauth_login:
+    resource: "@HWIOAuthBundle/Resources/config/routing/login.xml"
+    prefix:   /login
+
+auth0_login:
+    path:    /auth0/callback
+
+auth0_logout:
+    path: /auth0/logout
+
 account:
   path: '/account/{userId}'
   defaults: {_controller: AppBundle:Default:account}
@@ -15,39 +22,32 @@ section:
   defaults: {_controller: AppBundle:Section:section}
 
 assignment:
-  path: '/account/{userId}/section/{sectionId}/assignment/{assignmentId}'
-  defaults: {_controller: AppBundle:Assignment:assignment}
-  
-submit:
-    path: '/compilation/submit/{problem_id}'
-    defaults: {_controller: AppBundle:Compilation:submit, problem_id: 1}
-    requirements:
-        problem_id: '\d+'
-        
+  path: '/account/{userId}/section/{sectionId}/assignment/{assignmentId}/problem/{problemId}'
+  defaults: {_controller: AppBundle:Assignment:assignment, problemId: 1}
+
 problem:
-    path: '/compilation/problem/{problem_id}'
+    path: '/account/{userId}/section/{sectionId}/assignment/{assignmentId}/problem/{problem_id}'
     defaults: {_controller: AppBundle:Compilation:problem, problem_id: 1}
     requirements:
         problem_id: '\d+'
-        
+
+submit:
+    path: '/account/{userId}/section/{sectionId}/assignment/{assignmentId}/problem/{problem_id}/submit'
+    defaults: {_controller: AppBundle:Compilation:submit, problem_id: 1}
+    requirements:
+        problem_id: '\d+'
+
+
+error:
+    path: '/compilation/error/{problem_id}'
+    defaults: {_controller: AppBundle:Compilation:error, problem_id: 1}
+    requirements:
+        problem_id: '\d+'
+
+
+
 submission_results:
     path: '/compilation/submission_results/{submission_id}'
     defaults: {_controller: AppBundle:Compilation:submission}
     requirements:
         submission_id: '\d+'
-        
-        
-hwi_oauth_redirect:
-    resource: "@HWIOAuthBundle/Resources/config/routing/redirect.xml"
-    prefix:   /connect
-    
-hwi_oauth_connect:
-    resource: "@HWIOAuthBundle/Resources/config/routing/connect.xml"
-    prefix:   /connect
-
-hwi_oauth_login:
-    resource: "@HWIOAuthBundle/Resources/config/routing/login.xml"
-    prefix:   /login
-    
-user_logout:
-    path: /user/logout
