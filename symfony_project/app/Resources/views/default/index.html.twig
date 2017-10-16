@@ -25,7 +25,11 @@
 	<a href="{{ path('user_logout') }}">Logout</a>
 	</hr>
 {% else %}
-
+	We're doing fine.
+	<a href="{{ path('hwi_oauth_service_redirect', {'service': 'google' }) }}">
+        <span>Google</span>
+    </a>
+	
 {% endif %}
 {% endblock %}
 
