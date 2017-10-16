@@ -23,6 +23,12 @@ RUN useradd -ms /bin/bash abc
 
 COPY compiler_scripts/*.sh /home/abc/
 
+RUN mkdir /home/abc/submission
+RUN mkdir /home/abc/code_to_submit
+RUN mkdir /home/abc/input
+RUN mkdir /home/abc/output
+
+
 USER abc
 ENV HOME /home/abc
 WORKDIR $HOME
