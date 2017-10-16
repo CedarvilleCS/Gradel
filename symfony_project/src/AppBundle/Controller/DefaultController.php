@@ -22,11 +22,11 @@ class DefaultController extends Controller
 	  $usr= $this->get('security.token_storage')->getToken()->getUser();
 	  
 	  if(get_class($usr)){
-		$name = $usr->getUsername();
+		$name = $usr->getFirstName();
 	  }
 	  
       return $this->render('default/index.html.twig', [
-		  'username' => $name,
+		  'name' => $name,
       ]);
     }
 

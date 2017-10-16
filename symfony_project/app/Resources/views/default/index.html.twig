@@ -2,9 +2,11 @@
 
 {% block body %}
 
-{% if app.user %}
+{% if app.user.getEmail() == "gallaghd@cedarville.edu" %}
 
-	Hello, {{app.user.username}}!
+	Hello, {{app.user.getFirstName()}}!<br/>
+	Your email is {{app.user.email}}<br/>
+	Your age is INTEGER OVERFLOW.
 	
 	<br>
 	
@@ -12,6 +14,16 @@
 	<a href="{{ path('user_logout') }}">Logout</a>
 	</hr>
 	
+{% elseif app.user %}
+	Hello, {{app.user.getFirstName()}}! <br/>	
+	Your email is {{app.user.email}}<br/>
+	Your age is just fine.
+	
+	<br>
+	
+	<hr>
+	<a href="{{ path('user_logout') }}">Logout</a>
+	</hr>
 {% else %}
 
 	<a href="{{ path('hwi_oauth_service_redirect', {'service': 'google' }) }}">
@@ -19,12 +31,6 @@
 	</a>
 	
 {%endif %}
-
-
-	
-	
-	
-	{{app.user.roles|json_encode}}
 
 {% endblock %}
 {% block stylesheets %}
