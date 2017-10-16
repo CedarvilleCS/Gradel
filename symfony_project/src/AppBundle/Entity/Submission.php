@@ -37,12 +37,15 @@ class Submission {
 		$this->compiler_error = false;
 		$this->exceeded_time_limit = false;
 		$this->runtime_error = false;
+		$this->max_runtime = -1;
 		#this->language		
 		$this->percentage = 0.0;
+		#$this->final_good_testcase;
+		$this->questionable_behavior = false;
 	}
 		
 	
-	public function __construct13($prob, $tm, $user, $time, $acc, $subm, $ft, $mainclass, $compout, $didcomp, $didtime, $didrun, $lang, $perc){
+	public function __construct17($prob, $tm, $user, $time, $acc, $subm, $ft, $mainclass, $compout, $didcomp, $didtime, $didrun, $maxtime, $lang, $perc, $tst, $ques){
 		$this->problem = $prob;
 		$this->user = $user;
 		$this->team = $tm;
@@ -54,9 +57,12 @@ class Submission {
 		$this->compiler_output = $compout;
 		$this->compiler_error = $didcomp;
 		$this->exceeded_time_limit = $didtime;
+		$this->max_runtime = $maxtime;
 		$this->runtime_error = $didrun;
 		$this->language = $lang;
 		$this->percentage = $perc;
+		$this->final_good_testcase = $tst;
+		$this->questionable_behavior = $ques;
 	}
 
 	/**
@@ -73,19 +79,19 @@ class Submission {
 	
 	/**
      * @ORM\ManyToOne(targetEntity="Problem")
-     * @ORM\JoinColumn(name="problem_id", referencedColumnName="id")
+     * @ORM\JoinColumn(name="problem_id", referencedColumnName="id", nullable=false)
      */
 	public $problem;
 	
 	/**
      * @ORM\ManyToOne(targetEntity="Team", inversedBy="submissions")
-     * @ORM\JoinColumn(name="team_id", referencedColumnName="id")
+     * @ORM\JoinColumn(name="team_id", referencedColumnName="id", nullable=false)
      */
 	public $team;
 	
 	/**
      * @ORM\ManyToOne(targetEntity="User")
-     * @ORM\JoinColumn(name="user_id", referencedColumnName="id")
+     * @ORM\JoinColumn(name="user_id", referencedColumnName="id", nullable=false)
      */
 	public $user;
 	
@@ -130,11 +136,27 @@ class Submission {
 	*/
 	public $exceeded_time_limit;
 	
+	/**
+	* @ORM\Column(type="integer")
+	*/
+	public $max_runtime;
+	
 	
 	/**
 	* @ORM\Column(type="boolean")
 	*/
 	public $runtime_error;
+	
+	/**
+	* @ORM\ManyToOne(targetEntity="TestcaseResult")
+	* @ORM\JoinColumn(name="final_good_testcase", referencedColumnName="id", nullable=true)
+	*/
+	public $final_good_testcase;
+	
+	/**
+	* @ORM\Column(type="boolean")
+	*/
+	public $questionable_behavior;
 	
 	/**
 	* @ORM\ManyToOne(targetEntity="Language")

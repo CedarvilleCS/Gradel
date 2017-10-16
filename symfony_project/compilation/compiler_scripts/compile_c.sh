@@ -14,15 +14,13 @@ fi
 
 # COMPILATION
 # compile the code and check for compiler error
-gcc submission/code/*.c $compiler_flags -o a.out 2> submission/compiler_errors.log
+gcc submission/code/*.c $compiler_flags -o a.out 2> submission/compiler.log
 
-# if there was an error, exit
-# otherwise, we know the output file is really just warnings
+# if there was an error, exit and touch a flag file
 if [ $? -ne 0 ]; then
 	echo "Error with compiling!"
+	touch submission/compileerror
 	exit 1
-else
-	mv submission/compiler_errors.log submission/compiler_warnings.log
 fi
 
 
@@ -35,8 +33,8 @@ input_file_count=$(find input/ -maxdepth 1 -name "*.in" | wc -l)
 expect_file_count=$(find output/ -maxdepth 1 -name "*.out" | wc -l)
 	
 if [ $input_file_count -ne $expect_file_count ]; then
-	echo "student output does not have the same number of files" >> submission/testcase_error.log
-	echo $input_file_count - $expect_file_count >> submission/testcase_error.log
+	echo "student output does not have the same number of files"
+	echo $input_file_count - $expect_file_count
 	exit 1
 fi
 
@@ -46,19 +44,11 @@ for ((i=0;i<${#INPUT_FILES[@]};++i)); do
 
 	seq_num=$(basename ${INPUT_FILES[i]} .in)
 	
-	diff_log_name=submission/testcase_diff$seq_num.log
+	diff_log_name=submission/diff_logs/$seq_num.log
 	
-	echo "TIME LIMIT" > $diff_log_name
-	
-	mytime="$((time ( sh -c 'trap "" 11; ./a.out'  < ${INPUT_FILES[i]} 1> submission/output/$seq_num.out 2> submission/logs/$seq_num.log ) 2>&1 ) | grep user)"
-	echo $mytime >> submission/testcase_exectime.log
-	
-	# get the runtime errors stored
-#	file_size="$(wc -c submission/output/$seq_num.log | awk '{print $1}')"
-#	if [ "$file_size" -eq 0 ]; then
-#		rm -f submission/output/$seq_num.log
-#	fi	
-	
+	mytime="$((time ( sh -c 'trap "" 11; ./a.out'  < ${INPUT_FILES[i]} 1> submission/output/$seq_num.out 2> submission/runtime_logs/$seq_num.log ) 2>&1 ) | grep user)"
+	echo $mytime > submission/time_logs/$seq_num.log
+
 	# COMPARE THE RESULTS
 	cmp=$(diff submission/output/$seq_num.out ${EXPECTED_OUTPUT_FILES[i]})
   
@@ -70,7 +60,7 @@ for ((i=0;i<${#INPUT_FILES[@]};++i)); do
 	fi
 done
 
-echo "$num_correct/$expect_file_count correct"  >> submission/testcase_diff.log
+echo "$num_correct/$expect_file_count correct"
 
 
 exit 0
