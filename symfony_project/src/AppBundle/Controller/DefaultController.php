@@ -6,6 +6,7 @@ use AppBundle\Entity\User;
 use AppBundle\Entity\Course;
 use AppBundle\Entity\UserSectionRole;
 
+use Auth0\SDK\Auth0;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
@@ -17,7 +18,16 @@ class DefaultController extends Controller
 {
     public function indexAction(Request $request, LoggerInterface $logger) {
       $logger->info("This should output somewhere!");
-      return $this->render('default/index.html.twig');
+	  
+	  $usr= $this->get('security.token_storage')->getToken()->getUser();
+	  
+	  if(get_class($usr)){
+		$name = $usr->getFirstName();
+	  }
+	  
+      return $this->render('default/index.html.twig', [
+		  'name' => $name,
+      ]);
     }
 
     public function accountAction(LoggerInterface $logger, $userId) {
@@ -51,6 +61,19 @@ class DefaultController extends Controller
           ]);
       // return $this->render('default/account/index.html.twig');
     }
+	
+	public function addUserAction($userName){	
+
+	
+		//$em = $this->getDoctrine()->getManager();
+		//$new_user = new User($userName, "Wolf", "", new \DateTime("now"), "");
+		//$em->persist($new_user);
+		//echo json_encode("He1y");
+		echo json_encode(yo, $userName);
+		return $this->render('default/account/index.html.twig');
+	}
+	
+
 }
 
 ?>

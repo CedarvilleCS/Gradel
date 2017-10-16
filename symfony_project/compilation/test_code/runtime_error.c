@@ -10,6 +10,10 @@ int main(){
 	
 	x = x+y;
 	
+	int c = 0;
+	
+	y = 1394243/c;
+	
 	printf("%d\n", x);
 
 	return 0;

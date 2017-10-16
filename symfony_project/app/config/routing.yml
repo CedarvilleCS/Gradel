@@ -22,34 +22,51 @@ section:
   defaults: {_controller: AppBundle:Section:section}
 
 assignment:
-  path: '/account/{userId}/section/{sectionId}/assignment/{assignmentId}'
-  defaults: {_controller: AppBundle:Assignment:assignment}
+  path: '/account/{userId}/section/{sectionId}/assignment/{assignmentId}/problem/{problemId}'
+  defaults: {_controller: AppBundle:Assignment:assignment, problemId: 1}
 
-  
-  
-  
-  
-
-submit:
-    path: '/compilation/submit/{problem_id}'
-    defaults: {_controller: AppBundle:Compilation:submit, problem_id: 1}
+problem:
+    path: '/account/{userId}/section/{sectionId}/assignment/{assignmentId}/problem/{problem_id}'
+    defaults: {_controller: AppBundle:Compilation:problem, problem_id: 1}
     requirements:
         problem_id: '\d+'
-        
+
+submit:
+    path: '/account/{userId}/section/{sectionId}/assignment/{assignmentId}/problem/{problem_id}/submit'
+    defaults: {_controller: AppBundle:Compilation:submit, problem_id: 1}
+    requirements:
+        problem_id: '1'
+
+
 error:
     path: '/compilation/error/{problem_id}'
     defaults: {_controller: AppBundle:Compilation:error, problem_id: 1}
     requirements:
         problem_id: '\d+'
-        
-problem:
-    path: '/compilation/problem/{problem_id}'
-    defaults: {_controller: AppBundle:Compilation:problem, problem_id: 1}
-    requirements:
-        problem_id: '\d+'
-        
+
+
+
 submission_results:
     path: '/compilation/submission_results/{submission_id}'
     defaults: {_controller: AppBundle:Compilation:submission}
     requirements:
         submission_id: '\d+'
+        
+hwi_oauth_redirect:
+    resource: "@HWIOAuthBundle/Resources/config/routing/redirect.xml"
+    prefix:   /connect
+    
+hwi_oauth_connect:
+    resource: "@HWIOAuthBundle/Resources/config/routing/connect.xml"
+    prefix:   /connect
+
+hwi_oauth_login:
+    resource: "@HWIOAuthBundle/Resources/config/routing/login.xml"
+    prefix:   /login
+    
+user_logout:
+    path: /user/logout
+    
+user_login:
+  path: '/user/login'
+  defaults: {_controller: AppBundle:Default:index}

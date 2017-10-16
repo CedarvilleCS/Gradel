@@ -13,7 +13,7 @@
     {% for assignment in section.assignments %}
       <tr>
         <th>
-          <a href="{{path('assignment', {'userId': userId, 'sectionId': sectionId, 'assignmentId': assignment.id})}}">
+          <a href="{{path('assignment', {'userId': userId, 'sectionId': sectionId, 'assignmentId': assignment.id, 'problemId': 1})}}">
             {{assignment.name}}
           </a>
         </th>
