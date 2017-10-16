@@ -26,13 +26,9 @@
 	</hr>
 {% else %}
 
-	<a href="{{ path('hwi_oauth_service_redirect', {'service': 'google' }) }}">
-		<span>Google</span>
-	</a>
-	
-{%endif %}
-
+{% endif %}
 {% endblock %}
+
 {% block stylesheets %}
 <style>
   @import url(https://fonts.googleapis.com/css?family=Roboto:300);
@@ -142,4 +138,5 @@
   -moz-osx-font-smoothing: grayscale;
   }
 </style>
+
 {% endblock %}
