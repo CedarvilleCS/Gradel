@@ -47,7 +47,13 @@
 					<hr>
 			{% endif %}
 			
-			<a href="{{ path('submit', {'problem_id': 1 }) }}"> SUBMIT AGAIN </a>
+			<a href="{{ path('submit', {'problem_id': 1, 'submitted_filename': 'sum.c'}) }}"> SUBMIT CORRECT SOLUTION </a>
+			<a href="{{ path('submit', {'problem_id': 1, 'submitted_filename': 'wrong_answer.c'}) }}"> SUBMIT WRONG ANSWER </a>
+			<a href="{{ path('submit', {'problem_id': 1, 'submitted_filename': 'compiler_error.c'}) }}"> SUBMIT COMPILER ERROR </a>
+			<a href="{{ path('submit', {'problem_id': 1, 'submitted_filename': 'runtime_error.c'}) }}"> SUBMIT RUNTIME ERROR </a>
+			<a href="{{ path('submit', {'problem_id': 1, 'submitted_filename': 'while_loop.c'}) }}"> SUBMIT INFINITE LOOP </a>
+			<a href="{{ path('submit', {'problem_id': 1, 'submitted_filename': 'malicious_delete_all.c'}) }}"> SUBMIT MALICIOUS DELETION </a>
+			<a href="{{ path('submit', {'problem_id': 1, 'submitted_filename': 'malicious_add.c'}) }}"> SUBMIT MALICIOUS ADDITION </a>
 			
 			</div>
 
