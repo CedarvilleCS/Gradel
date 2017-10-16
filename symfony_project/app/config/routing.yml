@@ -19,8 +19,11 @@ assignment:
   defaults: {_controller: AppBundle:Assignment:assignment}
   
 submit:
-    path: '/compilation/submit/{problem_id}'
-    defaults: {_controller: AppBundle:Compilation:submit, problem_id: 1}
+    path: '/compilation/submit/{problem_id}/{submitted_filename}'
+    defaults: 
+        _controller:    AppBundle:Compilation:submit
+        problem_id:     1
+       
     requirements:
         problem_id: '\d+'
         

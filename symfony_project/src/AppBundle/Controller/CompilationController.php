@@ -28,8 +28,9 @@ use Symfony\Component\HttpFoundation\Response;
 
 class CompilationController extends Controller {
 	
+	
 	/* name=submit */
-	public function submitAction($problem_id=1) {
+	public function submitAction($problem_id=1, $submitted_filename) {
 		
 		$logger = $this->get('logger');
 		
@@ -40,7 +41,13 @@ class CompilationController extends Controller {
 		//$submission_file_path = $web_dir."/compilation/test_code/sum.c";
 		//$submission_file_path = $web_dir."/compilation/test_code/malicious_delete_all.c";
 		//$submission_file_path = $web_dir."/compilation/test_code/while_loop.c";
-		$submission_file_path = $web_dir."/compilation/test_code/malicious_add.c";
+		//$submission_file_path = $web_dir."/compilation/test_code/malicious_add.c";
+		//$submission_file_path = $web_dir."/compilation/test_code/wrong_answer.c";		
+		//$submission_file_path = $web_dir."/compilation/test_code/compiler_error.c";	
+		//$submission_file_path = $web_dir."/compilation/test_code/runtime_error.c";
+		
+		$submission_file_path = $web_dir."/compilation/test_code/".$submitted_filename;
+		
 		$filetype_id = 1;		
 		$language_id = 3;
 		
@@ -48,8 +55,7 @@ class CompilationController extends Controller {
 		$user_id = 1;	
 		
 		// this should be queried based on the user ID
-		$team_id = 1;
-		
+		$team_id = 1;		
 		
 		
 		$em = $this->getDoctrine()->getManager();
