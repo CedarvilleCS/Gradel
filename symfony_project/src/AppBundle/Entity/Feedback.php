@@ -37,11 +37,19 @@ class Feedback {
 	*@ORM\Column(type="blob")
 	*/
 	public $short_response;
+	
+	public function deblobinateShortResponse(){			
+		return stream_get_contents($this->short_response);
+	}
 
 	/**
 	*@ORM\Column(type="blob")
 	*/
 	public $long_response;
+	
+	public function deblobinateLongResponse(){			
+		return stream_get_contents($this->long_response);
+	}
 	
 }
 ?>
