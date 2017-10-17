@@ -50,7 +50,7 @@ class Section{
 	public $assignments;
 
 	/**
-	* @ORM\ManyToOne(targetEntity="Course", inversedBy="sections")
+	* @ORM\ManyToOne(targetEntity="Course", inversedBy="sections", cascade={"persist", "remove"})
 	*/
 	public $course;
 
@@ -81,8 +81,8 @@ class Section{
 
 	/**
 	* A user has a reference to an access level
-	* @ORM\ManyToOne(targetEntity="User")
-	* @ORM\JoinColumn(name="owner_id", referencedColumnName="id")
+	* @ORM\ManyToOne(targetEntity="User", cascade={"persist", "remove"})
+	* @ORM\JoinColumn(name="owner_id", referencedColumnName="id", onDelete="CASCADE")
 	*/
 	public $owner;
 

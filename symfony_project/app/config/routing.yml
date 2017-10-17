@@ -19,11 +19,13 @@ assignment:
   defaults: {_controller: AppBundle:Assignment:assignment}
   
 submit:
-    path: '/compilation/submit/{submission_id}/{submitted_filename}'
+    path: '/compilation/submit/{submission_id}/{filetype_id}/{language_id}/{submitted_filename}'
     defaults: 
         _controller:    AppBundle:Compilation:submit
     requirements:
-        submission_id: '\d+'
+        submission_id:  '\d+'
+        filetype_id:    '\d+'
+        language_id:    '\d+'
         
 submit_backup:
     path: '/compilation/submit_backup/{problem_id}/{filetype_id}/{language_id}/{submitted_filename}'
