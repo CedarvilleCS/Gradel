@@ -3,6 +3,15 @@
 {% endblock %}
 
 
+{% block scripts %}
+
+<!-- JQuery -->
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+
+{% endblock %}
+
 {% block body %}
 
 <body>
@@ -52,11 +61,14 @@
             editor.getSession().setMode("ace/mode/javascript");
         </script>
 
-        <textarea>Enter your code here.</textarea>    <!-- TODO: Add a syntax highlighting plugin-->
-
-        <!-- <pre><code><textarea></textarea></code></pre> -->
-
-        <button class="btn">Submit</button>
+        <!-- <form> -->
+            <textarea id="codeInput">Enter your code here.</textarea>    <!-- TODO: Add a syntax highlighting plugin-->
+            
+            <!-- <pre><code><textarea></textarea></code></pre> -->
+            
+            <button class="btn">Submit</button>
+        <!-- </form> -->
+        
 
         <div id="file-upload-wrapper">
             <input type="file" name="files[]" multiple id="file-upload"> <!-- FIXME: To get hover effects these need to be in the other order, but that is making you not able to clock on the file input thing. -->
@@ -184,11 +196,3 @@
 
 {% endblock %}
 
-
-{% block scripts %}
-
-<!-- JQuery -->
-<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
-<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-
-{% endblock %}

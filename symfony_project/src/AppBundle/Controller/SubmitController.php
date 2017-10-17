@@ -17,6 +17,17 @@ class SubmitController extends Controller
     $uploadOk = 1;
     $imageFileType = pathinfo($target_file,PATHINFO_EXTENSION);
 
+	// this directory is /var/www/gradel_dev/user/gradel/symfony_project
+	$web_dir = $this->get('kernel')->getProjectDir();
+	// save uploaded file to compilation/temp/submission_id/files
+	
+	// make a new submission if upload was successful
+	#	$submission_entity = new Submission($problem_entity, $team_entity, $user_entity);	
+		
+	#	$em = $this->getDoctrine()->getManager(); 
+	#	$em->persist($submission_entity);
+	#	$em->flush();
+	
     // Check if file already exists
     if (file_exists($target_file)) {
         echo "Overwriting existing file\n";
@@ -39,6 +50,8 @@ class SubmitController extends Controller
         }
     }
 
+	# call timothy's controller
+	#return $this->redirectToRoute('submit', array('submitted_filename' => $target_file, 'submission_id' => $submission_entity->id));
     return $this->render('courses/assignments/submit/index.html.twig', [
 			'project_id' => $project_id,
     ]);
