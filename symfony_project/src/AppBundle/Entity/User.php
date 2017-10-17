@@ -37,34 +37,10 @@ class User extends BaseUser{
 		
 		$this->enabled = true;
 		
-		$this->salt = null;
 		$this->password = "N/A";
 		
 				
 	}
-	
-	public function __construct6($username, $email, $google_id, $google_access_token, $first_name, $last_name){
-		
-		parent::__construct();
-		
-		$this->username = $username;
-		$this->username_canonical = $username;
-		
-		$this->email = $email;
-		$this->email_canonical = $email;
-		
-		$this->enabled = true;
-		
-		$this->salt = null;
-		$this->password = "N/A";
-		
-		$this->google_id = $google_id;
-		$this->google_access_token = $google_access_token;
-		
-		$this->first_name = $first_name;
-		$this->last_name = $last_name;
-	}
-		
 
 	/** 
 	* @ORM\Column(type="integer")
@@ -72,7 +48,10 @@ class User extends BaseUser{
 	* @ORM\GeneratedValue(strategy="AUTO")
 	*/
 	public $id;
-		
+	
+	/** @ORM\Column(name="access_level", type="integer", nullable=true) */
+	protected $access_level;
+	
 	/** @ORM\Column(name="last_name", type="string", length=255, nullable=true) */
 	protected $last_name;
 	
@@ -124,11 +103,6 @@ class User extends BaseUser{
 	public function getGoogleAccessToken() {
 		return $this->google_access_token;
 	}
-	
-	/**
-	* @ORM\ManyToMany(targetEntity="Team", mappedBy="users", cascade={"persist", "remove"})
-	*/
-	public $teams;
 }
 
 ?>

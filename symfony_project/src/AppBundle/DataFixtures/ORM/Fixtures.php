@@ -56,32 +56,32 @@ class Fixtures extends Fixture {
 		# USER Testing
 		# make a student, a teacher, a superuser, and a TA
 		{
-		$prof_user1 = new User("kshomper", "kshomper_temp@cedarville.edu", NULL, NULL, "Keith", "Shomper");
+		$prof_user1 = new User("kshomper", "kshomper@cedarville.edu");
 		$manager->persist($prof_user1);
 		
-		$prof_user2 = new User("pdude", "patrickdude_temp@cedarville.edu", NULL, NULL, "Patrick", "Dudenhofer");
+		$prof_user2 = new User("pdude", "patrickdude@cedarville.edu");
 		$manager->persist($prof_user2);
 		
-		$admin_user = new User("gallaghd", "gallaghd@cedarville.edu", '106935590466449084204', 'ya29.GlvmBCRca746USm7DxATnlo-cSXbaLgpxemqYaL4hLJ7seuuAGj9khJgvlN79oLrVk1DnBQ4-uiSR9GicIWHcePZL0-MhJBf1gDokKfMxvpa3Ov-3DDiB-uvdglR', "David", "Gallagher");
+		$admin_user = new User("gallaghd", "gallaghd@cedarville.edu");
 		$manager->persist($admin_user);
 
 		
-		$wolf_user = new User("ewolf", "ewolf@cedarville.edu", '101057281057560942387', 'ya29.GlznBP9IhwJVmug7i4O6ymEzFBtsFIrBwDIhHZA1smkjL3jJV_o6BMt5xuC6M1Y7i57x4ND9nd54bbA8GIwvNxzEMhuYExVbI92uKd_xjQFUBSg5REqmxxgRvwHOFQ', 'Emily', 'Wolf');
+		$wolf_user = new User("ewolf", "ewolf@cedarville.edu");
 		$manager->persist($wolf_user);
 		
-		$budd_user = new User("ebudd", "ebudd@cedarville.edu", '107801039809418360044', 'ya29.GlvnBBGCLNq4K-1qbGIHdc9UcczjkxdzHytYjf09O2U_WMi7EmybHorO3wQcMZqFLl94qfm3A1w3v9x3WXHiK5Bk-gsjh5vIZWigceXBOLSwkN-JQ8wOo2AyX9vN', "Emmett", "Budd");
+		$budd_user = new User("ebudd", "ebudd@cedarville.edu");
 		$manager->persist($budd_user);
 		
-		$brauns_user = new User("brauns", "cbrauns@cedarville.edu", '102745040748959369206', 'ya29.GlznBM2Fspl2E8UMn7ygX1Xzy4rUcNb2Xrw_Bhoepy72GrOzsnAUCdf8ghr3VZHLkfcgLGGvmn5An3a_MSP-dl1p0G3DKytmEBXburNuu2M1qlJgtkKvdiaTAjACjQ', "Christopher", "Brauns");
+		$brauns_user = new User("brauns", "cbrauns@cedarville.edu");
 		$manager->persist($brauns_user);
 		
-		$smith_user = new User("tgsmith", "timothyglensmith@cedarville.edu", '103366426489767506763', 'ya29.GlznBB6igfKjqyrBrZneXfMGLUgK-aoHQYNyKLlpAxZT_DE7q45zW2M1op18RpKjO1zbIgRzcJFP-bxm-nL_ohm9g-b3gno2piDfnB-CWWFGLNNtuM0aWu6o1EH0JQ', 'Timothy', 'Smith');
+		$smith_user = new User("tgsmith", "timothyglensmith@cedarville.edu");
 		$manager->persist($smith_user);
 		
-		$ta_user1 = new User("jeasterday", "jeasterday_temp@cedarville.edu", NULL, NULL, "Jonathan", "Easterday");
+		$ta_user1 = new User("jeasterday", "jeasterday@cedarville.edu");
 		$manager->persist($ta_user1);
 		
-		$ta_user2 = new User("tylerdrake", "tylerdrake_temp@cedarville.edu", NULL, NULL, "Tyler", "Drake");
+		$ta_user2 = new User("drakeydrakey", "tylerdrake@cedarville.edu");
 		$manager->persist($ta_user2);
 		
 		}

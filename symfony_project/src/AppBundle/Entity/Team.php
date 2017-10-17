@@ -50,16 +50,16 @@ class Team{
 	public $name;
 
 	/**
-	* @ORM\ManyToOne(targetEntity="Assignment", cascade={"persist", "remove"})
-	* @ORM\JoinColumn(name="assignment_id", referencedColumnName="id", nullable=false, onDelete="CASCADE")
+	* @ORM\ManyToOne(targetEntity="Assignment")
+	* @ORM\JoinColumn(name="assignment_id", referencedColumnName="id")
 	*/
 	public $assignment;
 
 	/**
-	* @ORM\ManyToMany(targetEntity="User", cascade={"persist", "remove"})
+	* @ORM\ManyToMany(targetEntity="User")
 	* @ORM\JoinTable(name="userteam",
-	*	joinColumns={@ORM\JoinColumn(name="team_id", referencedColumnName="id", onDelete="CASCADE")},
-	*	inverseJoinColumns={@ORM\JoinColumn(name="user_id", referencedColumnName="id", onDelete="CASCADE")}
+	*	joinColumns={@ORM\JoinColumn(name="team_id", referencedColumnName="id")},
+	*	inverseJoinColumns={@ORM\JoinColumn(name="user_id", referencedColumnName="id")}
 	*	)
 	*/
 	public $users;

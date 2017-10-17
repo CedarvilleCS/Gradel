@@ -42,9 +42,5 @@ class Gradingmethod {
 	*@ORM\Column(type="blob")
 	*/
 	public $description;
-	
-	public function deblobinateDescription(){			
-		return stream_get_contents($this->description);
-	}
 }
 ?>
