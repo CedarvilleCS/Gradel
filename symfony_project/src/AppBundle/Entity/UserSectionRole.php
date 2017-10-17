@@ -30,22 +30,22 @@ class UserSectionRole{
 
 	/**
 	* @ORM\Id
-	* @ORM\ManyToOne(targetEntity="User", cascade={"persist", "remove"})
-	* @ORM\JoinColumn(name="user_id", referencedColumnName="id", onDelete="CASCADE")
+	* @ORM\ManyToOne(targetEntity="User")
+	* @ORM\JoinColumn(name="user_id", referencedColumnName="id")
 	*/
 	public $user;
 
 	/**
 	* @ORM\Id
-	* @ORM\ManyToOne(targetEntity="Section", cascade={"persist", "remove"})
-	* @ORM\JoinColumn(name="section_id", referencedColumnName="id", onDelete="CASCADE")
+	* @ORM\ManyToOne(targetEntity="Section")
+	* @ORM\JoinColumn(name="section_id", referencedColumnName="id")
 	*/
 	public $section;
 
 	/**
 	* @ORM\Id
-	* @ORM\ManyToOne(targetEntity="Role", cascade={"persist", "remove"})
-	* @ORM\JoinColumn(name="role_id", referencedColumnName="id", onDelete="CASCADE")
+	* @ORM\ManyToOne(targetEntity="Role")
+	* @ORM\JoinColumn(name="role_id", referencedColumnName="id")
 	*/
 	public $role;
 	

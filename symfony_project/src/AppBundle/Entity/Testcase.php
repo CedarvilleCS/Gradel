@@ -39,8 +39,8 @@ class Testcase {
 
 	/**
      * Multiple TC per Problem
-     * @ORM\ManyToOne(targetEntity="Problem", inversedBy="testcases", cascade={"persist", "remove"})
-     * @ORM\JoinColumn(name="problem_id", referencedColumnName="id", onDelete="CASCADE")
+     * @ORM\ManyToOne(targetEntity="Problem", inversedBy="testcases")
+     * @ORM\JoinColumn(name="problem_id", referencedColumnName="id")
      */
 	public $problem;
 	
@@ -54,23 +54,15 @@ class Testcase {
 	*/
 	public $input;
 	
-	public function deblobinateInput(){			
-		return stream_get_contents($this->input);
-	}
-	
 	/**
 	*@ORM\Column(type="blob")
 	*/
 	public $correct_output;
-	
-	public function deblobinateCorrectOutput(){			
-		return stream_get_contents($this->correct_output);
-	}
 
 	/**
      * Multiple FB per TC
-     * @ORM\ManyToOne(targetEntity="Feedback", cascade={"persist", "remove"})
-     * @ORM\JoinColumn(name="feedback_id", referencedColumnName="id", onDelete="CASCADE")
+     * @ORM\ManyToOne(targetEntity="Feedback")
+     * @ORM\JoinColumn(name="feedback_id", referencedColumnName="id")
      */
 	public $feedback;
 	

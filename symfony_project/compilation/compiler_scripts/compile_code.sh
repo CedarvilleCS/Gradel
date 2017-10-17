@@ -17,14 +17,11 @@ else
 	compiler_flags=""
 fi
 
-# copy over the code to submit
-cp code_to_submit/*.* submission/code/.
+./unzip_file.sh $file_name $is_zipped
 
-# unzip the zip files
-if [ "$is_zipped" = true ]; then
-	echo "It's a zip file..."
-	unzip submission/code/$file_name -d submission/code
-	rm submission/code/$file_name
+if [ $? -ne 0 ]; then
+	echo "error with ./unzip_file.sh"
+	exit 200
 fi
 
 # decide which script to run
@@ -40,6 +37,9 @@ else
 fi
 
 ./$compile_script.sh $linker_flags $compiler_flags
+
+# delete the code to submit
+rm -rf code_to_submit/*
 
 exit 0
 

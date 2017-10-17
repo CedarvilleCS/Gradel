@@ -50,8 +50,8 @@ class Assignment{
 	public $problems;
 
 	/**
-	* @ORM\ManyToOne(targetEntity="Section", inversedBy="assignments", cascade={"persist", "remove"})
-	* @ORM\JoinColumn(name="section_id", referencedColumnName="id", onDelete="CASCADE")
+	* @ORM\ManyToOne(targetEntity="Section", inversedBy="assignments")
+	* @ORM\JoinColumn(name="section_id", referencedColumnName="id")
 	*/
 	public $section;
 
@@ -64,10 +64,6 @@ class Assignment{
 	* @ORM\Column(type="blob")
 	*/
 	public $description;
-	
-	public function deblobinateDescription(){			
-		return stream_get_contents($this->description);
-	}
 
 	/**
 	* @ORM\Column(type="datetime")
@@ -90,8 +86,8 @@ class Assignment{
 	public $weight;
 	
 	/**
-	* @ORM\ManyToOne(targetEntity="Gradingmethod", cascade={"persist", "remove"})
-	* @ORM\JoinColumn(name="gradingmethod_id", referencedColumnName="id", onDelete="CASCADE")
+	* @ORM\ManyToOne(targetEntity="Gradingmethod")
+	* @ORM\JoinColumn(name="gradingmethod_id", referencedColumnName="id")
 	*/
 	public $gradingmethod;
 
