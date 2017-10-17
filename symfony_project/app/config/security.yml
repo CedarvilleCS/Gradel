@@ -4,21 +4,33 @@ security:
 
     # https://symfony.com/doc/current/security.html#b-configuring-how-users-are-loaded
     providers:
-        in_memory:
-            memory: ~
+        our_users:
+            entity:
+                class: AppBundle\Entity\User
+                property: email
 
     firewalls:
-        # disables authentication for assets and the profiler, adapt it according to your needs
-        dev:
-            pattern: ^/(_(profiler|wdt)|css|images|js)/
-            security: false
-
+        # Set the config on your firewall
         main:
             anonymous: ~
-            # activate different ways to authenticate
+            oauth:
+                # Declare the OAuth Callback URLs for every resource owner
+                # They will be added in the routing.yml file too later
+                resource_owners:
+                    google: "/"
+                ## Provide the original login path of your application (fosuserroute)
+                ## and the failure route when the authentication fails.
+                login_path:     /user/login
+                use_forward:    false
+                failure_path:   /user/login
+                # Inject a service that will be created in the step #6
+                oauth_user_provider:
+                    service: app.fos_user.oauth_provider
+            logout: 
+                path: user_logout
+                target: index
 
-            # https://symfony.com/doc/current/security.html#a-configuring-how-your-users-will-authenticate
-            #http_basic: ~
-
-            # https://symfony.com/doc/current/security/form_login_setup.html
-            #form_login: ~
+    access_control:
+        - { path: ^/user, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/connect, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/, roles: ROLE_USER }

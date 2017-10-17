@@ -37,19 +37,9 @@ class Role{
 	public $id;
 
 	/**
-	* @ORM\Column(type="string", length=255)
+	* @ORM\Column(type="string", length=255, unique=true)
 	*/
 	public $role_name;
-
-	# SETTERS
-	public function setRoleName($name){
-		$this->role_name = $name;
-	}
-
-	# GETTERS
-	public function getRoleName(){
-		return $this->role_name;
-	}
 }
 
 ?>

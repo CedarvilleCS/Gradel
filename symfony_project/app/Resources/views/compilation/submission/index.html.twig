@@ -1,0 +1,103 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}
+	Submission ID: {{submission.id}}
+{% endblock %}
+
+{% block body %}
+    <div id="wrapper">
+        <div id="container">
+            <div id="welcome">
+                <h1>{{submission.problem.name}}</h1>
+				<h2>SUBMISSION ID: {{submission.id}}</h2>
+				<h3>RESULT: 
+					{% if submission.is_accepted %}
+						<span style="color:green">CORRECT!</span>
+					{% else %}
+						<span style="color:red">
+						{% if submission.compiler_error %}
+						COMPILER ERROR!
+						{% elseif submission.exceeded_time_limit %}
+						TIME LIMIT EXCEEEDED!
+						{% elseif submission.runtime_error %}
+						RUNTIME ERROR!
+						{% else %}
+						WRONG ANSWER!
+						{% endif %}
+						</span>
+					{% endif %}
+				</h3>
+            </div>
+
+            <div id="status">
+			{% if submission.questionable_behavior %}
+				POSSIBLE MALICIOUS BEHAVIOR DETECTED
+			{% endif %}
+			
+			{% if submission.compiler_error %}
+				<h2> COMPILER OUTPUT </h2>
+				<hr>
+				{{compiler_output}}			
+				<hr>
+			{% elseif submission.runtime_error %}
+				<h2> RUNTIME OUTPUT </h2>
+				<hr>
+				{% for tc in testcases_output %}
+					{{tc.runtime_output}}<br/>			
+					<hr>			
+				{% endfor %}
+			{% endif %}
+			
+			{% if submission_file != "" %}	
+					<h3> SUBMITTED CODE </h3>
+					<hr>
+					<textarea readonly style="box-sizing: border-box; width:100%; height:390px; resize: none; border: none; background: lighgrey; color:black; padding:15px; font-size:15px; font-family:Lucinda Console, monospace">{{submission_file}}</textarea>
+					<hr>
+			{% endif %}
+			
+			<h3> SUBMIT ANOTHER SOLUTION </h3>
+			
+			<a href="{{ path('submit_backup', {'problem_id': 1, 'submitted_filename': 'sum.c'}) }}"> CORRECT SOLUTION </a>
+			<a href="{{ path('submit_backup', {'problem_id': 1, 'submitted_filename': 'wrong_answer.c'}) }}"> WRONG ANSWER </a>
+			<a href="{{ path('submit_backup', {'problem_id': 1, 'submitted_filename': 'compiler_error.c'}) }}"> COMPILER ERROR </a>
+			<a href="{{ path('submit_backup', {'problem_id': 1, 'submitted_filename': 'runtime_error.c'}) }}"> RUNTIME ERROR </a>
+			<a href="{{ path('submit_backup', {'problem_id': 1, 'submitted_filename': 'while_loop.c'}) }}"> INFINITE LOOP </a>
+			<a href="{{ path('submit_backup', {'problem_id': 1, 'submitted_filename': 'malicious_delete_all.c'}) }}"> MALICIOUS DELETION </a>
+			<a href="{{ path('submit_backup', {'problem_id': 1, 'submitted_filename': 'malicious_add.c'}) }}"> MALICIOUS ADDITION </a>
+			
+			</div>
+
+        </div>
+    </div>
+{% endblock %}
+
+{% block stylesheets %}
+<style>
+    body { background: #F5F5F5; font: 18px/1.5 sans-serif;}
+    h1, h2 { line-height: 1.2; margin: 0 0 .5em; }
+    h1 { font-size: 36px; }
+    h2 { font-size: 21px;}
+	h3 { font-size: 18px; }
+	h4 { font-family: "Courier New", Courier, monospace; }
+    p { margin: 0 0 1em 0; }
+    a { color: #0000F0; }
+    a:hover { text-decoration: none; }
+    code { background: #F5F5F5; max-width: 100px; padding: 2px 6px; word-wrap: break-word; }
+    #wrapper { background: #FFF; margin: 1em auto; max-width: 800px; width: 95%; }
+    #container { padding: 2em; }
+    #welcome, #status { margin-bottom: 2em; }
+    #welcome h1 span { display: block; font-size: 75%; }
+    #icon-status, #icon-book { float: left; height: 64px; margin-right: 1em; margin-top: -4px; width: 64px; }
+    #icon-book { display: none; }
+
+    @media (min-width: 768px) {
+        #wrapper { width: 80%; margin: 2em auto; }
+        #icon-book { display: inline-block; }
+        #status a, #next a { display: block; }
+
+        @-webkit-keyframes fade-in { 0% { opacity: 0; } 100% { opacity: 1; } }
+        @keyframes fade-in { 0% { opacity: 0; } 100% { opacity: 1; } }
+        .sf-toolbar { opacity: 0; -webkit-animation: fade-in 1s .2s forwards; animation: fade-in 1s .2s forwards;}
+    }
+</style>
+{% endblock %}

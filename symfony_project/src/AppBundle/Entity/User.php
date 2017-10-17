@@ -2,19 +2,15 @@
 
 namespace AppBundle\Entity;
 
-use Symfony\Component\Validator\Constraints as Assert;
+use FOS\UserBundle\Model\User as BaseUser;
 use Doctrine\ORM\Mapping as ORM;
-
-// DON'T forget this use statement!!!
-use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 
 /**
  * @ORM\Entity
  * @ORM\Table(name="user")
- * @UniqueEntity("email")
  */
-class User{
+class User extends BaseUser{
 		
 	public function __construct(){
 		
@@ -26,14 +22,24 @@ class User{
 		} else if($i != 0){
 			throw new Exception('Contructor does not accept '.$i.' arguments');
 		}
+		
 	}
 	
-	public function __construct5($first, $last, $mail, $login, $level){
-		$this->first_name = $first;
-		$this->last_name = $last;
-		$this->email = $mail;
-		$this->last_login = $login;
-		$this->access_level = $level;
+	public function __construct2($username, $email){
+		
+		parent::__construct();
+		
+		$this->username = $username;
+		$this->username_canonical = $username;
+		
+		$this->email = $email;
+		$this->email_canonical = $email;
+		
+		$this->enabled = true;
+		
+		$this->password = "N/A";
+		
+				
 	}
 
 	/** 
@@ -42,85 +48,61 @@ class User{
 	* @ORM\GeneratedValue(strategy="AUTO")
 	*/
 	public $id;
-
-	/**
-	* @ORM\Column(type="string", length=100)
-	*/
-	public $first_name;
-
-	/**
-	* @ORM\Column(type="string", length=100)
-	*/
-	public $last_name;
-
-	/**
-	* @var string $email
-	*
-	* @ORM\Column(name="email", type="string", length=255, unique=true)
-	*/
-	public $email;
-
-	/**
-	* @ORM\Column(type="datetime")
-	*/
-	public $last_login;
-
-	/**
-	* @ORM\ManyToOne(targetEntity="Role")
-	* @ORM\JoinColumn(name="access_level", referencedColumnName="id")
-	*/
-	public $access_level;
-
-
-
-	# SETTERS
-	public function setFirstName($first){
-		$this->first_name = $first;
-	}
-
-	public function setLastName($last){
-		$this->last_name = $last;
-	}
-
-	public function setEmail($email){
-		$this->email = $email;
-	}
-
-	public function setAccessLevel($role){
-		$this->access_level = $role;
-	}
-
-	public function setLastLogin($time){
-		$this->last_login = $time; 
-	}
-
-	public function updateLastLogin(){
-		$this->last_login = new \DateTime("now");
-	}
-
 	
-		
-	# GETTERS
-	public function getFirstName(){
+	/** @ORM\Column(name="access_level", type="integer", nullable=true) */
+	protected $access_level;
+	
+	/** @ORM\Column(name="last_name", type="string", length=255, nullable=true) */
+	protected $last_name;
+	
+	/** @ORM\Column(name="first_name", type="string", length=255, nullable=true) */
+	protected $first_name;
+	
+	/** @ORM\Column(name="google_id", type="string", length=255, nullable=true) */
+	protected $google_id;
+
+	/** @ORM\Column(name="google_access_token", type="string", length=255, nullable=true) */
+	protected $google_access_token;
+	
+	public function setGoogleId($googleID) {
+		$this->google_id = $googleID;
+
+		return $this;
+	}
+
+	public function getGoogleId() {
+		return $this->google_id;
+	}
+
+	public function setFirstName($first_name) {
+		$this->first_name = $first_name;
+
+		return $this;
+	}
+
+	public function getFirstName() {
 		return $this->first_name;
 	}
+	
+	public function setLastName($last_name) {
+		$this->last_name = $last_name;
 
-	public function getLastName(){
+		return $this;
+	}
+
+	public function getLastName() {
 		return $this->last_name;
 	}
 
-	public function getEmail(){
-		return $this->email;
+	public function setGoogleAccessToken($googleAccessToken) {
+		$this->google_access_token = $googleAccessToken;
+
+		return $this;
 	}
 
-	public function getAccessLevel(){
-		return $this->access_level;
+	public function getGoogleAccessToken() {
+		return $this->google_access_token;
 	}
-
-	public function getLastLogin($time){
-		return $this->last_login; 
-	}
-
 }
 
 ?>

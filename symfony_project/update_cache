@@ -1,5 +1,6 @@
-php bin/console cache:clear --env=prod
-php bin/console cache:clear --env=dev
+sudo php bin/console cache:clear --env=prod
+sudo php bin/console cache:clear --env=dev
 
-chown -R budd var/
+sudo chown -R $USER var/
 chmod -R 777 var/
+chgrp -R 2018 var/

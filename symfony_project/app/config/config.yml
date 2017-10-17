@@ -7,6 +7,8 @@ imports:
 # https://symfony.com/doc/current/best_practices/configuration.html#application-related-configuration
 parameters:
     locale: en
+    google_client_id: 943566084293-7t91prdqmauh28m8fg43i5o2alrj24mp.apps.googleusercontent.com
+    google_secret: z2s4DurG6VIsfMZ1guAXwFdo
 
 framework:
     #esi: ~
@@ -43,7 +45,6 @@ doctrine:
     dbal:
         driver: pdo_mysql
         host: '%database_host%'
-        port: '%database_port%'
         dbname: '%database_name%'
         user: '%database_user%'
         password: '%database_password%'
@@ -67,3 +68,32 @@ swiftmailer:
     username: '%mailer_user%'
     password: '%mailer_password%'
     spool: { type: memory }
+
+fos_user:
+    db_driver: orm
+    firewall_name: main
+    user_class: AppBundle\Entity\User
+    from_email:
+        address: you@example.com
+        sender_name: You    
+
+hwi_oauth:
+    # Define which firewalls will be used for oauth
+    # Usually, its only the main, but you can add it if you have a custom one
+    firewall_names: ["main"]
+    fosub:
+        username_iterations: 30
+        # Define in which columns of the fos_user table will be stored
+        # the access token of every resource_owner
+        properties:
+            google: google_id
+    # Define the resource_owners that your user can use to login into your app
+    # Note that the client_id and client_secret and key values are symfony parameters
+    # stored too in the config.yml from the previous step !
+    resource_owners:
+        google:
+            type:           google
+            client_id:      "%google_client_id%"
+            client_secret:  "%google_secret%"
+            scope:  "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile"
+    

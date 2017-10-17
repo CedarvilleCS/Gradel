@@ -34,32 +34,13 @@ class Gradingmethod {
 	public $id;
 
 	/**
-	*@ORM\Column(type="string", length=100)
+	*@ORM\Column(type="string", length=255, unique=true)
 	*/
 	public $name;
 
 	/**
-	*@ORM\Column(type="text")
+	*@ORM\Column(type="blob")
 	*/
 	public $description;
-	
-	# SETTERS
-	public function setName($name) {
-		$this->name = $name;
-	}
-	
-	public function setDescription($desc) {
-		$this->description = $desc;
-	}
-	
-	# GETTERS
-	public function getDescription(){
-		return $this->description;
-	}
-	
-	public function getName(){
-		return $this->name;
-	}
-
 }
 ?>

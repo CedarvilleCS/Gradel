@@ -13,7 +13,7 @@ class Submission {
 	public function __construct(){
 		
 		$a = func_get_args();
-		$i = func_num_args();
+		$i = func_num_args();	
 		
 		if(method_exists($this, $f='__construct'.$i)) {
 			call_user_func_array(array($this,$f),$a);
@@ -21,18 +21,48 @@ class Submission {
 			throw new Exception('Contructor does not accept '.$i.' arguments');
 		}
 		
-		$this->testcaseresults = new ArrayCollection();
+		$this->testcaseresults = new ArrayCollection();	
 	}
 	
-	public function __construct8($prob, $tm, $time, $acc, $filename, $filetype, $lang, $perc){
+	public function __construct3($prob, $tm, $user){
 		$this->problem = $prob;
-		$this->team = $time;
+		$this->team = $tm;
+		$this->user = $user;
+		$this->timestamp = new \DateTime("now");
+		$this->is_accepted = false;
+		#this->submission
+		#this->filetype
+		$this->main_class_name = "";
+		#this->compiler_output
+		$this->compiler_error = false;
+		$this->exceeded_time_limit = false;
+		$this->runtime_error = false;
+		$this->max_runtime = -1;
+		#this->language		
+		$this->percentage = 0.0;
+		#$this->final_good_testcase;
+		$this->questionable_behavior = false;
+	}
+		
+	
+	public function __construct17($prob, $tm, $user, $time, $acc, $subm, $ft, $mainclass, $compout, $didcomp, $didtime, $didrun, $maxtime, $lang, $perc, $tst, $ques){
+		$this->problem = $prob;
+		$this->user = $user;
+		$this->team = $tm;
 		$this->timestamp = $time;
 		$this->is_accepted = $acc;
-		$this->submitted_filename = $filename;
-		$this->submitted_filetype = $filetype;
+		$this->submission = $subm;
+		$this->filetype = $ft;
+		$this->main_class_name = $mainclass;
+		$this->compiler_output = $compout;
+		$this->compiler_error = $didcomp;
+		$this->exceeded_time_limit = $didtime;
+		$this->max_runtime = $maxtime;
+		$this->runtime_error = $didrun;
 		$this->language = $lang;
 		$this->percentage = $perc;
+		$this->final_good_testcase = $tst;
+		$this->questionable_behavior = $ques;
 	}
 
 	/**
@@ -43,23 +73,27 @@ class Submission {
 	public $id;
 
 	/**
-	* @ORM\OneToMany(targetEntity="TestcaseResult", mappedBy="submission")
+	* @ORM\OneToMany(targetEntity="TestcaseResult", mappedBy="submission", cascade={"persist", "remove"})
 	*/
 	public $testcaseresults;
 	
 	/**
-     * Many Submissions have One Problem.
      * @ORM\ManyToOne(targetEntity="Problem")
-     * @ORM\JoinColumn(name="problem_id", referencedColumnName="id")
+     * @ORM\JoinColumn(name="problem_id", referencedColumnName="id", nullable=false)
      */
 	public $problem;
 	
 	/**
-     * Many Submissions have One Team.
      * @ORM\ManyToOne(targetEntity="Team", inversedBy="submissions")
-     * @ORM\JoinColumn(name="team_id", referencedColumnName="id")
+     * @ORM\JoinColumn(name="team_id", referencedColumnName="id", nullable=false)
      */
 	public $team;
+	
+	/**
+     * @ORM\ManyToOne(targetEntity="User")
+     * @ORM\JoinColumn(name="user_id", referencedColumnName="id", nullable=false)
+     */
+	public $user;
 	
 	/**
 	*@ORM\Column(type="datetime")
@@ -67,23 +101,66 @@ class Submission {
 	public $timestamp;
 
 	/**
-	*@ORM\Column(type="boolean")
+	* @ORM\Column(type="boolean")
 	*/
 	public $is_accepted;
 	
 	/**
-	*@ORM\Column(type="string", length=1023)
+	* @ORM\Column(type="blob", nullable=true)
 	*/
-	public $submitted_filename;
+	public $submission;
 	
 	/**
-	*@ORM\Column(type="integer")
+	* @ORM\ManyToOne(targetEntity="Filetype")
+	* @ORM\JoinColumn(name="filetype_id", referencedColumnName="id", nullable=true)
 	*/
-	public $submitted_filetype;
+	public $filetype;
+	
+	/**
+	* @ORM\Column(type="string", length=255)
+	*/
+	public $main_class_name;
+	
+	/**
+	* @ORM\Column(type="blob", nullable=true)
+	*/
+	public $compiler_output;
+	
+	/**
+	* @ORM\Column(type="boolean")
+	*/
+	public $compiler_error;
+	
+	/**
+	* @ORM\Column(type="boolean")
+	*/
+	public $exceeded_time_limit;
+	
+	/**
+	* @ORM\Column(type="integer")
+	*/
+	public $max_runtime;
+	
+	
+	/**
+	* @ORM\Column(type="boolean")
+	*/
+	public $runtime_error;
+	
+	/**
+	* @ORM\ManyToOne(targetEntity="TestcaseResult")
+	* @ORM\JoinColumn(name="final_good_testcase", referencedColumnName="id", nullable=true)
+	*/
+	public $final_good_testcase;
+	
+	/**
+	* @ORM\Column(type="boolean")
+	*/
+	public $questionable_behavior;
 	
 	/**
 	* @ORM\ManyToOne(targetEntity="Language")
-	* @ORM\JoinColumn(name="language_id", referencedColumnName="id")
+	* @ORM\JoinColumn(name="language_id", referencedColumnName="id", nullable=true)
 	*/
 	public $language;
 	
@@ -91,75 +168,5 @@ class Submission {
 	*@ORM\Column(type="decimal", precision=12, scale=8)
 	*/
 	public $percentage;
-	
-	# SETTERS
-	public function setProblem($prob) {
-		$this->problem = $prob;
-	}
-
-	public function setTeam($team) {
-		$this->team = $team;
-	}
-	public function setTime($time) {
-		$this->time = $time;
-	}
-	
-	public function updateTime($time) {
-		$this->time = new \DateTime("now");
-	}
-	
-	public function setIsAccepted($accept) {
-		$this->is_accepted = $accept;
-	}
-	
-	public function setSubmittedFilename($subnm) {
-		$this->submitted_filename = $subnm;
-	}
-	
-	public function setSubmittedFiletype($subft) {
-		$this->submitted_filetype = $subft;
-	}
-	
-	public function setLanguageId($langid) {
-		$this->language_id = $langid;
-	}
-	
-	public function setPercentage($perc) {
-		$this->percentage = $perc;
-	}
-	
-	#GETTERZ
-	public function getProblem(){
-		return $this->problem;
-	}
-	
-	public function getTeam(){
-		return $this->team;
-	}
-	
-	public function getTime(){
-		return $this->time;
-	}
-	
-	public function getIsAccepted(){
-		return $this->is_accepted;
-	}
-	
-	public function getSubmittedFilename(){
-		return $this->submitted_filename;
-	}
-	
-	public function getSubmittedFiletype(){
-		return $this->submitted_filetype;
-	}
-	
-	public function getLanguageId(){
-		return $this->language_id;
-	}
-	
-	public function getPercentage(){
-		return $this->percentage;
-	}
-	
 }
 ?>

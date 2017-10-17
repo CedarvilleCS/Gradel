@@ -1,72 +1,134 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-    <div id="wrapper">
-        <div id="container">
-            <div id="welcome">
-                <h1>Welcome to the Gradel Demo!</h1>
-            </div>
 
-            <div id="status">
-			
-				<hr>
-			
-				<p>
-				<h2>Here are all the users:</h2>			
-				<ul>
-				{% for user in users %}
-					<h4>{{user.first_name}} {{user.last_name}} - {{user.access_level.role_name}}</h4>				
-				{% endfor %}				
-				</ul>
-				</p>
-				
-				<hr>
-				
-				<p>
-				<h2>Here are all the courses:</h2>			
-				{% for course in courses %}
-					<h4>{{course.code}} {{course.name}}</h4>
-					<ul>
-					{% for section in course.sections %}
-						<li> {{section.name}} ({% if course.is_contest == false %}{{section.semester}} {% endif %}{{section.year}}) - <i>{{section.owner.first_name}} {{section.owner.last_name}}</i></li>
-					{% endfor %}
-					</ul>
-				{% endfor %}				
-				</p>
+{% if app.user %}
 
-				<hr>
-				
-            </div>
+	<a href="{{ path('submit_backup', {'problem_id': 1, 'submitted_filename': 'sum.c'}) }}"> SUBMIT A CORRECT SOLUTION </a>
+	</br>
+	</br>
+	</br>
+	<a href="{{ path('user_logout') }}">Logout</a>
+	
+	{{app.user.roles|json_encode}}
+{% else %}
 
-        </div>
-    </div>
+	<a href="{{ path('hwi_oauth_service_redirect', {'service': 'google' }) }}">
+		<span>Google</span>
+	</a>
+	
+{%endif %}
+
+
+
 {% endblock %}
-
 {% block stylesheets %}
 <style>
-    body { background: #F5F5F5; font: 18px/1.5 sans-serif; }
-    h1, h2 { line-height: 1.2; margin: 0 0 .5em; }
-    h1 { font-size: 36px; }
-    h2 { font-size: 21px; margin-bottom: 1em; }
-    p { margin: 0 0 1em 0; }
-    a { color: #0000F0; }
-    a:hover { text-decoration: none; }
-    code { background: #F5F5F5; max-width: 100px; padding: 2px 6px; word-wrap: break-word; }
-    #wrapper { background: #FFF; margin: 1em auto; max-width: 800px; width: 95%; }
-    #container { padding: 2em; }
-    #welcome, #status { margin-bottom: 2em; }
-    #welcome h1 span { display: block; font-size: 75%; }
-    #icon-status, #icon-book { float: left; height: 64px; margin-right: 1em; margin-top: -4px; width: 64px; }
-    #icon-book { display: none; }
+  @import url(https://fonts.googleapis.com/css?family=Roboto:300);
 
-    @media (min-width: 768px) {
-        #wrapper { width: 80%; margin: 2em auto; }
-        #icon-book { display: inline-block; }
-        #status a, #next a { display: block; }
+  .login-page {
+  width: 360px;
+  padding: 8% 0 0;
+  margin: auto;
+  }
 
-        @-webkit-keyframes fade-in { 0% { opacity: 0; } 100% { opacity: 1; } }
-        @keyframes fade-in { 0% { opacity: 0; } 100% { opacity: 1; } }
-        .sf-toolbar { opacity: 0; -webkit-animation: fade-in 1s .2s forwards; animation: fade-in 1s .2s forwards;}
-    }
+  .loggedin-page {
+  width: 360px;
+  padding: 8% 0 0;
+  margin: auto;
+  }
+  .form {
+  position: relative;
+  z-index: 1;
+  background: #FFFFFF;
+  max-width: 360px;
+  margin: 0 auto 100px;
+  padding: 45px;
+  text-align: center;
+  box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.2), 0 5px 5px 0 rgba(0, 0, 0, 0.24);
+  }
+  .form input {
+  font-family: "Roboto", sans-serif;
+  outline: 0;
+  background: #f2f2f2;
+  width: 100%;
+  border: 0;
+  margin: 0 0 15px;
+  padding: 15px;
+  box-sizing: border-box;
+  font-size: 14px;
+  }
+  button {
+  font-family: "Roboto", sans-serif;
+  text-transform: uppercase;
+  outline: 0;
+  background: #4CAF50;
+  width: 100%;
+  border: 0;
+  padding: 15px;
+  color: #FFFFFF;
+  font-size: 14px;
+  -webkit-transition: all 0.3 ease;
+  transition: all 0.3 ease;
+  cursor: pointer;
+  }
+  button:hover,.form button:active,.form button:focus {
+  background: #43A047;
+  }
+  .form .message {
+  margin: 15px 0 0;
+  color: #b3b3b3;
+  font-size: 12px;
+  }
+  .form .message a {
+  color: #4CAF50;
+  text-decoration: none;
+  }
+  .form .register-form {
+  display: none;
+  }
+  .container {
+  position: relative;
+  z-index: 1;
+  max-width: 300px;
+  margin: 0 auto;
+  }
+  .container:before, .container:after {
+  content: "";
+  display: block;
+  clear: both;
+  }
+  .container .info {
+  margin: 50px auto;
+  text-align: center;
+  }
+  .container .info h1 {
+  margin: 0 0 15px;
+  padding: 0;
+  font-size: 36px;
+  font-weight: 300;
+  color: #1a1a1a;
+  }
+  .container .info span {
+  color: #4d4d4d;
+  font-size: 12px;
+  }
+  .container .info span a {
+  color: #000000;
+  text-decoration: none;
+  }
+  .container .info span .fa {
+  color: #EF3B3A;
+  }
+  body {
+  background: #76b852; /* fallback for old browsers */
+  background: -webkit-linear-gradient(right, #76b852, #8DC26F);
+  background: -moz-linear-gradient(right, #76b852, #8DC26F);
+  background: -o-linear-gradient(right, #76b852, #8DC26F);
+  background: linear-gradient(to left, #76b852, #8DC26F);
+  font-family: "Roboto", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  }
 </style>
 {% endblock %}

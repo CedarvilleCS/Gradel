@@ -21,12 +21,15 @@ class TestcaseResult {
 		}
 	}
 	
-	public function __construct5($sub, $test, $correct, $output, $time){
+	public function __construct8($sub, $test, $correct, $runout, $runerror, $time, $toolong, $out){
 		$this->submission = $sub;
 		$this->testcase = $test;
 		$this->is_correct = $correct;
+		$this->runtime_output = $runout;
+		$this->runtime_error = $runerror;
 		$this->execution_time = $time;
-		$this->output_filename = $output;
+		$this->exceeded_time_limit = $toolong;
+		$this->std_output = $out;
 	}
 	
 
@@ -48,11 +51,21 @@ class TestcaseResult {
      * @ORM\JoinColumn(name="testcase_id", referencedColumnName="id")
      */
 	public $testcase;
-
+	
 	/**
-	* @ORM\Column(type="string", length=1023)
+	 * @ORM\Column(type="blob", nullable=true)
+	 */
+	public $std_output;
+	
+	/**
+	* @ORM\Column(type="blob", nullable=true)
 	*/
-	public $output_filename;
+	public $runtime_output;
+	
+	/**
+	* @ORM\Column(type="boolean")
+	*/
+	public $runtime_error;
 
 	/**
 	*@ORM\Column(type="boolean")
@@ -64,47 +77,9 @@ class TestcaseResult {
 	*/
 	public $execution_time;
 	
-	
-	#SETTERS
-	public function setSubmission($sub) {
-		$this->submission = $sub;
-	}
-	
-	public function setTestcase($tc) {
-		$this->testcase = $tc;
-	}
-	
-	public function setIsCorrect($correct) {
-		$this->is_correct = $correct;
-	}
-	
-	public function setExecutionTime($time) {
-		$this->execution_time = $time;
-	}
-
-	public function setOutputFilename($output) {
-		$this->output_filename = $output;
-	}
-	
-	#GETTERS
-	public function getSubmission(){
-		return $this->submission;
-	}
-	
-	public function getTestcase(){
-		return $this->testcase;
-	}
-	
-	public function getIsCorrect(){
-		return $this->is_correct;
-	}
-	
-	public function getOutputFilename(){
-		return $this->output_filename;
-	}
-
-	public function getExecutionTime(){
-		return $this->execution_time;
-	}
+	/**
+	* @ORM\Column(type="boolean")
+	*/
+	public $exceeded_time_limit;
 }
 ?>
