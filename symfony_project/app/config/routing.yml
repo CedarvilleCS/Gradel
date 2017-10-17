@@ -1,4 +1,3 @@
-# <<<<<<< HEAD
 app:
     resource: '@AppBundle/Controller/'
     type: annotation
@@ -18,7 +17,6 @@ assignments:
 submit: 
     path: "/courses/assignments/submit/{project_id}"
     defaults: {_controller: AppBundle:Submit:submit}
-# =======
   
 user_login:
   path: '/user/login'
@@ -32,16 +30,16 @@ section:
   path: '/account/{userId}/section/{sectionId}'
   defaults: {_controller: AppBundle:Section:section}
 
-# assignment:
-#   path: '/account/{userId}/section/{sectionId}/assignment/{assignmentId}'
-#   defaults: {_controller: AppBundle:Assignment:assignment}
+assignment:
+  path: '/account/{userId}/section/{sectionId}/assignment/{assignmentId}'
+  defaults: {_controller: AppBundle:Assignment:assignment}
   
-# submit:
-#     path: '/compilation/submit/{submission_id}/{submitted_filename}'
-#     defaults: 
-#         _controller:    AppBundle:Compilation:submit
-#     requirements:
-#         submission_id: '\d+'
+submit:
+    path: '/compilation/submit/{submission_id}/{submitted_filename}'
+    defaults: 
+        _controller:    AppBundle:Compilation:submit
+    requirements:
+        submission_id: '\d+'
         
 submit_backup:
     path: '/compilation/submit_backup/{problem_id}/{submitted_filename}'
@@ -76,4 +74,3 @@ hwi_oauth_login:
     
 user_logout:
     path: /user/logout
-# >>>>>>> compilation/edgecases
