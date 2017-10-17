@@ -121,6 +121,9 @@ class CompilationController extends Controller {
 		foreach($problem_entity->testcases as $tc){
 			
 			// write the input file to the temp directory
+		
+			
+			
 			$input = stream_get_contents($tc->input);			
 			$input_file = fopen($temp_input_folder.$tc->seq_num.".in", "w") or die("Unable to open file for writing!");
 			fwrite($input_file, $input);
@@ -475,7 +478,6 @@ class CompilationController extends Controller {
 		
 		# save the input/output files to a temp folder by deblobinating them
 		foreach($problem_entity->testcases as $tc){
-			
 			// write the input file to the temp directory
 			$input = stream_get_contents($tc->input);			
 			$input_file = fopen($temp_input_folder.$tc->seq_num.".in", "w") or die("Unable to open file for writing!");
@@ -677,9 +679,9 @@ class CompilationController extends Controller {
 		$em->flush();			
 		
 		# remove the temp folder
-		#shell_exec("rm -rf ".$temp_folder);
-		#shell_exec("rm -rf ".$code_to_submit_directory);
-		#shell_exec("rm -rf ".$submission_directory);
+		shell_exec("rm -rf ".$temp_folder);
+		shell_exec("rm -rf ".$code_to_submit_directory);
+		shell_exec("rm -rf ".$submission_directory);
 		
         return $this->redirectToRoute('submission_results', array('submission_id' => $submission_entity->id));
 		//return new Response();
