@@ -84,7 +84,6 @@ fi
 # copy the submitted file over into the mounted directory
 if [ -f "$file_path/$file_name" ]; then
 
-	mkdir -p $CODE_TO_SUBMIT_DIRECTORY
 	echo "Found submitted file $file_path/$file_name. Copying to submit directory..."
 	cp "$file_path/$file_name" "$CODE_TO_SUBMIT_DIRECTORY/$file_name"
 
@@ -132,7 +131,3 @@ if [ -z "$code" ]; then
 else
     echo exited with $code
 fi
-
-rm -rf $CODE_TO_SUBMIT_DIRECTORY
-
-

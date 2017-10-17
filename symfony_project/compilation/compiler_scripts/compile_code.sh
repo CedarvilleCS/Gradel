@@ -41,8 +41,5 @@ fi
 
 ./$compile_script.sh $linker_flags $compiler_flags
 
-# delete the code to submit
-rm code_to_submit/*
-
 exit 0
 

@@ -110,6 +110,10 @@ class Submission {
 	*/
 	public $submission;
 	
+	public function deblobinateSubmission(){			
+		return stream_get_contents($this->submission);
+	}
+	
 	/**
 	* @ORM\ManyToOne(targetEntity="Filetype")
 	* @ORM\JoinColumn(name="filetype_id", referencedColumnName="id", nullable=true)
@@ -126,6 +130,10 @@ class Submission {
 	*/
 	public $compiler_output;
 	
+	public function deblobinateCompilerOutput(){			
+		return stream_get_contents($this->compiler_output);
+	}
+	
 	/**
 	* @ORM\Column(type="boolean")
 	*/
@@ -139,8 +147,7 @@ class Submission {
 	/**
 	* @ORM\Column(type="integer")
 	*/
-	public $max_runtime;
-	
+	public $max_runtime;	
 	
 	/**
 	* @ORM\Column(type="boolean")
