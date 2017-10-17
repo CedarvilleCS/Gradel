@@ -12,21 +12,21 @@ class SubmitController extends Controller
   public function submitAction($project_id=1) {
 
     $uploadMessage = "";
-    $target_dir = "/var/www/gradel_dev/budd/"; // Specify an upload location
+    $target_dir = "/var/www/gradel_dev/budd/Gradel/symfony_project/compilation/temp/"; // Specify an upload location
     $target_file = $target_dir . basename($_FILES["fileToUpload"]["name"]);
     $uploadOk = 1;
     $imageFileType = pathinfo($target_file,PATHINFO_EXTENSION);
 
-	// this directory is /var/www/gradel_dev/user/gradel/symfony_project
+	// this directory is /var/www/gradel_dev/user/gradel/symfony_project/compilation/temp
 	$web_dir = $this->get('kernel')->getProjectDir();
 	// save uploaded file to compilation/temp/submission_id/files
 	
 	// make a new submission if upload was successful
-	#	$submission_entity = new Submission($problem_entity, $team_entity, $user_entity);	
+    // $submission_entity = new Submission($problem_entity, $team_entity, $user_entity);	
 		
-	#	$em = $this->getDoctrine()->getManager(); 
-	#	$em->persist($submission_entity);
-	#	$em->flush();
+	// $em = $this->getDoctrine()->getManager(); 
+	// $em->persist($submission_entity);
+	// $em->flush();
 	
     // Check if file already exists
     if (file_exists($target_file)) {
