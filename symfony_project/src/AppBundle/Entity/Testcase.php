@@ -54,10 +54,18 @@ class Testcase {
 	*/
 	public $input;
 	
+	public function deblobinateInput(){			
+		return stream_get_contents($this->input);
+	}
+	
 	/**
 	*@ORM\Column(type="blob")
 	*/
 	public $correct_output;
+	
+	public function deblobinateCorrectOutput(){			
+		return stream_get_contents($this->correct_output);
+	}
 
 	/**
      * Multiple FB per TC

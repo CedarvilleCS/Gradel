@@ -51,7 +51,7 @@ class Team{
 
 	/**
 	* @ORM\ManyToOne(targetEntity="Assignment")
-	* @ORM\JoinColumn(name="assignment_id", referencedColumnName="id")
+	* @ORM\JoinColumn(name="assignment_id", referencedColumnName="id", nullable=false)
 	*/
 	public $assignment;
 
