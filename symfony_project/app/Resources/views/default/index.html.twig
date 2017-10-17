@@ -4,14 +4,13 @@
 
 {% if app.user %}
 
-	Hello, {{app.user.username}}!
-	
-	<br>
-	
-	<hr>
+	<a href="{{ path('submit_backup', {'problem_id': 1, 'submitted_filename': 'sum.c'}) }}"> SUBMIT A CORRECT SOLUTION </a>
+	</br>
+	</br>
+	</br>
 	<a href="{{ path('user_logout') }}">Logout</a>
-	</hr>
 	
+	{{app.user.roles|json_encode}}
 {% else %}
 
 	<a href="{{ path('hwi_oauth_service_redirect', {'service': 'google' }) }}">
@@ -21,10 +20,6 @@
 {%endif %}
 
 
-	
-	
-	
-	{{app.user.roles|json_encode}}
 
 {% endblock %}
 {% block stylesheets %}

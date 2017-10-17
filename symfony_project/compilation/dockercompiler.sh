@@ -33,22 +33,18 @@ echo "The problem_id is $problem_id"
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-TEAM_DIRECTORY="$SCRIPT_DIR/submissions/$team_id"
-PROBLEM_DIRECTORY="$SCRIPT_DIR/submissions/$team_id/$problem_id"
-SUBMISSION_DIRECTORY="$SCRIPT_DIR/submissions/$team_id/$problem_id/$submission_id"
-CODE_DIRECTORY="$SCRIPT_DIR/submissions/$team_id/$problem_id/$submission_id/code"
-STUDENT_OUTPUT_DIRECTORY="$SCRIPT_DIR/submissions/$team_id/$problem_id/$submission_id/output"
-RUNTIME_LOG_DIRECTORY="$SCRIPT_DIR/submissions/$team_id/$problem_id/$submission_id/runtime_logs"
-DIFF_LOG_DIRECTORY="$SCRIPT_DIR/submissions/$team_id/$problem_id/$submission_id/diff_logs"
-TIME_LOG_DIRECTORY="$SCRIPT_DIR/submissions/$team_id/$problem_id/$submission_id/time_logs"
+SUBMISSION_DIRECTORY="$SCRIPT_DIR/submissions/$submission_id"
+CODE_DIRECTORY="$SCRIPT_DIR/submissions/$submission_id/code"
+STUDENT_OUTPUT_DIRECTORY="$SCRIPT_DIR/submissions/$submission_id/output"
+RUNTIME_LOG_DIRECTORY="$SCRIPT_DIR/submissions/$submission_id/runtime_logs"
+DIFF_LOG_DIRECTORY="$SCRIPT_DIR/submissions/$submission_id/diff_logs"
+TIME_LOG_DIRECTORY="$SCRIPT_DIR/submissions/$submission_id/time_logs"
 
-CODE_TO_SUBMIT_DIRECTORY="$SCRIPT_DIR/code_to_submit/$submission_id/"
+CODE_TO_SUBMIT_DIRECTORY="$SCRIPT_DIR/code_to_submit/$submission_id"
 
 INPUT_DIRECTORY="$SCRIPT_DIR/temp/$submission_id/input"
 EXPECTED_OUTPUT_DIRECTORY="$SCRIPT_DIR/temp/$submission_id/output"
 
-echo "team_id directory: $TEAM_DIRECTORY"
-echo "problem_id directory: $PROBLEM_DIRECTORY"
 echo "submitted directory: $CODE_DIRECTORY"
 echo "output directory: $STUDENT_OUTPUT_DIRECTORY"
 echo "runtime log directory: $RUNTIME_LOG_DIRECTORY"
@@ -58,34 +54,6 @@ echo "diff log directory: $TIME_LOG_DIRECTORY"
 # Folder creation
 echo ""
 echo "Creating the directory structure for temporary file storage..."
-
-# check if the team_id folder exists yet
-if [ ! -d "$TEAM_DIRECTORY" ]; then
-	mkdir "$TEAM_DIRECTORY"
-	chmod 775 "$TEAM_DIRECTORY"
-	echo "created team directory"
-else
-	echo "team directory already exists"
-fi
-
-# check if the problem_id folder exists yet
-if [ ! -d "$PROBLEM_DIRECTORY" ]; then
-	mkdir "$PROBLEM_DIRECTORY"
-	chmod 775 "$PROBLEM_DIRECTORY"
-	echo "created problem directory"
-else
-	echo "problem directory already exists"
-fi
-
-# check if the submission folder exists yet
-if [ ! -d "$SUBMISSION_DIRECTORY" ]; then
-	mkdir "$SUBMISSION_DIRECTORY"
-	chmod 775 "$SUBMISSION_DIRECTORY"
-	echo "created submitted directory"
-else
-	echo "directory already exists for this submission"	
-	exit 1
-fi
 
 # check if the problem has input files
 if [ ! -d "$INPUT_DIRECTORY" ] || [ ! -d "$EXPECTED_OUTPUT_DIRECTORY" ]; then
@@ -112,35 +80,13 @@ else
 
 fi
 
-# make the submission directory
-mkdir "$CODE_DIRECTORY"
-chmod 775 "$CODE_DIRECTORY"
-echo "created submitted directory"
-
-# make the output directory
-mkdir "$STUDENT_OUTPUT_DIRECTORY"
-chmod 775 "$STUDENT_OUTPUT_DIRECTORY"
-echo "created output directory"
-
-# make the log directories
-mkdir "$RUNTIME_LOG_DIRECTORY"
-chmod 775 "$RUNTIME_LOG_DIRECTORY"
-echo "created runtime logs directory"
-
-mkdir "$DIFF_LOG_DIRECTORY"
-chmod 775 "$DIFF_LOG_DIRECTORY"
-echo "created diff logs directory"
-
-mkdir "$TIME_LOG_DIRECTORY"
-chmod 775 "$TIME_LOG_DIRECTORY"
-echo "created time logs directory"
 
 # copy the submitted file over into the mounted directory
 if [ -f "$file_path/$file_name" ]; then
 
 	mkdir -p $CODE_TO_SUBMIT_DIRECTORY
 	echo "Found submitted file $file_path/$file_name. Copying to submit directory..."
-	cp "$file_path/$file_name" "$CODE_TO_SUBMIT_DIRECTORY$file_name"
+	cp "$file_path/$file_name" "$CODE_TO_SUBMIT_DIRECTORY/$file_name"
 
 else
 	echo "Cannot find submitted file $file_path/$file_name"
