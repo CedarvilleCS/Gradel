@@ -1,16 +1,12 @@
 #! /bin/bash
 
 # check command line params
-if [ "$#" -ne 1 ] && [ "$#" -ne 0 ]; then
-	echo "usage: ./compile_c.sh <(1)compiler_flags>"
-	exit 55
+if [ "$#" -ne 1 ]; then
+	echo "usage: ./compile_c.sh (1)compiler_flags"
+	exit 100
 fi
 
-if [ "$#" -eq 1 ]; then
-	compiler_flags="$1"
-else 
-	compiler_flags=""
-fi
+compiler_flags="$1"
 
 # COMPILATION
 # compile the code and check for compiler error

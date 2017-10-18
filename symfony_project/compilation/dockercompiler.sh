@@ -1,13 +1,13 @@
 #!/bin/bash
 
-if [ "$#" -ne 9 ]; then
+if [ "$#" -ne 11 ]; then
 
 	echo "$#"
 	echo "usage: ./dockercompiler.sh"
 	echo "(1)problem_id (2)team_id"
 	echo "(3)submitted_file_path (4)submitted_file_name (5)submitted_language_name "
 	echo "(6)is_zipped (7)time_limit (8)compiler_flags"
-	echo "(9)submission_id"
+	echo "(9)submission_id (10)main_class (11)package_name"
 	exit 1
 fi
 
@@ -23,7 +23,22 @@ time_limit="$7"
 
 compiler_flags="$8"
 
+if [ "$compiler_flags" == "" ]; then
+	compiler_flags="''"
+fi
+
 submission_id="$9"
+
+main_class="${10}"
+package_name="${11}"
+
+if [ "$main_class" == "" ]; then
+	main_class="''"
+fi
+
+if [ "$package_name" == "" ]; then
+	package_name="''"
+fi
 
 echo "Variable names..."
 
@@ -109,11 +124,11 @@ passwd_mount_option="-v /etc/passwd:/etc/passwd:ro"
 
 user_option="-u $( id -u $USER ):$( id -g $USER )"
 
-script_command="/home/abc/compile_code.sh $file_type $is_zipped $file_name $linker_flags $compiler_flags"
+script_command="/home/abc/compile_code.sh $file_type $is_zipped $file_name $compiler_flags $main_class $package_name"
 
 container_name="gd$submission_id"
 
-echo "docker run --name=gd$submission_id -d $user_option $group_mount_option $passwd_mount_option $submission_mount_option $code_to_submit_mount_option $input_testcases_mount_option $output_testcases_mount_option gradel $script_command"
+echo "docker run --name=$container_name -d $user_option $group_mount_option $passwd_mount_option $submission_mount_option $code_to_submit_mount_option $input_testcases_mount_option $output_testcases_mount_option gradel $script_command"
 
 echo $(docker run --name=$container_name -d $group_mount_option $passwd_mount_option $submission_mount_option $code_to_submit_mount_option $input_testcases_mount_option $output_testcases_mount_option gradel $script_command)
 

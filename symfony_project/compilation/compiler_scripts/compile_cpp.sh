@@ -1,16 +1,12 @@
 #! /bin/bash
 
 # check command line params
-if [ "$#" -ne 1 ] && [ "$#" -ne 0 ]; then
-	echo "usage: ./compile_cpp.sh <(1)compiler_flags>"
+if [ "$#" -ne 1 ]; then
+	echo "usage: ./compile_cpp.sh (1)compiler_flags"
 	exit 55
 fi
 
-if [ "$#" -eq 1 ]; then
-	compiler_flags="$1"
-else 
-	compiler_flags=""
-fi
+compiler_flags="$1"
 
 # COMPILATION
 # compile the code and check for compiler error
@@ -46,7 +42,7 @@ for ((i=0;i<${#INPUT_FILES[@]};++i)); do
 	
 	diff_log_name=submission/diff_logs/$seq_num.log
 	
-	mytime="$((time ( sh -c 'trap "" 11; ./a.out'  < ${INPUT_FILES[i]} 1> submission/output/$seq_num.out 2> submission/runtime_logs/$seq_num.log ) 2>&1 ) | grep user)"
+	mytime="$((time ( sh -c 'trap "" 11; ./a.out' < ${INPUT_FILES[i]} 1> submission/output/$seq_num.out 2> submission/runtime_logs/$seq_num.log ) 2>&1 ) | grep user)"
 	echo $mytime > submission/time_logs/$seq_num.log
 
 	# COMPARE THE RESULTS

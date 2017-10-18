@@ -562,15 +562,17 @@ class CompilationController extends Controller {
 		
 		$submission_entity->language = $language_entity;
 				
+		$submission_entity->main_class_name = "Sum";
+		$submission_entity->package_name = "";
 		
 		# RUN THE DOCKER COMPILATION
 		$docker_time_limit = intval(count($problem_entity->testcases) * ceil(floatval($problem_entity->time_limit)/1000.0)) + 8 + rand(1,4);
-		$docker_script = $web_dir."/compilation/dockercompiler.sh ".$problem_entity->id." ".$team_entity->id." ".dirname($submission_file_path)." ".basename($submission_file_path)." ".$language_entity->name." ".$is_zipped." ".$docker_time_limit." '".$problem_entity->compilation_options."' ".$submission_entity->id;
+		$docker_script = $web_dir."/compilation/dockercompiler.sh ".$problem_entity->id." ".$team_entity->id." ".dirname($submission_file_path)." ".basename($submission_file_path)." ".$language_entity->name." ".$is_zipped." ".$docker_time_limit." \"".$problem_entity->compilation_options."\" ".$submission_entity->id." \"".$submission_entity->main_class_name."\" \"".$submission_entity->package_name."\"";
 		
 		#die($docker_script);
-		
+		#echo $docker_script."<br/>";
 		$docker_output = shell_exec($docker_script);	
-		# echo nl2br($docker_output);
+		#die(nl2br($docker_output));
 		
 		# PARSE THROUGH THE LOGS
 		# echo $submission_entity->id."<br/>";
@@ -715,9 +717,9 @@ class CompilationController extends Controller {
 		$em->flush();			
 		
 		# remove the temp folder
-		shell_exec("rm -rf ".$temp_folder);
-		shell_exec("rm -rf ".$code_to_submit_directory);
-		shell_exec("rm -rf ".$submission_directory);
+		#shell_exec("rm -rf ".$temp_folder);
+		#shell_exec("rm -rf ".$code_to_submit_directory);
+		#shell_exec("rm -rf ".$submission_directory);
 		
         return $this->redirectToRoute('submission_results', array('submission_id' => $submission_entity->id));
 		//return new Response();
