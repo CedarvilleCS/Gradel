@@ -1,7 +1,3 @@
-app:
-    resource: '@AppBundle/Controller/'
-    type: annotation
-
 index: 
     path: "/"
     defaults: {_controller: AppBundle:Default:index}
@@ -21,7 +17,7 @@ submit:
 user_login:
   path: '/user/login'
   defaults: {_controller: AppBundle:Default:index}
-  
+
 account:
   path: '/account/{userId}'
   defaults: {_controller: AppBundle:Default:account}
@@ -31,15 +27,17 @@ section:
   defaults: {_controller: AppBundle:Section:section}
 
 assignment:
-  path: '/account/{userId}/section/{sectionId}/assignment/{assignmentId}'
-  defaults: {_controller: AppBundle:Assignment:assignment}
+  path: '/account/{userId}/section/{sectionId}/assignment/{assignmentId}/problem/{problemId}'
+  defaults: {_controller: AppBundle:Assignment:assignment, problemId: 1}
   
 submit:
-    path: '/compilation/submit/{submission_id}/{submitted_filename}'
+    path: '/compilation/submit/{submission_id}/{filetype_id}/{language_id}/{submitted_filename}'
     defaults: 
         _controller:    AppBundle:Compilation:submit
     requirements:
-        submission_id: '\d+'
+        submission_id:  '\d+'
+        filetype_id:    '\d+'
+        language_id:    '\d+'
         
 submit_backup:
     path: '/compilation/submit_backup/{problem_id}/{filetype_id}/{language_id}/{submitted_filename}'
@@ -49,13 +47,28 @@ submit_backup:
         problem_id:  '\d+'
         filetype_id: '\d+'
         language_id: '\d+'
-        
+
 problem:
-    path: '/compilation/problem/{problem_id}'
+    path: '/account/{userId}/section/{sectionId}/assignment/{assignmentId}/problem/{problem_id}'
     defaults: {_controller: AppBundle:Compilation:problem, problem_id: 1}
     requirements:
         problem_id: '\d+'
-        
+
+submit:
+    path: '/account/{userId}/section/{sectionId}/assignment/{assignmentId}/problem/{problem_id}/submit'
+    defaults: {_controller: AppBundle:Compilation:submit, problem_id: 1}
+    requirements:
+        problem_id: '1'
+
+
+error:
+    path: '/compilation/error/{problem_id}'
+    defaults: {_controller: AppBundle:Compilation:error, problem_id: 1}
+    requirements:
+        problem_id: '\d+'
+
+
+
 submission_results:
     path: '/compilation/submission_results/{submission_id}'
     defaults: {_controller: AppBundle:Compilation:submission}
@@ -76,3 +89,7 @@ hwi_oauth_login:
     
 user_logout:
     path: /user/logout
+    
+user_login:
+  path: '/user/login'
+  defaults: {_controller: AppBundle:Default:index}

@@ -2,26 +2,41 @@
 
 {% block body %}
 
-{% if app.user %}
+{% if app.user.getEmail() == "gallaghd@cedarville.edu" %}
 
 	<a href="{{ path('submit_backup', {'problem_id': 1, 'filetype_id': 1, 'language_id': 3, 'submitted_filename': 'sum.c'}) }}"> SUBMIT A CORRECT SOLUTION </a>
-	</br>
-	</br>
-	</br>
+  
+	Hello, {{app.user.getFirstName()}}!<br/>
+	Your email is {{app.user.email}}<br/>
+	Your age is INTEGER OVERFLOW.
+	
+	<br>
+	
+	<hr>
+  
 	<a href="{{ path('user_logout') }}">Logout</a>
+
+{% elseif app.user %}
+	Hello, {{app.user.getFirstName()}}! <br/>	
+	Your email is {{app.user.email}}<br/>
+	Your age is just fine.
 	
-	{{app.user.roles|json_encode}}
+	<br>
+	
+	<hr>
+	<a href="{{ path('user_logout') }}">Logout</a>
+	</hr>
+
 {% else %}
-
+	We're doing fine.
 	<a href="{{ path('hwi_oauth_service_redirect', {'service': 'google' }) }}">
-		<span>Google</span>
-	</a>
+        <span>Google</span>
+    </a>
 	
-{%endif %}
-
-
+{% endif %}
 
 {% endblock %}
+
 {% block stylesheets %}
 <style>
   @import url(https://fonts.googleapis.com/css?family=Roboto:300);
@@ -131,4 +146,5 @@
   -moz-osx-font-smoothing: grayscale;
   }
 </style>
+
 {% endblock %}

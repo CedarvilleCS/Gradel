@@ -30,96 +30,117 @@ class CompilationController extends Controller {
 	
 	
 	/* name=submit */
-	public function submitAction($submission_id, $submitted_filename) {
+	public function submitAction($submission_id, $filetype_id, $language_id, $submitted_filename) {
 		
-		$logger = $this->get('logger');
-		
+		# entity manager
+		$em = $this->getDoctrine()->getManager();		
+				
 		$web_dir = $this->get('kernel')->getProjectDir();
 		
+		# get the submitted file path
 		$submission_file_path = $web_dir."/compilation/test_code/".$submitted_filename;
 		
-		$filetype_id = 1;
-		$language_id = 3;
-		
-		// this should be queried from the security token manager
-		$user_id = 1;	
-		
-		// this should be queried based on the user ID
-		$team_id = 1;		
-		
-		
-		$em = $this->getDoctrine()->getManager();
-		
-		# query for the current problem
-		$qb = $em->createQueryBuilder();
-		$qb->select('p')
-			->from('AppBundle\Entity\Problem', 'p')
-			->where('p.id = ?1')
-			->setParameter(1, $problem_id);
+		# query for the current submission
+		$qb_sub = $em->createQueryBuilder();
+		$qb_sub->select('s')
+			->from('AppBundle\Entity\Submission', 's')
+			->where('s.id = ?1')
+			->setParameter(1, $submission_id);
 			
-		$query = $qb->getQuery();
-		$problem_entity = $query->getOneorNullResult();
+		$query_sub = $qb_sub->getQuery();
+		$submission_entity = $query_sub->getOneorNullResult();
+		
+		if(!$submission_entity){
+			die("SUBMISSION DOES NOT EXIST");
+		} else if($submission_entity->is_complete) {
+			echo("SUBMISSION IS ALREADY FINISHED");
+		} else {
+			echo($submission_entity->id."<br/>");
+		}
+		
+		# get the current problem
+		$problem_entity = $submission_entity->problem;
 		
 		if(!$problem_entity){
-			$logger->critical("problem with id=".$problem_id." does not exist.");
 			die("PROBLEM DOES NOT EXIST");
+		} else{
+			echo($problem_entity->id."<br/>");	
 		}
 		
-		# query for the current team
-		# TODO: add checks to make sure this user is allowed to submit for this problem in this situation
-		$qb_team = $em->createQueryBuilder();
-		$qb_team->select('t')
-				->from('AppBundle\Entity\Team', 't')
-				->where('t.id = ?1')
-				->setParameter(1, $team_id);
-				
-		$query_team = $qb_team->getQuery();
-		$team_entity = $query_team->getOneorNullResult();	
-
-		if(!$team_entity){
-			$logger->critical("team with id=".$team_id." does not exist.");
-			die("TEAM DOES NOT EXIST");
-		}
 		
-		$qb_user = $em->createQueryBuilder();
-		$qb_user->select('u')
-				->from('AppBundle\Entity\User', 'u')
-				->where('u.id = ?1')
-				->setParameter(1, $user_id);
-				
-		$query_user = $qb_user->getQuery();
-		$user_entity = $query_user->getOneorNullResult();	
-
+		# get the current user
+		$user_entity= $this->get('security.token_storage')->getToken()->getUser();
+		
 		if(!$user_entity){
-			$logger->critical("user with id=".$user_id." does not exist.");
 			die("USER DOES NOT EXIST");
+		} else{
+			echo($user_entity->getFirstName()." ".$user_entity->getLastName()."<br/>");
 		}
 		
+		# get the current team
+		$qb_teams = $em->createQueryBuilder();
+		$qb_teams->select('t')
+				->from('AppBundle\Entity\Team', 't')
+				->where('t.assignment = ?1')
+				->setParameter(1, $problem_entity->assignment);
+				
+		$query_team = $qb_teams->getQuery();
+		$team_entities = $query_team->getResult();	
+
+		# loop over all the teams for this assignment and figure out which team the user is a part of
+		$team_entity = null;		
+		foreach($team_entities as $team){			
 		
-		# create a submission to edit in this controller 
-		// and persist it to get the id number for later
-		$submission_entity = new Submission($problem_entity, $team_entity, $user_entity);	
-		
-		$em->persist($submission_entity);
-		$em->flush();					
+			foreach($team->users as $user){					
 			
+				if($user_entity->id == $user->id){
+					$team_entity = $team;
+				}
+			}
+		}
 		
-		# SETTING UP and TEMP DIRECTORY
+		if(!$team_entity){
+			die("TEAM DOES NOT EXIST");
+		} else{			
+			echo($team_entity->name."<br/>");		
+		}
 		
-		# actually start the compilation process - move the problem into another variable	
+		# create all of the folders
+		$submission_directory = $web_dir."/compilation/submissions/".$submission_entity->id."/";
+		$runtime_logs_directory = $submission_directory."runtime_logs/";
+		$exectime_logs_directory = $submission_directory."time_logs/";
+		$output_logs_directory = $submission_directory."output/";
+		$diff_logs_directory = $submission_directory."diff_logs/";
+		$code_directory = $submission_directory."code/";
+		
+		$code_to_submit_directory = $web_dir."/compilation/code_to_submit/".$submission_entity->id."/";
+		
 		$temp_folder = $web_dir."/compilation/temp/".$submission_entity->id."/";
 		$temp_input_folder = $temp_folder."input/";
 		$temp_output_folder = $temp_folder."output/";
 		
+		# make the directory for the submission output
+		shell_exec("mkdir -p ".$submission_directory);		
+		shell_exec("mkdir -p ".$runtime_logs_directory);
+		shell_exec("mkdir -p ".$exectime_logs_directory);
+		shell_exec("mkdir -p ".$output_logs_directory);
+		shell_exec("mkdir -p ".$diff_logs_directory);
+		shell_exec("mkdir -p ".$diff_logs_directory);
+		shell_exec("mkdir -p ".$code_directory);
+		
+		# make the directory for the submitted code
+		shell_exec("mkdir -p ".$code_to_submit_directory);
+		
 		# make the directory for the temporary stuff		
 		shell_exec("mkdir -p ".$temp_folder);
 		shell_exec("mkdir -p ".$temp_input_folder);
-		shell_exec("mkdir -p ".$temp_output_folder);
+		shell_exec("mkdir -p ".$temp_output_folder);		
 		
-		# save the input/output files to a temp folder
-		# deblobinate the input/output files
+		# SETTING UP		
+		# actually start the compilation process - move the problem into another variable	
+		
+		# save the input/output files to a temp folder by deblobinating them
 		foreach($problem_entity->testcases as $tc){
-			
 			// write the input file to the temp directory
 			$input = stream_get_contents($tc->input);			
 			$input_file = fopen($temp_input_folder.$tc->seq_num.".in", "w") or die("Unable to open file for writing!");
@@ -177,18 +198,10 @@ class CompilationController extends Controller {
 		#die($docker_script);
 		
 		$docker_output = shell_exec($docker_script);	
-		#echo nl2br($docker_output);
-			
-		# CREATE THE SUBMISSION ENTITY
+		# echo nl2br($docker_output);
 		
 		# PARSE THROUGH THE LOGS
-		$submission_directory = $web_dir."/compilation/submissions/".$team_entity->id."/".$problem_entity->id."/".$submission_entity->id."/";
-		$runtime_logs_directory = $submission_directory."runtime_logs/";
-		$exectime_logs_directory = $submission_directory."time_logs/";
-		$output_logs_directory = $submission_directory."output/";
-		$diff_logs_directory = $submission_directory."diff_logs/";
-		
-		echo $submission_entity->id."<br/>";
+		# echo $submission_entity->id."<br/>";
 		
 		# default submission values
 		$submission_is_accepted = false;
@@ -206,22 +219,28 @@ class CompilationController extends Controller {
 		
 		// check for compilation error
 		# TODO: handle malicious touching of compilerror without a log file
-		if(file_exists($submission_directory."compilerror")){
-			echo "compile error</br>";
+		if(file_exists($submission_directory."compileerror")){
+			# echo "compile error</br>";
 			
 			$compile_log = fopen($submission_directory."compiler.log", "r") or die("Cannot open compiler.log file");
 			$submission_is_compileerror = true;
 		} 
 		// check for overall time limit error
 		else if(file_exists($submission_directory."dockertimeout")){
-			echo "wall clock timeout</br>";
+			# echo "wall clock timeout</br>";
 			
 			$submission_is_timelimit = true;
 		} 
 		// loop through each testcase which ran
 		else {
 			
+			# used to keep track of the total number of testcases passed
 			$correct_testcase_count = 0;
+			
+			# used to keep track of the last correct testcase before things went south
+			$already_wrong_tc = false;
+			$update_last_correct = false;
+			
 			foreach($problem_entity->testcases as $tc){
 				
 				# default testcase result fields
@@ -247,7 +266,7 @@ class CompilationController extends Controller {
 					
 					$runtime_log = fopen($runtime_log_path, "r") or die("Cannot open ".$runtime_log_path);
 					
-					echo $tc->seq_num.") runtime error</br>";					
+					# echo $tc->seq_num.") runtime error</br>";					
 					
 					$testcase_is_runtimeerror = true;
 					
@@ -259,7 +278,7 @@ class CompilationController extends Controller {
 					$exectime_log = fopen($exectime_log_path, "r") or die("Cannot open ".$exectime_log_path);
 					$diff_log = fopen($diff_log_path, "r") or die("Cannot open ".$diff_log_path);
 					
-					echo $tc->seq_num.") normal testcase</br>";
+					# echo $tc->seq_num.") normal testcase</br>";
 					
 					
 					# check the time limit
@@ -286,16 +305,24 @@ class CompilationController extends Controller {
 						
 						if(strcmp("YES", $diff_string) == 0){							
 							$testcase_is_correct = true;
-							$correct_testcase_count++;
+							$correct_testcase_count++;	
+
+							if(!$already_wrong_tc){
+								$update_last_correct = true;
+							}
 							
 							# update submission_percentage
 							$submission_percentage += max($tc->weight, floatval(1.0 / count($problem_entity->testcases)));
+						} else {
+							
+							$already_wrong_tc = true;
+							
 						}
 					}
 				}
 				// the solution was probably malicious
 				else {
-					echo $tc->seq_num.") questionable behavior</br>";
+					# echo $tc->seq_num.") questionable behavior</br>";
 					
 					$testcase_is_malicious = true;
 				}				
@@ -309,9 +336,15 @@ class CompilationController extends Controller {
 				$testcaseresult_entity = new TestcaseResult($submission_entity, $tc, $testcase_is_correct, $runtime_log, $testcase_is_runtimeerror, $testcase_exectime, $testcase_is_timelimit, $output_log);
 				$em->persist($testcaseresult_entity);
 				$em->flush();
+				
+				if($update_last_correct){
+					$submission_final_correct_testcase = $testcaseresult_entity;
+				}
+				
 			}
 		}
 		
+		# update the submission entity to the values decided aboce
 		$submission_is_accepted = (!$submission_is_compileerror && !$submission_is_runtimeerror && ($correct_testcase_count == count($problem_entity->testcases)));
 		
 		$submission_entity->is_accepted = $submission_is_accepted;
@@ -322,12 +355,17 @@ class CompilationController extends Controller {
 		$submission_entity->exceeded_time_limit = $submission_is_timelimit; 
 		$submission_entity->max_runtime = $submission_max_runtime;
 		$submission_entity->percentage = $submission_percentage;
+		$submission_entity->final_good_testcase = $submission_final_correct_testcase;
+		$submission_entity->is_complete = true;
 		
 		# update the submission entity
 		$em->persist($submission_entity);
 		$em->flush();			
 		
+		# remove the temp folder
 		shell_exec("rm -rf ".$temp_folder);
+		shell_exec("rm -rf ".$code_to_submit_directory);
+		shell_exec("rm -rf ".$submission_directory);
 		
         return $this->redirectToRoute('submission_results', array('submission_id' => $submission_entity->id));
 		//return new Response();
@@ -475,7 +513,6 @@ class CompilationController extends Controller {
 		
 		# save the input/output files to a temp folder by deblobinating them
 		foreach($problem_entity->testcases as $tc){
-			
 			// write the input file to the temp directory
 			$input = stream_get_contents($tc->input);			
 			$input_file = fopen($temp_input_folder.$tc->seq_num.".in", "w") or die("Unable to open file for writing!");
@@ -671,15 +708,16 @@ class CompilationController extends Controller {
 		$submission_entity->exceeded_time_limit = $submission_is_timelimit; 
 		$submission_entity->max_runtime = $submission_max_runtime;
 		$submission_entity->percentage = $submission_percentage;
+		$submission_entity->is_complete = true;
 		
 		# update the submission entity
 		$em->persist($submission_entity);
 		$em->flush();			
 		
 		# remove the temp folder
-		#shell_exec("rm -rf ".$temp_folder);
-		#shell_exec("rm -rf ".$code_to_submit_directory);
-		#shell_exec("rm -rf ".$submission_directory);
+		shell_exec("rm -rf ".$temp_folder);
+		shell_exec("rm -rf ".$code_to_submit_directory);
+		shell_exec("rm -rf ".$submission_directory);
 		
         return $this->redirectToRoute('submission_results', array('submission_id' => $submission_entity->id));
 		//return new Response();
