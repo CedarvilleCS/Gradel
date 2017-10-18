@@ -1,17 +1,22 @@
+index: 
+    path: "/"
+    defaults: {_controller: AppBundle:Default:index}
 
-index:
-  path: '/'
+courses:
+    path: "/courses"
+    defaults: {_controller: AppBundle:Courses:courses}
+
+assignments:
+    path: "/courses/assignments/{course_number}"
+    defaults: {_controller: AppBundle:Assignments:assignments}
+
+submit: 
+    path: "/courses/assignments/submit/{project_id}"
+    defaults: {_controller: AppBundle:Submit:submit}
+  
+user_login:
+  path: '/user/login'
   defaults: {_controller: AppBundle:Default:index}
-
-hwi_oauth_login:
-    resource: "@HWIOAuthBundle/Resources/config/routing/login.xml"
-    prefix:   /login
-
-auth0_login:
-    path:    /auth0/callback
-
-auth0_logout:
-    path: /auth0/logout
 
 account:
   path: '/account/{userId}'
