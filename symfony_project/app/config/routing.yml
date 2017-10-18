@@ -24,6 +24,24 @@ section:
 assignment:
   path: '/account/{userId}/section/{sectionId}/assignment/{assignmentId}/problem/{problemId}'
   defaults: {_controller: AppBundle:Assignment:assignment, problemId: 1}
+  
+submit:
+    path: '/compilation/submit/{submission_id}/{filetype_id}/{language_id}/{submitted_filename}'
+    defaults: 
+        _controller:    AppBundle:Compilation:submit
+    requirements:
+        submission_id:  '\d+'
+        filetype_id:    '\d+'
+        language_id:    '\d+'
+        
+submit_backup:
+    path: '/compilation/submit_backup/{problem_id}/{filetype_id}/{language_id}/{submitted_filename}'
+    defaults: 
+        _controller:    AppBundle:Compilation:submit_backup
+    requirements:
+        problem_id:  '\d+'
+        filetype_id: '\d+'
+        language_id: '\d+'
 
 problem:
     path: '/account/{userId}/section/{sectionId}/assignment/{assignmentId}/problem/{problem_id}'
