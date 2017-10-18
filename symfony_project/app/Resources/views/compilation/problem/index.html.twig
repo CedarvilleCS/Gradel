@@ -4,40 +4,45 @@
     <div id="wrapper">
         <div id="container">
             <div id="welcome">
-                <h1>{{submission.problem.name}}</h1>
-				<h3>RESULT: 
-					{% if submission.is_accepted %}
-						<span style="color:green">CORRECT!</span>
-					{% else %}
-						<span style="color:red">
-						{% if submission.compiler_error %}
-						COMPILER ERROR!
-						{% else %}
-						WRONG ANSWER!
-						{% endif %}
-						</span>
-					{% endif %}
-				</h3>
+                <h1>{{problem.name}}</h1>
+				<h2>{{problem.assignment.name}}</h2>
             </div>
 
             <div id="status">
+				<h3>Description: {{description}}</h3>
+				
+				{% if problem.instructions != "" %}
+					<h3>Instructions: {{instructions}}</h3>
+				{% endif %}
+				
+				
+				{% if default_code != "" %}					
+					<textarea onkeydown="if(event.keyCode===9){var v=this.value,s=this.selectionStart,e=this.selectionEnd;this.value=v.substring(0, s)+'\t'+v.substring(e);this.selectionStart=this.selectionEnd=s+1;return false;}" style=" box-sizing: border-box; width:100%; height:200px; resize: none; border: none; background: black; color:white; padding:15px">{{default_code}}</textarea>
+				{% endif %}
+					
 			
-			{% if submission.compiler_error %}
-				<h2> COMPILER ERROR </h2>
+				<br>	
+				<h3>Test Cases</h3> 
 				<hr>
-				{{compiler_output}}			
-				<hr>
-			{% endif %}
-			
-			{% if submission_file != "" %}	
-					<h3> SUBMITTED CODE </h3>
+				{% for tc in problem.testcases %}
+					<h4>Input: <p> {{tc.input}}</p>
+						Output: <p>{{tc.correct_output}}</p>
+						Long Feedback: <p>{{tc.feedback.long_response}}</p>
+						Short Feedback: <p>{{tc.feedback.short_response}}</p>
+						
+					</h4>
 					<hr>
-					<textarea readonly style=" box-sizing: border-box; width:100%; height:480px; resize: none; border: none; background: lighgrey; color:black; padding:15px; font-size:18px">{{submission_file}}</textarea>
-					<hr>
-			{% endif %}
-			
-			</div>
+				{% endfor %}
+            </div>
 
+			
+			
+			<a href="http://joseph.cedarville.edu/gradel_dev/tgsmith/Gradel/symfony_project/web/compilation/submit/{{problem.id}}"> Submit! </a>
+			
+			<hr>
+			
+			<a href="http://joseph.cedarville.edu/gradel_dev/tgsmith/Gradel/symfony_project/web/compilation/error/{{problem.id}}"> Submit Compile Error! </a>
+			
         </div>
     </div>
 {% endblock %}

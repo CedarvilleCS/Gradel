@@ -21,14 +21,13 @@ class TestcaseResult {
 		}
 	}
 	
-	public function __construct8($sub, $test, $correct, $runout, $runerror, $time, $toolong, $out){
+	public function __construct7($sub, $test, $correct, $runout, $runerror, $time, $out){
 		$this->submission = $sub;
 		$this->testcase = $test;
 		$this->is_correct = $correct;
 		$this->runtime_output = $runout;
 		$this->runtime_error = $runerror;
 		$this->execution_time = $time;
-		$this->exceeded_time_limit = $toolong;
 		$this->std_output = $out;
 	}
 	
@@ -76,10 +75,5 @@ class TestcaseResult {
 	*@ORM\Column(type="integer")
 	*/
 	public $execution_time;
-	
-	/**
-	* @ORM\Column(type="boolean")
-	*/
-	public $exceeded_time_limit;
 }
 ?>

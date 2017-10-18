@@ -17,7 +17,7 @@ use Psr\Log\LoggerInterface;
 
 class AssignmentController extends Controller
 {
-    public function assignmentAction($userId, $sectionId, $assignmentId, $problemId) {
+    public function assignmentAction($userId, $sectionId, $assignmentId) {
 
       $em = $this->getDoctrine()->getManager();
 
@@ -29,27 +29,8 @@ class AssignmentController extends Controller
       $query = $builder->getQuery();
       $assignment = $query->getSingleResult();
 
-      foreach ($assignment->problems as $problem) {
-        echo $problem->name . "<br/>";
-      }
-
-      $currentProblem = array_filter($assignment->problems, function($k, $v) {
-        echo "stuff <br/>";
-        echo $k . "<br/>";
-        return $k->id == $problemId;
-      }, ARRAY_FILTER_USE_BOTH);
-
-
-
-      echo $problemId;
-
-      $currentProblemDescription = stream_get_contents($currentProblem->description);
       return $this->render('default/assignment/index.html.twig', [
         'assignment' => $assignment,
-        'currentProblem' => $currentProblem,
-        'currentProblemDescription' => $currentProblemDescription,
       ]);
     }
 }
-
-?>

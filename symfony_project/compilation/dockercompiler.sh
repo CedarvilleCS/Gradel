@@ -38,9 +38,7 @@ PROBLEM_DIRECTORY="$SCRIPT_DIR/submissions/$team_id/$problem_id"
 SUBMISSION_DIRECTORY="$SCRIPT_DIR/submissions/$team_id/$problem_id/$submission_id"
 CODE_DIRECTORY="$SCRIPT_DIR/submissions/$team_id/$problem_id/$submission_id/code"
 STUDENT_OUTPUT_DIRECTORY="$SCRIPT_DIR/submissions/$team_id/$problem_id/$submission_id/output"
-RUNTIME_LOG_DIRECTORY="$SCRIPT_DIR/submissions/$team_id/$problem_id/$submission_id/runtime_logs"
-DIFF_LOG_DIRECTORY="$SCRIPT_DIR/submissions/$team_id/$problem_id/$submission_id/diff_logs"
-TIME_LOG_DIRECTORY="$SCRIPT_DIR/submissions/$team_id/$problem_id/$submission_id/time_logs"
+LOG_DIRECTORY="$SCRIPT_DIR/submissions/$team_id/$problem_id/$submission_id/logs"
 
 CODE_TO_SUBMIT_DIRECTORY="$SCRIPT_DIR/code_to_submit/$submission_id/"
 
@@ -51,9 +49,7 @@ echo "team_id directory: $TEAM_DIRECTORY"
 echo "problem_id directory: $PROBLEM_DIRECTORY"
 echo "submitted directory: $CODE_DIRECTORY"
 echo "output directory: $STUDENT_OUTPUT_DIRECTORY"
-echo "runtime log directory: $RUNTIME_LOG_DIRECTORY"
-echo "diff log directory: $DIFF_LOG_DIRECTORY"
-echo "diff log directory: $TIME_LOG_DIRECTORY"
+echo "log directory: $LOG_DIRECTORY"
 
 # Folder creation
 echo ""
@@ -122,18 +118,10 @@ mkdir "$STUDENT_OUTPUT_DIRECTORY"
 chmod 775 "$STUDENT_OUTPUT_DIRECTORY"
 echo "created output directory"
 
-# make the log directories
-mkdir "$RUNTIME_LOG_DIRECTORY"
-chmod 775 "$RUNTIME_LOG_DIRECTORY"
-echo "created runtime logs directory"
-
-mkdir "$DIFF_LOG_DIRECTORY"
-chmod 775 "$DIFF_LOG_DIRECTORY"
-echo "created diff logs directory"
-
-mkdir "$TIME_LOG_DIRECTORY"
-chmod 775 "$TIME_LOG_DIRECTORY"
-echo "created time logs directory"
+# make the log directory
+mkdir "$LOG_DIRECTORY"
+chmod 775 "$LOG_DIRECTORY"
+echo "created log directory"
 
 # copy the submitted file over into the mounted directory
 if [ -f "$file_path/$file_name" ]; then
@@ -147,46 +135,32 @@ else
 	exit 1
 fi	
 
-
-# change permissions on shared directories
-
 # run the sandbox
 echo ""
 echo "Creating the docker sandbox to run student code..."
 
 submission_mount_option="-v $SUBMISSION_DIRECTORY:/home/abc/submission"
-code_to_submit_mount_option="-v $CODE_TO_SUBMIT_DIRECTORY:/home/abc/code_to_submit:ro"
-input_testcases_mount_option="-v $INPUT_DIRECTORY:/home/abc/input:ro"
-output_testcases_mount_option="-v $EXPECTED_OUTPUT_DIRECTORY:/home/abc/output:ro"
-
-group_mount_option="-v /etc/group:/etc/group:ro"
-passwd_mount_option="-v /etc/passwd:/etc/passwd:ro"
-
-user_option="-u $( id -u $USER ):$( id -g $USER )"
+code_to_submit_mount_option="-v $CODE_TO_SUBMIT_DIRECTORY:/home/abc/code_to_submit"
+input_testcases_mount_option="-v $INPUT_DIRECTORY:/home/abc/input"
+output_testcases_mount_option="-v $EXPECTED_OUTPUT_DIRECTORY:/home/abc/output"
 
 script_command="/home/abc/compile_code.sh $file_type $is_zipped $file_name $linker_flags $compiler_flags"
 
 container_name="gd$submission_id"
 
-echo "docker run --name=gd$submission_id -d $user_option $group_mount_option $passwd_mount_option $submission_mount_option $code_to_submit_mount_option $input_testcases_mount_option $output_testcases_mount_option gradel $script_command"
+echo "docker run --name=gd$submission_id -d $submission_mount_option $code_to_submit_mount_option $input_testcases_mount_option $output_testcases_mount_option gradel $script_command"
+echo $(docker run --name=$container_name -d $submission_mount_option $code_to_submit_mount_option $input_testcases_mount_option $output_testcases_mount_option gradel $script_command)
 
-echo $(docker run --name=$container_name -d $group_mount_option $passwd_mount_option $submission_mount_option $code_to_submit_mount_option $input_testcases_mount_option $output_testcases_mount_option gradel $script_command)
+echo "timeout 20 docker wait gd$submission_id"
 
-echo "timeout $time_limit docker wait gd$submission_id"
-
-code=$(timeout $time_limit docker wait gd$submission_id 2>&1 || true)
+code=$(timeout 20 docker wait gd$submission_id 2>&1 || true)
 
 echo $(docker kill $container_name 2>&1)
 echo $(docker rm $container_name 2>&1)
 
 echo -n 'status: '
 if [ -z "$code" ]; then
-    echo TIMEOUT
-	touch $SUBMISSION_DIRECTORY/dockertimeout
+    echo TIMEOUT	
 else
     echo exited with $code
 fi
-
-rm -rf $CODE_TO_SUBMIT_DIRECTORY
-
-
