@@ -1,21 +1,15 @@
+homepage:
+    path:   '/'
+    defaults:  { _controller: AppBundle:Account:index }
 
-index:
-  path: '/'
-  defaults: {_controller: AppBundle:Default:index}
 
 hwi_oauth_login:
     resource: "@HWIOAuthBundle/Resources/config/routing/login.xml"
     prefix:   /login
 
-auth0_login:
-    path:    /auth0/callback
-
-auth0_logout:
-    path: /auth0/logout
-
 account:
-  path: '/account/{userId}'
-  defaults: {_controller: AppBundle:Default:account}
+  path: '/account'
+  defaults: {_controller: AppBundle:Account:index}
 
 section:
   path: '/account/{userId}/section/{sectionId}'

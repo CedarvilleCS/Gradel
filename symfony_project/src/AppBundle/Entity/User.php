@@ -71,6 +71,10 @@ class User extends BaseUser{
 		return $this->google_id;
 	}
 
+	public function getID() {
+		return $this->id;
+	}
+	
 	public function setFirstName($first_name) {
 		$this->first_name = $first_name;
 

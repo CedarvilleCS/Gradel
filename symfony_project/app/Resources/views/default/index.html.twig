@@ -1,15 +1,12 @@
 {% extends 'base.html.twig' %}
 {% block head %}
 <head>
-	{% block title %}Log in to Gradel!{% endblock %}
+	{% block title %}Log in to Gradel{% endblock %}
 {% endblock head %}
 
 {% block body %}
 {% if app.user %}
 	Hello, {{app.user.getFirstName()}}! <br/>	
-	Your email is {{app.user.email}}<br/>
-	
-	<br>
 	
 	<hr>
 	<a href="{{ path('user_logout') }}">Logout</a>
@@ -17,7 +14,7 @@
 {% else %}
 	
 	<div class="login-page">
-	<b> You need to log in to view this page. </b>
+	<b> You aren't logged in, and we want you to be. </b>
 	<br> <br> <br> <br>
 	<a href="{{ path('hwi_oauth_service_redirect', {'service': 'google' }) }}">
         <button>Login</button>
