@@ -19,3 +19,30 @@ body {
 #course-container > h1 {
     text-align: center;
 }
+
+ol {
+    list-style-type: none;
+    margin: 0px;
+    padding: 0px;
+}
+
+ol > li > a {
+    color: black;
+    text-decoration: none;
+    
+}
+
+ol > li {
+    font-size: 16pt;
+    margin-bottom: 20px;
+    border-bottom: 1px dotted black;
+}
+
+ol > li:hover, ol > li:hover > a {
+    color: #8DC26F;
+    border-bottom: 1px dotted  #8DC26F;
+}
+
+.show-more {
+    float: right;
+}
