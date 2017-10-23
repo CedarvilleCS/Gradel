@@ -8,8 +8,7 @@ public class Sum {
 		
 		int x = in.nextInt();
 		int y = in.nextInt();
-		
-		
+
 		System.out.println((x+y));		
 		
 	}	

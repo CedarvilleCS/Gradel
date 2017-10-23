@@ -19,6 +19,17 @@
 						COMPILER ERROR!
 						{% elseif submission.exceeded_time_limit %}
 						TIME LIMIT EXCEEEDED!
+						<br/>
+						
+						{% if submission.testcaseresults|length > 0 %}
+							{% for tcr in submission.testcaseresults %}
+								Runtime for input {{tcr.testcase.seq_num}}) {{tcr.execution_time/1000}}s
+								<br/>
+							{% endfor %}
+						{% else %}
+							Wall clock limit exceeded <br/>
+						{% endif %}
+						
 						{% elseif submission.runtime_error %}
 						RUNTIME ERROR!
 						{% else %}
@@ -64,6 +75,8 @@
 			<a href="{{ path('submit_backup', {'problem_id': 1, 'filetype_id': 1, 'language_id': 3, 'submitted_filename': 'while_loop.c'}) }}"> INFINITE LOOP </a>
 			<a href="{{ path('submit_backup', {'problem_id': 1, 'filetype_id': 1, 'language_id': 3, 'submitted_filename': 'malicious_delete_all.c'}) }}"> MALICIOUS DELETION </a>
 			<a href="{{ path('submit_backup', {'problem_id': 1, 'filetype_id': 1, 'language_id': 3, 'submitted_filename': 'malicious_add.c'}) }}"> MALICIOUS ADDITION </a>
+			
+			<a href="{{ path('submit_backup', {'problem_id': 1, 'filetype_id': 2, 'language_id': 2, 'submitted_filename': 'sum.cpp'}) }}"> C++ CORRECT </a>
 			
 			<a href="{{ path('submit_backup', {'problem_id': 1, 'filetype_id': 3, 'language_id': 4, 'submitted_filename': 'Sum.java'}) }}"> JAVA CORRECT </a>
 			

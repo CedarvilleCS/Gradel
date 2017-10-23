@@ -1,25 +1,5 @@
 #! /bin/bash
 
-# check command line params
-if [ "$#" -ne 1 ]; then
-	echo "usage: ./compile_c.sh (1)compiler_flags"
-	exit 100
-fi
-
-compiler_flags="$1"
-
-# COMPILATION
-# compile the code and check for compiler error
-gcc submission/code/*.c $compiler_flags -o a.out 2> submission/compiler.log
-
-# if there was an error, exit and touch a flag file
-if [ $? -ne 0 ]; then
-	echo "Error with compiling!"
-	touch submission/compileerror
-	exit 1
-fi
-
-
 # TESTCASES
 # run all of the test cases
 INPUT_FILES=(input/*.in)
@@ -42,7 +22,7 @@ for ((i=0;i<${#INPUT_FILES[@]};++i)); do
 	
 	diff_log_name=submission/diff_logs/$seq_num.log
 	
-	mytime="$((time ( sh -c 'trap "" 11; ./a.out'  < ${INPUT_FILES[i]} 1> submission/output/$seq_num.out 2> submission/runtime_logs/$seq_num.log ) 2>&1 ) | grep user)"
+	mytime="$((time ( sh -c 'trap "" 11; ./a.out' < ${INPUT_FILES[i]} 1> submission/output/$seq_num.out 2> submission/runtime_logs/$seq_num.log ) 2>&1 ) | grep user)"
 	echo $mytime > submission/time_logs/$seq_num.log
 
 	# COMPARE THE RESULTS

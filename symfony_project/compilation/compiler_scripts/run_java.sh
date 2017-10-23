@@ -1,33 +1,7 @@
 #! /bin/bash
+main_class=$1
 
-# check command line params
-if [ "$#" -ne 3 ]; then
-	echo "usage: ./compile_java.sh (1)compiler_flags"
-	echo "(2)main_class (3)package_name"
-	exit 55
-fi
-
-compiler_flags="$1"
-main_class="$2"
-package_name="$3"
-
-if [ "$package_name" != "''" ]; then
-	package_name="$3/"
-else
-	package_name="";
-fi
-
-# COMPILATION
-# compile the code and check for compiler error
-javac $compiler_flags -d . submission/code/$package_name$main_class.java 2> submission/compiler.log
-# if there was an error, exit and touch a flag file
-if [ $? -ne 0 ]; then
-	echo "Error with compiling!"
-	touch submission/compileerror
-	exit 1
-fi
-
-
+touch submission/fleh.log
 # TESTCASES
 # run all of the test cases
 INPUT_FILES=(input/*.in)
@@ -49,8 +23,8 @@ for ((i=0;i<${#INPUT_FILES[@]};++i)); do
 	seq_num=$(basename ${INPUT_FILES[i]} .in)
 	
 	diff_log_name=submission/diff_logs/$seq_num.log
-	
-	mytime="$((time ( java $package_name$main_class < ${INPUT_FILES[i]} 1> submission/output/$seq_num.out 2> submission/runtime_logs/$seq_num.log ) 2>&1 ) | grep user)"
+	mytime="$((time ( java $main_class < ${INPUT_FILES[i]} 1> submission/output/$seq_num.out 2> submission/runtime_logs/$seq_num.log ) 2>&1 ) | grep user)"
+	#java $main_class < ${INPUT_FILES[i]} 1> submission/output/$seq_num.out 2> submission/runtime_logs/$seq_num.log
 	echo $mytime > submission/time_logs/$seq_num.log
 
 	# COMPARE THE RESULTS

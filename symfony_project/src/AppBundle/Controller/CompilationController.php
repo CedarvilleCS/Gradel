@@ -38,7 +38,7 @@ class CompilationController extends Controller {
 		$web_dir = $this->get('kernel')->getProjectDir();
 		
 		# get the submitted file path
-		$submission_file_path = $web_dir."/compilation/test_code/".$submitted_filename;
+		$submission_file_path = $web_dir."/compilation/temp/".$submission_id."/".$submitted_filename;
 		
 		# query for the current submission
 		$qb_sub = $em->createQueryBuilder();
@@ -383,7 +383,7 @@ class CompilationController extends Controller {
 			->setParameter(1, $submission_id);
 		
 		$qb_submission = $qb->getQuery();
-		$submission = $qb_submission->getSingleResult();	
+		$submission = $qb_submission->getOneorNullResult();	
 		
 		$compiler_output = stream_get_contents($submission->compiler_output);
 		$submission_file = stream_get_contents($submission->submission);
@@ -392,8 +392,8 @@ class CompilationController extends Controller {
 			
 			$output["std_output"] = stream_get_contents($tc->std_output);
 			$output["runtime_output"] = stream_get_contents($tc->runtime_output);
-			
-			$tc_output[] = $output;			
+			$output["time_output"] = $tc->execution_time;
+			$tc_output[] = $output;	
 		}
 					
         return $this->render('compilation/submission/index.html.twig', [
@@ -694,6 +694,8 @@ class CompilationController extends Controller {
 				
 				#TestcaseResult($sub, $test, $correct, $runout, $runerror, $time, $toolong, $out)
 				$testcaseresult_entity = new TestcaseResult($submission_entity, $tc, $testcase_is_correct, $runtime_log, $testcase_is_runtimeerror, $testcase_exectime, $testcase_is_timelimit, $output_log);
+				
+				//$submission_entity->testcaseresults[] = $testcaseresult_entity;
 				$em->persist($testcaseresult_entity);
 				$em->flush();
 			}
@@ -717,9 +719,9 @@ class CompilationController extends Controller {
 		$em->flush();			
 		
 		# remove the temp folder
-		#shell_exec("rm -rf ".$temp_folder);
-		#shell_exec("rm -rf ".$code_to_submit_directory);
-		#shell_exec("rm -rf ".$submission_directory);
+		shell_exec("rm -rf ".$temp_folder);
+		shell_exec("rm -rf ".$code_to_submit_directory);
+		shell_exec("rm -rf ".$submission_directory);
 		
         return $this->redirectToRoute('submission_results', array('submission_id' => $submission_entity->id));
 		//return new Response();

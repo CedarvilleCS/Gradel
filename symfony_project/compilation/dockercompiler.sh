@@ -23,22 +23,10 @@ time_limit="$7"
 
 compiler_flags="$8"
 
-if [ "$compiler_flags" == "" ]; then
-	compiler_flags="''"
-fi
-
 submission_id="$9"
 
 main_class="${10}"
 package_name="${11}"
-
-if [ "$main_class" == "" ]; then
-	main_class="''"
-fi
-
-if [ "$package_name" == "" ]; then
-	package_name="''"
-fi
 
 echo "Variable names..."
 
@@ -65,10 +53,6 @@ echo "output directory: $STUDENT_OUTPUT_DIRECTORY"
 echo "runtime log directory: $RUNTIME_LOG_DIRECTORY"
 echo "diff log directory: $DIFF_LOG_DIRECTORY"
 echo "diff log directory: $TIME_LOG_DIRECTORY"
-
-# Folder creation
-echo ""
-echo "Creating the directory structure for temporary file storage..."
 
 # check if the problem has input files
 if [ ! -d "$INPUT_DIRECTORY" ] || [ ! -d "$EXPECTED_OUTPUT_DIRECTORY" ]; then
@@ -107,9 +91,6 @@ else
 	exit 1
 fi	
 
-
-# change permissions on shared directories
-
 # run the sandbox
 echo ""
 echo "Creating the docker sandbox to run student code..."
@@ -124,11 +105,19 @@ passwd_mount_option="-v /etc/passwd:/etc/passwd:ro"
 
 user_option="-u $( id -u $USER ):$( id -g $USER )"
 
-script_command="/home/abc/compile_code.sh $file_type $is_zipped $file_name $compiler_flags $main_class $package_name"
+echo "FILETYPE IS: $file_type"
+
+if [ $file_type == "Java" ]; then
+	java_script_ext="-M $main_class -P '$package_name'"
+else
+	java_script_ext=""
+fi
+
+script_command="/home/abc/compile_code -l ${file_type} -f ${file_name} -c '${compiler_flags}' $java_script_ext"
 
 container_name="gd$submission_id"
 
-echo "docker run --name=$container_name -d $user_option $group_mount_option $passwd_mount_option $submission_mount_option $code_to_submit_mount_option $input_testcases_mount_option $output_testcases_mount_option gradel $script_command"
+echo "docker run --name=$container_name -d $group_mount_option $passwd_mount_option $submission_mount_option $code_to_submit_mount_option $input_testcases_mount_option $output_testcases_mount_option gradel $script_command"
 
 echo $(docker run --name=$container_name -d $group_mount_option $passwd_mount_option $submission_mount_option $code_to_submit_mount_option $input_testcases_mount_option $output_testcases_mount_option gradel $script_command)
 
