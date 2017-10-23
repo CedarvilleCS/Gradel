@@ -1,0 +1,21 @@
+body {
+    background-color: #8DC26F;
+    font-family: sans-serif;
+}
+
+#course-container {
+
+    padding: 20px;
+    margin: 10%;
+    width: 80%;
+
+
+    background-color: white;
+    color: black;
+
+    box-shadow:2px 2px 5px grey;
+}
+
+#course-container > h1 {
+    text-align: center;
+}
