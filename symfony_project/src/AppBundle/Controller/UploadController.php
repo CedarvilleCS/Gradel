@@ -30,22 +30,13 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 
-class SubmitController extends Controller {
+class UploadController extends Controller {
  
-    public function submitAction($project_id=1, $problem_id=1) {
-
-        //consoleLog( "test" );
-
-        $uploadMessage = "";
-        $target_dir = "/var/www/gradel_dev/budd/Gradel/symfony_project/compilation/temp/"; // Specify an upload location
-        $target_file = $target_dir . basename($_FILES["fileToUpload"]["name"]);
-        $uploadOk = 1;
-        $imageFileType = pathinfo($target_file,PATHINFO_EXTENSION);
-
+    public function uploadAction($project_id=1, $problem_id=1) {
 
         // entity manager
         $em = $this->getDoctrine()->getManager();
-
+        
         # query for the current problem
         $qb = $em->createQueryBuilder();
         $qb->select('p')
@@ -110,7 +101,15 @@ class SubmitController extends Controller {
         $em = $this->getDoctrine()->getManager(); 
         $em->persist($submission_entity);
         $em->flush();
-        
+
+        $uploadMessage = "";
+        $target_dir = "/var/www/gradel_dev/budd/Gradel/symfony_project/compilation/temp/".$submission_entity->id."/"; // Specify an upload location
+        mkdir($target_dir); // Make that directory
+        $target_file = $target_dir . basename($_FILES["fileToUpload"]["name"]);
+        $uploadOk = 1;
+        $imageFileType = pathinfo($target_file,PATHINFO_EXTENSION);
+
+
         // Check if file already exists
         if (file_exists($target_file)) {
             echo "Overwriting existing file\n";
@@ -129,21 +128,22 @@ class SubmitController extends Controller {
             if (move_uploaded_file($_FILES["fileToUpload"]["tmp_name"], $target_file)) {
                 echo "The file ". basename( $_FILES["fileToUpload"]["name"]). " has been uploaded.";
                 
+                // die("test");
                 # call timothy's controller
-                // return $this->redirectToRoute('submit', array('submitted_filename' => $target_file, 'submission_id' => $submission_entity->id));
+                // $url = $this->generateUrl('submit', array('submitted_filename' => basename($target_file), 'submission_id' => $submission_entity->id, 'filetype_id' => 1, 'language_id' => 1));
+                // die($url);
+
+                return $this->redirectToRoute('submit', array('submitted_filename' => basename($target_file), 'submission_id' => $submission_entity->id, 'filetype_id' => 1, 'language_id' => 1));
             } else {
                 echo "Sorry, there was an error uploading your file.";
             }
         }
-        
-        return $this->render('courses/assignments/submit/index.html.twig', [
-                'project_id' => $project_id,
+        // If they didn't send a file, render upload page
+        return $this->render('courses/assignments/problems/upload/index.html.twig', [
+            'project_id' => $project_id,
+            'problem_id' => $problem_id,
         ]);
     }
-
-    // function consoleLog( $data ) {
-    //     echo "<script>console.log('" . $data . "');</script>";
-    // }
 }
 
 ?>

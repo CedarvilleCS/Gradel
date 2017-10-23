@@ -32,14 +32,18 @@ class CompilationController extends Controller {
 	/* name=submit */
 	public function submitAction($submission_id, $filetype_id, $language_id, $submitted_filename) {
 		
+		// die("Submission id " . $submission_id);
+
 		# entity manager
 		$em = $this->getDoctrine()->getManager();		
 				
 		$web_dir = $this->get('kernel')->getProjectDir();
 		
 		# get the submitted file path
-		$submission_file_path = $web_dir."/compilation/test_code/".$submitted_filename;
+		$submission_file_path = $web_dir."/compilation/temp/".$submission_id."/".$submitted_filename;
 		
+		
+
 		# query for the current submission
 		$qb_sub = $em->createQueryBuilder();
 		$qb_sub->select('s')

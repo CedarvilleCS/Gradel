@@ -10,9 +10,13 @@ assignments:
     path: "/courses/assignments/{course_number}"
     defaults: {_controller: AppBundle:Assignments:assignments}
 
-submit: 
-    path: "/courses/assignments/submit/{project_id}/{problem_id}"
-    defaults: {_controller: AppBundle:Submit:submit}
+problems: 
+    path: "/courses/assignments/problems/{project_id}/{problem_id}"
+    defaults: {_controller: AppBundle:Problems:problems}
+
+upload:
+    path: "/courses/assignments/problems/{project_id}/{problem_id}/upload"
+    defaults: {_controller: AppBundle:Upload:upload}
   
 user_login:
   path: '/user/login'
@@ -54,11 +58,11 @@ problem:
     requirements:
         problem_id: '\d+'
 
-submit:
-    path: '/account/{userId}/section/{sectionId}/assignment/{assignmentId}/problem/{problem_id}/submit'
-    defaults: {_controller: AppBundle:Compilation:submit, problem_id: 1}
-    requirements:
-        problem_id: '1'
+# submit:
+#     path: '/account/{userId}/section/{sectionId}/assignment/{assignmentId}/problem/{problem_id}/submit'
+#     defaults: {_controller: AppBundle:Compilation:submit, problem_id: 1}
+#     requirements:
+#         problem_id: '1'
 
 
 error:
@@ -90,6 +94,3 @@ hwi_oauth_login:
 user_logout:
     path: /user/logout
     
-user_login:
-  path: '/user/login'
-  defaults: {_controller: AppBundle:Default:index}
