@@ -115,13 +115,15 @@ class UploadController extends Controller {
             echo "Overwriting existing file\n";
             $uploadOk = 1; // Change to 0 if you don't want it to upload and overwrite. You can add a hash to the name or something.
         }
-        // Check file size
-        if ($_FILES["fileToUpload"]["size"] > 500000) {
-            echo "Sorry, your file is too large.";
-            $uploadOk = 0;
-        }
+        // // Check file size
+        // if ($_FILES["fileToUpload"]["size"] > 500000) {
+        //     echo "Sorry, your file is too large.";
+        //     $uploadOk = 0;
+        // }
         // Check if $uploadOk is set to 0 by an error
         if ($uploadOk == 0) {
+            $em->remove($submission_entity);
+            $em->flush();
             echo "Sorry, your file was not uploaded.";
         // if everything is ok, try to upload file
         } else {
@@ -135,6 +137,8 @@ class UploadController extends Controller {
 
                 return $this->redirectToRoute('submit', array('submitted_filename' => basename($target_file), 'submission_id' => $submission_entity->id, 'filetype_id' => 1, 'language_id' => 1));
             } else {
+                $em->remove($submission_entity);
+                $em->flush();
                 echo "Sorry, there was an error uploading your file.";
             }
         }
