@@ -49,8 +49,6 @@ class User extends BaseUser{
 	*/
 	public $id;
 	
-	/** @ORM\Column(name="access_level", type="integer", nullable=true) */
-	protected $access_level;
 	
 	/** @ORM\Column(name="last_name", type="string", length=255, nullable=true) */
 	protected $last_name;

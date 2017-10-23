@@ -9,6 +9,9 @@
 	<table>
 	  <tr>
 	    <th>Name</th>
+			{% if (usr.role.role_name == 'Teaches') %}
+				<th></th>
+			{% endif %}
 		</tr>
     {% for assignment in section.assignments %}
       <tr>
@@ -17,6 +20,11 @@
             {{assignment.name}}
           </a>
         </th>
+				{% if (usr.role.role_name == 'Teaches') %}
+					<th>
+						<div>edit</div>
+					</th>
+				{% endif %}
       </tr>
     {% endfor %}
 	</table>

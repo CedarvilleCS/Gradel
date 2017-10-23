@@ -17,9 +17,20 @@ account:
   path: '/account/{userId}'
   defaults: {_controller: AppBundle:Default:account}
 
+
+section_new:
+  path: '/account/{userId}/section/new'
+  defaults: {_controller: AppBundle:Section:newSection}
+
+section_insert:
+  path: '/account/{userId}/section/insert/{courseId}/{name}/{semester}/{year}/{start_time}/{end_time}/{is_deleted}/{is_public}'
+  defaults: {_controller: AppBundle:Section:insertSection}
+
+
 section:
   path: '/account/{userId}/section/{sectionId}'
   defaults: {_controller: AppBundle:Section:section}
+
 
 assignment:
   path: '/account/{userId}/section/{sectionId}/assignment/{assignmentId}/problem/{problemId}'
@@ -51,11 +62,11 @@ submission_results:
     defaults: {_controller: AppBundle:Compilation:submission}
     requirements:
         submission_id: '\d+'
-        
+
 hwi_oauth_redirect:
     resource: "@HWIOAuthBundle/Resources/config/routing/redirect.xml"
     prefix:   /connect
-    
+
 hwi_oauth_connect:
     resource: "@HWIOAuthBundle/Resources/config/routing/connect.xml"
     prefix:   /connect
@@ -63,10 +74,10 @@ hwi_oauth_connect:
 hwi_oauth_login:
     resource: "@HWIOAuthBundle/Resources/config/routing/login.xml"
     prefix:   /login
-    
+
 user_logout:
     path: /user/logout
-    
+
 user_login:
   path: '/user/login'
   defaults: {_controller: AppBundle:Default:index}

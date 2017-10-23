@@ -18,13 +18,13 @@ class DefaultController extends Controller
 {
     public function indexAction(Request $request, LoggerInterface $logger) {
       $logger->info("This should output somewhere!");
-	  
+
 	  $usr= $this->get('security.token_storage')->getToken()->getUser();
-	  
+
 	  if(get_class($usr)){
 		$name = $usr->getFirstName();
 	  }
-	  
+
       return $this->render('default/index.html.twig', [
 		  'name' => $name,
       ]);
@@ -47,12 +47,11 @@ class DefaultController extends Controller
       $b->select('usr')
           ->from('AppBundle\Entity\UserSectionRole', 'usr')
           ->where('usr.user = ?1')
-          ->setParameter(1, $keith);
+          ->setParameter(1, $keith->id);
 
       $q = $b->getQuery();
       $coursePerson = $q->getResult();
 
-      $logger->info("WHAT UP FOOL");
           // replace this example code with whatever you need
           return $this->render('default/account/index.html.twig', [
               'base_dir' => realpath($this->getParameter('kernel.project_dir')).DIRECTORY_SEPARATOR,
@@ -61,18 +60,17 @@ class DefaultController extends Controller
           ]);
       // return $this->render('default/account/index.html.twig');
     }
-	
-	public function addUserAction($userName){	
 
-	
+	public function addUserAction($userName){
+
+
 		//$em = $this->getDoctrine()->getManager();
 		//$new_user = new User($userName, "Wolf", "", new \DateTime("now"), "");
 		//$em->persist($new_user);
 		//echo json_encode("He1y");
-		echo json_encode(yo, $userName);
 		return $this->render('default/account/index.html.twig');
 	}
-	
+
 
 }
 
