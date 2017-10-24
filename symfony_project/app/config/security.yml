@@ -30,7 +30,6 @@ security:
                     service: app.fos_user.oauth_provider
             logout: 
                 path: user_logout
-                target: index
 
     access_control:
         - { path: ^/user, roles: IS_AUTHENTICATED_ANONYMOUSLY }

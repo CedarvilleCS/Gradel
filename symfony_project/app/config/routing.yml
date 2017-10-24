@@ -7,9 +7,21 @@ hwi_oauth_login:
     resource: "@HWIOAuthBundle/Resources/config/routing/login.xml"
     prefix:   /login
 
-account:
-  path: '/account'
-  defaults: {_controller: AppBundle:Account:index}
+index: 
+    path: "/"
+    defaults: {_controller: AppBundle:Default:index}
+
+courses:
+    path: "/courses"
+    defaults: {_controller: AppBundle:Courses:courses}
+
+assignments:
+    path: "/courses/assignments/{course_number}"
+    defaults: {_controller: AppBundle:Assignments:assignments}
+  
+user_login:
+  path: '/user/login'
+  defaults: {_controller: AppBundle:Default:index}
 
 section:
   path: '/account/{userId}/section/{sectionId}'
@@ -18,6 +30,24 @@ section:
 assignment:
   path: '/account/{userId}/section/{sectionId}/assignment/{assignmentId}/problem/{problemId}'
   defaults: {_controller: AppBundle:Assignment:assignment, problemId: 1}
+  
+submit:
+    path: '/compilation/submit/{submission_id}/{filetype_id}/{language_id}/{submitted_filename}'
+    defaults: 
+        _controller:    AppBundle:Compilation:submit
+    requirements:
+        submission_id:  '\d+'
+        filetype_id:    '\d+'
+        language_id:    '\d+'
+        
+submit_backup:
+    path: '/compilation/submit_backup/{problem_id}/{filetype_id}/{language_id}/{submitted_filename}'
+    defaults: 
+        _controller:    AppBundle:Compilation:submit_backup
+    requirements:
+        problem_id:  '\d+'
+        filetype_id: '\d+'
+        language_id: '\d+'
 
 problem:
     path: '/account/{userId}/section/{sectionId}/assignment/{assignmentId}/problem/{problem_id}'
@@ -25,20 +55,11 @@ problem:
     requirements:
         problem_id: '\d+'
 
-submit:
-    path: '/account/{userId}/section/{sectionId}/assignment/{assignmentId}/problem/{problem_id}/submit'
-    defaults: {_controller: AppBundle:Compilation:submit, problem_id: 1}
-    requirements:
-        problem_id: '1'
-
-
 error:
     path: '/compilation/error/{problem_id}'
     defaults: {_controller: AppBundle:Compilation:error, problem_id: 1}
     requirements:
         problem_id: '\d+'
-
-
 
 submission_results:
     path: '/compilation/submission_results/{submission_id}'

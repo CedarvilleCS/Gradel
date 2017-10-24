@@ -1,0 +1,92 @@
+{% block head %}
+<title>Gradel | Project {{project_id}}</title>
+{% endblock %}
+
+{% block body %}
+
+<body>
+    <nav class="problems">
+        <ul>
+            <li>Problem 1</li>
+            <li>Problem 2</li>
+            <li>Problem 3</li>
+            <li>Problem 4</li>
+            <li>Problem 5</li>
+            <li>Problem 6</li>
+            <li>Problem 7</li>
+            <li>Problem 8</li>
+            <li>Problem 9</li>
+            <li>Problem 10</li>
+            <li>Problem 11</li>
+            <li>Problem 12</li>
+            <li>Problem 13</li>
+            <li>Problem 14</li>
+            <li>Problem 15</li>
+            <li>Problem 16</li>
+            <li>Problem 17</li>
+            <li>Problem 18</li>
+            <li>Problem 19</li>
+            <li>Problem 20</li>
+            <li>Problem 21</li>
+            <li>Problem 22</li>
+            <li>Problem 23</li>
+            <li>Problem 24</li>
+            <li>Problem 25</li>
+        </ul>
+    </nav>
+
+    <section id="problemSpec"> <!-- FIXME: This ID name doesn't make sense -->
+        <!-- TODO: Change the contents of this using routing when you click on the link on the left -->
+        <h1>Problem 1</h1>                              
+        <p>This is info about the problem</p>   
+        <div id="editor">function foo(items) {
+            var x = "All this is syntax highlighted";
+            return x;
+        }</div>
+        
+        <script src="{{ asset('src-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>
+        <script>
+            var editor = ace.edit("editor");
+            editor.setTheme("ace/theme/xcode");
+            editor.getSession().setMode("ace/mode/javascript");
+        </script>
+
+        <!-- <form> -->
+            <textarea id="codeInput">Enter your code here.</textarea>    <!-- TODO: Add a syntax highlighting plugin-->
+            
+            <!-- <pre><code><textarea></textarea></code></pre> -->
+            
+            <button class="btn">Submit</button>
+        <!-- </form> -->
+        
+
+        <div id="file-upload-wrapper">
+            <input type="file" name="files[]" multiple id="file-upload"> <!-- FIXME: To get hover effects these need to be in the other order, but that is making you not able to clock on the file input thing. -->
+            <button class="btn">Upload Files</button>
+        </div>
+
+
+        <form action="upload.php" method="post" enctype="multipart/form-data">
+            Select file to upload:
+            <input type="file" name="fileToUpload" id="fileToUpload">
+            <input type="submit" value="Upload File" name="submit">
+        </form>
+
+        <p>{{upload_message}}</p>
+
+    </section>
+    
+</body>
+
+{% endblock %}
+
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('styles.css') }}" />
+{% endblock %}
+
+{% block scripts %}
+    <!-- JQuery -->
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+{% endblock %}

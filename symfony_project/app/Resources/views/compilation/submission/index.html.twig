@@ -1,10 +1,15 @@
 {% extends 'base.html.twig' %}
 
+{% block title %}
+	Submission ID: {{submission.id}}
+{% endblock %}
+
 {% block body %}
     <div id="wrapper">
         <div id="container">
             <div id="welcome">
                 <h1>{{submission.problem.name}}</h1>
+				<h2>SUBMISSION ID: {{submission.id}}</h2>
 				<h3>RESULT: 
 					{% if submission.is_accepted %}
 						<span style="color:green">CORRECT!</span>
@@ -25,14 +30,17 @@
             </div>
 
             <div id="status">
+			{% if submission.questionable_behavior %}
+				POSSIBLE MALICIOUS BEHAVIOR DETECTED
+			{% endif %}
 			
 			{% if submission.compiler_error %}
-				<h2> COMPILER ERROR </h2>
+				<h2> COMPILER OUTPUT </h2>
 				<hr>
 				{{compiler_output}}			
 				<hr>
 			{% elseif submission.runtime_error %}
-				<h2> RUNTIME ERROR </h2>
+				<h2> RUNTIME OUTPUT </h2>
 				<hr>
 				{% for tc in testcases_output %}
 					{{tc.runtime_output}}<br/>			
@@ -43,18 +51,22 @@
 			{% if submission_file != "" %}	
 					<h3> SUBMITTED CODE </h3>
 					<hr>
-					<textarea readonly style=" box-sizing: border-box; width:100%; height:480px; resize: none; border: none; background: lighgrey; color:black; padding:15px; font-size:18px">{{submission_file}}</textarea>
+					<textarea readonly style="box-sizing: border-box; width:100%; height:390px; resize: none; border: none; background: lighgrey; color:black; padding:15px; font-size:15px; font-family:Lucinda Console, monospace">{{submission_file}}</textarea>
 					<hr>
 			{% endif %}
 			
-			<a href="{{ path('submit', {'problem_id': 1, 'submitted_filename': 'sum.c'}) }}"> SUBMIT CORRECT SOLUTION </a>
-			<a href="{{ path('submit', {'problem_id': 1, 'submitted_filename': 'wrong_answer.c'}) }}"> SUBMIT WRONG ANSWER </a>
-			<a href="{{ path('submit', {'problem_id': 1, 'submitted_filename': 'compiler_error.c'}) }}"> SUBMIT COMPILER ERROR </a>
-			<a href="{{ path('submit', {'problem_id': 1, 'submitted_filename': 'runtime_error.c'}) }}"> SUBMIT RUNTIME ERROR </a>
-			<a href="{{ path('submit', {'problem_id': 1, 'submitted_filename': 'while_loop.c'}) }}"> SUBMIT INFINITE LOOP </a>
-			<a href="{{ path('submit', {'problem_id': 1, 'submitted_filename': 'malicious_delete_all.c'}) }}"> SUBMIT MALICIOUS DELETION </a>
-			<a href="{{ path('submit', {'problem_id': 1, 'submitted_filename': 'malicious_add.c'}) }}"> SUBMIT MALICIOUS ADDITION </a>
+			<h3> SUBMIT ANOTHER SOLUTION </h3>
 			
+			<a href="{{ path('submit_backup', {'problem_id': 1, 'filetype_id': 1, 'language_id': 3, 'submitted_filename': 'sum.c'}) }}"> CORRECT SOLUTION </a>
+			<a href="{{ path('submit_backup', {'problem_id': 1, 'filetype_id': 1, 'language_id': 3, 'submitted_filename': 'wrong_answer.c'}) }}"> WRONG ANSWER </a>
+			<a href="{{ path('submit_backup', {'problem_id': 1, 'filetype_id': 1, 'language_id': 3, 'submitted_filename': 'compiler_error.c'}) }}"> COMPILER ERROR </a>
+			<a href="{{ path('submit_backup', {'problem_id': 1, 'filetype_id': 1, 'language_id': 3, 'submitted_filename': 'runtime_error.c'}) }}"> RUNTIME ERROR </a>
+			<a href="{{ path('submit_backup', {'problem_id': 1, 'filetype_id': 1, 'language_id': 3, 'submitted_filename': 'while_loop.c'}) }}"> INFINITE LOOP </a>
+			<a href="{{ path('submit_backup', {'problem_id': 1, 'filetype_id': 1, 'language_id': 3, 'submitted_filename': 'malicious_delete_all.c'}) }}"> MALICIOUS DELETION </a>
+			<a href="{{ path('submit_backup', {'problem_id': 1, 'filetype_id': 1, 'language_id': 3, 'submitted_filename': 'malicious_add.c'}) }}"> MALICIOUS ADDITION </a>
+			
+			<br/>
+		
 			</div>
 
         </div>
@@ -66,7 +78,7 @@
     body { background: #F5F5F5; font: 18px/1.5 sans-serif;}
     h1, h2 { line-height: 1.2; margin: 0 0 .5em; }
     h1 { font-size: 36px; }
-    h2 { font-size: 21px; margin-bottom: 1em; }
+    h2 { font-size: 21px;}
 	h3 { font-size: 18px; }
 	h4 { font-family: "Courier New", Courier, monospace; }
     p { margin: 0 0 1em 0; }

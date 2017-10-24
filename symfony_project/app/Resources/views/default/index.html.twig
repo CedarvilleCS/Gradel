@@ -5,12 +5,12 @@
 {% endblock head %}
 
 {% block body %}
-{% if app.user %}
 	Hello, {{app.user.getFirstName()}}! <br/>	
 	
 	<hr>
 	<a href="{{ path('user_logout') }}">Logout</a>
 	</hr>
+
 {% else %}
 	
 	<div class="login-page">
@@ -21,6 +21,7 @@
     </a>
 	</div>
 {% endif %}
+
 {% endblock %}
 
 {% block stylesheets %}
