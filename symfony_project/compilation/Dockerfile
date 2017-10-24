@@ -21,6 +21,7 @@ RUN apt-get install -y time
 
 RUN mkdir /home/abc
 COPY compiler_scripts/*.sh /home/abc/
+COPY compiler_scripts/compile_code /home/abc/
 
 RUN mkdir /home/abc/submission
 RUN mkdir /home/abc/code_to_submit

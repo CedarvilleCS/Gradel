@@ -32,13 +32,15 @@ class CompilationController extends Controller {
 	/* name=submit */
 	public function submitAction($submission_id, $filetype_id, $language_id, $submitted_filename) {
 		
+		// die("Submission id " . $submission_id);
+
 		# entity manager
 		$em = $this->getDoctrine()->getManager();		
 				
 		$web_dir = $this->get('kernel')->getProjectDir();
 		
 		# get the submitted file path
-		$submission_file_path = $web_dir."/compilation/test_code/".$submitted_filename;
+		$submission_file_path = $web_dir."/compilation/temp/".$submission_id."/".$submitted_filename;
 		
 		# query for the current submission
 		$qb_sub = $em->createQueryBuilder();
@@ -158,7 +160,7 @@ class CompilationController extends Controller {
 		# SUBMISSION CREATION AND COMPILATION
 		# open the submitted file and prep for compilation
 		# open the submitted file and prep for compilation
-		$submitted_file = fopen($submission_file_path, "r") or die ("Unable to open submitted file: ".$submission_entity_file_path);
+		$submitted_file = fopen($submission_file_path, "r") or die ("Unable to open submitted file: ".$submission_file_path);
 		$submission_entity->submission = $submitted_file;
 		
 		# query for the current filetype
@@ -190,15 +192,24 @@ class CompilationController extends Controller {
 		
 		$submission_entity->language = $language_entity;
 				
-		
+		# TODO: these need to be passed in
+		if($language_entity->name == "Java"){
+			$submission_entity->main_class_name = basename($submission_file_path, ".java");
+			$submission_entity->package_name = null;
+		} else{
+			$submission_entity->main_class_name = null;
+			$submission_entity->package_name = null;
+		}
+			
 		# RUN THE DOCKER COMPILATION
 		$docker_time_limit = intval(count($problem_entity->testcases) * ceil(floatval($problem_entity->time_limit)/1000.0)) + 8 + rand(1,4);
-		$docker_script = $web_dir."/compilation/dockercompiler.sh ".$problem_entity->id." ".$team_entity->id." ".dirname($submission_file_path)." ".basename($submission_file_path)." ".$language_entity->name." ".$is_zipped." ".$docker_time_limit." '".$problem_entity->compilation_options."' ".$submission_entity->id;
+
+		$docker_script = $web_dir."/compilation/dockercompiler.sh ".$problem_entity->id." ".$team_entity->id." ".dirname($submission_file_path)." ".basename($submission_file_path)." ".$language_entity->name." ".$is_zipped." ".$docker_time_limit." \"".$problem_entity->compilation_options."\" ".$submission_entity->id." ".$submission_entity->main_class_name." ".$submission_entity->package_name;
 		
 		#die($docker_script);
-		
+		#echo $docker_script."<br/>";
 		$docker_output = shell_exec($docker_script);	
-		# echo nl2br($docker_output);
+		#die(nl2br($docker_output));
 		
 		# PARSE THROUGH THE LOGS
 		# echo $submission_entity->id."<br/>";
@@ -383,7 +394,7 @@ class CompilationController extends Controller {
 			->setParameter(1, $submission_id);
 		
 		$qb_submission = $qb->getQuery();
-		$submission = $qb_submission->getSingleResult();	
+		$submission = $qb_submission->getOneorNullResult();	
 		
 		$compiler_output = stream_get_contents($submission->compiler_output);
 		$submission_file = stream_get_contents($submission->submission);
@@ -392,8 +403,8 @@ class CompilationController extends Controller {
 			
 			$output["std_output"] = stream_get_contents($tc->std_output);
 			$output["runtime_output"] = stream_get_contents($tc->runtime_output);
-			
-			$tc_output[] = $output;			
+			$output["time_output"] = $tc->execution_time;
+			$tc_output[] = $output;	
 		}
 					
         return $this->render('compilation/submission/index.html.twig', [
@@ -558,19 +569,28 @@ class CompilationController extends Controller {
 				->setParameter(1, $language_id);
 				
 		$qb_language = $qb_language->getQuery();
-		$language_entity = $qb_language->getSingleResult();	
+		$language_entity = $qb_language->getOneorNullResult();	
 		
 		$submission_entity->language = $language_entity;
 				
+		# TODO: these need to be passed in
+		if($language_entity->name == "Java"){
+			$submission_entity->main_class_name = basename($submission_file_path, ".java");
+			$submission_entity->package_name = null;
+		} else{
+			$submission_entity->main_class_name = null;
+			$submission_entity->package_name = null;
+		}
 		
 		# RUN THE DOCKER COMPILATION
 		$docker_time_limit = intval(count($problem_entity->testcases) * ceil(floatval($problem_entity->time_limit)/1000.0)) + 8 + rand(1,4);
-		$docker_script = $web_dir."/compilation/dockercompiler.sh ".$problem_entity->id." ".$team_entity->id." ".dirname($submission_file_path)." ".basename($submission_file_path)." ".$language_entity->name." ".$is_zipped." ".$docker_time_limit." '".$problem_entity->compilation_options."' ".$submission_entity->id;
+
+		$docker_script = $web_dir."/compilation/dockercompiler.sh ".$problem_entity->id." ".$team_entity->id." ".dirname($submission_file_path)." ".basename($submission_file_path)." ".$language_entity->name." ".$is_zipped." ".$docker_time_limit." \"".$problem_entity->compilation_options."\" ".$submission_entity->id." ".$submission_entity->main_class_name." ".$submission_entity->package_name;
 		
 		#die($docker_script);
-		
+		#echo $docker_script."<br/>";
 		$docker_output = shell_exec($docker_script);	
-		# echo nl2br($docker_output);
+		#die(nl2br($docker_output));
 		
 		# PARSE THROUGH THE LOGS
 		# echo $submission_entity->id."<br/>";
@@ -692,6 +712,8 @@ class CompilationController extends Controller {
 				
 				#TestcaseResult($sub, $test, $correct, $runout, $runerror, $time, $toolong, $out)
 				$testcaseresult_entity = new TestcaseResult($submission_entity, $tc, $testcase_is_correct, $runtime_log, $testcase_is_runtimeerror, $testcase_exectime, $testcase_is_timelimit, $output_log);
+				
+				//$submission_entity->testcaseresults[] = $testcaseresult_entity;
 				$em->persist($testcaseresult_entity);
 				$em->flush();
 			}
@@ -715,9 +737,9 @@ class CompilationController extends Controller {
 		$em->flush();			
 		
 		# remove the temp folder
-		shell_exec("rm -rf ".$temp_folder);
-		shell_exec("rm -rf ".$code_to_submit_directory);
-		shell_exec("rm -rf ".$submission_directory);
+		#shell_exec("rm -rf ".$temp_folder);
+		#shell_exec("rm -rf ".$code_to_submit_directory);
+		#shell_exec("rm -rf ".$submission_directory);
 		
         return $this->redirectToRoute('submission_results', array('submission_id' => $submission_entity->id));
 		//return new Response();

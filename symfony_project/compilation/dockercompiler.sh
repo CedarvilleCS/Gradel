@@ -1,15 +1,15 @@
 #!/bin/bash
 
-if [ "$#" -ne 9 ]; then
+# if [ "$#" -ne 11 ]; then
 
-	echo "$#"
-	echo "usage: ./dockercompiler.sh"
-	echo "(1)problem_id (2)team_id"
-	echo "(3)submitted_file_path (4)submitted_file_name (5)submitted_language_name "
-	echo "(6)is_zipped (7)time_limit (8)compiler_flags"
-	echo "(9)submission_id"
-	exit 1
-fi
+	# echo "$#"
+	# echo "usage: ./dockercompiler.sh"
+	# echo "(1)problem_id (2)team_id"
+	# echo "(3)submitted_file_path (4)submitted_file_name (5)submitted_language_name "
+	# echo "(6)is_zipped (7)time_limit (8)compiler_flags"
+	# echo "(9)submission_id (10)main_class (11)package_name"
+	# exit 1
+# fi
 
 # get the variables from the command arguments
 problem_id="$1"
@@ -24,6 +24,15 @@ time_limit="$7"
 compiler_flags="$8"
 
 submission_id="$9"
+
+
+if [ "$#" -ge 10 ]; then
+	main_class="${10}"
+fi
+
+if [ "$#" -ge 11 ]; then
+	package_name="${11}"
+fi
 
 echo "Variable names..."
 
@@ -50,10 +59,6 @@ echo "output directory: $STUDENT_OUTPUT_DIRECTORY"
 echo "runtime log directory: $RUNTIME_LOG_DIRECTORY"
 echo "diff log directory: $DIFF_LOG_DIRECTORY"
 echo "diff log directory: $TIME_LOG_DIRECTORY"
-
-# Folder creation
-echo ""
-echo "Creating the directory structure for temporary file storage..."
 
 # check if the problem has input files
 if [ ! -d "$INPUT_DIRECTORY" ] || [ ! -d "$EXPECTED_OUTPUT_DIRECTORY" ]; then
@@ -92,9 +97,6 @@ else
 	exit 1
 fi	
 
-
-# change permissions on shared directories
-
 # run the sandbox
 echo ""
 echo "Creating the docker sandbox to run student code..."
@@ -109,11 +111,36 @@ passwd_mount_option="-v /etc/passwd:/etc/passwd:ro"
 
 user_option="-u $( id -u $USER ):$( id -g $USER )"
 
-script_command="/home/abc/compile_code.sh $file_type $is_zipped $file_name $linker_flags $compiler_flags"
+echo "FILETYPE IS: $file_type"
+
+if [ $file_type == "Java" ]; then
+	echo "$# is the number"
+	if [ $# -ge 11 ]; then
+		echo "HI"
+		java_script_ext="-M $main_class -P $package_name"
+	elif [ $# -ge 10 ]; then
+		echo "HEY"
+		java_script_ext="-M $main_class"
+	else
+		echo "YO"
+		java_script_ext=""
+	fi
+	
+else
+	java_script_ext=""
+fi
+
+if [ $is_zipped ]; then
+	zip_ext="-z"
+else
+	zip_ext="";
+fi
+
+script_command="/home/abc/compile_code -l ${file_type} -f ${file_name} $zip_ext -c '${compiler_flags}' $java_script_ext"
 
 container_name="gd$submission_id"
 
-echo "docker run --name=gd$submission_id -d $user_option $group_mount_option $passwd_mount_option $submission_mount_option $code_to_submit_mount_option $input_testcases_mount_option $output_testcases_mount_option gradel $script_command"
+echo "docker run --name=$container_name -d $group_mount_option $passwd_mount_option $submission_mount_option $code_to_submit_mount_option $input_testcases_mount_option $output_testcases_mount_option gradel $script_command"
 
 echo $(docker run --name=$container_name -d $group_mount_option $passwd_mount_option $submission_mount_option $code_to_submit_mount_option $input_testcases_mount_option $output_testcases_mount_option gradel $script_command)
 

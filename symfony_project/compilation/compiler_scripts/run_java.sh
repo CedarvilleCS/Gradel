@@ -1,28 +1,7 @@
 #! /bin/bash
+class=$1
 
-# check command line params
-if [ "$#" -ne 1 ] && [ "$#" -ne 0 ]; then
-	echo "usage: ./compile_cpp.sh <(1)compiler_flags>"
-	exit 55
-fi
-
-if [ "$#" -eq 1 ]; then
-	compiler_flags="$1"
-else 
-	compiler_flags=""
-fi
-
-# COMPILATION
-# compile the code and check for compiler error
-g++ submission/code/*.cpp $compiler_flags -o a.out 2> submission/compiler.log
-
-# if there was an error, exit and touch a flag file
-if [ $? -ne 0 ]; then
-	echo "Error with compiling!"
-	touch submission/compileerror
-	exit 1
-fi
-
+echo "$class" > submission/file.file
 
 # TESTCASES
 # run all of the test cases
@@ -45,8 +24,8 @@ for ((i=0;i<${#INPUT_FILES[@]};++i)); do
 	seq_num=$(basename ${INPUT_FILES[i]} .in)
 	
 	diff_log_name=submission/diff_logs/$seq_num.log
-	
-	mytime="$((time ( sh -c 'trap "" 11; ./a.out'  < ${INPUT_FILES[i]} 1> submission/output/$seq_num.out 2> submission/runtime_logs/$seq_num.log ) 2>&1 ) | grep user)"
+	mytime="$((time ( java $class < ${INPUT_FILES[i]} 1> submission/output/$seq_num.out 2> submission/runtime_logs/$seq_num.log ) 2>&1 ) | grep user)"
+	#java $class < ${INPUT_FILES[i]} 1> submission/output/$seq_num.out 2> submission/runtime_logs/$seq_num.log
 	echo $mytime > submission/time_logs/$seq_num.log
 
 	# COMPARE THE RESULTS
@@ -61,6 +40,5 @@ for ((i=0;i<${#INPUT_FILES[@]};++i)); do
 done
 
 echo "$num_correct/$expect_file_count correct"
-
 
 exit 0

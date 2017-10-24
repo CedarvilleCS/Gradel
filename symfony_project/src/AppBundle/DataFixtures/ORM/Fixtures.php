@@ -182,7 +182,8 @@ class Fixtures extends Fixture {
 		# make some teams for one of the classes
 		{
 		$team_01 = new Team("Wolf_01", $assignment_01);
-		$team_02 = new Team("Budd_01", $assignment_01);		
+		$team_02 = new Team("Budd_01", $assignment_01);
+		$team_06 = new Team("Smith_01", $assignment_01);		
 		
 		$team_03 = new Team("Wolf_02", $assignment_02);
 		$team_04 = new Team("Budd_02", $assignment_02);
@@ -193,6 +194,7 @@ class Fixtures extends Fixture {
 		$team_02->users[] = $budd_user;
 		$team_03->users[] = $wolf_user;
 		$team_04->users[] = $budd_user;
+		$team_06->users[] = $smith_user;
 		
 		$team_05->users[] = $wolf_user;
 		$team_05->users[] = $budd_user;
@@ -202,6 +204,7 @@ class Fixtures extends Fixture {
 		$manager->persist($team_03);
 		$manager->persist($team_04);
 		$manager->persist($team_05);
+		$manager->persist($team_06);
 		}
 		
 		# LANGUAGE Testing
