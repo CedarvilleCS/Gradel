@@ -5,6 +5,7 @@
 {% endblock head %}
 
 {% block body %}
+{% if app.user %}
 	Hello, {{app.user.getFirstName()}}! <br/>	
 	
 	<hr>
