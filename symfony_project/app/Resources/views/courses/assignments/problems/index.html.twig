@@ -72,7 +72,7 @@
         </div> #}
 
 
-        <form action="{{problem_id}}/upload" method="post" enctype="multipart/form-data">
+        <form action="{{path('upload', {'project_id': project_id, 'problem_id': problem_id}) }}" method="post" enctype="multipart/form-data">
             Select file to upload:
             <input type="file" name="fileToUpload" id="fileToUpload">
             <input type="submit" value="Upload File" name="submit">

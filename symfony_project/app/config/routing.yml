@@ -15,10 +15,7 @@ index:
     # path: "/courses/assignments/problems/{project_id}/{problem_id}"
     # defaults: {_controller: AppBundle:Problems:problems}
 
-# upload:
-    # path: "/courses/assignments/problems/{project_id}/{problem_id}/upload"
-    # defaults: {_controller: AppBundle:Upload:upload}
-  
+
   
 # CHRIS'S ROUTES
 account:
@@ -32,6 +29,12 @@ section:
 assignment:
   path: '/account/{userId}/section/{sectionId}/assignment/{assignmentId}/problem/{problemId}'
   defaults: {_controller: AppBundle:Problems:problems, problemId: 1}
+  
+# EMMETT'S ROUTE 
+upload:
+  path: "/courses/assignments/problems/{project_id}/{problem_id}/upload"
+  defaults: {_controller: AppBundle:Upload:upload}
+  
   
 # TIMOTHY'S ROUTES
 submit:
