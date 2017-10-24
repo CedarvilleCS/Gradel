@@ -68,6 +68,14 @@
 			
 			<h3> SUBMIT ANOTHER SOLUTION </h3>
 			
+			<a href="{{ path('problems', {'project_id': submission.problem.assignment.id, 'problem_id': submission.problem.id}) }}"> SUBMIT AGAIN </a>
+			
+			
+			
+			
+			
+			<br/><br/><br/><br/><br/>
+			
 			<hr>
 			<h4> C </h4>
 			<a href="{{ path('submit_backup', {'problem_id': 1, 'filetype_id': 1, 'language_id': 3, 'submitted_filename': 'sum.c'}) }}"> CORRECT SOLUTION </a>

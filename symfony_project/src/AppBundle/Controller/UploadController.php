@@ -7,7 +7,6 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use AppBundle\Entity\Submission;
 
-
 use AppBundle\Entity\Role;
 use AppBundle\Entity\User;
 use AppBundle\Entity\Team;
@@ -91,9 +90,9 @@ class UploadController extends Controller {
             echo($team_entity->name."<br/>");        
         }
 
-        // this directory is /var/www/gradel_dev/user/gradel/symfony_project/compilation/temp
+        // web_dir is /var/www/gradel_dev/user/gradel/symfony_project
         $web_dir = $this->get('kernel')->getProjectDir();
-        // save uploaded file to compilation/temp/submission_id/files
+        // save uploaded file to $web_dir.compilation/temp/submission_id/files
         
         // make a new submission if upload was successful
         $submission_entity = new Submission($problem_entity, $team_entity, $user_entity);	
@@ -103,7 +102,7 @@ class UploadController extends Controller {
         $em->flush();
 
         $uploadMessage = "";
-        $target_dir = "/var/www/gradel_dev/budd/Gradel/symfony_project/compilation/temp/".$submission_entity->id."/"; // Specify an upload location
+        $target_dir = $web_dir."/compilation/temp/".$submission_entity->id."/"; // Specify an upload location
         mkdir($target_dir); // Make that directory
         $target_file = $target_dir . basename($_FILES["fileToUpload"]["name"]);
         $uploadOk = 1;
@@ -122,27 +121,31 @@ class UploadController extends Controller {
         // }
         // Check if $uploadOk is set to 0 by an error
         if ($uploadOk == 0) {
-            $em->remove($submission_entity);
-            $em->flush();
-            echo "Sorry, your file was not uploaded.";
-        // if everything is ok, try to upload file
-        } else {
+			# TODO: Make this work
+            #$em->remove($submission_entity);
+            #$em->flush();
+            #echo "Sorry, your file was not uploaded.";
+        
+        }
+		// if everything is ok, try to upload file
+		else {
             if (move_uploaded_file($_FILES["fileToUpload"]["tmp_name"], $target_file)) {
                 echo "The file ". basename( $_FILES["fileToUpload"]["name"]). " has been uploaded.";
                 
-                // die("test");
+               # die($target_file);
                 # call timothy's controller
                 // $url = $this->generateUrl('submit', array('submitted_filename' => basename($target_file), 'submission_id' => $submission_entity->id, 'filetype_id' => 1, 'language_id' => 1));
                 // die($url);
 
-                return $this->redirectToRoute('submit', array('submitted_filename' => basename($target_file), 'submission_id' => $submission_entity->id, 'filetype_id' => 1, 'language_id' => 1));
+                return $this->redirectToRoute('submit', array('submitted_filename' => basename($target_file), 'submission_id' => $submission_entity->id, 'filetype_id' => 3, 'language_id' => 4));
             } else {
                 $em->remove($submission_entity);
                 $em->flush();
                 echo "Sorry, there was an error uploading your file.";
             }
         }
-        // If they didn't send a file, render upload page
+		
+        // if they didn't send a file, render upload page
         return $this->render('courses/assignments/problems/upload/index.html.twig', [
             'project_id' => $project_id,
             'problem_id' => $problem_id,

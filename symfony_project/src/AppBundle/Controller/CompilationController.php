@@ -42,8 +42,6 @@ class CompilationController extends Controller {
 		# get the submitted file path
 		$submission_file_path = $web_dir."/compilation/temp/".$submission_id."/".$submitted_filename;
 		
-		
-
 		# query for the current submission
 		$qb_sub = $em->createQueryBuilder();
 		$qb_sub->select('s')
@@ -162,7 +160,7 @@ class CompilationController extends Controller {
 		# SUBMISSION CREATION AND COMPILATION
 		# open the submitted file and prep for compilation
 		# open the submitted file and prep for compilation
-		$submitted_file = fopen($submission_file_path, "r") or die ("Unable to open submitted file: ".$submission_entity_file_path);
+		$submitted_file = fopen($submission_file_path, "r") or die ("Unable to open submitted file: ".$submission_file_path);
 		$submission_entity->submission = $submitted_file;
 		
 		# query for the current filetype
