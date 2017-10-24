@@ -1,7 +1,8 @@
 #! /bin/bash
-main_class=$1
+class=$1
 
-touch submission/fleh.log
+echo "$class" > submission/file.file
+
 # TESTCASES
 # run all of the test cases
 INPUT_FILES=(input/*.in)
@@ -23,8 +24,8 @@ for ((i=0;i<${#INPUT_FILES[@]};++i)); do
 	seq_num=$(basename ${INPUT_FILES[i]} .in)
 	
 	diff_log_name=submission/diff_logs/$seq_num.log
-	mytime="$((time ( java $main_class < ${INPUT_FILES[i]} 1> submission/output/$seq_num.out 2> submission/runtime_logs/$seq_num.log ) 2>&1 ) | grep user)"
-	#java $main_class < ${INPUT_FILES[i]} 1> submission/output/$seq_num.out 2> submission/runtime_logs/$seq_num.log
+	mytime="$((time ( java $class < ${INPUT_FILES[i]} 1> submission/output/$seq_num.out 2> submission/runtime_logs/$seq_num.log ) 2>&1 ) | grep user)"
+	#java $class < ${INPUT_FILES[i]} 1> submission/output/$seq_num.out 2> submission/runtime_logs/$seq_num.log
 	echo $mytime > submission/time_logs/$seq_num.log
 
 	# COMPARE THE RESULTS

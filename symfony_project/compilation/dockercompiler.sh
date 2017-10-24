@@ -1,15 +1,15 @@
 #!/bin/bash
 
-if [ "$#" -ne 11 ]; then
+# if [ "$#" -ne 11 ]; then
 
-	echo "$#"
-	echo "usage: ./dockercompiler.sh"
-	echo "(1)problem_id (2)team_id"
-	echo "(3)submitted_file_path (4)submitted_file_name (5)submitted_language_name "
-	echo "(6)is_zipped (7)time_limit (8)compiler_flags"
-	echo "(9)submission_id (10)main_class (11)package_name"
-	exit 1
-fi
+	# echo "$#"
+	# echo "usage: ./dockercompiler.sh"
+	# echo "(1)problem_id (2)team_id"
+	# echo "(3)submitted_file_path (4)submitted_file_name (5)submitted_language_name "
+	# echo "(6)is_zipped (7)time_limit (8)compiler_flags"
+	# echo "(9)submission_id (10)main_class (11)package_name"
+	# exit 1
+# fi
 
 # get the variables from the command arguments
 problem_id="$1"
@@ -25,8 +25,14 @@ compiler_flags="$8"
 
 submission_id="$9"
 
-main_class="${10}"
-package_name="${11}"
+
+if [ "$#" -ge 10 ]; then
+	main_class="${10}"
+fi
+
+if [ "$#" -ge 11 ]; then
+	package_name="${11}"
+fi
 
 echo "Variable names..."
 
@@ -108,12 +114,29 @@ user_option="-u $( id -u $USER ):$( id -g $USER )"
 echo "FILETYPE IS: $file_type"
 
 if [ $file_type == "Java" ]; then
-	java_script_ext="-M $main_class -P '$package_name'"
+	echo "$# is the number"
+	if [ $# -ge 11 ]; then
+		echo "HI"
+		java_script_ext="-M $main_class -P $package_name"
+	elif [ $# -ge 10 ]; then
+		echo "HEY"
+		java_script_ext="-M $main_class"
+	else
+		echo "YO"
+		java_script_ext=""
+	fi
+	
 else
 	java_script_ext=""
 fi
 
-script_command="/home/abc/compile_code -l ${file_type} -f ${file_name} -c '${compiler_flags}' $java_script_ext"
+if [ $is_zipped ]; then
+	zip_ext="-z"
+else
+	zip_ext="";
+fi
+
+script_command="/home/abc/compile_code -l ${file_type} -f ${file_name} $zip_ext -c '${compiler_flags}' $java_script_ext"
 
 container_name="gd$submission_id"
 

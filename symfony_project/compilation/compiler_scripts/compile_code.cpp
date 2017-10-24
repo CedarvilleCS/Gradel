@@ -70,7 +70,7 @@ int main(int argc, char** argv){
 		
 	}
 	// make sure the main class and package name options were set if the language was Java
-	else if(language  == "Java" && (java_main_class.length() == 0 || java_package_name.length() == 0)){
+	else if(language  == "Java" && (java_main_class.length() == 0)){
 		cout << "main class and package name both required with Java\n";
 		return 1;
 	}
@@ -79,6 +79,10 @@ int main(int argc, char** argv){
 	if(filename.length() == 0){
 		cout << "filename (-f) is required\n";
 		return 1;
+	}
+	
+	if(java_package_name.length() == 0){
+		java_package_name = "";
 	}
 	
 	// set the compiler_flags to "" if it wasn't set

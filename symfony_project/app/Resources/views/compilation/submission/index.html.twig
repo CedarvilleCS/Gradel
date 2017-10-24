@@ -68,17 +68,26 @@
 			
 			<h3> SUBMIT ANOTHER SOLUTION </h3>
 			
+			<hr>
+			<h4> C </h4>
 			<a href="{{ path('submit_backup', {'problem_id': 1, 'filetype_id': 1, 'language_id': 3, 'submitted_filename': 'sum.c'}) }}"> CORRECT SOLUTION </a>
 			<a href="{{ path('submit_backup', {'problem_id': 1, 'filetype_id': 1, 'language_id': 3, 'submitted_filename': 'wrong_answer.c'}) }}"> WRONG ANSWER </a>
 			<a href="{{ path('submit_backup', {'problem_id': 1, 'filetype_id': 1, 'language_id': 3, 'submitted_filename': 'compiler_error.c'}) }}"> COMPILER ERROR </a>
 			<a href="{{ path('submit_backup', {'problem_id': 1, 'filetype_id': 1, 'language_id': 3, 'submitted_filename': 'runtime_error.c'}) }}"> RUNTIME ERROR </a>
 			<a href="{{ path('submit_backup', {'problem_id': 1, 'filetype_id': 1, 'language_id': 3, 'submitted_filename': 'while_loop.c'}) }}"> INFINITE LOOP </a>
 			<a href="{{ path('submit_backup', {'problem_id': 1, 'filetype_id': 1, 'language_id': 3, 'submitted_filename': 'malicious_delete_all.c'}) }}"> MALICIOUS DELETION </a>
-			<a href="{{ path('submit_backup', {'problem_id': 1, 'filetype_id': 1, 'language_id': 3, 'submitted_filename': 'malicious_add.c'}) }}"> MALICIOUS ADDITION </a>
+			<a href="{{ path('submit_backup', {'problem_id': 1, 'filetype_id': 1, 'language_id': 3, 'submitted_filename': 'malicious_add.c'}) }}"> MALICIOUS ADDITION (not fully handled yet) </a>
 			
-			<a href="{{ path('submit_backup', {'problem_id': 1, 'filetype_id': 2, 'language_id': 2, 'submitted_filename': 'sum.cpp'}) }}"> C++ CORRECT </a>
+			<hr>
+			<h4> C++ </h4>
+			<a href="{{ path('submit_backup', {'problem_id': 1, 'filetype_id': 2, 'language_id': 2, 'submitted_filename': 'sum.cpp'}) }}"> CORRECT SOLUTION </a>
+			<a href="{{ path('submit_backup', {'problem_id': 1, 'filetype_id': 4, 'language_id': 2, 'submitted_filename': 'cpp.zip'}) }}"> ZIPPED CORRECT </a>
 			
-			<a href="{{ path('submit_backup', {'problem_id': 1, 'filetype_id': 3, 'language_id': 4, 'submitted_filename': 'Sum.java'}) }}"> JAVA CORRECT </a>
+			<hr>
+			<h4> Java </h4>
+			<a href="{{ path('submit_backup', {'problem_id': 1, 'filetype_id': 3, 'language_id': 4, 'submitted_filename': 'Sum.java'}) }}"> CORRECT SOLUTION </a>
+			<a href="{{ path('submit_backup', {'problem_id': 1, 'filetype_id': 4, 'language_id': 4, 'submitted_filename': 'java.zip'}) }}"> ZIPPED CORRECT </a>
+			
 			
 			<br/>
 		
@@ -95,8 +104,8 @@
     h1 { font-size: 36px; }
     h2 { font-size: 21px;}
 	h3 { font-size: 18px; }
-	h4 { font-family: "Courier New", Courier, monospace; }
-    p { margin: 0 0 1em 0; }
+	h4 { font-family: "Courier New", Courier, monospace; margin: 0 0 0 0  }
+    p { margin: 0 0 0 0; }
     a { color: #0000F0; }
     a:hover { text-decoration: none; }
     code { background: #F5F5F5; max-width: 100px; padding: 2px 6px; word-wrap: break-word; }
