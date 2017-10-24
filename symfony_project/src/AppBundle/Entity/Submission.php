@@ -33,6 +33,7 @@ class Submission {
 		#this->submission
 		#this->filetype
 		$this->main_class_name = "";
+		$this->package_name = "";
 		#this->compiler_output
 		$this->compiler_error = false;
 		$this->exceeded_time_limit = false;
@@ -46,7 +47,7 @@ class Submission {
 	}
 		
 	
-	public function __construct18($prob, $tm, $user, $time, $acc, $subm, $ft, $mainclass, $compout, $didcomp, $didtime, $didrun, $maxtime, $lang, $perc, $tst, $ques, $complete){
+	public function __construct19($prob, $tm, $user, $time, $acc, $subm, $ft, $mainclass, $package, $compout, $didcomp, $didtime, $didrun, $maxtime, $lang, $perc, $tst, $ques, $complete){
 		$this->problem = $prob;
 		$this->user = $user;
 		$this->team = $tm;
@@ -55,6 +56,7 @@ class Submission {
 		$this->submission = $subm;
 		$this->filetype = $ft;
 		$this->main_class_name = $mainclass;
+		$this->package_name = $package;
 		$this->compiler_output = $compout;
 		$this->compiler_error = $didcomp;
 		$this->exceeded_time_limit = $didtime;
@@ -131,6 +133,11 @@ class Submission {
 	* @ORM\Column(type="string", length=255)
 	*/
 	public $main_class_name;
+	
+	/**
+	* @ORM\Column(type="string", length=255)
+	*/
+	public $package_name;
 	
 	/**
 	* @ORM\Column(type="blob", nullable=true)

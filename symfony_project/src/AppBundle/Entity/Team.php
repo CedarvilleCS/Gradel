@@ -56,7 +56,7 @@ class Team{
 	public $assignment;
 
 	/**
-	* @ORM\ManyToMany(targetEntity="User", cascade={"persist", "remove"})
+	* @ORM\ManyToMany(targetEntity="User", inversedBy="teams", cascade={"persist", "remove"})
 	* @ORM\JoinTable(name="userteam",
 	*	joinColumns={@ORM\JoinColumn(name="team_id", referencedColumnName="id", onDelete="CASCADE")},
 	*	inverseJoinColumns={@ORM\JoinColumn(name="user_id", referencedColumnName="id", onDelete="CASCADE")}

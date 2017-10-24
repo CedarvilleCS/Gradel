@@ -7,13 +7,17 @@
 
 <body>        
     
+    <div class="topnav" id="myTopnav">
+        <a href="../../../web/courses">Home</a>
+        <a href="../../../web/">Account</a>
+    </div>
 
-    <section id="courseList">
-        <h1>My {{course_number}} Assignments</h1>
+    <section id="assignment-container">
+        <h1>{{app.user.getFirstName()}}&#39;s {{course_number}} Assignments</h1>
         <ul>
-            <li><a href="submit/1">Project 1</a></li>
-            <li><a href="submit/2">Project 2</a></li>
-            <li><a href="submit/3">Project 3</a></li>
+            <li><a href="problems/1/1">Project 1</a></li>
+            <li><a href="problems/2/1">Project 2</a></li>
+            <li><a href="problems/3/1">Project 3</a></li>
         </ul>
     </section>
     
@@ -21,102 +25,10 @@
 
 {% endblock %}
 
-
 {% block stylesheets %}
-
-<style>
-    html, body {
-        padding: 0px;
-        margin: 0px;
-    }
-    
-    nav.problems {
-        float: left;
-        position: fixed;
-        overflow-x: scroll;
-        border-right: 1px solid grey;
-        background-color: #8DC26F;
-        color: white;
-        height: 100vh;
-        width: 200px;
-    
-        -webkit-box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
-        -moz-box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
-        box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
-    }
-    
-    nav > ul {
-        list-style: none;
-        font-family: sans-serif;
-        line-height: 25pt;
-        font-size: 14pt;
-        text-align: left;
-        padding: 10px;
-        margin-top: 30px;
-        margin-bottom: 30px;
-    }
-    
-    nav > ul > li {
-        border-bottom: 1px dotted grey;
-        padding: 3px;
-    }
-    
-    nav > ul > li:hover {
-        background-color: #76b852;
-    }
-    
-    #problemSpec {
-        margin-left: 200px;
-        width: calc(100% - 200px);
-        padding: 10px;
-    }
-    
-    textarea {
-        width: calc(100% - 20px);
-        height: 300px;
-        border-radius: 10px;
-        border: 1px solid #8DC26F;
-        padding: 10px;
-        font-family: monospace;
-        font-size: 10pt;
-    
-        -webkit-box-shadow: inset 3px 3px 10px -4px rgba(0,0,0,0.64);
-        -moz-box-shadow: inset 3px 3px 10px -4px rgba(0,0,0,0.64);
-        box-shadow: inset 3px 3px 10px -4px rgba(0,0,0,0.64);
-    }
-    
-    .btn {
-        margin-top: 10px;
-        width: 100px;
-        height: 30px;
-        background-color: #8DC26F;
-        color: white;
-        /* border-radius: 5px; */
-        border: none;
-    }
-    
-    .btn:hover {
-        background-color: #76b852;
-    }
-    
-    #file-upload {
-        margin-top: 10px;
-        position: absolute;
-        opacity: 0;
-        /* top: 0;
-        right: 0; */
-        width: 100px;
-        height: 30px;
-    }
-    
-    #file-upload-wrapper {
-        display: inline-block;
-    }
-    
-</style>
-
+<link rel="stylesheet" href="{{ asset('styles.css') }}" />
+<link rel="stylesheet" href="{{ asset('assignments.css') }}" />
 {% endblock %}
-
 
 {% block scripts %}
 

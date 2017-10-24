@@ -1,24 +1,9 @@
+# EMILY'S ROUTE
 homepage:
     path:   '/'
     defaults:  { _controller: AppBundle:Account:index }
-
-
-hwi_oauth_login:
-    resource: "@HWIOAuthBundle/Resources/config/routing/login.xml"
-    prefix:   /login
-
-index: 
-    path: "/"
-    defaults: {_controller: AppBundle:Default:index}
-
-courses:
-    path: "/courses"
-    defaults: {_controller: AppBundle:Courses:courses}
-  
-user_login:
-  path: '/user/login'
-  defaults: {_controller: AppBundle:Default:index}
-
+    
+# CHRIS'S''S'S'S'S'S'S'SS'S' ROUTES
 account:
   path: '/account'
   defaults: {_controller: AppBundle:Account:index}
@@ -29,8 +14,15 @@ section:
 
 assignment:
   path: '/account/{userId}/section/{sectionId}/assignment/{assignmentId}/problem/{problemId}'
-  defaults: {_controller: AppBundle:Assignment:assignment, problemId: 1}
+  defaults: {_controller: AppBundle:Problems:problems, problemId: 1}
   
+# EMMETT'S ROUTE 
+upload:
+  path: "/courses/assignments/problems/{project_id}/{problem_id}/upload"
+  defaults: {_controller: AppBundle:Upload:upload}
+  
+  
+# TIMOTHY'S ROUTES
 submit:
     path: '/compilation/submit/{submission_id}/{filetype_id}/{language_id}/{submitted_filename}'
     defaults: 
@@ -49,26 +41,13 @@ submit_backup:
         filetype_id: '\d+'
         language_id: '\d+'
 
-problem:
-    path: '/account/{userId}/section/{sectionId}/assignment/{assignmentId}/problem/{problem_id}'
-    defaults: {_controller: AppBundle:Compilation:problem, problem_id: 1}
-    requirements:
-        problem_id: '\d+'
-
-
-
-error:
-    path: '/compilation/error/{problem_id}'
-    defaults: {_controller: AppBundle:Compilation:error, problem_id: 1}
-    requirements:
-        problem_id: '\d+'
-
 submission_results:
     path: '/compilation/submission_results/{submission_id}'
     defaults: {_controller: AppBundle:Compilation:submission}
     requirements:
         submission_id: '\d+'
-        
+
+# OAUTH'S ROUTES
 hwi_oauth_redirect:
     resource: "@HWIOAuthBundle/Resources/config/routing/redirect.xml"
     prefix:   /connect
@@ -82,8 +61,8 @@ hwi_oauth_login:
     prefix:   /login
     
 user_logout:
-    path: /user/logout
-    
+    path: '/user/logout'
+
 user_login:
   path: '/user/login'
-  defaults: {_controller: AppBundle:Default:index}
+  defaults: {_controller: AppBundle:Default:index}    
