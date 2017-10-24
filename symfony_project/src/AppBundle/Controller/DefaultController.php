@@ -23,7 +23,7 @@ class DefaultController extends Controller
 	  
 	  if(get_class($usr)){
 		$name = $usr->getFirstName();
-		return $this->redirectToRoute('account', array('name' => $name,));
+		return $this->redirectToRoute('account');
 	  }
 
       return $this->render('default/index.html.twig', [
