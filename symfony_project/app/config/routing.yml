@@ -1,26 +1,12 @@
-index: 
-    path: "/"
-    defaults: {_controller: AppBundle:Default:index}
-
-# EMMETT'S ROUTES 
-# courses:
-    # path: "/courses"
-    # defaults: {_controller: AppBundle:Courses:courses}
-
-# assignments:
-    # path: "/courses/assignments/{course_number}"
-    # defaults: {_controller: AppBundle:Assignments:assignments}
-
-# problems: 
-    # path: "/courses/assignments/problems/{project_id}/{problem_id}"
-    # defaults: {_controller: AppBundle:Problems:problems}
-
-
-  
-# CHRIS'S ROUTES
+# EMILY'S ROUTE
+homepage:
+    path:   '/'
+    defaults:  { _controller: AppBundle:Account:index }
+    
+# CHRIS'S''S'S'S'S'S'S'SS'S' ROUTES
 account:
-  path: '/account/{userId}'
-  defaults: {_controller: AppBundle:Default:account}
+  path: '/account'
+  defaults: {_controller: AppBundle:Account:index}
 
 section:
   path: '/account/{userId}/section/{sectionId}'
@@ -60,7 +46,6 @@ submission_results:
     defaults: {_controller: AppBundle:Compilation:submission}
     requirements:
         submission_id: '\d+'
-        
 
 # OAUTH'S ROUTES
 hwi_oauth_redirect:

@@ -72,7 +72,7 @@ class User extends BaseUser{
 	* @ORM\GeneratedValue(strategy="AUTO")
 	*/
 	public $id;
-		
+
 	/** @ORM\Column(name="last_name", type="string", length=255, nullable=true) */
 	protected $last_name;
 	
@@ -95,6 +95,10 @@ class User extends BaseUser{
 		return $this->google_id;
 	}
 
+	public function getID() {
+		return $this->id;
+	}
+	
 	public function setFirstName($first_name) {
 		$this->first_name = $first_name;
 
