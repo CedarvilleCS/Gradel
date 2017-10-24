@@ -3,21 +3,21 @@ index:
     defaults: {_controller: AppBundle:Default:index}
 
 # EMMETT'S ROUTES 
-courses:
-    path: "/courses"
-    defaults: {_controller: AppBundle:Courses:courses}
+# courses:
+    # path: "/courses"
+    # defaults: {_controller: AppBundle:Courses:courses}
 
-assignments:
-    path: "/courses/assignments/{course_number}"
-    defaults: {_controller: AppBundle:Assignments:assignments}
+# assignments:
+    # path: "/courses/assignments/{course_number}"
+    # defaults: {_controller: AppBundle:Assignments:assignments}
 
-problems: 
-    path: "/courses/assignments/problems/{project_id}/{problem_id}"
-    defaults: {_controller: AppBundle:Problems:problems}
+# problems: 
+    # path: "/courses/assignments/problems/{project_id}/{problem_id}"
+    # defaults: {_controller: AppBundle:Problems:problems}
 
-upload:
-    path: "/courses/assignments/problems/{project_id}/{problem_id}/upload"
-    defaults: {_controller: AppBundle:Upload:upload}
+# upload:
+    # path: "/courses/assignments/problems/{project_id}/{problem_id}/upload"
+    # defaults: {_controller: AppBundle:Upload:upload}
   
   
 # CHRIS'S ROUTES
@@ -31,13 +31,7 @@ section:
 
 assignment:
   path: '/account/{userId}/section/{sectionId}/assignment/{assignmentId}/problem/{problemId}'
-  defaults: {_controller: AppBundle:Assignment:assignment, problemId: 1}
-  
-problem:
-    path: '/account/{userId}/section/{sectionId}/assignment/{assignmentId}/problem/{problem_id}'
-    defaults: {_controller: AppBundle:Compilation:problem, problem_id: 1}
-    requirements:
-        problem_id: '\d+'  
+  defaults: {_controller: AppBundle:Problems:problems, problemId: 1}
   
 # TIMOTHY'S ROUTES
 submit:

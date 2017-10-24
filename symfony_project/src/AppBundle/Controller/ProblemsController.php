@@ -32,10 +32,10 @@ use Symfony\Component\HttpFoundation\Response;
 
 class ProblemsController extends Controller {
  
-    public function problemsAction($project_id=1, $problem_id=1) {
+    public function problemsAction($assignmentId=1, $problemId=1) {
         return $this->render('courses/assignments/problems/index.html.twig', [
-                'project_id' => $project_id,
-                'problem_id' => $problem_id,
+                'project_id' => $assignmentId,
+                'problem_id' => $problemId,
         ]);
     }
 }
