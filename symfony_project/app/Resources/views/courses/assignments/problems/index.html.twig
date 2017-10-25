@@ -1,30 +1,28 @@
 {% block head %}
-<title>Gradel | Project {{project_id}}</title>
+<title>Gradel | {{problem.assignment.name}}</title>
 {% endblock %}
 
 {% block body %}
 
 <body>
-
     <div class="topnav" id="myTopnav">
-        <a href="../../../../courses">Home</a>
-        <a href="../../../..">Account</a>
+        <a href="{{path('homepage')}}">Home</a>
     </div>
 
     <nav class="problems">
         <ul>
-          {% for problem in assignment.problems %}
+          {% for prob in problem.assignment.problems %}
             <li>
-              <a href="{{path("assignment", {'userId': 1, 'sectionId': 1, 'assignmentId': 1, 'problemId': problem.id})}}">{{ problem.name }}</a>
+				<a href="{{path("assignment", {'userId': app.user.id, 'sectionId': prob.assignment.section.id, 'assignmentId': prob.assignment.id, 'problemId': prob.id})}}">{{ prob.name }}</a>
             </li>
           {% endfor %}
         </ul>
     </nav>
 
-    <section id="problemSpec"> <!-- FIXME: This ID name doesn't make sense -->
-        <!-- TODO: Change the contents of this using routing when you click on the link on the left -->
-        <h1>{{currentProblem.name}}</h1>
-        <p>{{currentProblemDescription}}</p>
+    <section id="problemSpec">
+       
+		<h1>{{problem.name}}</h1>
+        <p>{{problemDescription}}</p>
         <div id="editor">function foo(items) {
             var x = "All this is syntax highlighted";
             return x;
@@ -37,22 +35,7 @@
             editor.getSession().setMode("ace/mode/javascript");
         </script>
 
-        <!-- <form> -->
-            {# <textarea id="codeInput">Enter your code here.</textarea>    <!-- TODO: Add a syntax highlighting plugin--> #}
-
-            <!-- <pre><code><textarea></textarea></code></pre> -->
-
-            {# <button class="btn">Submit</button> #}
-        <!-- </form> -->
-
-
-        {# <div id="file-upload-wrapper">
-            <input type="file" name="files[]" multiple id="file-upload"> <!-- FIXME: To get hover effects these need to be in the other order, but that is making you not able to clock on the file input thing. -->
-            <button class="btn">Upload Files</button>
-        </div> #}
-
-
-        <form action="{{path('upload', {'assignment_id': project_id, 'problem_id': problem_id}) }}" method="post" enctype="multipart/form-data">
+        <form action="{{path('upload', {'assignment_id': problem.assignment.id, 'problem_id': problem.id}) }}" method="post" enctype="multipart/form-data">
             Select file to upload:
             <input type="file" name="fileToUpload" id="fileToUpload">
             <input type="submit" value="Upload File" name="submit">

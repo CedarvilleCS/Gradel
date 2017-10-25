@@ -34,35 +34,14 @@ class ProblemsController extends Controller {
 
     public function problemsAction($assignmentId=1, $problemId=1) {
 
-      // $userId, $sectionId, $assignmentId, $problemId
-
       $em = $this->getDoctrine()->getManager();
-
-      $builder = $em->createQueryBuilder();
-      $builder->select('assignment')
-              ->from('AppBundle\Entity\Assignment assignment')
-              ->where('assignment.id = :id')
-              ->setParameter("id", $assignmentId);
-      $query = $builder->getQuery();
-      $assignment = $query->getSingleResult();
-
-      $currentProblem = [];
-
-        foreach ($assignment->problems as $problem) {
-        	if ($problem->id == $problemId) {
-      			$currentProblem[] = $problem;
-          }
-    		}
-
-      echo $currentProblem->name;
-      $currentProblemDescription = stream_get_contents($currentProblem[0]->description);
+      $problem_entity = $em->find("AppBundle\Entity\Problem", $problemId);
+      //echo $problem_entity->name;
+      $currentProblemDescription = stream_get_contents($problem_entity->description);
 
       return $this->render('courses/assignments/problems/index.html.twig', [
-              'project_id' => $assignmentId,
-              'problem_id' => $problemId,
-              'assignment' => $assignment,
-              'currentProblem' => $currentProblem[0],
-              'currentProblemDescription' => $currentProblemDescription,
+              'problem' => $problem_entity,
+              'problemDescription' => $currentProblemDescription,
       ]);
     }
 }
