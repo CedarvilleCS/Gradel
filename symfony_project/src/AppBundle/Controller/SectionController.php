@@ -113,7 +113,7 @@ class SectionController extends Controller
 			]);
 		}
 
-    public function insertSectionAction(Request $request, $userId, $courseId) {
+    public function insertSectionAction(Request $request, $userId, $courseId, $name, $semester, $year, $start_time, $end_time, $is_public, $is_deleted) {
 
       $em = $this->getDoctrine()->getManager();
 
@@ -127,15 +127,15 @@ class SectionController extends Controller
 
 
       $section = new Section();
-      $section->name = 'blah';
+      $section->name = $name;
       $section->course = $course;
       $section->owner = $user;
-      $section->semester = 'Fall';
-      $section->year = 2017;
+      $section->semester = $semester;
+      $section->year = $year;
       $section->start_time =  new DateTime("now");
       $section->end_time = new DateTime("now");
-      $section->is_deleted = false;
-      $section->is_public = false;
+      $section->is_deleted = $is_deleted;
+      $section->is_public = $is_public;
 
       // TODO: user section role insert
 

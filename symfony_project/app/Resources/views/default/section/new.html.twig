@@ -68,6 +68,8 @@
 		  console.log("Ajaxing in to the insert section function");
 		  const test = document.getElementById("section");
 			const name = document.getElementById("name").value;
+			console.log("NAME");
+			console.log(name);
 			const semester = document.getElementById("semester").value;
 			const year = document.getElementById("year").value;
 			// const start_time = document.getElementById("start_time").value;
@@ -77,8 +79,19 @@
 		  const id = test[test.selectedIndex].value;
 		  console.log("KAHHHHHNNNNN");
 // path: '/account/{userId}/section/insert/{courseId}/{name}/{semester}/{year}/{start_time}/{end_time}/{is_deleted}/{is_public}
-			var path = "{{path('section_insert', {"courseId": 'course_id', "userId": userId, 'semester': 'semester', 'year': 'year', 'start_time': 'start_time', 'end_time': 'end_time', 'is_deleted': 'is_deleted', 'is_public': 'is_public' })|escape('js')}}";
+
+			var path = "{{path('section_insert', { 'courseId': 'course_id',	'userId': 'user_id', 'name': 'name', 'semester': 'semester', 'year': 'year', 'start_time': 'start_time', 'end_time': 'end_time', 'is_deleted': 'is_deleted', 'is_public': 'is_public'})}}";
 			path = path.replace("course_id", id);
+			path = path.replace("name", name);
+			path = path.replace("semester", semester);
+			path = path.replace("year", year);
+			path = path.replace("name", name);
+			path = path.replace("name", name);
+			path = path.replace("start_time", new Date());
+			path = path.replace("end_time", new Date());
+			path = path.replace("is_deleted", false);
+			path = path.replace("is_public", false);
+			path = path.replace("user_id", {{userId}})
 			console.log(path);
 		  $.post(path,
 		    function(response) {
