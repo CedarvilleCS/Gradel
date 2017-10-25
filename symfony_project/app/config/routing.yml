@@ -18,29 +18,29 @@ assignment:
   
 # EMMETT'S ROUTE 
 upload:
-  path: "/courses/assignments/problems/{project_id}/{problem_id}/upload"
+  path: "/courses/assignments/problems/{assignment_id}/{problem_id}/upload"
   defaults: {_controller: AppBundle:Upload:upload}
   
   
 # TIMOTHY'S ROUTES
 submit:
-    path: '/compilation/submit/{submission_id}/{filetype_id}/{language_id}/{submitted_filename}'
+    path: '/compilation/submit/{problem_id}/{language_id}/{submitted_filename}/{main_class}/{package_name}'
     defaults: 
         _controller:    AppBundle:Compilation:submit
+        main_class:     ''
+        package_name:   ''
     requirements:
-        submission_id:  '\d+'
-        filetype_id:    '\d+'
+        problem_id:     '\d+'
         language_id:    '\d+'
         
 submit_backup:
-    path: '/compilation/submit_backup/{problem_id}/{filetype_id}/{language_id}/{submitted_filename}/{main_class}/{package_name}'
+    path: '/compilation/submit_backup/{problem_id}/{language_id}/{submitted_filename}/{main_class}/{package_name}'
     defaults: 
         _controller:    AppBundle:Compilation:submit_backup
         main_class:     ''
         package_name:   ''
     requirements:
         problem_id:  '\d+'
-        filetype_id: '\d+'
         language_id: '\d+'
 
 submission_results:
