@@ -416,8 +416,8 @@ class CompilationController extends Controller {
 	}
 	
 	
-	public function submit_backupAction($problem_id, $filetype_id, $language_id, $submitted_filename) {
-			
+	public function submit_backupAction($problem_id, $filetype_id, $language_id, $submitted_filename, $main_class="", $package_name="") {
+
 		# entity manager
 		$em = $this->getDoctrine()->getManager();		
 				
@@ -573,14 +573,8 @@ class CompilationController extends Controller {
 		
 		$submission_entity->language = $language_entity;
 				
-		# TODO: these need to be passed in
-		if($language_entity->name == "Java"){
-			$submission_entity->main_class_name = basename($submission_file_path, ".java");
-			$submission_entity->package_name = null;
-		} else{
-			$submission_entity->main_class_name = null;
-			$submission_entity->package_name = null;
-		}
+		$submission_entity->main_class_name = $main_class;
+		$submission_entity->package_name = $package_name;
 		
 		# RUN THE DOCKER COMPILATION
 		$docker_time_limit = intval(count($problem_entity->testcases) * ceil(floatval($problem_entity->time_limit)/1000.0)) + 8 + rand(1,4);

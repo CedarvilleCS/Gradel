@@ -33,9 +33,11 @@ submit:
         language_id:    '\d+'
         
 submit_backup:
-    path: '/compilation/submit_backup/{problem_id}/{filetype_id}/{language_id}/{submitted_filename}'
+    path: '/compilation/submit_backup/{problem_id}/{filetype_id}/{language_id}/{submitted_filename}/{main_class}/{package_name}'
     defaults: 
         _controller:    AppBundle:Compilation:submit_backup
+        main_class:     ''
+        package_name:   ''
     requirements:
         problem_id:  '\d+'
         filetype_id: '\d+'
