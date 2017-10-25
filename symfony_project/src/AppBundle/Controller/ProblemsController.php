@@ -31,12 +31,36 @@ use Symfony\Component\HttpFoundation\Response;
 
 
 class ProblemsController extends Controller {
- 
+
     public function problemsAction($assignmentId=1, $problemId=1) {
-        return $this->render('courses/assignments/problems/index.html.twig', [
-                'project_id' => $assignmentId,
-                'problem_id' => $problemId,
-        ]);
+
+      // $userId, $sectionId, $assignmentId, $problemId
+
+      $em = $this->getDoctrine()->getManager();
+
+      $builder = $em->createQueryBuilder();
+      $builder->select('assignment')
+              ->from('AppBundle\Entity\Assignment assignment')
+              ->where('assignment.id = :id')
+              ->setParameter("id", $assignmentId);
+      $query = $builder->getQuery();
+      $assignment = $query->getSingleResult();
+
+      $currentProblem = array_filter($assignment->problems, function($k, $v) {
+        echo "stuff <br/>";
+        echo $k . "<br/>";
+        return $k->id == $problemId;
+      }, ARRAY_FILTER_USE_BOTH);
+
+      echo $currentProblem->name;
+
+      return $this->render('courses/assignments/problems/index.html.twig', [
+              'project_id' => $assignmentId,
+              'problem_id' => $problemId,
+              'assignment' => $assignment,
+              'currentProblem' => $currentProblem,
+              'currentProblemDescription' => $currentProblemDescription,
+      ]);
     }
 }
 
