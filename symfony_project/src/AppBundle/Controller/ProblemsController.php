@@ -46,19 +46,22 @@ class ProblemsController extends Controller {
       $query = $builder->getQuery();
       $assignment = $query->getSingleResult();
 
-      $currentProblem = array_filter($assignment->problems, function($k, $v) {
-        echo "stuff <br/>";
-        echo $k . "<br/>";
-        return $k->id == $problemId;
-      }, ARRAY_FILTER_USE_BOTH);
+      $currentProblem = [];
+
+        foreach ($assignment->problems as $problem) {
+        	if ($problem->id == $problemId) {
+      			$currentProblem[] = $problem;
+          }
+    		}
 
       echo $currentProblem->name;
+      $currentProblemDescription = stream_get_contents($currentProblem[0]->description);
 
       return $this->render('courses/assignments/problems/index.html.twig', [
               'project_id' => $assignmentId,
               'problem_id' => $problemId,
               'assignment' => $assignment,
-              'currentProblem' => $currentProblem,
+              'currentProblem' => $currentProblem[0],
               'currentProblemDescription' => $currentProblemDescription,
       ]);
     }
