@@ -1,36 +1,28 @@
 {% extends 'base.html.twig' %}
+{% block head %}
+<head>
+	{% block title %}Log in to Gradel{% endblock %}
+{% endblock head %}
 
 {% block body %}
-
-{% if app.user.getEmail() == "gallaghd@cedarville.edu" %}
-
-	Hello, {{app.user.getFirstName()}}!<br/>
-	Your email is {{app.user.email}}<br/>
-	Your age is INTEGER OVERFLOW.
-	
-	<br>
-	
-	<hr>
-	<a href="{{ path('user_logout') }}">Logout</a>
-	</hr>
-	
-{% elseif app.user %}
+{% if app.user %}
 	Hello, {{app.user.getFirstName()}}! <br/>	
-	Your email is {{app.user.email}}<br/>
-	Your age is just fine.
-	
-	<br>
 	
 	<hr>
 	<a href="{{ path('user_logout') }}">Logout</a>
 	</hr>
+
 {% else %}
-	We're doing fine.
-	<a href="{{ path('hwi_oauth_service_redirect', {'service': 'google' }) }}">
-        <span>Google</span>
-    </a>
 	
+	<div class="login-page">
+	<b> You aren't logged in, and we want you to be. </b>
+	<br> <br> <br> <br>
+	<a href="{{ path('hwi_oauth_service_redirect', {'service': 'google' }) }}">
+        <button>Login</button>
+    </a>
+	</div>
 {% endif %}
+
 {% endblock %}
 
 {% block stylesheets %}
@@ -39,8 +31,11 @@
 
   .login-page {
   width: 360px;
-  padding: 8% 0 0;
-  margin: auto;
+  padding: 3% 3% 3% 3%;
+  margin: 0 auto;
+  background: white;
+  text-align: center;
+  margin-top: 10%;
   }
 
   .loggedin-page {

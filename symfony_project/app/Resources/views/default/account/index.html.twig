@@ -7,13 +7,10 @@
 
 {% block body %}
 	<div class="topnav" id="myTopnav">
-	  <a>Home</a>
-	  <a>Account</a>
+	  <a href="{{ path('user_logout') }}">Logout</a>
+    </a>
 	</div>
-
-
-	<br/>
-	<div>Welcome to the page {{coursePerson[0].user.getFirstName()}}!!</div>
+	<div>Welcome to the page, {{name}}.</div>
 	
 	<table>
 	  <tr>
@@ -38,7 +35,7 @@
 		<tr>
 			<th>
 				<a href="{{path('section_new', {'userId': 1})}}">New Course</a>
-			</th> 
+			</th>
 		</tr>
 	</table>
 

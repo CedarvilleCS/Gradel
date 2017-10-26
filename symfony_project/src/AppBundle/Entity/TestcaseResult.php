@@ -41,13 +41,13 @@ class TestcaseResult {
 	public $id;
 
 	/**
-     * @ORM\ManyToOne(targetEntity="Submission", inversedBy="testcaseresults")
+     * @ORM\ManyToOne(targetEntity="Submission", inversedBy="testcaseresults", cascade={"persist", "remove"})
      * @ORM\JoinColumn(name="submission_id", referencedColumnName="id", onDelete="CASCADE")
      */
 	public $submission;
 
 	/**
-     * @ORM\ManyToOne(targetEntity="Testcase", inversedBy="testcaseresults")
+     * @ORM\ManyToOne(targetEntity="Testcase", cascade={"persist", "remove"})
      * @ORM\JoinColumn(name="testcase_id", referencedColumnName="id", onDelete="CASCADE")
      */
 	public $testcase;
@@ -57,10 +57,18 @@ class TestcaseResult {
 	 */
 	public $std_output;
 
+	public function deblobinateStdOutput(){
+		return stream_get_contents($this->std_output);
+	}
+
 	/**
 	* @ORM\Column(type="blob", nullable=true)
 	*/
 	public $runtime_output;
+
+	public function deblobinateRuntimeOutput(){
+		return stream_get_contents($this->runtime_output);
+	}
 
 	/**
 	* @ORM\Column(type="boolean")

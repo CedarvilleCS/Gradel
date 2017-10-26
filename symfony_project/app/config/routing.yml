@@ -1,21 +1,12 @@
+# EMILY'S ROUTE
+homepage:
+    path:   '/'
+    defaults:  { _controller: AppBundle:Account:index }
 
-index:
-  path: '/'
-  defaults: {_controller: AppBundle:Default:index}
-
-hwi_oauth_login:
-    resource: "@HWIOAuthBundle/Resources/config/routing/login.xml"
-    prefix:   /login
-
-auth0_login:
-    path:    /auth0/callback
-
-auth0_logout:
-    path: /auth0/logout
-
+# CHRIS'S''S'S'S'S'S'S'SS'S' ROUTES
 account:
-  path: '/account/{userId}'
-  defaults: {_controller: AppBundle:Default:account}
+  path: '/account'
+  defaults: {_controller: AppBundle:Account:index}
 
 
 section_new:
@@ -35,28 +26,35 @@ section:
 
 assignment:
   path: '/account/{userId}/section/{sectionId}/assignment/{assignmentId}/problem/{problemId}'
-  defaults: {_controller: AppBundle:Assignment:assignment, problemId: 1}
+  defaults: {_controller: AppBundle:Problems:problems, problemId: 1}
 
-problem:
-    path: '/account/{userId}/section/{sectionId}/assignment/{assignmentId}/problem/{problem_id}'
-    defaults: {_controller: AppBundle:Compilation:problem, problem_id: 1}
-    requirements:
-        problem_id: '\d+'
+# EMMETT'S ROUTE
+upload:
+  path: "/courses/assignments/problems/{problem_id}/upload"
+  defaults: {_controller: AppBundle:Upload:upload}
+  requirements:
+        problem_id:     '\d+'
 
+# TIMOTHY'S ROUTES
 submit:
-    path: '/account/{userId}/section/{sectionId}/assignment/{assignmentId}/problem/{problem_id}/submit'
-    defaults: {_controller: AppBundle:Compilation:submit, problem_id: 1}
+    path: '/compilation/submit/{problem_id}/{language_id}/{submitted_filename}/{main_class}/{package_name}'
+    defaults:
+        _controller:    AppBundle:Compilation:submit
+        main_class:     ''
+        package_name:   ''
     requirements:
-        problem_id: '1'
+        problem_id:     '\d+'
+        language_id:    '\d+'
 
-
-error:
-    path: '/compilation/error/{problem_id}'
-    defaults: {_controller: AppBundle:Compilation:error, problem_id: 1}
+submit_backup:
+    path: '/compilation/submit_backup/{problem_id}/{language_id}/{submitted_filename}/{main_class}/{package_name}'
+    defaults:
+        _controller:    AppBundle:Compilation:submit_backup
+        main_class:     ''
+        package_name:   ''
     requirements:
-        problem_id: '\d+'
-
-
+        problem_id:  '\d+'
+        language_id: '\d+'
 
 submission_results:
     path: '/compilation/submission_results/{submission_id}'
@@ -64,6 +62,7 @@ submission_results:
     requirements:
         submission_id: '\d+'
 
+# OAUTH'S ROUTES
 hwi_oauth_redirect:
     resource: "@HWIOAuthBundle/Resources/config/routing/redirect.xml"
     prefix:   /connect
@@ -77,7 +76,7 @@ hwi_oauth_login:
     prefix:   /login
 
 user_logout:
-    path: /user/logout
+    path: '/user/logout'
 
 user_login:
   path: '/user/login'

@@ -53,8 +53,8 @@ class Problem{
 	public $testcases;
 
 	/**
-	* @ORM\ManyToOne(targetEntity="Assignment", inversedBy="problems")
-	* @ORM\JoinColumn(name="assignment_id", referencedColumnName="id")
+	* @ORM\ManyToOne(targetEntity="Assignment", inversedBy="problems", cascade={"persist", "remove"})
+	* @ORM\JoinColumn(name="assignment_id", referencedColumnName="id", nullable = false, onDelete="CASCADE")
 	*/
 	public $assignment;
 
@@ -67,15 +67,23 @@ class Problem{
 	* @ORM\Column(type="blob", nullable=true)
 	*/
 	public $description;
+	
+	public function deblobinateDescription(){			
+		return stream_get_contents($this->description);
+	}
 
 	/**
 	* @ORM\Column(type="blob", nullable=true)
 	*/
 	public $instructions;
+	
+	public function deblobinateInstructions(){			
+		return stream_get_contents($this->instructions);
+	}
 
 	/**
-	* @ORM\ManyToOne(targetEntity="Language")
-	* @ORM\JoinColumn(name="language_id", referencedColumnName="id")
+	* @ORM\ManyToOne(targetEntity="Language", cascade={"persist", "remove"})
+	* @ORM\JoinColumn(name="language_id", referencedColumnName="id", onDelete="CASCADE")
 	*/
 	public $language;
 
@@ -83,6 +91,10 @@ class Problem{
 	* @ORM\Column(type="blob", nullable=true)
 	*/
 	public $default_code;
+	
+	public function deblobinateDefaultCode(){			
+		return stream_get_contents($this->default_code);
+	}
 
 	/**
 	* @ORM\Column(type="text")
@@ -95,8 +107,8 @@ class Problem{
 	public $weight;
 
 	/**
-	* @ORM\ManyToOne(targetEntity="Gradingmethod")
-	* @ORM\JoinColumn(name="gradingmethod_id", referencedColumnName="id")
+	* @ORM\ManyToOne(targetEntity="Gradingmethod", cascade={"persist", "remove"})
+	* @ORM\JoinColumn(name="gradingmethod_id", referencedColumnName="id", onDelete="CASCADE")
 	*/
 	public $gradingmethod;
 

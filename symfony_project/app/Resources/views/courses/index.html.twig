@@ -1,0 +1,61 @@
+{% block head %}
+<title>Gradel | Courses</title>
+{% endblock %}
+
+
+{% block body %}
+
+<body>        
+    <div class="topnav" id="myTopnav">
+        <a href="">Home</a>
+        <a href="../web/">Account</a>
+    </div>
+
+    <section id="course-container">
+        <h1>{{app.user.getFirstName()}}&#39;s Courses</h1>
+        
+        <ol>
+            <li><a href="courses/assignments/CS-1210">CS 1210</a><div class="show-more" onclick="showAssignments();">+</div></li>
+            <li><a href="courses/assignments/CS-1220">CS 1220</a><div class="show-more" onclick="showAssignments();">+</div></li>
+        </ol>
+
+        {# <table>
+            <tr>
+              <th>Section</th>
+              <th>Name</th>
+              <th>Year</th>
+              <th>Semester</th>
+              </tr>
+                  {% for cp in coursePerson %}
+                      <tr>
+                          <th>{{ cp.section.name }}</th>
+                          <th>
+                              <a href="{{path('section', {'userId': userId, "sectionId": cp.section.id})}}">
+                                  {{ cp.section.course.name }}
+                              </a>
+                          </th>
+                          <th>{{ cp.section.year}}</th>
+                          <th>{{ cp.section.semester}}</th>
+                  {% endfor %}
+          </table> #}
+        
+    </section>
+    
+</body>
+
+{% endblock %}
+
+
+{% block stylesheets %}
+<link rel="stylesheet" href="{{ asset('styles.css') }}" />
+<link rel="stylesheet" href="{{ asset('courses.css') }}" />
+{% endblock %}
+
+
+{% block scripts %}
+
+<!-- JQuery -->
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+{% endblock %}
