@@ -29,7 +29,11 @@ use Symfony\Component\HttpFoundation\Response;
 
 class UploadController extends Controller {
  
-    public function uploadAction($assignment_id, $problem_id) {
+    public function uploadAction($problem_id) {
+		
+		echo(var_dump($_POST));
+		echo(var_dump($_FILES));
+		#die();
 		
         # entity manager
         $em = $this->getDoctrine()->getManager();
@@ -64,13 +68,25 @@ class UploadController extends Controller {
         // Check if file already exists       
 		if (move_uploaded_file($_FILES["fileToUpload"]["tmp_name"], $target_file)) {
 			echo "The file ". basename( $_FILES["fileToUpload"]["name"]). " has been uploaded.";
-						
+
+			$language_id = $_POST["language"];
+			
+			$language_entity = $em->find("AppBundle\Entity\Language", $language_id);
+			
+			if($language_entity->name == "Java"){
+				$main_class = $_POST["main_class"];	
+				$package_name = $_POST["package_name"];				
+			} else {
+				$main_class = '';
+				$package_name = '';
+			}
+			
 			return $this->redirectToRoute('submit', 
 										array('problem_id' => $problem_entity->id, 
 												'submitted_filename' => basename($_FILES["fileToUpload"]["name"]),
-												'language_id' => 4,
-												'main_class' => 'Sum',
-												'package_name' => ''));
+												'language_id' => $language_id,
+												'main_class' => $main_class,
+												'package_name' => $package_name));
 												
 												
 			// INDICATE THAT FILE UPLOAD WAS SUCCESSFUL ON ASSIGNMENT/PROBLEM PAGE
@@ -79,7 +95,11 @@ class UploadController extends Controller {
 		}
 		
         // if they didn't send a file, render upload page
-        return new Response();
+		return $this->redirectToRoute('assignment', 
+									array('userId' => $user_entity->id,
+											'sectionId' => $problem_entity->assignment->section->id,
+											'assignmentId' => $problem_entity->assignment->id,
+											'problemId' => $problem_entity->id));
     }
 }
 

@@ -18,10 +18,9 @@ assignment:
   
 # EMMETT'S ROUTE 
 upload:
-  path: "/courses/assignments/problems/{assignment_id}/{problem_id}/upload"
+  path: "/courses/assignments/problems/{problem_id}/upload"
   defaults: {_controller: AppBundle:Upload:upload}
   requirements:
-        assignment_id:  '\d+'
         problem_id:     '\d+'
   
 # TIMOTHY'S ROUTES

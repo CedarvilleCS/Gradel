@@ -23,22 +23,31 @@
        
 		<h1>{{problem.name}}</h1>
         <p>{{problemDescription}}</p>
-        <div id="editor">function foo(items) {
-            var x = "All this is syntax highlighted";
-            return x;
-        }</div>
+<div id="editor">function foo(items) {
+	var x = "All this is syntax highlighted";
+	return x;
+}</div>
 
-        <script src="{{ asset('src-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>
-        <script>
-            var editor = ace.edit("editor");
-            editor.setTheme("ace/theme/xcode");
-            editor.getSession().setMode("ace/mode/javascript");
-        </script>
-
-        <form action="{{path('upload', {'assignment_id': problem.assignment.id, 'problem_id': problem.id}) }}" method="post" enctype="multipart/form-data">
-            Select file to upload:
-            <input type="file" name="fileToUpload" id="fileToUpload">
-            <input type="submit" value="Upload File" name="submit">
+	
+		<br>
+        <form action="{{path('upload', {'problem_id': problem.id}) }}" method="post" enctype="multipart/form-data">
+            <input type="file" name="fileToUpload" id="fileToUpload" value="Upload File">
+			<br><br>
+			Language: 
+			<select name="language">
+				{% for lang in languages %}				
+					{% if lang.name != "No Language Restriction" %}
+						<option value={{lang.id}}>{{lang.name}}</option>
+					{% endif %}
+				{% endfor %}
+			</select>
+			<br>
+			<label for="main_class">Main Class: </label><input type="text" name="main_class">
+			<br>
+			<label for="package_name">Package Name: </label><input type="text" name="package_name">
+			
+			<br><br>
+            <input type="submit" value="Submit Solution" name="submit">			
         </form>
 
         <p>{{upload_message}}</p>
@@ -46,6 +55,14 @@
     </section>
 
 </body>
+
+
+<script src="{{ asset('src-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>
+<script>
+	var editor = ace.edit("editor");
+	editor.setTheme("ace/theme/xcode");
+	editor.getSession().setMode("ace/mode/javascript");
+</script>
 
 {% endblock %}
 

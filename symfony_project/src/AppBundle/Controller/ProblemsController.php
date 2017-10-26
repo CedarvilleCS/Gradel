@@ -34,15 +34,23 @@ class ProblemsController extends Controller {
 
     public function problemsAction($assignmentId=1, $problemId=1) {
 
-      $em = $this->getDoctrine()->getManager();
-      $problem_entity = $em->find("AppBundle\Entity\Problem", $problemId);
-      //echo $problem_entity->name;
-      $currentProblemDescription = stream_get_contents($problem_entity->description);
+		$em = $this->getDoctrine()->getManager();
+		$problem_entity = $em->find("AppBundle\Entity\Problem", $problemId);
+		//echo $problem_entity->name;
+		$currentProblemDescription = stream_get_contents($problem_entity->description);
 
-      return $this->render('courses/assignments/problems/index.html.twig', [
-              'problem' => $problem_entity,
-              'problemDescription' => $currentProblemDescription,
-      ]);
+		$qb_langs = $em->createQueryBuilder();
+		$qb_langs->select('l')
+				->from('AppBundle\Entity\Language', 'l');
+				
+		$query_langs = $qb_langs->getQuery();
+		$languages = $query_langs->getResult();		  
+	  
+		return $this->render('courses/assignments/problems/index.html.twig', [
+			'problem' => $problem_entity,
+			'problemDescription' => $currentProblemDescription,
+			'languages' => $languages,
+		]);
     }
 }
 
