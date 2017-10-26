@@ -20,6 +20,11 @@ assignment:
 upload:
   path: "/courses/assignments/problems/{project_id}/{problem_id}/upload"
   defaults: {_controller: AppBundle:Upload:upload}
+
+# temporary route for GUI development
+professorsection:
+    path: "/professor/section/{userId}/{sectionId}"
+    defaults: {_controller: AppBundle:Professorsection:professorsection}
   
   
 # TIMOTHY'S ROUTES
