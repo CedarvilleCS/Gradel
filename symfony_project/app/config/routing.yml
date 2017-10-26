@@ -26,7 +26,7 @@ section:
 
 assignment:
   path: '/account/{userId}/section/{sectionId}/assignment/{assignmentId}/problem/{problemId}'
-  defaults: {_controller: AppBundle:Problems:problems, problemId: 1}
+  defaults: {_controller: AppBundle:Problems:problems}
 
 # EMMETT'S ROUTE
 upload:
