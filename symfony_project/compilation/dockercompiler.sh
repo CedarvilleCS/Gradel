@@ -85,7 +85,6 @@ else
 
 fi
 
-
 # copy the submitted file over into the mounted directory
 if [ -f "$file_path/$file_name" ]; then
 
@@ -130,7 +129,7 @@ else
 	java_script_ext=""
 fi
 
-if [ $is_zipped ]; then
+if [ $is_zipped == "true" ]; then
 	zip_ext="-z"
 else
 	zip_ext="";

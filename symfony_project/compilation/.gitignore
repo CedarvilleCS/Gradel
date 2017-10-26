@@ -1,11 +1,11 @@
 temp/*
 !temp
-!temp/.gitkeep
 
 submissions/*
 !submissions
-!submissions/.gitkeep
 
 code_to_submit/*
 !code_to_submit
-!code_to_submit/.gitkeep
+
+uploads/*
+!uploads
