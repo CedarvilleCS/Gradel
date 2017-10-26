@@ -28,9 +28,11 @@
     {# Main section #}
     <section id="main">
         {# Cards #}
-        <div class="card" id="topCard">
+        <div class="card">
             <div class="btn-close" onclick="collapseCard('topCard')">collapse</div>
-            <p>this is a card</p>
+            <div id="topCard">
+                    <p>this is a card</p>
+            </div>
         </div>
         <div class="card">
             <p>this is a card</p>
@@ -66,5 +68,5 @@
 <!-- JQuery -->
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-
+<script src="{{ asset('js/cards.js') }}"></script>
 {% endblock %}
