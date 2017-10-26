@@ -31,7 +31,7 @@ class Submission {
 		$this->timestamp = new \DateTime("now");
 		$this->is_accepted = false;
 		#this->submission
-		#this->filetype
+		#this->filename
 		$this->main_class_name = "";
 		$this->package_name = "";
 		#this->compiler_output
@@ -47,14 +47,14 @@ class Submission {
 	}
 		
 	
-	public function __construct19($prob, $tm, $user, $time, $acc, $subm, $ft, $mainclass, $package, $compout, $didcomp, $didtime, $didrun, $maxtime, $lang, $perc, $tst, $ques, $complete){
+	public function __construct19($prob, $tm, $user, $time, $acc, $subm, $filename, $mainclass, $package, $compout, $didcomp, $didtime, $didrun, $maxtime, $lang, $perc, $tst, $ques, $complete){
 		$this->problem = $prob;
 		$this->user = $user;
 		$this->team = $tm;
 		$this->timestamp = $time;
 		$this->is_accepted = $acc;
 		$this->submission = $subm;
-		$this->filetype = $ft;
+		$this->filename = $filename;
 		$this->main_class_name = $mainclass;
 		$this->package_name = $package;
 		$this->compiler_output = $compout;
@@ -77,24 +77,24 @@ class Submission {
 	public $id;
 
 	/**
-	* @ORM\OneToMany(targetEntity="TestcaseResult", mappedBy="submission", cascade={"persist", "remove"})
+	* @ORM\OneToMany(targetEntity="TestcaseResult", mappedBy="submission")
 	*/
 	public $testcaseresults;
 	
 	/**
-     * @ORM\ManyToOne(targetEntity="Problem", cascade={"persist", "remove"})
+     * @ORM\ManyToOne(targetEntity="Problem")
      * @ORM\JoinColumn(name="problem_id", referencedColumnName="id", nullable=false, onDelete="CASCADE")
      */
 	public $problem;
 	
 	/**
-     * @ORM\ManyToOne(targetEntity="Team", inversedBy="submissions", cascade={"persist", "remove"})
+     * @ORM\ManyToOne(targetEntity="Team", inversedBy="submissions")
      * @ORM\JoinColumn(name="team_id", referencedColumnName="id", nullable=false, onDelete="CASCADE")
      */
 	public $team;
 	
 	/**
-     * @ORM\ManyToOne(targetEntity="User", cascade={"persist", "remove"})
+     * @ORM\ManyToOne(targetEntity="User")
      * @ORM\JoinColumn(name="user_id", referencedColumnName="id", nullable=false, onDelete="CASCADE")
      */
 	public $user;
@@ -122,12 +122,6 @@ class Submission {
 	public function deblobinateSubmission(){			
 		return stream_get_contents($this->submission);
 	}
-	
-	/**
-	* @ORM\ManyToOne(targetEntity="Filetype", cascade={"persist", "remove"})
-	* @ORM\JoinColumn(name="filetype_id", referencedColumnName="id", nullable=true, onDelete="CASCADE")
-	*/
-	public $filetype;
 	
 	/**
 	* @ORM\Column(type="string", length=255)
@@ -169,8 +163,8 @@ class Submission {
 	public $runtime_error;
 	
 	/**
-	* @ORM\ManyToOne(targetEntity="TestcaseResult", cascade={"persist", "remove"})
-	* @ORM\JoinColumn(name="final_good_testcase", referencedColumnName="id", nullable=true, onDelete="CASCADE")
+	* @ORM\ManyToOne(targetEntity="TestcaseResult")
+	* @ORM\JoinColumn(name="final_good_testcase", referencedColumnName="id", nullable=true)
 	*/
 	public $final_good_testcase;
 	
@@ -180,8 +174,8 @@ class Submission {
 	public $questionable_behavior;
 	
 	/**
-	* @ORM\ManyToOne(targetEntity="Language", cascade={"persist", "remove"})
-	* @ORM\JoinColumn(name="language_id", referencedColumnName="id", nullable=true, onDelete="CASCADE")
+	* @ORM\ManyToOne(targetEntity="Language")
+	* @ORM\JoinColumn(name="language_id", referencedColumnName="id", nullable=true)
 	*/
 	public $language;
 	

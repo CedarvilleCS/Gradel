@@ -39,7 +39,7 @@ class Testcase {
 
 	/**
      * Multiple TC per Problem
-     * @ORM\ManyToOne(targetEntity="Problem", inversedBy="testcases", cascade={"persist", "remove"})
+     * @ORM\ManyToOne(targetEntity="Problem", inversedBy="testcases")
      * @ORM\JoinColumn(name="problem_id", referencedColumnName="id", onDelete="CASCADE")
      */
 	public $problem;
@@ -69,8 +69,8 @@ class Testcase {
 
 	/**
      * Multiple FB per TC
-     * @ORM\ManyToOne(targetEntity="Feedback", cascade={"persist", "remove"})
-     * @ORM\JoinColumn(name="feedback_id", referencedColumnName="id", onDelete="CASCADE")
+     * @ORM\ManyToOne(targetEntity="Feedback")
+     * @ORM\JoinColumn(name="feedback_id", referencedColumnName="id")
      */
 	public $feedback;
 	

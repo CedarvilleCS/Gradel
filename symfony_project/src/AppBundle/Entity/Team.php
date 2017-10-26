@@ -40,7 +40,7 @@ class Team{
 	public $id;
 
 	/**
-	* @ORM\OneToMany(targetEntity="Submission", mappedBy="team", cascade={"persist", "remove"})
+	* @ORM\OneToMany(targetEntity="Submission", mappedBy="team")
 	*/
 	public $submissions;
 	
@@ -50,13 +50,13 @@ class Team{
 	public $name;
 
 	/**
-	* @ORM\ManyToOne(targetEntity="Assignment", cascade={"persist", "remove"})
+	* @ORM\ManyToOne(targetEntity="Assignment")
 	* @ORM\JoinColumn(name="assignment_id", referencedColumnName="id", nullable=false, onDelete="CASCADE")
 	*/
 	public $assignment;
 
 	/**
-	* @ORM\ManyToMany(targetEntity="User", inversedBy="teams", cascade={"persist", "remove"})
+	* @ORM\ManyToMany(targetEntity="User", inversedBy="teams")
 	* @ORM\JoinTable(name="userteam",
 	*	joinColumns={@ORM\JoinColumn(name="team_id", referencedColumnName="id", onDelete="CASCADE")},
 	*	inverseJoinColumns={@ORM\JoinColumn(name="user_id", referencedColumnName="id", onDelete="CASCADE")}

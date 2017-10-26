@@ -43,7 +43,7 @@ class Course{
 	public $id;
 
 	/**
-	* @ORM\OneToMany(targetEntity="Section", mappedBy="course", cascade={"persist", "remove"})
+	* @ORM\OneToMany(targetEntity="Section", mappedBy="course")
 	*/
 	public $sections;
 

@@ -45,12 +45,12 @@ class Assignment{
 	public $id;
 
 	/**
-	* @ORM\OneToMany(targetEntity="Problem", mappedBy="assignment", cascade={"persist", "remove"})
+	* @ORM\OneToMany(targetEntity="Problem", mappedBy="assignment")
 	*/
 	public $problems;
 
 	/**
-	* @ORM\ManyToOne(targetEntity="Section", inversedBy="assignments", cascade={"persist", "remove"})
+	* @ORM\ManyToOne(targetEntity="Section", inversedBy="assignments")
 	* @ORM\JoinColumn(name="section_id", referencedColumnName="id", onDelete="CASCADE")
 	*/
 	public $section;
@@ -90,7 +90,7 @@ class Assignment{
 	public $weight;
 	
 	/**
-	* @ORM\ManyToOne(targetEntity="Gradingmethod", cascade={"persist", "remove"})
+	* @ORM\ManyToOne(targetEntity="Gradingmethod")
 	* @ORM\JoinColumn(name="gradingmethod_id", referencedColumnName="id", onDelete="CASCADE")
 	*/
 	public $gradingmethod;

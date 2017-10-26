@@ -41,13 +41,13 @@ class TestcaseResult {
 	public $id;
 
 	/**
-     * @ORM\ManyToOne(targetEntity="Submission", inversedBy="testcaseresults", cascade={"persist", "remove"})
+     * @ORM\ManyToOne(targetEntity="Submission", inversedBy="testcaseresults")
      * @ORM\JoinColumn(name="submission_id", referencedColumnName="id", onDelete="CASCADE")
      */
 	public $submission;
 	
 	/**
-     * @ORM\ManyToOne(targetEntity="Testcase", cascade={"persist", "remove"})
+     * @ORM\ManyToOne(targetEntity="Testcase")
      * @ORM\JoinColumn(name="testcase_id", referencedColumnName="id", onDelete="CASCADE")
      */
 	public $testcase;

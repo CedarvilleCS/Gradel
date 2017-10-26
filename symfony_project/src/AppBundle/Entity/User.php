@@ -130,7 +130,7 @@ class User extends BaseUser{
 	}
 	
 	/**
-	* @ORM\ManyToMany(targetEntity="Team", mappedBy="users", cascade={"persist", "remove"})
+	* @ORM\ManyToMany(targetEntity="Team", mappedBy="users")
 	*/
 	public $teams;
 }
