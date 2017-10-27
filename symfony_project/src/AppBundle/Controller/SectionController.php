@@ -86,29 +86,17 @@ class SectionController extends Controller
 
       // $form->handleRequest($request);
 
-      if ($form->isSubmitted() && $form->isValid()) {
-          echo "form submitted";
-          // $form->getData() holds the submitted values
-          // but, the original `$task` variable has also been updated
-          $task = $form->getData();
-
-          // ... perform some action, such as saving the task to the database
-          // for example, if Task is a Doctrine entity, save it!
-          // $em = $this->getDoctrine()->getManager();
-          // $em->persist($task);
-          // $em->flush();
-
-          return $this->redirectToRoute('task_success');
-      }
-
-
-
-
-
+      $builder = $em->createQueryBuilder();
+      $builder->select('u')
+              ->from('AppBundle\Entity\User', 'u')
+              ->where('1 = 1');
+      $query = $builder->getQuery();
+      $users = $query->getResult();
 
 			return $this->render('default/section/new.html.twig', [
         'userId' => $userId,
         'sections' => $sections,
+        'users' => $users,
         'form' => $form->createView(),
 			]);
 		}
