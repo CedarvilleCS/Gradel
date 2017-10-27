@@ -5,6 +5,7 @@ namespace AppBundle\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping\UniqueConstraint;
+use Symfony\Component\Config\Definition\Exception\Exception;
 
 /**
  * @ORM\Entity
@@ -20,7 +21,7 @@ class Team{
 		if(method_exists($this, $f='__construct'.$i)) {
 			call_user_func_array(array($this,$f),$a);
 		} else if($i != 0) {
-			throw new Exception('Contructor does not accept '.$i.' arguments');
+			throw new Exception('ERROR: '.get_class($this).' constructor does not accept '.$i.' arguments');
 		}
 		
 		$this->users = new ArrayCollection();
@@ -40,7 +41,7 @@ class Team{
 	public $id;
 
 	/**
-	* @ORM\OneToMany(targetEntity="Submission", mappedBy="team", cascade={"persist", "remove"})
+	* @ORM\OneToMany(targetEntity="Submission", mappedBy="team")
 	*/
 	public $submissions;
 	
@@ -50,13 +51,13 @@ class Team{
 	public $name;
 
 	/**
-	* @ORM\ManyToOne(targetEntity="Assignment", cascade={"persist", "remove"})
+	* @ORM\ManyToOne(targetEntity="Assignment")
 	* @ORM\JoinColumn(name="assignment_id", referencedColumnName="id", nullable=false, onDelete="CASCADE")
 	*/
 	public $assignment;
 
 	/**
-	* @ORM\ManyToMany(targetEntity="User", inversedBy="teams", cascade={"persist", "remove"})
+	* @ORM\ManyToMany(targetEntity="User", inversedBy="teams")
 	* @ORM\JoinTable(name="userteam",
 	*	joinColumns={@ORM\JoinColumn(name="team_id", referencedColumnName="id", onDelete="CASCADE")},
 	*	inverseJoinColumns={@ORM\JoinColumn(name="user_id", referencedColumnName="id", onDelete="CASCADE")}

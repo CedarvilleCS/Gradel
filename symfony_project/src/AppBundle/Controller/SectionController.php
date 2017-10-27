@@ -7,6 +7,7 @@ use \DateTime;
 use AppBundle\Entity\User;
 use AppBundle\Entity\Course;
 use AppBundle\Entity\UserSectionRole;
+use AppBundle\Entity\Role;
 use AppBundle\Entity\Section;
 use AppBundle\Entity\Assignment;
 
@@ -84,8 +85,6 @@ class SectionController extends Controller
                     ->add('save', SubmitType::class, array('label' => 'Create Section'))
                     ->getForm();
 
-      // $form->handleRequest($request);
-
       $builder = $em->createQueryBuilder();
       $builder->select('u')
               ->from('AppBundle\Entity\User', 'u')
@@ -101,23 +100,15 @@ class SectionController extends Controller
 			]);
 		}
 
-    public function insertSectionAction(Request $request, $userId, $courseId, $name, $semester, $year, $start_time, $end_time, $is_public, $is_deleted) {
+    public function insertSectionAction(Request $request, $userId, $courseId, $name, $students, $semester, $year, $start_time, $end_time, $is_public, $is_deleted) {
+
+      echo "<br/>";
 
       $em = $this->getDoctrine()->getManager();
-
-      $course = $em->getReference('AppBundle\Entity\Course', $courseId);
-      echo json_encode($course->name);
-
-      $user = $em->getReference('AppBundle\Entity\User', $userId);
-      echo "<br/>";
-      echo json_encode($user);
-
-
-
+      $course = $em->find('AppBundle\Entity\Course', $courseId);
       $section = new Section();
       $section->name = $name;
       $section->course = $course;
-      $section->owner = $user;
       $section->semester = $semester;
       $section->year = $year;
       $section->start_time =  new DateTime("now");
@@ -125,30 +116,43 @@ class SectionController extends Controller
       $section->is_deleted = $is_deleted;
       $section->is_public = $is_public;
 
-      // TODO: user section role insert
-
-      $builder = $em->createQueryBuilder();
-
       $em->persist($section);
       $em->flush();
 
-      echo $section->id . " is the hting";
+      // TODO: user section role insert for prof
+      $role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Teaches'));
+      $teacher = $em->find('AppBundle\Entity\User', $userId);
+      $usr = new UserSectionRole($teacher, $section, $role);
+      $em->persist($usr);
+      $em->flush();
 
-      // $builder->insert('section')
-      //         ->values(
-      //             array(
-      //               'name' => 'blah',
-      //               'course_id' => 1,
-      //               'owner_id' => 1,
-      //               'semester' => 'Fall',
-      //               'year' => 2017,
-      //               'start_time' => '2017-08-21',
-      //               'end_time' => '2017-12-16',
-      //               'is_deleted'=> false,
-      //               'is_public' => false
-      //             )
-      //           );
+
+      // insert students into the course
+      $role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));
+
+      foreach (json_decode($students) as $student) {
+        echo $student;
+        echo "<br/>";
+
+        if ($student != "") {
+          $user = $em->getRepository('AppBundle\Entity\User')->findOneBy(array('email' => $student));
+
+          echo $user->getFirstName();
+          echo "<br/>";
+
+          $usr = new UserSectionRole();
+          $usr->user = $user;
+          $usr->role = $role;
+          $usr->section = $section;
+          $em->persist($usr);
+          $em->flush();
+        }
+      }
 
       return new Response("it worked");
+    }
+
+    private function generateDateTime($year, $date) {
+      // TODO: create string based on start and end times for the fields in dcctrine entity
     }
 }

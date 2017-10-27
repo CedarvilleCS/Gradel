@@ -4,6 +4,7 @@ namespace AppBundle\Entity;
 
 use FOS\UserBundle\Model\User as BaseUser;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Config\Definition\Exception\Exception;
 
 
 /**
@@ -20,7 +21,7 @@ class User extends BaseUser{
 		if(method_exists($this, $f='__construct'.$i)) {
 			call_user_func_array(array($this,$f),$a);
 		} else if($i != 0){
-			throw new Exception('Contructor does not accept '.$i.' arguments');
+			throw new Exception('ERROR: '.get_class($this).' constructor does not accept '.$i.' arguments');
 		}
 
 	}
@@ -130,7 +131,7 @@ class User extends BaseUser{
 	}
 
 	/**
-	* @ORM\ManyToMany(targetEntity="Team", mappedBy="users", cascade={"persist", "remove"})
+	* @ORM\ManyToMany(targetEntity="Team", mappedBy="users")
 	*/
 	public $teams;
 }

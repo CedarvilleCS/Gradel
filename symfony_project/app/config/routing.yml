@@ -15,8 +15,8 @@ section_new:
 
 
 section_insert:
-  path: '/account/{userId}/section/insert/{courseId}/{name}/{semester}/{year}/{start_time}/{end_time}/{is_deleted}/{is_public}'
-  defaults: {_controller: AppBundle:Section:insertSection, name: "hey", semester: "Dr. G", year: "Node", start_time: "is way better", end_time: "than anything", is_deleted: "you have used", is_public: ":)" }
+  path: '/account/{userId}/section/insert/{courseId}/{name}/{students}/{semester}/{year}/{start_time}/{end_time}/{is_deleted}/{is_public}'
+  defaults: {_controller: AppBundle:Section:insertSection, name: "hey", semester: "Dr. G", year: "Node", start_time: "is way better", end_time: "than anything", is_deleted: "you have used", is_public: ":)", students: "love, Chris Brauns"}
 
 
 section:

@@ -14,7 +14,7 @@
   <table>
     <tr>
       <th>Course</th>
-      <th>
+      <th colspan="2">
         <select id="section">
           {% for section in sections %}
             <option  value="{{section.id}}">{{section.name}}</option>
@@ -24,13 +24,13 @@
     </tr>
     <tr>
       <th>Name</th>
-      <th>
+      <th colspan="2">
         <input id="name" value=""></input>
       </th>
     </tr>
     <tr>
       <th>Semester</th>
-      <th>
+      <th colspan="2">
         <select id="semester">
           <option>Fall</option>
           <option>Spring</option>
@@ -39,22 +39,13 @@
     </tr>
     <tr>
       <th>Year</th>
-      <th>
+      <th colspan="2">
         <select id="year">
           <option>2017</option>
           <option>2018</option>
         </select>
     </tr>
 
-
-    <tr>
-      <th colspan="2">
-        <button id="insert">add</button>
-      </th>
-    </tr>
-  </table>
-
-	<table>
 		<tr>
 			<th>Add Students</th>
 			<th>
@@ -76,7 +67,15 @@
 				<textarea id="student-csv"></textarea>
 			</th>
 		</tr>
-	</table>
+
+    <tr>
+      <th colspan="3">
+        <button id="insert">add</button>
+      </th>
+    </tr>
+  </table>
+
+
 
   <!-- {{form_start(form)}}
   {{form_widget(form)}}
@@ -89,14 +88,15 @@
 			$('#student-picker').on('change', function(){addStudent();});
 		});
 
+		var studentArray = [];
+
 		function addStudent() {
 			const studentPicker = document.getElementById('student-picker');
 			const value = studentPicker.value;
 			const studentInput = document.getElementById('student-csv');
 			studentInput.value += value + ", \n"
-			const array = studentInput.value.split(", \n");
+			studentArray = studentInput.value.split(", \n");
 			studentPicker.selectedIndex = 0;
-			console.log(array);
 		}
 
 		function insertSection() {
@@ -106,9 +106,10 @@
 			const year = document.getElementById("year").value;
 		  const id = test[test.selectedIndex].value;
 
-			var path = "{{path('section_insert', { 'courseId': 'course_id',	'userId': 'user_id', 'name': 'name', 'semester': 'semester', 'year': 'year', 'start_time': 'start_time', 'end_time': 'end_time', 'is_deleted': 'is_deleted', 'is_public': 'is_public'})}}";
+			var path = "{{path('section_insert', { 'courseId': 'course_id',	'userId': 'user_id', 'name': 'name', 'students': 'students', 'semester': 'semester', 'year': 'year', 'start_time': 'start_time', 'end_time': 'end_time', 'is_deleted': 'is_deleted', 'is_public': 'is_public'})}}";
 			path = path.replace("course_id", id);
 			path = path.replace("name", name);
+			path = path.replace("students", JSON.stringify(studentArray));
 			path = path.replace("semester", semester);
 			path = path.replace("year", year);
 			path = path.replace("name", name);
@@ -117,10 +118,9 @@
 			path = path.replace("end_time", new Date());
 			path = path.replace("is_deleted", false);
 			path = path.replace("is_public", false);
-			path = path.replace("user_id", {{userId}})
+			path = path.replace("user_id", {{userId}});
 		  $.post(path,
 		    function(response) {
-		      console.log(response);
 		      if (response.code === 100 ) {
 		        console.log(response);
 		      }
