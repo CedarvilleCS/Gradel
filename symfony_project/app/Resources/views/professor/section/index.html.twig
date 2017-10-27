@@ -22,32 +22,43 @@
 
     {# Left Nav #}
     <nav class="nav-left">
-        <a href="google.com">some link</a>
+        <a href="http://www.google.com" class="btn"><div class="btn btn-center" href="http://www.google.com">test button</div></a>
+        <ol>
+            <a href="http://www.google.com"><li>Assignment 1<br><small>January 15, 2018</small></li></a>
+            <a href="http://www.google.com"><li>Assignment 2<br><small>February 29, 2018</small></li></a>
+            <a href="http://www.google.com"><li>Assignment 3<br><small>April 50, 2018</small></li></a>
+        </ol>
     </nav>
 
     {# Main section #}
     <section id="main">
         {# Cards #}
         <div class="card">
-            <div class="btn-close" onclick="collapseCard('topCard')">collapse</div>
-            <div id="topCard">
+            <div class="btn-close" onclick="collapseCard('1')">Title<span style="float: right">&#9660;</span></div>
+            <div id="1" class="card-contents">
                     <p>this is a card</p>
             </div>
         </div>
+
         <div class="card">
-            <p>this is a card</p>
+            <div class="btn-close" onclick="collapseCard('2')">Title<span style="float: right">&#9660;</span></div>
+            <div id="2" class="card-contents">
+                    <p>this is a card</p>
+            </div>
         </div>
+
         <div class="card">
-            <p>this is a card</p>
+            <div class="btn-close" onclick="collapseCard('3')">Title<span style="float: right">&#9660;</span></div>
+            <div id="3" class="card-contents">
+                    <p>this is a card</p>
+            </div>
         </div>
+
         <div class="card">
-            <p>this is a card</p>
-        </div>
-        <div class="card">
-            <p>this is a card</p>
-        </div>
-        <div class="card">
-            <p>this is a card</p>
+            <div class="btn-close" onclick="collapseCard('4')">Title<span style="float: right">&#9660;</span></div>
+            <div id="4" class="card-contents">
+                    <p>this is a card</p>
+            </div>
         </div>
     </section>
 
@@ -58,15 +69,14 @@
 
 
 {% block stylesheets %}
-<link rel="stylesheet" href="{{ asset('styles.css') }}" />
-<link rel="stylesheet" href="{{ asset('home.css') }}" />
+    <link rel="stylesheet" href="{{ asset('styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('home.css') }}" />
 {% endblock %}
 
 
 {% block scripts %}
-
-<!-- JQuery -->
-<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
-<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-<script src="{{ asset('js/cards.js') }}"></script>
+    <!-- JQuery -->
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="{{ asset('js/cards.js') }}"></script>
 {% endblock %}

@@ -19,15 +19,15 @@ class ProfessorsectionController extends Controller
 {
     public function professorsectionAction($userId, $sectionId) {
 
-      $em = $this->getDoctrine()->getManager();
+      // $em = $this->getDoctrine()->getManager();
 
-      $builder = $em->createQueryBuilder();
-      $builder->select('section')
-              ->from('AppBundle\Entity\Section section')
-              ->where('section.id = :id')
-              ->setParameter("id", $sectionId);
-      $query = $builder->getQuery();
-      $section = $query->getSingleResult();
+      // $builder = $em->createQueryBuilder();
+      // $builder->select('section')
+      //         ->from('AppBundle\Entity\Section section')
+      //         ->where('section.id = :id')
+      //         ->setParameter("id", $sectionId);
+      // $query = $builder->getQuery();
+      // $section = $query->getSingleResult();
 
       return $this->render('professor/section/index.html.twig', [
         'section' => $section,
