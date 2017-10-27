@@ -23,6 +23,7 @@ class DefaultController extends Controller
 	  
 	  if(get_class($usr)){
 		$name = $usr->getFirstName();
+		$name = $usr->setFirstName($name);
 		return $this->redirectToRoute('account');
 	  }
 
