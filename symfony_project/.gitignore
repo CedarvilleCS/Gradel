@@ -1,4 +1,5 @@
 /app/config/parameters.yml
+/app/config/.backup_parameters.yml
 /build/
 /node_modules/
 /phpunit.xml
