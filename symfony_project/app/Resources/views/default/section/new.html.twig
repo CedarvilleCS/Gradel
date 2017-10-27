@@ -1,0 +1,210 @@
+{% extends 'base.html.twig' %}
+
+{% block head %}
+
+{% endblock %}
+
+
+{% block body %}
+	<div class="topnav" id="myTopnav">
+	  <a>Home</a>
+	  <a>Account</a>
+	</div>
+
+  <table>
+    <tr>
+      <th>Course</th>
+      <th colspan="2">
+        <select id="section">
+          {% for section in sections %}
+            <option  value="{{section.id}}">{{section.name}}</option>
+          {% endfor %}
+        </select>
+      </th>
+    </tr>
+    <tr>
+      <th>Name</th>
+      <th colspan="2">
+        <input id="name" value=""></input>
+      </th>
+    </tr>
+    <tr>
+      <th>Semester</th>
+      <th colspan="2">
+        <select id="semester">
+          <option>Fall</option>
+          <option>Spring</option>
+        </select>
+      </th>
+    </tr>
+    <tr>
+      <th>Year</th>
+      <th colspan="2">
+        <select id="year">
+          <option>2017</option>
+          <option>2018</option>
+        </select>
+    </tr>
+
+		<tr>
+			<th>Add Students</th>
+			<th>
+				<select id="student-picker">
+					<option value="-1"></option>
+					{% for u in users %}
+						<option	onchange="addStudent()" value="{{u.email}}">
+							{{u.getLastName() ~ ", " ~ u.getFirstName()}}
+						</option>
+					{% endfor %}
+				</select>
+			</th>
+			<th>
+				<button>upload csv</button>
+			</th>
+		</tr>
+		<tr>
+			<th colspan="3">
+				<textarea id="student-csv"></textarea>
+			</th>
+		</tr>
+
+    <tr>
+      <th colspan="3">
+        <button id="insert">add</button>
+      </th>
+    </tr>
+  </table>
+
+
+
+  <!-- {{form_start(form)}}
+  {{form_widget(form)}}
+  {{form_end(form)}} -->
+
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+	<script>
+		$(document).ready(function() {
+		  $('#insert').on('click', function(){insertSection();});
+			$('#student-picker').on('change', function(){addStudent();});
+		});
+
+		var studentArray = [];
+
+		function addStudent() {
+			const studentPicker = document.getElementById('student-picker');
+			const value = studentPicker.value;
+			const studentInput = document.getElementById('student-csv');
+			studentInput.value += value + ", \n"
+			studentArray = studentInput.value.split(", \n");
+			studentPicker.selectedIndex = 0;
+		}
+
+		function insertSection() {
+		  const test = document.getElementById("section");
+			const name = document.getElementById("name").value;
+			const semester = document.getElementById("semester").value;
+			const year = document.getElementById("year").value;
+		  const id = test[test.selectedIndex].value;
+
+			var path = "{{path('section_insert', { 'courseId': 'course_id',	'userId': 'user_id', 'name': 'name', 'students': 'students', 'semester': 'semester', 'year': 'year', 'start_time': 'start_time', 'end_time': 'end_time', 'is_deleted': 'is_deleted', 'is_public': 'is_public'})}}";
+			path = path.replace("course_id", id);
+			path = path.replace("name", name);
+			path = path.replace("students", JSON.stringify(studentArray));
+			path = path.replace("semester", semester);
+			path = path.replace("year", year);
+			path = path.replace("name", name);
+			path = path.replace("name", name);
+			path = path.replace("start_time", new Date());
+			path = path.replace("end_time", new Date());
+			path = path.replace("is_deleted", false);
+			path = path.replace("is_public", false);
+			path = path.replace("user_id", {{userId}});
+		  $.post(path,
+		    function(response) {
+		      if (response.code === 100 ) {
+		        console.log(response);
+		      }
+		    },
+		    "json");
+		}
+
+	</script>
+
+  <script src="{{ asset('js/newSection.js') }}"></script>
+{% endblock %}
+
+{% block stylesheets %}
+<style>
+		@import url(https://fonts.googleapis.com/css?family=Roboto:300);
+
+		table {
+		    font-family: arial, sans-serif;
+		    border-collapse: collapse;
+				margin: 0 auto;
+				margin-top: 50px;
+		    min-width: 350px;
+				max-width: 550px;
+		}
+
+		td, th {
+		    border: 1px solid #dddddd;
+		    text-align: left;
+		    padding: 8px;
+		}
+
+		tr:nth-child(even) {
+		    background-color: #dddddd;
+		}
+
+		textarea {
+			resize: none;
+			width: 100%;
+			height: 200px;
+		}
+
+		.topnav {
+    background-color: #333;
+    overflow: hidden;
+		}
+
+		/* Style the links inside the navigation bar */
+		.topnav a {
+		    float: left;
+		    display: block;
+		    color: #f2f2f2;
+		    text-align: center;
+		    padding: 14px 16px;
+		    text-decoration: none;
+		    font-size: 17px;
+		}
+
+		/* Change the color of links on hover */
+		.topnav a:hover {
+		    background-color: #ddd;
+		    color: black;
+		}
+
+		/* Add a color to the active/current link */
+		.topnav a.active {
+		    background-color: #4CAF50;
+		    color: white;
+		}
+
+		h1 {
+			font-family: "Robot", sans-serif;
+			font-size: 16px;
+		}
+
+		body {
+		margin: 0px;
+	  background: #ffffff; /* fallback for old browsers */
+	  background: -webkit-linear-gradient(right, #f2f2f2, #ffffff);
+	  background: -moz-linear-gradient(right, #f2f2f2, #ffffff);
+	  background: -o-linear-gradient(right, #f2f2f2, #ffffff);
+	  background: linear-gradient(to left, #f2f2f2, #ffffff);
+	  font-family: "Roboto", sans-serif;
+	  -webkit-font-smoothing: antialiased;
+	  -moz-osx-font-smoothing: grayscale;
+	  }
+</style>
+{% endblock %}

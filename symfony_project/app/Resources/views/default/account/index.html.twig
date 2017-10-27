@@ -11,7 +11,6 @@
     </a>
 	</div>
 	<div>Welcome to the page, {{app.user.getFirstName()}}.</div>
-	
 	<table>
 	  <tr>
 	    <th>Section</th>
@@ -30,6 +29,13 @@
 					<th>{{ cp.section.year}}</th>
 					<th>{{ cp.section.semester}}</th>
 			{% endfor %}
+	</table>
+	<table>
+		<tr>
+			<th>
+				<a href="{{path('section_new', {'userId': userId})}}">New Course</a>
+			</th>
+		</tr>
 	</table>
 
 {% endblock %}

@@ -18,9 +18,9 @@ class DefaultController extends Controller
 {
     public function indexAction(Request $request, LoggerInterface $logger) {
       $logger->info("This should output somewhere!");
-	  
+
 	  $usr= $this->get('security.token_storage')->getToken()->getUser();
-	  
+
 	  if(get_class($usr)){
 		$name = $usr->getFirstName();
 		$name = $usr->setFirstName($name);
@@ -31,7 +31,6 @@ class DefaultController extends Controller
 		  'name' => $name,
       ]);
     }
-
 }
 
 ?>

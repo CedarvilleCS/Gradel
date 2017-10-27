@@ -23,21 +23,20 @@ class ProblemsController extends Controller {
 
 		$em = $this->getDoctrine()->getManager();
 		$problem_entity = $em->find("AppBundle\Entity\Problem", $problemId);
-		
+
 		if(!problem_entity){
-			die("PROBLEM DOES NOT EXIST");			
+			die("PROBLEM DOES NOT EXIST");
 		}
-		
-		//echo $problem_entity->name;
+
 		$currentProblemDescription = stream_get_contents($problem_entity->description);
 
-		$problem_languages = $problem_entity->problem_languages;	
+		$problem_languages = $problem_entity->problem_languages;
 
 		$languages = [];
 		foreach($problem_languages as $pl){
-			$languages[] = $pl->language;			
+			$languages[] = $pl->language;
 		}
-	  
+
 		return $this->render('courses/assignments/problems/index.html.twig', [
 			'problem' => $problem_entity,
 			'problemDescription' => $currentProblemDescription,
