@@ -22,7 +22,7 @@
 
     {# Left Nav #}
     <nav class="nav-left">
-        <a href="http://www.google.com" class="btn"><div class="btn btn-center" href="http://www.google.com">test button</div></a>
+        <a href="http://www.google.com" class="btn"><div class="btn btn-center" href="http://www.google.com">New</div></a>
         <ol>
             <a href="http://www.google.com"><li>Assignment 1<br><small>January 15, 2018</small></li></a>
             <a href="http://www.google.com"><li>Assignment 2<br><small>February 29, 2018</small></li></a>
@@ -34,30 +34,51 @@
     <section id="main">
         {# Cards #}
         <div class="card">
-            <div class="btn-close" onclick="collapseCard('1')">Title<span style="float: right">&#9660;</span></div>
-            <div id="1" class="card-contents">
-                    <p>this is a card</p>
+            <div class="btn-close" onclick="collapseCard('courseInfo')">Course Info<span style="float: right">&#9660;</span></div>
+            <div id="courseInfo" class="card-contents">
+                    <ol>
+                        <a href="http://www.google.com"><li>Assignment 1 - January 15, 2018</li></a>
+                        <a href="http://www.google.com"><li>Assignment 2 - February 29, 2018</li></a>
+                        <a href="http://www.google.com"><li>Assignment 3 - April 50, 2018</li></a>
+                    </ol>
             </div>
         </div>
 
         <div class="card">
-            <div class="btn-close" onclick="collapseCard('2')">Title<span style="float: right">&#9660;</span></div>
-            <div id="2" class="card-contents">
-                    <p>this is a card</p>
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="btn-close" onclick="collapseCard('3')">Title<span style="float: right">&#9660;</span></div>
-            <div id="3" class="card-contents">
-                    <p>this is a card</p>
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="btn-close" onclick="collapseCard('4')">Title<span style="float: right">&#9660;</span></div>
-            <div id="4" class="card-contents">
-                    <p>this is a card</p>
+            <div class="btn-close" onclick="collapseCard('studentInfo')">Student Info<span style="float: right">&#9660;</span></div>
+            <div id="studentInfo" class="card-contents">
+                    <table border="1">
+                        <tr>
+                            <th>Student</th>
+                            <th>Assignment 1</th>
+                            <th>Assignment 2</th>
+                            <th>Assignment 3</th>
+                        </tr>
+                        <tr>
+                            <td>Emmett</td>
+                            <td>Done</td>
+                            <td>Done</td>
+                            <td>Done</td>
+                        </tr>
+                        <tr>
+                            <td>Timothy</td>
+                            <td>Done</td>
+                            <td>Done</td>
+                            <td>Not Done</td>
+                        </tr>
+                        <tr>
+                            <td>Emily</td>
+                            <td>Done</td>
+                            <td>Not Done</td>
+                            <td>Not Done</td>
+                        </tr>
+                        <tr>
+                            <td>Chris</td>
+                            <td>Not Done</td>
+                            <td>Done</td>
+                            <td>Done</td>
+                        </tr>
+                    </table>
             </div>
         </div>
     </section>
