@@ -5,27 +5,27 @@ homepage:
 
 # CHRIS'S''S'S'S'S'S'S'SS'S' ROUTES
 account:
-  path: '/account'
+  path: '/home'
   defaults: {_controller: AppBundle:Account:index}
 
 
 section_new:
-  path: '/account/{userId}/section/new'
+  path: '/home/{userId}/section/new'
   defaults: {_controller: AppBundle:Section:newSection}
 
 
 section_insert:
-  path: '/account/{userId}/section/insert/{courseId}/{name}/{students}/{semester}/{year}/{start_time}/{end_time}/{is_deleted}/{is_public}'
+  path: '/home/{userId}/section/insert/{courseId}/{name}/{students}/{semester}/{year}/{start_time}/{end_time}/{is_deleted}/{is_public}'
   defaults: {_controller: AppBundle:Section:insertSection, name: "hey", semester: "Dr. G", year: "Node", start_time: "is way better", end_time: "than anything", is_deleted: "you have used", is_public: ":)", students: "love, Chris Brauns"}
 
 
 section:
-  path: '/account/{userId}/section/{sectionId}'
+  path: '/home/{userId}/section/{sectionId}'
   defaults: {_controller: AppBundle:Section:section}
 
 
 assignment:
-  path: '/account/{userId}/section/{sectionId}/assignment/{assignmentId}/problem/{problemId}'
+  path: '/home/{userId}/section/{sectionId}/assignment/{assignmentId}/problem/{problemId}'
   defaults: {_controller: AppBundle:Problems:problems}
 
 # EMMETT'S ROUTE
