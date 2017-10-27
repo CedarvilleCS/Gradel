@@ -29,24 +29,18 @@ class AssignmentController extends Controller
       $query = $builder->getQuery();
       $assignment = $query->getSingleResult();
 
+	$currentProblem = [];
+
       foreach ($assignment->problems as $problem) {
-        echo $problem->name . "<br/>";
+      	if ($problem->id == $problemId) {
+			$currentProblem[] = $problem;
+		}
       }
 
-      $currentProblem = array_filter($assignment->problems, function($k, $v) {
-        echo "stuff <br/>";
-        echo $k . "<br/>";
-        return $k->id == $problemId;
-      }, ARRAY_FILTER_USE_BOTH);
-
-
-
-      echo $problemId;
-
-      $currentProblemDescription = stream_get_contents($currentProblem->description);
+      $currentProblemDescription = stream_get_contents($currentProblem[0]->description);
       return $this->render('default/assignment/index.html.twig', [
         'assignment' => $assignment,
-        'currentProblem' => $currentProblem,
+        'currentProblem' => $currentProblem[0],
         'currentProblemDescription' => $currentProblemDescription,
       ]);
     }
