@@ -32,6 +32,7 @@ class Submission {
 		$this->timestamp = new \DateTime("now");
 		$this->is_accepted = false;
 		#this->submitted_file
+		#this->log_directory
 		#this->filename
 		$this->main_class_name = "";
 		$this->package_name = "";
@@ -46,13 +47,14 @@ class Submission {
 	}
 		
 	
-	public function __construct17($prob, $tm, $user, $time, $acc, $subm, $filename, $mainclass, $package, $compout, $didcomp, $didtime, $didrun, $maxtime, $lang, $perc, $ques){
+	public function __construct18($prob, $tm, $user, $time, $acc, $subm, $log, $filename, $mainclass, $package, $compout, $didcomp, $didtime, $didrun, $maxtime, $lang, $perc, $ques){
 		$this->problem = $prob;
 		$this->user = $user;
 		$this->team = $tm;
 		$this->timestamp = $time;
 		$this->is_accepted = $acc;
 		$this->submitted_file = $subm;
+		$this->log_directory = $log;
 		$this->filename = $filename;
 		$this->main_class_name = $mainclass;
 		$this->package_name = $package;
@@ -116,9 +118,19 @@ class Submission {
 	}
 	
 	/**
+	* @ORM\Column(type="blob", nullable=true)
+	*/
+	public $log_directory;
+	
+	public function deblobinateLogDirectory(){			
+		return stream_get_contents($this->log_directory);
+	}
+	
+	/**
 	* @ORM\Column(type="string", nullable=true)
 	*/
 	public $filename;
+	
 	
 	/**
 	* @ORM\Column(type="string", length=255)

@@ -165,8 +165,10 @@ class CompilationController extends Controller {
 		};
 				
 		# get the current language
-		$language_entity = $em->find("AppBundle\Entity\Language", $language_id);		
-
+		$language_entity = $em->find("AppBundle\Entity\Language", $language_id);
+		
+		# get the problem language entity from the problem and language
+		# store the compilation options from the problem language
 		$compilation_options = null;
 		
 		$pb_problang = $em->createQueryBuilder();
@@ -194,10 +196,15 @@ class CompilationController extends Controller {
 		$docker_time_limit = intval(count($problem_entity->testcases) * ceil(floatval($problem_entity->time_limit)/1000.0)) + 8 + rand(1,4);
 
 		$docker_script = $web_dir."/compilation/dockercompiler.sh ".$problem_entity->id." ".$team_entity->id." ".dirname($submitted_file_path)." ".basename($submitted_file_path)." ".$language_entity->name." ".$is_zipped." ".$docker_time_limit." \"".$compilation_options."\" ".$submission_entity->id." ".$submission_entity->main_class_name." ".$submission_entity->package_name;
-		#die($docker_script);
+		# die($docker_script);
 		
 		$docker_output = shell_exec($docker_script);	
-		#die(nl2br($docker_output));
+		
+		$docker_log_file = fopen($submission_directory."docker_script.log", "w") or die("Cannot open docker_script.log");
+		fwrite($docker_log_file, $docker_output);
+		fclose($docker_log_file);
+		
+		# die(nl2br($docker_output));
 		
 		# PARSE THROUGH THE LOGS
 		# default submission values
@@ -212,21 +219,20 @@ class CompilationController extends Controller {
 		
 		$compile_log = null;
 		
-		// check for compilation error
-		# TODO: handle malicious touching of compilerror without a log file
-		if(file_exists($submission_directory."compileerror")){
+		# check for compilation error
+		if(file_exists($submission_directory."compileerror") && file_exists($submission_directory."compiler.log")){
 			# echo "compile error</br>";
 			
 			$compile_log = fopen($submission_directory."compiler.log", "r") or die("Cannot open compiler.log file");
 			$submission_is_compileerror = true;
 		} 
-		// check for overall time limit error
+		# check for overall time limit error
 		else if(file_exists($submission_directory."dockertimeout")){
 			# echo "wall clock timeout</br>";
 			
 			$submission_is_timelimit = true;
 		} 
-		// loop through each testcase which ran
+		# loop through each testcase which ran
 		else {
 			
 			# used to keep track of the total number of testcases passed
@@ -256,7 +262,7 @@ class CompilationController extends Controller {
 				$output_log = null;
 				$diff_log = null;
 				
-				// check for runtime error
+				# check for runtime error
 				if(file_exists($runtime_log_path) && filesize($runtime_log_path) > 0){
 					
 					$runtime_log = fopen($runtime_log_path, "r") or die("Cannot open ".$runtime_log_path);
@@ -266,7 +272,7 @@ class CompilationController extends Controller {
 					$testcase_is_runtimeerror = true;
 					
 				} 
-				// the solution was normal
+				# the solution was normal
 				else if(file_exists($runtime_log_path) && file_exists($output_log_path) && file_exists($exectime_log_path) && file_exists($diff_log_path)){
 					
 					$output_log = fopen($output_log_path, "r") or die("Cannot open ".$output_log_path);
@@ -343,15 +349,29 @@ class CompilationController extends Controller {
 		$submission_entity->max_runtime = $submission_max_runtime;
 		$submission_entity->percentage = $submission_percentage;
 		
+		# zip the submission directory for saving to the database
+		if(!chdir($submission_directory)){
+			die("Cannot switch directories!");
+		}
+		
+		shell_exec("zip -r ".$submission_directory."log.zip *");
+		
+		if(!chdir($web_dir)){
+			die("Cannot switch directories!");
+		}
+		
+		$zip_file = fopen($submission_directory."log.zip", "r") or die("Cannot open log zip file for reading!");
+		$submission_entity->log_directory = $zip_file;
+				
+		# remove the temp folder
+		shell_exec("rm -rf ".$temp_folder);
+		shell_exec("rm -rf ".$code_to_submit_directory);
+		shell_exec("rm -rf ".$submission_directory);
+		
 		# update the submission entity
 		$em->persist($submission_entity);
 		$em->flush();			
-		
-		# remove the temp folder
-		#shell_exec("rm -rf ".$temp_folder);
-		#shell_exec("rm -rf ".$code_to_submit_directory);
-		#shell_exec("rm -rf ".$submission_directory);
-		
+
         return $this->redirectToRoute('submission_results', array('submission_id' => $submission_entity->id));
 		//return new Response();
 	}
