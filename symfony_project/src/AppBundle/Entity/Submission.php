@@ -3,6 +3,7 @@
 namespace AppBundle\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Config\Definition\Exception\Exception;
 
 /**
 *@ORM\Entity
@@ -18,7 +19,7 @@ class Submission {
 		if(method_exists($this, $f='__construct'.$i)) {
 			call_user_func_array(array($this,$f),$a);
 		} else if($i != 0) {
-			throw new Exception('Contructor does not accept '.$i.' arguments');
+			throw new Exception('ERROR: '.get_class($this).' constructor does not accept '.$i.' arguments');
 		}
 		
 		$this->testcaseresults = new ArrayCollection();	
@@ -30,7 +31,7 @@ class Submission {
 		$this->user = $user;
 		$this->timestamp = new \DateTime("now");
 		$this->is_accepted = false;
-		#this->submission
+		#this->submitted_file
 		#this->filename
 		$this->main_class_name = "";
 		$this->package_name = "";
@@ -41,19 +42,17 @@ class Submission {
 		$this->max_runtime = -1;
 		#this->language		
 		$this->percentage = 0.0;
-		#$this->final_good_testcase;
 		$this->questionable_behavior = false;
-		$this->is_complete = false;
 	}
 		
 	
-	public function __construct19($prob, $tm, $user, $time, $acc, $subm, $filename, $mainclass, $package, $compout, $didcomp, $didtime, $didrun, $maxtime, $lang, $perc, $tst, $ques, $complete){
+	public function __construct17($prob, $tm, $user, $time, $acc, $subm, $filename, $mainclass, $package, $compout, $didcomp, $didtime, $didrun, $maxtime, $lang, $perc, $ques){
 		$this->problem = $prob;
 		$this->user = $user;
 		$this->team = $tm;
 		$this->timestamp = $time;
 		$this->is_accepted = $acc;
-		$this->submission = $subm;
+		$this->submitted_file = $subm;
 		$this->filename = $filename;
 		$this->main_class_name = $mainclass;
 		$this->package_name = $package;
@@ -64,9 +63,7 @@ class Submission {
 		$this->runtime_error = $didrun;
 		$this->language = $lang;
 		$this->percentage = $perc;
-		$this->final_good_testcase = $tst;
 		$this->questionable_behavior = $ques;
-		$this->is_complete = $complete;
 	}
 
 	/**
@@ -108,20 +105,20 @@ class Submission {
 	* @ORM\Column(type="boolean")
 	*/
 	public $is_accepted;
-	
-	/**
-	* @ORM\Column(type="boolean")
-	*/
-	public $is_complete;
-	
+
 	/**
 	* @ORM\Column(type="blob", nullable=true)
 	*/
-	public $submission;
+	public $submitted_file;
 	
 	public function deblobinateSubmission(){			
 		return stream_get_contents($this->submission);
 	}
+	
+	/**
+	* @ORM\Column(type="string", nullable=true)
+	*/
+	public $filename;
 	
 	/**
 	* @ORM\Column(type="string", length=255)
@@ -161,12 +158,6 @@ class Submission {
 	* @ORM\Column(type="boolean")
 	*/
 	public $runtime_error;
-	
-	/**
-	* @ORM\ManyToOne(targetEntity="TestcaseResult")
-	* @ORM\JoinColumn(name="final_good_testcase", referencedColumnName="id", nullable=true)
-	*/
-	public $final_good_testcase;
 	
 	/**
 	* @ORM\Column(type="boolean")

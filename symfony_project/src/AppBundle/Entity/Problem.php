@@ -4,6 +4,7 @@ namespace AppBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Config\Definition\Exception\Exception;
 
 /**
  * @ORM\Entity
@@ -19,20 +20,17 @@ class Problem{
 		if(method_exists($this, $f='__construct'.$i)) {
 			call_user_func_array(array($this,$f),$a);
 		} else if($i != 0) {
-			throw new Exception('Contructor does not accept '.$i.' arguments');
+			throw new Exception('ERROR: '.get_class($this).' constructor does not accept '.$i.' arguments');
 		}
 		
 		$this->testcases = new ArrayCollection();
+		$this->problem_languages = new ArrayCollection();
 	}
 	
-	public function __construct12($assign, $nm, $desc, $inst, $lang, $default, $comp, $wght, $grdmeth, $attempts, $limit, $credit){
+	public function __construct8($assign, $nm, $desc, $wght, $grdmeth, $attempts, $limit, $credit){
 		$this->assignment = $assign;
 		$this->name = $nm;
 		$this->description = $desc;
-		$this->instructions = $inst;
-		$this->language = $lang;
-		$this->default_code = $default;
-		$this->compilation_options = $comp;
 		$this->weight = $wght;
 		$this->gradingmethod = $grdmeth;
 		$this->attempts_allowed = $attempts;
@@ -51,6 +49,11 @@ class Problem{
 	* @ORM\OneToMany(targetEntity="Testcase", mappedBy="problem")
 	*/
 	public $testcases;
+		
+	/**
+	* @ORM\OneToMany(targetEntity="ProblemLanguage", mappedBy="problem")
+	*/
+	public $problem_languages;
 
 	/**
 	* @ORM\ManyToOne(targetEntity="Assignment", inversedBy="problems")
@@ -71,35 +74,6 @@ class Problem{
 	public function deblobinateDescription(){			
 		return stream_get_contents($this->description);
 	}
-
-	/**
-	* @ORM\Column(type="blob", nullable=true)
-	*/
-	public $instructions;
-	
-	public function deblobinateInstructions(){			
-		return stream_get_contents($this->instructions);
-	}
-
-	/**
-	* @ORM\ManyToOne(targetEntity="Language")
-	* @ORM\JoinColumn(name="language_id", referencedColumnName="id")
-	*/
-	public $language;
-
-	/**
-	* @ORM\Column(type="blob", nullable=true)
-	*/
-	public $default_code;
-	
-	public function deblobinateDefaultCode(){			
-		return stream_get_contents($this->default_code);
-	}
-
-	/**
-	* @ORM\Column(type="text")
-	*/
-	public $compilation_options;
 
 	/**
 	* @ORM\Column(type="decimal", precision=12, scale=8)
