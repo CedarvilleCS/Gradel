@@ -9,12 +9,12 @@ use AppBundle\Entity\Course;
 use AppBundle\Entity\Section;
 use AppBundle\Entity\Assignment;
 use AppBundle\Entity\Problem;
+use AppBundle\Entity\ProblemLanguage;
 use AppBundle\Entity\UserSectionRole;
 use AppBundle\Entity\Testcase;
 use AppBundle\Entity\Submission;
 use AppBundle\Entity\Language;
 use AppBundle\Entity\Gradingmethod;
-use AppBundle\Entity\Filetype;
 use AppBundle\Entity\Feedback;
 use AppBundle\Entity\TestcaseResult;
 
@@ -133,12 +133,18 @@ class CompilationController extends Controller {
 		foreach($problem_entity->testcases as $tc){
 			// write the input file to the temp directory
 			$input = stream_get_contents($tc->input);			
+			
+			echo $input;
+			
 			$input_file = fopen($temp_input_folder.$tc->seq_num.".in", "w") or die("Unable to open file for writing!");
 			fwrite($input_file, $input);
 			fclose($input_file);
 			
 			// write the output file to the temp directory
 			$correct_output = stream_get_contents($tc->correct_output);
+			
+			echo $correct_output;
+			
 			$output_file = fopen($temp_output_folder.$tc->seq_num.".out", "w") or die("Unable to open file for writing!");
 			fwrite($output_file, $correct_output);
 			fclose($output_file);
@@ -148,7 +154,8 @@ class CompilationController extends Controller {
 		# open the submitted file and prep for compilation
 		# open the submitted file and prep for compilation
 		$submitted_file = fopen($submitted_file_path, "r") or die ("Unable to open submitted file: ".$submitted_file_path);
-		$submission_entity->submission = $submitted_file;
+		$submission_entity->submitted_file = $submitted_file;
+		$submission_entity->filename = $submitted_filename;
 		
 		# query for the current filetype		
 		$extension = pathinfo($submitted_file_path, PATHINFO_EXTENSION);
@@ -158,8 +165,27 @@ class CompilationController extends Controller {
 		};
 				
 		# get the current language
-		$language_entity = $em->find("AppBundle\Entity\Language", $language_id);				
+		$language_entity = $em->find("AppBundle\Entity\Language", $language_id);		
+
+		$compilation_options = null;
+		
+		$pb_problang = $em->createQueryBuilder();
+		$pb_problang->select('pl')
+				->from('AppBundle\Entity\ProblemLanguage', 'pl')
+				->where('pl.problem = ?1')
+				->andWhere('pl.language = ?2')
+				->setParameter(1, $problem_entity)
+				->setParameter(2, $language_entity);
 				
+		$pl_query = $pb_problang->getQuery();
+		$prob_lang_entity = $pl_query->getOneOrNullResult();	
+		
+		if(!$prob_lang_entity){
+			die("CANNOT SUBMIT A SOLUTION FOR THIS LANGUAGE!");
+		} else {
+			$compilation_options = trim($prob_lang_entity->compilation_options);
+		}
+						
 		# set the main class and package name
 		$submission_entity->main_class_name = $main_class;
 		$submission_entity->package_name = $package_name;
@@ -167,7 +193,7 @@ class CompilationController extends Controller {
 		# RUN THE DOCKER COMPILATION
 		$docker_time_limit = intval(count($problem_entity->testcases) * ceil(floatval($problem_entity->time_limit)/1000.0)) + 8 + rand(1,4);
 
-		$docker_script = $web_dir."/compilation/dockercompiler.sh ".$problem_entity->id." ".$team_entity->id." ".dirname($submitted_file_path)." ".basename($submitted_file_path)." ".$language_entity->name." ".$is_zipped." ".$docker_time_limit." \"".$problem_entity->compilation_options."\" ".$submission_entity->id." ".$submission_entity->main_class_name." ".$submission_entity->package_name;
+		$docker_script = $web_dir."/compilation/dockercompiler.sh ".$problem_entity->id." ".$team_entity->id." ".dirname($submitted_file_path)." ".basename($submitted_file_path)." ".$language_entity->name." ".$is_zipped." ".$docker_time_limit." \"".$compilation_options."\" ".$submission_entity->id." ".$submission_entity->main_class_name." ".$submission_entity->package_name;
 		#die($docker_script);
 		
 		$docker_output = shell_exec($docker_script);	
@@ -184,8 +210,6 @@ class CompilationController extends Controller {
 		$submission_max_runtime = -1;
 		$submission_percentage = 0.0;
 		
-		# TODO: use this thing
-		$submission_final_correct_testcase = null;		
 		$compile_log = null;
 		
 		// check for compilation error
@@ -277,10 +301,6 @@ class CompilationController extends Controller {
 						if(strcmp("YES", $diff_string) == 0){							
 							$testcase_is_correct = true;
 							$correct_testcase_count++;	
-
-							if(!$already_wrong_tc){
-								$update_last_correct = true;
-							}
 							
 							# update submission_percentage
 							$submission_percentage += max($tc->weight, floatval(1.0 / count($problem_entity->testcases)));
@@ -308,10 +328,6 @@ class CompilationController extends Controller {
 				$em->persist($testcaseresult_entity);
 				$em->flush();
 				
-				if($update_last_correct){
-					$submission_final_correct_testcase = $testcaseresult_entity;
-				}
-				
 			}
 		}
 		
@@ -326,8 +342,6 @@ class CompilationController extends Controller {
 		$submission_entity->exceeded_time_limit = $submission_is_timelimit; 
 		$submission_entity->max_runtime = $submission_max_runtime;
 		$submission_entity->percentage = $submission_percentage;
-		$submission_entity->final_good_testcase = $submission_final_correct_testcase;
-		$submission_entity->is_complete = true;
 		
 		# update the submission entity
 		$em->persist($submission_entity);
@@ -347,17 +361,15 @@ class CompilationController extends Controller {
 		
 		$em = $this->getDoctrine()->getManager();
 		
-		$qb = $em->createQueryBuilder();
-		$qb->select('s')
-			->from('AppBundle\Entity\Submission', 's')
-			->where('s.id = ?1')
-			->setParameter(1, $submission_id);
+		$submission = $em->find("AppBundle\Entity\Submission", $submission_id);	
 		
-		$qb_submission = $qb->getQuery();
-		$submission = $qb_submission->getOneorNullResult();	
+		if(!submission){
+			echo "SUBMISSION DOES NOT EXIST";
+			die();
+		}
 		
 		$compiler_output = stream_get_contents($submission->compiler_output);
-		$submission_file = stream_get_contents($submission->submission);
+		$submission_file = stream_get_contents($submission->submitted_file);
 		
 		foreach($submission->testcaseresults as $tc){
 			

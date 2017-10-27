@@ -17,7 +17,6 @@ use AppBundle\Entity\UserSectionRole;
 use AppBundle\Entity\Testcase;
 use AppBundle\Entity\Language;
 use AppBundle\Entity\Gradingmethod;
-use AppBundle\Entity\Filetype;
 use AppBundle\Entity\Feedback;
 use AppBundle\Entity\TestcaseResult;
 
@@ -71,11 +70,20 @@ class UploadController extends Controller {
 
 			$language_id = $_POST["language"];
 			
-			$language_entity = $em->find("AppBundle\Entity\Language", $language_id);
+			$language_entity = $em->find("AppBundle\Entity\Language", $language_id);			
+			if(!$language_entity){
+				die("LANGUAGE DOES NOT EXIST!");
+			}
 			
 			if($language_entity->name == "Java"){
+				
+				if(strlen($_POST["main_class"]) == 0){
+					die("MAIN CLASS IS NEEDED");
+				}
+				
 				$main_class = $_POST["main_class"];	
-				$package_name = $_POST["package_name"];				
+				$package_name = $_POST["package_name"];		
+				
 			} else {
 				$main_class = '';
 				$package_name = '';
