@@ -85,7 +85,6 @@ else
 
 fi
 
-
 # copy the submitted file over into the mounted directory
 if [ -f "$file_path/$file_name" ]; then
 
@@ -116,13 +115,13 @@ echo "FILETYPE IS: $file_type"
 if [ $file_type == "Java" ]; then
 	echo "$# is the number"
 	if [ $# -ge 11 ]; then
-		echo "HI"
+		echo "main class and package name provided"
 		java_script_ext="-M $main_class -P $package_name"
 	elif [ $# -ge 10 ]; then
-		echo "HEY"
+		echo "main class provided"
 		java_script_ext="-M $main_class"
 	else
-		echo "YO"
+		echo "neither main class or package name provided"
 		java_script_ext=""
 	fi
 	
@@ -130,19 +129,18 @@ else
 	java_script_ext=""
 fi
 
-if [ $is_zipped ]; then
+if [ $is_zipped == "true" ]; then
 	zip_ext="-z"
 else
 	zip_ext="";
 fi
 
-script_command="/home/abc/compile_code -l ${file_type} -f ${file_name} $zip_ext -c '${compiler_flags}' $java_script_ext"
+script_command="/home/abc/compile_code -l ${file_type} -f ${file_name} $zip_ext"
 
 container_name="gd$submission_id"
 
-echo "docker run --name=$container_name -d $group_mount_option $passwd_mount_option $submission_mount_option $code_to_submit_mount_option $input_testcases_mount_option $output_testcases_mount_option gradel $script_command"
-
-echo $(docker run --name=$container_name -d $group_mount_option $passwd_mount_option $submission_mount_option $code_to_submit_mount_option $input_testcases_mount_option $output_testcases_mount_option gradel $script_command)
+echo docker run --name=$container_name -d $group_mount_option $passwd_mount_option $submission_mount_option $code_to_submit_mount_option $input_testcases_mount_option $output_testcases_mount_option gradel $script_command -c \"$compiler_flags\" $java_script_ext
+echo $(docker run --name=$container_name -d $group_mount_option $passwd_mount_option $submission_mount_option $code_to_submit_mount_option $input_testcases_mount_option $output_testcases_mount_option gradel $script_command -c "$compiler_flags" $java_script_ext)
 
 echo "timeout $time_limit docker wait gd$submission_id"
 

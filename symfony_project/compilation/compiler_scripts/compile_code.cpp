@@ -56,7 +56,7 @@ int main(int argc, char** argv){
 			
 		} else {			
 			cout << "ERROR! Unknown command line option " << argv_i << "\n";	
-			return 1;
+			return 20;
 		}
 		
 	}
@@ -102,9 +102,10 @@ int main(int argc, char** argv){
 		cout << unzip_cmd << endl;
 		system(unzip_cmd.c_str());
 	}
+    
+    cout << "Compiler flags: " << compiler_flags << endl;
 	
 	if(language == "C"){
-
 		return compile_c(compiler_flags);
 	
 	} else if(language == "C++"){

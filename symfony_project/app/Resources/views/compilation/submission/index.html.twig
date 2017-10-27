@@ -61,39 +61,12 @@
 			
 			{% if submission_file != "" %}	
 					<h3> SUBMITTED CODE </h3>
+					<h4> {{submission.filename}} </h4>
 					<hr>
 					<textarea readonly style="box-sizing: border-box; width:100%; height:390px; resize: none; border: none; background: lighgrey; color:black; padding:15px; font-size:15px; font-family:Lucinda Console, monospace">{{submission_file}}</textarea>
 					<hr>
 			{% endif %}
-
-			
-			<br/><br/><br/><br/><br/>
-			
-			<hr>
-			<h4> C </h4>
-			<a href="{{ path('submit_backup', {'problem_id': 1, 'filetype_id': 1, 'language_id': 3, 'submitted_filename': 'sum.c'}) }}"> CORRECT SOLUTION </a>
-			<a href="{{ path('submit_backup', {'problem_id': 1, 'filetype_id': 1, 'language_id': 3, 'submitted_filename': 'wrong_answer.c'}) }}"> WRONG ANSWER </a>
-			<a href="{{ path('submit_backup', {'problem_id': 1, 'filetype_id': 1, 'language_id': 3, 'submitted_filename': 'compiler_error.c'}) }}"> COMPILER ERROR </a>
-			<a href="{{ path('submit_backup', {'problem_id': 1, 'filetype_id': 1, 'language_id': 3, 'submitted_filename': 'runtime_error.c'}) }}"> RUNTIME ERROR </a>
-			<a href="{{ path('submit_backup', {'problem_id': 1, 'filetype_id': 1, 'language_id': 3, 'submitted_filename': 'while_loop.c'}) }}"> INFINITE LOOP </a>
-			<a href="{{ path('submit_backup', {'problem_id': 1, 'filetype_id': 1, 'language_id': 3, 'submitted_filename': 'malicious_delete_all.c'}) }}"> MALICIOUS DELETION </a>
-			<a href="{{ path('submit_backup', {'problem_id': 1, 'filetype_id': 1, 'language_id': 3, 'submitted_filename': 'malicious_add.c'}) }}"> MALICIOUS ADDITION (not fully handled yet) </a>
-			
-			<hr>
-			<h4> C++ </h4>
-			<a href="{{ path('submit_backup', {'problem_id': 1, 'filetype_id': 2, 'language_id': 2, 'submitted_filename': 'sum.cpp'}) }}"> CORRECT SOLUTION </a>
-			<a href="{{ path('submit_backup', {'problem_id': 1, 'filetype_id': 4, 'language_id': 2, 'submitted_filename': 'cpp.zip'}) }}"> ZIPPED CORRECT </a>
-			
-			<hr>
-			<h4> Java </h4>
-			<a href="{{ path('submit_backup', {'problem_id': 1, 'filetype_id': 3, 'language_id': 4, 'submitted_filename': 'Sum.java'}) }}"> CORRECT SOLUTION </a>
-			<a href="{{ path('submit_backup', {'problem_id': 1, 'filetype_id': 4, 'language_id': 4, 'submitted_filename': 'java.zip'}) }}"> ZIPPED CORRECT </a>
-			
-			
-			<br/>
-		
 			</div>
-
         </div>
     </div>
 {% endblock %}
