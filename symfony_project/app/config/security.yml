@@ -24,7 +24,7 @@ security:
                 use_forward:    false
                 failure_path:   /user/login
                 always_use_default_target_path: false
-                default_target_path:            /account
+                default_target_path:            /home
                 # Inject a service that will be created in the step #6
                 oauth_user_provider:
                     service: app.fos_user.oauth_provider
