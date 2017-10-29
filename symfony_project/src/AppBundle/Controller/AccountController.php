@@ -19,15 +19,19 @@ class AccountController extends Controller
     public function indexAction(Request $request, LoggerInterface $logger) {
       $logger->info("This should output somewhere!");
 	  
-	  $usr= $this->get('security.token_storage')->getToken()->getUser();
-	  
-	  if(get_class($usr)){
-		
-		$userId = $usr->getID();
-		$name = $usr->getFirstName();
-		$name = $usr->setFirstName($name);
-	  }
 	  $em = $this->getDoctrine()->getManager();
+	  
+	  $user = $this->get('security.token_storage')->getToken()->getUser();
+	  
+	  
+	  if(get_class($user)){
+		
+		$userId = $user->getID();
+		$name = $user->getFirstName();
+	  } else{
+		  die("USER DOES NOT EXIST!");		  
+	  }
+	  
       # get the user section role entities using the user entity as the where
       $b = $em->createQueryBuilder();
       $b->select('usr')
@@ -42,7 +46,7 @@ class AccountController extends Controller
           // replace this example code with whatever you need
         return $this->render('default/account/index.html.twig', [
               'base_dir' => realpath($this->getParameter('kernel.project_dir')).DIRECTORY_SEPARATOR,
-  			      'coursePerson' => $coursePerson,
+  			  'coursePerson' => $coursePerson,
               'userId' => $userId, 'name' => $name
           ]);
 
