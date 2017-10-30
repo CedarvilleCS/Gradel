@@ -7,7 +7,10 @@ EXPECTED_OUTPUT_FILES=(output/*.out)
 
 input_file_count=$(find input/ -maxdepth 1 -name "*.in" | wc -l)
 expect_file_count=$(find output/ -maxdepth 1 -name "*.out" | wc -l)
-	
+
+echo Input file count: $input_file_count
+echo Expect file count: $expect_file_count
+
 if [ $input_file_count -ne $expect_file_count ]; then
 	echo "student output does not have the same number of files"
 	echo $input_file_count - $expect_file_count
@@ -19,15 +22,17 @@ num_correct=0
 for ((i=0;i<${#INPUT_FILES[@]};++i)); do
 
 	seq_num=$(basename ${INPUT_FILES[i]} .in)
-	
+	echo $seq_num
 	diff_log_name=submission/diff_logs/$seq_num.log
-	
+	echo $diff_log_name
 	mytime="$((time ( sh -c 'trap "" 11; ./a.out' < ${INPUT_FILES[i]} 1> submission/output/$seq_num.out 2> submission/runtime_logs/$seq_num.log ) 2>&1 ) | grep user)"
+	echo $mytime
 	echo $mytime > submission/time_logs/$seq_num.log
 
 	# COMPARE THE RESULTS
 	cmp=$(diff submission/output/$seq_num.out ${EXPECTED_OUTPUT_FILES[i]})
   
+	echo $cmp
 	if [ "$cmp" != "" ]; then
 		echo "NO"  > $diff_log_name
 	else
@@ -36,7 +41,6 @@ for ((i=0;i<${#INPUT_FILES[@]};++i)); do
 	fi
 done
 
-echo "$num_correct/$expect_file_count correct"
-
+echo $num_correct/$expect_file_count correct
 
 exit 0

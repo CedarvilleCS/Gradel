@@ -4,5 +4,4 @@ function collapseCard(cardID) {
     isOpen = true;
     
     $('#' + cardID).children().slideToggle();
-    
 };

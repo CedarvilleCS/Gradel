@@ -8,6 +8,7 @@
 
 using namespace std;
 
+string submissionfolder = "submission/";
 string codefolder = "submission/code/";
 string compilerlogfile = "submission/compiler.log";
 
@@ -33,7 +34,7 @@ int compile_c(string compiler_flags){
 		return 1;
 	}
 	
-	string run_cmd = "./run_c.sh";
+	string run_cmd = "./run_c.sh > " + submissionfolder + "run_c.log";
 	cout << run_cmd << endl;
 	system(run_cmd.c_str());
 	
@@ -62,7 +63,7 @@ int compile_cpp(string compiler_flags){
 		return 1;
 	}
 	
-	string run_cmd = "./run_c.sh";
+	string run_cmd = "./run_c.sh > " + submissionfolder + "run_cpp.log";
 	cout << run_cmd << endl;
 	system(run_cmd.c_str());
 	
@@ -77,11 +78,12 @@ int compile_java(string compiler_flags, string main_class, string package_name){
 		compiler_flags = compiler_flags + " ";
 	}
 	
+	string total_path = main_class;
 	if(package_name != ""){
-		main_class = package_name+"/"+main_class;
+		total_path = package_name+"/"+main_class;
 	}
 	
-	string compile_cmd = "javac " + compiler_flags + "-d . " + codefolder + main_class + ".java" + " 2> " + compilerlogfile;
+	string compile_cmd = "javac " + compiler_flags + "-d . " + codefolder + total_path + ".java" + " 2> " + compilerlogfile;
 	cout << compile_cmd << endl;
 	compile_res = system(compile_cmd.c_str());
 	
@@ -95,7 +97,7 @@ int compile_java(string compiler_flags, string main_class, string package_name){
 		return 1;
 	}
 	
-	string run_cmd = "./run_java.sh " + main_class;		
+	string run_cmd = "./run_java.sh " + total_path + " > " + submissionfolder + "run_java.log";		
 	cout << run_cmd << endl;
 	system(run_cmd.c_str());
 	

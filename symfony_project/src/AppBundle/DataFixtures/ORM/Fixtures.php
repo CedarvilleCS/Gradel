@@ -46,19 +46,28 @@ class Fixtures extends Fixture {
 		# USER Testing
 		{
 			$prof_gallagher = new User("gallaghd", "gallaghd@cedarville.edu", '106935590466449084204', 'ya29.GlvmBCRca746USm7DxATnlo-cSXbaLgpxemqYaL4hLJ7seuuAGj9khJgvlN79oLrVk1DnBQ4-uiSR9GicIWHcePZL0-MhJBf1gDokKfMxvpa3Ov-3DDiB-uvdglR', "David", "Gallagher");
+			$prof_gallagher->addRole("ROLE_SUPER");			
+			$prof_gallagher->addRole("ROLE_ADMIN");
 			$manager->persist($prof_gallagher);
 
 			$prof_brauns = new User("brauns", "cbrauns@cedarville.edu", '102745040748959369206', 'ya29.GlznBM2Fspl2E8UMn7ygX1Xzy4rUcNb2Xrw_Bhoepy72GrOzsnAUCdf8ghr3VZHLkfcgLGGvmn5An3a_MSP-dl1p0G3DKytmEBXburNuu2M1qlJgtkKvdiaTAjACjQ', "Christopher", "Brauns");
-			$manager->persist($prof_brauns);
-			
+			$prof_brauns->addRole("ROLE_SUPER");			
+			$prof_brauns->addRole("ROLE_ADMIN");
+			$manager->persist($prof_brauns);			
 			
 			$wolf_user = new User("ewolf", "ewolf@cedarville.edu", '101057281057560942387', 'ya29.GlznBP9IhwJVmug7i4O6ymEzFBtsFIrBwDIhHZA1smkjL3jJV_o6BMt5xuC6M1Y7i57x4ND9nd54bbA8GIwvNxzEMhuYExVbI92uKd_xjQFUBSg5REqmxxgRvwHOFQ', 'Emily', 'Wolf');
+			$wolf_user->addRole("ROLE_SUPER");			
+			$wolf_user->addRole("ROLE_ADMIN");
 			$manager->persist($wolf_user);
 			
 			$budd_user = new User("ebudd", "ebudd@cedarville.edu", '107801039809418360044', 'ya29.GlvnBBGCLNq4K-1qbGIHdc9UcczjkxdzHytYjf09O2U_WMi7EmybHorO3wQcMZqFLl94qfm3A1w3v9x3WXHiK5Bk-gsjh5vIZWigceXBOLSwkN-JQ8wOo2AyX9vN', "Emmett", "Budd");
+			$budd_user->addRole("ROLE_SUPER");			
+			$budd_user->addRole("ROLE_ADMIN");
 			$manager->persist($budd_user);
 			
-			$smith_user = new User("tgsmith", "timothyglensmith@cedarville.edu", '103366426489767506763', 'ya29.GlznBB6igfKjqyrBrZneXfMGLUgK-aoHQYNyKLlpAxZT_DE7q45zW2M1op18RpKjO1zbIgRzcJFP-bxm-nL_ohm9g-b3gno2piDfnB-CWWFGLNNtuM0aWu6o1EH0JQ', 'Timothy', 'Smith');
+			$smith_user = new User("tgsmith", "timothyglensmith@cedarville.edu");
+			$smith_user->addRole("ROLE_SUPER");			
+			$smith_user->addRole("ROLE_ADMIN");
 			$manager->persist($smith_user);
 		}
 		

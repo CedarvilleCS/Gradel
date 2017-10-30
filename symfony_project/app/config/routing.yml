@@ -1,12 +1,12 @@
 # EMILY'S ROUTE
 homepage:
     path:   '/'
-    defaults:  { _controller: AppBundle:Account:index }
+    defaults:  { _controller: AppBundle:Home:index }
 
 # CHRIS'S''S'S'S'S'S'S'SS'S' ROUTES
 account:
   path: '/home'
-  defaults: {_controller: AppBundle:Account:index}
+  defaults: {_controller: AppBundle:Home:index}
 
 
 section_new:
@@ -26,7 +26,6 @@ section:
   path: '/home/{userId}/section/{sectionId}'
   defaults: {_controller: AppBundle:Section:section}
 
-
 assignment_new:
   path: '/home/{userId}/section/{sectionId}/assignment/new'
   defaults: {_controller: AppBundle:Assignment:new}
@@ -41,7 +40,10 @@ problem_new:
 
 assignment:
   path: '/home/{userId}/section/{sectionId}/assignment/{assignmentId}/problem/{problemId}'
-  defaults: {_controller: AppBundle:Problems:problems}
+  defaults:
+    _controller: AppBundle:Problems:problems
+    problemId: 0
+        
 
 problem_edit:
   path: '/home/{userId}/section/{sectionId}/assignment/{assignmentId}/problem/{problemId}/edit'
@@ -99,4 +101,4 @@ user_logout:
 
 user_login:
   path: '/user/login'
-  defaults: {_controller: AppBundle:Default:index}
+  defaults: {_controller: AppBundle:Login:index}
