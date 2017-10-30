@@ -52,12 +52,26 @@ class SectionController extends Controller
 	
 	$query = $qb->getQuery();
 	$assigs = $query->getResult();
+	
+	$qb_asgn = $em->createQueryBuilder();
+	$qb_asgn->select('a')
+			->from('AppBundle\Entity\Assignment', 'a')
+			->where('a.section = ?1')
+			->andWhere('a.end_time > (?2)')
+			->setParameter(1, $sectionId)
+			->setParameter(2, new DateTime())
+			->orderBy('a.end_time', 'ASC');
+			
+	$asgn_query = $qb_asgn->getQuery();		
+
+	$future_assig = $asgn_query->getResult();
 
       return $this->render('default/section/index.html.twig', [
         'section' => $section,
 		'userId' => $userId,
         'sectionId' => $sectionId,
 		'assignments' => $assigs,
+		'future_assigs' => $future_assig,
       ]);
     }
 
