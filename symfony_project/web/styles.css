@@ -135,6 +135,18 @@ nav.nav-left > ol > a > li:hover {
     display: none;
 }
 
+.card-table {
+  background-color: white;
+  width: 90%;
+  margin: auto;
+  margin-top: 30px;
+  margin-bottom: 30px;
+
+  /* Shadow */
+  -webkit-box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
+  -moz-box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
+  box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
+}
 
 table {
     font-family: arial, sans-serif;
@@ -151,14 +163,21 @@ td, th {
     padding: 8px;
 }
 
-tr:nth-child(even) {
-    background-color: #dddddd;
+.dynamicVal {
+  color: #8DC26F;
+  display: inline;
 }
 
+.dyLabel {
+  display: inline-block;
+}
+/*tr:nth-child(even) {
+    background-color: #dddddd;
+}*/
 
 input[type=text] {
     width: 100%;
-    padding: 12px 20px;
+    padding: 4px 10px;
     margin: 8px 0;
     box-sizing: border-box;
     border: 2px solid #6C6E71;
