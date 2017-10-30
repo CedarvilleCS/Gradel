@@ -42,13 +42,22 @@ html, body {
 
 /* Style the links inside the navigation bar */
 .topnav a {
-    float: right;
     display: block;
     color: #f2f2f2;
     text-align: center;
     padding: 14px 16px;
     text-decoration: none;
     font-size: 17px;
+}
+
+.topnav .navbuttons {
+    float: right;
+}
+
+.topnav #logo {
+    float: left;
+	height: 42px;
+	padding: 2px 3px;
 }
 
 /* Change the color of links on hover */
@@ -124,6 +133,7 @@ nav.nav-left > ol > a > li:hover {
 .card-contents {
     margin-top: 20px;
 }
+
 
 .btn-close {
     /* float: right; */
