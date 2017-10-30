@@ -34,6 +34,7 @@ nav > ul > li:hover {
 }
 
 #problemSpec {
+    margin-top: 50px;
     margin-left: 200px;
     width: calc(100% - 200px);
     padding: 10px;
