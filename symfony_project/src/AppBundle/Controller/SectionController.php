@@ -101,13 +101,20 @@ class SectionController extends Controller
 			$subs = $subs_query->getResult();			
 			
 			# switch this to use teams
-			foreach($subs as $sub){
-				$student_subs[$asgn->id][$sub->user->id.""] = "YES";				
+			foreach($subs as $sub){				
+				foreach($sub->team->users as $user){
+					
+					if($sub->percentage == 1){
+						$student_subs[$asgn->id][$user->id] = "GOOD";
+					} else {
+						$student_subs[$asgn->id][$user->id] = "BAD";
+					}
+				}
 			}
 		}
 		
-		$allprobs = [];
-		
+		# get all of the problems to get all of the submissions
+		$allprobs = [];		
 		foreach($section_entity->assignments as $asgn){
 			foreach($asgn->problems as $prob){
 				$allprobs[] = $prob;
