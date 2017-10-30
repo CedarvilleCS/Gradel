@@ -10,6 +10,7 @@ use AppBundle\Entity\UserSectionRole;
 use AppBundle\Entity\Role;
 use AppBundle\Entity\Section;
 use AppBundle\Entity\Assignment;
+use AppBundle\Entity\Submission;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
@@ -28,54 +29,112 @@ class SectionController extends Controller
 {
     public function sectionAction($userId, $sectionId) {
 
-      $em = $this->getDoctrine()->getManager();
+		$em = $this->getDoctrine()->getManager();
+		  
+		$user = $this->get('security.token_storage')->getToken()->getUser();
 
-	  
-	/*   $user = $this->get('security.token_storage')->getToken()->getUser();
+		if(!get_class($user)){		
+			die("USER DOES NOT EXIST");
+		}
 
-	  if(get_class($user)){
+		$section_entity = $em->find('AppBundle\Entity\Section', $sectionId);
 		
-	     $userId = $user->getID();
-	  }
-	  else
-	  {
-	    die("User doesn't exist");
-	  } */
-
-	$qb = $em->createQueryBuilder();
-	
-
-	$qb->select('assignment')
-		->from('AppBundle\Entity\Assignment', 'assignment')
-		->where('assignment.id = :id')
-        ->setParameter("id", $sectionId);
-	
-	$query = $qb->getQuery();
-	$assigs = $query->getResult();
-	
-	$qb_asgn = $em->createQueryBuilder();
-	$qb_asgn->select('a')
+		if(!$section_entity){
+			die("SECTION DOES NOT EXIST!");
+		}
+		
+		# GET ALL ASSIGNMENTS
+		$qb = $em->createQueryBuilder();
+		$qb->select('a')
 			->from('AppBundle\Entity\Assignment', 'a')
 			->where('a.section = ?1')
-			->andWhere('a.end_time > (?2)')
-			->setParameter(1, $sectionId)
-			->setParameter(2, new DateTime())
-			->orderBy('a.end_time', 'ASC');
+			->orderBy('a.end_time', 'ASC')
+			->setParameter(1, $section_entity);
+		
+		$query = $qb->getQuery();
+		$assignments = $query->getResult();
+		
+		# GET FUTURE ASSIGNMENTS
+		$qb_asgn = $em->createQueryBuilder();
+		$qb_asgn->select('a')
+				->from('AppBundle\Entity\Assignment', 'a')
+				->where('a.section = ?1')
+				->andWhere('a.end_time > ?2')
+				->setParameter(1, $section_entity)
+				->setParameter(2, new DateTime())
+				->orderBy('a.end_time', 'ASC');
+				
+		$asgn_query = $qb_asgn->getQuery();	
+		$future_assig = $asgn_query->getResult();
+		
+		# GET ALL USERS
+		$qb_user = $em->createQueryBuilder();
+		$qb_user->select('usr')
+			->from('AppBundle\Entity\UserSectionRole', 'usr')
+			->where('usr.section = ?1')
+			->setParameter(1, $section_entity);
+		
+		$user_query = $qb_user->getQuery();
+		$users = $user_query->getResult();		
+		
+		$all_users_in_class = [];
+		foreach($users as $fancy_user){
+			if($fancy_user->role->role_name == "Takes"){
+				$all_users_in_class[] = $fancy_user->user;
+			}
+		}
+		
+		# GET ALL STUDENT SUBMISSIONS IN THE CLASS
+		$student_subs = [];
+		
+		foreach($assignments as $asgn){
+						
+			$qb_subs = $em->createQueryBuilder();
+			$qb_subs->select('s')
+					->from('AppBundle\Entity\Submission', 's')
+					->where('s.problem IN (?1)')
+					->andWhere('s.is_accepted = true')
+					->setParameter(1, $asgn->problems);
+					
+			$subs_query = $qb_subs->getQuery();	
+			$subs = $subs_query->getResult();			
 			
-	$asgn_query = $qb_asgn->getQuery();		
-
-	$future_assig = $asgn_query->getResult();
-
-      return $this->render('default/section/index.html.twig', [
-        'section' => $section,
-		'userId' => $userId,
-        'sectionId' => $sectionId,
-		'assignments' => $assigs,
-		'future_assigs' => $future_assig,
-      ]);
+			# switch this to use teams
+			foreach($subs as $sub){
+				$student_subs[$asgn->id][$sub->user->id.""] = "YES";				
+			}
+		}
+		
+		$allprobs = [];
+		
+		foreach($section_entity->assignments as $asgn){
+			foreach($asgn->problems as $prob){
+				$allprobs[] = $prob;
+			}
+		}
+		$qb_submissions = $em->createQueryBuilder();
+		$qb_submissions->select('s')
+				->from('AppBundle\Entity\Submission', 's')
+				->where('s.problem IN (?1)')
+				->orderBy('s.timestamp', 'DESC')
+				->setParameter(1, $allprobs);
+				
+		$submission_query = $qb_submissions->getQuery();	
+		$submissions = $submission_query->getResult();
+		
+				
+		return $this->render('default/section/index.html.twig', [
+			'section' => $section,
+			'userId' => $userId,
+			'assignments' => $assignments,
+			'future_assigs' => $future_assig,
+			'student_subs' => $student_subs,
+			'users' => $all_users_in_class,
+			'recent_submissions' => $submissions,
+		]);
     }
 
-public function newSectionAction($userId) {
+	public function newSectionAction($userId) {
 
       $em = $this->getDoctrine()->getManager();
       $builder = $em->createQueryBuilder();
@@ -162,6 +221,6 @@ public function newSectionAction($userId) {
     }
 
     private function generateDateTime($year, $date) {
-      // TODO: create string based on start and end times for the fields in dcctrine entity
+      // TODO: create string based on start and end times for the fields in doctrine entity
     }
 }
