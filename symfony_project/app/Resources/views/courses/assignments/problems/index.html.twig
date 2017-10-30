@@ -11,7 +11,12 @@
     <nav class="nav-left">
         <ol style="padding-bottom: 10px">
           {% for prob in problem.assignment.problems %}
-				<a href="{{path("assignment", {'userId': app.user.id, 'sectionId': prob.assignment.section.id, 'assignmentId': prob.assignment.id, 'problemId': prob.id})}}"><li>{{ prob.name }}</li></a>
+				<a href="{{path("assignment", {'userId': app.user.id, 'sectionId': prob.assignment.section.id, 'assignmentId': prob.assignment.id, 'problemId': prob.id})}}">
+					<li>
+						{{ prob.name }}
+						<div><small> {{(user_subs[prob.id]*100)|number_format('2', '.')}}% </small></div>
+					</li>
+				</a>
           {% endfor %}
         </ol>
     </nav>

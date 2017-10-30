@@ -52,12 +52,18 @@ html, body {
 
 .topnav .navbuttons {
     float: right;
+	height: 100%;
 }
 
 .topnav #logo {
     float: left;
-	height: 42px;
+	height: 93%;
 	padding: 2px 3px;
+}
+
+.topnav #logo:hover {
+	background-color: inherit;
+	color: black;	
 }
 
 /* Change the color of links on hover */

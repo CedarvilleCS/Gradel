@@ -58,21 +58,20 @@
             <div class="card">
                 <div class="btn-close" onclick="collapseCard('studentInfo')"><h2 style="margin: 0px">Student Info<span style="float: right">&#9660;</span></h2></div>
                 <div id="studentInfo" class="card-contents">
-                       
 					<div>   
-					   <table cellspacing="0" cellpadding="0">
+					   <table>
                             <tr>
-                                <th style="text-align: left; border-bottom: 1px solid black; border-right: 1px solid black;">Student</th>
+                                <th>Student</th>
                                 {% for asgn in assignments %}
 								
-									<th style="border-bottom: 1px solid black">{{asgn.name}}</th>
+									<th>{{asgn.name}}</th>
 								
 								{% endfor %}
                             </tr>
 							
 							{% for user in users %}
 							
-								<tr> <th style="text-align: left; border-right: 1px solid black">{{user.getFirstName}} {{user.getLastName}}</th>
+								<tr> <th>{{user.getFirstName}} {{user.getLastName}}</th>
 								
 								{% for asgn in assignments %}
 									
@@ -134,16 +133,6 @@
 			text-decoration:  none;
 			color: inherit;
 		}
-		
-		td, th{
-			text-align: center;
-			padding: 5px;
-			margin: 0px;
-		}
-		
-		tr{
-			margin: 0px;
-		}
 	</style>
 
     <link rel="stylesheet" href="{{ asset('styles.css') }}" />
@@ -156,11 +145,6 @@
     <!-- JQuery -->
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+	
     <script src="{{ asset('js/cards.js') }}"></script>
-    <script src="{{ asset('js/jquery.scrollbar.js') }}"></script>
-    <script>
-        jQuery(document).ready(function(){
-            jQuery('.scrollbar-macosx').scrollbar();
-        });
-    </script>
 {% endblock %}
