@@ -70,8 +70,10 @@
 								
 								{% for asgn in assignments %}
 									
-									{% if student_subs[asgn.id][user.id] == "YES" %}
+									{% if student_subs[asgn.id][user.id] == "GOOD" %}
 										<td style="color:green; font-size: 25px"> &#x2713; </td>
+									{% elseif student_subs[asgn.id][user.id] == "BAD" %}
+										<td style="color:orange; font-size: 25px"> ~ </td>									
 									{% else %} 
 										<td style="color:red; font-size: 25px"> &#x2718 </td>
 									{% endif %}
