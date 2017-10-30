@@ -1,0 +1,80 @@
+{% block head %}
+<title>Gradel</title>
+{% endblock %}
+
+
+{% block body %}
+
+<body>
+    <div class="topnav" id="myTopnav">
+        <a href="">Home</a>
+        <a href="">Account</a>
+    </div>
+
+    <section id="course-container">
+        {# <h1>{{app.user.getFirstName()}}&#39;s Courses</h1> #}
+
+        {# <ol>
+            <li><a href="courses/assignments/CS-1210">CS 1210</a><div class="show-more" onclick="showAssignments();">+</div></li>
+            <li><a href="courses/assignments/CS-1220">CS 1220</a><div class="show-more" onclick="showAssignments();">+</div></li>
+        </ol> #}
+    </section>
+
+    {# Left Nav #}
+    <nav class="nav-left">
+        <a id="insert" class="btn"><div class="btn btn-center" href="">Save</div></a>
+        <br/>
+        <a href="{{path('problem_new', {'userId': userId, 'sectionId': sectionId, 'assignmentId': assignmentId})}}" class="btn"><div class="btn btn-center">+ Problem</div></a>
+        <ol>
+					{% for assignment in assignments %}
+						<h1>{{assignment.name}}
+					{% endfor %}
+        </ol>
+    </nav>
+
+    {# Main section #}
+    <div class="scrollbar-macosx">
+        <section id="main">
+            {# Cards #}
+            <div class="card">
+							<table>
+								<tr>
+									<th colspan="3">
+                    <label for="name">Name</label>
+										<input id="name" name="name" type="text" value="">
+									</th>
+								</tr>
+							</table>
+            </div>
+
+
+        	</div>
+        </section>
+    </div>
+
+
+</body>
+
+{% endblock %}
+
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('home.css') }}" />
+    <link rel="stylesheet" href="{{ asset('jquery.scrollbar.css') }}" />
+{% endblock %}
+
+
+{% block scripts %}
+    <!-- JQuery -->
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="{{ asset('js/cards.js') }}"></script>
+		<script src="{{ asset('js/newSection.js') }}"></script>
+    <script src="{{ asset('js/jquery.scrollbar.js') }}"></script>
+    <script>
+        jQuery(document).ready(function(){
+            jQuery('.scrollbar-macosx').scrollbar();
+        });
+    </script>
+{% endblock %}

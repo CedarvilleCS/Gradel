@@ -14,7 +14,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Psr\Log\LoggerInterface;
 
 
-class DefaultController extends Controller
+class LoginController extends Controller
 {
     public function indexAction(Request $request, LoggerInterface $logger) {
       $logger->info("This should output somewhere!");
@@ -27,7 +27,7 @@ class DefaultController extends Controller
 		return $this->redirectToRoute('account');
 	  }
 
-      return $this->render('default/index.html.twig', [
+      return $this->render('login/index.html.twig', [
 		  'name' => $name,
       ]);
     }

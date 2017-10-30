@@ -36,56 +36,82 @@
         <section id="main">
             {# Cards #}
             <div class="card">
-                <div class="btn-close" onclick="collapseCard('courseInfo')">Course Info<span style="float: right">&#9660;</span></div>
+                <div class="btn-close" onclick="collapseCard('courseInfo')"><h2 style="margin: 0px">Due Soon<span style="float: right">&#9660;</span></h2></div>
                 <div id="courseInfo" class="card-contents">
                         {% for assig in future_assigs %}
+
 						<ol>
 							<a href="{{path('assignment', {'userId':userId, 'sectionId':assig.section.id, 'assignmentId':assig.id})}}">
 									<li>{{assig.name}} <small>(Due: {{assig.end_time|date('F d, Y  \\a\\t  h:i:s A')}})</small></li>
 								</a>
 						</ol>
-		{% endfor %}
+						{% endfor %}
+
                 </div>
             </div>
 
 
             <div class="card">
-                <div class="btn-close" onclick="collapseCard('studentInfo')">Student Info<span style="float: right">&#9660;</span></div>
+                <div class="btn-close" onclick="collapseCard('studentInfo')"><h2 style="margin: 0px">Student Info<span style="float: right">&#9660;</span></h2></div>
                 <div id="studentInfo" class="card-contents">
-                        <table border="1">
+                       
+					<div>   
+					   <table cellspacing="0" cellpadding="0">
                             <tr>
-                                <th>Student</th>
-                                <th>Assignment 1</th>
-                                <th>Assignment 2</th>
-                                <th>Assignment 3</th>
+                                <th style="text-align: left; border-bottom: 1px solid black; border-right: 1px solid black;">Student</th>
+                                {% for asgn in assignments %}
+								
+									<th style="border-bottom: 1px solid black">{{asgn.name}}</th>
+								
+								{% endfor %}
                             </tr>
-                            <tr>
-                                <td>Emmett</td>
-                                <td>Done</td>
-                                <td>Done</td>
-                                <td>Done</td>
-                            </tr>
-                            <tr>
-                                <td>Timothy</td>
-                                <td>Done</td>
-                                <td>Done</td>
-                                <td>Not Done</td>
-                            </tr>
-                            <tr>
-                                <td>Emily</td>
-                                <td>Done</td>
-                                <td>Not Done</td>
-                                <td>Not Done</td>
-                            </tr>
-                            <tr>
-                                <td>Chris</td>
-                                <td>Not Done</td>
-                                <td>Done</td>
-                                <td>Done</td>
-                            </tr>
+							
+							{% for user in users %}
+							
+								<tr> <th style="text-align: left; border-right: 1px solid black">{{user.getFirstName}} {{user.getLastName}}</th>
+								
+								{% for asgn in assignments %}
+									
+									{% if student_subs[asgn.id][user.id] == "YES" %}
+										<td style="color:green; font-size: 25px"> &#x2713; </td>
+									{% else %} 
+										<td style="color:red; font-size: 25px"> &#x2718 </td>
+									{% endif %}
+									
+								{% endfor %}
+								
+							{% endfor %}
+                            
                         </table>
+					</div>
                 </div>
             </div>
+			
+			
+			
+			<div class="card">
+                <div class="btn-close" onclick="collapseCard('recentSubs')"><h2 style="margin: 0px">Recent Submissions<span style="float: right">&#9660;</span></h2></div>
+                <div id="recentSubs" class="card-contents">
+                       
+					<div>   
+					   <ul>
+						{% for sub in recent_submissions %}
+							{% if sub.percentage == 1 %}
+								<div style="color: green">
+							{% else %}
+								<div style="color: red">
+							{% endif %}
+							
+							<li><a href="{{path('submission_results', {'submission_id': sub.id})}}">{{sub.user.getFirstName}} {{sub.user.getLastName}} - {{sub.filename}} - {{sub.timestamp|date('F d, Y  \\a\\t  h:i:s')}}</a> </li>
+						
+							</div>
+						{% endfor %}
+					   </ul>
+					</div>
+                </div>
+            </div>
+			
+			
         </section>
     </div>
 
@@ -96,6 +122,24 @@
 
 
 {% block stylesheets %}
+
+	<style>
+		a{
+			text-decoration:  none;
+			color: inherit;
+		}
+		
+		td, th{
+			text-align: center;
+			padding: 5px;
+			margin: 0px;
+		}
+		
+		tr{
+			margin: 0px;
+		}
+	</style>
+
     <link rel="stylesheet" href="{{ asset('styles.css') }}" />
     <link rel="stylesheet" href="{{ asset('home.css') }}" />
     <link rel="stylesheet" href="{{ asset('jquery.scrollbar.css') }}" />
