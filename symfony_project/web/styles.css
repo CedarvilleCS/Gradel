@@ -83,7 +83,7 @@ nav.nav-left {
 nav.nav-left > ol {
     margin: 0px;
     padding: 0px;
-    padding-top: 10px; 
+    padding-top: 10px;
 }
 
 nav.nav-left > ol > li {
@@ -154,6 +154,7 @@ td, th {
 tr:nth-child(even) {
     background-color: #dddddd;
 }
+
 
 input[type=text] {
     width: 100%;
