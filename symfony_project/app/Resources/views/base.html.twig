@@ -1,14 +1,75 @@
-<!DOCTYPE html>
+{# <!DOCTYPE html>
 <html>
     <head>
         <meta charset="UTF-8" />
         <title>{% block title %}Gradel{% endblock %}</title>
         
 	{% block stylesheets %}	{% endblock %}
-	<link rel="icon" type="image/x-icon" href="{{ asset('logo1.png') }}" />
+	
     </head>
     <body>
         {% block body %}{% endblock %}
         {% block javascripts %}{% endblock %}
     </body>
-</html>
+</html> #}
+
+
+{% block head %}
+<title>Gradel</title>
+<link rel="icon" type="image/x-icon" href="{{ asset('logo1.png') }}" />
+{% endblock %}
+
+
+{% block body %}
+
+<body>        
+    <div class="topnav" id="myTopnav">
+        <a href="">Home</a>
+        <a href="">Account</a>
+    </div>
+
+    {# Left Nav #} 
+    <nav class="nav-left">
+        <a href="http://www.google.com" class="btn"><div class="btn btn-center" href="http://www.google.com">New</div></a>
+        <ol>
+            <a href=""><li><br><small></small></li></a>
+        </ol>
+    </nav>
+
+
+    {# Main section #}
+    <section id="main">
+        {# Cards #}
+        <div class="card">
+            <div class="btn-close" onclick="collapseCard('')"><span style="float: right">&#9660;</span></div>
+            <div id="courseInfo" class="card-contents">
+                    <ol>
+                        <a href=""><li></li></a>
+                    </ol>
+            </div>
+        </div>
+    </section>
+</body>
+
+{% endblock %}
+
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('home.css') }}" />
+    <link rel="stylesheet" href="{{ asset('jquery.scrollbar.css') }}" />
+{% endblock %}
+
+
+{% block scripts %}
+    <!-- JQuery -->
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="{{ asset('js/cards.js') }}"></script>
+    <script src="{{ asset('js/jquery.scrollbar.js') }}"></script>
+    <script>
+        jQuery(document).ready(function(){
+            jQuery('.scrollbar-macosx').scrollbar();
+        });
+    </script>
+{% endblock %}
