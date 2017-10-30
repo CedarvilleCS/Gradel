@@ -15,6 +15,7 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
@@ -109,6 +110,18 @@ public function newSectionAction($userId) {
 			]);
 		}
 
+    public function editSectionAction($userId, $sectionId) {
+      $em = $this->getDoctrine()->getManager();
+      $builder = $em->createQueryBuilder();
+
+      $section = $em->find('AppBundle\Entity\Section', $sectionId);
+
+      return $this->render('default/section/edit.html.twig', [
+        'userId' => $userId,
+        'section' => $section,
+      ]);
+    }
+
     public function insertSectionAction(Request $request, $userId, $courseId, $name, $students, $semester, $year, $start_time, $end_time, $is_public, $is_deleted) {
 
       echo "<br/>";
@@ -157,8 +170,8 @@ public function newSectionAction($userId) {
           $em->flush();
         }
       }
-
-      return new Response("it worked");
+      echo $section->id;
+      return new RedirectResponse($this->generateUrl('section_edit', array('userId' => $userId, 'sectionId' => $section->id)));
     }
 
     private function generateDateTime($year, $date) {

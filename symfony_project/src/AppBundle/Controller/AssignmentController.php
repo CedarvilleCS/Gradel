@@ -17,31 +17,21 @@ use Psr\Log\LoggerInterface;
 
 class AssignmentController extends Controller
 {
-    public function assignmentAction($userId, $sectionId, $assignmentId, $problemId) {
 
-      $em = $this->getDoctrine()->getManager();
+    public function newAction($userId, $sectionId) {
 
-      $builder = $em->createQueryBuilder();
-      $builder->select('assignment')
-              ->from('AppBundle\Entity\Assignment assignment')
-              ->where('assignment.id = :id')
-              ->setParameter("id", $assignmentId);
-      $query = $builder->getQuery();
-      $assignment = $query->getSingleResult();
+      return $this->render('default/assignment/new.html.twig', [
+        "userId" => $userId,
+        "sectionId" => $sectionId,
+      ]);
+    }
 
-	$currentProblem = [];
+    public function editAction($userId, $sectionId, $assignmentId) {
 
-      foreach ($assignment->problems as $problem) {
-      	if ($problem->id == $problemId) {
-			$currentProblem[] = $problem;
-		}
-      }
-
-      $currentProblemDescription = stream_get_contents($currentProblem[0]->description);
-      return $this->render('default/assignment/index.html.twig', [
-        'assignment' => $assignment,
-        'currentProblem' => $currentProblem[0],
-        'currentProblemDescription' => $currentProblemDescription,
+      return $this->render('default/assignment/edit.html.twig', [
+        "userId" => $userId,
+        "sectionId" => $sectionId,
+        "assignmentId" => $assignmentId,
       ]);
     }
 }

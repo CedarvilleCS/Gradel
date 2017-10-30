@@ -1,0 +1,115 @@
+{% block head %}
+<title>Gradel</title>
+{% endblock %}
+
+
+{% block body %}
+
+<body>
+    <div class="topnav" id="myTopnav">
+        <a href="">Home</a>
+        <a href="">Account</a>
+    </div>
+
+    <section id="course-container">
+        {# <h1>{{app.user.getFirstName()}}&#39;s Courses</h1> #}
+
+        {# <ol>
+            <li><a href="courses/assignments/CS-1210">CS 1210</a><div class="show-more" onclick="showAssignments();">+</div></li>
+            <li><a href="courses/assignments/CS-1220">CS 1220</a><div class="show-more" onclick="showAssignments();">+</div></li>
+        </ol> #}
+    </section>
+
+    {# Left Nav #}
+    <nav class="nav-left">
+        <a class="btn"><div class="btn btn-center">Save</div></a>
+        <br/>
+        <a href="{{path('assignment_new', {'userId': userId, 'sectionId': section.id})}}" class="btn"><div class="btn btn-center">+ Assignment</div></a>
+        <ol>
+          <!-- <a>
+            <li>
+              <div>
+                + Assignment
+              </div>
+            </li>
+          </a> -->
+          {% for assignment in section.assignments %}
+            <a>
+              <li>
+              <div>{{assignment.name}}</div>
+            </li>
+            </a>
+          {% endfor %}
+        </ol>
+    </nav>
+
+    {# Main section #}
+    <div class="scrollbar-macosx">
+
+        <section id="main">
+          <h1>Edit {{section.name}}</h1>
+            {# Cards #}
+            <div class="card">
+                <div class="btn-close" onclick="collapseCard('courseInfo')">Section Info<span style="float: right">&#9660;</span></div>
+                <div id="courseInfo" class="card-contents">
+                {% for assignment in section.assignments %}
+                  <div>{{assignment.name}}</div>
+                {% endfor %}
+                </div>
+            </div>
+
+
+            <div class="card">
+                <div class="btn-close" onclick="collapseCard('studentInfo')">Students<span style="float: right">&#9660;</span></div>
+                <div id="studentInfo" class="card-contents">
+                        <table border="1">
+                            <tr>
+                                <th>Current Students</th>
+                            </tr>
+                            <tr>
+                                <td>Emmett</td>
+                            </tr>
+                            <tr>
+                                <td>Timothy</td>
+                            </tr>
+                            <tr>
+                                <td>Emily</td>
+                            </tr>
+                            <tr>
+                                <td>Chris</td>
+                            </tr>
+                            <tr>Add More</tr>
+                            <tr>
+                              <textarea></textarea>
+                            </tr>
+                        </table>
+                </div>
+            </div>
+        </section>
+    </div>
+
+
+</body>
+
+{% endblock %}
+
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('home.css') }}" />
+    <link rel="stylesheet" href="{{ asset('jquery.scrollbar.css') }}" />
+{% endblock %}
+
+
+{% block scripts %}
+    <!-- JQuery -->
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="{{ asset('js/cards.js') }}"></script>
+    <script src="{{ asset('js/jquery.scrollbar.js') }}"></script>
+    <script>
+        jQuery(document).ready(function(){
+            jQuery('.scrollbar-macosx').scrollbar();
+        });
+    </script>
+{% endblock %}
