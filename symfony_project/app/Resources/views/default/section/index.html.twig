@@ -26,8 +26,7 @@
         <a href="http://www.google.com" class="btn"><div class="btn btn-center" href="http://www.google.com">+ Assignment</div></a>
 		{% for assig in assignments %}
         <ol>
-            <a href={{path('assignment', {'userId': userId, 'sectionId': assig.section.id, "assignmentId": assig.id})}}
-			><li>{{ assig.name }}<br><small>January 15, 2018</small></li></a>
+            <a href={{path('assignment', {'userId': userId, 'sectionId': assig.section.id, "assignmentId": assig.id})}}><li>{{ assig.name }}<br><small>{{assig.end_time|date('F d, Y')}}</small></li></a>
         </ol>
 		{% endfor %}
     </nav>
@@ -39,11 +38,13 @@
             <div class="card">
                 <div class="btn-close" onclick="collapseCard('courseInfo')">Course Info<span style="float: right">&#9660;</span></div>
                 <div id="courseInfo" class="card-contents">
-                        <ol>
-                            <a href="http://www.google.com"><li>Assignment 1 - January 15, 2018</li></a>
-                            <a href="http://www.google.com"><li>Assignment 2 - February 29, 2018</li></a>
-                            <a href="http://www.google.com"><li>Assignment 3 - April 50, 2018</li></a>
-                        </ol>
+                        {% for assig in future_assigs %}
+						<ol>
+							<a href="{{path('assignment', {'userId':userId, 'sectionId':assig.section.id, 'assignmentId':assig.id})}}">
+									<li>{{assig.name}} <small>(Due: {{assig.end_time|date('F d, Y  \\a\\t  h:i:s')}})</small></li>
+								</a>
+						</ol>
+		{% endfor %}
                 </div>
             </div>
 
