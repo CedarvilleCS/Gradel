@@ -33,6 +33,11 @@ nav > ul > li:hover {
     background-color: #76b852;
 }
 
+nav > ul > li > a {
+    color: white;
+    text-decoration: none;
+}
+
 #problemSpec {
     margin-top: 50px;
     margin-left: 200px;
