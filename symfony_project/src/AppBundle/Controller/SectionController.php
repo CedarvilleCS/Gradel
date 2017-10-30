@@ -126,6 +126,7 @@ class SectionController extends Controller
 				
 		return $this->render('default/section/index.html.twig', [
 			'section' => $section,
+			'sectionId' => $sectionId,
 			'userId' => $userId,
 			'assignments' => $assignments,
 			'future_assigs' => $future_assig,
