@@ -7,11 +7,7 @@
 {% block body %}
 
 <body>        
-    <div class="topnav" id="myTopnav">
-        <a href="{{path('homepage')}}">Home</a>
-        <a href="">Admin</a>
-        <a href="{{path('user_logout')}}">Logout</a>
-    </div>
+    {{ include('template/top-nav.html.twig') }}
 
     {# Left Nav #}
     <nav class="nav-left">
