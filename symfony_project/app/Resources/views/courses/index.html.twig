@@ -6,10 +6,7 @@
 {% block body %}
 
 <body>        
-    <div class="topnav" id="myTopnav">
-        <a href="">Home</a>
-        <a href="../web/">Account</a>
-    </div>
+    {{ include('template/top-nav.html.twig') }}
 
     <section id="course-container">
         <h1>{{app.user.getFirstName()}}&#39;s Courses</h1>
