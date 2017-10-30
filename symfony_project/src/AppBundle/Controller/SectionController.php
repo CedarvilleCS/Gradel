@@ -30,43 +30,38 @@ class SectionController extends Controller
 
       $em = $this->getDoctrine()->getManager();
 
-      $builder = $em->createQueryBuilder();
-      $builder->select('section')
-              ->from('AppBundle\Entity\Section section')
-              ->where('section.id = :id')
-              ->setParameter("id", $sectionId);
-      $query = $builder->getQuery();
-      $section = $query->getSingleResult();
+	  
+	/*   $user = $this->get('security.token_storage')->getToken()->getUser();
 
-			$qb = $em->createQueryBuilder();
-			$qb->select('u')
-					->from('AppBundle\Entity\User', 'u')
-					->where('u.id = ?1')
-					->setParameter(1, $userId);
+	  if(get_class($user)){
+		
+	     $userId = $user->getID();
+	  }
+	  else
+	  {
+	    die("User doesn't exist");
+	  } */
 
-			$query = $qb->getQuery();
-			$user = $query->getSingleResult();
+	$qb = $em->createQueryBuilder();
+	
 
-			$qb->select('usr')
-					->from('AppBundle\Entity\UserSectionRole', 'usr')
-					->where('usr.user = ?1')
-					->andWhere('usr.section = ?2')
-					->setParameter(1, $user->id)
-					->setParameter(2, $sectionId);
-
-
-			$query = $qb->getQuery();
-			$usr = $query->getSingleResult();
+	$qb->select('assignment')
+		->from('AppBundle\Entity\Assignment', 'assignment')
+		->where('assignment.id = :id')
+        ->setParameter("id", $sectionId);
+	
+	$query = $qb->getQuery();
+	$assigs = $query->getResult();
 
       return $this->render('default/section/index.html.twig', [
         'section' => $section,
-        'userId' => $userId,
+		'userId' => $userId,
         'sectionId' => $sectionId,
-				'usr' => $usr,
+		'assignments' => $assigs,
       ]);
     }
 
-		public function newSectionAction($userId) {
+public function newSectionAction($userId) {
 
       $em = $this->getDoctrine()->getManager();
       $builder = $em->createQueryBuilder();
