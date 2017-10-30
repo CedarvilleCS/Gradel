@@ -1,0 +1,8 @@
+#main {
+    background-color: #8DC26F;
+    width: calc(100% - 200px);
+    float: right;
+    height: calc(100% - 50px);
+    overflow: scroll;
+    margin-top: 50px;
+}

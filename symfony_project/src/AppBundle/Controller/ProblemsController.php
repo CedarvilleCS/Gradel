@@ -43,6 +43,20 @@ class ProblemsController extends Controller {
 			'languages' => $languages,
 		]);
     }
+
+    public function newAction($userId, $sectionId, $assignmentId) {
+      return $this->render('courses/assignments/problems/new.html.twig', [
+        'userId' => $userId,
+        'sectionId' => $sectionId,
+        'assignmentId' => $assignmentId,
+      ]);
+    }
+
+    public function editAction() {
+      return $this->render('courses/assignments/problems/edit.html.twig', [
+
+      ]);
+    }
 }
 
 ?>
