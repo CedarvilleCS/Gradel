@@ -1,12 +1,12 @@
 # EMILY'S ROUTE
 homepage:
     path:   '/'
-    defaults:  { _controller: AppBundle:Account:index }
+    defaults:  { _controller: AppBundle:Home:index }
 
 # CHRIS'S''S'S'S'S'S'S'SS'S' ROUTES
 account:
   path: '/home'
-  defaults: {_controller: AppBundle:Account:index}
+  defaults: {_controller: AppBundle:Home:index}
 
 
 section_new:
@@ -23,10 +23,13 @@ section:
   path: '/home/{userId}/section/{sectionId}'
   defaults: {_controller: AppBundle:Section:section}
 
-
+  
 assignment:
   path: '/home/{userId}/section/{sectionId}/assignment/{assignmentId}/problem/{problemId}'
-  defaults: {_controller: AppBundle:Problems:problems}
+  defaults:
+    _controller: AppBundle:Problems:problems
+    problemId: 0
+        
 
 # EMMETT'S ROUTE
 upload:
