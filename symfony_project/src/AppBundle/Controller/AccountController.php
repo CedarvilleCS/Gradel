@@ -22,8 +22,10 @@ class AccountController extends Controller
 	  $usr= $this->get('security.token_storage')->getToken()->getUser();
 	  
 	  if(get_class($usr)){
+		
 		$userId = $usr->getID();
 		$name = $usr->getFirstName();
+		$name = $usr->setFirstName($name);
 	  }
 	  $em = $this->getDoctrine()->getManager();
       # get the user section role entities using the user entity as the where

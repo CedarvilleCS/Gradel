@@ -6,7 +6,7 @@
 
 {% block body %}
 {% if app.user %}
-	Hello, {{app.user.getFirstName()}}! <br/>	
+	Hello, {{name}}! <br/>	
 	
 	<hr>
 	<a href="{{ path('user_logout') }}">Logout</a>

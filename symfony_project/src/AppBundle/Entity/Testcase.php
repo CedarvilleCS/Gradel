@@ -2,25 +2,26 @@
 
 namespace AppBundle\Entity;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Config\Definition\Exception\Exception;
 
 /**
 *@ORM\Entity
 *@ORM\Table(name="testcase")
 **/
 class Testcase {
-	
+
 	public function __construct(){
-		
+
 		$a = func_get_args();
 		$i = func_num_args();
-		
+
 		if(method_exists($this, $f='__construct'.$i)) {
 			call_user_func_array(array($this,$f),$a);
 		} else if($i != 0) {
-			throw new Exception('Contructor does not accept '.$i.' arguments');
+			throw new Exception('ERROR: '.get_class($this).' constructor does not accept '.$i.' arguments');
 		}
 	}
-	
+
 	public function __construct6($prob, $seq, $in, $out, $feed, $wght){
 		$this->problem = $prob;
 		$this->seq_num = $seq;
@@ -39,11 +40,11 @@ class Testcase {
 
 	/**
      * Multiple TC per Problem
-     * @ORM\ManyToOne(targetEntity="Problem", inversedBy="testcases", cascade={"persist", "remove"})
+     * @ORM\ManyToOne(targetEntity="Problem", inversedBy="testcases")
      * @ORM\JoinColumn(name="problem_id", referencedColumnName="id", onDelete="CASCADE")
      */
 	public $problem;
-	
+
 	/**
 	*@ORM\Column(type="integer")
 	*/
@@ -53,27 +54,27 @@ class Testcase {
 	*@ORM\Column(type="blob")
 	*/
 	public $input;
-	
-	public function deblobinateInput(){			
+
+	public function deblobinateInput(){
 		return stream_get_contents($this->input);
 	}
-	
+
 	/**
 	*@ORM\Column(type="blob")
 	*/
 	public $correct_output;
-	
-	public function deblobinateCorrectOutput(){			
+
+	public function deblobinateCorrectOutput(){
 		return stream_get_contents($this->correct_output);
 	}
 
 	/**
      * Multiple FB per TC
-     * @ORM\ManyToOne(targetEntity="Feedback", cascade={"persist", "remove"})
-     * @ORM\JoinColumn(name="feedback_id", referencedColumnName="id", onDelete="CASCADE")
+     * @ORM\ManyToOne(targetEntity="Feedback")
+     * @ORM\JoinColumn(name="feedback_id", referencedColumnName="id")
      */
 	public $feedback;
-	
+
 	/**
 	*@ORM\Column(type="decimal", precision=9, scale=8)
 	*/

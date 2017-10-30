@@ -5,11 +5,4 @@ function collapseCard(cardID) {
     
     $('#' + cardID).children().slideToggle();
     
-
-    // if($('#' + cardID).is(':hidden')) {
-    //     console.log("isOpen");
-    //     $("#cardID").html("test");
-    //     isOpen = false;
-    // }
-    // $(".btn-close").show()
 };

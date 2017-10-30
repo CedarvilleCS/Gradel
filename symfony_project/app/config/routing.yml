@@ -2,48 +2,65 @@
 homepage:
     path:   '/'
     defaults:  { _controller: AppBundle:Account:index }
-    
+
 # CHRIS'S''S'S'S'S'S'S'SS'S' ROUTES
 account:
-  path: '/account'
+  path: '/home'
   defaults: {_controller: AppBundle:Account:index}
 
+
+section_new:
+  path: '/home/{userId}/section/new'
+  defaults: {_controller: AppBundle:Section:newSection}
+
+
+section_insert:
+  path: '/home/{userId}/section/insert/{courseId}/{name}/{students}/{semester}/{year}/{start_time}/{end_time}/{is_deleted}/{is_public}'
+  defaults: {_controller: AppBundle:Section:insertSection, name: "hey", semester: "Dr. G", year: "Node", start_time: "is way better", end_time: "than anything", is_deleted: "you have used", is_public: ":)", students: "love, Chris Brauns"}
+
+
 section:
-  path: '/account/{userId}/section/{sectionId}'
+  path: '/home/{userId}/section/{sectionId}'
   defaults: {_controller: AppBundle:Section:section}
 
+
 assignment:
-  path: '/account/{userId}/section/{sectionId}/assignment/{assignmentId}/problem/{problemId}'
-  defaults: {_controller: AppBundle:Problems:problems, problemId: 1}
-  
-# EMMETT'S ROUTE 
+  path: '/home/{userId}/section/{sectionId}/assignment/{assignmentId}/problem/{problemId}'
+  defaults: {_controller: AppBundle:Problems:problems}
+
+# EMMETT'S ROUTE
 upload:
-  path: "/courses/assignments/problems/{project_id}/{problem_id}/upload"
+  path: "/courses/assignments/problems/{problem_id}/upload"
   defaults: {_controller: AppBundle:Upload:upload}
+  requirements:
+    problem_id:     '\d+'
 
 # temporary route for GUI development
 professorsection:
     path: "/professor/section/{userId}/{sectionId}"
     defaults: {_controller: AppBundle:Professorsection:professorsection}
-  
-  
+
+
+
 # TIMOTHY'S ROUTES
 submit:
-    path: '/compilation/submit/{submission_id}/{filetype_id}/{language_id}/{submitted_filename}'
-    defaults: 
+    path: '/compilation/submit/{problem_id}/{language_id}/{submitted_filename}/{main_class}/{package_name}'
+    defaults:
         _controller:    AppBundle:Compilation:submit
+        main_class:     ''
+        package_name:   ''
     requirements:
-        submission_id:  '\d+'
-        filetype_id:    '\d+'
+        problem_id:     '\d+'
         language_id:    '\d+'
-        
+
 submit_backup:
-    path: '/compilation/submit_backup/{problem_id}/{filetype_id}/{language_id}/{submitted_filename}'
-    defaults: 
+    path: '/compilation/submit_backup/{problem_id}/{language_id}/{submitted_filename}/{main_class}/{package_name}'
+    defaults:
         _controller:    AppBundle:Compilation:submit_backup
+        main_class:     ''
+        package_name:   ''
     requirements:
         problem_id:  '\d+'
-        filetype_id: '\d+'
         language_id: '\d+'
 
 submission_results:
@@ -56,7 +73,7 @@ submission_results:
 hwi_oauth_redirect:
     resource: "@HWIOAuthBundle/Resources/config/routing/redirect.xml"
     prefix:   /connect
-    
+
 hwi_oauth_connect:
     resource: "@HWIOAuthBundle/Resources/config/routing/connect.xml"
     prefix:   /connect
@@ -64,10 +81,10 @@ hwi_oauth_connect:
 hwi_oauth_login:
     resource: "@HWIOAuthBundle/Resources/config/routing/login.xml"
     prefix:   /login
-    
+
 user_logout:
     path: '/user/logout'
 
 user_login:
   path: '/user/login'
-  defaults: {_controller: AppBundle:Default:index}    
+  defaults: {_controller: AppBundle:Default:index}

@@ -4,6 +4,7 @@ namespace AppBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Config\Definition\Exception\Exception;
 
 /**
  * @ORM\Entity
@@ -19,7 +20,7 @@ class Assignment{
 		if(method_exists($this, $f='__construct'.$i)) {
 			call_user_func_array(array($this,$f),$a);
 		} else if($i != 0) {
-			throw new Exception('Contructor does not accept '.$i.' arguments');
+			throw new Exception('ERROR: '.get_class($this).' constructor does not accept '.$i.' arguments');
 		}
 		
 		$this->problems = new ArrayCollection();
@@ -45,12 +46,12 @@ class Assignment{
 	public $id;
 
 	/**
-	* @ORM\OneToMany(targetEntity="Problem", mappedBy="assignment", cascade={"persist", "remove"})
+	* @ORM\OneToMany(targetEntity="Problem", mappedBy="assignment")
 	*/
 	public $problems;
 
 	/**
-	* @ORM\ManyToOne(targetEntity="Section", inversedBy="assignments", cascade={"persist", "remove"})
+	* @ORM\ManyToOne(targetEntity="Section", inversedBy="assignments")
 	* @ORM\JoinColumn(name="section_id", referencedColumnName="id", onDelete="CASCADE")
 	*/
 	public $section;
@@ -90,7 +91,7 @@ class Assignment{
 	public $weight;
 	
 	/**
-	* @ORM\ManyToOne(targetEntity="Gradingmethod", cascade={"persist", "remove"})
+	* @ORM\ManyToOne(targetEntity="Gradingmethod")
 	* @ORM\JoinColumn(name="gradingmethod_id", referencedColumnName="id", onDelete="CASCADE")
 	*/
 	public $gradingmethod;
