@@ -57,13 +57,32 @@ class HomeController extends Controller {
 		$asgn_query = $qb_asgn->getQuery();		
 
 		$assignments = $asgn_query->getResult();	
+		
+		$grades = [];
+		
+		foreach($assignments as $asgn){		
+			# get student grades
+			$qb_grades = $em->createQueryBuilder();
+			$qb_grades->select('COALESCE(AVG(s.percentage),0)')
+				->from('AppBundle\Entity\Submission', 's')
+				->where('s.user = ?1')
+				->andWhere('s.problem IN (?2)')
+				->setParameter(1, $user->id)
+				->setParameter(2, $asgn->problems);
+				
+			$grades_query = $qb_grades->getQuery();		
+		
+			$grade = $grades_query->getOneorNullResult();
 
+			$grades[$asgn->id] = $grade[1];
+		}
+				
 		// replace this example code with whatever you need
-		return $this->render('default/account/index.html.twig', [
+		return $this->render('home/index.html.twig', [
 			'usersectionroles' => $usersectionroles,
 			'assignments' => $assignments,
 			'user' => $user,
-			'currTime' => new DateTime()
+			'grades' => $grades
 		]);
 
     }
