@@ -1,102 +1,115 @@
-{% extends 'base.html.twig' %}
+{% block head %}
+<title>Gradel</title>
+{% endblock %}
+
 
 {% block body %}
-	<div class="topnav" id="myTopnav">
-	  <a>Home</a>
-	  <a>Account</a>
-	</div>
 
-	<table>
-	  <tr>
-	    <th>Name</th>
-			{% if (usr.role.role_name == 'Teaches') %}
-				<th></th>
-			{% endif %}
-		</tr>
-    {% for assignment in section.assignments %}
-      <tr>
-        <th>
-          <a href="{{path('assignment', {'userId': userId, 'sectionId': sectionId, 'assignmentId': assignment.id, 'problemId': assignment.problems[0].id})}}">
-            {{assignment.name}}
-          </a>
-        </th>
-				{% if (usr.role.role_name == 'Teaches') %}
-					<th>
-						<div>edit</div>
-					</th>
-				{% endif %}
-      </tr>
-    {% endfor %}
-	</table>
+<body>        
+    <div class="topnav" id="myTopnav">
+        <a href="">Home</a>
+        <a href="">Account</a>
+    </div>
+
+    <section id="course-container">
+        {# <h1>{{app.user.getFirstName()}}&#39;s Courses</h1> #}
+        
+        {# <ol>
+            <li><a href="courses/assignments/CS-1210">CS 1210</a><div class="show-more" onclick="showAssignments();">+</div></li>
+            <li><a href="courses/assignments/CS-1220">CS 1220</a><div class="show-more" onclick="showAssignments();">+</div></li>
+        </ol> #}
+		
+    </section>
+
+    {# Left Nav #}
+    <nav class="nav-left">
+        <a href="http://www.google.com" class="btn"><div class="btn btn-center" href="http://www.google.com">+ Assignment</div></a>
+		{% for assig in assignments %}
+        <ol>
+            <a href={{path('assignment', {'userId': userId, 'sectionId': assig.section.id, "assignmentId": assig.id})}}
+			><li>{{ assig.name }}<br><small>January 15, 2018</small></li></a>
+        </ol>
+		{% endfor %}
+    </nav>
+
+    {# Main section #}
+    <div class="scrollbar-macosx">
+        <section id="main">
+            {# Cards #}
+            <div class="card">
+                <div class="btn-close" onclick="collapseCard('courseInfo')">Course Info<span style="float: right">&#9660;</span></div>
+                <div id="courseInfo" class="card-contents">
+                        <ol>
+                            <a href="http://www.google.com"><li>Assignment 1 - January 15, 2018</li></a>
+                            <a href="http://www.google.com"><li>Assignment 2 - February 29, 2018</li></a>
+                            <a href="http://www.google.com"><li>Assignment 3 - April 50, 2018</li></a>
+                        </ol>
+                </div>
+            </div>
+
+
+            <div class="card">
+                <div class="btn-close" onclick="collapseCard('studentInfo')">Student Info<span style="float: right">&#9660;</span></div>
+                <div id="studentInfo" class="card-contents">
+                        <table border="1">
+                            <tr>
+                                <th>Student</th>
+                                <th>Assignment 1</th>
+                                <th>Assignment 2</th>
+                                <th>Assignment 3</th>
+                            </tr>
+                            <tr>
+                                <td>Emmett</td>
+                                <td>Done</td>
+                                <td>Done</td>
+                                <td>Done</td>
+                            </tr>
+                            <tr>
+                                <td>Timothy</td>
+                                <td>Done</td>
+                                <td>Done</td>
+                                <td>Not Done</td>
+                            </tr>
+                            <tr>
+                                <td>Emily</td>
+                                <td>Done</td>
+                                <td>Not Done</td>
+                                <td>Not Done</td>
+                            </tr>
+                            <tr>
+                                <td>Chris</td>
+                                <td>Not Done</td>
+                                <td>Done</td>
+                                <td>Done</td>
+                            </tr>
+                        </table>
+                </div>
+            </div>
+        </section>
+    </div>
+
+
+</body>
 
 {% endblock %}
 
+
 {% block stylesheets %}
-<style>
-		@import url(https://fonts.googleapis.com/css?family=Roboto:300);
+    <link rel="stylesheet" href="{{ asset('styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('home.css') }}" />
+    <link rel="stylesheet" href="{{ asset('jquery.scrollbar.css') }}" />
+{% endblock %}
 
-		table {
-		    font-family: arial, sans-serif;
-		    border-collapse: collapse;
-				margin: 0 auto;
-				margin-top: 50px;
-		    min-width: 350px;
-				max-width: 550px;
-		}
 
-		td, th {
-		    border: 1px solid #dddddd;
-		    text-align: left;
-		    padding: 8px;
-		}
-
-		tr:nth-child(even) {
-		    background-color: #dddddd;
-		}
-
-		.topnav {
-    background-color: #333;
-    overflow: hidden;
-		}
-
-		/* Style the links inside the navigation bar */
-		.topnav a {
-		    float: left;
-		    display: block;
-		    color: #f2f2f2;
-		    text-align: center;
-		    padding: 14px 16px;
-		    text-decoration: none;
-		    font-size: 17px;
-		}
-
-		/* Change the color of links on hover */
-		.topnav a:hover {
-		    background-color: #ddd;
-		    color: black;
-		}
-
-		/* Add a color to the active/current link */
-		.topnav a.active {
-		    background-color: #4CAF50;
-		    color: white;
-		}
-
-		h1 {
-			font-family: "Robot", sans-serif;
-			font-size: 16px;
-		}
-
-		body {
-		margin: 0px;
-	  background: #ffffff; /* fallback for old browsers */
-	  background: -webkit-linear-gradient(right, #f2f2f2, #ffffff);
-	  background: -moz-linear-gradient(right, #f2f2f2, #ffffff);
-	  background: -o-linear-gradient(right, #f2f2f2, #ffffff);
-	  background: linear-gradient(to left, #f2f2f2, #ffffff);
-	  font-family: "Roboto", sans-serif;
-	  -webkit-font-smoothing: antialiased;
-	  -moz-osx-font-smoothing: grayscale;
-	  }
-</style>
+{% block scripts %}
+    <!-- JQuery -->
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="{{ asset('js/cards.js') }}"></script>
+    <script src="{{ asset('js/jquery.scrollbar.js') }}"></script>
+    <script>
+        jQuery(document).ready(function(){
+            jQuery('.scrollbar-macosx').scrollbar();
+        });
+    </script>
 {% endblock %}

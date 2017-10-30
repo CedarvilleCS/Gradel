@@ -23,10 +23,13 @@ section:
   path: '/home/{userId}/section/{sectionId}'
   defaults: {_controller: AppBundle:Section:section}
 
-
+  
 assignment:
   path: '/home/{userId}/section/{sectionId}/assignment/{assignmentId}/problem/{problemId}'
-  defaults: {_controller: AppBundle:Problems:problems}
+  defaults:
+    _controller: AppBundle:Problems:problems
+    problemId: 0
+        
 
 # EMMETT'S ROUTE
 upload:

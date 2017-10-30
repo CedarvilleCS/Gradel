@@ -19,17 +19,32 @@ use Symfony\Component\HttpFoundation\Response;
 
 class ProblemsController extends Controller {
 
-    public function problemsAction($assignmentId=1, $problemId=1) {
+    public function problemsAction($userId, $sectionId, $assignmentId, $problemId) {
 
+	
+	#path: '/home/{userId}/section/{sectionId}/assignment/{assignmentId}/problem/{problemId}'
+	
 		$em = $this->getDoctrine()->getManager();
+		
+		$assignment_entity = $em->find("AppBundle\Entity\Assignment", $assignmentId);
+
+		if(!assignment_entity){
+			die("ASSIGNMENT DOES NOT EXIST");
+		}
+		
+		if($problemId == 0){
+			$problemId = $assignment_entity->problems[0]->id;
+		}
+		
 		$problem_entity = $em->find("AppBundle\Entity\Problem", $problemId);
 
 		if(!problem_entity){
 			die("PROBLEM DOES NOT EXIST");
 		}
 
+		
+		
 		$currentProblemDescription = stream_get_contents($problem_entity->description);
-
 		$problem_languages = $problem_entity->problem_languages;
 
 		$languages = [];
