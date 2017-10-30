@@ -41,7 +41,7 @@
                         {% for assig in future_assigs %}
 						<ol>
 							<a href="{{path('assignment', {'userId':userId, 'sectionId':assig.section.id, 'assignmentId':assig.id})}}">
-									<li>{{assig.name}} <small>(Due: {{assig.end_time|date('F d, Y  \\a\\t  h:i:s')}})</small></li>
+									<li>{{assig.name}} <small>(Due: {{assig.end_time|date('F d, Y  \\a\\t  h:i:s A')}})</small></li>
 								</a>
 						</ol>
 		{% endfor %}
