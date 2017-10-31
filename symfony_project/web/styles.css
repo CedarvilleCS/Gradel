@@ -17,6 +17,12 @@ html, body {
     text-align: center;
 }
 
+a#edit-icon {
+	padding: 2 2 2 2;
+	float: right;
+	margin-top: -18;
+}
+
 .btn-center {
     margin: auto;
     width: 90%;
@@ -25,6 +31,11 @@ html, body {
 
 .btn:hover {
     background-color: #76b852;
+}
+
+a.preview {
+	color: white;
+	text-decoration: none;
 }
 
 .topnav {
@@ -61,14 +72,9 @@ html, body {
 	padding: 2px 3px;
 }
 
-<<<<<<< HEAD
-.topnav #logo:hover { 
-	opacity: 1 !important; 
-=======
 .topnav #logo:hover {
 	background-color: inherit;
 	color: black;	
->>>>>>> dfc97efddabeea9250d93f6cc4e8f1e93a3703ee
 }
 
 /* Change the color of links on hover */

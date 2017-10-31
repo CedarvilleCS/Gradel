@@ -189,12 +189,23 @@ class SectionController extends Controller
     public function editSectionAction($userId, $sectionId) {
       $em = $this->getDoctrine()->getManager();
       $builder = $em->createQueryBuilder();
+	echo json_decode($sectionId);
+     $section = $em->find('AppBundle\Entity\Section', $sectionId);
 
-      $section = $em->find('AppBundle\Entity\Section', $sectionId);
-
+	  $qb_user = $em->createQueryBuilder();
+	  $qb_user->select('usr')
+			->from('AppBundle\Entity\UserSectionRole', 'usr')
+			->where('usr.section = ?1')
+			->andWhere('usr.role = 2')
+			->setParameter(1, $sectionId);
+		
+	$user_query = $qb_user->getQuery();
+	$students = $user_query->getResult();
+		
       return $this->render('default/section/edit.html.twig', [
         'userId' => $userId,
         'section' => $section,
+		'studs' => $students,
       ]);
     }
 

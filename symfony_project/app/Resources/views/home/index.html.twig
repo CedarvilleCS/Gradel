@@ -27,8 +27,15 @@
 			<ol style="padding-bottom: 10px">
 				{% for usr in usersectionroles %}			
 				
-					<a href="{{path('section', {'userId':usr.user.id, 'sectionId':usr.section.id})}}"><li>{{usr.section.course.name}}<br><small>{{usr.section.name}}</small></li></a>			
-				
+					<li><a class="preview" href="{{path('section', {'userId':usr.user.id, 'sectionId':usr.section.id})}}">{{usr.section.course.name}}<br><small>{{usr.section.name}}</small></a>	
+					
+					{% if app.user.hasRole("ROLE_ADMIN") or app.user.hasRole("ROLE_SUPER") %}
+						<a id="edit-icon" href="{{path('section_edit', {'userId': user.id, 'sectionId': usr.section.id})}}">
+						<svg xmlns="http://www.w3.org/2000/svg" fill="#ffffff" height="15" viewBox="0 0 24 24" width="15">
+						<path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+						<path d="M0 0h24v24H0z"  fill="none"/>
+						</svg></li></a>	
+					{% endif %}
 				{% endfor %}
 			</ol>
 		

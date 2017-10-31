@@ -1,0 +1,58 @@
+html, body {
+    padding: 0px;
+    margin: 0px;
+    font-family: sans-serif;
+	height: 100%;
+}
+
+.main {
+    background-color: #8DC26F;
+	height: 100%;
+	width: 100%;
+}
+
+.card {
+    background-color: white;
+	position: relative;
+	top: 15%;
+	left: 35%;
+    width: 30%;
+	height: 300px;
+    padding: 20px;
+    /* Shadow */
+    -webkit-box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
+    -moz-box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
+    box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
+	text-align: center;
+}
+
+.card-contents {
+    margin-top: 20px;
+}
+
+#logo {
+	position: relative;
+	height: 200px;
+	width: auto;
+	margin-left: auto;
+}
+.btn {
+    text-decoration: none;
+    margin-top: 10px;
+    width: 150px;
+    height: 40px;
+    background-color: #8DC26F;
+    color: white;
+    border: none;
+    text-align: center;
+}
+
+.btn-center {
+    margin: auto;
+    width: 90%;
+    padding-top: 12px;
+}
+
+.btn:hover {
+    background-color: #76b852;
+}
