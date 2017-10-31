@@ -139,7 +139,7 @@ class SectionController extends Controller
 		
 				
 		return $this->render('default/section/index.html.twig', [
-			'section' => $section,
+			'section' => $section_entity,
 			'sectionId' => $sectionId,
 			'userId' => $userId,
 			'assignments' => $assignments,

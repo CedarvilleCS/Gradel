@@ -1,5 +1,5 @@
 {% block head %}
-<title>Gradel</title>
+<title>{{section.course.name}}</title>
 {% endblock %}
 
 
@@ -44,6 +44,12 @@
     <div class="scrollbar-macosx">
         <section id="main">
             {# Cards #}
+			
+			<!-- WORK ON THIS TIMOTHY -->
+            <div class="nav-path" style="">
+					<h4 style="margin: 0px">{{section.course.name}}</h4>
+			</div>
+			
             <div class="card">
                 <div class="btn-close" onclick="collapseCard('courseInfo')"><h2 style="margin: 0px">Due Soon<span style="float: right">&#9660;</span></h2></div>
                 <div id="courseInfo" class="card-contents">
@@ -65,8 +71,8 @@
 								<div style="margin-left: 20px">
 									<small>{{asgn.section.name}}</small>
 									<a href="{{path('assignment', {'userId':userId, 'sectionId':assig.section.id, 'assignmentId':assig.id})}}">
-											<li>{{assig.name}} <small>(Due {{assig.end_time|date('\\a\\t  h:i:s A')}})</small></li>
-										</a>								
+											{{assig.name}} <small>(Due {{assig.end_time|date('\\a\\t  h:i:s A')}})</small>
+									</a>								
 								</div>
 							{% endfor %}
 							
@@ -78,7 +84,14 @@
             <div class="card">
                 <div class="btn-close" onclick="collapseCard('studentInfo')"><h2 style="margin: 0px">Student Info<span style="float: right">&#9660;</span></h2></div>
                 <div id="studentInfo" class="card-contents">
-					<div>   
+					<div>
+	
+					{% if section_takers|length == 0 %}
+					
+						There are no students enrolled in this class
+					
+					{% else %}
+					
 					   <table>
                             <tr>
                                 <th>Student</th>
@@ -108,6 +121,9 @@
 							{% endfor %}
                             
                         </table>
+						
+					{% endif %}
+					
 					</div>
                 </div>
             </div>
@@ -155,14 +171,6 @@
 
 
 {% block stylesheets %}
-
-	<style>
-		a{
-			text-decoration:  none;
-			color: inherit;
-		}
-	</style>
-
     <link rel="stylesheet" href="{{ asset('styles.css') }}" />
     <link rel="stylesheet" href="{{ asset('home.css') }}" />
     <link rel="stylesheet" href="{{ asset('jquery.scrollbar.css') }}" />
