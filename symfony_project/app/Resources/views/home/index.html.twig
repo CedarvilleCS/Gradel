@@ -18,13 +18,21 @@
 			</a>
 		{% endif %}
         
-		<ol style="padding-bottom: 10px">
-			{% for usr in usersectionroles %}			
-			
-				<a href="{{path('section', {'userId':usr.user.id, 'sectionId':usr.section.id})}}"><li>{{usr.section.course.name}}<br><small>{{usr.section.name}}</small></li></a>			
-			
-			{% endfor %}
-		</ol>
+		{% if usersectionroles|length == 0 %}
+			<ol>
+				<li> No Sections Found </li>
+			</ol>			
+		
+		{% else %}
+			<ol style="padding-bottom: 10px">
+				{% for usr in usersectionroles %}			
+				
+					<a href="{{path('section', {'userId':usr.user.id, 'sectionId':usr.section.id})}}"><li>{{usr.section.course.name}}<br><small>{{usr.section.name}}</small></li></a>			
+				
+				{% endfor %}
+			</ol>
+		
+		{% endif %}
 		
 		<a href="" class="btn">
 			<div class="btn btn-center">&#9660; Load Past Sections </div>
@@ -38,28 +46,31 @@
             <div class="btn-close" onclick="collapseCard('courseInfo')"><h2 style="margin: 0px">Upcoming Assignments<span style="float: right">&#9660;</span></h2></div>
             <div id="courseInfo" class="card-contents">
                 
-                {% set oldDate = '' %}
-                
-                {% for asgn in assignments %}
-                
-                    {% set newDate = asgn.end_time|date('m/d/Y') %}
-                    
-                    {% if newDate != oldDate %}
-                        <h4 style="background: grey; color: white; padding: 5px"> {{asgn.end_time|date('l, F d')}} </h4>
-                    {% endif %}
-                    
-                    {% set oldDate = newDate %}
-                    
-                    <div style="margin-left: 20px">
-                        <small>{{asgn.section.name}}</small>
-                        <a href="{{path('assignment', {'userId':user.id, 'sectionId':asgn.section.id, 'assignmentId':asgn.id})}}">
-                            {{asgn.name}}
-                        </a>								
-                    </div>
-                
-                
-                
-                {% endfor %}
+				{% if assignments|length == 0 %}
+					No upcoming assignments!				
+				{% else %}
+					{% set oldDate = '' %}
+					
+					{% for asgn in assignments %}
+					
+						{% set newDate = asgn.end_time|date('m/d/Y') %}
+						
+						{% if newDate != oldDate %}
+							<h4 style="background: grey; color: white; padding: 5px"> {{asgn.end_time|date('l, F d')}} </h4>
+						{% endif %}
+						
+						{% set oldDate = newDate %}
+						
+						<div style="margin-left: 20px">
+							<small>{{asgn.section.name}}</small>
+							<a href="{{path('assignment', {'userId':user.id, 'sectionId':asgn.section.id, 'assignmentId':asgn.id})}}">
+								{{asgn.name}}
+							</a>								
+						</div>
+						
+					{% endfor %}
+					
+				{% endif %}
             </div>
         </div>
 
@@ -67,18 +78,28 @@
             <div class="btn-close" onclick="collapseCard('gradeReport')"><h2 style="margin: 0px">Grade Report<span style="float: right">&#9660;</span></h2></div>
             <div id="gradeReport" class="card-contents">
                 <div>
-                    You are doing well in your classes!
-                    <ul>
-                    {% for asgn in assignments %}
-                    
-                        {#% if usr.role.name != "Teaches" %#}
-                            
-                            {{asgn.name}} - {{(grades[asgn.id]*100)|number_format(1, '.')}}% <br/> 
-                            
-                        {#% endif %#}
-                    
-                    {% endfor %}
-                    <ul/>
+				
+					{% if assignments|length == 0 %}
+						
+						You do not have any assignments to do well on!
+					
+					{% else %}
+				
+						You are doing well on your assignments!
+						<ul>
+						{% for asgn in assignments %}
+						
+							{#% if usr.role.name != "Teaches" %#}
+								
+								{{asgn.name}} - {{(grades[asgn.id]*100)|number_format(1, '.')}}% <br/> 
+								
+							{#% endif %#}
+						
+						{% endfor %}
+						<ul/>
+					
+					{% endif %}
+					
                 </div>
             </div>
         </div>
