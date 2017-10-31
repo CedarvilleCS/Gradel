@@ -8,50 +8,56 @@
 <body>
     {{ include('template/top-nav.html.twig') }}
 
-    <section id="course-container">
-    </section>
-
     {# Left Nav #}
     <nav class="nav-left">
         <a id="insert" class="btn" href="{{path('assignment_edit', {'userId': userId, 'sectionId': sectionId, 'assignmentId': 1})}}"><div class="btn btn-center" >Save</div></a>
         <ol>
-					{% for assignment in assignments %}
-						<h1>{{assignment.name}}
-					{% endfor %}
+            {% for assignment in assignments %}
+                <h1>{{assignment.name}}
+            {% endfor %}
         </ol>
     </nav>
 
     {# Main section #}
-    <div class="scrollbar-macosx">
-        <section id="main">
-            {# Cards #}
-            <div class="card">
-							<table>
-								<tr>
-									<th colspan="3">
-                    <label for="name">Name</label>
-										<input id="name" name="name" type="text" value="">
-									</th>
+    <section id="main">
+        {# Cards #}
+        <div class="card">
+            <table>
+                <tr>
+                    <th colspan="3">
+                        <label for="name">Name</label>
+                        <input id="name" name="name" type="text" value="">
+                    </th>
                 </tr>
                 <tr>
-                  <th colspan="3">
-                    <label for="description">Description</label>
-                    <input id="description" name="description" type="text">
-                  </th>
-								</tr>
+                    <th colspan="3">
+                        <label for="description">Description</label>
+                        <input id="description" name="description" type="text">
+                    </th>
+                </tr>
+                <!-- <tr>
+                    <th colspan="2">
+                        <label for="start-date">Start Date</label>
+                        <input type="text" id="start-date">
+                        
+                    </th>
+                    <th colspan="2">
+                        <label for="end-date">End Date</label>
+                        <input type="text" id="end-date">
+                    </th>
+                </tr> -->
 
-								<!-- <tr>
-									<th colspan="3">
-										<button id="insert">add</button>
-									</th>
-								</tr> -->
-							</table>
-            </div>
+                <!-- <tr>
+                    <th colspan="3">
+                        <button id="insert">add</button>
+                    </th>
+                </tr> -->
+            </table>
+        </div>
 
 
-        	</div>
-        </section>
-    </div>
+        </div>
+    </section>
 
 
 </body>
@@ -63,6 +69,7 @@
     <link rel="stylesheet" href="{{ asset('styles.css') }}" />
     <link rel="stylesheet" href="{{ asset('home.css') }}" />
     <link rel="stylesheet" href="{{ asset('jquery.scrollbar.css') }}" />
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 {% endblock %}
 
 
@@ -74,8 +81,11 @@
 		<script src="{{ asset('js/newSection.js') }}"></script>
     <script src="{{ asset('js/jquery.scrollbar.js') }}"></script>
     <script>
-        jQuery(document).ready(function(){
-            jQuery('.scrollbar-macosx').scrollbar();
-        });
+    $( function() {
+        $( "#start-date" ).datepicker();
+      } );
+      $( function() {
+        $( "#end-date" ).datepicker();
+      } );
     </script>
 {% endblock %}
