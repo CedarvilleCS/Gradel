@@ -12,9 +12,11 @@
     {# Left Nav #}
     <nav class="nav-left">
         
-		<a href="{{path('section_new', {'userId': user.id})}}" class="btn">
-			<div class="btn btn-center">+ Section</div>
-		</a>
+		{% if app.user.hasRole("ROLE_ADMIN") or app.user.hasRole("ROLE_SUPER") %}
+			<a href="{{path('section_new', {'userId': user.id})}}" class="btn">
+				<div class="btn btn-center">+ Section</div>
+			</a>
+		{% endif %}
         
 		<ol style="padding-bottom: 10px">
 			{% for usr in usersectionroles %}			

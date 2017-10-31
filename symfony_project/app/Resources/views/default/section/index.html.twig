@@ -15,12 +15,28 @@
 
     {# Left Nav #}
     <nav class="nav-left">
-        <a href="{{path('assignment_new', {'userId': userId, "sectionId": sectionId})}}" class="btn"><div class="btn btn-center" href="http://www.google.com">+ Assignment</div></a>
-		{% for assig in assignments %}
-        <ol>
-            <a href={{path('assignment', {'userId': userId, 'sectionId': assig.section.id, "assignmentId": assig.id})}}><li>{{ assig.name }}<br><small>{{assig.end_time|date('F d, Y')}}</small></li></a>
-        </ol>
-		{% endfor %}
+        
+		{% if app.user in section_teachers or app.user.hasRole("ROLE_SUPER") %}
+			<a href="{{path('assignment_new', {'userId': userId, "sectionId": sectionId})}}" class="btn">
+				<div class="btn btn-center">+ Assignment</div>
+			</a>
+		{% endif %}
+		
+		{% if assignments|length == 0 %}
+		
+				<ol>
+					<a><li> No Assignments Found </li></a>
+				</ol>
+		
+		{% else %}
+		
+			{% for assig in assignments %}
+				<ol>
+					<a href={{path('assignment', {'userId': userId, 'sectionId': assig.section.id, "assignmentId": assig.id})}}><li>{{ assig.name }}<br><small>{{assig.end_time|date('F d, Y')}}</small></li></a>
+				</ol>
+			{% endfor %}
+		
+		{% endif %}
 
     </nav>
 
@@ -31,26 +47,30 @@
             <div class="card">
                 <div class="btn-close" onclick="collapseCard('courseInfo')"><h2 style="margin: 0px">Due Soon<span style="float: right">&#9660;</span></h2></div>
                 <div id="courseInfo" class="card-contents">
-                        {% for assig in future_assigs %}
+                        
+						{% if future_assigs|length == 0 %}
+							<li> No upcoming assignments </li>
+						{% else %}
 						
-						{% set newDate = assig.end_time|date('m/d/Y') %}
-						
-						{% if newDate != oldDate %}
-							<h4 style="background: grey; color: white; padding: 5px"> {{asgn.end_time|date('l, F d')}} </h4>
+							{% for assig in future_assigs %}
+							
+								{% set newDate = assig.end_time|date('m/d/Y') %}
+								
+								{% if newDate != oldDate %}
+									<h4 style="background: grey; color: white; padding: 5px"> {{asgn.end_time|date('l, F d')}} </h4>
+								{% endif %}
+								
+								{% set oldDate = newDate %}
+								
+								<div style="margin-left: 20px">
+									<small>{{asgn.section.name}}</small>
+									<a href="{{path('assignment', {'userId':userId, 'sectionId':assig.section.id, 'assignmentId':assig.id})}}">
+											<li>{{assig.name}} <small>(Due {{assig.end_time|date('\\a\\t  h:i:s A')}})</small></li>
+										</a>								
+								</div>
+							{% endfor %}
+							
 						{% endif %}
-						
-						{% set oldDate = newDate %}
-						
-						<div style="margin-left: 20px">
-							<small>{{asgn.section.name}}</small>
-							<a href="{{path('assignment', {'userId':userId, 'sectionId':assig.section.id, 'assignmentId':assig.id})}}">
-									<li>{{assig.name}} <small>(Due {{assig.end_time|date('\\a\\t  h:i:s A')}})</small></li>
-								</a>								
-						</div>
-						{% endfor %}
-						
-						
-
                 </div>
             </div>
 
@@ -69,7 +89,7 @@
 								{% endfor %}
                             </tr>
 							
-							{% for user in users %}
+							{% for user in section_takers %}
 							
 								<tr> <th>{{user.getFirstName}} {{user.getLastName}}</th>
 								
@@ -93,28 +113,36 @@
             </div>
 			
 			
+			{% if app.user in section_teachers or app.user.hasRole("ROLE_SUPER") %}
 			
 			<div class="card">
                 <div class="btn-close" onclick="collapseCard('recentSubs')"><h2 style="margin: 0px">Recent Submissions<span style="float: right">&#9660;</span></h2></div>
                 <div id="recentSubs" class="card-contents">
                        
 					<div>   
-					   <ul>
-						{% for sub in recent_submissions %}
-							{% if sub.percentage == 1 %}
-								<div style="color: green">
+					   <ul>	
+
+							{% if recent_submissions|length == 0 %}
+								<li> No recent submissions </li>
 							{% else %}
-								<div style="color: red">
+								{% for sub in recent_submissions %}
+									{% if sub.percentage == 1 %}
+										<div style="color: green">
+									{% else %}
+										<div style="color: red">
+									{% endif %}
+									
+									<li><a href="{{path('submission_results', {'submission_id': sub.id})}}">{{sub.user.getFirstName}} {{sub.user.getLastName}} - {{sub.filename}} - {{sub.timestamp|date('F d, Y  \\a\\t  h:i:s')}}</a> </li>
+								
+									</div>
+								{% endfor %}
 							{% endif %}
-							
-							<li><a href="{{path('submission_results', {'submission_id': sub.id})}}">{{sub.user.getFirstName}} {{sub.user.getLastName}} - {{sub.filename}} - {{sub.timestamp|date('F d, Y  \\a\\t  h:i:s')}}</a> </li>
-						
-							</div>
-						{% endfor %}
 					   </ul>
 					</div>
                 </div>
             </div>
+			
+			{% endif %}
 			
 			
         </section>

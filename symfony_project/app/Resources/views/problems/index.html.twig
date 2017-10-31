@@ -10,6 +10,9 @@
 
     <nav class="nav-left">
         <ol style="padding-bottom: 10px">
+		  <li style="padding-top: 0px; padding-bottom: 30px"> {{problem.assignment.name}} 
+			<div><small>Due on {{problem.assignment.end_time|date('F d')}} {{problem.assignment.end_time|date('\\a\\t  h:i:s A')}} </small></div>
+			</li>
           {% for prob in problem.assignment.problems %}
 				<a href="{{path("assignment", {'userId': app.user.id, 'sectionId': prob.assignment.section.id, 'assignmentId': prob.assignment.id, 'problemId': prob.id})}}">
 					<li>

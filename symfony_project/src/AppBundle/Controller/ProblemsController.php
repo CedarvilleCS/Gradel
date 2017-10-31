@@ -71,7 +71,7 @@ class ProblemsController extends Controller {
 			$languages[] = $pl->language;
 		}
 
-		return $this->render('courses/assignments/problems/index.html.twig', [
+		return $this->render('problems/index.html.twig', [
 			'problem' => $problem_entity,
 			'problemDescription' => $currentProblemDescription,
 			'languages' => $languages,
@@ -80,7 +80,7 @@ class ProblemsController extends Controller {
     }
 
     public function newAction($userId, $sectionId, $assignmentId) {
-      return $this->render('courses/assignments/problems/new.html.twig', [
+      return $this->render('problems/new.html.twig', [
         'userId' => $userId,
         'sectionId' => $sectionId,
         'assignmentId' => $assignmentId,
@@ -88,7 +88,7 @@ class ProblemsController extends Controller {
     }
 
     public function editAction() {
-      return $this->render('courses/assignments/problems/edit.html.twig', [
+      return $this->render('problems/edit.html.twig', [
 
       ]);
     }
