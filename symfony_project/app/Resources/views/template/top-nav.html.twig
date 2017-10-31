@@ -1,5 +1,9 @@
 <div class="topnav" id="myTopnav">
 	<a href="{{path('user_logout')}}" class="navbuttons">Logout</a>
-    <a href="{{path('homepage')}}" id="logo"><img src="http://joseph.cedarville.edu/gradel_dev/wolf/gradel/symfony_project/web/logo1.png" title= "Gradel, Gradel, Gradel, we made it out of code!" id="logo" alt="Gradel"></a>
-    
+
+	{% if app.user.hasRole("ROLE_SUPER") or app.user.hasRole("ROLE_ADMIN")%}	
+		<a href="" class="navbuttons">Admin</a>	
+	{% endif %}
+	
+    <a href="{{path('homepage')}}" id="logo"><img src="{{asset('logo1.png')}}" title= "Gradel, Gradel, Gradel, we made it out of code!" id="logo" alt="Gradel"></a>
 </div>

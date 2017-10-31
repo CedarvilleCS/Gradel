@@ -443,7 +443,7 @@ class CompilationController extends Controller {
 			$tc_output[] = $output;	
 		}
 					
-        return $this->render('compilation/submission/index.html.twig', [
+        return $this->render('submission/index.html.twig', [
 			'submission' => $submission,
 			'testcases_output' => $tc_output,
 			'compiler_output' => $compiler_output,

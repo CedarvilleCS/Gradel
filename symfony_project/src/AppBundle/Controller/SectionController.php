@@ -76,12 +76,19 @@ class SectionController extends Controller
 			->setParameter(1, $section_entity);
 		
 		$user_query = $qb_user->getQuery();
-		$users = $user_query->getResult();		
+		$usersectionroles = $user_query->getResult();		
 		
-		$all_users_in_class = [];
-		foreach($users as $fancy_user){
-			if($fancy_user->role->role_name == "Takes"){
-				$all_users_in_class[] = $fancy_user->user;
+		$section_takers = [];
+		$section_teachers = [];
+		$section_helpers = [];
+		
+		foreach($usersectionroles as $usr){
+			if($usr->role->role_name == "Takes"){
+				$section_takers[] = $usr->user;
+			} else if($usr->role->role_name == "Teaches"){
+				$section_teachers[] = $usr->user;
+			} else if($usr->role->role_name == "Helps"){
+				$section_helpers[] = $usr->user;
 			}
 		}
 		
@@ -138,8 +145,10 @@ class SectionController extends Controller
 			'assignments' => $assignments,
 			'future_assigs' => $future_assig,
 			'student_subs' => $student_subs,
-			'users' => $all_users_in_class,
 			'recent_submissions' => $submissions,
+			'section_takers' => $section_takers,
+			'section_teachers' => $section_teachers,
+			'section_helpers' => $section_helpers,
 		]);
     }
 

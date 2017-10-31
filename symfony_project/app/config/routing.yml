@@ -7,12 +7,11 @@ homepage:
 account:
   path: '/home'
   defaults: {_controller: AppBundle:Home:index}
-
+  
 
 section_new:
   path: '/home/{userId}/section/new'
   defaults: {_controller: AppBundle:Section:newSection}
-
 
 section_insert:
   path: '/home/{userId}/section/insert/{courseId}/{name}/{students}/{semester}/{year}/{start_time}/{end_time}/{is_deleted}/{is_public}'
@@ -26,6 +25,8 @@ section:
   path: '/home/{userId}/section/{sectionId}'
   defaults: {_controller: AppBundle:Section:section}
 
+  
+  
 assignment_new:
   path: '/home/{userId}/section/{sectionId}/assignment/new'
   defaults: {_controller: AppBundle:Assignment:new}
@@ -34,20 +35,23 @@ assignment_edit:
   path: '/home/{userId}/section/{sectionId}/assignment/{assignmentId}/edit'
   defaults: {_controller: AppBundle:Assignment:edit}
 
-problem_new:
-  path: '/home/{userId}/section/{sectionId}/assignment/{assignmentId}/problem/new'
-  defaults: {_controller: AppBundle:Problems:new}
-
 assignment:
   path: '/home/{userId}/section/{sectionId}/assignment/{assignmentId}/problem/{problemId}'
   defaults:
     _controller: AppBundle:Problems:problems
-    problemId: 0
-        
-
+    problemId: 0  
+  
+  
+  
+problem_new:
+  path: '/home/{userId}/section/{sectionId}/assignment/{assignmentId}/problem/new'
+  defaults: {_controller: AppBundle:Problems:new}
+  
 problem_edit:
   path: '/home/{userId}/section/{sectionId}/assignment/{assignmentId}/problem/{problemId}/edit'
   defaults: {_controller: AppBundle:Problems:edit}
+
+  
 
 # EMMETT'S ROUTE
 upload:
