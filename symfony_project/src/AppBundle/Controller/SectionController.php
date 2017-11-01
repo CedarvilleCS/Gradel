@@ -139,9 +139,9 @@ class SectionController extends Controller
 
 
 		return $this->render('default/section/index.html.twig', [
-			'section' => $section,
-			'sectionId' => $sectionId,
-			'userId' => $userId,
+			'section' => $section_entity,
+			'user' => $user,
+			
 			'assignments' => $assignments,
 			'future_assigs' => $future_assig,
 			'student_subs' => $student_subs,
@@ -154,41 +154,46 @@ class SectionController extends Controller
 
 	public function newSectionAction($userId) {
 
-      $em = $this->getDoctrine()->getManager();
-      $builder = $em->createQueryBuilder();
+		$em = $this->getDoctrine()->getManager();
+		$builder = $em->createQueryBuilder();
 
-      $builder->select('c')
-              ->from('AppBundle\Entity\Course', 'c')
-              ->where('1 = 1');
-      $query = $builder->getQuery();
-      $sections = $query->getResult();
+		$builder->select('c')
+				->from('AppBundle\Entity\Course', 'c')
+				->where('1 = 1');
+		$query = $builder->getQuery();
+		$sections = $query->getResult();
 
 
-      $section = new Section();
-      $form = $this->createFormBuilder($section)
-                    ->add('name', TextType::class)
-                    ->add('year', DateType::class)
-                    ->add('save', SubmitType::class, array('label' => 'Create Section'))
-                    ->getForm();
+		$section = new Section();
+		$form = $this->createFormBuilder($section)
+					->add('name', TextType::class)
+					->add('year', DateType::class)
+					->add('save', SubmitType::class, array('label' => 'Create Section'))
+					->getForm();
 
-      $builder = $em->createQueryBuilder();
-      $builder->select('u')
-              ->from('AppBundle\Entity\User', 'u')
-              ->where('1 = 1');
-      $query = $builder->getQuery();
-      $users = $query->getResult();
+		$user = $this->get('security.token_storage')->getToken()->getUser();
+					
+		$builder = $em->createQueryBuilder();
+		$builder->select('u')
+				->from('AppBundle\Entity\User', 'u')
+				->where('u != ?1')
+				->setParameter(1, $user);
+		$query = $builder->getQuery();
+		$users = $query->getResult();
 
-			return $this->render('default/section/new.html.twig', [
-        'userId' => $userId,
-        'sections' => $sections,
-        'users' => $users,
-        'form' => $form->createView(),
-			]);
-		}
+		return $this->render('default/section/new.html.twig', [
+			'userId' => $userId,
+			'sections' => $sections,
+			'users' => $users,
+			'form' => $form->createView(),
+		]);
+	}
 
     public function editSectionAction($userId, $sectionId) {
       $em = $this->getDoctrine()->getManager();
       $builder = $em->createQueryBuilder();
+	  #echo json_decode($sectionId);
+	$section = $em->find('AppBundle\Entity\Section', $sectionId);
 
       $role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));
 
@@ -291,7 +296,7 @@ class SectionController extends Controller
 
     public function insertSectionAction(Request $request, $userId, $courseId, $name, $students, $semester, $year, $start_time, $end_time, $is_public, $is_deleted) {
 
-      echo "<br/>";
+      #echo "<br/>";
 
       $em = $this->getDoctrine()->getManager();
       $course = $em->find('AppBundle\Entity\Course', $courseId);
@@ -319,14 +324,14 @@ class SectionController extends Controller
       $role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));
 
       foreach (json_decode($students) as $student) {
-        echo $student;
-        echo "<br/>";
+        #echo $student;
+        #echo "<br/>";
 
         if ($student != "") {
           $user = $em->getRepository('AppBundle\Entity\User')->findOneBy(array('email' => $student));
 
-          echo $user->getFirstName();
-          echo "<br/>";
+          #echo $user->getFirstName();
+          #echo "<br/>";
 
           $usr = new UserSectionRole();
           $usr->user = $user;
@@ -336,7 +341,7 @@ class SectionController extends Controller
           $em->flush();
         }
       }
-      echo $section->id;
+      #echo $section->id;
       return new RedirectResponse($this->generateUrl('section_edit', array('userId' => $userId, 'sectionId' => $section->id)));
     }
 

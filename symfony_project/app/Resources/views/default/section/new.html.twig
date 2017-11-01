@@ -19,11 +19,11 @@
 
     {# Left Nav #}
     <nav class="nav-left">
-        <a id="insert" class="btn"><div class="btn btn-center" href="http://www.google.com">Save</div></a>
+        <a id="insert" class="btn"><div class="btn btn-center">Save</div></a>
         <ol>
-					{% for assignment in assignments %}
-						<h1>{{assignment.name}}
-					{% endfor %}
+				{% for assignment in assignments %}
+					<h1>{{assignment.name}}
+				{% endfor %}
         </ol>
     </nav>
 
@@ -116,7 +116,6 @@
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('styles.css') }}" />
     <link rel="stylesheet" href="{{ asset('home.css') }}" />
-    <link rel="stylesheet" href="{{ asset('jquery.scrollbar.css') }}" />
 {% endblock %}
 
 
@@ -126,10 +125,22 @@
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script src="{{ asset('js/cards.js') }}"></script>
 		<script src="{{ asset('js/newSection.js') }}"></script>
-    <script src="{{ asset('js/jquery.scrollbar.js') }}"></script>
 		<script>
 			$(document).ready(function() {
-				$('#insert').on('click', function(){insertSection();});
+				$('#insert').on('click', function(){
+					// Make sure there is a course name
+					// Get the course name value and trim it
+					var name = $.trim($('#name').val());
+					var students = $.trim($('#student-csv').val())
+					// Check if empty of not
+					if (name  === '') {
+						$('#name').css('border', '3px solid red')
+						$('#name').css('background-color', '#FD8177')
+						return false;
+					}
+					
+					insertSection();
+				});
 				$('#student-picker').on('change', function(){addStudent();});
 			});
 
@@ -166,11 +177,5 @@
 				path = path.replace("user_id", {{userId}});
 				window.location.replace(path);
 			}
-
 		</script>
-    <script>
-        jQuery(document).ready(function(){
-            jQuery('.scrollbar-macosx').scrollbar();
-        });
-    </script>
 {% endblock %}
