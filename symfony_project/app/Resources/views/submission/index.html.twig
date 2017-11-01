@@ -5,10 +5,43 @@
 {% endblock %}
 
 {% block body %}
-    <div id="wrapper">
-        <div id="container">
-            <div id="welcome">
-                <h1>{{submission.problem.name}}</h1>
+
+<body>
+	{{ include('template/top-nav.html.twig') }}
+
+	<nav class="nav-left">
+        <ol style="padding-bottom: 10px">
+		  <li style="padding-top: 0px; padding-bottom: 30px"> {{submission.problem.assignment.name}} 
+			<div><small>Due on {{submission.problem.assignment.end_time|date('F d')}} {{submission.problem.assignment.end_time|date('\\a\\t  h:i:s A')}} </small></div>
+			</li>
+			
+			{% if submission.problem.assignment.problems|length == 0 %}
+			
+				<li> There are no problems for this assignment </li>
+				
+			{% else %}
+			
+			  {% for prob in submission.problem.assignment.problems %}
+					<a href="{{path("assignment", {'userId': app.user.id, 'sectionId': prob.assignment.section.id, 'assignmentId': prob.assignment.id, 'problemId': prob.id})}}">
+						<li>
+							{{ prob.name }}
+							{#<div><small> {{(user_subs[prob.id]*100)|number_format('2', '.')}}% </small></div>#}
+						</li>
+					</a>
+			  {% endfor %}
+			  
+		  {% endif %}
+		  
+        </ol>
+    </nav>
+	
+	<section id="main">
+
+		{{ include('template/path-nav.html.twig') }}
+	
+		<div class="card">
+			<h2 style="margin: 0px">{{submission.problem.name}}</h2>
+				<div id="courseInfo" class="card-contents">
 				<h2>SUBMISSION ID: {{submission.id}}</h2>
 				<h3>RESULT: 
 					{% if submission.percentage == 1 %}
@@ -38,66 +71,58 @@
 						</span>
 					{% endif %}
 				</h3>
-            </div>
 
-            <div id="status">
-			{% if submission.questionable_behavior %}
-				POSSIBLE MALICIOUS BEHAVIOR DETECTED
-			{% endif %}
-			
-			{% if submission.compiler_error %}
-				<h2> COMPILER OUTPUT </h2>
-				<hr>
-				{{compiler_output}}			
-				<hr>
-			{% elseif submission.runtime_error %}
-				<h2> RUNTIME OUTPUT </h2>
-				<hr>
-				{% for tc in testcases_output %}
-					{{tc.runtime_output}}<br/>			
-					<hr>			
-				{% endfor %}
-			{% endif %}
-			
-			{% if submission_file != "" %}	
-					<h3> SUBMITTED CODE </h3>
-					<h4> {{submission.filename}} </h4>
+				<div id="status">
+				{% if submission.questionable_behavior %}
+					POSSIBLE MALICIOUS BEHAVIOR DETECTED
+				{% endif %}
+				
+				{% if submission.compiler_error %}
+					<h2> COMPILER OUTPUT </h2>
 					<hr>
-					<textarea readonly style="box-sizing: border-box; width:100%; height:390px; resize: none; border: none; background: lighgrey; color:black; padding:15px; font-size:15px; font-family:Lucinda Console, monospace">{{submission_file}}</textarea>
+					{{compiler_output}}			
 					<hr>
-			{% endif %}
+				{% elseif submission.runtime_error %}
+					<h2> RUNTIME OUTPUT </h2>
+					<hr>
+					{% for tc in testcases_output %}
+						{{tc.runtime_output}}<br/>			
+						<hr>			
+					{% endfor %}
+				{% endif %}
+				
+				{% if submission_file != "" %}	
+						<h3> SUBMITTED CODE </h3>
+						<h4> {{submission.filename}} </h4>
+						<hr>
+<div id="editor">{{submission_file|nl2br}}</div>
+						<hr>
+				{% endif %}
 			</div>
-        </div>
-    </div>
+		</div>
+	
+	</section>
+	
+	</body>
 {% endblock %}
 
 {% block stylesheets %}
-<style>
-    body { background: #F5F5F5; font: 18px/1.5 sans-serif;}
-    h1, h2 { line-height: 1.2; margin: 0 0 .5em; }
-    h1 { font-size: 36px; }
-    h2 { font-size: 21px;}
-	h3 { font-size: 18px; }
-	h4 { font-family: "Courier New", Courier, monospace; margin: 0 0 0 0  }
-    p { margin: 0 0 0 0; }
-    a { color: #0000F0; }
-    a:hover { text-decoration: none; }
-    code { background: #F5F5F5; max-width: 100px; padding: 2px 6px; word-wrap: break-word; }
-    #wrapper { background: #FFF; margin: 1em auto; max-width: 800px; width: 95%; }
-    #container { padding: 2em; }
-    #welcome, #status { margin-bottom: 2em; }
-    #welcome h1 span { display: block; font-size: 75%; }
-    #icon-status, #icon-book { float: left; height: 64px; margin-right: 1em; margin-top: -4px; width: 64px; }
-    #icon-book { display: none; }
+<link rel="stylesheet" href="{{ asset('styles.css') }}" />
+<link rel="stylesheet" href="{{ asset('submit.css') }}" />
+<link rel="stylesheet" href="{{ asset('home.css') }}" />
 
-    @media (min-width: 768px) {
-        #wrapper { width: 80%; margin: 2em auto; }
-        #icon-book { display: inline-block; }
-        #status a, #next a { display: block; }
+{% endblock %}
 
-        @-webkit-keyframes fade-in { 0% { opacity: 0; } 100% { opacity: 1; } }
-        @keyframes fade-in { 0% { opacity: 0; } 100% { opacity: 1; } }
-        .sf-toolbar { opacity: 0; -webkit-animation: fade-in 1s .2s forwards; animation: fade-in 1s .2s forwards;}
-    }
-</style>
+{% block javascripts %}
+    <!-- JQuery -->
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+	<script src="{{ asset('src-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>
+
+	<script>
+		var editor = ace.edit("editor");
+		editor.setTheme("ace/theme/xcode");
+		editor.getSession().setMode("ace/mode/c_cpp");
+	</script>
+
 {% endblock %}
