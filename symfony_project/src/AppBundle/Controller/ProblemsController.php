@@ -90,7 +90,11 @@ class ProblemsController extends Controller {
 		}
 
 		return $this->render('problems/index.html.twig', [
+			'user' => $user,
+			'section' => $assignment_entity->section,
+			'assignment' => $assignment_entity,
 			'problem' => $problem_entity,
+			
 			'problemDescription' => $currentProblemDescription,
 			'languages' => $languages,
 			'user_subs' => $user_subs,

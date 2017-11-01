@@ -79,9 +79,10 @@ class HomeController extends Controller {
 				
 		// replace this example code with whatever you need
 		return $this->render('home/index.html.twig', [
+			'user' => $user,
+			
 			'usersectionroles' => $usersectionroles,
 			'assignments' => $assignments,
-			'user' => $user,
 			'grades' => $grades
 		]);
 

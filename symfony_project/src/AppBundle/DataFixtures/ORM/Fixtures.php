@@ -51,8 +51,7 @@ class Fixtures extends Fixture {
 			$prof_gallagher->setLastName("Gallagher");
 			$manager->persist($prof_gallagher);
 
-			$prof_brauns = new User("brauns", "cbrauns@cedarville.edu");
-			$prof_brauns->addRole("ROLE_SUPER");			
+			$prof_brauns = new User("brauns", "cbrauns@cedarville.edu");			
 			$prof_brauns->addRole("ROLE_ADMIN");
 			$prof_brauns->setFirstName("Christopher");
 			$prof_brauns->setLastName("Brauns");
