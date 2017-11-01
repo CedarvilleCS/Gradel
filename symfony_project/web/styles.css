@@ -19,6 +19,21 @@ html, body {
     box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
 }
 
+.topnav .navbuttons {
+     float: right;
+ 	height: 100%;
+}
+ .topnav #logo {
+     float: left;
+ 	height: 93%;
+ 	padding: 2px 3px;
+ }
+ 
+ .topnav #logo:hover {
+ 	background-color: inherit;
+ 	color: black;	
+ }
+
 .btn {
     text-decoration: none;
     margin-top: 10px;
