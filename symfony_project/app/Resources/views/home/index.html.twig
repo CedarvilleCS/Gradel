@@ -12,6 +12,12 @@
     {# Left Nav #}
     <nav class="nav-left">
         
+		{% if app.user.hasRole("ROLE_SUPER") %}
+			<a class="btn">
+				<div class="btn btn-center">+ Course</div>
+			</a><br/>
+		{% endif %}
+		
 		{% if app.user.hasRole("ROLE_ADMIN") or app.user.hasRole("ROLE_SUPER") %}
 			<a href="{{path('section_new', {'userId': user.id})}}" class="btn">
 				<div class="btn btn-center">+ Section</div>
@@ -126,7 +132,7 @@
         
 
         <div class="card">
-            <div class="btn-close" onclick="collapseCard('studentInfo')"><h2 style="margin: 0px">Student Information (Debug Info)<span style="float: right">&#9660;</span></h2></div>
+            <div class="btn-close" onclick="collapseCard('studentInfo')"><h2 style="margin: 0px">User Information (Debug Info)<span style="float: right">&#9660;</span></h2></div>
             <div id="studentInfo" class="card-contents">
                 <div>
                     Your name is <span style="color:green">{{user.getFirstName()}} {{user.getLastName()}}</span> <br/>
