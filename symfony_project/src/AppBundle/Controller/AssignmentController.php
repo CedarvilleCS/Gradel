@@ -26,6 +26,21 @@ class AssignmentController extends Controller
       ]);
     }
 
+    public function insertAction($sectionId, $name, $description) {
+      $em = $this->getDoctrine()->getManager();
+
+      $assignment = new Assignment();
+      $section = $em->find('AppBundle\Entity\Section', $sectionId);
+
+      $assignment->name = $name;
+      $assignment->description = $description;
+      $assignment->section = $section;
+
+      $em->persist($assignment);
+      $em->flush();
+
+    }
+
     public function editAction($userId, $sectionId, $assignmentId) {
 
       return $this->render('default/assignment/edit.html.twig', [

@@ -39,6 +39,10 @@ assignment_edit:
   path: '/home/{userId}/section/{sectionId}/assignment/{assignmentId}/edit'
   defaults: {_controller: AppBundle:Assignment:edit}
 
+assignment_insert:
+  path: '/home/{userId}/section/{sectionId}/assignment/{name}/{description}/{sectionId}'
+  defaults: {_controller: AppBundle:Assignment:insert}
+
 assignment:
   path: '/home/{userId}/section/{sectionId}/assignment/{assignmentId}/problem/{problemId}'
   defaults:
