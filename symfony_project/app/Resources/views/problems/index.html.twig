@@ -17,7 +17,7 @@
 				<a href="{{path("assignment", {'userId': app.user.id, 'sectionId': prob.assignment.section.id, 'assignmentId': prob.assignment.id, 'problemId': prob.id})}}">
 					<li>
 						{{ prob.name }}
-						<div><small> {{(user_subs[prob.id]*100)|number_format('2', '.')}}% </small></div>
+						{#<div><small> {{(user_subs[prob.id]*100)|number_format('2', '.')}}% </small></div>#}
 					</li>
 				</a>
           {% endfor %}
@@ -29,7 +29,7 @@
         <div class="card">
             <h2 style="margin: 0px">{{problem.name}}</h2>
             <div id="courseInfo" class="card-contents">
-                    <p>{{problemDescription}}</p>
+                    <p>{{problemDescription|nl2br}}</p>
 {# Keep this here so that the default code is in the right place #}
 <div id="editor">#include &#60;stdio.h&#62;
 
@@ -43,25 +43,30 @@ int main(){
             
                 
                     <br>
-                    <form action="{{path('upload', {'problem_id': problem.id}) }}" method="post" enctype="multipart/form-data">
-                        <input type="file" name="fileToUpload" id="fileToUpload" value="Upload File">
-                        <br><br>
-                        Language: 
-                        <select name="language">
-                            {% for lang in languages %}				
-                                {% if lang.name != "No Language Restriction" %}
-                                    <option value={{lang.id}}>{{lang.name}}</option>
-                                {% endif %}
-                            {% endfor %}
-                        </select>
-                        <br>
-                        <label for="main_class">Main Class: </label><input type="text" name="main_class">
-                        <br>
-                        <label for="package_name">Package Name: </label><input type="text" name="package_name">
-                        
-                        <br><br>
-                        <input type="submit" value="Submit Solution" name="submit">			
-                    </form>
+					{% if usersectionrole.role.role_name == 'Takes' %}
+						<form action="{{path('upload', {'problem_id': problem.id}) }}" method="post" enctype="multipart/form-data">
+							<input type="file" name="fileToUpload" id="fileToUpload" value="Upload File">
+							<br><br>
+							Language: 
+							<select name="language">
+								{% for lang in languages %}				
+									{% if lang.name != "No Language Restriction" %}
+										<option value={{lang.id}}>{{lang.name}}</option>
+									{% endif %}
+								{% endfor %}
+							</select>
+							<br>
+							<label for="main_class">Main Class: </label><input type="text" name="main_class">
+							<br>
+							<label for="package_name">Package Name: </label><input type="text" name="package_name">
+							
+							<br><br>
+							<input type="submit" value="Submit Solution" name="submit">			
+						</form>
+						
+					{% else %}
+						You are not "Taking" this class, so you currently cannot submit a problem. Please look at Timothy and complain.
+					{% endif %}
             
                     <p>{{upload_message}}</p>
             </div>

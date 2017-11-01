@@ -9,6 +9,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use AppBundle\Entity\Submission;
 use AppBundle\Entity\Problem;
 use AppBundle\Entity\ProblemLanguage;
+use AppBundle\Entity\UserSectionRole;
 
 use Psr\Log\LoggerInterface;
 
@@ -26,6 +27,11 @@ class ProblemsController extends Controller {
 	
 		$em = $this->getDoctrine()->getManager();
 		
+		$user = $this->get('security.token_storage')->getToken()->getUser();  	  
+		if(!get_class($user)){
+			die("USER DOES NOT EXIST!");		  
+		}
+		
 		$assignment_entity = $em->find("AppBundle\Entity\Assignment", $assignmentId);
 
 		if(!assignment_entity){
@@ -42,6 +48,18 @@ class ProblemsController extends Controller {
 			die("PROBLEM DOES NOT EXIST");
 		}
 
+		# get the usersectionrole
+		$qb_usr = $em->createQueryBuilder();
+		$qb_usr->select('usr')
+			->from('AppBundle\Entity\UserSectionRole', 'usr')
+			->where('usr.user = ?1')
+			->andWhere('usr.section = ?2')
+			->setParameter(1, $user)
+			->setParameter(2, $problem_entity->assignment->section);
+			
+		$usr_query = $qb_usr->getQuery();
+		$usersectionrole = $usr_query->getOneOrNullResult();
+		
 		# get the user submissions for each problem
 		$qb_subs = $em->createQueryBuilder();
 		$qb_subs->select('s')
@@ -75,7 +93,8 @@ class ProblemsController extends Controller {
 			'problem' => $problem_entity,
 			'problemDescription' => $currentProblemDescription,
 			'languages' => $languages,
-			'user_subs' => $user_subs
+			'user_subs' => $user_subs,
+			'usersectionrole' => $usersectionrole
 		]);
     }
 
