@@ -24,10 +24,15 @@ html, body {
     margin-top: 10px;
     width: 100px;
     height: 30px;
-    background-color: #8DC26F;
+    background-color: #71BA62;
     color: white;
     border: none;
     text-align: center;
+}
+
+a#edit-icon {
+	padding: 2 2 2 2;
+	float: right;
 }
 
 .btn-center {
@@ -37,7 +42,12 @@ html, body {
 }
 
 .btn:hover {
-    background-color: #76b852;
+    background-color: #4CAF50;
+}
+
+a.preview {
+	color: white;
+	text-decoration: none;
 }
 
 .topnav {

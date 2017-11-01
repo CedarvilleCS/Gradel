@@ -1,5 +1,6 @@
 <div class="topnav" id="myTopnav">
 	<a href="{{path('user_logout')}}" class="navbuttons">Logout</a>
+
 	{% if app.user.hasRole("ROLE_SUPER") or app.user.hasRole("ROLE_ADMIN")%}	
 		<a href="" class="navbuttons">Admin</a>	
 	{% endif %}
