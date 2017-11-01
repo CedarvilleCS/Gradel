@@ -74,6 +74,47 @@
 		<script src="{{ asset('js/newSection.js') }}"></script>
     <script src="{{ asset('js/jquery.scrollbar.js') }}"></script>
     <script>
+			$(document).ready(function() {
+				$('#insert').on('click', function(){insertSection();});
+				$('#student-picker').on('change', function(){addStudent();});
+			});
+
+			var studentArray = [];
+
+			function addStudent() {
+				const studentPicker = document.getElementById('student-picker');
+				const value = studentPicker.value;
+				const studentInput = document.getElementById('student-csv');
+				studentInput.value += value + ", \n"
+				studentArray = studentInput.value.split(", \n");
+				studentPicker.selectedIndex = 0;
+			}
+
+			function insertSection() {
+				const test = document.getElementById("section");
+				const name = document.getElementById("name").value;
+				const semester = document.getElementById("semester").value;
+				const year = document.getElementById("year").value;
+				const id = test[test.selectedIndex].value;
+
+				var path = "{{path('assignment_insert', { 'courseId': 'course_id',	'userId': 'user_id', 'name': 'name', 'students': 'students', 'semester': 'semester', 'year': 'year', 'start_time': 'start_time', 'end_time': 'end_time', 'is_deleted': 'is_deleted', 'is_public': 'is_public'})}}";
+				path = path.replace("course_id", id);
+				path = path.replace("name", name);
+				path = path.replace("students", JSON.stringify(studentArray));
+				path = path.replace("semester", semester);
+				path = path.replace("year", year);
+				path = path.replace("name", name);
+				path = path.replace("name", name);
+				path = path.replace("start_time", new Date());
+				path = path.replace("end_time", new Date());
+				path = path.replace("is_deleted", false);
+				path = path.replace("is_public", false);
+				path = path.replace("user_id", {{userId}});
+				window.location.replace(path);
+			}
+
+		</script
+    <script>
         jQuery(document).ready(function(){
             jQuery('.scrollbar-macosx').scrollbar();
         });
