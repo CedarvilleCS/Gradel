@@ -6,15 +6,52 @@ html, body {
     font-family: sans-serif;
 }
 
+.nav-path {
+    width: 90%;
+    margin: auto;
+    margin-top: 30px;
+    margin-bottom: 30px;
+	padding: 20px;
+
+    /* Shadow */
+    -webkit-box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
+    -moz-box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
+    box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
+}
+
+.topnav .navbuttons {
+     float: right;
+ 	height: 100%;
+}
+ .topnav #logo {
+     float: left;
+ 	height: 93%;
+ 	padding: 2px 3px;
+ }
+ 
+ .topnav #logo:hover {
+ 	background-color: inherit;
+ 	color: black;	
+ }
+
 .btn {
     text-decoration: none;
     margin-top: 10px;
     width: 100px;
     height: 30px;
-    background-color: #8DC26F;
+    background-color: #71BA62;
     color: white;
     border: none;
     text-align: center;
+}
+
+a#edit-icon {
+	padding: 2 2 2 2;
+	float: right;
+}
+
+a#edit-icon:hover {
+	
 }
 
 .btn-center {
@@ -24,7 +61,12 @@ html, body {
 }
 
 .btn:hover {
-    background-color: #76b852;
+    background-color: #4CAF50;
+}
+
+a.preview {
+	color: white;
+	text-decoration: none;
 }
 
 .topnav {
@@ -106,6 +148,25 @@ nav.nav-left > ol > a > li:hover {
     background-color: rgb(90, 90, 90);
 }
 
+/*style="color: white; text-decoration: none; width: 90%; margin: auto; margin-top:15px"*/
+.pathnav{
+	width: 100%;
+	height:50px;
+	background-color: #888888;
+	color: white;
+	box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
+	z-index: 100;
+	padding-left: 40px;
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+	align-items: center;
+}
+
+.pathnav a {
+	text-decoration: none;	
+}
+
 .card {
     background-color: white;
     width: 90%;
@@ -151,9 +212,12 @@ atable {
     font-family: arial, sans-serif;
     border-collapse: collapse;
     margin: 0 auto;
-    margin-top: 50px;
     min-width: 100%;
     max-width: 100%;
+}
+
+a {
+	color: inherit;	
 }
 
 td, th {

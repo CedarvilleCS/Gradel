@@ -30,6 +30,9 @@
 
         <section id="main">
               {# Cards #}
+			  
+			{{ include('template/path-nav.html.twig') }}
+
             <div class="card">
                 <div class="btn-close" onclick="collapseCard('courseInfo')">Section Info<span style="float: right">&#9660;</span></div>
                 <div id="courseInfo" class="card-contents">
@@ -121,7 +124,6 @@
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('styles.css') }}" />
     <link rel="stylesheet" href="{{ asset('home.css') }}" />
-    <link rel="stylesheet" href="{{ asset('jquery.scrollbar.css') }}" />
 {% endblock %}
 
 

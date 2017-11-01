@@ -26,14 +26,13 @@ class Section{
 		$this->assignments = new ArrayCollection();
 	}
 
-	public function __construct9($crs, $nm, $sem, $yr, $start, $end, $own, $public, $deleted){
+	public function __construct8($crs, $nm, $sem, $yr, $start, $end, $public, $deleted){
 		$this->course = $crs;
 		$this->name = $nm;
 		$this->semester = $sem;
 		$this->year = $yr;
 		$this->start_time = $start;
 		$this->end_time = $end;
-		$this->owner = $own;
 		$this->is_public = $public;
 		$this->is_deleted = $deleted;
 	}

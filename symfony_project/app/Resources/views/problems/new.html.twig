@@ -23,6 +23,9 @@
     {# Main section #}
     <div class="scrollbar-macosx">
         <section id="main">
+		
+			{{ include('template/path-nav.html.twig') }}
+		
             {# Cards #}
             <div class="card">
 							<table>
@@ -49,7 +52,6 @@
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('styles.css') }}" />
     <link rel="stylesheet" href="{{ asset('home.css') }}" />
-    <link rel="stylesheet" href="{{ asset('jquery.scrollbar.css') }}" />
 {% endblock %}
 
 
@@ -59,10 +61,4 @@
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script src="{{ asset('js/cards.js') }}"></script>
 		<script src="{{ asset('js/newSection.js') }}"></script>
-    <script src="{{ asset('js/jquery.scrollbar.js') }}"></script>
-    <script>
-        jQuery(document).ready(function(){
-            jQuery('.scrollbar-macosx').scrollbar();
-        });
-    </script>
 {% endblock %}
