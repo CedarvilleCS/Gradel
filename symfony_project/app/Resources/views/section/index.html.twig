@@ -159,7 +159,7 @@
 										<div style="color: red">
 									{% endif %}
 									
-									<li><a href="{{path('submission_results', {'submission_id': sub.id})}}">[{{sub.problem.name}}] {{sub.user.getFirstName}} {{sub.user.getLastName}} - {{sub.timestamp|date('F d, Y  \\a\\t  h:i:s')}} ({{sub.filename}})</a> </li>
+									<li><a href="{{path('problem_result', {'submission_id': sub.id})}}">[{{sub.problem.name}}] {{sub.user.getFirstName}} {{sub.user.getLastName}} - {{sub.timestamp|date('F d, Y  \\a\\t  h:i:s')}} ({{sub.filename}})</a> </li>
 								
 									</div>
 								{% endfor %}

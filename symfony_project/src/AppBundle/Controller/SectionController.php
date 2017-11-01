@@ -25,7 +25,6 @@ use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 
 use Psr\Log\LoggerInterface;
 
-
 class SectionController extends Controller
 {
     public function sectionAction($userId, $sectionId) {
@@ -138,7 +137,7 @@ class SectionController extends Controller
 		$submissions = $submission_query->getResult();
 
 
-		return $this->render('default/section/index.html.twig', [
+		return $this->render('section/index.html.twig', [
 			'section' => $section_entity,
 			'user' => $user,
 			
@@ -181,7 +180,7 @@ class SectionController extends Controller
 		$query = $builder->getQuery();
 		$users = $query->getResult();
 
-		return $this->render('default/section/new.html.twig', [
+		return $this->render('section/new.html.twig', [
 			'userId' => $userId,
 			'sections' => $sections,
 			'users' => $users,
@@ -222,7 +221,7 @@ class SectionController extends Controller
       $query = $builder->getQuery();
       $users = $query->getResult();
 
-      return $this->render('default/section/edit.html.twig', [
+      return $this->render('section/edit.html.twig', [
         'userId' => $userId,
         'section' => $section,
         'sectionId' => $sectionId,

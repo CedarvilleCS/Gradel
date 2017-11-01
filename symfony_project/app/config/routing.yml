@@ -1,14 +1,14 @@
 # EMILY'S ROUTE
 homepage:
     path:   '/'
-    defaults:  { _controller: AppBundle:Home:index }
+    defaults:  { _controller: AppBundle:Home:home}
 
-# CHRIS'S''S'S'S'S'S'S'SS'S' ROUTES
 account:
   path: '/home'
-  defaults: {_controller: AppBundle:Home:index}
-
-
+  defaults: {_controller: AppBundle:Home:home}
+    
+    
+# CHRIS'S''S'S'S'S'S'S'SS'S' ROUTES
 section_new:
   path: '/home/{userId}/section/new'
   defaults: {_controller: AppBundle:Section:newSection}
@@ -50,31 +50,35 @@ assignment_edit_query:
 assignment:
   path: '/home/{userId}/section/{sectionId}/assignment/{assignmentId}/problem/{problemId}'
   defaults:
-    _controller: AppBundle:Problems:problems
+    _controller: AppBundle:Assignment:assignment
     problemId: 0
 
 
 
 problem_new:
   path: '/home/{userId}/section/{sectionId}/assignment/{assignmentId}/problem/new'
-  defaults: {_controller: AppBundle:Problems:new}
+  defaults: {_controller: AppBundle:Problem:new}
 
 problem_edit:
   path: '/home/{userId}/section/{sectionId}/assignment/{assignmentId}/problem/{problemId}/edit'
-  defaults: {_controller: AppBundle:Problems:edit}
+  defaults: {_controller: AppBundle:Problem:edit}
 
-
+problem_result:
+    path: '/result/{submission_id}'
+    defaults: {_controller: AppBundle:Problem:result}
+    requirements:
+        submission_id: '\d+'
 
 # EMMETT'S ROUTE
 upload:
-  path: "/courses/assignments/problems/{problem_id}/upload"
+  path: "/upload/{problem_id}"
   defaults: {_controller: AppBundle:Upload:upload}
   requirements:
         problem_id:     '\d+'
 
 # TIMOTHY'S ROUTES
 submit:
-    path: '/compilation/submit/{problem_id}/{language_id}/{submitted_filename}/{main_class}/{package_name}'
+    path: '/submit/{problem_id}/{language_id}/{submitted_filename}/{main_class}/{package_name}'
     defaults:
         _controller:    AppBundle:Compilation:submit
         main_class:     ''
@@ -83,21 +87,6 @@ submit:
         problem_id:     '\d+'
         language_id:    '\d+'
 
-submit_backup:
-    path: '/compilation/submit_backup/{problem_id}/{language_id}/{submitted_filename}/{main_class}/{package_name}'
-    defaults:
-        _controller:    AppBundle:Compilation:submit_backup
-        main_class:     ''
-        package_name:   ''
-    requirements:
-        problem_id:  '\d+'
-        language_id: '\d+'
-
-submission_results:
-    path: '/compilation/submission_results/{submission_id}'
-    defaults: {_controller: AppBundle:Compilation:submission}
-    requirements:
-        submission_id: '\d+'
 
 # OAUTH'S ROUTES
 hwi_oauth_redirect:
