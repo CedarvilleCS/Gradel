@@ -27,8 +27,10 @@
 			<ol style="padding-bottom: 10px">
 				{% for usr in usersectionroles %}			
 				
-					<li><a class="preview" href="{{path('section', {'userId':usr.user.id, 'sectionId':usr.section.id})}}">{{usr.section.course.name}}<br><small>{{usr.section.name}}</small></a>	
 					
+					
+					
+					<li><a class="preview" href="{{path('section', {'userId':usr.user.id, 'sectionId':usr.section.id})}}">{{usr.section.course.name}}<br><small>{{usr.section.name}}</small></a>	
 					{% if app.user.hasRole("ROLE_ADMIN") or app.user.hasRole("ROLE_SUPER") %}
 						<a id="edit-icon" href="{{path('section_edit', {'userId': user.id, 'sectionId': usr.section.id})}}">
 						<svg xmlns="http://www.w3.org/2000/svg" fill="#ffffff" height="15" viewBox="0 0 24 24" width="15">

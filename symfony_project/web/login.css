@@ -6,7 +6,7 @@ html, body {
 }
 
 .main {
-    background-color: #8DC26F;
+    background-color: #71BA62;
 	height: 100%;
 	width: 100%;
 }
@@ -14,8 +14,8 @@ html, body {
 .card {
     background-color: white;
 	position: relative;
-	top: 15%;
-	left: 35%;
+	top: 20%;
+	margin: auto;
     width: 30%;
 	height: 300px;
     padding: 20px;
@@ -24,6 +24,8 @@ html, body {
     -moz-box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
     box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
 	text-align: center;
+	min-height: 300px;
+	min-width: 500px;
 }
 
 .card-contents {
@@ -37,22 +39,17 @@ html, body {
 	margin-left: auto;
 }
 .btn {
-    text-decoration: none;
-    margin-top: 10px;
-    width: 150px;
-    height: 40px;
-    background-color: #8DC26F;
-    color: white;
-    border: none;
-    text-align: center;
+    font-family: "Roboto", sans-serif;
+    text-transform: uppercase;
+    outline: 0;
+    background: #4CAF50;
+    width: 100%;
+    border: 0;
+    padding: 15px;
+    color: #FFFFFF;
+    font-size: 14px;
+    -webkit-transition: all 0.3 ease;
+    transition: all 0.3 ease;
+    cursor: pointer;
 }
 
-.btn-center {
-    margin: auto;
-    width: 90%;
-    padding-top: 12px;
-}
-
-.btn:hover {
-    background-color: #76b852;
-}

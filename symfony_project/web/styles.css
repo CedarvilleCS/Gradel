@@ -11,7 +11,7 @@ html, body {
     margin-top: 10px;
     width: 100px;
     height: 30px;
-    background-color: #8DC26F;
+    background-color: #71BA62;
     color: white;
     border: none;
     text-align: center;
@@ -20,7 +20,6 @@ html, body {
 a#edit-icon {
 	padding: 2 2 2 2;
 	float: right;
-	margin-top: -18;
 }
 
 .btn-center {
@@ -30,7 +29,7 @@ a#edit-icon {
 }
 
 .btn:hover {
-    background-color: #76b852;
+    background-color: #4CAF50;
 }
 
 a.preview {
