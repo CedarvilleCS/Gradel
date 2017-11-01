@@ -1,34 +1,38 @@
 {% block head %}
 <title>Gradel</title>
+<link rel="icon" type="image/x-icon" href="{{ asset('logo1.png') }}" />
 {% endblock %}
 
 
 {% block body %}
 
-<body>        
-    <div class="topnav" id="myTopnav">
-        <a href="{{path('homepage')}}">Home</a>
-        <a href="">Admin</a>
-        <a href="{{path('user_logout')}}">Logout</a>
-    </div>
-
-    <section id="course-container">
-    </section>
+<body>    
+    {{ include('template/top-nav.html.twig') }}
 
     {# Left Nav #}
     <nav class="nav-left">
         
-		<a href="{{path('section_new', {'userId': user.id})}}" class="btn">
-			<div class="btn btn-center">+ Section</div>
-		</a>
+		{% if app.user.hasRole("ROLE_ADMIN") or app.user.hasRole("ROLE_SUPER") %}
+			<a href="{{path('section_new', {'userId': user.id})}}" class="btn">
+				<div class="btn btn-center">+ Section</div>
+			</a>
+		{% endif %}
         
-		<ol style="padding-bottom: 10px">
-			{% for usr in usersectionroles %}			
-			
-				<a href="{{path('section', {'userId':usr.user.id, 'sectionId':usr.section.id})}}"><li>{{usr.section.course.name}}<br><small>{{usr.section.name}}</small></li></a>			
-			
-			{% endfor %}
-		</ol>
+		{% if usersectionroles|length == 0 %}
+			<ol>
+				<li> No Sections Found </li>
+			</ol>			
+		
+		{% else %}
+			<ol style="padding-bottom: 10px">
+				{% for usr in usersectionroles %}			
+				
+					<a href="{{path('section', {'userId':usr.user.id, 'sectionId':usr.section.id})}}"><li>{{usr.section.course.name}}<br><small>{{usr.section.name}}</small></li></a>			
+				
+				{% endfor %}
+			</ol>
+		
+		{% endif %}
 		
 		<a href="" class="btn">
 			<div class="btn btn-center">&#9660; Load Past Sections </div>
@@ -36,13 +40,15 @@
     </nav>
 
     {# Main section #}
-    <div class="scrollbar-macosx">
-        <section id="main">
-            {# Cards #}
-            <div class="card">
-                <div class="btn-close" onclick="collapseCard('courseInfo')"><h2 style="margin: 0px">Upcoming Assignments<span style="float: right">&#9660;</span></h2></div>
-                <div id="courseInfo" class="card-contents">
-					
+    <section id="main">
+        {# Cards #}
+        <div class="card">
+            <div class="btn-close" onclick="collapseCard('courseInfo')"><h2 style="margin: 0px">Upcoming Assignments<span style="float: right">&#9660;</span></h2></div>
+            <div id="courseInfo" class="card-contents">
+                
+				{% if assignments|length == 0 %}
+					No upcoming assignments!				
+				{% else %}
 					{% set oldDate = '' %}
 					
 					{% for asgn in assignments %}
@@ -61,18 +67,25 @@
 								{{asgn.name}}
 							</a>								
 						</div>
-					
-					
-					
+						
 					{% endfor %}
-                </div>
+					
+				{% endif %}
             </div>
+        </div>
 
-			<div class="card">
-                <div class="btn-close" onclick="collapseCard('gradeReport')"><h2 style="margin: 0px">Grade Report<span style="float: right">&#9660;</span></h2></div>
-                <div id="gradeReport" class="card-contents">
-					<div>
-                        You are doing well in your classes!
+        <div class="card">
+            <div class="btn-close" onclick="collapseCard('gradeReport')"><h2 style="margin: 0px">Grade Report<span style="float: right">&#9660;</span></h2></div>
+            <div id="gradeReport" class="card-contents">
+                <div>
+				
+					{% if assignments|length == 0 %}
+						
+						You do not have any assignments to do well on!
+					
+					{% else %}
+				
+						You are doing well on your assignments!
 						<ul>
 						{% for asgn in assignments %}
 						
@@ -84,22 +97,24 @@
 						
 						{% endfor %}
 						<ul/>
-					</div>
+					
+					{% endif %}
+					
                 </div>
             </div>
-			
+        </div>
+        
 
-            <div class="card">
-                <div class="btn-close" onclick="collapseCard('studentInfo')"><h2 style="margin: 0px">Student Information<span style="float: right">&#9660;</span></h2></div>
-                <div id="studentInfo" class="card-contents">
-					<div>
-                        Your name is <span style="color:green">{{user.getFirstName()}} {{user.getLastName()}}</span> <br/>
-						Your email address is <span style="color:green">{{user.getEmail()}}</span>
-					</div>
+        <div class="card">
+            <div class="btn-close" onclick="collapseCard('studentInfo')"><h2 style="margin: 0px">Student Information<span style="float: right">&#9660;</span></h2></div>
+            <div id="studentInfo" class="card-contents">
+                <div>
+                    Your name is <span style="color:green">{{user.getFirstName()}} {{user.getLastName()}}</span> <br/>
+                    Your email address is <span style="color:green">{{user.getEmail()}}</span>
                 </div>
             </div>
-        </section>
-    </div>
+        </div>
+    </section>
 
 
 </body>
@@ -119,10 +134,4 @@
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script src="{{ asset('js/cards.js') }}"></script>
-    <script src="{{ asset('js/jquery.scrollbar.js') }}"></script>
-    <script>
-        jQuery(document).ready(function(){
-            jQuery('.scrollbar-macosx').scrollbar();
-        });
-    </script>
 {% endblock %}

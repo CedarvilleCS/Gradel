@@ -340,7 +340,6 @@ class CompilationController extends Controller {
 		# update the submission entity to the values decided aboce
 		$submission_is_accepted = (!$submission_is_compileerror && !$submission_is_runtimeerror && ($correct_testcase_count == count($problem_entity->testcases)));
 		
-		$submission_entity->is_accepted = $submission_is_accepted;
 		$submission_entity->compiler_error = $submission_is_compileerror;
 		$submission_entity->compiler_output = $compile_log;
 		$submission_entity->runtime_error = $submission_is_runtimeerror;
@@ -348,6 +347,51 @@ class CompilationController extends Controller {
 		$submission_entity->exceeded_time_limit = $submission_is_timelimit; 
 		$submission_entity->max_runtime = $submission_max_runtime;
 		$submission_entity->percentage = $submission_percentage;
+		
+		
+		# see if this new submission should be the accepted one
+		$qb_accepted = $em->createQueryBuilder();
+		$qb_accepted->select('s')
+				->from('AppBundle\Entity\Submission', 's')
+				->where('s.problem = ?1')
+				->andWhere('s.team = ?2')
+				->andWhere('s.is_accepted = true')
+				->setParameter(1, $problem_entity)
+				->setParameter(2, $team_entity);
+				
+		$acc_query = $qb_accepted->getQuery();
+		$prev_accepted_sol = $acc_query->getOneOrNullResult();
+	
+		// choose higher percentage if they both have percentages
+		if($prev_accepted_sol && $submission_entity->percentage > $prev_accepted_sol->percentage){
+			#echo "New submission percentage ".$submission_entity->percentage." is greater than ".$prev_accepted_sol->percentage;
+			$submission_entity->is_accepted = true;
+			$prev_accepted_sol->is_accepted = false;
+		}
+		// don't change if the percentage is less
+		else if($prev_accepted_sol && $submission_entity->percentage <= $prev_accepted_sol->percentage){
+			#echo "This submission is garbage!";
+			$submission_entity->is_accepted = false;			
+		}		
+		// choose the new one if it wasn't a compile error
+		else if($prev_accepted_sol && !$submission_entity->compiler_error){
+			#echo "New submission was not a compiler error!";
+			$submission_entity->is_accepted = true;
+			$prev_accepted_sol->is_accepted = false;
+		}
+		// otherwise only change if the previous accepted solution wasn't set
+		else if(!$prev_accepted_sol){
+			#echo "This is the first submission";
+			$submission_entity->is_accepted = true;
+		} 
+		else{
+			#echo "This submission is garbage!";
+			$submission_entity->is_accepted = false;
+		}
+		
+		if($prev_accepted_sol && $submission_entity->is_accepted){
+			$em->persist($prev_accepted_sol);
+		}
 		
 		# zip the submission directory for saving to the database
 		if(!chdir($submission_directory)){
@@ -371,7 +415,7 @@ class CompilationController extends Controller {
 		# update the submission entity
 		$em->persist($submission_entity);
 		$em->flush();			
-
+		#die();
         return $this->redirectToRoute('submission_results', array('submission_id' => $submission_entity->id));
 		//return new Response();
 	}
@@ -399,7 +443,7 @@ class CompilationController extends Controller {
 			$tc_output[] = $output;	
 		}
 					
-        return $this->render('compilation/submission/index.html.twig', [
+        return $this->render('submission/index.html.twig', [
 			'submission' => $submission,
 			'testcases_output' => $tc_output,
 			'compiler_output' => $compiler_output,
