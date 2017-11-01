@@ -53,22 +53,21 @@
                 <div id="courseInfo" class="card-contents">
                         {% for assig in future_assigs %}
 						
-						{% set newDate = assig.end_time|date('m/d/Y') %}
+				{% set newDate = assig.end_time|date('m/d/Y') %}
 						
-						{% if newDate != oldDate %}
-							<h4 style="background: grey; color: white; padding: 5px"> {{asgn.end_time|date('l, F d')}} </h4>
-						{% endif %}
+				{% if newDate != oldDate %}
+					<h4 style="background: grey; color: white; padding: 5px"> {{assig.end_time|date('l, F d')}} </h4>
+				{% endif %}
 						
-						{% set oldDate = newDate %}
+				{% set oldDate = newDate %}
 						
-						<div style="margin-left: 20px">
-							<small>{{asgn.section.name}}</small>
-							<a href="{{path('assignment', {'userId':userId, 'sectionId':assig.section.id, 'assignmentId':assig.id})}}">
-									<li>{{assig.name}} <small>(Due {{assig.end_time|date('\\a\\t  h:i:s A')}})</small></li>
-								</a>								
-						</div>
+				<div style="margin-left: 20px"><small>{{asgn.section.name}}</small>
+					<a href="{{path('assignment', {'userId':userId, 'sectionId':assig.section.id, 'assignmentId':assig.id})}}">
+						<li>{{assig.name}} <small>(Due {{assig.end_time|date('\\a\\t  h:i:s A')}})</small></li>
+					</a>
+				</div>
 						
-						{% endfor %}
+			{% endfor %}
 						
 						
 
