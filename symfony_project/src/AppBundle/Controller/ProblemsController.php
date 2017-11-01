@@ -42,53 +42,57 @@ class ProblemsController extends Controller {
 			$problemId = $assignment_entity->problems[0]->id;
 		}
 		
-		$problem_entity = $em->find("AppBundle\Entity\Problem", $problemId);
-
-		if(!problem_entity){
-			die("PROBLEM DOES NOT EXIST");
-		}
-
-		# get the usersectionrole
-		$qb_usr = $em->createQueryBuilder();
-		$qb_usr->select('usr')
-			->from('AppBundle\Entity\UserSectionRole', 'usr')
-			->where('usr.user = ?1')
-			->andWhere('usr.section = ?2')
-			->setParameter(1, $user)
-			->setParameter(2, $problem_entity->assignment->section);
+	
+		if($problemId != null){
+		
+			$problem_entity = $em->find("AppBundle\Entity\Problem", $problemId);
 			
-		$usr_query = $qb_usr->getQuery();
-		$usersectionrole = $usr_query->getOneOrNullResult();
-		
-		# get the user submissions for each problem
-		$qb_subs = $em->createQueryBuilder();
-		$qb_subs->select('s')
-			->from('AppBundle\Entity\Submission', 's')
-			->where('s.team = ?1')
-			->andWhere('s.problem IN (?2)')
-			->andWhere('s.is_accepted = true')
-			->setParameter(1, 3)
-			->setParameter(2, array(1,2,3,4,5,6));
+			if(!problem_entity){
+				die("PROBLEM DOES NOT EXIST");
+			}
+
+			# get the usersectionrole
+			$qb_usr = $em->createQueryBuilder();
+			$qb_usr->select('usr')
+				->from('AppBundle\Entity\UserSectionRole', 'usr')
+				->where('usr.user = ?1')
+				->andWhere('usr.section = ?2')
+				->setParameter(1, $user)
+				->setParameter(2, $problem_entity->assignment->section);
+				
+			$usr_query = $qb_usr->getQuery();
+			$usersectionrole = $usr_query->getOneOrNullResult();
 			
-		$sub_query = $qb_subs->getQuery();
-		$subs = $sub_query->getResult();
-		
-		$user_subs = [];
-		foreach($subs as $submission){
-			$user_subs[$submission->problem->id] = $submission->percentage;
-		}
-		
-		//echo json_encode($user_subs);
-		//die();
-		
-		$currentProblemDescription = stream_get_contents($problem_entity->description);
-		$problem_languages = $problem_entity->problem_languages;
+			# get the user submissions for each problem
+			$qb_subs = $em->createQueryBuilder();
+			$qb_subs->select('s')
+				->from('AppBundle\Entity\Submission', 's')
+				->where('s.team = ?1')
+				->andWhere('s.problem IN (?2)')
+				->andWhere('s.is_accepted = true')
+				->setParameter(1, 3)
+				->setParameter(2, array(1,2,3,4,5,6));
+				
+			$sub_query = $qb_subs->getQuery();
+			$subs = $sub_query->getResult();
+			
+			$user_subs = [];
+			foreach($subs as $submission){
+				$user_subs[$submission->problem->id] = $submission->percentage;
+			}
+			
+			//echo json_encode($user_subs);
+			//die();
+			
+			$currentProblemDescription = stream_get_contents($problem_entity->description);
+			$problem_languages = $problem_entity->problem_languages;
 
-		$languages = [];
-		foreach($problem_languages as $pl){
-			$languages[] = $pl->language;
+			$languages = [];
+			foreach($problem_languages as $pl){
+				$languages[] = $pl->language;
+			}
 		}
-
+			
 		return $this->render('problems/index.html.twig', [
 			'user' => $user,
 			'section' => $assignment_entity->section,
