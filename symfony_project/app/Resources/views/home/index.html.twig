@@ -56,7 +56,7 @@
             <div id="courseInfo" class="card-contents">
                 
 				{% if assignments|length == 0 %}
-					No upcoming assignments!				
+					You have no upcoming assignments to be completed!				
 				{% else %}
 					{% set oldDate = '' %}
 					
@@ -115,11 +115,12 @@
         
 
         <div class="card">
-            <div class="btn-close" onclick="collapseCard('studentInfo')"><h2 style="margin: 0px">Student Information<span style="float: right">&#9660;</span></h2></div>
+            <div class="btn-close" onclick="collapseCard('studentInfo')"><h2 style="margin: 0px">Student Information (Debug Info)<span style="float: right">&#9660;</span></h2></div>
             <div id="studentInfo" class="card-contents">
                 <div>
                     Your name is <span style="color:green">{{user.getFirstName()}} {{user.getLastName()}}</span> <br/>
-                    Your email address is <span style="color:green">{{user.getEmail()}}</span>
+                    Your email address is <span style="color:green">{{user.getEmail()}}</span> <br/>
+					Your roles are <span style="color:green">[{{user.getRoles()|join(', ')}}]</span> <br/>
                 </div>
             </div>
         </div>

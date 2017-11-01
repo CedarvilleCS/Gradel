@@ -6,6 +6,19 @@ html, body {
     font-family: sans-serif;
 }
 
+.nav-path {
+    width: 90%;
+    margin: auto;
+    margin-top: 30px;
+    margin-bottom: 30px;
+	padding: 20px;
+
+    /* Shadow */
+    -webkit-box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
+    -moz-box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
+    box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
+}
+
 .btn {
     text-decoration: none;
     margin-top: 10px;
@@ -168,6 +181,10 @@ table {
     margin-top: 50px;
     min-width: 100%;
     max-width: 100%;
+}
+
+a {
+	color: inherit;	
 }
 
 td, th {
