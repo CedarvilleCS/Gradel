@@ -18,16 +18,14 @@ use AppBundle\Entity\Gradingmethod;
 use AppBundle\Entity\Feedback;
 use AppBundle\Entity\TestcaseResult;
 
-use Psr\Log\LoggerInterface;
-
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
-
 use Symfony\Component\HttpFoundation\Response;
 
-class CompilationController extends Controller {
-	
+use Psr\Log\LoggerInterface;
+
+class CompilationController extends Controller {	
 	
 	/* name=submit */
 	public function submitAction($problem_id, $language_id, $submitted_filename, $main_class, $package_name) {
@@ -411,44 +409,14 @@ class CompilationController extends Controller {
 		shell_exec("rm -rf ".$temp_folder);
 		shell_exec("rm -rf ".$code_to_submit_directory);
 		shell_exec("rm -rf ".$submission_directory);
+		shell_exec("rm -rf ".$uploads_directory);
 		
 		# update the submission entity
 		$em->persist($submission_entity);
 		$em->flush();			
 		#die();
-        return $this->redirectToRoute('submission_results', array('submission_id' => $submission_entity->id));
+        return $this->redirectToRoute('problem_result', array('submission_id' => $submission_entity->id));
 		//return new Response();
-	}
-		
-	/* name=submission_results */
-	public function submissionAction($submission_id) {
-		
-		$em = $this->getDoctrine()->getManager();
-		
-		$submission = $em->find("AppBundle\Entity\Submission", $submission_id);	
-		
-		if(!submission){
-			echo "SUBMISSION DOES NOT EXIST";
-			die();
-		}
-		
-		$compiler_output = stream_get_contents($submission->compiler_output);
-		$submission_file = stream_get_contents($submission->submitted_file);
-		
-		foreach($submission->testcaseresults as $tc){
-			
-			$output["std_output"] = stream_get_contents($tc->std_output);
-			$output["runtime_output"] = stream_get_contents($tc->runtime_output);
-			$output["time_output"] = $tc->execution_time;
-			$tc_output[] = $output;	
-		}
-					
-        return $this->render('submission/index.html.twig', [
-			'submission' => $submission,
-			'testcases_output' => $tc_output,
-			'compiler_output' => $compiler_output,
-			'submission_file' => $submission_file,
-        ]);	
 	}
 }
 
