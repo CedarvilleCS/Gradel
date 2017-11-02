@@ -1,4 +1,4 @@
-# EMILY'S ROUTE
+# HOMEPAGE ROUTES
 homepage:
     path:   '/home'
     defaults:  { _controller: AppBundle:Home:home} 
@@ -7,7 +7,7 @@ alt_homepage:
     path:   '/'
     defaults: { _controller: AppBundle:Home:home} 
     
-# CHRIS'S''S'S'S'S'S'S'SS'S' ROUTES
+# MAIN ROUTES
 section_new:
   path: '/section/new'
   defaults: {_controller: AppBundle:Section:newSection}
@@ -31,35 +31,34 @@ section:
 
 
 assignment_new:
-  path: '/assignment/new/{sectionId}'
+  path: '/section/{sectionId}/assignment/new'
   defaults: {_controller: AppBundle:Assignment:new}
 
 assignment_edit:
-  path: '/assignment/edit/{sectionId}/{assignmentId}'
+  path: '/section/{sectionId}/assignment/edit/{assignmentId}'
   defaults: {_controller: AppBundle:Assignment:edit}
 
 assignment_insert:
-  path: '/assignment/insert/{sectionId}/{name}/{description}'
+  path: '/section/{sectionId}/assignment/insert/{name}/{description}'
   defaults: {_controller: AppBundle:Assignment:insert}
 
 assignment_edit_query:
-  path: '/assignment/edit_query/{sectionId}/{assignmentId}/{name}/{description}'
+  path: '/section/{sectionId}/assignment/edit_query/{assignmentId}/{name}/{description}'
   defaults: {_controller: AppBundle:Assignment:editQuery}
 
 assignment:
-  path: '/assignment/{sectionId}/{assignmentId}/{problemId}'
+  path: '/section/{sectionId}/assignment/{assignmentId}/problem/{problemId}'
   defaults:
     _controller: AppBundle:Assignment:assignment
     problemId: 0
 
 
-
 problem_new:
-  path: '/problem/new/{sectionId}/{assignmentId}'
+  path: '/section/{sectionId}/assignment/{assignmentId}/problem/new'
   defaults: {_controller: AppBundle:Problem:new}
 
 problem_edit:
-  path: '/problem/edit/{sectionId}/{assignmentId}/{problemId}'
+  path: '/section/{sectionId}/assignment/{assignmentId}/problem/edit/{problemId}'
   defaults: {_controller: AppBundle:Problem:edit}
 
 problem_result:
@@ -68,14 +67,13 @@ problem_result:
     requirements:
         submission_id: '\d+'
 
-# EMMETT'S ROUTE
+# SUBMISSION ROUTES
 upload:
   path: "/upload/{problem_id}"
   defaults: {_controller: AppBundle:Upload:upload}
   requirements:
         problem_id:     '\d+'
 
-# TIMOTHY'S ROUTES
 submit:
     path: '/submit/{problem_id}/{language_id}/{submitted_filename}/{main_class}/{package_name}'
     defaults:
@@ -87,7 +85,7 @@ submit:
         language_id:    '\d+'
 
 
-# OAUTH'S ROUTES
+# AUTHENTICATION ROUTES
 hwi_oauth_redirect:
     resource: "@HWIOAuthBundle/Resources/config/routing/redirect.xml"
     prefix:   /connect

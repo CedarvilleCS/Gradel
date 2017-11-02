@@ -45,33 +45,35 @@ class Fixtures extends Fixture {
 		
 		# USER Testing
 		{
-			$prof_gallagher = new User("gallaghd", "gallaghd@cedarville.edu");
+			$prof_gallagher = new User("gallaghd@cedarville.edu", "gallaghd@cedarville.edu");
+			$prof_gallagher->addRole("ROLE_SUPER");			
 			$prof_gallagher->addRole("ROLE_ADMIN");
 			$prof_gallagher->setFirstName("David");
 			$prof_gallagher->setLastName("Gallagher");
 			$manager->persist($prof_gallagher);
 
-			$prof_brauns = new User("brauns", "cbrauns@cedarville.edu");			
+			$prof_brauns = new User("cbrauns@cedarville.edu", "cbrauns@cedarville.edu");
+			$prof_brauns->addRole("ROLE_SUPER");			
 			$prof_brauns->addRole("ROLE_ADMIN");
 			$prof_brauns->setFirstName("Christopher");
 			$prof_brauns->setLastName("Brauns");
 			$manager->persist($prof_brauns);			
 			
-			$wolf_user = new User("ewolf", "ewolf@cedarville.edu");
+			$wolf_user = new User("ewolf@cedarville.edu", "ewolf@cedarville.edu");
 			$wolf_user->addRole("ROLE_SUPER");			
 			$wolf_user->addRole("ROLE_ADMIN");
 			$wolf_user->setFirstName("Emily");
 			$wolf_user->setLastName("Wolf");
 			$manager->persist($wolf_user);
 			
-			$budd_user = new User("ebudd", "ebudd@cedarville.edu");
+			$budd_user = new User("ebudd@cedarville.edu", "ebudd@cedarville.edu");
 			$budd_user->addRole("ROLE_SUPER");			
 			$budd_user->addRole("ROLE_ADMIN");
 			$budd_user->setFirstName("Emmett");
 			$budd_user->setLastName("Budd");
 			$manager->persist($budd_user);
 			
-			$smith_user = new User("tgsmith", "timothyglensmith@cedarville.edu");
+			$smith_user = new User("timothyglensmith@cedarville.edu", "timothyglensmith@cedarville.edu");
 			$smith_user->addRole("ROLE_SUPER");			
 			$smith_user->addRole("ROLE_ADMIN");			
 			$smith_user->setFirstName("Timothy");
