@@ -105,8 +105,7 @@ class UploadController extends Controller {
 		
         // if they didn't send a file, render upload page
 		return $this->redirectToRoute('assignment', 
-									array('userId' => $user->id,
-											'sectionId' => $problem_entity->assignment->section->id,
+									array('sectionId' => $problem_entity->assignment->section->id,
 											'assignmentId' => $problem_entity->assignment->id,
 											'problemId' => $problem_entity->id));
     }

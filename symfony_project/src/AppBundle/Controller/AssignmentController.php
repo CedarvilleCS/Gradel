@@ -20,8 +20,8 @@ use Psr\Log\LoggerInterface;
 class AssignmentController extends Controller {
 
 
-	public function assignmentAction($userId, $sectionId, $assignmentId, $problemId) {
-
+	public function assignmentAction($sectionId, $assignmentId, $problemId) {
+	
 		$em = $this->getDoctrine()->getManager();
 		
 		$user = $this->get('security.token_storage')->getToken()->getUser();  	  
@@ -101,10 +101,9 @@ class AssignmentController extends Controller {
 		]);
     }
 
-    public function newAction($userId, $sectionId) {
+    public function newAction($sectionId) {
 
       return $this->render('assignment/new.html.twig', [
-        "userId" => $userId,
         "sectionId" => $sectionId,
       ]);
     }
@@ -131,18 +130,17 @@ class AssignmentController extends Controller {
       $em->persist($assignment);
       $em->flush();
 
-      return new RedirectResponse($this->generateUrl('assignment_edit', array('userId' => $user->id, 'sectionId' => $sectionId, 'assignmentId' => $assignment->id)));
+      return new RedirectResponse($this->generateUrl('assignment_edit', array('sectionId' => $sectionId, 'assignmentId' => $assignment->id)));
 
     }
 
-    public function editAction($userId, $sectionId, $assignmentId) {
+    public function editAction($sectionId, $assignmentId) {
 
       $em = $this->getDoctrine()->getManager();
 
       $assignment = $em->find('AppBundle\Entity\Assignment', $assignmentId);
 
       return $this->render('assignment/edit.html.twig', [
-        "userId" => $userId,
         "sectionId" => $sectionId,
         "assignmentId" => $assignmentId,
         "assignment" => $assignment,
@@ -169,7 +167,7 @@ class AssignmentController extends Controller {
       $em->persist($assignment);
       $em->flush();
 
-      return new RedirectResponse($this->generateUrl('assignment', array('userId' => $user->id, 'sectionId' => $sectionId, 'assignmentId' => $assignment->id)));
+      return new RedirectResponse($this->generateUrl('assignment', array('sectionId' => $sectionId, 'assignmentId' => $assignment->id)));
     }
 }
 

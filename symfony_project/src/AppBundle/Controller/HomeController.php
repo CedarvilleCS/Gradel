@@ -23,9 +23,7 @@ class HomeController extends Controller {
 		$em = $this->getDoctrine()->getManager();
 	  
 		$user = $this->get('security.token_storage')->getToken()->getUser();
-	  
-	  
-		if(!get_class($user)){
+	  	if(!get_class($user)){
 			die("USER DOES NOT EXIST!");		  
 		}
 	  

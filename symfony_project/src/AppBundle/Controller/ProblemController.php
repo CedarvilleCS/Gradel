@@ -21,9 +21,8 @@ use Symfony\Component\HttpFoundation\Response;
 class ProblemController extends Controller {
 
    
-    public function newAction($userId, $sectionId, $assignmentId) {
+    public function newAction($sectionId, $assignmentId) {
       return $this->render('problem/new.html.twig', [
-        'userId' => $userId,
         'sectionId' => $sectionId,
         'assignmentId' => $assignmentId,
       ]);

@@ -22,7 +22,7 @@
 			{% else %}
 			
 			  {% for prob in submission.problem.assignment.problems %}
-					<a href="{{path("assignment", {'userId': app.user.id, 'sectionId': prob.assignment.section.id, 'assignmentId': prob.assignment.id, 'problemId': prob.id})}}">
+					<a href="{{path("assignment", {'sectionId': prob.assignment.section.id, 'assignmentId': prob.assignment.id, 'problemId': prob.id})}}">
 						<li>
 							{{ prob.name }}
 							{#<div><small> {{(user_subs[prob.id]*100)|number_format('2', '.')}}% </small></div>#}
