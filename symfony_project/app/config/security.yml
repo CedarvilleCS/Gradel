@@ -12,6 +12,7 @@ security:
     firewalls:
         # Set the config on your firewall
         main:
+            switch_user: { role: ROLE_SUPER, parameter: _switch_user }
             anonymous: ~
             oauth:
                 # Declare the OAuth Callback URLs for every resource owner

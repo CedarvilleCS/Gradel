@@ -73,7 +73,7 @@ class Fixtures extends Fixture {
 			
 			$smith_user = new User("tgsmith", "timothyglensmith@cedarville.edu");
 			$smith_user->addRole("ROLE_SUPER");			
-			$smith_user->addRole("ROLE_ADMIN");
+			$smith_user->addRole("ROLE_ADMIN");			
 			$smith_user->setFirstName("Timothy");
 			$smith_user->setLastName("Smith");
 			$manager->persist($smith_user);

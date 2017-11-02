@@ -76,13 +76,24 @@ class HomeController extends Controller {
 
 			$grades[$asgn->id] = $grade[1];
 		}
-				
+		
+		$qb_users = $em->createQueryBuilder();
+		$qb_users->select('u')
+			->from('AppBundle\Entity\User', 'u')
+			->where('u != ?1')
+			->setParameter(1, $user);
+			
+		$users_query = $qb_users->getQuery();		
+
+		$users = $users_query->getResult();	
+		
 		return $this->render('home/index.html.twig', [
 			'user' => $user,
 			
 			'usersectionroles' => $usersectionroles,
 			'assignments' => $assignments,
-			'grades' => $grades
+			'grades' => $grades,
+			'user_impersonators' => $users
 		]);
 
     }

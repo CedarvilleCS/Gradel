@@ -1,12 +1,7 @@
 # EMILY'S ROUTE
 homepage:
-    path:   '/'
-    defaults:  { _controller: AppBundle:Home:home}
-
-account:
-  path: '/home'
-  defaults: {_controller: AppBundle:Home:home}
-    
+    path:   '/home'
+    defaults:  { _controller: AppBundle:Home:home}    
     
 # CHRIS'S''S'S'S'S'S'S'SS'S' ROUTES
 section_new:
