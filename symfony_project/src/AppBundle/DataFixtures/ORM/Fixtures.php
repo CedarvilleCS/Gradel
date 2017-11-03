@@ -14,7 +14,8 @@ use AppBundle\Entity\UserSectionRole;
 use AppBundle\Entity\Testcase;
 use AppBundle\Entity\Submission;
 use AppBundle\Entity\Language;
-use AppBundle\Entity\Gradingmethod;
+use AppBundle\Entity\ProblemGradingMethod;
+use AppBundle\Entity\AssignmentGradingMethod;
 use AppBundle\Entity\Feedback;
 use AppBundle\Entity\TestcaseResult;
 
@@ -79,6 +80,11 @@ class Fixtures extends Fixture {
 			$smith_user->setFirstName("Timothy");
 			$smith_user->setLastName("Smith");
 			$manager->persist($smith_user);
+			
+			$annie_user = new User("amathis11@gmail.com", "amathis11@gmail.com");
+			$annie_user->setFirstName("Annie");
+			$annie_user->setLastName("Mathis");
+			$manager->persist($annie_user);
 		}
 		
 		# COURSE Testing
@@ -113,6 +119,7 @@ class Fixtures extends Fixture {
 			$manager->persist(new UserSectionRole($budd_user, $CS1210_01, $takes_role));
 			$manager->persist(new UserSectionRole($prof_gallagher, $CS1210_01, $takes_role));
 			$manager->persist(new UserSectionRole($prof_brauns, $CS1210_01, $takes_role));
+			$manager->persist(new UserSectionRole($annie_user, $CS1210_01, $takes_role));
 			$manager->persist(new UserSectionRole($smith_user, $CS1210_01, $teach_role));
 			
 			//$manager->persist(new UserSectionRole($prof_gallagher, $CS1220_01, $takes_role));
@@ -126,21 +133,15 @@ class Fixtures extends Fixture {
 			$manager->persist(new UserSectionRole($prof_brauns, $contest_2017, $teach_role));
 		}
 		
-		# GRADINGMETHOD Testing
+		# ASSIGNMENTGRADINGMETHOD Testing
 		{
-			$method_nolatesubs = new Gradingmethod("No Late Submissions", "The end time of the project is the final time a submission will be accepted. No late work is accepted after this.");
-			$method_cutoff10penalty = new Gradingmethod("Cutoff - 10% Penalty", "The cutoff time is the final time a submission will be accepted. There is a 10% penalty for submitting before this.");
-			$method_cutoff00penalty = new Gradingmethod("Cutoff - No Penalty", "The cutoff time is the final time a submission will be accepted. There is no penalty for submitting before this.");
-			
-			$method_nopenalty = new Gradingmethod("No Attempt Penalty", "You are allowed to submit any number of attempts, and each attempt has no penalty");
-			$method_10penalty = new Gradingmethod("10% Attempt Penalty", "You are allowed to submit any number of attempts, but each attempt lowers score by 10%");
-			
-			$manager->persist($method_nolatesubs);
-			$manager->persist($method_cutoff10penalty);
-			$manager->persist($method_cutoff00penalty);
-			
-			$manager->persist($method_nopenalty);
-			$manager->persist($method_10penalty);				
+			$assignment_grdmethod0 = new AssignmentGradingMethod(0.10);
+			$assignment_grdmethod1 = new AssignmentGradingMethod(0.10);	
+			$assignment_grdmethod2 = new AssignmentGradingMethod(0.20);		
+
+			$manager->persist($assignment_grdmethod0);
+			$manager->persist($assignment_grdmethod1);
+			$manager->persist($assignment_grdmethod2);
 		}
 		
 		# ASSIGNMENT Testing
@@ -148,23 +149,23 @@ class Fixtures extends Fixture {
 			$assignment_01 = new Assignment($CS1210_01, 
 									"Homework #1", "This is the first homework assignment", 
 									\DateTime::createFromFormat($date_format, "00:00:00 10/30/2017"), 
-									\DateTime::createFromFormat($date_format, "23:59:59 11/10/2017"), 
-									\DateTime::createFromFormat($date_format, "08:00:00 11/13/2017"), 0.0, $method_nolatesubs, false);
+									\DateTime::createFromFormat($date_format, "23:59:59 11/30/2017"), 
+									\DateTime::createFromFormat($date_format, "08:00:00 12/15/2017"), 0.0, $assignment_grdmethod0, false);
 			$manager->persist($assignment_01);
 			
 			
 			$assignment_02 = new Assignment($contest_2017, 
 									"Practice Contest", "The is the practice contest before the actual contest", 
-									\DateTime::createFromFormat($date_format, "13:00:00 11/01/2017"), 
-									\DateTime::createFromFormat($date_format, "17:00:00 11/01/2017"), 
-									\DateTime::createFromFormat($date_format, "17:00:00 11/01/2017"), 0.0, $method_nolatesubs, false);
+									\DateTime::createFromFormat($date_format, "13:00:00 10/30/2017"), 
+									\DateTime::createFromFormat($date_format, "17:00:00 11/30/2017"), 
+									\DateTime::createFromFormat($date_format, "17:00:00 12/15/2017"), 0.0, $assignment_grdmethod1, false);
 			$manager->persist($assignment_02);
 			
 			$assignment_03 = new Assignment($contest_2017, 
 									"Actual Contest", "The is the contest", 
-									\DateTime::createFromFormat($date_format, "13:00:00 11/01/2017"), 
-									\DateTime::createFromFormat($date_format, "17:00:00 11/01/2017"), 
-									\DateTime::createFromFormat($date_format, "17:00:00 11/01/2017"), 0.0, $method_nolatesubs, false);
+									\DateTime::createFromFormat($date_format, "13:00:00 10/30/2017"), 
+									\DateTime::createFromFormat($date_format, "17:00:00 11/30/2017"), 
+									\DateTime::createFromFormat($date_format, "17:00:00 12/15/2017"), 0.0, $assignment_grdmethod2, false);
 			$manager->persist($assignment_03);
 		}
 		
@@ -173,14 +174,14 @@ class Fixtures extends Fixture {
 		{
 			$team_01 = new Team("Wolf_01", $assignment_01);
 			$team_02 = new Team("Budd_01", $assignment_01);	
-			$team_03 = new Team("Smith_01", $assignment_01);
-			$team_20 = new Team("Gallagher_01", $assignment_01);	
+			$team_03 = new Team("Gallagher_01", $assignment_01);
+			$team_20 = new Team("Mathis_01", $assignment_01);	
 			$team_21 = new Team("Brauns_01", $assignment_01);
 					
 			$team_01->users[] = $wolf_user;
 			$team_02->users[] = $budd_user;
-			$team_03->users[] = $smith_user;
-			$team_20->users[] = $prof_gallagher;
+			$team_03->users[] = $prof_gallagher;
+			$team_20->users[] = $annie_user;
 			$team_21->users[] = $prof_brauns;
 			
 			
@@ -228,6 +229,17 @@ class Fixtures extends Fixture {
 			$manager->persist($language_JAVA);			
 		}
 		
+		# PROBLEMGRADINGMETHOD Testing
+		{
+			$prob_grdmethod00 = new ProblemGradingMethod(0, 0, 0);
+			$prob_grdmethod10 = new ProblemGradingMethod(10, 10, .10);
+			$prob_grdmethod01 = new ProblemGradingMethod(10, 1, .10);
+			
+			$manager->persist($prob_grdmethod00);
+			$manager->persist($prob_grdmethod10);
+			$manager->persist($prob_grdmethod01);
+		}
+		
 		# PROBLEM Testing
 		{
 			$problems = [];
@@ -238,44 +250,44 @@ class Fixtures extends Fixture {
 			
 			# HOMEWORK 1 For CS-1210-01
 			$desc_file_01 = fopen($folder_path."sum/description.txt", "r") or die("Unable to open 1.desc");
-			$problem_01 = new Problem($assignment_01, "Calculate the Sum", $desc_file_01, 0.0, $method_nopenalty, 0, 1000, false);
+			$problem_01 = new Problem($assignment_01, "Calculate the Sum", $desc_file_01, 0.0, $prob_grdmethod00, 1000, false);
 			$problems[] = $problem_01;
 			$prob_folds[$problem_01->name] = "sum";
 			
 			$desc_file_02 = fopen($folder_path."diff/description.txt", "r") or die("Unable to open 2.desc");
-			$problem_02 = new Problem($assignment_01, "Calculate the Difference", $desc_file_02, 0.0, $method_nopenalty, 0, 1000, false);
+			$problem_02 = new Problem($assignment_01, "Calculate the Difference", $desc_file_02, 0.0, $prob_grdmethod00, 1000, false);
 			$problems[] = $problem_02;
 			$prob_folds[$problem_02->name] = "diff";
 			
 			$desc_file_03 = fopen($folder_path."prod/description.txt", "r") or die("Unable to open 3.desc");
-			$problem_03 = new Problem($assignment_01, "Calculate the Product", $desc_file_03, 0.0, $method_nopenalty, 0, 1000, false);
+			$problem_03 = new Problem($assignment_01, "Calculate the Product", $desc_file_03, 0.0, $prob_grdmethod00, 1000, false);
 			$problems[] = $problem_03;
 			$prob_folds[$problem_03->name] = "prod";
 			
 			$desc_file_04 = fopen($folder_path."quot/description.txt", "r") or die("Unable to open 4.desc");
-			$problem_04 = new Problem($assignment_01, "Calculate the Quotient", $desc_file_04, 0.0, $method_nopenalty, 0, 1000, false);
+			$problem_04 = new Problem($assignment_01, "Calculate the Quotient", $desc_file_04, 0.0, $prob_grdmethod00, 1000, false);
 			$problems[] = $problem_04;
 			$prob_folds[$problem_04->name] = "quot";
 			
 			# PRACTICE CONTEST
 			$desc_file_05 = fopen($folder_path."Z/description.txt", "r") or die("Unable to open 5.desc");
-			$problem_05 = new Problem($assignment_02, "Z - Happy Trails", $desc_file_05, 0.0, $method_nopenalty, 0, 1000, false);
+			$problem_05 = new Problem($assignment_02, "Z - Happy Trails", $desc_file_05, 0.0, $prob_grdmethod10, 1000, false);
 			$problems[] = $problem_05;
 			$prob_folds[$problem_05->name] = "Z";
 			
 			# ACTUAL CONTEST
 			$desc_file_06 = fopen($folder_path."A/description.txt", "r") or die("Unable to open 6.desc");
-			$problem_06 = new Problem($assignment_03, "A - The Key to Cryptography", $desc_file_06, 0.0, $method_nopenalty, 0, 1000, false);
+			$problem_06 = new Problem($assignment_03, "A - The Key to Cryptography", $desc_file_06, 0.0, $prob_grdmethod01, 1000, false);
 			$problems[] = $problem_06;
 			$prob_folds[$problem_06->name] = "A";
 			
 			$desc_file_07 = fopen($folder_path."B/description.txt", "r") or die("Unable to open 7.desc");
-			$problem_07 = new Problem($assignment_03, "B - Red Rover", $desc_file_07, 0.0, $method_nopenalty, 0, 1000, false);
+			$problem_07 = new Problem($assignment_03, "B - Red Rover", $desc_file_07, 0.0, $prob_grdmethod01, 1000, false);
 			$problems[] = $problem_07;
 			$prob_folds[$problem_07->name] = "B";
 			
 			$desc_file_08 = fopen($folder_path."C/description.txt", "r") or die("Unable to open 8.desc");
-			$problem_08 = new Problem($assignment_03, "C - Lost In Translation", $desc_file_08, 0.0, $method_nopenalty, 0, 1000, false);
+			$problem_08 = new Problem($assignment_03, "C - Lost In Translation", $desc_file_08, 0.0, $prob_grdmethod01, 1000, false);
 			$problems[] = $problem_08;
 			$prob_folds[$problem_08->name] = "C";
 			
@@ -290,8 +302,7 @@ class Fixtures extends Fixture {
 		}
 		
 		# PROBLEM LANGUAGE Testing
-		{			
-			
+		{						
 			foreach($problems as $prob){
 				
 				$problang_01 = new ProblemLanguage($language_CPP, $prob, NULL, NULL);			
@@ -320,8 +331,6 @@ class Fixtures extends Fixture {
 		
 		# TESTCASES for PROBLEMS
 		{
-			
-			
 			foreach($problems as $prob){			
 				
 				$prob_name = $prob_folds[$prob->name];

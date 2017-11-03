@@ -8,32 +8,9 @@
 
 <body>
 	{{ include('template/top-nav.html.twig') }}
-
-	<nav class="nav-left">
-        <ol style="padding-bottom: 10px">
-		  <li style="padding-top: 0px; padding-bottom: 30px"> {{submission.problem.assignment.name}} 
-			<div><small>Due on {{submission.problem.assignment.end_time|date('F d')}} {{submission.problem.assignment.end_time|date('\\a\\t  h:i:s A')}} </small></div>
-			</li>
-			
-			{% if submission.problem.assignment.problems|length == 0 %}
-			
-				<li> There are no problems for this assignment </li>
-				
-			{% else %}
-			
-			  {% for prob in submission.problem.assignment.problems %}
-					<a href="{{path("assignment", {'sectionId': prob.assignment.section.id, 'assignmentId': prob.assignment.id, 'problemId': prob.id})}}">
-						<li>
-							{{ prob.name }}
-							{#<div><small> {{(user_subs[prob.id]*100)|number_format('2', '.')}}% </small></div>#}
-						</li>
-					</a>
-			  {% endfor %}
-			  
-		  {% endif %}
-		  
-        </ol>
-    </nav>
+	
+	{# left panel with the problem links #}
+	{{ include('template/problem-nav.html.twig') }}
 	
 	<section id="main">
 

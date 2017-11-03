@@ -6,9 +6,9 @@ use Symfony\Component\Config\Definition\Exception\Exception;
 
 /**
 *@ORM\Entity
-*@ORM\Table(name="gradingmethod")
+*@ORM\Table(name="problemgradingmethod")
 **/
-class Gradingmethod {
+class ProblemGradingMethod {
 		
 	public function __construct(){
 		
@@ -22,9 +22,10 @@ class Gradingmethod {
 		}
 	}
 	
-	public function __construct2($nm, $desc){
-		$this->name = $nm;
-		$this->description = $desc;
+	public function __construct3($tot, $bef, $pen){
+		$this->total_attempts = $tot;
+		$this->attempts_before_penalty = $bef;
+		$this->penalty_per_attempt = $pen;
 	}
 	
 	/**
@@ -35,17 +36,19 @@ class Gradingmethod {
 	public $id;
 
 	/**
-	*@ORM\Column(type="string", length=255, unique=true)
+	*@ORM\Column(type="integer")
 	*/
-	public $name;
-
-	/**
-	*@ORM\Column(type="blob")
-	*/
-	public $description;
+	public $total_attempts;
 	
-	public function deblobinateDescription(){			
-		return stream_get_contents($this->description);
-	}
+	/**
+	*@ORM\Column(type="integer")
+	*/
+	public $attempts_before_penalty;
+	
+	/**
+	* @ORM\Column(type="decimal", precision=12, scale=8)
+	*/
+	public $penalty_per_attempt;
+	
 }
 ?>

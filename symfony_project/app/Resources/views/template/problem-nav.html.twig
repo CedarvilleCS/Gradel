@@ -1,0 +1,52 @@
+{# make sure that the grader entity is define before doing all of this stuff #}
+{% if grader is defined and problem is defined%}
+
+{% set grades = grader.getAllProblemGrades(app.user, problem.assignment) %}
+
+<nav class="nav-left">
+	<ol style="padding-bottom: 10px">
+		
+		{# overview of when the assignment is due #}		
+		<li style="padding-top: 0px; padding-bottom: 30px"> {{problem.assignment.name}} 
+			<div><small>Due on {{problem.assignment.end_time|date('F d')}} {{problem.assignment.end_time|date('\\a\\t  h:i:s A')}} </small></div>
+		</li>
+		
+		{# problem list #}
+		{% if problem.assignment.problems|length == 0 %}
+		
+			<li> There are no problems for this assignment </li>
+			
+		{% else %}
+		
+		  {# loop through all of the problems #}		  
+		  {% for prob in problem.assignment.problems %}
+		  
+				{% if prob.id != problem.id %}
+				
+					<a href="{{path("assignment", {'sectionId': prob.assignment.section.id, 'assignmentId': prob.assignment.id, 'problemId': prob.id})}}">
+						<li>
+							{{ prob.name }}&nbsp;<br/>
+							{{grades[prob.id]['passed_testcases']}}/{{grades[prob.id]['total_testcases']}} - {{(grades[prob.id]['percentage_adj']*100)|number_format(1,'.')}}%
+							- {{grades[prob.id]['all_submissions']|length}} - {{grades[prob.id]['attempts']}}
+						</li>
+					</a>
+					
+				{% else %}
+				
+					<li style="background: #5a5a5a">
+							{{ prob.name }}&nbsp;<br/>
+							{{grades[prob.id]['passed_testcases']}}/{{grades[prob.id]['total_testcases']}} - {{(grades[prob.id]['percentage_adj']*100)|number_format(1,'.')}}%
+							- {{grades[prob.id]['all_submissions']|length}} - {{grades[prob.id]['attempts']}}
+					</li>
+				
+				{% endif %}
+				
+		  {% endfor %}
+		  
+	  {% endif %}
+	  
+	</ol>
+</nav>
+
+
+{% endif %}

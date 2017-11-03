@@ -16,7 +16,8 @@ use AppBundle\Entity\Problem;
 use AppBundle\Entity\UserSectionRole;
 use AppBundle\Entity\Testcase;
 use AppBundle\Entity\Language;
-use AppBundle\Entity\Gradingmethod;
+use AppBundle\Entity\ProblemGradingMethod;
+use AppBundle\Entity\AssignmentGradingMethod;
 use AppBundle\Entity\Feedback;
 use AppBundle\Entity\TestcaseResult;
 

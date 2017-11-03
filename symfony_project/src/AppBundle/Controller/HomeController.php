@@ -7,11 +7,12 @@ use AppBundle\Entity\Course;
 use AppBundle\Entity\UserSectionRole;
 use AppBundle\Entity\Assignment;
 
+use AppBundle\Utils\Grader;
+
 use \DateTime;
 
 use Psr\Log\LoggerInterface;
 
-use Auth0\SDK\Auth0;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
@@ -19,7 +20,8 @@ use Symfony\Component\HttpFoundation\Request;
 class HomeController extends Controller {
 	
     public function homeAction() {
-
+		
+	
 		$em = $this->getDoctrine()->getManager();
 	  
 		$user = $this->get('security.token_storage')->getToken()->getUser();
