@@ -22,8 +22,9 @@
 			<div class="card">
 				<h2 style="margin: 0px">{{problem.name}}</h2>
 				<div id="courseInfo" class="card-contents">
-						<p>{{problemDescription|nl2br}}</p>
-	{# Keep this here so that the default code is in the right place #}
+					<p>{{problemDescription|nl2br}}</p>
+
+{# Keep this here so that the default code is in the right place #}
 <div id="editor">#include &#60;stdio.h&#62;
 
 int main(){
@@ -38,6 +39,7 @@ int main(){
 						<br>
 						{% if usersectionrole.role.role_name == 'Takes' %}
 							<form action="{{path('upload', {'problem_id': problem.id}) }}" method="post" enctype="multipart/form-data">
+								<input type="hidden" name="ACE" id="ACE">
 								<input type="file" name="fileToUpload" id="fileToUpload" value="Upload File">
 								<br><br>
 								Language: 
@@ -54,7 +56,7 @@ int main(){
 								<label for="package_name">Package Name: </label><input type="text" name="package_name">
 								
 								<br><br>
-								<input type="submit" value="Submit Solution" name="submit">			
+								<input type="submit" value="Submit Solution" name="submit" onclick="saveACE();">			
 							</form>
 							
 						{% else %}
@@ -88,6 +90,13 @@ int main(){
 		var editor = ace.edit("editor");
 		editor.setTheme("ace/theme/xcode");
 		editor.getSession().setMode("ace/mode/c_cpp");
+		console.log(editor.getValue());
+	</script>
+	<script>
+		function saveACE() {
+			$("#ACE").val(editor.getValue());
+			console.log("saveACE()");
+		}
 	</script>
 
 {% endblock %}

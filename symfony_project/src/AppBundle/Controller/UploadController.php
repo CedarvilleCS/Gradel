@@ -100,8 +100,41 @@ class UploadController extends Controller {
 												
 			// INDICATE THAT FILE UPLOAD WAS SUCCESSFUL ON ASSIGNMENT/PROBLEM PAGE
 			
-		} else {
+		} else if($_POST["ACE"] != "") { // If ACE is not blank, and no file was uploaded, create a file with the ACE contents
+
 			#echo "Sorry, there was an error uploading your file.";
+			$language_id = $_POST["language"];
+			
+			$language_entity = $em->find("AppBundle\Entity\Language", $language_id);			
+			if(!$language_entity){
+				die("LANGUAGE DOES NOT EXIST!");
+			}
+
+			// file_put_contents($uploads_directory . "test." . $_POST["language"], $_POST["ACE"], FILE_USE_INCLUDE_PATH);
+			// file_put_contents("/var/www/gradel_dev/budd/" . "test." . $language_entity.$extension, $_POST["ACE"], FILE_USE_INCLUDE_PATH);
+			// file_put_contents("/var/www/gradel_dev/budd/" . "test.cpp", $_POST["ACE"], FILE_USE_INCLUDE_PATH);
+			file_put_contents("$uploads_directory" . "problem". $problem_entity->id . ".c", $_POST["ACE"], FILE_USE_INCLUDE_PATH);
+			
+			if($language_entity->name == "Java"){
+				
+				if(strlen($_POST["main_class"]) == 0){
+					die("MAIN CLASS IS NEEDED");
+				}
+				
+				$main_class = $_POST["main_class"];
+				$package_name = $_POST["package_name"];
+				
+			} else {
+				$main_class = '';
+				$package_name = '';
+			}
+			
+			return $this->redirectToRoute('submit', 
+										array('problem_id' => $problem_entity->id, 
+												'submitted_filename' => "problem". $problem_entity->id . ".c",
+												'language_id' => $language_id,
+												'main_class' => $main_class,
+												'package_name' => $package_name));
 		}
 		
         // if they didn't send a file, render upload page
