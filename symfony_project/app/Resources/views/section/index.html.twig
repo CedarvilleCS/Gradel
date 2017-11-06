@@ -13,128 +13,126 @@
 	{{ include('template/assignment-nav.html.twig') }}
 
     {# Main section #}
-    <div class="scrollbar-macosx">
-        <section id="main">
-            {# Cards #}
+	<section id="main">
+		{# Cards #}
+		
+		{{ include('template/path-nav.html.twig') }}
+		
+		<div class="card">
+			<div class="btn-close" onclick="collapseCard('courseInfo')"><h2 style="margin: 0px">Due Soon<span style="float: right"><i class="fa fa-angle-down"></i></span></h2></div>
+			<div id="courseInfo" class="card-contents">
 			
-            {{ include('template/path-nav.html.twig') }}
+			{% if future_assigs|length == 0 %}
 			
-            <div class="card">
-                <div class="btn-close" onclick="collapseCard('courseInfo')"><h2 style="margin: 0px">Due Soon<span style="float: right">&#9660;</span></h2></div>
-                <div id="courseInfo" class="card-contents">
-                
-				{% if future_assigs|length == 0 %}
- 				
-					<li> No upcoming assignments </li>
- 				
+				<li> No upcoming assignments </li>
+			
+			{% else %}
+
+				{% for assig in future_assigs %}
+						
+					{% set newDate = assig.end_time|date('m/d/Y') %}
+							
+					{% if newDate != oldDate %}
+						<h4 style="background: grey; color: white; padding: 5px"> {{assig.end_time|date('l, F d')}} </h4>
+					{% endif %}
+							
+					{% set oldDate = newDate %}
+							
+					<div style="margin-left: 20px"><small>{{asgn.section.name}}</small>
+						<a href="{{path('assignment', {'sectionId':assig.section.id, 'assignmentId':assig.id})}}">
+							<li>{{assig.name}} <small>(Due {{assig.end_time|date('\\a\\t  h:i:s A')}})</small></li>
+						</a>
+					</div>
+						
+				{% endfor %}
+				
+			{% endif %}
+			
+			</div>
+		</div>
+
+
+		<div class="card">
+			<div class="btn-close" onclick="collapseCard('studentInfo')"><h2 style="margin: 0px">Student Info<span style="float: right"><i class="fa fa-angle-down"></i></span></h2></div>
+			<div id="studentInfo" class="card-contents">
+
+				<div>
+				{% if section_takers|length == 0 %}
+				
+					There are no students enrolled in this class
+				
 				{% else %}
- 
-					{% for assig in future_assigs %}
+				
+					<table>
+						<tr>
+							<th style="text-align: left; border-bottom: 1px solid black; border-right: 1px solid black;">Student</th>
+							{% for asgn in assignments %}
 							
-						{% set newDate = assig.end_time|date('m/d/Y') %}
-								
-						{% if newDate != oldDate %}
-							<h4 style="background: grey; color: white; padding: 5px"> {{assig.end_time|date('l, F d')}} </h4>
-						{% endif %}
-								
-						{% set oldDate = newDate %}
-								
-						<div style="margin-left: 20px"><small>{{asgn.section.name}}</small>
-							<a href="{{path('assignment', {'sectionId':assig.section.id, 'assignmentId':assig.id})}}">
-								<li>{{assig.name}} <small>(Due {{assig.end_time|date('\\a\\t  h:i:s A')}})</small></li>
-							</a>
-						</div>
+								<th style="border-bottom: 1px solid black">{{asgn.name}}</th>
 							
-					{% endfor %}
+							{% endfor %}
+						</tr>
+						
+						{% for user in section_takers %}
+							
+							<tr> <th>{{user.getFirstName()}} {{user.getLastName()}}</th>
+							
+							{% for asgn in assignments %}
+								
+								{% if student_subs[asgn.id][user.id] == "GOOD" %}
+									<td style="color:green; font-size: 25px"> &#x2713; </td>
+								{% elseif student_subs[asgn.id][user.id] == "BAD" %}
+									<td style="color:orange; font-size: 25px"> ~ </td>									
+								{% else %} 
+									<td style="color:red; font-size: 25px"> &#x2718 </td>
+								{% endif %}
+								
+							{% endfor %}
+							
+						{% endfor %}
+						
+					</table>
 					
 				{% endif %}
 				
-                </div>
-            </div>
-
-
-            <div class="card">
-                <div class="btn-close" onclick="collapseCard('studentInfo')"><h2 style="margin: 0px">Student Info<span style="float: right">&#9660;</span></h2></div>
-                <div id="studentInfo" class="card-contents">
-
-					<div>
-					{% if section_takers|length == 0 %}
-					
-						There are no students enrolled in this class
-					
-					{% else %}
-					
-					   <table>
-                            <tr>
-                                <th style="text-align: left; border-bottom: 1px solid black; border-right: 1px solid black;">Student</th>
-                                {% for asgn in assignments %}
-								
-									<th style="border-bottom: 1px solid black">{{asgn.name}}</th>
-								
-								{% endfor %}
-                            </tr>
-							
-							{% for user in section_takers %}
-								
-								<tr> <th>{{user.getFirstName()}} {{user.getLastName()}}</th>
-								
-								{% for asgn in assignments %}
-									
-									{% if student_subs[asgn.id][user.id] == "GOOD" %}
-  										<td style="color:green; font-size: 25px"> &#x2713; </td>
-									{% elseif student_subs[asgn.id][user.id] == "BAD" %}
-										<td style="color:orange; font-size: 25px"> ~ </td>									
-  									{% else %} 
-  										<td style="color:red; font-size: 25px"> &#x2718 </td>
-  									{% endif %}
-									
-								{% endfor %}
-								
-							{% endfor %}
-                            
-                        </table>
+				</div>
+			</div>
+		</div>
+		
+		{% if app.user in section_teachers or is_granted("ROLE_SUPER") %}
+		
+			<div class="card">
+				<div class="btn-close" onclick="collapseCard('recentSubs')"><h2 style="margin: 0px">Recent Submissions<span style="float: right"><i class="fa fa-angle-down"></i></span></h2></div>
+				<div id="recentSubs" class="card-contents">
 						
-					{% endif %}
-					
-					</div>
-                </div>
-            </div>
-			
-			{% if app.user in section_teachers or is_granted("ROLE_SUPER") %}
-			
-				<div class="card">
-					<div class="btn-close" onclick="collapseCard('recentSubs')"><h2 style="margin: 0px">Recent Submissions<span style="float: right">&#9660;</span></h2></div>
-					<div id="recentSubs" class="card-contents">
-						   
-						<div>   
-						   <ul>
-							{% if recent_submissions|length == 0 %}
- 								<li> No recent submissions </li>
-							{% else %}
-								
-								{% for sub in recent_submissions %}
-									{% if sub.percentage == 1 %}
-										<div style="color: green">
-									{% else %}
-										<div style="color: red">
-									{% endif %}
-									
-									<li><a href="{{path('problem_result', {'submission_id': sub.id})}}">[{{sub.problem.name}}] {{sub.user.getFirstName}} {{sub.user.getLastName}} - {{sub.timestamp|date('F d, Y  \\a\\t  h:i:s')}} ({{sub.filename}})</a> </li>
-								
-									</div>
-								{% endfor %}
-								
-							{% endif %}
+					<div>   
+						<ul>
+						{% if recent_submissions|length == 0 %}
+							<li> No recent submissions </li>
+						{% else %}
 							
-						   </ul>
-						</div>
+							{% for sub in recent_submissions %}
+								{% if sub.percentage == 1 %}
+									<div style="color: green">
+								{% else %}
+									<div style="color: red">
+								{% endif %}
+								
+								<li><a href="{{path('problem_result', {'submission_id': sub.id})}}">[{{sub.problem.name}}] {{sub.user.getFirstName}} {{sub.user.getLastName}} - {{sub.timestamp|date('F d, Y  \\a\\t  h:i:s')}} ({{sub.filename}})</a> </li>
+							
+								</div>
+							{% endfor %}
+							
+						{% endif %}
+						
+						</ul>
 					</div>
 				</div>
-			
-			{% endif %}
-			
-        </section>
-    </div>
+			</div>
+		
+		{% endif %}
+		
+	</section>
 
 
 </body>
@@ -143,7 +141,8 @@
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('styles.css') }}" />
-    <link rel="stylesheet" href="{{ asset('home.css') }}" />
+	<link rel="stylesheet" href="{{ asset('home.css') }}" />
+	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
 {% endblock %}
 
 
@@ -151,5 +150,5 @@
     <!-- JQuery -->
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-    <script src="{{ asset('js/cards.js') }}"></script>
+	<script src="{{ asset('js/cards.js') }}"></script>
 {% endblock %}
