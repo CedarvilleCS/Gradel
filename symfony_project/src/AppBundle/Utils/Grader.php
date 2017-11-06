@@ -48,18 +48,17 @@ class Grader  {
 				
 		$query_team = $qb_teams->getQuery();
 		$team_entities = $query_team->getResult();	
-
+		
 		# loop over all the teams for this assignment and figure out which team the user is a part of
 		$team = null;		
-		foreach($team_entities as $tm){				
-			foreach($tm->users as $us){		
-			
+		
+		foreach($team_entities as $tm){		
+			foreach($tm->users as $us){	
 				if($user->id == $us->id){
 					$team = $tm;
 				}
 			}
 		}
-		
 		return $team;
 	}
 	
