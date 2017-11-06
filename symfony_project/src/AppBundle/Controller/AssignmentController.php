@@ -85,7 +85,7 @@ class AssignmentController extends Controller {
 			'languages' => $languages,
 			'usersectionrole' => $usersectionrole,
 			//'grades' => $grades,
-			'grader' => $grader,
+			'grader' => new Grader($em),
 		]);
     }
 

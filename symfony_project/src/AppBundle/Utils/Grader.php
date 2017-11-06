@@ -19,6 +19,8 @@ use AppBundle\Entity\AssignmentGradingMethod;
 use AppBundle\Entity\Feedback;
 use AppBundle\Entity\TestcaseResult;
 
+use \DateTime;
+
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\Config\Definition\Exception\Exception;
 
@@ -151,7 +153,7 @@ class Grader  {
 		$accepted_sub_query = $qb_accepted_sub->getQuery();
 		$accepted_sub = $accepted_sub_query->getOneOrNullResult();
 		
-		$grades['accepted_submission'] = $accepted_sub->id;
+		$grades['accepted_submission'] = $accepted_sub;
 		
 		# test cases total
 		$total_testcases = count($problem->testcases);
@@ -222,6 +224,79 @@ class Grader  {
 		return $problems;		
 	}
 	
+	public function getAssignmentGrade($user, $assignment){
+		
+		$grade = [];
+	
+		$normal_problem_count = 0;
+		$extra_problem_count = 0;
+		foreach($assignment->problems as $problem){
+			
+			if($problem->is_extra_credit){
+				$extra_problem_count++;
+			} else{
+				$normal_problem_count++;
+			}			
+		}	
+	
+		$num_correct_assignments = 0;
+		$num_extra_correct_assignments = 0;
+		
+		$grade['num_problems'] = $normal_problem_count;
+		$grade['num_extra_problems'] = $extra_problem_count;
+		$grade['num_correct'] = 0;
+		$grade['num_extra_correct'] = 0;
+		$grade['percentage_raw'] = 0.0;
+		$grade['percentage_adj'] = 0.0;
+		
+		$problem_grades = $this->getAllProblemGrades($user, $assignment);
+		$grade['problem_grades'] = $problem_grades;
+		
+		$assignment_percentage = 0.0;
+		foreach($assignment->problems as $problem){	
+		
+			$problem_percentage = $problem_grades[$problem->id]['percentage_adj'];
+			if($problem->weight == 0){
+				$assignment_percentage += $problem_percentage*(1.0/$normal_problem_count);
+			} else{		
+				$assignment_percentage += $problem_percentage*$problem->weight;
+			}
+			
+			if($problem_grades[$problem->id]['passed_testcases'] == $problem_grades[$problem->id]['total_testcases']){
+				
+				if($problem->is_extra_credit){
+					$num_extra_correct_assignments++;
+				} else {
+					$num_correct_assignments++;
+				}
+			}
+		}
+		
+		$grade['num_correct'] = $num_correct_assignments;
+		$grade['num_extra_correct'] = $num_extra_correct_assignments;
+	
+		$grade['percentage_raw'] = $assignment_percentage;
+	
+		$most_recent_sub = null;
+		foreach($problem_grades as $pg){
+			
+			if(!$most_recent_sub || $most_recent_sub < $pg['accepted_submission']->timestamp){
+				$most_recent_sub = $pg['accepted_submission']->timestamp;
+			}
+		}
+	
+		$num_days_over = 0;
+		if($most_recent_sub > $assignment->end_time){
+			$num_days_over = 1+(int)$most_recent_sub->diff($assignment->end_time)->format('%a');
+		}
+	
+		$grade['percentage_adj'] = max($assignment_percentage - $num_days_over*$assignment->gradingmethod->penalty_per_day, 0);
+		#echo $grade['percentage_adj']."<br/>";
+		#echo $assignment_grade['num_problems']."<br/>";
+		#echo $assignment_grade['finished_problems']."<br/>";
+		
+		return $grade;
+	}
 }
 
 

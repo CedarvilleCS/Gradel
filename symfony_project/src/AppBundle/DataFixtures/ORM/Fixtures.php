@@ -135,7 +135,7 @@ class Fixtures extends Fixture {
 		
 		# ASSIGNMENTGRADINGMETHOD Testing
 		{
-			$assignment_grdmethod0 = new AssignmentGradingMethod(0.10);
+			$assignment_grdmethod0 = new AssignmentGradingMethod(0.00);
 			$assignment_grdmethod1 = new AssignmentGradingMethod(0.10);	
 			$assignment_grdmethod2 = new AssignmentGradingMethod(0.20);		
 

@@ -27,7 +27,6 @@
 						<li>
 							{{ prob.name }}&nbsp;<br/>
 							{{grades[prob.id]['passed_testcases']}}/{{grades[prob.id]['total_testcases']}} - {{(grades[prob.id]['percentage_adj']*100)|number_format(1,'.')}}%
-							- {{grades[prob.id]['all_submissions']|length}} - {{grades[prob.id]['attempts']}}
 						</li>
 					</a>
 					
@@ -36,7 +35,6 @@
 					<li style="background: #5a5a5a">
 							{{ prob.name }}&nbsp;<br/>
 							{{grades[prob.id]['passed_testcases']}}/{{grades[prob.id]['total_testcases']}} - {{(grades[prob.id]['percentage_adj']*100)|number_format(1,'.')}}%
-							- {{grades[prob.id]['all_submissions']|length}} - {{grades[prob.id]['attempts']}}
 					</li>
 				
 				{% endif %}

@@ -12,6 +12,8 @@ use AppBundle\Entity\Section;
 use AppBundle\Entity\Assignment;
 use AppBundle\Entity\Submission;
 
+use AppBundle\Utils\Grader;
+
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
@@ -21,7 +23,6 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
-
 
 use Psr\Log\LoggerInterface;
 
@@ -136,9 +137,15 @@ class SectionController extends Controller
 		$submission_query = $qb_submissions->getQuery();
 		$submissions = $submission_query->getResult();
 
+		$grader = new Grader($em);
+		
+		$grades = $grader->getAssignmentGrade($user, $assignments[0]);
 
+		#die();
+		
 		return $this->render('section/index.html.twig', [
 			'section' => $section_entity,
+			'grader' => new Grader($em),
 			'user' => $user,
 			
 			'assignments' => $assignments,
