@@ -75,7 +75,7 @@
 		{{ include('template/path-nav.html.twig') }}
 		
         <div class="card">
-            <div class="btn-close" onclick="collapseCard('courseInfo')"><h2 style="margin: 0px">Upcoming Assignments<span style="float: right">&#9660;</span></h2></div>
+            <div class="btn-close" onclick="collapseCard('courseInfo')"><h2 style="margin: 0px">Upcoming Assignments<span style="float: right"><i class="fa fa-angle-down"></i></span></h2></div>
             <div id="courseInfo" class="card-contents">
                 
 				{% if assignments|length == 0 %}
@@ -107,7 +107,7 @@
         </div>
 
         <div class="card">
-            <div class="btn-close" onclick="collapseCard('gradeReport')"><h2 style="margin: 0px">Grade Report<span style="float: right">&#9660;</span></h2></div>
+            <div class="btn-close" onclick="collapseCard('gradeReport')"><h2 style="margin: 0px">Grade Report<span style="float: right"><i class="fa fa-angle-down"></i></span></h2></div>
             <div id="gradeReport" class="card-contents">
                 <div>
 				
@@ -140,7 +140,7 @@
         
 
         <div class="card">
-            <div class="btn-close" onclick="collapseCard('studentInfo')"><h2 style="margin: 0px">User Information (Debug Info)<span style="float: right">&#9660;</span></h2></div>
+            <div class="btn-close" onclick="collapseCard('studentInfo')"><h2 style="margin: 0px">User Information (Debug Info)<span style="float: right"><i class="fa fa-angle-down"></i></span></h2></div>
             <div id="studentInfo" class="card-contents">
                 <div>
                     Your name is <span style="color:green">{{user.getFirstName()}} {{user.getLastName()}}</span> <br/>
@@ -159,7 +159,8 @@
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('styles.css') }}" />
-    <link rel="stylesheet" href="{{ asset('home.css') }}" />
+	<link rel="stylesheet" href="{{ asset('home.css') }}" />
+	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
 {% endblock %}
 
 
