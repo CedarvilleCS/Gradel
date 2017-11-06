@@ -220,9 +220,13 @@ class Fixtures extends Fixture {
 		
 		# LANGUAGE Testing
 		{
-			$language_C = new Language("C", ".c");	
-			$language_CPP = new Language("C++", ".cpp");
-			$language_JAVA = new Language("Java", ".java");
+			$def_c = fopen($folder_path."default_code/default.c", "r") or die("Unable to open default.c");
+			$def_cpp = fopen($folder_path."default_code/default.cpp", "r") or die("Unable to open default.cpp");
+			$def_java = fopen($folder_path."default_code/default.java", "r") or die("Unable to open default.java");
+			
+			$language_C = new Language("C", ".c", "c_cpp", $def_c);	
+			$language_CPP = new Language("C++", ".cpp", "c_cpp", $def_cpp);
+			$language_JAVA = new Language("Java", ".java", "java", $def_java);
 			
 			$manager->persist($language_C);
 			$manager->persist($language_CPP);
