@@ -29,6 +29,25 @@ class ProblemController extends Controller {
       ]);
     }
 
+	public function createTestCase($problem_id, $feedback_id, $seq_num, $input, $correct_output, $weight) {
+      $em = $this->getDoctrine()->getManager();
+
+      $user = $this->get('security.token_storage')->getToken()->getUser();
+
+
+      $testcase->problem_id = $problem_id;
+      $testcase->feedback_id = $feedback_id;
+	  $testcase->seq_num = $seq_num;
+	  $testcase->input = $input;
+	  $testcase->correct_output = $correct_output;
+	  $testcase->weight = $weight;
+
+      $em->persist($testcase);
+      $em->flush();
+
+      return new RedirectResponse($this->generateUrl('testcase', array('sectionId' => $sectionId, 'assignmentId' => $assignment->id)));
+    }
+	
     public function editAction() {
       return $this->render('problem/edit.html.twig', [
 
