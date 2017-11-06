@@ -1,0 +1,66 @@
+{% if usersectionroles is defined and grades is defined %}
+
+{# Left Nav #}
+<nav class="nav-left">
+	
+	{% if is_granted("ROLE_SUPER") %}
+		<a class="btn">
+			<div class="btn btn-center">+ Course</div>
+		</a><br/>
+	{% endif %}
+	
+	{% if is_granted("ROLE_ADMIN") or is_granted("ROLE_SUPER") %}
+		<a href="{{path('section_new')}}" class="btn">
+			<div class="btn btn-center">+ Section</div>
+		</a>
+	{% endif %}
+	
+	{% if usersectionroles|length == 0 %}
+		<ol>
+			<li> You aren't part of any sections! </li>
+		</ol>			
+	
+	{% else %}
+		<ol style="padding-bottom: 10px">
+			{% for usr in usersectionroles %}	
+			
+				<a href="{{path('section', {'sectionId':usr.section.id})}}">
+					<li>
+						<span class="preview">{{usr.section.course.name}}
+						
+							<small>
+							<br/>{{usr.section.name}}
+							
+							{% if grades[usr.section.id]['percentage_adj'] >= 0 and usr.role.role_name == 'Takes' %}
+							
+								<br/>{{(grades[usr.section.id]['percentage_adj']*100)|number_format(1, '.') ~ '%'}}
+								
+							{% endif %}
+							
+							</small>
+						</span>	
+					
+					{% if usr.role.role_name == 'Teaches' or is_granted("ROLE_SUPER") %}
+						<object>
+							<a title="Edit {{usr.section.name}}" id="edit-icon" href="{{path('section_edit', {'sectionId': usr.section.id})}}">
+								<svg xmlns="http://www.w3.org/2000/svg" fill="#ffffff" height="15" viewBox="0 0 24 24" width="15">
+									<path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+									<path d="M0 0h24v24H0z"  fill="none"/>
+								</svg>
+							</a>							
+						</object>
+					{% endif %}
+					
+					</li>
+				</a>	
+			{% endfor %}
+		</ol>
+	
+	{% endif %}
+	
+	<a href="" class="btn">
+		<div class="btn btn-center">&#9660; Load Past Sections </div>
+	</a>
+</nav>
+
+{% endif %}
