@@ -19,6 +19,10 @@ html, body {
     box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
 }
 
+strong, b{
+	text-decoration: none;
+}
+
 .btn {
     text-decoration: none;
     margin-top: 10px;
