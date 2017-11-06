@@ -220,9 +220,9 @@ class Fixtures extends Fixture {
 		
 		# LANGUAGE Testing
 		{
-			$language_C = new Language("C");	
-			$language_CPP = new Language("C++");
-			$language_JAVA = new Language("Java");
+			$language_C = new Language("C", ".c");	
+			$language_CPP = new Language("C++", ".cpp");
+			$language_JAVA = new Language("Java", ".java");
 			
 			$manager->persist($language_C);
 			$manager->persist($language_CPP);

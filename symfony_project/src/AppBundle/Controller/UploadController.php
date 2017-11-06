@@ -110,11 +110,8 @@ class UploadController extends Controller {
 				die("LANGUAGE DOES NOT EXIST!");
 			}
 
-			// file_put_contents($uploads_directory . "test." . $_POST["language"], $_POST["ACE"], FILE_USE_INCLUDE_PATH);
-			// file_put_contents("/var/www/gradel_dev/budd/" . "test." . $language_entity.$extension, $_POST["ACE"], FILE_USE_INCLUDE_PATH);
-			// file_put_contents("/var/www/gradel_dev/budd/" . "test.cpp", $_POST["ACE"], FILE_USE_INCLUDE_PATH);
-			file_put_contents("$uploads_directory" . "problem". $problem_entity->id . ".c", $_POST["ACE"], FILE_USE_INCLUDE_PATH);
-			
+			file_put_contents($uploads_directory . "problem". $problem_entity->id . $language_entity->filetype, $_POST["ACE"], FILE_USE_INCLUDE_PATH);
+
 			if($language_entity->name == "Java"){
 				
 				if(strlen($_POST["main_class"]) == 0){
@@ -131,7 +128,7 @@ class UploadController extends Controller {
 			
 			return $this->redirectToRoute('submit', 
 										array('problem_id' => $problem_entity->id, 
-												'submitted_filename' => "problem". $problem_entity->id . ".c",
+												'submitted_filename' => "problem". $problem_entity->id . $language_entity->filetype,
 												'language_id' => $language_id,
 												'main_class' => $main_class,
 												'package_name' => $package_name));
