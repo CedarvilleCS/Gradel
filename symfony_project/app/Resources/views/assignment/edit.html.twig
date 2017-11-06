@@ -33,12 +33,21 @@
     <div class="scrollbar-macosx">
         <section id="main">
             {# Cards #}
+
+			{{ include('template/path-nav.html.twig') }}
+
             <div class="card">
 							<table>
 								<tr>
 									<th colspan="3">
                     <label for="name">Name</label>
-										<input id="name" name="name" type="text" value="">
+										<input id="name" name="name" type="text" value="{{assignment.name}}">
+									</th>
+								</tr>
+                <tr>
+									<th colspan="3">
+                    <label for="description">Description</label>
+										<input id="description" name="description" type="text" value="{{description}}">
 									</th>
 								</tr>
 							</table>
@@ -69,6 +78,36 @@
     <script src="{{ asset('js/cards.js') }}"></script>
 		<script src="{{ asset('js/newSection.js') }}"></script>
     <script src="{{ asset('js/jquery.scrollbar.js') }}"></script>
+    <script>
+			$(document).ready(function() {
+				$('#insert').on('click', function(){insertSection();});
+				$('#student-picker').on('change', function(){addStudent();});
+			});
+
+			var studentArray = [];
+
+			function addStudent() {
+				const studentPicker = document.getElementById('student-picker');
+				const value = studentPicker.value;
+				const studentInput = document.getElementById('student-csv');
+				studentInput.value += value + ", \n"
+				studentArray = studentInput.value.split(", \n");
+				studentPicker.selectedIndex = 0;
+			}
+
+			function insertSection() {
+				const name = document.getElementById("name").value;
+				const description = document.getElementById("description").value;
+
+				var path = "{{path('assignment_edit_query', { 'sectionId': 'sectionId', 'assignmentId': 'assignmentId', 'name': 'name', 'description': 'description'})}}";
+				path = path.replace("name", name);
+        path = path.replace("description", description)
+				path = path.replace("sectionId", {{sectionId}});
+        path = path.replace("assignmentId", {{assignment.id}});
+				window.location.replace(path);
+			}
+
+		</script>
     <script>
         jQuery(document).ready(function(){
             jQuery('.scrollbar-macosx').scrollbar();

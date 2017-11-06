@@ -10,7 +10,7 @@
 
     {# Left Nav #}
     <nav class="nav-left">
-        <a id="insert" class="btn" href="{{path('assignment_edit', {'userId': userId, 'sectionId': sectionId, 'assignmentId': 1})}}"><div class="btn btn-center" >Save</div></a>
+        <a id="insert" class="btn"><div class="btn btn-center" >Save</div></a>
         <ol>
             {% for assignment in assignments %}
                 <h1>{{assignment.name}}
@@ -21,6 +21,9 @@
     {# Main section #}
     <section id="main">
         {# Cards #}
+
+		{{ include('template/path-nav.html.twig') }}
+
         <div class="card">
             <table>
                 <tr>
@@ -39,7 +42,7 @@
                     <th colspan="2">
                         <label for="start-date">Start Date</label>
                         <input type="text" id="start-date">
-                        
+
                     </th>
                     <th colspan="2">
                         <label for="end-date">End Date</label>
@@ -91,6 +94,38 @@
 		<script src="{{ asset('js/newSection.js') }}"></script>
     <script src="{{ asset('js/jquery.scrollbar.js') }}"></script>
     <script>
+			$(document).ready(function() {
+				$('#insert').on('click', function(){insertSection();});
+				$('#student-picker').on('change', function(){addStudent();});
+			});
+
+			var studentArray = [];
+
+			function addStudent() {
+				const studentPicker = document.getElementById('student-picker');
+				const value = studentPicker.value;
+				const studentInput = document.getElementById('student-csv');
+				studentInput.value += value + ", \n"
+				studentArray = studentInput.value.split(", \n");
+				studentPicker.selectedIndex = 0;
+			}
+
+			function insertSection() {
+				const name = document.getElementById("name").value;
+				const description = document.getElementById("description").value;
+
+				var path = "{{path('assignment_insert', { 'name': 'name', 'sectionId': 'section_id', 'description': 'description'})}}";
+				path = path.replace("name", name);
+        path = path.replace("description", description)
+				path = path.replace("section_id", {{sectionId}});
+				window.location.replace(path);
+			}
+
+		</script>
+    <script>
+        jQuery(document).ready(function(){
+            jQuery('.scrollbar-macosx').scrollbar();
+        });
     $( function() {
         $( "#start-date" ).datepicker();
       } );

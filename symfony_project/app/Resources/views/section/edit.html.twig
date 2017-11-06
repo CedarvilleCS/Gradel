@@ -1,5 +1,6 @@
 {% block head %}
 <title>Gradel</title>
+<link rel="icon" type="image/x-icon" href="{{ asset('logo1.png') }}" />
 {% endblock %}
 
 
@@ -30,10 +31,14 @@
 
         <section id="main">
               {# Cards #}
+			  
+			{{ include('template/path-nav.html.twig') }}
+
             <div class="card">
-                <div class="btn-close" onclick="collapseCard('courseInfo')">Section Info<span style="float: right">&#9660;</span></div>
+                <div class="btn-close" onclick="collapseCard('courseInfo')" style="margin: 0px; padding: 0px"><h2 style="margin: 0px">Section Info<span style="float: right">&#9660;</span><h2></div>
                 <div id="courseInfo" class="card-contents">
-                <div class="dyLabel">Section Name: </div><div class="dynamicVal"> {{section.name}}</div>
+                <div class="dyLabel"> Section Name: </div><div class="dynamicVal">&nbsp;{{section.name}} </div> <br/>
+				<div class="dyLabel"> Course Name: </div><div class="dynamicVal">&nbsp;{{section.course.name}} </div>
                 </div>
             </div>
 
@@ -43,7 +48,7 @@
 								<tr>
 									<th colspan="3">
 
-                    <label for="section">section</label>
+                    <label for="section">Course</label>
 										<select name="section" id="section">
 											{% for sec in sections %}
 												<option  value="{{section.id}}" {{ (sec.id == section.course.id) ? "selected" : "" }}>{{sec.name}}</option>
@@ -53,7 +58,7 @@
 								</tr>
 								<tr>
 									<th colspan="3">
-                    <label for="name">Name</label>
+                    <label for="name">Section Name</label>
 										<input id="name" name="name" type="text" value="{{section.name}}">
 									</th>
 								</tr>
@@ -93,8 +98,7 @@
 								</tr>
 								<tr>
 									<th colspan="3">
-										<textarea id="student-csv">{% for student in users %}{{student.email ~ ", \n"}}{% endfor %}
-                    </textarea>
+										<textarea id="student-csv">{% for u in usr %}{{u.user.email ~ ", \n"}}{% endfor %}</textarea>
 									</th>
 								</tr>
                 <tr>
@@ -122,7 +126,6 @@
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('styles.css') }}" />
     <link rel="stylesheet" href="{{ asset('home.css') }}" />
-    <link rel="stylesheet" href="{{ asset('jquery.scrollbar.css') }}" />
 {% endblock %}
 
 
@@ -131,10 +134,48 @@
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script src="{{ asset('js/cards.js') }}"></script>
-    <script src="{{ asset('js/jquery.scrollbar.js') }}"></script>
     <script>
-        jQuery(document).ready(function(){
-            jQuery('.scrollbar-macosx').scrollbar();
-        });
-    </script>
+			$(document).ready(function() {
+				$('#insert').on('click', function(){insertSection();});
+				$('#student-picker').on('change', function(){addStudent();});
+			});
+
+			var studentArray = [];
+
+			function addStudent() {
+				const studentPicker = document.getElementById('student-picker');
+				const value = studentPicker.value;
+				const studentInput = document.getElementById('student-csv');
+				studentInput.value += value + ", \n"
+				studentArray = studentInput.value.split(", \n");
+				studentPicker.selectedIndex = 0;
+			}
+
+			function insertSection() {
+				const test = document.getElementById("section");
+				const name = document.getElementById("name").value;
+				const semester = document.getElementById("semester").value;
+				const year = document.getElementById("year").value;
+				const id = test[test.selectedIndex].value;
+
+        console.log({{sectionId}})
+
+				var path = "{{path('section_edit_query', { 'sectionId': 'section_id', 'courseId': 'course_id',	'userId': 'user_id', 'name': 'name', 'students': 'students', 'semester': 'semester', 'year': 'year', 'start_time': 'start_time', 'end_time': 'end_time', 'is_deleted': 'is_deleted', 'is_public': 'is_public'})}}";
+        path = path.replace("section_id", {{sectionId}})
+        path = path.replace("course_id", id);
+				path = path.replace("name", name);
+				path = path.replace("students", JSON.stringify(studentArray));
+				path = path.replace("semester", semester);
+				path = path.replace("year", year);
+				path = path.replace("name", name);
+				path = path.replace("name", name);
+				path = path.replace("start_time", new Date());
+				path = path.replace("end_time", new Date());
+				path = path.replace("is_deleted", false);
+				path = path.replace("is_public", false);
+				path = path.replace("user_id", {{userId}});
+				window.location.replace(path);
+			}
+
+		</script>
 {% endblock %}

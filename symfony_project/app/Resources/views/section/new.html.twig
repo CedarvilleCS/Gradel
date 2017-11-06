@@ -28,78 +28,74 @@
     </nav>
 
     {# Main section #}
-	<section id="main">
-		{# Cards #}
-		<div class="card">
-						<table>
-							<tr>
-								<th colspan="3">
-				<label for="section">section</label>
-									<select name="section" id="section">
-										{% for section in sections %}
-											<option  value="{{section.id}}">{{section.name}}</option>
-										{% endfor %}
-									</select>
-								</th>
-							</tr>
-							<tr>
-								<th colspan="3">
-				<label for="name">Name</label>
-									<input id="name" name="name" type="text" value="">
-								</th>
-							</tr>
-							<tr>
-								<th>Semester</th>
-								<th colspan="2">
-									<select id="semester">
-										<option>Fall</option>
-										<option>Spring</option>
-									</select>
-								</th>
-							</tr>
-							<tr>
-								<th>Year</th>
-								<th colspan="2">
-									<select id="year">
-										<option>2017</option>
-										<option>2018</option>
-									</select>
-							</tr>
+    <div class="scrollbar-macosx">
+        <section id="main">
+            {# Cards #}
+            <div class="card-table">
+							<table>
+								<tr>
+									<th colspan="3">
+                    <label for="section">Course</label>
+										<select name="section" id="section">
+											{% for section in sections %}
+												<option  value="{{section.id}}">{{section.name}}</option>
+											{% endfor %}
+										</select>
+									</th>
+								</tr>
+								<tr>
+									<th colspan="3">
+                    <label for="name">Section Name</label>
+										<input id="name" name="name" type="text" value="">
+									</th>
+								</tr>
+								<tr>
+									<th colspan="3">
+                    <label>Semester</label>
+										<select id="semester">
+											<option>Fall</option>
+											<option>Spring</option>
+										</select>
+									</th>
+								</tr>
+								<tr>
+									<th colspan="3">
+                    <label>Year</label>
+										<select id="year">
+											<option>2017</option>
+											<option>2018</option>
+										</select>
+								</tr>
 
-							<tr>
-								<th>Add Students</th>
-								<th>
-									<select id="student-picker">
-										<option value="-1"></option>
-										{% for u in users %}
-											<option	onchange="addStudent()" value="{{u.email}}">
-												{{u.getLastName() ~ ", " ~ u.getFirstName()}}
-											</option>
-										{% endfor %}
-									</select>
-								</th>
-								<th>
-									<button>upload csv</button>
-								</th>
-							</tr>
-							<tr>
-								<th colspan="3">
-									<textarea id="student-csv"></textarea>
-								</th>
-							</tr>
-
-							<!-- <tr>
-								<th colspan="3">
-									<button id="insert">add</button>
-								</th>
-							</tr> -->
-						</table>
-		</div>
-		
+								<tr>
+									<th>
+                    <label>Add Student</label>
+										<select id="student-picker">
+											<option value="-1"></option>
+											{% for u in users %}
+												<option	onchange="addStudent()" value="{{u.email}}">
+													{{u.getLastName() ~ ", " ~ u.getFirstName()}}
+												</option>
+											{% endfor %}
+										</select>
+									</th>
+									<th>
+										<button>upload csv</button>
+									</th>
+								</tr>
+								<tr>
+									<th colspan="3">
+										<textarea id="student-csv"></textarea>
+									</th>
+								</tr>
+   
+							</table>
+            </div>
 
 
-		</div>
-	</section>
+        	</div>
+        </section>
+    </div>
 
 
 </body>
@@ -110,7 +106,6 @@
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('styles.css') }}" />
     <link rel="stylesheet" href="{{ asset('home.css') }}" />
-    <link rel="stylesheet" href="{{ asset('jquery.scrollbar.css') }}" />
 {% endblock %}
 
 
@@ -120,7 +115,6 @@
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script src="{{ asset('js/cards.js') }}"></script>
 		<script src="{{ asset('js/newSection.js') }}"></script>
-    <script src="{{ asset('js/jquery.scrollbar.js') }}"></script>
 		<script>
 			$(document).ready(function() {
 				$('#insert').on('click', function(){
@@ -171,14 +165,6 @@
 				path = path.replace("is_deleted", false);
 				path = path.replace("is_public", false);
 				path = path.replace("user_id", {{userId}});
-				console.log(path);
-				// $.post(path,
-				// 	function(response) {
-				// 		if (response.code === 100 ) {
-				// 			console.log(response);
-				// 		}
-				// 	},
-				// 	"json");
 				window.location.replace(path);
 			}
 		</script>

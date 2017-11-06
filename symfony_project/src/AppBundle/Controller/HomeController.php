@@ -9,16 +9,16 @@ use AppBundle\Entity\Assignment;
 
 use \DateTime;
 
+use Psr\Log\LoggerInterface;
+
 use Auth0\SDK\Auth0;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 
-use Psr\Log\LoggerInterface;
-
 class HomeController extends Controller {
 	
-    public function indexAction(Request $request, LoggerInterface $logger) {
+    public function homeAction() {
 
 		$em = $this->getDoctrine()->getManager();
 	  
@@ -77,16 +77,15 @@ class HomeController extends Controller {
 			$grades[$asgn->id] = $grade[1];
 		}
 				
-		// replace this example code with whatever you need
 		return $this->render('home/index.html.twig', [
+			'user' => $user,
+			
 			'usersectionroles' => $usersectionroles,
 			'assignments' => $assignments,
-			'user' => $user,
 			'grades' => $grades
 		]);
 
     }
-
 }
 
 ?>
