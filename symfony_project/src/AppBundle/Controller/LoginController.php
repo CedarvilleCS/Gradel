@@ -22,7 +22,7 @@ class LoginController extends Controller
 
 		if(get_class($user)){
 			$name = $user->getFirstName();
-			return $this->redirectToRoute('account');
+			return $this->redirectToRoute('homepage');
 		}
 
 		return $this->render('login/index.html.twig', [

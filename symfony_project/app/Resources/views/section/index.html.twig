@@ -10,47 +10,7 @@
 <body>        
     {{ include('template/top-nav.html.twig') }}
     
-	{# Left Nav #}
-    <nav class="nav-left">
-		{% if app.user.hasRole("ROLE_ADMIN") or app.user.hasRole("ROLE_SUPER") %}
-			<a href="{{path('assignment_new', {'userId': user.id, "sectionId": section.id})}}" class="btn"><div class="btn btn-center">+ Assignment</div></a>
-		{% endif %}
-		
-		{% if assignments|length == 0 %}
-			<ol>
-				<li> No Assignments Found </li>
-			</ol>			
-		
-		{% else %}
-			<ol style="padding-bottom: 10px">
-				{% for assig in assignments %}
-			
-					<a href={{path('assignment', {'userId': user.id, 'sectionId': assig.section.id, "assignmentId": assig.id})}}>
-					<li>
-						<span class="preview">
-							{{ assig.name }}
-							<br>
-							<small>
-								{{assig.end_time|date('F d, Y')}}
-							</small>
-						</span>
-		
-					{% if app.user in section_teachers or app.user.hasRole("ROLE_SUPER") %}
-						<object><a title="Edit assignment" id="edit-icon" href="{{path('assignment_edit', {'userId': user.id, 'sectionId': assig.section.id, 'assignmentId': assig.id})}}">
-						<svg xmlns="http://www.w3.org/2000/svg" fill="#ffffff" height="15" viewBox="0 0 24 24" width="15">
-						<path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
-						<path d="M0 0h24v24H0z"  fill="none"/>
-						</svg>
-						</a></object>
-					{% endif %}	
-					
-					</li>
-					</a>
-					
-				{% endfor %}
-			</ol>	
-		{% endif %}
-    </nav>
+	{{ include('template/assignment-nav.html.twig') }}
 
     {# Main section #}
     <div class="scrollbar-macosx">
@@ -80,7 +40,7 @@
 						{% set oldDate = newDate %}
 								
 						<div style="margin-left: 20px"><small>{{asgn.section.name}}</small>
-							<a href="{{path('assignment', {'userId':user.id, 'sectionId':assig.section.id, 'assignmentId':assig.id})}}">
+							<a href="{{path('assignment', {'sectionId':assig.section.id, 'assignmentId':assig.id})}}">
 								<li>{{assig.name}} <small>(Due {{assig.end_time|date('\\a\\t  h:i:s A')}})</small></li>
 							</a>
 						</div>
@@ -140,7 +100,7 @@
                 </div>
             </div>
 			
-			{% if app.user in section_teachers or app.user.hasRole("ROLE_SUPER") %}
+			{% if app.user in section_teachers or is_granted("ROLE_SUPER") %}
 			
 				<div class="card">
 					<div class="btn-close" onclick="collapseCard('recentSubs')"><h2 style="margin: 0px">Recent Submissions<span style="float: right">&#9660;</span></h2></div>

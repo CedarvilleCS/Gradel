@@ -1,66 +1,64 @@
-# EMILY'S ROUTE
+# HOMEPAGE ROUTES
 homepage:
+    path:   '/home'
+    defaults:  { _controller: AppBundle:Home:home} 
+    
+alt_homepage:
     path:   '/'
-    defaults:  { _controller: AppBundle:Home:home}
-
-account:
-  path: '/home'
-  defaults: {_controller: AppBundle:Home:home}
+    defaults: { _controller: AppBundle:Home:home} 
     
-    
-# CHRIS'S''S'S'S'S'S'S'SS'S' ROUTES
+# MAIN ROUTES
 section_new:
-  path: '/home/{userId}/section/new'
+  path: '/section/new'
   defaults: {_controller: AppBundle:Section:newSection}
 
 section_insert:
-  path: '/home/{userId}/section/insert/{courseId}/{name}/{students}/{semester}/{year}/{start_time}/{end_time}/{is_deleted}/{is_public}'
+  path: '/section/insert/{courseId}/{name}/{students}/{semester}/{year}/{start_time}/{end_time}/{is_deleted}/{is_public}'
   defaults: {_controller: AppBundle:Section:insertSection, name: "hey", semester: "Dr. G", year: "Node", start_time: "is way better", end_time: "than anything", is_deleted: "you have used", is_public: ":)", students: "love, Chris Brauns"}
 
 section_edit_query:
-  path: '/home/{userId}/section/edit/{sectionId}/{courseId}/{name}/{students}/{semester}/{year}/{start_time}/{end_time}/{is_deleted}/{is_public}'
+  path: '/section/edit_query/{sectionId}/{courseId}/{name}/{students}/{semester}/{year}/{start_time}/{end_time}/{is_deleted}/{is_public}'
   defaults: {_controller: AppBundle:Section:editQuery, sectionId: "BEGIN", name: "hey", semester: "Dr. G", year: "Node", start_time: "is way better", end_time: "than anything", is_deleted: "you have used", is_public: ":)", students: "love, Chris Brauns"}
 
 section_edit:
-  path: '/home/{userId}/section/{sectionId}/edit'
+  path: '/section/edit/{sectionId}'
   defaults: {_controller: AppBundle:Section:editSection}
 
 section:
-  path: '/home/{userId}/section/{sectionId}'
+  path: '/section/{sectionId}'
   defaults: {_controller: AppBundle:Section:section}
 
 
 
 assignment_new:
-  path: '/home/{userId}/section/{sectionId}/assignment/new'
+  path: '/section/{sectionId}/assignment/new'
   defaults: {_controller: AppBundle:Assignment:new}
 
 assignment_edit:
-  path: '/home/{userId}/section/{sectionId}/assignment/{assignmentId}/edit'
+  path: '/section/{sectionId}/assignment/edit/{assignmentId}'
   defaults: {_controller: AppBundle:Assignment:edit}
 
 assignment_insert:
-  path: '/home/section/{sectionId}/assignment/{name}/{description}'
+  path: '/section/{sectionId}/assignment/insert/{name}/{description}'
   defaults: {_controller: AppBundle:Assignment:insert}
 
 assignment_edit_query:
-  path: '/home/section/{sectionId}/assignment/{assignmentId}/{name}/{description}'
+  path: '/section/{sectionId}/assignment/edit_query/{assignmentId}/{name}/{description}'
   defaults: {_controller: AppBundle:Assignment:editQuery}
 
 assignment:
-  path: '/home/{userId}/section/{sectionId}/assignment/{assignmentId}/problem/{problemId}'
+  path: '/section/{sectionId}/assignment/{assignmentId}/problem/{problemId}'
   defaults:
     _controller: AppBundle:Assignment:assignment
     problemId: 0
 
 
-
 problem_new:
-  path: '/home/{userId}/section/{sectionId}/assignment/{assignmentId}/problem/new'
+  path: '/section/{sectionId}/assignment/{assignmentId}/problem/new'
   defaults: {_controller: AppBundle:Problem:new}
 
 problem_edit:
-  path: '/home/{userId}/section/{sectionId}/assignment/{assignmentId}/problem/{problemId}/edit'
+  path: '/section/{sectionId}/assignment/{assignmentId}/problem/edit/{problemId}'
   defaults: {_controller: AppBundle:Problem:edit}
 
 problem_result:
@@ -69,14 +67,13 @@ problem_result:
     requirements:
         submission_id: '\d+'
 
-# EMMETT'S ROUTE
+# SUBMISSION ROUTES
 upload:
   path: "/upload/{problem_id}"
   defaults: {_controller: AppBundle:Upload:upload}
   requirements:
         problem_id:     '\d+'
 
-# TIMOTHY'S ROUTES
 submit:
     path: '/submit/{problem_id}/{language_id}/{submitted_filename}/{main_class}/{package_name}'
     defaults:
@@ -88,7 +85,7 @@ submit:
         language_id:    '\d+'
 
 
-# OAUTH'S ROUTES
+# AUTHENTICATION ROUTES
 hwi_oauth_redirect:
     resource: "@HWIOAuthBundle/Resources/config/routing/redirect.xml"
     prefix:   /connect

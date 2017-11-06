@@ -86,15 +86,15 @@ class Assignment{
 	public $cutoff_time;
 
 	/**
+	* @ORM\ManyToOne(targetEntity="AssignmentGradingMethod")
+	* @ORM\JoinColumn(name="assignmentgradingmethod_id", referencedColumnName="id", nullable=false)
+	*/
+	public $gradingmethod;
+	
+	/**
 	* @ORM\Column(type="decimal", precision=12, scale=8)
 	*/
 	public $weight;
-	
-	/**
-	* @ORM\ManyToOne(targetEntity="Gradingmethod")
-	* @ORM\JoinColumn(name="gradingmethod_id", referencedColumnName="id", onDelete="CASCADE")
-	*/
-	public $gradingmethod;
 
 	/**
 	* @ORM\Column(type="boolean")
