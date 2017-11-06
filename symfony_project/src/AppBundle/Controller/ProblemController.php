@@ -11,19 +11,19 @@ use AppBundle\Entity\Problem;
 use AppBundle\Entity\ProblemLanguage;
 use AppBundle\Entity\UserSectionRole;
 
+use AppBundle\Utils\Grader;
+
 use Psr\Log\LoggerInterface;
 
 use Symfony\Component\HttpFoundation\Request;
-
 use Symfony\Component\HttpFoundation\Response;
 
 
 class ProblemController extends Controller {
 
    
-    public function newAction($userId, $sectionId, $assignmentId) {
+    public function newAction($sectionId, $assignmentId) {
       return $this->render('problem/new.html.twig', [
-        'userId' => $userId,
         'sectionId' => $sectionId,
         'assignmentId' => $assignmentId,
       ]);
@@ -59,6 +59,9 @@ class ProblemController extends Controller {
 					
         return $this->render('problem/result.html.twig', [
 			'submission' => $submission,
+			'problem' => $submission->problem,
+			'grader' => new Grader($em),
+			
 			'testcases_output' => $tc_output,
 			'compiler_output' => $compiler_output,
 			'submission_file' => $submission_file,

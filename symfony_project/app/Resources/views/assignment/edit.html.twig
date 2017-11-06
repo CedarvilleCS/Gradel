@@ -21,7 +21,7 @@
     <nav class="nav-left">
         <a id="insert" class="btn"><div class="btn btn-center" href="">Save</div></a>
         <br/>
-        <a href="{{path('problem_new', {'userId': userId, 'sectionId': sectionId, 'assignmentId': assignmentId})}}" class="btn"><div class="btn btn-center">+ Problem</div></a>
+        <a href="{{path('problem_new', {'sectionId': sectionId, 'assignmentId': assignmentId})}}" class="btn"><div class="btn btn-center">+ Problem</div></a>
         <ol>
 					{% for assignment in assignments %}
 						<h1>{{assignment.name}}

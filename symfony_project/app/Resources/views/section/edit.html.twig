@@ -14,7 +14,7 @@
     <nav class="nav-left">
         <a id="insert" class="btn"><div class="btn btn-center">Save</div></a>
         <br/>
-        <a href="{{path('assignment_new', {'userId': userId, 'sectionId': section.id})}}" class="btn"><div class="btn btn-center">+ Assignment</div></a>
+        <a href="{{path('assignment_new', {'sectionId': section.id})}}" class="btn"><div class="btn btn-center">+ Assignment</div></a>
         <ol>
           {% for assignment in section.assignments %}
             <a>
@@ -160,7 +160,7 @@
 
         console.log({{sectionId}})
 
-				var path = "{{path('section_edit_query', { 'sectionId': 'section_id', 'courseId': 'course_id',	'userId': 'user_id', 'name': 'name', 'students': 'students', 'semester': 'semester', 'year': 'year', 'start_time': 'start_time', 'end_time': 'end_time', 'is_deleted': 'is_deleted', 'is_public': 'is_public'})}}";
+				var path = "{{path('section_edit_query', { 'sectionId': 'section_id', 'courseId': 'course_id', 'name': 'name', 'students': 'students', 'semester': 'semester', 'year': 'year', 'start_time': 'start_time', 'end_time': 'end_time', 'is_deleted': 'is_deleted', 'is_public': 'is_public'})}}";
         path = path.replace("section_id", {{sectionId}})
         path = path.replace("course_id", id);
 				path = path.replace("name", name);
@@ -173,7 +173,6 @@
 				path = path.replace("end_time", new Date());
 				path = path.replace("is_deleted", false);
 				path = path.replace("is_public", false);
-				path = path.replace("user_id", {{userId}});
 				window.location.replace(path);
 			}
 

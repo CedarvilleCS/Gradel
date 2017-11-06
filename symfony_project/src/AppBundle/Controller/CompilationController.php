@@ -14,9 +14,14 @@ use AppBundle\Entity\UserSectionRole;
 use AppBundle\Entity\Testcase;
 use AppBundle\Entity\Submission;
 use AppBundle\Entity\Language;
-use AppBundle\Entity\Gradingmethod;
+use AppBundle\Entity\ProblemGradingMethod;
+use AppBundle\Entity\AssignmentGradingMethod;
 use AppBundle\Entity\Feedback;
 use AppBundle\Entity\TestcaseResult;
+
+use AppBundle\Utils\Grader;
+
+use \DateTime;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
@@ -29,9 +34,10 @@ class CompilationController extends Controller {
 	
 	/* name=submit */
 	public function submitAction($problem_id, $language_id, $submitted_filename, $main_class, $package_name) {
-
+	
 		# entity manager
-		$em = $this->getDoctrine()->getManager();		
+		$em = $this->getDoctrine()->getManager();						
+		$grader = new Grader($em);
 						
 		# get the current user
 		$user_entity= $this->get('security.token_storage')->getToken()->getUser();
@@ -49,42 +55,33 @@ class CompilationController extends Controller {
 		} else {
 			echo($problem_entity->id."<br/>");
 		}
-				
-		# get all of the teams
-		$qb_teams = $em->createQueryBuilder();
-		$qb_teams->select('t')
-				->from('AppBundle\Entity\Team', 't')
-				->where('t.assignment = ?1')
-				->setParameter(1, $problem_entity->assignment);
-				
-		$query_team = $qb_teams->getQuery();
-		$team_entities = $query_team->getResult();	
-
-		# loop over all the teams for this assignment and figure out which team the user is a part of
-		$team_entity = null;		
-		foreach($team_entities as $team){				
-			foreach($team->users as $user){		
-			
-				if($user_entity->id == $user->id){
-					$team_entity = $team;
-				}
-			}
+		
+		# make sure that the assignment is still open for submission
+		if($problem_entity->assignment->cutoff_time < new \DateTime("now")){
+			die("TOO LATE TO SUBMIT FOR THIS PROBLEM");
 		}
 		
+		# get the current team
+		$team_entity = $grader->getTeam($user_entity, $problem_entity->assignment);		
 		if(!$team_entity){
 			die("TEAM DOES NOT EXIST");
 		} else{			
 			echo($team_entity->name."<br/>");		
+		}		
+		
+		# make sure that you haven't submitted too many times yet
+		$curr_attempts = $grader->getNumTotalAttempts($user_entity, $problem_entity);		
+		if($problem_entity->gradingmethod->total_attempts > 0 && $curr_attempts >= $problem_entity->gradingmethod->total_attempts){
+			die("ALREADY REACHED MAX ATTEMPTS FOR PROBLEM AT ".$curr_attempts);
 		}
 		
-		# query for the current submission
+		# create an entity for the current submission
 		$submission_entity = new Submission($problem_entity, $team_entity, $user_entity);	
 
 		# persist to the database to get the id
 		$em->persist($submission_entity);
 		$em->flush();						
-		
-		
+				
 		# gets the gradel/symfony_project directory
 		$web_dir = $this->get('kernel')->getProjectDir()."/";
 		
@@ -344,8 +341,7 @@ class CompilationController extends Controller {
 		$submission_entity->questionable_behavior = $submission_is_malicious;
 		$submission_entity->exceeded_time_limit = $submission_is_timelimit; 
 		$submission_entity->max_runtime = $submission_max_runtime;
-		$submission_entity->percentage = $submission_percentage;
-		
+		$submission_entity->percentage = $submission_percentage;		
 		
 		# see if this new submission should be the accepted one
 		$qb_accepted = $em->createQueryBuilder();
@@ -360,8 +356,13 @@ class CompilationController extends Controller {
 		$acc_query = $qb_accepted->getQuery();
 		$prev_accepted_sol = $acc_query->getOneOrNullResult();
 	
+		// take the new solution if it is 100% no matter what
+		if($prev_accepted_sol && $submission_entity->percentage == 1){
+			$submission_entity->is_accepted = true;
+			$prev_accepted_sol->is_accepted = false;
+		}
 		// choose higher percentage if they both have percentages
-		if($prev_accepted_sol && $submission_entity->percentage > $prev_accepted_sol->percentage){
+		else if($prev_accepted_sol && $submission_entity->percentage > $prev_accepted_sol->percentage){
 			#echo "New submission percentage ".$submission_entity->percentage." is greater than ".$prev_accepted_sol->percentage;
 			$submission_entity->is_accepted = true;
 			$prev_accepted_sol->is_accepted = false;
@@ -414,7 +415,7 @@ class CompilationController extends Controller {
 		# update the submission entity
 		$em->persist($submission_entity);
 		$em->flush();			
-		#die();
+		
         return $this->redirectToRoute('problem_result', array('submission_id' => $submission_entity->id));
 		//return new Response();
 	}

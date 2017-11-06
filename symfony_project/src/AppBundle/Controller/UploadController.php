@@ -16,7 +16,8 @@ use AppBundle\Entity\Problem;
 use AppBundle\Entity\UserSectionRole;
 use AppBundle\Entity\Testcase;
 use AppBundle\Entity\Language;
-use AppBundle\Entity\Gradingmethod;
+use AppBundle\Entity\ProblemGradingMethod;
+use AppBundle\Entity\AssignmentGradingMethod;
 use AppBundle\Entity\Feedback;
 use AppBundle\Entity\TestcaseResult;
 
@@ -138,8 +139,7 @@ class UploadController extends Controller {
 		
         // if they didn't send a file, render upload page
 		return $this->redirectToRoute('assignment', 
-									array('userId' => $user->id,
-											'sectionId' => $problem_entity->assignment->section->id,
+									array('sectionId' => $problem_entity->assignment->section->id,
 											'assignmentId' => $problem_entity->assignment->id,
 											'problemId' => $problem_entity->id));
     }
