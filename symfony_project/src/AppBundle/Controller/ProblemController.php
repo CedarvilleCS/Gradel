@@ -65,6 +65,11 @@ class ProblemController extends Controller {
 			die();
 		}
 		
+		$user = $this->get('security.token_storage')->getToken()->getUser();  	  
+		if(!get_class($user)){
+			die("USER DOES NOT EXIST!");		  
+		}
+		
 		$compiler_output = stream_get_contents($submission->compiler_output);
 		$submission_file = stream_get_contents($submission->submitted_file);
 		
@@ -75,15 +80,31 @@ class ProblemController extends Controller {
 			$output["time_output"] = $tc->execution_time;
 			$tc_output[] = $output;	
 		}
-					
+	
+		# get the usersectionrole
+		$qb_usr = $em->createQueryBuilder();
+		$qb_usr->select('usr')
+			->from('AppBundle\Entity\UserSectionRole', 'usr')
+			->where('usr.user = ?1')
+			->andWhere('usr.section = ?2')
+			->setParameter(1, $user)
+			->setParameter(2, $submission->problem->assignment->section);
+			
+		$usr_query = $qb_usr->getQuery();
+		$usersectionrole = $usr_query->getOneOrNullResult();
+	
         return $this->render('problem/result.html.twig', [
 			'submission' => $submission,
 			'problem' => $submission->problem,
 			'grader' => new Grader($em),
 			
+			'usersectionrole' => $usersectionrole,
+			
 			'testcases_output' => $tc_output,
 			'compiler_output' => $compiler_output,
 			'submission_file' => $submission_file,
+			
+			'result_page' => true,
         ]);	
 	}
 }

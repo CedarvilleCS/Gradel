@@ -1,0 +1,102 @@
+{% block head %}
+<title>Gradel</title>
+{% endblock %}
+
+
+{% block body %}
+
+<body>        
+
+    {{ include('top-nav.html.twig') }}
+
+    {# Left Nav #}
+    <nav class="nav-left">
+        <a href="http://www.google.com" class="btn"><div class="btn btn-center" href="http://www.google.com">New</div></a>
+        <ol>
+            <a href="http://www.google.com"><li>Assignment 1<br><small>January 15, 2018</small></li></a>
+            <a href="http://www.google.com"><li>Assignment 2<br><small>February 29, 2018</small></li></a>
+            <a href="http://www.google.com"><li>Assignment 3<br><small>April 50, 2018</small></li></a>
+        </ol>
+    </nav>
+
+
+    {# Main section #}
+    <section id="main">
+        {# Cards #}
+        <div class="card">
+            <div class="btn-close" onclick="collapseCard('courseInfo')">Course Info<span style="float: right">&#9660;</span></div>
+            <div id="courseInfo" class="card-contents">
+                    <ol>
+                        <a href="http://www.google.com"><li>Assignment 1 - January 15, 2018</li></a>
+                        <a href="http://www.google.com"><li>Assignment 2 - February 29, 2018</li></a>
+                        <a href="http://www.google.com"><li>Assignment 3 - April 50, 2018</li></a>
+                    </ol>
+            </div>
+        </div>
+
+        {{ include('card.html.twig', {'card_id': 'myCard', 'card_contents' : '<p>test</p>'})}}
+
+        <div class="card">
+            <div class="btn-close" onclick="collapseCard('studentInfo')">Student Info<span style="float: right">&#9660;</span></div>
+            <div id="studentInfo" class="card-contents">
+                    <table border="1">
+                        <tr>
+                            <th>Student</th>
+                            <th>Assignment 1</th>
+                            <th>Assignment 2</th>
+                            <th>Assignment 3</th>
+                        </tr>
+                        <tr>
+                            <td>Emmett</td>
+                            <td>Done</td>
+                            <td>Done</td>
+                            <td>Done</td>
+                        </tr>
+                        <tr>
+                            <td>Timothy</td>
+                            <td>Done</td>
+                            <td>Done</td>
+                            <td>Not Done</td>
+                        </tr>
+                        <tr>
+                            <td>Emily</td>
+                            <td>Done</td>
+                            <td>Not Done</td>
+                            <td>Not Done</td>
+                        </tr>
+                        <tr>
+                            <td>Chris</td>
+                            <td>Not Done</td>
+                            <td>Done</td>
+                            <td>Done</td>
+                        </tr>
+                    </table>
+            </div
+        </div>
+    </section>
+
+
+</body>
+
+{% endblock %}
+
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('home.css') }}" />
+    <link rel="stylesheet" href="{{ asset('jquery.scrollbar.css') }}" />
+{% endblock %}
+
+
+{% block scripts %}
+    <!-- JQuery -->
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="{{ asset('js/cards.js') }}"></script>
+    <script src="{{ asset('js/jquery.scrollbar.js') }}"></script>
+    <script>
+        jQuery(document).ready(function(){
+            jQuery('.scrollbar-macosx').scrollbar();
+        });
+    </script>
+{% endblock %}

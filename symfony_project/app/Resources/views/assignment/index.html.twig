@@ -36,14 +36,15 @@ int main(){
 }</div>
             
                 
-						<br>
+						<br/>
+						{# display the form or not #}
 						{% if usersectionrole.role.role_name == 'Takes' %}
 							<form action="{{path('upload', {'problem_id': problem.id}) }}" method="post" enctype="multipart/form-data">
 								<input type="hidden" name="ACE" id="ACE">
-								<input type="file" name="fileToUpload" id="fileToUpload" value="Upload File">
+								<input type="file" onchange="determineLanguage()" name="fileToUpload" id="fileToUpload" value="Upload File">
 								<br><br>
 								Language: 
-								<select name="language">
+								<select id="languageSelect" name="language" onchange="languageChange()">
 									{% for lang in languages %}				
 										{% if lang.name != "No Language Restriction" %}
 											<option value={{lang.id}}>{{lang.name}}</option>
@@ -51,16 +52,15 @@ int main(){
 									{% endfor %}
 								</select>
 								<br>
-								<label for="main_class">Main Class: </label><input type="text" name="main_class">
-								<br>
-								<label for="package_name">Package Name: </label><input type="text" name="package_name">
+								<div id="mainClassInput" style="display:none"><label for="main_class">Main Class: </label><input type="text" name="main_class" id="main_class_input"></div>
+								<div id="packgNameInput" style="display:none"><label for="package_name">Package Name: </label><input type="text" name="package_name" id="package_name_input"></div>
 								
 								<br><br>
 								<input type="submit" value="Submit Solution" name="submit" onclick="saveACE();">			
 							</form>
 							
 						{% else %}
-							You are not "Taking" this class, so you currently cannot submit a problem. Please look at Timothy and complain.
+							You are not "Taking" this class, so you cannot submit a problem.
 						{% endif %}
 				
 						<p>{{upload_message}}</p>
@@ -90,13 +90,84 @@ int main(){
 		var editor = ace.edit("editor");
 		editor.setTheme("ace/theme/xcode");
 		editor.getSession().setMode("ace/mode/c_cpp");
-		console.log(editor.getValue());
 	</script>
+	
 	<script>
 		function saveACE() {
 			$("#ACE").val(editor.getValue());
-			console.log("saveACE()");
 		}
+	</script>
+	
+	<script>
+		
+		var default_code = JSON.parse('{{ default_code|json_encode|replace({'\\':'\\\\'})|raw }}');
+		var ace_modes = JSON.parse('{{ ace_modes|json_encode|raw }}');
+		
+		languageChange();
+	
+		function languageChange(){
+			
+			var filename = document.getElementById('fileToUpload').value;
+			var ext = filename.substr(filename.lastIndexOf('.') + 1);
+			var cls = filename.substr(filename.lastIndexOf('\\') + 1).replace("."+ext,"");
+			
+			var sel = document.getElementById('languageSelect');
+			var language = sel.options[sel.selectedIndex].text;
+			
+			var editor = ace.edit("editor");
+			
+			toggleJavaInputs(language == "Java", ext == "zip");
+			
+			editor.getSession().setMode("ace/mode/" + ace_modes[language]);		
+			editor.setValue(default_code[language], -1);
+		
+		}	
+	
+		function toggleJavaInputs(state1, state2){
+			
+			if(!state1){
+				document.getElementById('mainClassInput').style.display = 'none';
+				document.getElementById('packgNameInput').style.display = 'none';
+			} else if(state1 && !state2){
+				document.getElementById('mainClassInput').style.display = 'block';
+				document.getElementById('packgNameInput').style.display = 'none';
+			} else{
+				document.getElementById('mainClassInput').style.display = 'block';
+				document.getElementById('packgNameInput').style.display = 'block';
+			}				
+		}
+	</script>
+	
+	<script>
+		function determineLanguage(){
+		
+			var filetypes = JSON.parse('{{ filetypes|json_encode|raw }}');
+		
+			var filename = document.getElementById('fileToUpload').value;
+			
+			console.log(filename);
+		
+			var ext = filename.substr(filename.lastIndexOf('.') + 1);
+			var cls = filename.substr(filename.lastIndexOf('\\') + 1).replace("."+ext,"");
+			
+			//console.log(ext);
+			//console.log(cls);
+
+			var selectObject = document.getElementById('languageSelect');
+				
+			for(var i=0; i<selectObject.length; i++){
+				//console.log(filetypes[ext]);
+				if(selectObject.options[i].text == filetypes[ext]){
+					selectObject.selectedIndex = i;
+					break;
+				}
+			}
+			
+			document.getElementById('main_class_input').value = cls;
+			
+			languageChange();
+		}
+	
 	</script>
 
 {% endblock %}

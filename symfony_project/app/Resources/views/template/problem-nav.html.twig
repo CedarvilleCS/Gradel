@@ -1,5 +1,5 @@
 {# make sure that the grader entity is define before doing all of this stuff #}
-{% if grader is defined and problem is defined%}
+{% if grader is defined and problem is defined and usersectionrole is defined%}
 
 {% set grades = grader.getAllProblemGrades(app.user, problem.assignment) %}
 
@@ -21,20 +21,25 @@
 		  {# loop through all of the problems #}		  
 		  {% for prob in problem.assignment.problems %}
 		  
-				{% if prob.id != problem.id %}
+				{% if prob.id != problem.id or result_page%}
 				
 					<a href="{{path("assignment", {'sectionId': prob.assignment.section.id, 'assignmentId': prob.assignment.id, 'problemId': prob.id})}}">
 						<li>
-							{{ prob.name }}&nbsp;<br/>
-							{{grades[prob.id]['passed_testcases']}}/{{grades[prob.id]['total_testcases']}} - {{(grades[prob.id]['percentage_adj']*100)|number_format(1,'.')}}%
+							{{ prob.name }}&nbsp;
+							{% if usersectionrole.role.role_name == 'Takes' %}
+								<br/><small>{{grades[prob.id]['passed_testcases']}}/{{grades[prob.id]['total_testcases']}} - {{(grades[prob.id]['percentage_adj']*100)|number_format(1,'.')}}%</small>
+							{% endif %}
 						</li>
 					</a>
 					
 				{% else %}
 				
 					<li style="background: #5a5a5a">
-							{{ prob.name }}&nbsp;<br/>
-							{{grades[prob.id]['passed_testcases']}}/{{grades[prob.id]['total_testcases']}} - {{(grades[prob.id]['percentage_adj']*100)|number_format(1,'.')}}%
+							{{ prob.name }}&nbsp;
+							
+							{% if usersectionrole.role.role_name == 'Takes' %}
+								<br/><small>{{grades[prob.id]['passed_testcases']}}/{{grades[prob.id]['total_testcases']}} - {{(grades[prob.id]['percentage_adj']*100)|number_format(1,'.')}}%</small>
+							{% endif %}
 					</li>
 				
 				{% endif %}

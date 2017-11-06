@@ -61,10 +61,15 @@ class SectionController extends Controller
 				->from('AppBundle\Entity\Assignment', 'a')
 				->where('a.section = ?1')
 				->andWhere('a.end_time > ?2')
+				//->andWhere('a.end_time < ?3')
 				->setParameter(1, $section_entity)
 				->setParameter(2, new DateTime())
+				//->setParameter(3, new DateTime()->add(new DateInterval('P50Y'))
 				->orderBy('a.end_time', 'ASC');
-
+				
+		//echo new DateTime()->add(new DateInterval('P50Y')->format('%d-%m-%y');
+		//die();
+		
 		$asgn_query = $qb_asgn->getQuery();
 		$future_assig = $asgn_query->getResult();
 
@@ -132,16 +137,22 @@ class SectionController extends Controller
 				->from('AppBundle\Entity\Submission', 's')
 				->where('s.problem IN (?1)')
 				->orderBy('s.timestamp', 'DESC')
-				->setParameter(1, $allprobs);
+				->setParameter(1, $allprobs)
+				->setMaxResults(30);
 
 		$submission_query = $qb_submissions->getQuery();
 		$submissions = $submission_query->getResult();
 
 		$grader = new Grader($em);
 		
-		$grades = $grader->getAssignmentGrade($user, $assignments[0]);
-
-		#die();
+		$grades = [];
+		foreach($section_takers as $section_taker){
+			
+			$grades[$section_taker->id] = $grader->getAllAssignmentGrades($section_taker, $section_entity);
+			
+		}
+		
+		
 		
 		return $this->render('section/index.html.twig', [
 			'section' => $section_entity,
@@ -149,9 +160,12 @@ class SectionController extends Controller
 			'user' => $user,
 			
 			'assignments' => $assignments,
+			'grades' => $grades,
+			
 			'future_assigs' => $future_assig,
-			'student_subs' => $student_subs,
+			
 			'recent_submissions' => $submissions,
+			
 			'section_takers' => $section_takers,
 			'section_teachers' => $section_teachers,
 			'section_helpers' => $section_helpers,

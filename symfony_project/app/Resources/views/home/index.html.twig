@@ -9,59 +9,8 @@
 <body>    
     {{ include('template/top-nav.html.twig') }}
 
-    {# Left Nav #}
-    <nav class="nav-left">
-		
-		{% if is_granted("ROLE_SUPER") %}
-			<a class="btn">
-				<div class="btn btn-center">+ Course</div>
-			</a><br/>
-		{% endif %}
-		
-		{% if is_granted("ROLE_ADMIN") or is_granted("ROLE_SUPER") %}
-			<a href="{{path('section_new')}}" class="btn">
-				<div class="btn btn-center">+ Section</div>
-			</a>
-		{% endif %}
-        
-		{% if usersectionroles|length == 0 %}
-			<ol>
-				<li> No Sections Found </li>
-			</ol>			
-		
-		{% else %}
-			<ol style="padding-bottom: 10px">
-				{% for usr in usersectionroles %}	
-				
-					<a href="{{path('section', {'sectionId':usr.section.id})}}">
-						<li>
-							<span class="preview">{{usr.section.course.name}}
-								<br>
-								<small>
-									{{usr.section.name}}
-								</small>
-							</span>	
-						
-						{% if usr.role.role_name == 'Teaches' or is_granted("ROLE_SUPER") %}
-							<object><a title="Edit section" id="edit-icon" href="{{path('section_edit', {'sectionId': usr.section.id})}}">
-							<svg xmlns="http://www.w3.org/2000/svg" fill="#ffffff" height="15" viewBox="0 0 24 24" width="15">
-								<path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
-								<path d="M0 0h24v24H0z"  fill="none"/>
-							</svg> </a> </object>
-						{% endif %}
-						
-						</li>
-					</a>	
-				{% endfor %}
-			</ol>
-		
-		{% endif %}
-		
-		<a href="" class="btn">
-			<div class="btn btn-center">&#9660; Load Past Sections </div>
-		</a>
-    </nav>
-
+	{{ include('template/section-nav.html.twig') }}
+	
     {# Main section #}
     <section id="main">
         {# Cards #}
@@ -69,7 +18,7 @@
 		{{ include('template/path-nav.html.twig') }}
 		
         <div class="card">
-            <div class="btn-close" onclick="collapseCard('courseInfo')"><h2 style="margin: 0px">Upcoming Assignments<span style="float: right">&#9660;</span></h2></div>
+            <div class="btn-close" onclick="collapseCard('courseInfo')"><h2 style="margin: 0px">Upcoming Assignments<span style="float: right"><i class="fa fa-angle-down"></i></span></h2></div>
             <div id="courseInfo" class="card-contents">
                 
 				{% if assignments|length == 0 %}
@@ -101,26 +50,28 @@
         </div>
 
         <div class="card">
-            <div class="btn-close" onclick="collapseCard('gradeReport')"><h2 style="margin: 0px">Grade Report<span style="float: right">&#9660;</span></h2></div>
+            <div class="btn-close" onclick="collapseCard('gradeReport')"><h2 style="margin: 0px">Grade Report<span style="float: right"><i class="fa fa-angle-down"></i></span></h2></div>
             <div id="gradeReport" class="card-contents">
                 <div>
 				
-					{% if assignments|length == 0 %}
+					{% if sections_taking|length == 0 %}
 						
-						You do not have any assignments to do well on!
+						You do not have any classes to do well in!
 					
 					{% else %}
 				
-						You are doing well on your assignments!
+						You are doing well in your classes!
 						<ul>
-						{% for asgn in assignments %}
+						{% for section in sections_taking %}
 						
-							{#% if usr.role.name != "Teaches" %#}
-								
-								{{asgn.name}} - {{(grades[asgn.id]*100)|number_format(1, '.')}}% <br/> 
-								
-							{#% endif %#}
+							{% if grades[section.id]['percentage_adj'] < 0 %}
+								{% set grade = 'no grades to display yet' %}
+							{% else %}
+								{% set grade = (grades[section.id]['percentage_adj']*100)|number_format(1, '.') ~ '%' %}
+							{% endif %}
 						
+							{{section.course.name}} - {{grade}} <br/> 
+							
 						{% endfor %}
 						<ul/>
 					
@@ -132,7 +83,7 @@
         
 
         <div class="card">
-            <div class="btn-close" onclick="collapseCard('studentInfo')"><h2 style="margin: 0px">User Information (Debug Info)<span style="float: right">&#9660;</span></h2></div>
+            <div class="btn-close" onclick="collapseCard('studentInfo')"><h2 style="margin: 0px">User Information (Debug Info)<span style="float: right"><i class="fa fa-angle-down"></i></span></h2></div>
             <div id="studentInfo" class="card-contents">
                 <div>
                     Your name is <span style="color:green">{{user.getFirstName()}} {{user.getLastName()}}</span> <br/>
@@ -151,7 +102,8 @@
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('styles.css') }}" />
-    <link rel="stylesheet" href="{{ asset('home.css') }}" />
+	<link rel="stylesheet" href="{{ asset('home.css') }}" />
+	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
 {% endblock %}
 
 

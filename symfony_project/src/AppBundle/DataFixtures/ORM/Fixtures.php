@@ -80,11 +80,6 @@ class Fixtures extends Fixture {
 			$smith_user->setFirstName("Timothy");
 			$smith_user->setLastName("Smith");
 			$manager->persist($smith_user);
-			
-			$annie_user = new User("amathis11@gmail.com", "amathis11@gmail.com");
-			$annie_user->setFirstName("Annie");
-			$annie_user->setLastName("Mathis");
-			$manager->persist($annie_user);
 		}
 		
 		# COURSE Testing
@@ -119,7 +114,6 @@ class Fixtures extends Fixture {
 			$manager->persist(new UserSectionRole($budd_user, $CS1210_01, $takes_role));
 			$manager->persist(new UserSectionRole($prof_gallagher, $CS1210_01, $takes_role));
 			$manager->persist(new UserSectionRole($prof_brauns, $CS1210_01, $takes_role));
-			$manager->persist(new UserSectionRole($annie_user, $CS1210_01, $takes_role));
 			$manager->persist(new UserSectionRole($smith_user, $CS1210_01, $teach_role));
 			
 			//$manager->persist(new UserSectionRole($prof_gallagher, $CS1220_01, $takes_role));
@@ -146,11 +140,19 @@ class Fixtures extends Fixture {
 		
 		# ASSIGNMENT Testing
 		{
-			$assignment_01 = new Assignment($CS1210_01, 
+			
+			$assignment_04 = new Assignment($CS1210_01, 
 									"Homework #1", "This is the first homework assignment", 
 									\DateTime::createFromFormat($date_format, "00:00:00 10/30/2017"), 
 									\DateTime::createFromFormat($date_format, "23:59:59 11/30/2017"), 
-									\DateTime::createFromFormat($date_format, "08:00:00 12/15/2017"), 0.0, $assignment_grdmethod0, false);
+									\DateTime::createFromFormat($date_format, "23:59:59 12/15/2017"), 0.0, $assignment_grdmethod0, false);
+			$manager->persist($assignment_04);
+			
+			$assignment_01 = new Assignment($CS1210_01, 
+									"Homework #2", "This is the second homework assignment", 
+									\DateTime::createFromFormat($date_format, "00:00:00 10/30/2017"), 
+									\DateTime::createFromFormat($date_format, "23:59:59 11/30/2017"), 
+									\DateTime::createFromFormat($date_format, "23:59:59 12/15/2017"), 0.0, $assignment_grdmethod0, false);
 			$manager->persist($assignment_01);
 			
 			
@@ -175,15 +177,20 @@ class Fixtures extends Fixture {
 			$team_01 = new Team("Wolf_01", $assignment_01);
 			$team_02 = new Team("Budd_01", $assignment_01);	
 			$team_03 = new Team("Gallagher_01", $assignment_01);
-			$team_20 = new Team("Mathis_01", $assignment_01);	
 			$team_21 = new Team("Brauns_01", $assignment_01);
 					
 			$team_01->users[] = $wolf_user;
 			$team_02->users[] = $budd_user;
 			$team_03->users[] = $prof_gallagher;
-			$team_20->users[] = $annie_user;
 			$team_21->users[] = $prof_brauns;
 			
+			$team_40 = new Team("Everyone", $assignment_04);
+					
+			$team_40->users[] = $wolf_user;
+			$team_40->users[] = $budd_user;
+			$team_40->users[] = $prof_gallagher;
+			$team_40->users[] = $prof_brauns;
+			$manager->persist($team_40);
 			
 			$team_04 = new Team("Smith_01", $assignment_02);
 			$team_04->users[] = $smith_user;
@@ -214,15 +221,18 @@ class Fixtures extends Fixture {
 			$manager->persist($team_08);
 			$manager->persist($team_09);
 			$manager->persist($team_10);
-			$manager->persist($team_20);
 			$manager->persist($team_21);
 		}
 		
 		# LANGUAGE Testing
 		{
-			$language_C = new Language("C");	
-			$language_CPP = new Language("C++");
-			$language_JAVA = new Language("Java");
+			$def_c = fopen($folder_path."default_code/default.c", "r") or die("Unable to open default.c");
+			$def_cpp = fopen($folder_path."default_code/default.cpp", "r") or die("Unable to open default.cpp");
+			$def_java = fopen($folder_path."default_code/default.java", "r") or die("Unable to open default.java");
+			
+			$language_C = new Language("C", ".c", "c_cpp", $def_c);	
+			$language_CPP = new Language("C++", ".cpp", "c_cpp", $def_cpp);
+			$language_JAVA = new Language("Java", ".java", "java", $def_java);
 			
 			$manager->persist($language_C);
 			$manager->persist($language_CPP);
@@ -269,6 +279,29 @@ class Fixtures extends Fixture {
 			$problems[] = $problem_04;
 			$prob_folds[$problem_04->name] = "quot";
 			
+			
+			# HOMEWORK 2 For CS-1210-01
+			$desc_file_11 = fopen($folder_path."sum/description.txt", "r") or die("Unable to open 1.desc");
+			$problem_11 = new Problem($assignment_04, "Calculate the Sum 2", $desc_file_11, 0.0, $prob_grdmethod00, 1000, false);
+			$problems[] = $problem_11;
+			$prob_folds[$problem_11->name] = "sum";
+			
+			$desc_file_12 = fopen($folder_path."diff/description.txt", "r") or die("Unable to open 2.desc");
+			$problem_12 = new Problem($assignment_04, "Calculate the Difference 2", $desc_file_12, 0.0, $prob_grdmethod00, 1000, false);
+			$problems[] = $problem_12;
+			$prob_folds[$problem_12->name] = "diff";
+			
+			$desc_file_13 = fopen($folder_path."prod/description.txt", "r") or die("Unable to open 3.desc");
+			$problem_13 = new Problem($assignment_04, "Calculate the Product 2", $desc_file_13, 0.0, $prob_grdmethod00, 1000, false);
+			$problems[] = $problem_13;
+			$prob_folds[$problem_13->name] = "prod";
+			
+			$desc_file_14 = fopen($folder_path."quot/description.txt", "r") or die("Unable to open 4.desc");
+			$problem_14 = new Problem($assignment_04, "Calculate the Quotient 2", $desc_file_14, 0.0, $prob_grdmethod00, 1000, false);
+			$problems[] = $problem_14;
+			$prob_folds[$problem_14->name] = "quot";
+			
+			
 			# PRACTICE CONTEST
 			$desc_file_05 = fopen($folder_path."Z/description.txt", "r") or die("Unable to open 5.desc");
 			$problem_05 = new Problem($assignment_02, "Z - Happy Trails", $desc_file_05, 0.0, $prob_grdmethod10, 1000, false);
@@ -299,6 +332,10 @@ class Fixtures extends Fixture {
 			$manager->persist($problem_06);
 			$manager->persist($problem_07);
 			$manager->persist($problem_08);
+			$manager->persist($problem_11);		
+			$manager->persist($problem_12);
+			$manager->persist($problem_13);		
+			$manager->persist($problem_14);
 		}
 		
 		# PROBLEM LANGUAGE Testing

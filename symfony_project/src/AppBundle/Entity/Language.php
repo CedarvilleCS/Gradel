@@ -22,8 +22,11 @@ class Language {
 		}
 	}
 		
-	public function __construct1($nm){
+	public function __construct4($nm, $ft, $ace, $def){
 		$this->name = $nm;
+		$this->filetype = $ft;
+		$this->ace_mode = $ace;
+		$this->default_code = $def;
 	}
 
 	/**
@@ -37,5 +40,24 @@ class Language {
 	*@ORM\Column(type="string", length=255, unique=true)
 	*/
 	public $name;
+
+	/**
+	*@ORM\Column(type="string", length=255, unique=false)
+	*/
+	public $filetype;
+	
+	/**
+	*@ORM\Column(type="string", length=255, unique=false)
+	*/
+	public $ace_mode;
+	
+	/**
+	*@ORM\Column(type="blob", nullable = false)
+	*/
+	public $default_code;
+	
+	public function deblobinateDefaultCode(){			
+		return stream_get_contents($this->default_code);
+	}
 }
 ?>

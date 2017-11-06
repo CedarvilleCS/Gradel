@@ -72,7 +72,14 @@ upload:
   path: "/upload/{problem_id}"
   defaults: {_controller: AppBundle:Upload:upload}
   requirements:
-        problem_id:     '\d+'
+    problem_id:     '\d+'
+
+# temporary route for GUI development
+professorsection:
+    path: "/professor/section/{userId}/{sectionId}"
+    defaults: {_controller: AppBundle:Professorsection:professorsection}
+
+
 
 submit:
     path: '/submit/{problem_id}/{language_id}/{submitted_filename}/{main_class}/{package_name}'

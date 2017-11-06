@@ -64,16 +64,30 @@ class AssignmentController extends Controller {
 			$problem_languages = $problem_entity->problem_languages;
 
 			$languages = [];
+			$default_code = [];
+			$ace_modes = [];
+			$filetypes = [];
+			
 			foreach($problem_languages as $pl){
 				$languages[] = $pl->language;
+				
+				$ace_modes[$pl->language->name] = $pl->language->ace_mode;
+				$filetypes[str_replace(".", "", $pl->language->filetype)] = $pl->language->name;
+				
+				// either get the default code from the problem or from the overall default
+				if($pl->default_code != null){
+					$default_code[$pl->language->name] = $pl->deblobinateDefaultCode();
+				} else{
+					$default_code[$pl->language->name] = $pl->language->deblobinateDefaultCode();
+				}
 			}
 		}
 		
 		$grader = new Grader($em);
 		
 		$grades = $grader->getAllProblemGrades($user, $assignment_entity);
-		#echo json_encode($grades);
 		#die();
+			
 			
 		return $this->render('assignment/index.html.twig', [
 			'user' => $user,
@@ -86,6 +100,10 @@ class AssignmentController extends Controller {
 			'usersectionrole' => $usersectionrole,
 			//'grades' => $grades,
 			'grader' => new Grader($em),
+			
+			'default_code' => $default_code,
+			'ace_modes' => $ace_modes,
+			'filetypes' => $filetypes,
 		]);
     }
 
