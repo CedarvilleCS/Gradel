@@ -36,9 +36,15 @@
 					<a href="{{path('section', {'sectionId':usr.section.id})}}">
 						<li>
 							<span class="preview">{{usr.section.course.name}}
-								<br>
+							
 								<small>
-									{{usr.section.name}}
+								<br/>{{usr.section.name}}
+								
+								{% if grades[section.id]['percentage_adj'] >= 0 and usr.role.role_name == 'Takes' %}
+									{% set grade = (grades[section.id]['percentage_adj']*100)|number_format(1, '.') ~ '%' %}
+									<br/>{{grade}}
+								{% endif %}
+								
 								</small>
 							</span>	
 						
@@ -105,22 +111,24 @@
             <div id="gradeReport" class="card-contents">
                 <div>
 				
-					{% if assignments|length == 0 %}
+					{% if sections_taking|length == 0 %}
 						
-						You do not have any assignments to do well on!
+						You do not have any classes to do well in!
 					
 					{% else %}
 				
-						You are doing well on your assignments!
+						You are doing well in your classes!
 						<ul>
-						{% for asgn in assignments %}
+						{% for section in sections_taking %}
 						
-							{#% if usr.role.name != "Teaches" %#}
-								
-								{{asgn.name}} - {{(grades[asgn.id]*100)|number_format(1, '.')}}% <br/> 
-								
-							{#% endif %#}
+							{% if grades[section.id]['percentage_adj'] < 0 %}
+								{% set grade = 'no grades to display yet' %}
+							{% else %}
+								{% set grade = (grades[section.id]['percentage_adj']*100)|number_format(1, '.') ~ '%' %}
+							{% endif %}
 						
+							{{section.course.name}} - {{grade}} <br/> 
+							
 						{% endfor %}
 						<ul/>
 					

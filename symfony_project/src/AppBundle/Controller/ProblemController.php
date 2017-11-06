@@ -56,11 +56,25 @@ class ProblemController extends Controller {
 			$output["time_output"] = $tc->execution_time;
 			$tc_output[] = $output;	
 		}
-					
+	
+		# get the usersectionrole
+		$qb_usr = $em->createQueryBuilder();
+		$qb_usr->select('usr')
+			->from('AppBundle\Entity\UserSectionRole', 'usr')
+			->where('usr.user = ?1')
+			->andWhere('usr.section = ?2')
+			->setParameter(1, $user)
+			->setParameter(2, $problem_entity->assignment->section);
+			
+		$usr_query = $qb_usr->getQuery();
+		$usersectionrole = $usr_query->getOneOrNullResult();
+	
         return $this->render('problem/result.html.twig', [
 			'submission' => $submission,
 			'problem' => $submission->problem,
 			'grader' => new Grader($em),
+			
+			'usersectionrole' => $usersectionrole,
 			
 			'testcases_output' => $tc_output,
 			'compiler_output' => $compiler_output,

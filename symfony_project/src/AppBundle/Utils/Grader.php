@@ -216,6 +216,7 @@ class Grader  {
 		
 		$problems = [];
 		
+		# loop over all of the problem grades
 		foreach($assignment->problems as $problem){
 			
 			$problems[$problem->id] = $this->getProblemGrade($user, $problem);
@@ -228,6 +229,7 @@ class Grader  {
 		
 		$grade = [];
 	
+		# get what kind of problems they are based on extra credit
 		$normal_problem_count = 0;
 		$extra_problem_count = 0;
 		foreach($assignment->problems as $problem){
@@ -239,13 +241,13 @@ class Grader  {
 			}			
 		}	
 	
-		$num_correct_assignments = 0;
-		$num_extra_correct_assignments = 0;
+		$num_correct_problems = 0;
+		$num_extra_correct_problems = 0;
 		
 		$grade['num_problems'] = $normal_problem_count;
 		$grade['num_extra_problems'] = $extra_problem_count;
-		$grade['num_correct'] = 0;
-		$grade['num_extra_correct'] = 0;
+		$grade['num_correct_problems'] = 0;
+		$grade['num_extra_correct_problems'] = 0;
 		$grade['percentage_raw'] = 0.0;
 		$grade['percentage_adj'] = 0.0;
 		
@@ -265,15 +267,15 @@ class Grader  {
 			if($problem_grades[$problem->id]['passed_testcases'] == $problem_grades[$problem->id]['total_testcases']){
 				
 				if($problem->is_extra_credit){
-					$num_extra_correct_assignments++;
+					$num_extra_correct_problems++;
 				} else {
-					$num_correct_assignments++;
+					$num_correct_problems++;
 				}
 			}
 		}
 		
-		$grade['num_correct'] = $num_correct_assignments;
-		$grade['num_extra_correct'] = $num_extra_correct_assignments;
+		$grade['num_correct_problems'] = $num_correct_problems;
+		$grade['num_extra_correct_problems'] = $num_extra_correct_problems;
 	
 		$grade['percentage_raw'] = $assignment_percentage;
 	
@@ -290,12 +292,144 @@ class Grader  {
 			$num_days_over = 1+(int)$most_recent_sub->diff($assignment->end_time)->format('%a');
 		}
 	
-		$grade['percentage_adj'] = max($assignment_percentage - $num_days_over*$assignment->gradingmethod->penalty_per_day, 0);
-		#echo $grade['percentage_adj']."<br/>";
-		#echo $assignment_grade['num_problems']."<br/>";
-		#echo $assignment_grade['finished_problems']."<br/>";
-		
+		$assignment_percentage_adj = max($assignment_percentage - $num_days_over*$assignment->gradingmethod->penalty_per_day, 0);
+		$grade['percentage_adj'] = $assignment_percentage_adj;
+
 		return $grade;
+	}
+	
+	public function getAllAssignmentGrades($user, $section){
+		
+		$assignments = [];
+		
+		# loop over all of the problem grades
+		foreach($section->assignments as $assignment){
+			
+			$assignments[$assignment->id] = $this->getAssignmentGrade($user, $assignment);
+		}
+
+		return $assignments;
+	}
+		
+	public function getSectionGrade($user, $section){
+		
+		$grade = [];
+		
+		$grade['percentage_adj'] = 0;
+		
+		$num_finished_assignments = 0;
+		$num_future_assignments = 0;
+		$num_finished_extra_assignments = 0;
+		$num_future_extra_assignments = 0;
+		
+		$num_finished_assignments_noweight = 0;
+		$num_future_assignments_noweight = 0;
+		
+		$total_finished_weight = 0;
+		$total_weight = 0;
+		
+		$curr_time = new DateTime();
+		
+		foreach($section->assignments as $assignment){
+			
+			if($curr_time < $assignment->end_time){
+
+				if($assignment->is_extra_credit){
+					$num_future_extra_assignments++;
+				}else {
+					
+					if($assignment->weight == 0){
+						$num_future_assignments_noweight++;
+					}
+					
+					$num_future_assignments++;
+				}
+				
+			} else {	
+			
+				if($assignment->is_extra_credit){
+					$num_finished_extra_assignments++;
+				}else {
+					
+					if($assignment->weight == 0){
+						$num_finished_assignments_noweight++;
+					}
+					
+					$total_finished_weight += $assignment->weight;
+					$num_finished_assignments++;
+				}
+			}
+			
+			$total_weight += $assignment->weight;
+		}
+		
+		$assignment_grades = $this->getAllAssignmentGrades($user, $section);
+		
+		if($num_finished_assignments_noweight > 0){
+			$total_percentage_unweighted = 0;
+		} else{
+			$total_percentage_unweighted = 1;
+		}
+		
+		if($num_finished_assignments-$num_finished_assignments_noweight > 0){
+			$total_percentage_weighted = 0;
+		} else {
+			$total_percentage_weighted = 1;
+		}
+		
+		foreach($section->assignments as $assignment){
+			
+			if($curr_time < $assignment->end_time){
+				continue;
+			}
+						
+			$percentage = $assignment_grades[$assignment->id]['percentage_adj'];
+			
+			if($assignment->weight == 0){
+				$adj_percentage = $percentage*(1.0/$num_finished_assignments_noweight);
+				$total_percentage_unweighted += $adj_percentage;
+			} else {
+				$total_percentage_weighted += ($percentage*$assignment->weight/$total_finished_weight);
+			}	
+		}
+		
+		$total_percentage = $total_percentage_unweighted*(1.0-$total_finished_weight) + $total_percentage_weighted*$total_finished_weight;
+		
+		if($num_finished_assignments == 0){
+			$total_percentage = -1;
+		}
+		
+		$grade['percentage_adj'] = $total_percentage;
+
+		return $grade;
+	}
+	
+	public function getAllSectionGrades($user){
+			
+		$qb_usr = $this->em->createQueryBuilder();
+		$qb_usr->select('usr')
+			->from('AppBundle\Entity\UserSectionRole', 'usr')
+			->where('usr.user = ?1')
+			->setParameter(1, $user);
+
+		$usr_query = $qb_usr->getQuery();
+		$usersectionroles = $usr_query->getResult();
+		
+		$sections = [];
+		foreach($usersectionroles as $usr){
+			
+			if($usr->role->role_name == 'Takes'){
+				$sections[] = $usr->section;	
+			}			
+		}
+			
+			
+		$grades = [];
+		foreach($sections as $section){
+			$grades[$section->id] = $this->getSectionGrade($user, $section);
+		}
+		
+		return $grades;
 	}
 }
 
