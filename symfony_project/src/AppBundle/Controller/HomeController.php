@@ -34,14 +34,19 @@ class HomeController extends Controller {
 		$qb_usr->select('usr')
 			->from('AppBundle\Entity\UserSectionRole', 'usr')
 			->where('usr.user = ?1')
-			->setParameter(1, $user->id);
+			->setParameter(1, $user);
 
 		$usr_query = $qb_usr->getQuery();
 		$usersectionroles = $usr_query->getResult();
 		
 		$sections = [];
+		$sections_taking = [];
 		foreach($usersectionroles as $usr){
 			$sections[] = $usr->section->id;
+			
+			if($usr->role->role_name == 'Takes'){
+				$sections_taking[] = $usr->section;
+			}
 		}
 		
 		# get assignments sorted by due date
@@ -87,11 +92,17 @@ class HomeController extends Controller {
 
 		$users = $users_query->getResult();	
 		
+		$grader = new Grader($em);
+		
+		$grades = $grader->getAllSectionGrades($user);
+		
 		return $this->render('home/index.html.twig', [
 			'user' => $user,
 			
 			'usersectionroles' => $usersectionroles,
 			'assignments' => $assignments,
+			'sections_taking' => $sections_taking,
+			
 			'grades' => $grades,
 			'user_impersonators' => $users
 		]);

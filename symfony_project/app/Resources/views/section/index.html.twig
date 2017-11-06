@@ -76,18 +76,25 @@
 						{% for user in section_takers %}
 							
 							<tr> <th>{{user.getFirstName()}} {{user.getLastName()}}</th>
-							
-							{% for asgn in assignments %}
-								
-								{% if student_subs[asgn.id][user.id] == "GOOD" %}
-									<td style="color:green; font-size: 25px"> &#x2713; </td>
-								{% elseif student_subs[asgn.id][user.id] == "BAD" %}
-									<td style="color:orange; font-size: 25px"> ~ </td>									
-								{% else %} 
-									<td style="color:red; font-size: 25px"> &#x2718 </td>
-								{% endif %}
-								
-							{% endfor %}
+              
+								{% for asgn in assignments %}
+									
+									{% if grades[user.id][asgn.id]['num_correct_problems'] == grades[user.id][asgn.id]['num_problems'] %}
+									
+										<td style="color:green; font-size: 25px">&#x2713; 
+										
+										{% if grades[user.id][asgn.id]['num_extra_problems'] > 0 and grades[user.id][asgn.id]['num_extra_correct_problems'] == grades[user.id][asgn.id]['num_extra_problems'] %}
+										&#x2713; 										
+										{% endif %}
+										</td>
+										
+									{% elseif grades[user.id][asgn.id]['num_correct_problems'] != 0 %}
+										<td style="color:orange; font-size: 25px"><i> {{grades[user.id][asgn.id]['num_correct_problems']}}/{{grades[user.id][asgn.id]['num_problems']}}</i></td>
+  								 {% else %} 
+  										<td style="color:red; font-size: 25px"> &#x2718</td>
+  								 {% endif %}
+									
+								{% endfor %}
 							
 						{% endfor %}
 						

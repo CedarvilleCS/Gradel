@@ -1,5 +1,5 @@
 {# make sure that the grader entity is define before doing all of this stuff #}
-{% if grader is defined and section is defined and assignments is defined and section_teachers is defined %}
+{% if grades is defined and section is defined and assignments is defined and section_teachers is defined %}
 
 <nav class="nav-left">
 	{% if is_granted("ROLE_ADMIN") or is_granted("ROLE_SUPER") %}
@@ -22,6 +22,9 @@
 						<br>
 						<small>
 							{{assig.end_time|date('F d, Y')}}
+							{% if app.user in section_takers %}
+								<br/>{{grades[app.user.id][assig.id]['num_correct_problems']}}/{{grades[app.user.id][assig.id]['num_problems']}} - {{(grades[app.user.id][assig.id]['percentage_adj']*100)|number_format(1,'.')}}%
+							{% endif %}
 						</small>
 					</span>
 	
