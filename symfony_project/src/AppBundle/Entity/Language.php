@@ -22,8 +22,9 @@ class Language {
 		}
 	}
 		
-	public function __construct1($nm){
+	public function __construct2($nm, $ft){
 		$this->name = $nm;
+		$this->filetype = $ft;
 	}
 
 	/**
@@ -37,5 +38,10 @@ class Language {
 	*@ORM\Column(type="string", length=255, unique=true)
 	*/
 	public $name;
+
+	/**
+	*@ORM\Column(type="string", length=255, unique=true)
+	*/
+	public $filetype;
 }
 ?>

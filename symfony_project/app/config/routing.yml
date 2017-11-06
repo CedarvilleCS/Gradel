@@ -1,36 +1,75 @@
-# EMILY'S ROUTE
+# HOMEPAGE ROUTES
 homepage:
+    path:   '/home'
+    defaults:  { _controller: AppBundle:Home:home} 
+    
+alt_homepage:
     path:   '/'
-    defaults:  { _controller: AppBundle:Account:index }
-
-# CHRIS'S''S'S'S'S'S'S'SS'S' ROUTES
-account:
-  path: '/home'
-  defaults: {_controller: AppBundle:Account:index}
-
-
+    defaults: { _controller: AppBundle:Home:home} 
+    
+# MAIN ROUTES
 section_new:
-  path: '/home/{userId}/section/new'
+  path: '/section/new'
   defaults: {_controller: AppBundle:Section:newSection}
 
-
 section_insert:
-  path: '/home/{userId}/section/insert/{courseId}/{name}/{students}/{semester}/{year}/{start_time}/{end_time}/{is_deleted}/{is_public}'
+  path: '/section/insert/{courseId}/{name}/{students}/{semester}/{year}/{start_time}/{end_time}/{is_deleted}/{is_public}'
   defaults: {_controller: AppBundle:Section:insertSection, name: "hey", semester: "Dr. G", year: "Node", start_time: "is way better", end_time: "than anything", is_deleted: "you have used", is_public: ":)", students: "love, Chris Brauns"}
 
+section_edit_query:
+  path: '/section/edit_query/{sectionId}/{courseId}/{name}/{students}/{semester}/{year}/{start_time}/{end_time}/{is_deleted}/{is_public}'
+  defaults: {_controller: AppBundle:Section:editQuery, sectionId: "BEGIN", name: "hey", semester: "Dr. G", year: "Node", start_time: "is way better", end_time: "than anything", is_deleted: "you have used", is_public: ":)", students: "love, Chris Brauns"}
+
+section_edit:
+  path: '/section/edit/{sectionId}'
+  defaults: {_controller: AppBundle:Section:editSection}
 
 section:
-  path: '/home/{userId}/section/{sectionId}'
+  path: '/section/{sectionId}'
   defaults: {_controller: AppBundle:Section:section}
 
 
-assignment:
-  path: '/home/{userId}/section/{sectionId}/assignment/{assignmentId}/problem/{problemId}'
-  defaults: {_controller: AppBundle:Problems:problems}
 
-# EMMETT'S ROUTE
+assignment_new:
+  path: '/section/{sectionId}/assignment/new'
+  defaults: {_controller: AppBundle:Assignment:new}
+
+assignment_edit:
+  path: '/section/{sectionId}/assignment/edit/{assignmentId}'
+  defaults: {_controller: AppBundle:Assignment:edit}
+
+assignment_insert:
+  path: '/section/{sectionId}/assignment/insert/{name}/{description}'
+  defaults: {_controller: AppBundle:Assignment:insert}
+
+assignment_edit_query:
+  path: '/section/{sectionId}/assignment/edit_query/{assignmentId}/{name}/{description}'
+  defaults: {_controller: AppBundle:Assignment:editQuery}
+
+assignment:
+  path: '/section/{sectionId}/assignment/{assignmentId}/problem/{problemId}'
+  defaults:
+    _controller: AppBundle:Assignment:assignment
+    problemId: 0
+
+
+problem_new:
+  path: '/section/{sectionId}/assignment/{assignmentId}/problem/new'
+  defaults: {_controller: AppBundle:Problem:new}
+
+problem_edit:
+  path: '/section/{sectionId}/assignment/{assignmentId}/problem/edit/{problemId}'
+  defaults: {_controller: AppBundle:Problem:edit}
+
+problem_result:
+    path: '/result/{submission_id}'
+    defaults: {_controller: AppBundle:Problem:result}
+    requirements:
+        submission_id: '\d+'
+
+# SUBMISSION ROUTES
 upload:
-  path: "/courses/assignments/problems/{problem_id}/upload"
+  path: "/upload/{problem_id}"
   defaults: {_controller: AppBundle:Upload:upload}
   requirements:
     problem_id:     '\d+'
@@ -42,9 +81,8 @@ professorsection:
 
 
 
-# TIMOTHY'S ROUTES
 submit:
-    path: '/compilation/submit/{problem_id}/{language_id}/{submitted_filename}/{main_class}/{package_name}'
+    path: '/submit/{problem_id}/{language_id}/{submitted_filename}/{main_class}/{package_name}'
     defaults:
         _controller:    AppBundle:Compilation:submit
         main_class:     ''
@@ -53,23 +91,8 @@ submit:
         problem_id:     '\d+'
         language_id:    '\d+'
 
-submit_backup:
-    path: '/compilation/submit_backup/{problem_id}/{language_id}/{submitted_filename}/{main_class}/{package_name}'
-    defaults:
-        _controller:    AppBundle:Compilation:submit_backup
-        main_class:     ''
-        package_name:   ''
-    requirements:
-        problem_id:  '\d+'
-        language_id: '\d+'
 
-submission_results:
-    path: '/compilation/submission_results/{submission_id}'
-    defaults: {_controller: AppBundle:Compilation:submission}
-    requirements:
-        submission_id: '\d+'
-
-# OAUTH'S ROUTES
+# AUTHENTICATION ROUTES
 hwi_oauth_redirect:
     resource: "@HWIOAuthBundle/Resources/config/routing/redirect.xml"
     prefix:   /connect
@@ -87,4 +110,4 @@ user_logout:
 
 user_login:
   path: '/user/login'
-  defaults: {_controller: AppBundle:Default:index}
+  defaults: {_controller: AppBundle:Login:index}

@@ -14,7 +14,8 @@ use AppBundle\Entity\UserSectionRole;
 use AppBundle\Entity\Testcase;
 use AppBundle\Entity\Submission;
 use AppBundle\Entity\Language;
-use AppBundle\Entity\Gradingmethod;
+use AppBundle\Entity\ProblemGradingMethod;
+use AppBundle\Entity\AssignmentGradingMethod;
 use AppBundle\Entity\Feedback;
 use AppBundle\Entity\TestcaseResult;
 
@@ -45,78 +46,127 @@ class Fixtures extends Fixture {
 		
 		# USER Testing
 		{
-			$prof_gallagher = new User("gallaghd", "gallaghd@cedarville.edu", '106935590466449084204', 'ya29.GlvmBCRca746USm7DxATnlo-cSXbaLgpxemqYaL4hLJ7seuuAGj9khJgvlN79oLrVk1DnBQ4-uiSR9GicIWHcePZL0-MhJBf1gDokKfMxvpa3Ov-3DDiB-uvdglR', "David", "Gallagher");
+			$prof_gallagher = new User("gallaghd@cedarville.edu", "gallaghd@cedarville.edu");
+			$prof_gallagher->addRole("ROLE_SUPER");			
+			$prof_gallagher->addRole("ROLE_ADMIN");
+			$prof_gallagher->setFirstName("David");
+			$prof_gallagher->setLastName("Gallagher");
 			$manager->persist($prof_gallagher);
 
-			$prof_brauns = new User("brauns", "cbrauns@cedarville.edu", '102745040748959369206', 'ya29.GlznBM2Fspl2E8UMn7ygX1Xzy4rUcNb2Xrw_Bhoepy72GrOzsnAUCdf8ghr3VZHLkfcgLGGvmn5An3a_MSP-dl1p0G3DKytmEBXburNuu2M1qlJgtkKvdiaTAjACjQ', "Christopher", "Brauns");
-			$manager->persist($prof_brauns);
+			$prof_brauns = new User("cbrauns@cedarville.edu", "cbrauns@cedarville.edu");
+			$prof_brauns->addRole("ROLE_SUPER");			
+			$prof_brauns->addRole("ROLE_ADMIN");
+			$prof_brauns->setFirstName("Christopher");
+			$prof_brauns->setLastName("Brauns");
+			$manager->persist($prof_brauns);			
 			
-			
-			$wolf_user = new User("ewolf", "ewolf@cedarville.edu", '101057281057560942387', 'ya29.GlznBP9IhwJVmug7i4O6ymEzFBtsFIrBwDIhHZA1smkjL3jJV_o6BMt5xuC6M1Y7i57x4ND9nd54bbA8GIwvNxzEMhuYExVbI92uKd_xjQFUBSg5REqmxxgRvwHOFQ', 'Emily', 'Wolf');
+			$wolf_user = new User("ewolf@cedarville.edu", "ewolf@cedarville.edu");
+			$wolf_user->addRole("ROLE_SUPER");			
+			$wolf_user->addRole("ROLE_ADMIN");
+			$wolf_user->setFirstName("Emily");
+			$wolf_user->setLastName("Wolf");
 			$manager->persist($wolf_user);
 			
-			$budd_user = new User("ebudd", "ebudd@cedarville.edu", '107801039809418360044', 'ya29.GlvnBBGCLNq4K-1qbGIHdc9UcczjkxdzHytYjf09O2U_WMi7EmybHorO3wQcMZqFLl94qfm3A1w3v9x3WXHiK5Bk-gsjh5vIZWigceXBOLSwkN-JQ8wOo2AyX9vN', "Emmett", "Budd");
+			$budd_user = new User("ebudd@cedarville.edu", "ebudd@cedarville.edu");
+			$budd_user->addRole("ROLE_SUPER");			
+			$budd_user->addRole("ROLE_ADMIN");
+			$budd_user->setFirstName("Emmett");
+			$budd_user->setLastName("Budd");
 			$manager->persist($budd_user);
 			
-			$smith_user = new User("tgsmith", "timothyglensmith@cedarville.edu", '103366426489767506763', 'ya29.GlznBB6igfKjqyrBrZneXfMGLUgK-aoHQYNyKLlpAxZT_DE7q45zW2M1op18RpKjO1zbIgRzcJFP-bxm-nL_ohm9g-b3gno2piDfnB-CWWFGLNNtuM0aWu6o1EH0JQ', 'Timothy', 'Smith');
+			$smith_user = new User("timothyglensmith@cedarville.edu", "timothyglensmith@cedarville.edu");
+			$smith_user->addRole("ROLE_SUPER");			
+			$smith_user->addRole("ROLE_ADMIN");			
+			$smith_user->setFirstName("Timothy");
+			$smith_user->setLastName("Smith");
 			$manager->persist($smith_user);
+			
+			$annie_user = new User("amathis11@gmail.com", "amathis11@gmail.com");
+			$annie_user->setFirstName("Annie");
+			$annie_user->setLastName("Mathis");
+			$manager->persist($annie_user);
 		}
 		
 		# COURSE Testing
 		{
-			$course = new Course("CS-1210", "C++ Programming", "A class where you learn how to program", false, false, false);
-			$manager->persist($course);
+			$course1 = new Course("CS-1210", "C++ Programming", "A class where you learn how to program", false, false, false);
+			$manager->persist($course1);
 
+			$course2 = new Course("CS-1210", "Object-Oriented Design", "A class where you learn how to do the OOD", false, false, false);
+			$manager->persist($course2);
+			
 			$contest = new Course("", "Cedarville University Programming Contest", "The annual programming contest open to all majors and walks of life", true, true, false);
 			$manager->persist($contest);
 		}
 		
 		# SECTION Testing
 		{
-			$CS1210_01 = new Section($course, "CS-1210-01", "Fall", 2017, \DateTime::createFromFormat($date_format, "00:00:00 08/21/2017"), \DateTime::createFromFormat($date_format, "23:59:59 12/16/2017"), $prof_gallagher, false, false);
-			$CS1210_02 = new Section($course, "CS-1210-02", "Fall", 2017, \DateTime::createFromFormat($date_format, "00:00:00 08/21/2017"), \DateTime::createFromFormat($date_format, "23:59:59 12/16/2017"), $smith_user, false, false);
+			$CS1210_01 = new Section($course1, "CS-1210-01", "Fall", 2017, \DateTime::createFromFormat($date_format, "00:00:00 08/21/2017"), \DateTime::createFromFormat($date_format, "23:59:59 12/16/2017"), false, false);
+			//$CS1220_01 = new Section($course2, "CS-1220-01", "Fall", 2017, \DateTime::createFromFormat($date_format, "00:00:00 08/21/2017"), \DateTime::createFromFormat($date_format, "23:59:59 12/16/2017"), false, false);
+			
+			$contest_2017 = new Section($contest, "Local Contest Fall 2017", "Fall", 2017, 
+									\DateTime::createFromFormat($date_format, "00:00:00 11/01/2017"), 
+									\DateTime::createFromFormat($date_format, "23:59:59 11/01/2017"), false, false);
 
 			$manager->persist($CS1210_01);
-			$manager->persist($CS1210_02);
+			//$manager->persist($CS1220_01);
+			$manager->persist($contest_2017);
 		}
 		
 		# USERSECTIONROLE Testing
 		{
 			$manager->persist(new UserSectionRole($wolf_user, $CS1210_01, $takes_role));
 			$manager->persist(new UserSectionRole($budd_user, $CS1210_01, $takes_role));
-			$manager->persist(new UserSectionRole($smith_user, $CS1210_01, $takes_role));
-			$manager->persist(new UserSectionRole($prof_gallagher, $CS1210_01, $teach_role));
-			$manager->persist(new UserSectionRole($prof_brauns, $CS1210_01, $teach_role));
+			$manager->persist(new UserSectionRole($prof_gallagher, $CS1210_01, $takes_role));
+			$manager->persist(new UserSectionRole($prof_brauns, $CS1210_01, $takes_role));
+			$manager->persist(new UserSectionRole($annie_user, $CS1210_01, $takes_role));
+			$manager->persist(new UserSectionRole($smith_user, $CS1210_01, $teach_role));
 			
-			$manager->persist(new UserSectionRole($prof_gallagher, $CS1210_02, $takes_role));
-			$manager->persist(new UserSectionRole($prof_brauns, $CS1210_02, $takes_role));
-			$manager->persist(new UserSectionRole($smith_user, $CS1210_02, $teach_role));
+			//$manager->persist(new UserSectionRole($prof_gallagher, $CS1220_01, $takes_role));
+			//$manager->persist(new UserSectionRole($prof_brauns, $CS1220_01, $takes_role));
+			//$manager->persist(new UserSectionRole($smith_user, $CS1220_01, $teach_role));
+			
+			$manager->persist(new UserSectionRole($wolf_user, $contest_2017, $takes_role));
+			$manager->persist(new UserSectionRole($budd_user, $contest_2017, $takes_role));
+			$manager->persist(new UserSectionRole($smith_user, $contest_2017, $takes_role));
+			$manager->persist(new UserSectionRole($prof_gallagher, $contest_2017, $teach_role));
+			$manager->persist(new UserSectionRole($prof_brauns, $contest_2017, $teach_role));
 		}
 		
-		# GRADINGMETHOD Testing
+		# ASSIGNMENTGRADINGMETHOD Testing
 		{
-			$method_nolatesubs = new Gradingmethod("No Late Submissions", "The end time of the project is the final time a submission will be accepted. No late work is accepted after this.");
-			$method_cutoff10penalty = new Gradingmethod("Cutoff - 10% Penalty", "The cutoff time is the final time a submission will be accepted. There is a 10% penalty for submitting before this.");
-			$method_cutoff00penalty = new Gradingmethod("Cutoff - No Penalty", "The cutoff time is the final time a submission will be accepted. There is no penalty for submitting before this.");
-			
-			$method_nopenalty = new Gradingmethod("No Attempt Penalty", "You are allowed to submit any number of attempts, and each attempt has no penalty");
-			$method_10penalty = new Gradingmethod("10% Attempt Penalty", "You are allowed to submit any number of attempts, but each attempt lowers score by 10%");
-			
-			$manager->persist($method_nolatesubs);
-			$manager->persist($method_cutoff10penalty);
-			$manager->persist($method_cutoff00penalty);
-			
-			$manager->persist($method_nopenalty);
-			$manager->persist($method_10penalty);				
+			$assignment_grdmethod0 = new AssignmentGradingMethod(0.00);
+			$assignment_grdmethod1 = new AssignmentGradingMethod(0.10);	
+			$assignment_grdmethod2 = new AssignmentGradingMethod(0.20);		
+
+			$manager->persist($assignment_grdmethod0);
+			$manager->persist($assignment_grdmethod1);
+			$manager->persist($assignment_grdmethod2);
 		}
 		
 		# ASSIGNMENT Testing
 		{
-			$assignment_01 = new Assignment($CS1210_01, "Homework #1", "This is the first homework assignment", \DateTime::createFromFormat($date_format, "00:00:00 08/21/2017"), \DateTime::createFromFormat($date_format, "23:59:59 08/28/2017"), \DateTime::createFromFormat($date_format, "23:59:59 08/28/2017"), 0.0, $method_nolatesubs, false);
+			$assignment_01 = new Assignment($CS1210_01, 
+									"Homework #1", "This is the first homework assignment", 
+									\DateTime::createFromFormat($date_format, "00:00:00 10/30/2017"), 
+									\DateTime::createFromFormat($date_format, "23:59:59 11/30/2017"), 
+									\DateTime::createFromFormat($date_format, "08:00:00 12/15/2017"), 0.0, $assignment_grdmethod0, false);
 			$manager->persist($assignment_01);
 			
-			$assignment_02 = new Assignment($CS1210_02, "Homework #1", "This is the first homework assignment", \DateTime::createFromFormat($date_format, "00:00:00 08/21/2017"), \DateTime::createFromFormat($date_format, "23:59:59 08/28/2017"), \DateTime::createFromFormat($date_format, "23:59:59 08/28/2017"), 0.0, $method_nolatesubs, false);
+			
+			$assignment_02 = new Assignment($contest_2017, 
+									"Practice Contest", "The is the practice contest before the actual contest", 
+									\DateTime::createFromFormat($date_format, "13:00:00 10/30/2017"), 
+									\DateTime::createFromFormat($date_format, "17:00:00 11/30/2017"), 
+									\DateTime::createFromFormat($date_format, "17:00:00 12/15/2017"), 0.0, $assignment_grdmethod1, false);
 			$manager->persist($assignment_02);
+			
+			$assignment_03 = new Assignment($contest_2017, 
+									"Actual Contest", "The is the contest", 
+									\DateTime::createFromFormat($date_format, "13:00:00 10/30/2017"), 
+									\DateTime::createFromFormat($date_format, "17:00:00 11/30/2017"), 
+									\DateTime::createFromFormat($date_format, "17:00:00 12/15/2017"), 0.0, $assignment_grdmethod2, false);
+			$manager->persist($assignment_03);
 		}
 		
 		# TEAM Testing
@@ -124,160 +174,187 @@ class Fixtures extends Fixture {
 		{
 			$team_01 = new Team("Wolf_01", $assignment_01);
 			$team_02 = new Team("Budd_01", $assignment_01);	
-			$team_03 = new Team("Smith_01", $assignment_01);
+			$team_03 = new Team("Gallagher_01", $assignment_01);
+			$team_20 = new Team("Mathis_01", $assignment_01);	
+			$team_21 = new Team("Brauns_01", $assignment_01);
 					
 			$team_01->users[] = $wolf_user;
 			$team_02->users[] = $budd_user;
-			$team_03->users[] = $smith_user;
+			$team_03->users[] = $prof_gallagher;
+			$team_20->users[] = $annie_user;
+			$team_21->users[] = $prof_brauns;
 			
-			$team_04 = new Team("Brauns_Gallagher_01", $assignment_02);
-			$team_04->users[] = $prof_brauns;
-			$team_04->users[] = $prof_gallagher;
 			
+			$team_04 = new Team("Smith_01", $assignment_02);
+			$team_04->users[] = $smith_user;
+			
+			$team_05 = new Team("Wolf_01", $assignment_02);
+			$team_05->users[] = $wolf_user;
+			
+			$team_06 = new Team("Budd_01", $assignment_02);
+			$team_06->users[] = $budd_user;
+			
+			
+			$team_08 = new Team("Smith_01", $assignment_03);
+			$team_08->users[] = $smith_user;
+			
+			$team_09 = new Team("Wolf_01", $assignment_03);
+			$team_09->users[] = $wolf_user;
+			
+			$team_10 = new Team("Budd_01", $assignment_03);
+			$team_10->users[] = $budd_user;
+
+		
 			$manager->persist($team_01);
 			$manager->persist($team_02);
 			$manager->persist($team_03);
 			$manager->persist($team_04);
+			$manager->persist($team_05);
+			$manager->persist($team_06);
+			$manager->persist($team_08);
+			$manager->persist($team_09);
+			$manager->persist($team_10);
+			$manager->persist($team_20);
+			$manager->persist($team_21);
 		}
 		
 		# LANGUAGE Testing
 		{
-			$language_C = new Language("C");	
-			$language_CPP = new Language("C++");
-			$language_JAVA = new Language("Java");
+			$language_C = new Language("C", ".c");	
+			$language_CPP = new Language("C++", ".cpp");
+			$language_JAVA = new Language("Java", ".java");
 			
 			$manager->persist($language_C);
 			$manager->persist($language_CPP);
 			$manager->persist($language_JAVA);			
 		}
 		
+		# PROBLEMGRADINGMETHOD Testing
+		{
+			$prob_grdmethod00 = new ProblemGradingMethod(0, 0, 0);
+			$prob_grdmethod10 = new ProblemGradingMethod(10, 10, .10);
+			$prob_grdmethod01 = new ProblemGradingMethod(10, 1, .10);
+			
+			$manager->persist($prob_grdmethod00);
+			$manager->persist($prob_grdmethod10);
+			$manager->persist($prob_grdmethod01);
+		}
+		
 		# PROBLEM Testing
 		{
-			$desc_file_01 = fopen($folder_path."1.desc", "r") or die("Unable to open 1.desc");
-			$desc_file_02 = fopen($folder_path."2.desc", "r") or die("Unable to open 2.desc");
+			$problems = [];
 			
-			$problem_01 = new Problem($assignment_01, "Calculate the Sum", $desc_file_01, 0.0, $method_nopenalty, 0, 1000, false);
-			$problem_02 = new Problem($assignment_01, "Calculate the Difference", $desc_file_02, 0.0, $method_10penalty, 10, 1000, false);
+			// put new testcases in a folder and map the problem to the name here
+			// if the new problem has the same name as an old problem, change it
+			$prob_folds = [];
 			
-			$problem_03 = new Problem($assignment_02, "Calculate the Sum", $desc_file_01, 0.0, $method_nopenalty, 0, 1000, false);
-			$problem_04 = new Problem($assignment_02, "Calculate the Difference", $desc_file_02, 0.0, $method_10penalty, 10, 1000, false);
+			# HOMEWORK 1 For CS-1210-01
+			$desc_file_01 = fopen($folder_path."sum/description.txt", "r") or die("Unable to open 1.desc");
+			$problem_01 = new Problem($assignment_01, "Calculate the Sum", $desc_file_01, 0.0, $prob_grdmethod00, 1000, false);
+			$problems[] = $problem_01;
+			$prob_folds[$problem_01->name] = "sum";
+			
+			$desc_file_02 = fopen($folder_path."diff/description.txt", "r") or die("Unable to open 2.desc");
+			$problem_02 = new Problem($assignment_01, "Calculate the Difference", $desc_file_02, 0.0, $prob_grdmethod00, 1000, false);
+			$problems[] = $problem_02;
+			$prob_folds[$problem_02->name] = "diff";
+			
+			$desc_file_03 = fopen($folder_path."prod/description.txt", "r") or die("Unable to open 3.desc");
+			$problem_03 = new Problem($assignment_01, "Calculate the Product", $desc_file_03, 0.0, $prob_grdmethod00, 1000, false);
+			$problems[] = $problem_03;
+			$prob_folds[$problem_03->name] = "prod";
+			
+			$desc_file_04 = fopen($folder_path."quot/description.txt", "r") or die("Unable to open 4.desc");
+			$problem_04 = new Problem($assignment_01, "Calculate the Quotient", $desc_file_04, 0.0, $prob_grdmethod00, 1000, false);
+			$problems[] = $problem_04;
+			$prob_folds[$problem_04->name] = "quot";
+			
+			# PRACTICE CONTEST
+			$desc_file_05 = fopen($folder_path."Z/description.txt", "r") or die("Unable to open 5.desc");
+			$problem_05 = new Problem($assignment_02, "Z - Happy Trails", $desc_file_05, 0.0, $prob_grdmethod10, 1000, false);
+			$problems[] = $problem_05;
+			$prob_folds[$problem_05->name] = "Z";
+			
+			# ACTUAL CONTEST
+			$desc_file_06 = fopen($folder_path."A/description.txt", "r") or die("Unable to open 6.desc");
+			$problem_06 = new Problem($assignment_03, "A - The Key to Cryptography", $desc_file_06, 0.0, $prob_grdmethod01, 1000, false);
+			$problems[] = $problem_06;
+			$prob_folds[$problem_06->name] = "A";
+			
+			$desc_file_07 = fopen($folder_path."B/description.txt", "r") or die("Unable to open 7.desc");
+			$problem_07 = new Problem($assignment_03, "B - Red Rover", $desc_file_07, 0.0, $prob_grdmethod01, 1000, false);
+			$problems[] = $problem_07;
+			$prob_folds[$problem_07->name] = "B";
+			
+			$desc_file_08 = fopen($folder_path."C/description.txt", "r") or die("Unable to open 8.desc");
+			$problem_08 = new Problem($assignment_03, "C - Lost In Translation", $desc_file_08, 0.0, $prob_grdmethod01, 1000, false);
+			$problems[] = $problem_08;
+			$prob_folds[$problem_08->name] = "C";
 			
 			$manager->persist($problem_01);		
 			$manager->persist($problem_02);
-			
 			$manager->persist($problem_03);		
 			$manager->persist($problem_04);
+			$manager->persist($problem_05);
+			$manager->persist($problem_06);
+			$manager->persist($problem_07);
+			$manager->persist($problem_08);
 		}
 		
 		# PROBLEM LANGUAGE Testing
-		{
-			$problang_01 = new ProblemLanguage($language_CPP, $problem_01, NULL, NULL);			
-			$problang_02 = new ProblemLanguage($language_C, $problem_01, NULL, NULL);
-			$problang_03 = new ProblemLanguage($language_JAVA, $problem_01, NULL, NULL);
+		{						
+			foreach($problems as $prob){
+				
+				$problang_01 = new ProblemLanguage($language_CPP, $prob, NULL, NULL);			
+				$problang_02 = new ProblemLanguage($language_C, $prob, NULL, NULL);
+				$problang_03 = new ProblemLanguage($language_JAVA, $prob, NULL, NULL);
+				
+				$manager->persist($problang_01);
+				$manager->persist($problang_02);
+				$manager->persist($problang_03);				
+			}
 			
-			$problang_11 = new ProblemLanguage($language_CPP, $problem_02, NULL, NULL);			
-			$problang_12 = new ProblemLanguage($language_C, $problem_02, NULL, NULL);
-			$problang_13 = new ProblemLanguage($language_JAVA, $problem_02, NULL, NULL);
-			
-			$problang_21 = new ProblemLanguage($language_CPP, $problem_03, NULL, NULL);			
-			$problang_22 = new ProblemLanguage($language_C, $problem_03, NULL, NULL);
-			$problang_23 = new ProblemLanguage($language_JAVA, $problem_03, NULL, NULL);
-			
-			$problang_31 = new ProblemLanguage($language_CPP, $problem_04, NULL, NULL);			
-			$problang_32 = new ProblemLanguage($language_C, $problem_04, NULL, NULL);
-			$problang_33 = new ProblemLanguage($language_JAVA, $problem_04, NULL, NULL);		
-
-			$manager->persist($problang_01);
-			$manager->persist($problang_02);
-			$manager->persist($problang_03);
-			$manager->persist($problang_11);
-			$manager->persist($problang_12);
-			$manager->persist($problang_13);
-			$manager->persist($problang_21);
-			$manager->persist($problang_22);
-			$manager->persist($problang_23);
-			$manager->persist($problang_31);
-			$manager->persist($problang_32);
-			$manager->persist($problang_33);
 		}
 		
 		
 		# FEEDBACK Testing
 		{
-			$short_file_01 = fopen($folder_path."1.short", "r") or die("Unable to open 1.short!");
-			$short_file_02 = fopen($folder_path."2.short", "r") or die("Unable to open 2.short!");
-			
+			$short_file_01 = fopen($folder_path."1.short", "r") or die("Unable to open 1.short!");			
 			$long_file_01 = fopen($folder_path."1.long", "r") or die("Unable to open 1.long!");
-			$long_file_02 = fopen($folder_path."2.long", "r") or die("Unable to open 2.long!");
 			
 			$feedback_general = new Feedback($short_file_01, $long_file_01);
-			$feedback_negatives = new Feedback($short_file_02, $long_file_02);
+			$feedback_negatives = new Feedback($short_file_01, $long_file_01);
 			
 			$manager->persist($feedback_general);		
 			$manager->persist($feedback_negatives);		
 		}
 		
-		# TESTCASE Testing
+		# TESTCASES for PROBLEMS
 		{
-			$in_file_01 = fopen($folder_path."1.in", "r") or die("Unable to open 1.in!");
-			$in_file_02 = fopen($folder_path."2.in", "r") or die("Unable to open 2.in!");
-			$in_file_03 = fopen($folder_path."3.in", "r") or die("Unable to open 3.in!");
-			$in_file_04 = fopen($folder_path."4.in", "r") or die("Unable to open 4.in!");
+			foreach($problems as $prob){			
+				
+				$prob_name = $prob_folds[$prob->name];
+				
+				$in_file_01 = fopen($folder_path.$prob_name."/1.in", "r") or die("Unable to open 1.in!");
+				$in_file_02 = fopen($folder_path.$prob_name."/2.in", "r") or die("Unable to open 2.in!");
+				$in_file_03 = fopen($folder_path.$prob_name."/3.in", "r") or die("Unable to open 3.in!");
+				$in_file_04 = fopen($folder_path.$prob_name."/4.in", "r") or die("Unable to open 4.in!");
+				
+				$out_file_01 = fopen($folder_path.$prob_name."/1.out", "r") or die("Unable to open 1.out!");
+				$out_file_02 = fopen($folder_path.$prob_name."/2.out", "r") or die("Unable to open 2.out!");
+				$out_file_03 = fopen($folder_path.$prob_name."/3.out", "r") or die("Unable to open 3.out!");
+				$out_file_04 = fopen($folder_path.$prob_name."/4.out", "r") or die("Unable to open 4.out!");
+							
+				$testcase_01 = new Testcase($prob, 1, $in_file_01, $out_file_01, $feedback_general, 0.0);
+				$testcase_02 = new Testcase($prob, 2, $in_file_02, $out_file_02, $feedback_general, 0.0);
+				$testcase_03 = new Testcase($prob, 3, $in_file_03, $out_file_03, $feedback_negatives, 0.0);
+				$testcase_04 = new Testcase($prob, 4, $in_file_04, $out_file_04, $feedback_negatives, 0.0);
 			
-			$out_file_01 = fopen($folder_path."1.out", "r") or die("Unable to open 1.out!");
-			$out_file_02 = fopen($folder_path."2.out", "r") or die("Unable to open 2.out!");
-			$out_file_03 = fopen($folder_path."3.out", "r") or die("Unable to open 3.out!");
-			$out_file_04 = fopen($folder_path."4.out", "r") or die("Unable to open 4.out!");	
-
-			$in_file_05 = fopen($folder_path."5.in", "r") or die("Unable to open 5.in!");
-			$in_file_06 = fopen($folder_path."6.in", "r") or die("Unable to open 6.in!");
-			$in_file_07 = fopen($folder_path."7.in", "r") or die("Unable to open 7.in!");
-			$in_file_08 = fopen($folder_path."8.in", "r") or die("Unable to open 8.in!");
-			
-			$out_file_05 = fopen($folder_path."5.out", "r") or die("Unable to open 5.out!");
-			$out_file_06 = fopen($folder_path."6.out", "r") or die("Unable to open 6.out!");
-			$out_file_07 = fopen($folder_path."7.out", "r") or die("Unable to open 7.out!");
-			$out_file_08 = fopen($folder_path."8.out", "r") or die("Unable to open 8.out!");
-						
-			$testcase_01 = new Testcase($problem_01, 1, $in_file_01, $out_file_01, $feedback_general, 0.0);
-			$testcase_02 = new Testcase($problem_01, 2, $in_file_02, $out_file_02, $feedback_general, 0.0);
-			$testcase_03 = new Testcase($problem_01, 3, $in_file_03, $out_file_03, $feedback_negatives, 0.0);
-			$testcase_04 = new Testcase($problem_01, 4, $in_file_04, $out_file_04, $feedback_negatives, 0.0);	
-			
-			$testcase_05 = new Testcase($problem_02, 1, $in_file_05, $out_file_05, $feedback_general, 0.0);
-			$testcase_06 = new Testcase($problem_02, 2, $in_file_06, $out_file_06, $feedback_general, 0.0);
-			$testcase_07 = new Testcase($problem_02, 3, $in_file_07, $out_file_07, $feedback_negatives, 0.0);
-			$testcase_08 = new Testcase($problem_02, 4, $in_file_08, $out_file_08, $feedback_negatives, 0.0);		
-			
-			$manager->persist($testcase_01);
-			$manager->persist($testcase_02);	
-			$manager->persist($testcase_03);	
-			$manager->persist($testcase_04);	
-			
-			$manager->persist($testcase_05);
-			$manager->persist($testcase_06);	
-			$manager->persist($testcase_07);	
-			$manager->persist($testcase_08);
-			
-			$testcase_11 = new Testcase($problem_03, 1, $in_file_01, $out_file_01, $feedback_general, 0.0);
-			$testcase_12 = new Testcase($problem_03, 2, $in_file_02, $out_file_02, $feedback_general, 0.0);
-			$testcase_13 = new Testcase($problem_03, 3, $in_file_03, $out_file_03, $feedback_negatives, 0.0);
-			$testcase_14 = new Testcase($problem_03, 4, $in_file_04, $out_file_04, $feedback_negatives, 0.0);	
-			
-			$testcase_15 = new Testcase($problem_04, 1, $in_file_05, $out_file_05, $feedback_general, 0.0);
-			$testcase_16 = new Testcase($problem_04, 2, $in_file_06, $out_file_06, $feedback_general, 0.0);
-			$testcase_17 = new Testcase($problem_04, 3, $in_file_07, $out_file_07, $feedback_negatives, 0.0);
-			$testcase_18 = new Testcase($problem_04, 4, $in_file_08, $out_file_08, $feedback_negatives, 0.0);
-			
-			$manager->persist($testcase_11);
-			$manager->persist($testcase_12);	
-			$manager->persist($testcase_13);	
-			$manager->persist($testcase_14);	
-			
-			$manager->persist($testcase_15);
-			$manager->persist($testcase_16);	
-			$manager->persist($testcase_17);	
-			$manager->persist($testcase_18);		
+				$manager->persist($testcase_01);
+				$manager->persist($testcase_02);	
+				$manager->persist($testcase_03);	
+				$manager->persist($testcase_04);
+			}
 		}
 			
 		$manager->flush();

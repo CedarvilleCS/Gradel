@@ -1,0 +1,41 @@
+{% block head %}
+<title>Gradel</title>
+<link rel="icon" type="image/x-icon" href="{{ asset('logo1.png') }}" />
+{% endblock %}
+
+{% block body %}
+<body>
+<section class="main">
+{% if app.user %}
+	Hello, {{name}}! <br/>	
+	
+	<hr>
+	<a href="{{ path('user_logout') }}">Logout</a>
+	</hr>
+
+{% else %}
+	
+	<div class="card">
+	<img id="logo" title="You aren't logged in, and we want you to be." src="{{ asset('logo1.png') }}">
+	<br> <br> <br> <br>
+	<a href="{{ path('hwi_oauth_service_redirect', {'service': 'google' }) }}">
+        <button class="btn">login</button>
+    </a>
+	</div>
+
+{% endif %}
+</section>
+</body>
+{% endblock %}
+
+{% block stylesheets %}
+	<link rel="stylesheet" href="{{ asset('login.css') }}" />
+{% endblock %}
+
+
+{% block scripts %}
+    <!-- JQuery -->
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="{{ asset('js/cards.js') }}"></script>
+{% endblock %}

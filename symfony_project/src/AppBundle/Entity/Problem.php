@@ -27,13 +27,12 @@ class Problem{
 		$this->problem_languages = new ArrayCollection();
 	}
 	
-	public function __construct8($assign, $nm, $desc, $wght, $grdmeth, $attempts, $limit, $credit){
+	public function __construct7($assign, $nm, $desc, $wght, $grdmeth, $limit, $credit){
 		$this->assignment = $assign;
 		$this->name = $nm;
 		$this->description = $desc;
 		$this->weight = $wght;
 		$this->gradingmethod = $grdmeth;
-		$this->attempts_allowed = $attempts;
 		$this->time_limit = $limit;
 		$this->is_extra_credit = $credit;
 	}
@@ -74,22 +73,18 @@ class Problem{
 	public function deblobinateDescription(){			
 		return stream_get_contents($this->description);
 	}
+	
+	/**
+	* @ORM\ManyToOne(targetEntity="ProblemGradingMethod")
+	* @ORM\JoinColumn(name="problemgradingmethod_id", referencedColumnName="id", nullable=false)
+	*/
+	public $gradingmethod;
 
+	
 	/**
 	* @ORM\Column(type="decimal", precision=12, scale=8)
 	*/
 	public $weight;
-
-	/**
-	* @ORM\ManyToOne(targetEntity="Gradingmethod")
-	* @ORM\JoinColumn(name="gradingmethod_id", referencedColumnName="id", nullable=true)
-	*/
-	public $gradingmethod;
-
-	/**
-	* @ORM\Column(type="integer")
-	*/
-	public $attempts_allowed;
 
 	/**
 	* @ORM\Column(type="integer")

@@ -1,0 +1,101 @@
+{% block head %}
+<title>Gradel {% if problem != null %} | {{problem.assignment.name}} {% endif %}</title>
+<link rel="icon" type="image/x-icon" href="{{ asset('logo1.png') }}" />
+{% endblock %}
+
+{% block body %}
+
+<body>
+    {{ include('template/top-nav.html.twig') }}
+
+	{# left panel with the problem links #}
+	{{ include('template/problem-nav.html.twig') }}
+
+    <section id="main">
+
+		{{ include('template/path-nav.html.twig') }}
+	
+		{% if problem.assignment.problems|length == 0 %}	
+	
+		{% else %}
+	
+			<div class="card">
+				<h2 style="margin: 0px">{{problem.name}}</h2>
+				<div id="courseInfo" class="card-contents">
+					<p>{{problemDescription|nl2br}}</p>
+
+{# Keep this here so that the default code is in the right place #}
+<div id="editor">#include &#60;stdio.h&#62;
+
+int main(){
+	
+	// You can't actually submit code in here yet
+	// Please use the upload form below
+		
+	return 0;
+}</div>
+            
+                
+						<br>
+						{% if usersectionrole.role.role_name == 'Takes' %}
+							<form action="{{path('upload', {'problem_id': problem.id}) }}" method="post" enctype="multipart/form-data">
+								<input type="hidden" name="ACE" id="ACE">
+								<input type="file" name="fileToUpload" id="fileToUpload" value="Upload File">
+								<br><br>
+								Language: 
+								<select name="language">
+									{% for lang in languages %}				
+										{% if lang.name != "No Language Restriction" %}
+											<option value={{lang.id}}>{{lang.name}}</option>
+										{% endif %}
+									{% endfor %}
+								</select>
+								<br>
+								<label for="main_class">Main Class: </label><input type="text" name="main_class">
+								<br>
+								<label for="package_name">Package Name: </label><input type="text" name="package_name">
+								
+								<br><br>
+								<input type="submit" value="Submit Solution" name="submit" onclick="saveACE();">			
+							</form>
+							
+						{% else %}
+							You are not "Taking" this class, so you currently cannot submit a problem. Please look at Timothy and complain.
+						{% endif %}
+				
+						<p>{{upload_message}}</p>
+				</div>
+        </div>
+		
+		{% endif %}
+		
+    </section>
+</body>
+{% endblock %}
+
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('submit.css') }}" />
+    <link rel="stylesheet" href="{{ asset('home.css') }}" />
+{% endblock %}
+
+{% block scripts %}
+    <!-- JQuery -->
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+	<script src="{{ asset('src-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>
+
+	<script>
+		var editor = ace.edit("editor");
+		editor.setTheme("ace/theme/xcode");
+		editor.getSession().setMode("ace/mode/c_cpp");
+		console.log(editor.getValue());
+	</script>
+	<script>
+		function saveACE() {
+			$("#ACE").val(editor.getValue());
+		}
+	</script>
+
+{% endblock %}

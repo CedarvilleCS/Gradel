@@ -14,26 +14,30 @@ use AppBundle\Entity\UserSectionRole;
 use AppBundle\Entity\Testcase;
 use AppBundle\Entity\Submission;
 use AppBundle\Entity\Language;
-use AppBundle\Entity\Gradingmethod;
+use AppBundle\Entity\ProblemGradingMethod;
+use AppBundle\Entity\AssignmentGradingMethod;
 use AppBundle\Entity\Feedback;
 use AppBundle\Entity\TestcaseResult;
 
-use Psr\Log\LoggerInterface;
+use AppBundle\Utils\Grader;
+
+use \DateTime;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
-
 use Symfony\Component\HttpFoundation\Response;
 
-class CompilationController extends Controller {
-	
+use Psr\Log\LoggerInterface;
+
+class CompilationController extends Controller {	
 	
 	/* name=submit */
 	public function submitAction($problem_id, $language_id, $submitted_filename, $main_class, $package_name) {
-
+	
 		# entity manager
-		$em = $this->getDoctrine()->getManager();		
+		$em = $this->getDoctrine()->getManager();						
+		$grader = new Grader($em);
 						
 		# get the current user
 		$user_entity= $this->get('security.token_storage')->getToken()->getUser();
@@ -51,42 +55,33 @@ class CompilationController extends Controller {
 		} else {
 			echo($problem_entity->id."<br/>");
 		}
-				
-		# get all of the teams
-		$qb_teams = $em->createQueryBuilder();
-		$qb_teams->select('t')
-				->from('AppBundle\Entity\Team', 't')
-				->where('t.assignment = ?1')
-				->setParameter(1, $problem_entity->assignment);
-				
-		$query_team = $qb_teams->getQuery();
-		$team_entities = $query_team->getResult();	
-
-		# loop over all the teams for this assignment and figure out which team the user is a part of
-		$team_entity = null;		
-		foreach($team_entities as $team){				
-			foreach($team->users as $user){		
-			
-				if($user_entity->id == $user->id){
-					$team_entity = $team;
-				}
-			}
+		
+		# make sure that the assignment is still open for submission
+		if($problem_entity->assignment->cutoff_time < new \DateTime("now")){
+			die("TOO LATE TO SUBMIT FOR THIS PROBLEM");
 		}
 		
+		# get the current team
+		$team_entity = $grader->getTeam($user_entity, $problem_entity->assignment);		
 		if(!$team_entity){
 			die("TEAM DOES NOT EXIST");
 		} else{			
 			echo($team_entity->name."<br/>");		
+		}		
+		
+		# make sure that you haven't submitted too many times yet
+		$curr_attempts = $grader->getNumTotalAttempts($user_entity, $problem_entity);		
+		if($problem_entity->gradingmethod->total_attempts > 0 && $curr_attempts >= $problem_entity->gradingmethod->total_attempts){
+			die("ALREADY REACHED MAX ATTEMPTS FOR PROBLEM AT ".$curr_attempts);
 		}
 		
-		# query for the current submission
+		# create an entity for the current submission
 		$submission_entity = new Submission($problem_entity, $team_entity, $user_entity);	
 
 		# persist to the database to get the id
 		$em->persist($submission_entity);
 		$em->flush();						
-		
-		
+				
 		# gets the gradel/symfony_project directory
 		$web_dir = $this->get('kernel')->getProjectDir()."/";
 		
@@ -340,14 +335,62 @@ class CompilationController extends Controller {
 		# update the submission entity to the values decided aboce
 		$submission_is_accepted = (!$submission_is_compileerror && !$submission_is_runtimeerror && ($correct_testcase_count == count($problem_entity->testcases)));
 		
-		$submission_entity->is_accepted = $submission_is_accepted;
 		$submission_entity->compiler_error = $submission_is_compileerror;
 		$submission_entity->compiler_output = $compile_log;
 		$submission_entity->runtime_error = $submission_is_runtimeerror;
 		$submission_entity->questionable_behavior = $submission_is_malicious;
 		$submission_entity->exceeded_time_limit = $submission_is_timelimit; 
 		$submission_entity->max_runtime = $submission_max_runtime;
-		$submission_entity->percentage = $submission_percentage;
+		$submission_entity->percentage = $submission_percentage;		
+		
+		# see if this new submission should be the accepted one
+		$qb_accepted = $em->createQueryBuilder();
+		$qb_accepted->select('s')
+				->from('AppBundle\Entity\Submission', 's')
+				->where('s.problem = ?1')
+				->andWhere('s.team = ?2')
+				->andWhere('s.is_accepted = true')
+				->setParameter(1, $problem_entity)
+				->setParameter(2, $team_entity);
+				
+		$acc_query = $qb_accepted->getQuery();
+		$prev_accepted_sol = $acc_query->getOneOrNullResult();
+	
+		// take the new solution if it is 100% no matter what
+		if($prev_accepted_sol && $submission_entity->percentage == 1){
+			$submission_entity->is_accepted = true;
+			$prev_accepted_sol->is_accepted = false;
+		}
+		// choose higher percentage if they both have percentages
+		else if($prev_accepted_sol && $submission_entity->percentage > $prev_accepted_sol->percentage){
+			#echo "New submission percentage ".$submission_entity->percentage." is greater than ".$prev_accepted_sol->percentage;
+			$submission_entity->is_accepted = true;
+			$prev_accepted_sol->is_accepted = false;
+		}
+		// don't change if the percentage is less
+		else if($prev_accepted_sol && $submission_entity->percentage <= $prev_accepted_sol->percentage){
+			#echo "This submission is garbage!";
+			$submission_entity->is_accepted = false;			
+		}		
+		// choose the new one if it wasn't a compile error
+		else if($prev_accepted_sol && !$submission_entity->compiler_error){
+			#echo "New submission was not a compiler error!";
+			$submission_entity->is_accepted = true;
+			$prev_accepted_sol->is_accepted = false;
+		}
+		// otherwise only change if the previous accepted solution wasn't set
+		else if(!$prev_accepted_sol){
+			#echo "This is the first submission";
+			$submission_entity->is_accepted = true;
+		} 
+		else{
+			#echo "This submission is garbage!";
+			$submission_entity->is_accepted = false;
+		}
+		
+		if($prev_accepted_sol && $submission_entity->is_accepted){
+			$em->persist($prev_accepted_sol);
+		}
 		
 		# zip the submission directory for saving to the database
 		if(!chdir($submission_directory)){
@@ -367,44 +410,14 @@ class CompilationController extends Controller {
 		shell_exec("rm -rf ".$temp_folder);
 		shell_exec("rm -rf ".$code_to_submit_directory);
 		shell_exec("rm -rf ".$submission_directory);
+		shell_exec("rm -rf ".$uploads_directory);
 		
 		# update the submission entity
 		$em->persist($submission_entity);
 		$em->flush();			
-
-        return $this->redirectToRoute('submission_results', array('submission_id' => $submission_entity->id));
+		
+        return $this->redirectToRoute('problem_result', array('submission_id' => $submission_entity->id));
 		//return new Response();
-	}
-		
-	/* name=submission_results */
-	public function submissionAction($submission_id) {
-		
-		$em = $this->getDoctrine()->getManager();
-		
-		$submission = $em->find("AppBundle\Entity\Submission", $submission_id);	
-		
-		if(!submission){
-			echo "SUBMISSION DOES NOT EXIST";
-			die();
-		}
-		
-		$compiler_output = stream_get_contents($submission->compiler_output);
-		$submission_file = stream_get_contents($submission->submitted_file);
-		
-		foreach($submission->testcaseresults as $tc){
-			
-			$output["std_output"] = stream_get_contents($tc->std_output);
-			$output["runtime_output"] = stream_get_contents($tc->runtime_output);
-			$output["time_output"] = $tc->execution_time;
-			$tc_output[] = $output;	
-		}
-					
-        return $this->render('compilation/submission/index.html.twig', [
-			'submission' => $submission,
-			'testcases_output' => $tc_output,
-			'compiler_output' => $compiler_output,
-			'submission_file' => $submission_file,
-        ]);	
 	}
 }
 

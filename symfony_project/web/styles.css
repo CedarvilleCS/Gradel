@@ -6,15 +6,52 @@ html, body {
     font-family: sans-serif;
 }
 
+.nav-path {
+    width: 90%;
+    margin: auto;
+    margin-top: 30px;
+    margin-bottom: 30px;
+	padding: 20px;
+
+    /* Shadow */
+    -webkit-box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
+    -moz-box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
+    box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
+}
+
+.topnav .navbuttons {
+     float: right;
+ 	height: 100%;
+}
+ .topnav #logo {
+     float: left;
+ 	height: 93%;
+ 	padding: 2px 3px;
+ }
+ 
+ .topnav #logo:hover {
+ 	background-color: inherit;
+ 	color: black;	
+ }
+
 .btn {
     text-decoration: none;
     margin-top: 10px;
     width: 100px;
     height: 30px;
-    background-color: #8DC26F;
+    background-color: #71BA62;
     color: white;
     border: none;
     text-align: center;
+}
+
+a#edit-icon {
+	padding: 2 2 2 2;
+	float: right;
+}
+
+a#edit-icon:hover {
+	
 }
 
 .btn-center {
@@ -24,7 +61,12 @@ html, body {
 }
 
 .btn:hover {
-    background-color: #76b852;
+    background-color: #4CAF50;
+}
+
+a.preview {
+	color: white;
+	text-decoration: none;
 }
 
 .topnav {
@@ -42,7 +84,6 @@ html, body {
 
 /* Style the links inside the navigation bar */
 .topnav a {
-    float: left;
     display: block;
     color: #f2f2f2;
     text-align: center;
@@ -83,7 +124,7 @@ nav.nav-left {
 nav.nav-left > ol {
     margin: 0px;
     padding: 0px;
-    padding-top: 10px; 
+    padding-top: 10px;
 }
 
 nav.nav-left > ol > li {
@@ -96,7 +137,7 @@ nav.nav-left > ol > a {
     text-decoration: none;
 }
 
-nav.nav-left > ol > a > li {
+nav.nav-left > ol  li {
     color: white;
     padding: 10px;
     border-bottom: 1px dotted rgb(90, 90, 90);
@@ -105,6 +146,25 @@ nav.nav-left > ol > a > li {
 nav.nav-left > ol > a > li:hover {
     /* color: red; */
     background-color: rgb(90, 90, 90);
+}
+
+/*style="color: white; text-decoration: none; width: 90%; margin: auto; margin-top:15px"*/
+.pathnav{
+	width: 100%;
+	height:50px;
+	background-color: #888888;
+	color: white;
+	box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
+	z-index: 100;
+	padding-left: 40px;
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+	align-items: center;
+}
+
+.pathnav a {
+	text-decoration: none;	
 }
 
 .card {
@@ -131,6 +191,102 @@ nav.nav-left > ol > a > li:hover {
     border-bottom: 1px dotted #8DC26F;
 }
 
+/* i { 
+    position: absolute;
+    right: 20px;
+    top: 14px;
+    -webkit-transition:all 300ms ease-in 0s;
+    -moz-transition: all 300ms ease-in 0s;
+    -o-transition: all 300ms ease-in 0s;
+    transition: all 300ms ease-in 0s;
+} */
+
+i {
+    -webkit-transition:all 300ms ease-in 0s;
+    -moz-transition: all 300ms ease-in 0s;
+    -o-transition: all 300ms ease-in 0s;
+    transition: all 300ms ease-in 0s;}
+
+.ui-state-active i {
+    color: #ACD4CE;
+    -webkit-transform: rotate(180deg);
+    -moz-transform: rotate(180deg);
+    -o-transform: rotate(180deg);
+    -ms-transform: rotate(180deg);
+    transform: rotate(180deg);
+}
+
 ::-webkit-scrollbar {
     display: none;
+}
+
+.card-table {
+  background-color: white;
+  width: 90%;
+  margin: auto;
+  margin-top: 30px;
+  margin-bottom: 30px;
+
+  /* Shadow */
+  -webkit-box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
+  -moz-box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
+  box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
+}
+
+atable {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    margin: 0 auto;
+    min-width: 100%;
+    max-width: 100%;
+}
+
+a {
+	color: inherit;	
+}
+
+td, th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+}
+
+.dynamicVal {
+  color: #8DC26F;
+  display: inline;
+}
+
+.dyLabel {
+  display: inline-block;
+}
+/*tr:nth-child(even) {
+    background-color: #dddddd;
+}*/
+
+input[type=text] {
+    width: 100%;
+    padding: 4px 10px;
+    margin: 8px 0;
+    box-sizing: border-box;
+    border: 2px solid #6C6E71;
+    border-radius: 4px;
+}
+
+select {
+    width: 100%;
+    padding: 12px 20px;
+    margin: 8px 0;
+    box-sizing: border-box;
+    border: 2px solid #6C6E71;
+    border-radius: 4px;
+}
+
+table {
+  width: 100%;
+}
+
+textarea {
+  resize: none;
+  width: 100%;
+  height: 200px;
 }

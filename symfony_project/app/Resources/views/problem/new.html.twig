@@ -1,0 +1,63 @@
+{% block head %}
+<title>Gradel</title>
+{% endblock %}
+
+
+{% block body %}
+
+<body>
+    {{ include('template/top-nav.html.twig') }}
+
+
+    {# Left Nav #}
+    <nav class="nav-left">
+        <a id="insert" class="btn" href="{{path('problem_edit', {'sectionId': sectionId, 'assignmentId': assignmentId, 'problemId': 1})}}"><div class="btn btn-center">Save</div></a>
+        <ol>
+					{% for assignment in assignments %}
+						<h1>{{assignment.name}}
+					{% endfor %}
+        </ol>
+    </nav>
+
+    {# Main section #}
+    <div class="scrollbar-macosx">
+        <section id="main">
+		
+			{{ include('template/path-nav.html.twig') }}
+		
+            {# Cards #}
+            <div class="card">
+							<table>
+								<tr>
+									<th colspan="3">
+                    <label for="name">Name</label>
+										<input id="name" name="name" type="text" value="">
+									</th>
+								</tr>
+							</table>
+            </div>
+
+
+        	</div>
+        </section>
+    </div>
+
+
+</body>
+
+{% endblock %}
+
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('home.css') }}" />
+{% endblock %}
+
+
+{% block scripts %}
+    <!-- JQuery -->
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="{{ asset('js/cards.js') }}"></script>
+		<script src="{{ asset('js/newSection.js') }}"></script>
+{% endblock %}

@@ -38,7 +38,8 @@ class FOSUBUserProvider extends BaseClass {
     }
 
     public function loadUserByOAuthUserResponse(UserResponseInterface $response) {
-        $data = $response->getResponse();
+        
+		$data = $response->getResponse();
         $fname = $response->getFirstName();
 		$lname = $response->getLastName();
         $email = $response->getEmail();
@@ -46,8 +47,7 @@ class FOSUBUserProvider extends BaseClass {
 
         // If the user is new
         if (null === $user) {
-			echo "Bad";
-			die();
+			
             $service = $response->getResourceOwner()->getName();
             $setter = 'set' . ucfirst($service);
             $setter_id = $setter . 'Id';
@@ -78,35 +78,36 @@ class FOSUBUserProvider extends BaseClass {
         }
 		
 		else{
-			$firstplus = split("\ ", $fname);
-			if (strlen($firstplus[1]) > 1){
-				$first = $firstplus[0] . " " . $firstplus[1];
-			}
-			else {
-				$first = $firstplus[0];
-			}
-            $user->setUsername($email);
 			
+			if($user->getFirstName() == ""){
+				
+				$firstplus = split("\ ", $fname);
+				if (strlen($firstplus[1]) > 1){
+					$first = $firstplus[0] . " " . $firstplus[1];
+				}
+				else {
+					$first = $firstplus[0];
+				}
+				
+				$user->setUsername($email);			
+				$user->setEmail($email);
+				
+				$user->setFirstName($first);
+				$user->setLastName($lname);
+				
+				$serviceName = $response->getResourceOwner()->getName();	
+				$setterId = 'set' . ucfirst($serviceName) . 'Id';
+				$user->$setterId($email);
 			
-            $user->setEmail($email);
-            $user->setFirstName($first);
-			$user->setLastName($lname);
-			$test = $user->getFirstName();
-			$this->userManager->updateUser($user);
+				$this->userManager->updateUser($user);		
+			}
+			
+			$serviceName = $response->getResourceOwner()->getName();			
+			$setterAccess = 'set' . ucfirst($serviceName) . 'AccessToken';
+			// Update the access token
+			$user->$setterAccess($response->getAccessToken());
 			return $user;
 		}
-        
-        // If the user exists, use the HWIOAuth
-        $user = parent::loadUserByOAuthUserResponse($response);
-        
-        $serviceName = $response->getResourceOwner()->getName();
-        
-        $setter = 'set' . ucfirst($serviceName) . 'AccessToken';
-        
-        // Update the access token
-        $user->$setter($response->getAccessToken());
-        
-        return $user;
     }
     
 

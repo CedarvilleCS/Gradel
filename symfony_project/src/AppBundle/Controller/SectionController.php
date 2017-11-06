@@ -10,66 +10,197 @@ use AppBundle\Entity\UserSectionRole;
 use AppBundle\Entity\Role;
 use AppBundle\Entity\Section;
 use AppBundle\Entity\Assignment;
+use AppBundle\Entity\Submission;
+
+use AppBundle\Utils\Grader;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 
-
 use Psr\Log\LoggerInterface;
-
 
 class SectionController extends Controller
 {
-    public function sectionAction($userId, $sectionId) {
+    public function sectionAction($sectionId) {
 
-      $em = $this->getDoctrine()->getManager();
+		$em = $this->getDoctrine()->getManager();
 
-      $builder = $em->createQueryBuilder();
-      $builder->select('section')
-              ->from('AppBundle\Entity\Section section')
-              ->where('section.id = :id')
-              ->setParameter("id", $sectionId);
-      $query = $builder->getQuery();
-      $section = $query->getSingleResult();
+		$user = $this->get('security.token_storage')->getToken()->getUser();
 
-			$qb = $em->createQueryBuilder();
-			$qb->select('u')
-					->from('AppBundle\Entity\User', 'u')
-					->where('u.id = ?1')
-					->setParameter(1, $userId);
+		if(!get_class($user)){
+			die("USER DOES NOT EXIST");
+		}
 
-			$query = $qb->getQuery();
-			$user = $query->getSingleResult();
+		$section_entity = $em->find('AppBundle\Entity\Section', $sectionId);
 
-			$qb->select('usr')
-					->from('AppBundle\Entity\UserSectionRole', 'usr')
-					->where('usr.user = ?1')
-					->andWhere('usr.section = ?2')
-					->setParameter(1, $user->id)
-					->setParameter(2, $sectionId);
+		if(!$section_entity){
+			die("SECTION DOES NOT EXIST!");
+		}
 
+		# GET ALL ASSIGNMENTS
+		$qb = $em->createQueryBuilder();
+		$qb->select('a')
+			->from('AppBundle\Entity\Assignment', 'a')
+			->where('a.section = ?1')
+			->orderBy('a.end_time', 'ASC')
+			->setParameter(1, $section_entity);
 
-			$query = $qb->getQuery();
-			$usr = $query->getSingleResult();
+		$query = $qb->getQuery();
+		$assignments = $query->getResult();
 
-      return $this->render('default/section/index.html.twig', [
-        'section' => $section,
-        'userId' => $userId,
-        'sectionId' => $sectionId,
-				'usr' => $usr,
-      ]);
+		# GET FUTURE ASSIGNMENTS
+		$qb_asgn = $em->createQueryBuilder();
+		$qb_asgn->select('a')
+				->from('AppBundle\Entity\Assignment', 'a')
+				->where('a.section = ?1')
+				->andWhere('a.end_time > ?2')
+				->setParameter(1, $section_entity)
+				->setParameter(2, new DateTime())
+				->orderBy('a.end_time', 'ASC');
+
+		$asgn_query = $qb_asgn->getQuery();
+		$future_assig = $asgn_query->getResult();
+
+		# GET ALL USERS
+		$qb_user = $em->createQueryBuilder();
+		$qb_user->select('usr')
+			->from('AppBundle\Entity\UserSectionRole', 'usr')
+			->where('usr.section = ?1')
+			->setParameter(1, $section_entity);
+
+		$user_query = $qb_user->getQuery();
+		$usersectionroles = $user_query->getResult();
+
+		$section_takers = [];
+		$section_teachers = [];
+		$section_helpers = [];
+
+		foreach($usersectionroles as $usr){
+			if($usr->role->role_name == "Takes"){
+				$section_takers[] = $usr->user;
+			} else if($usr->role->role_name == "Teaches"){
+				$section_teachers[] = $usr->user;
+			} else if($usr->role->role_name == "Helps"){
+				$section_helpers[] = $usr->user;
+			}
+		}
+
+		# GET ALL STUDENT SUBMISSIONS IN THE CLASS
+		$student_subs = [];
+
+		foreach($assignments as $asgn){
+
+			$qb_subs = $em->createQueryBuilder();
+			$qb_subs->select('s')
+					->from('AppBundle\Entity\Submission', 's')
+					->where('s.problem IN (?1)')
+					->andWhere('s.is_accepted = true')
+					->setParameter(1, $asgn->problems);
+
+			$subs_query = $qb_subs->getQuery();
+			$subs = $subs_query->getResult();
+
+			# switch this to use teams
+			foreach($subs as $sub){
+				foreach($sub->team->users as $user){
+					
+					if($sub->percentage == 1){
+						$student_subs[$asgn->id][$user->id] = "GOOD";
+					} else {
+						$student_subs[$asgn->id][$user->id] = "BAD";
+					}
+				}
+			}
+		}
+		
+		# get all of the problems to get all of the submissions
+		$allprobs = [];
+		foreach($section_entity->assignments as $asgn){
+			foreach($asgn->problems as $prob){
+				$allprobs[] = $prob;
+			}
+		}
+		$qb_submissions = $em->createQueryBuilder();
+		$qb_submissions->select('s')
+				->from('AppBundle\Entity\Submission', 's')
+				->where('s.problem IN (?1)')
+				->orderBy('s.timestamp', 'DESC')
+				->setParameter(1, $allprobs);
+
+		$submission_query = $qb_submissions->getQuery();
+		$submissions = $submission_query->getResult();
+
+		$grader = new Grader($em);
+		
+		$grades = $grader->getAssignmentGrade($user, $assignments[0]);
+
+		#die();
+		
+		return $this->render('section/index.html.twig', [
+			'section' => $section_entity,
+			'grader' => new Grader($em),
+			'user' => $user,
+			
+			'assignments' => $assignments,
+			'future_assigs' => $future_assig,
+			'student_subs' => $student_subs,
+			'recent_submissions' => $submissions,
+			'section_takers' => $section_takers,
+			'section_teachers' => $section_teachers,
+			'section_helpers' => $section_helpers,
+		]);
     }
 
-		public function newSectionAction($userId) {
+	public function newSectionAction() {
 
+		$em = $this->getDoctrine()->getManager();
+		$builder = $em->createQueryBuilder();
+
+		$builder->select('c')
+				->from('AppBundle\Entity\Course', 'c')
+				->where('1 = 1');
+		$query = $builder->getQuery();
+		$sections = $query->getResult();
+
+
+		$section = new Section();
+		$form = $this->createFormBuilder($section)
+					->add('name', TextType::class)
+					->add('year', DateType::class)
+					->add('save', SubmitType::class, array('label' => 'Create Section'))
+					->getForm();
+
+		$user = $this->get('security.token_storage')->getToken()->getUser();
+					
+		$builder = $em->createQueryBuilder();
+		$builder->select('u')
+				->from('AppBundle\Entity\User', 'u')
+				->where('u != ?1')
+				->setParameter(1, $user);
+		$query = $builder->getQuery();
+		$users = $query->getResult();
+
+		return $this->render('section/new.html.twig', [
+			'sections' => $sections,
+			'users' => $users,
+			'form' => $form->createView(),
+		]);
+	}
+
+    public function editSectionAction($sectionId) {
       $em = $this->getDoctrine()->getManager();
       $builder = $em->createQueryBuilder();
+	  #echo json_decode($sectionId);
+	$section = $em->find('AppBundle\Entity\Section', $sectionId);
+
+      $role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));
 
       $builder->select('c')
               ->from('AppBundle\Entity\Course', 'c')
@@ -77,13 +208,17 @@ class SectionController extends Controller
       $query = $builder->getQuery();
       $sections = $query->getResult();
 
+      $section = $em->find('AppBundle\Entity\Section', $sectionId);
 
-      $section = new Section();
-      $form = $this->createFormBuilder($section)
-                    ->add('name', TextType::class)
-                    ->add('year', DateType::class)
-                    ->add('save', SubmitType::class, array('label' => 'Create Section'))
-                    ->getForm();
+      $builder = $em->createQueryBuilder();
+      $builder->select('u')
+              ->from('AppBundle\Entity\UserSectionRole', 'u')
+              ->where('u.section = ?1')
+              ->andWhere('u.role = ?2')
+              ->setParameter(1, $section)
+              ->setParameter(2, $role);
+      $query = $builder->getQuery();
+      $usr = $query->getResult();
 
       $builder = $em->createQueryBuilder();
       $builder->select('u')
@@ -92,19 +227,19 @@ class SectionController extends Controller
       $query = $builder->getQuery();
       $users = $query->getResult();
 
-			return $this->render('default/section/new.html.twig', [
-        'userId' => $userId,
+      return $this->render('section/edit.html.twig', [
+        'section' => $section,
+        'sectionId' => $sectionId,
         'sections' => $sections,
+        'usr' => $usr,
         'users' => $users,
-        'form' => $form->createView(),
-			]);
-		}
+      ]);
+    }
 
-    public function insertSectionAction(Request $request, $userId, $courseId, $name, $students, $semester, $year, $start_time, $end_time, $is_public, $is_deleted) {
-
-      echo "<br/>";
-
+    public function editQueryAction(Request $request, $sectionId, $courseId, $name, $students, $semester, $year, $start_time, $end_time, $is_public, $is_deleted) {
       $em = $this->getDoctrine()->getManager();
+
+      $section = $em->find('AppBundle\Entity\Section', $sectionId);
       $course = $em->find('AppBundle\Entity\Course', $courseId);
       $section = new Section();
       $section->name = $name;
@@ -119,18 +254,28 @@ class SectionController extends Controller
       $em->persist($section);
       $em->flush();
 
-      // TODO: user section role insert for prof
-      $role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Teaches'));
-      $teacher = $em->find('AppBundle\Entity\User', $userId);
-      $usr = new UserSectionRole($teacher, $section, $role);
-      $em->persist($usr);
+      $role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));
+
+
+      $builder = $em->createQueryBuilder();
+      $builder->select('u')
+              ->from('AppBundle\Entity\UserSectionRole', 'u')
+              ->where('u.section = ?1')
+              ->andWhere('u.role = ?2')
+              ->setParameter(1, $section)
+              ->setParameter(2, $role);
+      $query = $builder->getQuery();
+      $usr = $query->getResult();
+
+
+      foreach ($usr as $u) {
+        $em->remove($u);
+      }
       $em->flush();
 
 
-      // insert students into the course
-      $role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));
-
       foreach (json_decode($students) as $student) {
+        echo "STUDENTS";
         echo $student;
         echo "<br/>";
 
@@ -149,10 +294,67 @@ class SectionController extends Controller
         }
       }
 
-      return new Response("it worked");
+
+      return new RedirectResponse($this->generateUrl('section', array('sectionId' => $section->id)));
+    }
+
+    public function insertSectionAction(Request $request, $courseId, $name, $students, $semester, $year, $start_time, $end_time, $is_public, $is_deleted) {
+
+      #echo "<br/>";
+
+      $em = $this->getDoctrine()->getManager();
+      $course = $em->find('AppBundle\Entity\Course', $courseId);
+      $section = new Section();
+      $section->name = $name;
+      $section->course = $course;
+      $section->semester = $semester;
+      $section->year = $year;
+      $section->start_time =  new DateTime("now");
+      $section->end_time = new DateTime("now");
+      $section->is_deleted = $is_deleted;
+      $section->is_public = $is_public;
+
+      $em->persist($section);
+      $em->flush();
+	  
+	  $user = $this->get('security.token_storage')->getToken()->getUser();
+	  if(!get_class($user)){
+		  die("USER DOES NOT EXIST!");		  
+	  }
+
+      $role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Teaches'));
+      $teacher = $em->find('AppBundle\Entity\User', $user->id);
+      $usr = new UserSectionRole($teacher, $section, $role);
+      $em->persist($usr);
+      $em->flush();
+
+
+      // insert students into the course
+      $role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));
+
+      foreach (json_decode($students) as $student) {
+        #echo $student;
+        #echo "<br/>";
+
+        if ($student != "") {
+          $user = $em->getRepository('AppBundle\Entity\User')->findOneBy(array('email' => $student));
+
+          #echo $user->getFirstName();
+          #echo "<br/>";
+
+          $usr = new UserSectionRole();
+          $usr->user = $user;
+          $usr->role = $role;
+          $usr->section = $section;
+          $em->persist($usr);
+          $em->flush();
+        }
+      }
+      #echo $section->id;
+      return new RedirectResponse($this->generateUrl('section_edit', array('sectionId' => $section->id)));
     }
 
     private function generateDateTime($year, $date) {
-      // TODO: create string based on start and end times for the fields in dcctrine entity
+      // TODO: create string based on start and end times for the fields in doctrine entity
     }
 }
