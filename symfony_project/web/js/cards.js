@@ -1,7 +1,3 @@
-function collapseCard(cardID) {
-    console.log("close card " + cardID);
-
-    isOpen = true;
-    
+function collapseCard(cardID) {   
     $('#' + cardID).children().slideToggle();
 };

@@ -191,6 +191,15 @@ nav.nav-left > ol > a > li:hover {
     border-bottom: 1px dotted #8DC26F;
 }
 
+.ui-state-active i {
+    color: #ACD4CE;
+    -webkit-transform: rotate(180deg);
+    -moz-transform: rotate(180deg);
+    -o-transform: rotate(180deg);
+    -ms-transform: rotate(180deg);
+    transform: rotate(180deg);
+}
+
 ::-webkit-scrollbar {
     display: none;
 }
