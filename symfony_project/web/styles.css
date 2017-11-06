@@ -22,6 +22,20 @@ html, body {
 strong, b{
 	text-decoration: none;
 }
+.topnav .navbuttons {
+     float: right;
+ 	height: 100%;
+}
+ .topnav #logo {
+     float: left;
+ 	height: 93%;
+ 	padding: 2px 3px;
+ }
+ 
+ .topnav #logo:hover {
+ 	background-color: inherit;
+ 	color: black;	
+ }
 
 .btn {
     text-decoration: none;
@@ -126,7 +140,7 @@ nav.nav-left > ol > a {
     text-decoration: none;
 }
 
-nav.nav-left > ol > a > li {
+nav.nav-left > ol  li {
     color: white;
     padding: 10px;
     border-bottom: 1px dotted rgb(90, 90, 90);

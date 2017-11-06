@@ -16,20 +16,18 @@ use Psr\Log\LoggerInterface;
 
 class LoginController extends Controller
 {
-    public function indexAction(Request $request, LoggerInterface $logger) {
-      $logger->info("This should output somewhere!");
+    public function indexAction(Request $request) {
 
-	  $usr= $this->get('security.token_storage')->getToken()->getUser();
+		$user= $this->get('security.token_storage')->getToken()->getUser();
 
-	  if(get_class($usr)){
-		$name = $usr->getFirstName();
-		$name = $usr->setFirstName($name);
-		return $this->redirectToRoute('account');
-	  }
+		if(get_class($user)){
+			$name = $user->getFirstName();
+			return $this->redirectToRoute('homepage');
+		}
 
-      return $this->render('login/index.html.twig', [
-		  'name' => $name,
-      ]);
+		return $this->render('login/index.html.twig', [
+			'name' => $name,
+		]);
     }
 }
 

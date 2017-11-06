@@ -88,17 +88,7 @@
 										<textarea id="student-csv"></textarea>
 									</th>
 								</tr>
-                <tr>
-                  <th colspan="3">
-                    <button>save</button>
-                  </th>
-                </tr>
-
-								<!-- <tr>
-									<th colspan="3">
-										<button id="insert">add</button>
-									</th>
-								</tr> -->
+   
 							</table>
             </div>
 
@@ -162,7 +152,7 @@
 				const year = document.getElementById("year").value;
 				const id = test[test.selectedIndex].value;
 
-				var path = "{{path('section_insert', { 'courseId': 'course_id',	'userId': 'user_id', 'name': 'name', 'students': 'students', 'semester': 'semester', 'year': 'year', 'start_time': 'start_time', 'end_time': 'end_time', 'is_deleted': 'is_deleted', 'is_public': 'is_public'})}}";
+				var path = "{{path('section_insert', { 'courseId': 'course_id',	'name': 'name', 'students': 'students', 'semester': 'semester', 'year': 'year', 'start_time': 'start_time', 'end_time': 'end_time', 'is_deleted': 'is_deleted', 'is_public': 'is_public'})}}";
 				path = path.replace("course_id", id);
 				path = path.replace("name", name);
 				path = path.replace("students", JSON.stringify(studentArray));
@@ -174,7 +164,6 @@
 				path = path.replace("end_time", new Date());
 				path = path.replace("is_deleted", false);
 				path = path.replace("is_public", false);
-				path = path.replace("user_id", {{userId}});
 				window.location.replace(path);
 			}
 		</script>

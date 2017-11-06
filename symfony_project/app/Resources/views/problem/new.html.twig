@@ -11,8 +11,7 @@
 
     {# Left Nav #}
     <nav class="nav-left">
-        <div>stuff {{userId}} and things</div>
-        <a id="insert" class="btn" href="{{path('problem_edit', {'userId': userId, 'sectionId': sectionId, 'assignmentId': assignmentId, 'problemId': 1})}}"><div class="btn btn-center">Save</div></a>
+        <a id="insert" class="btn" href="{{path('problem_edit', {'sectionId': sectionId, 'assignmentId': assignmentId, 'problemId': 1})}}"><div class="btn btn-center">Save</div></a>
         <ol>
 					{% for assignment in assignments %}
 						<h1>{{assignment.name}}

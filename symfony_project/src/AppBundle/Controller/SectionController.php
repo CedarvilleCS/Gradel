@@ -12,6 +12,8 @@ use AppBundle\Entity\Section;
 use AppBundle\Entity\Assignment;
 use AppBundle\Entity\Submission;
 
+use AppBundle\Utils\Grader;
+
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
@@ -22,13 +24,11 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 
-
 use Psr\Log\LoggerInterface;
-
 
 class SectionController extends Controller
 {
-    public function sectionAction($userId, $sectionId) {
+    public function sectionAction($sectionId) {
 
 		$em = $this->getDoctrine()->getManager();
 
@@ -110,7 +110,7 @@ class SectionController extends Controller
 			# switch this to use teams
 			foreach($subs as $sub){
 				foreach($sub->team->users as $user){
-
+					
 					if($sub->percentage == 1){
 						$student_subs[$asgn->id][$user->id] = "GOOD";
 					} else {
@@ -119,7 +119,7 @@ class SectionController extends Controller
 				}
 			}
 		}
-
+		
 		# get all of the problems to get all of the submissions
 		$allprobs = [];
 		foreach($section_entity->assignments as $asgn){
@@ -137,9 +137,15 @@ class SectionController extends Controller
 		$submission_query = $qb_submissions->getQuery();
 		$submissions = $submission_query->getResult();
 
+		$grader = new Grader($em);
+		
+		$grades = $grader->getAssignmentGrade($user, $assignments[0]);
 
-		return $this->render('default/section/index.html.twig', [
+		#die();
+		
+		return $this->render('section/index.html.twig', [
 			'section' => $section_entity,
+			'grader' => new Grader($em),
 			'user' => $user,
 			
 			'assignments' => $assignments,
@@ -152,7 +158,7 @@ class SectionController extends Controller
 		]);
     }
 
-	public function newSectionAction($userId) {
+	public function newSectionAction() {
 
 		$em = $this->getDoctrine()->getManager();
 		$builder = $em->createQueryBuilder();
@@ -181,15 +187,14 @@ class SectionController extends Controller
 		$query = $builder->getQuery();
 		$users = $query->getResult();
 
-		return $this->render('default/section/new.html.twig', [
-			'userId' => $userId,
+		return $this->render('section/new.html.twig', [
 			'sections' => $sections,
 			'users' => $users,
 			'form' => $form->createView(),
 		]);
 	}
 
-    public function editSectionAction($userId, $sectionId) {
+    public function editSectionAction($sectionId) {
       $em = $this->getDoctrine()->getManager();
       $builder = $em->createQueryBuilder();
 	  #echo json_decode($sectionId);
@@ -222,8 +227,7 @@ class SectionController extends Controller
       $query = $builder->getQuery();
       $users = $query->getResult();
 
-      return $this->render('default/section/edit.html.twig', [
-        'userId' => $userId,
+      return $this->render('section/edit.html.twig', [
         'section' => $section,
         'sectionId' => $sectionId,
         'sections' => $sections,
@@ -232,7 +236,7 @@ class SectionController extends Controller
       ]);
     }
 
-    public function editQueryAction(Request $request, $sectionId, $userId, $courseId, $name, $students, $semester, $year, $start_time, $end_time, $is_public, $is_deleted) {
+    public function editQueryAction(Request $request, $sectionId, $courseId, $name, $students, $semester, $year, $start_time, $end_time, $is_public, $is_deleted) {
       $em = $this->getDoctrine()->getManager();
 
       $section = $em->find('AppBundle\Entity\Section', $sectionId);
@@ -291,10 +295,10 @@ class SectionController extends Controller
       }
 
 
-      return new RedirectResponse($this->generateUrl('section', array('userId' => $userId, 'sectionId' => $section->id)));
+      return new RedirectResponse($this->generateUrl('section', array('sectionId' => $section->id)));
     }
 
-    public function insertSectionAction(Request $request, $userId, $courseId, $name, $students, $semester, $year, $start_time, $end_time, $is_public, $is_deleted) {
+    public function insertSectionAction(Request $request, $courseId, $name, $students, $semester, $year, $start_time, $end_time, $is_public, $is_deleted) {
 
       #echo "<br/>";
 
@@ -312,9 +316,14 @@ class SectionController extends Controller
 
       $em->persist($section);
       $em->flush();
+	  
+	  $user = $this->get('security.token_storage')->getToken()->getUser();
+	  if(!get_class($user)){
+		  die("USER DOES NOT EXIST!");		  
+	  }
 
       $role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Teaches'));
-      $teacher = $em->find('AppBundle\Entity\User', $userId);
+      $teacher = $em->find('AppBundle\Entity\User', $user->id);
       $usr = new UserSectionRole($teacher, $section, $role);
       $em->persist($usr);
       $em->flush();
@@ -342,7 +351,7 @@ class SectionController extends Controller
         }
       }
       #echo $section->id;
-      return new RedirectResponse($this->generateUrl('section_edit', array('userId' => $userId, 'sectionId' => $section->id)));
+      return new RedirectResponse($this->generateUrl('section_edit', array('sectionId' => $section->id)));
     }
 
     private function generateDateTime($year, $date) {

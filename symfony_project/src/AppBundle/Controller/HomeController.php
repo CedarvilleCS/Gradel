@@ -7,25 +7,25 @@ use AppBundle\Entity\Course;
 use AppBundle\Entity\UserSectionRole;
 use AppBundle\Entity\Assignment;
 
+use AppBundle\Utils\Grader;
+
 use \DateTime;
 
-use Auth0\SDK\Auth0;
+use Psr\Log\LoggerInterface;
+
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 
-use Psr\Log\LoggerInterface;
-
 class HomeController extends Controller {
 	
-    public function indexAction(Request $request, LoggerInterface $logger) {
-
+    public function homeAction() {
+		
+	
 		$em = $this->getDoctrine()->getManager();
 	  
 		$user = $this->get('security.token_storage')->getToken()->getUser();
-	  
-	  
-		if(!get_class($user)){
+	  	if(!get_class($user)){
 			die("USER DOES NOT EXIST!");		  
 		}
 	  
@@ -76,18 +76,27 @@ class HomeController extends Controller {
 
 			$grades[$asgn->id] = $grade[1];
 		}
-				
-		// replace this example code with whatever you need
+		
+		$qb_users = $em->createQueryBuilder();
+		$qb_users->select('u')
+			->from('AppBundle\Entity\User', 'u')
+			->where('u != ?1')
+			->setParameter(1, $user);
+			
+		$users_query = $qb_users->getQuery();		
+
+		$users = $users_query->getResult();	
+		
 		return $this->render('home/index.html.twig', [
 			'user' => $user,
 			
 			'usersectionroles' => $usersectionroles,
 			'assignments' => $assignments,
-			'grades' => $grades
+			'grades' => $grades,
+			'user_impersonators' => $users
 		]);
 
     }
-
 }
 
 ?>

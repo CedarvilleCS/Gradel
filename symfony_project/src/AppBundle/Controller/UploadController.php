@@ -16,7 +16,8 @@ use AppBundle\Entity\Problem;
 use AppBundle\Entity\UserSectionRole;
 use AppBundle\Entity\Testcase;
 use AppBundle\Entity\Language;
-use AppBundle\Entity\Gradingmethod;
+use AppBundle\Entity\ProblemGradingMethod;
+use AppBundle\Entity\AssignmentGradingMethod;
 use AppBundle\Entity\Feedback;
 use AppBundle\Entity\TestcaseResult;
 
@@ -30,8 +31,8 @@ class UploadController extends Controller {
  
     public function uploadAction($problem_id) {
 		
-		echo(var_dump($_POST));
-		echo(var_dump($_FILES));
+		#echo(var_dump($_POST));
+		#echo(var_dump($_FILES));
 		#die();
 		
         # entity manager
@@ -42,21 +43,21 @@ class UploadController extends Controller {
 		if(!$problem_entity){
             die("PROBLEM DOES NOT EXIST");
         } else{
-            echo($problem_entity->id."<br/>");    
+            #echo($problem_entity->id."<br/>");    
         }        
         
         # get the current user
-        $user_entity= $this->get('security.token_storage')->getToken()->getUser();        
-        if(!$user_entity){
+        $user= $this->get('security.token_storage')->getToken()->getUser();        
+        if(!$user){
             die("USER DOES NOT EXIST");
         } else{
-            echo($user_entity->getFirstName()." ".$user_entity->getLastName()."<br/>");
+            #echo($user->getFirstName()." ".$user->getLastName()."<br/>");
         }
 		
         // web_dir is /var/www/gradel_dev/user/gradel/symfony_project		
         // save uploaded file to $web_dir.compilation/uploads/user_id/
         $web_dir = $this->get('kernel')->getProjectDir()."/";
-		$uploads_directory = $web_dir."compilation/uploads/".$user_entity->id."/".$problem_entity->id."/";
+		$uploads_directory = $web_dir."compilation/uploads/".$user->id."/".$problem_entity->id."/";
 		
 		# clear out the uploads directory and rebuild it
 		shell_exec("rm -rf ".$uploads_directory);		
@@ -66,7 +67,7 @@ class UploadController extends Controller {
 
         // Check if file already exists       
 		if (move_uploaded_file($_FILES["fileToUpload"]["tmp_name"], $target_file)) {
-			echo "The file ". basename( $_FILES["fileToUpload"]["name"]). " has been uploaded.";
+			#echo "The file ". basename( $_FILES["fileToUpload"]["name"]). " has been uploaded.";
 
 			$language_id = $_POST["language"];
 			
@@ -98,14 +99,47 @@ class UploadController extends Controller {
 												
 												
 			// INDICATE THAT FILE UPLOAD WAS SUCCESSFUL ON ASSIGNMENT/PROBLEM PAGE
-		} else {
-			echo "Sorry, there was an error uploading your file.";
+			
+		} else if($_POST["ACE"] != "") { // If ACE is not blank, and no file was uploaded, create a file with the ACE contents
+
+			#echo "Sorry, there was an error uploading your file.";
+			$language_id = $_POST["language"];
+			
+			$language_entity = $em->find("AppBundle\Entity\Language", $language_id);			
+			if(!$language_entity){
+				die("LANGUAGE DOES NOT EXIST!");
+			}
+
+			// file_put_contents($uploads_directory . "test." . $_POST["language"], $_POST["ACE"], FILE_USE_INCLUDE_PATH);
+			// file_put_contents("/var/www/gradel_dev/budd/" . "test." . $language_entity.$extension, $_POST["ACE"], FILE_USE_INCLUDE_PATH);
+			// file_put_contents("/var/www/gradel_dev/budd/" . "test.cpp", $_POST["ACE"], FILE_USE_INCLUDE_PATH);
+			file_put_contents("$uploads_directory" . "problem". $problem_entity->id . ".c", $_POST["ACE"], FILE_USE_INCLUDE_PATH);
+			
+			if($language_entity->name == "Java"){
+				
+				if(strlen($_POST["main_class"]) == 0){
+					die("MAIN CLASS IS NEEDED");
+				}
+				
+				$main_class = $_POST["main_class"];
+				$package_name = $_POST["package_name"];
+				
+			} else {
+				$main_class = '';
+				$package_name = '';
+			}
+			
+			return $this->redirectToRoute('submit', 
+										array('problem_id' => $problem_entity->id, 
+												'submitted_filename' => "problem". $problem_entity->id . ".c",
+												'language_id' => $language_id,
+												'main_class' => $main_class,
+												'package_name' => $package_name));
 		}
 		
         // if they didn't send a file, render upload page
 		return $this->redirectToRoute('assignment', 
-									array('userId' => $user_entity->id,
-											'sectionId' => $problem_entity->assignment->section->id,
+									array('sectionId' => $problem_entity->assignment->section->id,
 											'assignmentId' => $problem_entity->assignment->id,
 											'problemId' => $problem_entity->id));
     }

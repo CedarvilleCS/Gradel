@@ -1,5 +1,6 @@
 {% block head %}
 <title>Gradel</title>
+<link rel="icon" type="image/x-icon" href="{{ asset('logo1.png') }}" />
 {% endblock %}
 
 
@@ -13,7 +14,7 @@
     <nav class="nav-left">
         <a id="insert" class="btn"><div class="btn btn-center">Save</div></a>
         <br/>
-        <a href="{{path('assignment_new', {'userId': userId, 'sectionId': section.id})}}" class="btn"><div class="btn btn-center">+ Assignment</div></a>
+        <a href="{{path('assignment_new', {'sectionId': section.id})}}" class="btn"><div class="btn btn-center">+ Assignment</div></a>
         <ol>
           {% for assignment in section.assignments %}
             <a>
@@ -34,9 +35,10 @@
 			{{ include('template/path-nav.html.twig') }}
 
             <div class="card">
-                <div class="btn-close" onclick="collapseCard('courseInfo')">Section Info<span style="float: right">&#9660;</span></div>
+                <div class="btn-close" onclick="collapseCard('courseInfo')" style="margin: 0px; padding: 0px"><h2 style="margin: 0px">Section Info<span style="float: right">&#9660;</span><h2></div>
                 <div id="courseInfo" class="card-contents">
-                <div class="dyLabel">Section Name: </div><div class="dynamicVal"> {{section.name}}</div>
+                <div class="dyLabel"> Section Name: </div><div class="dynamicVal">&nbsp;{{section.name}} </div> <br/>
+				<div class="dyLabel"> Course Name: </div><div class="dynamicVal">&nbsp;{{section.course.name}} </div>
                 </div>
             </div>
 
@@ -132,7 +134,6 @@
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script src="{{ asset('js/cards.js') }}"></script>
-    <script src="{{ asset('js/jquery.scrollbar.js') }}"></script>
     <script>
 			$(document).ready(function() {
 				$('#insert').on('click', function(){insertSection();});
@@ -159,7 +160,7 @@
 
         console.log({{sectionId}})
 
-				var path = "{{path('section_edit_query', { 'sectionId': 'section_id', 'courseId': 'course_id',	'userId': 'user_id', 'name': 'name', 'students': 'students', 'semester': 'semester', 'year': 'year', 'start_time': 'start_time', 'end_time': 'end_time', 'is_deleted': 'is_deleted', 'is_public': 'is_public'})}}";
+				var path = "{{path('section_edit_query', { 'sectionId': 'section_id', 'courseId': 'course_id', 'name': 'name', 'students': 'students', 'semester': 'semester', 'year': 'year', 'start_time': 'start_time', 'end_time': 'end_time', 'is_deleted': 'is_deleted', 'is_public': 'is_public'})}}";
         path = path.replace("section_id", {{sectionId}})
         path = path.replace("course_id", id);
 				path = path.replace("name", name);
@@ -172,14 +173,8 @@
 				path = path.replace("end_time", new Date());
 				path = path.replace("is_deleted", false);
 				path = path.replace("is_public", false);
-				path = path.replace("user_id", {{userId}});
 				window.location.replace(path);
 			}
 
 		</script>
-    <script>
-        jQuery(document).ready(function(){
-            jQuery('.scrollbar-macosx').scrollbar();
-        });
-    </script>
 {% endblock %}
