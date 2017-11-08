@@ -181,6 +181,23 @@ class AssignmentController extends Controller {
 // STUFF THAT WAS PREVIOUSLY IN UPLOADCONTROLLER.PHP
 
 	public function uploadAction($problem_id) {
+
+		$form = $this->createFormBuilder()
+			// ...
+			->getForm();
+	
+		$form->handleRequest($request);
+	
+		if ($form->isSubmitted() && $form->isValid()) {
+			// perform some action...
+			die(test);
+	
+			// return $this->redirectToRoute('task_success');
+		}
+		
+			// return $this->render('product/new.html.twig', array(
+			// 	'form' => $form->createView(),
+			// ));
 		
 		#echo(var_dump($_POST));
 		#echo(var_dump($_FILES));
