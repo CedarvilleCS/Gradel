@@ -6,6 +6,8 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use AppBundle\Entity\Submission;
 
+use AppBundle\Utils\Grader;
+
 use AppBundle\Entity\Role;
 use AppBundle\Entity\User;
 use AppBundle\Entity\Team;
@@ -66,40 +68,59 @@ class UploadController extends Controller {
         $target_file = $uploads_directory . basename($_FILES["fileToUpload"]["name"]);
 
         // Check if file already exists       
-		if (move_uploaded_file($_FILES["fileToUpload"]["tmp_name"], $target_file)) {
-			#echo "The file ". basename( $_FILES["fileToUpload"]["name"]). " has been uploaded.";
+		// if (move_uploaded_file($_FILES["fileToUpload"]["tmp_name"], $target_file)) {
+		// 	#echo "The file ". basename( $_FILES["fileToUpload"]["name"]). " has been uploaded.";
 
-			$language_id = $_POST["language"];
+		// 	$language_id = $_POST["language"];
 			
-			$language_entity = $em->find("AppBundle\Entity\Language", $language_id);			
-			if(!$language_entity){
-				die("LANGUAGE DOES NOT EXIST!");
-			}
+		// 	$language_entity = $em->find("AppBundle\Entity\Language", $language_id);			
+		// 	if(!$language_entity){
+		// 		die("LANGUAGE DOES NOT EXIST!");
+		// 	}
 			
-			if($language_entity->name == "Java"){
+		// 	if($language_entity->name == "Java"){
 				
-				if(strlen($_POST["main_class"]) == 0){
-					die("MAIN CLASS IS NEEDED");
-				}
+		// 		if(strlen($_POST["main_class"]) == 0){
+		// 			die("MAIN CLASS IS NEEDED");
+		// 		}
 				
-				$main_class = $_POST["main_class"];	
-				$package_name = $_POST["package_name"];		
+		// 		$main_class = $_POST["main_class"];	
+		// 		$package_name = $_POST["package_name"];		
 				
-			} else {
-				$main_class = '';
-				$package_name = '';
-			}
+		// 	} else {
+		// 		$main_class = '';
+		// 		$package_name = '';
+		// 	}
 			
-			return $this->redirectToRoute('submit', 
-										array('problem_id' => $problem_entity->id, 
-												'submitted_filename' => basename($_FILES["fileToUpload"]["name"]),
-												'language_id' => $language_id,
-												'main_class' => $main_class,
-												'package_name' => $package_name));
+		// 	return $this->redirectToRoute('submit', 
+		// 								array('problem_id' => $problem_entity->id, 
+		// 										'submitted_filename' => basename($_FILES["fileToUpload"]["name"]),
+		// 										'language_id' => $language_id,
+		// 										'main_class' => $main_class,
+		// 										'package_name' => $package_name));
 												
 												
 			// INDICATE THAT FILE UPLOAD WAS SUCCESSFUL ON ASSIGNMENT/PROBLEM PAGE
 			
+		if (file_get_contents($_FILES["fileToUpload"]["tmp_name"], $target_file)) {
+			$fileContents = file_get_contents($_FILES["fileToUpload"]["tmp_name"], $target_file);
+			// die($fileContents);
+			// echo('<script>
+			// 	var editor = ace.edit("editor");
+			// 	editor.setValue("test");
+			// </script>');
+
+		//die($fileContents);
+
+
+			return $this->redirectToRoute('assignment', 
+						['sectionId' => $problem_entity->assignment->section->id,
+						'assignmentId' => $problem_entity->assignment->id,
+						'problemId' => $problem_entity->id,
+						'fileContents' => $fileContents]);
+
+				
+					
 		} else if($_POST["ACE"] != "") { // If ACE is not blank, and no file was uploaded, create a file with the ACE contents
 
 			#echo "Sorry, there was an error uploading your file.";

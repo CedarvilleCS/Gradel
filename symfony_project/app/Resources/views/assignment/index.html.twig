@@ -41,7 +41,7 @@ int main(){
 						{% if usersectionrole.role.role_name == 'Takes' %}
 							<form action="{{path('upload', {'problem_id': problem.id}) }}" method="post" enctype="multipart/form-data">
 								<input type="hidden" name="ACE" id="ACE">
-								<input type="file" onchange="determineLanguage()" name="fileToUpload" id="fileToUpload" value="Upload File">
+								<input type="file" onchange="determineLanguage(); this.form.submit();" name="fileToUpload" id="fileToUpload" value="Upload File">
 								<br><br>
 								Language: 
 								<select id="languageSelect" name="language" onchange="languageChange()">
@@ -56,7 +56,7 @@ int main(){
 								<div id="packgNameInput" style="display:none"><label for="package_name">Package Name: </label><input type="text" name="package_name" id="package_name_input"></div>
 								
 								<br><br>
-								<input type="submit" value="Submit Solution" name="submit" onclick="saveACE();">			
+								<input type="submit" value="Submit Solution" name="btn-submit" onclick="saveACE();">			
 							</form>
 							
 						{% else %}
@@ -96,6 +96,14 @@ int main(){
 		function saveACE() {
 			$("#ACE").val(editor.getValue());
 		}
+
+		fillACE();
+		function fillACE() {
+			console.log("Fill ace" + '{{ fileContents }}');
+			if( '{{ fileContents }}' != "") {
+				console.log('{{ fileContents }}');
+			}
+		}
 	</script>
 	
 	<script>
@@ -118,8 +126,10 @@ int main(){
 			
 			toggleJavaInputs(language == "Java", ext == "zip");
 			
-			editor.getSession().setMode("ace/mode/" + ace_modes[language]);		
-			editor.setValue(default_code[language], -1);
+			editor.getSession().setMode("ace/mode/" + ace_modes[language]);	
+			
+			// This sets the default code for the selected language. add an if statement to put the code from the uploaded file here if it exists?
+			// editor.setValue(default_code[language], -1);
 		
 		}	
 	

@@ -24,6 +24,8 @@ class AssignmentController extends Controller {
 
 	public function assignmentAction($sectionId, $assignmentId, $problemId) {
 	
+		$fileContents = ;
+
 		$em = $this->getDoctrine()->getManager();
 		
 		$user = $this->get('security.token_storage')->getToken()->getUser();  	  
@@ -104,6 +106,7 @@ class AssignmentController extends Controller {
 			'default_code' => $default_code,
 			'ace_modes' => $ace_modes,
 			'filetypes' => $filetypes,
+			"fileContents" => $fileContents,
 		]);
     }
 
@@ -150,7 +153,7 @@ class AssignmentController extends Controller {
         "sectionId" => $sectionId,
         "assignmentId" => $assignmentId,
         "assignment" => $assignment,
-        "description" => stream_get_contents($assignment->description),
+		"description" => stream_get_contents($assignment->description),
       ]);
     }
 
@@ -174,7 +177,12 @@ class AssignmentController extends Controller {
       $em->flush();
 
       return new RedirectResponse($this->generateUrl('assignment', array('sectionId' => $sectionId, 'assignmentId' => $assignment->id)));
-    }
+	}
+	
+	public function uploadAction($sectionId, $assignmentId, $problemId) {
+
+	}
+
 }
 
 ?>
