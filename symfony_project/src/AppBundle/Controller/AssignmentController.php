@@ -23,8 +23,6 @@ class AssignmentController extends Controller {
 
 
 	public function assignmentAction($sectionId, $assignmentId, $problemId) {
-	
-		$fileContents = ;
 
 		$em = $this->getDoctrine()->getManager();
 		
@@ -88,9 +86,30 @@ class AssignmentController extends Controller {
 		$grader = new Grader($em);
 		
 		$grades = $grader->getAllProblemGrades($user, $assignment_entity);
-		#die();
-			
-			
+
+		// If a file has been uploaded
+		if (file_get_contents($_FILES["fileToUpload"]["tmp_name"], $target_file)) {
+			$fileContents = file_get_contents($_FILES["fileToUpload"]["tmp_name"], $target_file);
+
+			return $this->render('assignment/index.html.twig', [
+				'user' => $user,
+				'section' => $assignment_entity->section,
+				'assignment' => $assignment_entity,
+				'problem' => $problem_entity,
+				
+				'problemDescription' => $currentProblemDescription,
+				'languages' => $languages,
+				'usersectionrole' => $usersectionrole,
+				//'grades' => $grades,
+				'grader' => new Grader($em),
+				
+				'default_code' => $default_code,
+				'ace_modes' => $ace_modes,
+				'filetypes' => $filetypes,
+				"fileContents" => $fileContents,
+			]);
+		}
+
 		return $this->render('assignment/index.html.twig', [
 			'user' => $user,
 			'section' => $assignment_entity->section,
@@ -178,11 +197,27 @@ class AssignmentController extends Controller {
 
       return new RedirectResponse($this->generateUrl('assignment', array('sectionId' => $sectionId, 'assignmentId' => $assignment->id)));
 	}
-	
-	public function uploadAction($sectionId, $assignmentId, $problemId) {
 
+	public function myuploadAction($sectionId, $assignmentId, $problemId) {
+		// echo("myuploadAction");
+		if (file_get_contents($_FILES["fileToUpload"]["tmp_name"], $target_file)) {
+			$fileContents = file_get_contents($_FILES["fileToUpload"]["tmp_name"], $target_file);
+			// die($fileContents);
+			// echo('<script>
+			// 	var editor = ace.edit("editor");
+			// 	editor.setValue("test");
+			// </script>');
+
+			// die($fileContents);
+		}
+
+
+		// die();
+		return $this->redirectToRoute('assignment', 
+				['sectionId' => $sectionId,
+				'assignmentId' => $problem_entity->assignment->id,
+				'problemId' => $problem_entity->id]);
 	}
-
 }
 
 ?>

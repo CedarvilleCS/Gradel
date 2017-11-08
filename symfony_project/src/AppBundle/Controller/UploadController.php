@@ -32,6 +32,8 @@ use Symfony\Component\HttpFoundation\Response;
 class UploadController extends Controller {
  
     public function uploadAction($problem_id) {
+
+		$fileContents = "";
 		
 		#echo(var_dump($_POST));
 		#echo(var_dump($_FILES));
@@ -110,14 +112,13 @@ class UploadController extends Controller {
 			// 	editor.setValue("test");
 			// </script>');
 
-		//die($fileContents);
+		die($fileContents);
 
 
 			return $this->redirectToRoute('assignment', 
 						['sectionId' => $problem_entity->assignment->section->id,
 						'assignmentId' => $problem_entity->assignment->id,
-						'problemId' => $problem_entity->id,
-						'fileContents' => $fileContents]);
+						'problemId' => $problem_entity->id]);
 
 				
 					
