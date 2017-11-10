@@ -44,7 +44,7 @@ class AssignmentController extends Controller {
 		
 			$problem_entity = $em->find("AppBundle\Entity\Problem", $problemId);
 			
-			if(!problem_entity){
+			if(!$problem_entity || $problem_entity->assignment != $assignment_entity){
 				die("PROBLEM DOES NOT EXIST");
 			}
 

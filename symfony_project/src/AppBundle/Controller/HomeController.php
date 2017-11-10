@@ -10,6 +10,7 @@ use AppBundle\Entity\Assignment;
 use AppBundle\Utils\Grader;
 
 use \DateTime;
+use \DateInterval;
 
 use Psr\Log\LoggerInterface;
 
@@ -52,38 +53,23 @@ class HomeController extends Controller {
 			}
 		}
 		
-		# get assignments sorted by due date
+		# get upcoming assignments sorted by due date
+		$twoweeks_date = new DateTime();
+		$twoweeks_date = $twoweeks_date->add(new DateInterval('P2W'));
+		
 		$qb_asgn = $em->createQueryBuilder();
 		$qb_asgn->select('a')
 			->from('AppBundle\Entity\Assignment', 'a')
 			->where('a.section IN (?1)')
 			->andWhere('a.end_time > (?2)')
+			->andWhere('a.end_time < (?3)')
 			->setParameter(1, $sections)
 			->setParameter(2, new DateTime())
+			->setParameter(3, $twoweeks_date)
 			->orderBy('a.end_time', 'ASC');
 			
 		$asgn_query = $qb_asgn->getQuery();		
-
 		$assignments = $asgn_query->getResult();	
-		
-		$grades = [];
-		
-		foreach($assignments as $asgn){		
-			# get student grades
-			$qb_grades = $em->createQueryBuilder();
-			$qb_grades->select('COALESCE(AVG(s.percentage),0)')
-				->from('AppBundle\Entity\Submission', 's')
-				->where('s.user = ?1')
-				->andWhere('s.problem IN (?2)')
-				->setParameter(1, $user->id)
-				->setParameter(2, $asgn->problems);
-				
-			$grades_query = $qb_grades->getQuery();		
-		
-			$grade = $grades_query->getOneorNullResult();
-
-			$grades[$asgn->id] = $grade[1];
-		}
 		
 		$qb_users = $em->createQueryBuilder();
 		$qb_users->select('u')
