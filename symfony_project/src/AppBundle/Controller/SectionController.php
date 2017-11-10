@@ -196,8 +196,7 @@ class SectionController extends Controller
 		$builder = $em->createQueryBuilder();
 		$builder->select('u')
 				->from('AppBundle\Entity\User', 'u')
-				->where('u != ?1')
-				->setParameter(1, $user);
+				->where('1 = 1');
 		$query = $builder->getQuery();
 		$users = $query->getResult();
 

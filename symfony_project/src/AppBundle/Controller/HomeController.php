@@ -41,11 +41,14 @@ class HomeController extends Controller {
 		
 		$sections = [];
 		$sections_taking = [];
+		$sections_teaching = [];
 		foreach($usersectionroles as $usr){
 			$sections[] = $usr->section->id;
 			
 			if($usr->role->role_name == 'Takes'){
 				$sections_taking[] = $usr->section;
+			} else if($usr->role->role_name == 'Teaches'){
+				$sections_teaching[] = $usr->section;
 			}
 		}
 		
@@ -102,6 +105,7 @@ class HomeController extends Controller {
 			'usersectionroles' => $usersectionroles,
 			'assignments' => $assignments,
 			'sections_taking' => $sections_taking,
+			'sections_teaching' => $sections_teaching,
 			
 			'grades' => $grades,
 			'user_impersonators' => $users

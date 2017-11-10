@@ -1,4 +1,4 @@
-{% if usersectionroles is defined and grades is defined %}
+{% if usersectionroles is defined and grades is defined and sections_taking is defined and sections_teaching is defined%}
 
 {# Left Nav #}
 <nav class="nav-left">
@@ -22,27 +22,28 @@
 	
 	{% else %}
 		<ol style="padding-bottom: 10px">
-			{% for usr in usersectionroles %}	
+			{% if sections_taking|length > 0 %} <li style="margin: 0px; padding-bottom: 5px"> TAKING: </li> {% endif %}
+			{% for section in sections_taking %}	
 			
-				<a href="{{path('section', {'sectionId':usr.section.id})}}">
+				<a href="{{path('section', {'sectionId':section.id})}}">
 					<li>
-						<span class="preview">{{usr.section.course.name}}
+						<span class="preview">{{section.course.name}}
 						
 							<small>
-							<br/>{{usr.section.name}}
+							<br/>{{section.name}}
 							
-							{% if grades[usr.section.id]['percentage_adj'] >= 0 and usr.role.role_name == 'Takes' %}
+							{% if grades[section.id]['percentage_adj'] >= 0 %}
 							
-								<br/>{{(grades[usr.section.id]['percentage_adj']*100)|number_format(1, '.') ~ '%'}}
+								<br/>{{(grades[section.id]['percentage_adj']*100)|number_format(1, '.') ~ '%'}}
 								
 							{% endif %}
 							
 							</small>
 						</span>	
 					
-					{% if usr.role.role_name == 'Teaches' or is_granted("ROLE_SUPER") %}
+					{% if is_granted("ROLE_SUPER") %}
 						<object>
-							<a title="Edit {{usr.section.name}}" id="edit-icon" href="{{path('section_edit', {'sectionId': usr.section.id})}}">
+							<a title="Edit {{section.name}}" id="edit-icon" href="{{path('section_edit', {'sectionId': section.id})}}">
 								<svg xmlns="http://www.w3.org/2000/svg" fill="#ffffff" height="15" viewBox="0 0 24 24" width="15">
 									<path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
 									<path d="M0 0h24v24H0z"  fill="none"/>
@@ -51,6 +52,34 @@
 						</object>
 					{% endif %}
 					
+					</li>
+				</a>	
+			{% endfor %}
+		</ol>
+		
+		
+		
+		<ol style="padding-bottom: 10px">
+			{% if sections_teaching|length > 0 %} <li style="margin: 0px; padding-bottom: 5px"> TEACHING: </li> {% endif %}
+			{% for section in sections_teaching %}	
+			
+				<a href="{{path('section', {'sectionId':section.id})}}">
+					<li>
+						<span class="preview">{{section.course.name}}
+						
+							<small>
+							<br/>{{section.name}}
+							</small>
+						</span>	
+					
+						<object>
+							<a title="Edit {{section.name}}" id="edit-icon" href="{{path('section_edit', {'sectionId': section.id})}}">
+								<svg xmlns="http://www.w3.org/2000/svg" fill="#ffffff" height="15" viewBox="0 0 24 24" width="15">
+									<path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+									<path d="M0 0h24v24H0z"  fill="none"/>
+								</svg>
+							</a>							
+						</object>					
 					</li>
 				</a>	
 			{% endfor %}

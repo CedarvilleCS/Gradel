@@ -141,13 +141,6 @@ class Fixtures extends Fixture {
 		# ASSIGNMENT Testing
 		{
 			
-			$assignment_04 = new Assignment($CS1210_01, 
-									"Homework #1", "This is the first homework assignment", 
-									\DateTime::createFromFormat($date_format, "00:00:00 10/30/2017"), 
-									\DateTime::createFromFormat($date_format, "23:59:59 11/30/2017"), 
-									\DateTime::createFromFormat($date_format, "23:59:59 12/15/2017"), 0.0, $assignment_grdmethod0, false);
-			$manager->persist($assignment_04);
-			
 			$assignment_01 = new Assignment($CS1210_01, 
 									"Homework #2", "This is the second homework assignment", 
 									\DateTime::createFromFormat($date_format, "00:00:00 10/30/2017"), 
@@ -169,6 +162,13 @@ class Fixtures extends Fixture {
 									\DateTime::createFromFormat($date_format, "17:00:00 11/30/2017"), 
 									\DateTime::createFromFormat($date_format, "17:00:00 12/15/2017"), 0.0, $assignment_grdmethod2, false);
 			$manager->persist($assignment_03);
+			
+			$assignment_04 = new Assignment($CS1210_01, 
+									"Homework #1", "This is the first homework assignment", 
+									\DateTime::createFromFormat($date_format, "00:00:00 10/30/2017"), 
+									\DateTime::createFromFormat($date_format, "23:59:59 11/01/2017"), 
+									\DateTime::createFromFormat($date_format, "23:59:59 12/15/2017"), 0.0, $assignment_grdmethod0, false);
+			$manager->persist($assignment_04);
 		}
 		
 		# TEAM Testing
@@ -184,8 +184,7 @@ class Fixtures extends Fixture {
 			$team_03->users[] = $prof_gallagher;
 			$team_21->users[] = $prof_brauns;
 			
-			$team_40 = new Team("Everyone", $assignment_04);
-					
+			$team_40 = new Team("Everyone", $assignment_04);					
 			$team_40->users[] = $wolf_user;
 			$team_40->users[] = $budd_user;
 			$team_40->users[] = $prof_gallagher;
@@ -282,22 +281,22 @@ class Fixtures extends Fixture {
 			
 			# HOMEWORK 2 For CS-1210-01
 			$desc_file_11 = fopen($folder_path."sum/description.txt", "r") or die("Unable to open 1.desc");
-			$problem_11 = new Problem($assignment_04, "Calculate the Sum 2", $desc_file_11, 0.0, $prob_grdmethod00, 1000, false);
+			$problem_11 = new Problem($assignment_04, "Get the Sum", $desc_file_11, 0.0, $prob_grdmethod00, 1000, false);
 			$problems[] = $problem_11;
 			$prob_folds[$problem_11->name] = "sum";
 			
 			$desc_file_12 = fopen($folder_path."diff/description.txt", "r") or die("Unable to open 2.desc");
-			$problem_12 = new Problem($assignment_04, "Calculate the Difference 2", $desc_file_12, 0.0, $prob_grdmethod00, 1000, false);
+			$problem_12 = new Problem($assignment_04, "Get the Difference", $desc_file_12, 0.0, $prob_grdmethod00, 1000, false);
 			$problems[] = $problem_12;
 			$prob_folds[$problem_12->name] = "diff";
 			
 			$desc_file_13 = fopen($folder_path."prod/description.txt", "r") or die("Unable to open 3.desc");
-			$problem_13 = new Problem($assignment_04, "Calculate the Product 2", $desc_file_13, 0.0, $prob_grdmethod00, 1000, false);
+			$problem_13 = new Problem($assignment_04, "Get the Product", $desc_file_13, 0.0, $prob_grdmethod00, 1000, false);
 			$problems[] = $problem_13;
 			$prob_folds[$problem_13->name] = "prod";
 			
 			$desc_file_14 = fopen($folder_path."quot/description.txt", "r") or die("Unable to open 4.desc");
-			$problem_14 = new Problem($assignment_04, "Calculate the Quotient 2", $desc_file_14, 0.0, $prob_grdmethod00, 1000, false);
+			$problem_14 = new Problem($assignment_04, "Get the Quotient", $desc_file_14, 0.0, $prob_grdmethod00, 1000, false);
 			$problems[] = $problem_14;
 			$prob_folds[$problem_14->name] = "quot";
 			
