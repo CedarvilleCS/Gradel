@@ -83,11 +83,26 @@ class AssignmentController extends Controller {
 			}
 		}
 		
-		$grader = new Grader($em);
+		$grader = new Grader($em);		
 		
-		$grades = $grader->getAllProblemGrades($user, $assignment_entity);
-		#die();
+		$total_attempts = $problem_entity->gradingmethod->total_attempts;
+		
+		if($total_attempts == 0){
+			$attempts_remaining = -1;
+		} else {
+			$attempts_remaining = max($total_attempts - $grader->getNumTotalAttempts($user, $problem_entity), 0);
+		}
 			
+		# get the usersectionrole
+		$qb_accsub = $em->createQueryBuilder();
+		$qb_accsub->select('s')
+			->from('AppBundle\Entity\Submission', 's')
+			->where('s.team = ?1')
+			->andWhere('s.is_accepted = true')
+			->setParameter(1, $grader->getTeam($user, $assignment_entity));
+			
+		$sub_query = $qb_accsub->getQuery();
+		$best_submission = $sub_query->getOneOrNullResult();	
 			
 		return $this->render('assignment/index.html.twig', [
 			'user' => $user,
@@ -98,8 +113,10 @@ class AssignmentController extends Controller {
 			'problemDescription' => $currentProblemDescription,
 			'languages' => $languages,
 			'usersectionrole' => $usersectionrole,
-			//'grades' => $grades,
 			'grader' => new Grader($em),
+			
+			'attempts_remaining' => $attempts_remaining,
+			'best_submission' => $best_submission,
 			
 			'default_code' => $default_code,
 			'ace_modes' => $ace_modes,

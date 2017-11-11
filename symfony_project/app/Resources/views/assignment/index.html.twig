@@ -21,24 +21,29 @@
 	
 			<div class="card">
 				<h2 style="margin: 0px">{{problem.name}}</h2>
+				<h3>
+					{% if attempts_remaining < 0 %}
+						Unlimited attempts allowed
+					{% else %}
+						Attempts left: {{attempts_remaining}}
+					{% endif %}
+					
+					
+					{% if best_submission != null %}
+						<a href="{{path('problem_result', {'submission_id': best_submission.id})}}"> [Currently accepted submission] </a>
+					{% else %}
+						<a> [You have no submissions yet] </a>
+					{% endif %}
+				</h3>
 				<div id="courseInfo" class="card-contents">
 					<p>{{problemDescription|nl2br}}</p>
 
-{# Keep this here so that the default code is in the right place #}
-<div id="editor">#include &#60;stdio.h&#62;
-
-int main(){
-	
-	// You can't actually submit code in here yet
-	// Please use the upload form below
-		
-	return 0;
-}</div>
-            
+						{# the editor text area #}
+						<div id="editor"></div>           
                 
 						<br/>
 						{# display the form or not #}
-						{% if usersectionrole.role.role_name == 'Takes' %}
+						{% if usersectionrole.role.role_name == 'Takes' and attempts_remaining != 0 %}
 							<form action="{{path('upload', {'problem_id': problem.id}) }}" method="post" enctype="multipart/form-data">
 								<input type="hidden" name="ACE" id="ACE">
 								<input type="file" onchange="determineLanguage()" name="fileToUpload" id="fileToUpload" value="Upload File">
@@ -59,6 +64,8 @@ int main(){
 								<input type="submit" value="Submit Solution" name="submit" onclick="saveACE();">			
 							</form>
 							
+						{% elseif attempts_remaining == 0 %}
+							You are out of attempts for this problem.
 						{% else %}
 							You are not "Taking" this class, so you cannot submit a problem.
 						{% endif %}
