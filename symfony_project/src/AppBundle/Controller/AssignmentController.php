@@ -108,10 +108,9 @@ class AssignmentController extends Controller {
     }
 
     public function newAction($sectionId) {
-
+	
       return $this->render('assignment/new.html.twig', [
-        "sectionId" => $sectionId,
-      ]);
+        "sectionId" => $sectionId]);
     }
 
     public function insertAction($sectionId, $name, $description) {

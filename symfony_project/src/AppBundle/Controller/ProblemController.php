@@ -23,17 +23,21 @@ class ProblemController extends Controller {
 
    
     public function newAction($sectionId, $assignmentId) {
+		
       return $this->render('problem/new.html.twig', [
         'sectionId' => $sectionId,
         'assignmentId' => $assignmentId,
       ]);
     }
 
-	public function createTestCase($problem_id, $feedback_id, $seq_num, $input, $correct_output, $weight) {
+	public function insertAction($problem_id, $feedback_id, $seq_num, $input, $correct_output, $weight) {
       $em = $this->getDoctrine()->getManager();
-
       $user = $this->get('security.token_storage')->getToken()->getUser();
 
+      $assignment = new Problem();
+      $section = $em->find('AppBundle\Entity\Section', $sectionId);
+
+      $gradingmethod = $em->find('AppBundle\Entity\AssignmentGradingMethod', 1);
 
       $testcase->problem_id = $problem_id;
       $testcase->feedback_id = $feedback_id;
@@ -49,6 +53,7 @@ class ProblemController extends Controller {
     }
 	
     public function editAction() {
+
       return $this->render('problem/edit.html.twig', [
 
       ]);
@@ -97,13 +102,10 @@ class ProblemController extends Controller {
 			'submission' => $submission,
 			'problem' => $submission->problem,
 			'grader' => new Grader($em),
-			
 			'usersectionrole' => $usersectionrole,
-			
 			'testcases_output' => $tc_output,
 			'compiler_output' => $compiler_output,
 			'submission_file' => $submission_file,
-			
 			'result_page' => true,
         ]);	
 	}
