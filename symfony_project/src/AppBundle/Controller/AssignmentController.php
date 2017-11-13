@@ -90,6 +90,7 @@ class AssignmentController extends Controller {
 		// If a file has been uploaded
 		if (file_get_contents($_FILES["fileToUpload"]["tmp_name"], $target_file)) {
 			$fileContents = file_get_contents($_FILES["fileToUpload"]["tmp_name"], $target_file);
+			
 
 			return $this->render('assignment/index.html.twig', [
 				'user' => $user,
@@ -106,7 +107,7 @@ class AssignmentController extends Controller {
 				'default_code' => $default_code,
 				'ace_modes' => $ace_modes,
 				'filetypes' => $filetypes,
-				"fileContents" => $fileContents,
+				"fileContents" => base64_encode($fileContents),
 			]);
 		}
 
