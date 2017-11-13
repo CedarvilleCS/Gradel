@@ -35,9 +35,9 @@ class UploadController extends Controller {
 
 		$fileContents = "";
 		
-		#echo(var_dump($_POST));
-		#echo(var_dump($_FILES));
-		#die();
+		# echo(var_dump($_POST));
+		# echo(var_dump($_FILES));
+		# die();
 		
         # entity manager
         $em = $this->getDoctrine()->getManager();
@@ -70,6 +70,7 @@ class UploadController extends Controller {
         $target_file = $uploads_directory . basename($_FILES["fileToUpload"]["name"]);									
 												
 		// INDICATE THAT FILE UPLOAD WAS SUCCESSFUL ON ASSIGNMENT/PROBLEM PAGE
+		
 			
 		if($_POST["ACE"] != "") { // If ACE is not blank, and no file was uploaded, create a file with the ACE contents
 

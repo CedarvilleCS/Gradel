@@ -20,10 +20,8 @@
 		{% else %}
 	
 			<div class="card">
-				<h2 style="margin: 0px">{{problem.name}}</h2>
-				<div id="courseInfo" class="card-contents">
-					<p>{{problemDescription|nl2br}}</p>
-					<p>{{section.id}}<br>{{assignment.id}}<br>{{problem.id}}</p>
+			<h2 style="margin: 0px">{{problem.name}}</h2>
+			<div id="courseInfo" class="card-contents">
 
 {# Keep this here so that the default code is in the right place #}
 <div id="editor">#include &#60;stdio.h&#62;
@@ -41,7 +39,7 @@ int main(){
 						{# display the form or not #}
 						{% if usersectionrole.role.role_name == 'Takes' %}
 							<form action="{{path('assignment', {'sectionId' : section.id, 'assignmentId' : assignment.id, 'problemId' : problem.id}) }}" method="post" enctype="multipart/form-data">
-								<input type="hidden" name="ACE" id="ACE">
+								<!-- <input type="hidden" name="ACE" id="ACE"> -->
 								<input type="file" onchange="determineLanguage(); this.form.submit();" name="fileToUpload" id="fileToUpload" value="Upload File">
 								<br><br>
 								Language: 
@@ -60,12 +58,12 @@ int main(){
 								<input type="submit" value="Submit Solution" name="btn-submit" onclick="saveACE();">
 								
 							</form>
+								
+							<form action="{{path('upload', {'problem_id': problem.id}) }}" method="post" enctype="multipart/form-data">
 								<input type="hidden" name="ACE" id="ACE">
-								<div class="btn" onclick="saveACE();"><a href="upload">Submit</a></div>
-							<form>
-
+								<input type="submit" value="Submit Solution" name="btn-submit" onclick="saveACE();">
 							</form>
-							
+
 						{% else %}
 							You are not "Taking" this class, so you cannot submit a problem.
 						{% endif %}
