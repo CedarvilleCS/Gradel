@@ -97,9 +97,9 @@ int main(){
 	
 	<script>
 		$( document ).ready(function() {
-			
-			$("#ACE").val(editor.setValue(atob('{{fileContents}}')));
-
+			if('{{fileContents}}' != "") {
+				$("#ACE").val(editor.setValue(atob('{{fileContents}}')));
+			}
 		});
 
 		function saveACE() {

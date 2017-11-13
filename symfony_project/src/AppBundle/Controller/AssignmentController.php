@@ -126,7 +126,6 @@ class AssignmentController extends Controller {
 			'default_code' => $default_code,
 			'ace_modes' => $ace_modes,
 			'filetypes' => $filetypes,
-			"fileContents" => $fileContents,
 		]);
     }
 
