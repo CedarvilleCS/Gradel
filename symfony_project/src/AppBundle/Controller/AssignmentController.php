@@ -164,8 +164,6 @@ class AssignmentController extends Controller {
       $assignment = $em->find('AppBundle\Entity\Assignment', $assignmentId);
 
       return $this->render('assignment/edit.html.twig', [
-        "sectionId" => $sectionId,
-        "assignmentId" => $assignmentId,
         "assignment" => $assignment,
         "description" => stream_get_contents($assignment->description),
       ]);

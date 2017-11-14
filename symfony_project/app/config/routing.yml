@@ -8,7 +8,10 @@ alt_homepage:
     defaults: { _controller: AppBundle:Home:home} 
     
 # MAIN ROUTES
-
+section_delete:
+  path: '/section/delete/{sectionId}'
+  defaults: {_controller: AppBundle:Section:deleteSection}
+  
 section_new:
   path: '/section/new'
   defaults: {_controller: AppBundle:Section:newSection}

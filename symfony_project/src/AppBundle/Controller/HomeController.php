@@ -29,13 +29,24 @@ class HomeController extends Controller {
 	  	if(!get_class($user)){
 			die("USER DOES NOT EXIST!");		  
 		}
+		
+		# get all of the non-deleted sections
+		$builder = $em->createQueryBuilder();
+		$builder->select('s')
+			->from('AppBundle\Entity\Section', 's')
+			->where('s.is_deleted = false');
+		
+		$section_query = $builder->getQuery();
+		$sections_notdeleted = $section_query->getResult();
 	  
-		# get the user section role entities using the user entity as the where
+		# get the user section role entities using the user entity and not deleted sections
 		$qb_usr = $em->createQueryBuilder();
 		$qb_usr->select('usr')
 			->from('AppBundle\Entity\UserSectionRole', 'usr')
 			->where('usr.user = ?1')
-			->setParameter(1, $user);
+			->andWhere('usr.section IN (?2)')
+			->setParameter(1, $user)
+			->setParameter(2, $sections_notdeleted);
 
 		$usr_query = $qb_usr->getQuery();
 		$usersectionroles = $usr_query->getResult();

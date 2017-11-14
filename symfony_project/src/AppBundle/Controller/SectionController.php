@@ -35,7 +35,7 @@ class SectionController extends Controller {
 
 		$user = $this->get('security.token_storage')->getToken()->getUser();
 
-		if(!get_class($user)){
+		if(!$user){
 			die("USER DOES NOT EXIST");
 		}
 
@@ -175,46 +175,75 @@ class SectionController extends Controller {
 			'form' => $form->createView(),
 		]);
 	}
+	
+	public function deleteSectionAction($sectionId){
+		
+		$em = $this->getDoctrine()->getManager();
 
+		$section = $em->find('AppBundle\Entity\Section', $sectionId);	  
+		if(!$section){
+			die("SECTION DOES NOT EXIST");
+		}
+		
+		$user = $this->get('security.token_storage')->getToken()->getUser();
+		if(!$user){
+			die("USER DOES NOT EXIST");
+		}
+		
+		# validate the user
+		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN")){
+			die("YOU ARE NOT ALLOWED TO DELETE THIS SECTION");
+			
+		}
+		
+		$section->is_deleted = true;
+		$em->flush();
+		
+		return $this->redirectToRoute('homepage');
+	}
+
+	# called when the edit button is clicked on an already existing section
     public function editSectionAction($sectionId) {
       $em = $this->getDoctrine()->getManager();
-      $builder = $em->createQueryBuilder();
-	  #echo json_decode($sectionId);
 	  
-	  $section = $em->find('AppBundle\Entity\Section', $sectionId);
+	  $section = $em->find('AppBundle\Entity\Section', $sectionId);	  
+	  if(!$section){
+		die("SECTION DOES NOT EXIST");
+	  }     
 
-      $role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));
-
+	  # get all of the courses for the dropdown
+      $builder = $em->createQueryBuilder();
       $builder->select('c')
               ->from('AppBundle\Entity\Course', 'c')
               ->where('1 = 1');
       $query = $builder->getQuery();
       $sections = $query->getResult();
 
-      $section = $em->find('AppBundle\Entity\Section', $sectionId);
-
-      $builder = $em->createQueryBuilder();
-      $builder->select('u')
-              ->from('AppBundle\Entity\UserSectionRole', 'u')
-              ->where('u.section = ?1')
-              ->andWhere('u.role = ?2')
-              ->setParameter(1, $section)
-              ->setParameter(2, $role);
-      $query = $builder->getQuery();
-      $usr = $query->getResult();
-
+	  # get all of the users for the dropdown
       $builder = $em->createQueryBuilder();
       $builder->select('u')
               ->from('AppBundle\Entity\User', 'u')
               ->where('1 = 1');
       $query = $builder->getQuery();
       $users = $query->getResult();
+	  
+	  # get all of the users taking the section
+	  $takes_role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));
+      $builder = $em->createQueryBuilder();
+      $builder->select('u')
+              ->from('AppBundle\Entity\UserSectionRole', 'u')
+              ->where('u.section = ?1')
+              ->andWhere('u.role = ?2')
+              ->setParameter(1, $section)
+              ->setParameter(2, $takes_role);
+      $query = $builder->getQuery();
+      $section_takers = $query->getResult();	  
 
       return $this->render('section/edit.html.twig', [
         'section' => $section,
         'sectionId' => $sectionId,
         'sections' => $sections,
-        'usr' => $usr,
+        'usr' => $section_takers,
         'users' => $users,
       ]);
     }

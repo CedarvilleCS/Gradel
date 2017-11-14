@@ -12,6 +12,12 @@
 
     {# Left Nav #}
     <nav class="nav-left">
+		
+		{% if is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") %}
+			<a href="{{path('section_delete', {'sectionId': section.id})}}" class="btn"><div class="btn btn-center" style="background-color: #FF5A49">- Delete</div></a>
+		{% endif %}
+		
+		<br/>
         <a id="insert" class="btn"><div class="btn btn-center">Save</div></a>
         <br/>
         <a href="{{path('assignment_new', {'sectionId': section.id})}}" class="btn"><div class="btn btn-center">+ Assignment</div></a>

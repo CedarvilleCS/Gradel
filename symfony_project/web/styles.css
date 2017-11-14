@@ -32,7 +32,7 @@ html, body {
 }
 
 .topnav .navbuttons {
-     float: right;
+    float: right;
  	height: 100%;
 }
  .topnav #logo {
@@ -123,7 +123,7 @@ nav.nav-left {
     border-right: 1px solid grey;
     background-color: grey;
     color: black;
-    height: 100vh;
+    height: calc(100vh - 50px);
     width: 200px;
     margin-top: 50px;
     padding-top: 10px;
@@ -177,6 +177,10 @@ nav.nav-left > ol > a > li:hover {
 
 .pathnav a {
 	text-decoration: none;	
+}
+
+#past_sections_button:hover {
+	cursor: pointer;
 }
 
 .card {

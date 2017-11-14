@@ -21,31 +21,28 @@
             <div class="btn-close" onclick="collapseCard('courseInfo')"><h2 style="margin: 0px">Upcoming Assignments<span style="float: right"><i class="fa fa-angle-down"></i></span></h2></div>
             <div id="courseInfo" class="card-contents">
                 
-				{% if assignments|length == 0 %}
-					You have no upcoming assignments to be completed!				
+				{% set oldDate = '' %}
+				
+				{% for asgn in assignments %}
+				
+					{% set newDate = asgn.end_time|date('m/d/Y') %}
+					
+					{% if newDate != oldDate %}
+						<h4 style="background: grey; color: white; padding: 5px"> {{asgn.end_time|date('l, F d')}} </h4>
+					{% endif %}
+					
+					{% set oldDate = newDate %}
+					
+					<div style="margin-left: 20px">
+						<small>{{asgn.section.name}}</small>
+						<a href="{{path('assignment', {'sectionId':asgn.section.id, 'assignmentId':asgn.id})}}">
+							{{asgn.name}}
+						</a>								
+					</div>
 				{% else %}
-					{% set oldDate = '' %}
-					
-					{% for asgn in assignments %}
-					
-						{% set newDate = asgn.end_time|date('m/d/Y') %}
-						
-						{% if newDate != oldDate %}
-							<h4 style="background: grey; color: white; padding: 5px"> {{asgn.end_time|date('l, F d')}} </h4>
-						{% endif %}
-						
-						{% set oldDate = newDate %}
-						
-						<div style="margin-left: 20px">
-							<small>{{asgn.section.name}}</small>
-							<a href="{{path('assignment', {'sectionId':asgn.section.id, 'assignmentId':asgn.id})}}">
-								{{asgn.name}}
-							</a>								
-						</div>
-						
-					{% endfor %}
-					
-				{% endif %}
+					You have no upcoming assignments to be completed!
+				{% endfor %}
+				
             </div>
         </div>
 

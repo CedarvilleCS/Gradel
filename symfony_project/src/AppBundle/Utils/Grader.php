@@ -287,7 +287,7 @@ class Grader  {
 				$assignment_percentage += $problem_percentage*$problem->weight;
 			}
 			
-			if($problem_grades[$problem->id]['passed_testcases'] == $problem_grades[$problem->id]['total_testcases']){
+			if($problem_grades[$problem->id]['total_testcases'] > 0 && $problem_grades[$problem->id]['passed_testcases'] == $problem_grades[$problem->id]['total_testcases']){
 				
 				if($problem->is_extra_credit){
 					$num_extra_correct_problems++;

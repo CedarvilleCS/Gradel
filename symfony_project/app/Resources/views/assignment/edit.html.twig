@@ -9,24 +9,22 @@
     {{ include('template/top-nav.html.twig') }}
 
     <section id="course-container">
-        {# <h1>{{app.user.getFirstName()}}&#39;s Courses</h1> #}
 
-        {# <ol>
-            <li><a href="courses/assignments/CS-1210">CS 1210</a><div class="show-more" onclick="showAssignments();">+</div></li>
-            <li><a href="courses/assignments/CS-1220">CS 1220</a><div class="show-more" onclick="showAssignments();">+</div></li>
-        </ol> #}
     </section>
 
     {# Left Nav #}
     <nav class="nav-left">
         <a id="insert" class="btn"><div class="btn btn-center" href="">Save</div></a>
-        <br/>
-        <a href="{{path('problem_new', {'sectionId': sectionId, 'assignmentId': assignmentId})}}" class="btn"><div class="btn btn-center">+ Problem</div></a>
-        <ol>
-					{% for assignment in assignments %}
-						<h1>{{assignment.name}}
-					{% endfor %}
-        </ol>
+		<br/>
+		
+		<ol>		
+		{% for problem in assignment.problems %}
+			<li>{{problem.name}}</li>
+		{% else %}
+			<li> No problems in this assignment </li>
+		{% endfor %}		
+		</ol>
+		
     </nav>
 
     {# Main section #}
@@ -100,9 +98,9 @@
 
 				var path = "{{path('assignment_edit_query', { 'sectionId': 'sectionId', 'assignmentId': 'assignmentId', 'name': 'name', 'description': 'description'})}}";
 				path = path.replace("name", name);
-        path = path.replace("description", description)
-				path = path.replace("sectionId", {{sectionId}});
-        path = path.replace("assignmentId", {{assignment.id}});
+				path = path.replace("description", description)
+				path = path.replace("sectionId", {{assignment.section.id}});
+				path = path.replace("assignmentId", {{assignment.id}});
 				window.location.replace(path);
 			}
 
