@@ -57,6 +57,10 @@ class Grader  {
 		return $usr->section == $section;		
 	}
 	
+	public function isOnTeam($user, $assignment, $team){
+		return $team == $this->getTeam($user, $assignment);
+	}
+	
 	public function getTeam($user, $assignment){
 		
 		# get all of the teams
@@ -80,10 +84,6 @@ class Grader  {
 			}
 		}
 		return $team;
-	}
-	
-	public function isOnTeam($user, $assignment, $team){
-		return $team == $this->getTeam($user, $assignment);
 	}
 	
 	public function getNumTotalAttempts($user, $problem){

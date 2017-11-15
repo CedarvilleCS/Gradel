@@ -31,25 +31,11 @@ html, body {
     box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
 }
 
-.topnav .navbuttons {
-    float: right;
- 	height: 100%;
-}
- .topnav #logo {
-     float: left;
- 	height: 93%;
- 	padding: 2px 3px;
- }
- 
- .topnav #logo:hover {
- 	background-color: inherit;
- 	color: black;	
- }
+
 
 .btn {
     text-decoration: none;
     margin-top: 10px;
-    width: 100px;
     height: 30px;
     background-color: #71BA62;
     color: white;
@@ -116,6 +102,22 @@ a.preview {
     color: white;
 }
 
+.topnav .navbuttons {
+    float: right;
+ 	height: 100%;
+}
+
+.topnav #logo {
+    float: left;
+ 	height: 93%;
+ 	padding: 2px 3px;
+}
+ 
+.topnav #logo:hover {
+ 	background-color: inherit;
+ 	color: black;	
+}
+
 nav.nav-left {
     float: left;
     position: fixed;
@@ -126,7 +128,7 @@ nav.nav-left {
     height: calc(100vh - 50px);
     width: 200px;
     margin-top: 50px;
-    padding-top: 10px;
+	padding-top: 10px;
 
     -webkit-box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
     -moz-box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
@@ -205,6 +207,28 @@ nav.nav-left > ol > a > li:hover {
     /* float: right; */
     padding-bottom: 10px;
     border-bottom: 1px dotted #8DC26F;
+}
+
+.btn-delete{
+	position: absolute;
+	bottom: 30px;
+	left:5%;
+	width: 90%;
+	text-decoration: none;
+	color: white;
+	
+	margin:auto;
+    margin-top: 10px;
+    height: 30px;
+    background-color: #ff8b7f;
+    border: none;
+    text-align: center;
+	
+	padding-top: 12px;	
+}
+
+.btn-delete:hover{
+	background-color: #FF5A49;
 }
 
 /* i { 

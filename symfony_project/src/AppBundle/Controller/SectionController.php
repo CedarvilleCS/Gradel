@@ -176,7 +176,7 @@ class SectionController extends Controller {
 		]);
 	}
 	
-	public function deleteSectionAction($sectionId){
+	public function deleteAction($sectionId){
 		
 		$em = $this->getDoctrine()->getManager();
 

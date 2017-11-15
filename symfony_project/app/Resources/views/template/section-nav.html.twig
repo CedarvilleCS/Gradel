@@ -112,29 +112,33 @@
 </nav>
 
 <script>
-	var past_hidden = true;
-	var past_sections_button = document.getElementById('past_sections_button');
-	past_sections_button.addEventListener("click", togglePastSections);
 	
-	
-	var past_list = document.getElementById('past_list');
-	
-	function togglePastSections(){
+	document.addEventListener("DOMContentLoaded", function(event) {
+		var past_hidden = true;
+		var past_sections_button = document.getElementById('past_sections_button');
+		past_sections_button.addEventListener("click", togglePastSections);
+		var past_list = document.getElementById('past_list');
 		
-		if(past_hidden){
 		
-			past_sections_button.innerHTML = "&#9650; Hide Past Sections ";
-			past_list.style.display = "block";		
-		} else {		
 		
-			past_sections_button.innerHTML = "&#9660; Load Past Sections ";
-			past_list.style.display = "none";	
+		function togglePastSections(){
+			
+			if(past_hidden){
+			
+				past_sections_button.innerHTML = "&#9650; Hide Past Sections ";
+				past_list.style.display = "block";		
+			} else {		
+			
+				past_sections_button.innerHTML = "&#9660; Load Past Sections ";
+				past_list.style.display = "none";	
+			}
+			
+			past_hidden = !past_hidden;
+			
 		}
-		
-		past_hidden = !past_hidden;
-		
-	}
+	});
 
 </script>
+
 
 {% endif %}

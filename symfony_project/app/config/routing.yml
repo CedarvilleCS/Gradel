@@ -10,7 +10,7 @@ alt_homepage:
 # MAIN ROUTES
 section_delete:
   path: '/section/delete/{sectionId}'
-  defaults: {_controller: AppBundle:Section:deleteSection}
+  defaults: {_controller: AppBundle:Section:delete}
   
 section_new:
   path: '/section/new'
@@ -34,6 +34,9 @@ section_edit_query:
     _controller: AppBundle:Section:editQuery
 
 
+assignment_delete:
+  path: '/section/{sectionId}/assignment/delete/{assignmentId}'
+  defaults: {_controller: AppBundle:Assignment:delete}
 
 assignment_new:
   path: '/section/{sectionId}/assignment/new'
