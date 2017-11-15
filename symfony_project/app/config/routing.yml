@@ -58,8 +58,12 @@ assignment:
 
 
 problem_new:
-  path: '/section/{sectionId}/assignment/{assignmentId}/problem/new'
+  path: '/section/{sectionId}/assignment/{assignmentId}/new_problem'
   defaults: {_controller: AppBundle:Problem:new}
+  
+problem_insert:
+  path: '/section/{sectionId}/assignment/{assignmentId}/new_problem'
+  defaults: {_controller: AppBundle:Problem:insert}
 
 problem_edit:
   path: '/section/{sectionId}/assignment/{assignmentId}/problem/edit/{problemId}'
@@ -70,6 +74,23 @@ problem_result:
     defaults: {_controller: AppBundle:Problem:result}
     requirements:
         submission_id: '\d+'
+        
+testcase_new:
+  path: '/section/{sectionId}/assignment/{assignmentId}/new_problem'
+  defaults: {_controller: AppBundle:TestCase:new}
+  
+testcase_insert:
+  path: '/section/{sectionId}/assignment/{assignmentId}/new_problem'
+  defaults: {_controller: AppBundle:TestCase:insert}
+
+testcase_edit:
+  path: '/section/{sectionId}/assignment/{assignmentId}/problem/edit/{problemId}'
+  defaults: {_controller: AppBundle:TestCase:edit}
+
+testcase_result:
+    path: '/result/{submission_id}'
+    defaults: {_controller: AppBundle:TestCase:result}
+        
 
 # SUBMISSION ROUTES
 upload:

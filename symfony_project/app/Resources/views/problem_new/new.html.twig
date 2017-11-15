@@ -12,7 +12,7 @@
 
     {# Left Nav #}
     <nav class="nav-left">
-        <a id="insert" class="btn" href=""><div onclick="newProb()" class="btn btn-center">Save</div></a>
+        <a id="insert" class="btn" href="{{path('problem_edit', {'sectionId': sectionId, 'assignmentId': assignmentId, 'problemId': 1})}}"><div class="btn btn-center">Save</div></a>
     </nav>
 
     {# Main section #}
@@ -89,13 +89,13 @@
 		testCases = 0;
 		$("#add-test").click(function () {
 			testCases++;
-			div_name ="testcases"+testCases;
+			div_name ="test-cases-"+testCases;
 			formalName="Test Case "+testCases;
 			newTestCard = `<div class="card">
 				<div class="btn-close" onclick="collapseCard(&quot;`+div_name+`&quot;)">
 					<h2 style="margin: 0px">`+formalName+`<span style="float: right"><i class="fa fa-angle-down"></i></span></h2>
 				</div>
-				<div id=`+div_name+`" class="test-case">
+				<div id=`+div_name+`" class="card-contents">
 					<table>
 						<tr>
 							<th colspan="1">
@@ -112,6 +112,11 @@
 							<th colspan="2">
 								<label>Feedback</label>
 								<textarea rows="2" class="problem_creation" id="feedback" type="text" value=""></textarea></th>
+							<th colspan="2">
+								<a id="insert" class="btn"" onclick="insertTestCase(&quot;`+div_name+`&quot;)">
+									<div class="btn btn-center">Save</div>
+								</a>
+							</th>
 						</tr>
 					</table>
 				</div>
@@ -128,7 +133,7 @@
 				<div class="btn-close" onclick="collapseCard(&quot;`+div_name+`&quot;,)">
 					<h2 style="margin: 0px">`+formalName+`<span style="float: right"><i class="fa fa-angle-down"></i></span></h2>
 				</div>
-				<div id=`+div_name+`" class="test-case">
+				<div id=`+div_name+`" class="card-contents">
 					<table>
 						<tr>
 							<th colspan="1">
@@ -144,6 +149,10 @@
 						<tr>
 							<th colspan="1">
 								<label>Feedback</label><textarea rows="2" id="feedback" class="problem_creation" type="text" value=""></textarea></th>
+							<th colspan="2">
+								<a id="insert" class="btn"" onclick="insertTestCase(&quot;`+div_name+`&quot;)">
+									<div class="btn btn-center">Save</div>
+								</a>
 						</tr>
 					</table>
 				</div>
@@ -154,15 +163,13 @@
 		
 		
 		function insertTestCase(divname) {
-				const chris = document.getElementById(divname);
-				console.log(divname);
-				
-				const the_input = $("#"+divname).find("#"+"input").value;
-				const the_output = $("#"+divname).find("#"+"output").value;
-				const fb = $("#"+divname).find("#"+"feedback").value;
-				//const the_weight = $("#"+divname).find("#"+"weight").value;
-				var path = "{{path('testcase_insert', {'sectionId': 'section_id', 'assignmentId': 'assignment_id', 'problemId': 'problem_id', 'feedback_id': '1', 'seq_num': '1', 'input': 'the_input', 'correct_output': the_output, 'weight': '2'})}}";
-			
+				alert(divname);
+				const the_input = divname.getElementById("input").value;
+				const the_output = divname.getElementById("output").value;
+				const fb = divname.getElementById("feedback").value;
+				const the_weight = divname.getElementById("weight").value;
+				$problem_id, $feedback_id, $seq_num, $input, $correct_output, $weight
+				var path = "{{path('testcase_insert', {'sectionId': 'section_id', 'assignmentId': 'assignment_id', 'problemId': 'problem_id', 'feedback_id': '1', 'seq_num': '1', 'input': 'the_input', 'correct_output': the_output, 'weight': the_weight })}}";
 				path = path.replace("name", name);
 				path = path.replace("description", description);
 				path = path.replace("the_input", input);
@@ -171,15 +178,7 @@
 				path = path.replace("assignment_id", {{assignmentId}});
 				path = path.replace("problem_id", {{problemId}});
 				window.location.replace(path);
-				console.log(path);
-				console.log("no");
+				alert("doing well");
 			}
-		function newProb(){
-			var tcs = document.getElementsByClassName("test-case");
-			var path = "{{path('problem_edit', {'sectionId': sectionId, 'assignmentId': assignmentId, 'problemId': 1, 'testcases': tcs})}}";
-			path = path.replace("section_id", {{sectionId}});
-			path = path.replace("assignment_id", {{assignmentId}});
-			path = path.replace("problem_id", {{problemId}});
-		}
 	</script>
 {% endblock %}
