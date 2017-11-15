@@ -43,10 +43,16 @@
 						<br/>
 						{# display the form or not #}
 						{% if usersectionrole.role.role_name == 'Takes' %}
+
+							{# ACE editor and file upload#}
 							<form action="{{path('assignment', {'sectionId' : section.id, 'assignmentId' : assignment.id, 'problemId' : problem.id}) }}" method="post" enctype="multipart/form-data">
-								<!-- <input type="hidden" name="ACE" id="ACE"> -->
 								<input type="file" onchange="determineLanguage(); this.form.submit();" name="fileToUpload" id="fileToUpload" value="Upload File">
 								<br><br>
+							</form>
+						
+							{# Language selection and hidden field to submit ACE contents #}
+							<form action="{{path('upload', {'problem_id': problem.id}) }}" method="post" enctype="multipart/form-data">
+
 								Language: 
 								<select id="languageSelect" name="language" onchange="languageChange()">
 									{% for lang in languages %}				
@@ -60,11 +66,6 @@
 								<div id="packgNameInput" style="display:none"><label for="package_name">Package Name: </label><input type="text" name="package_name" id="package_name_input"></div>
 								
 								<br><br>
-								<input type="submit" value="Submit Solution" name="btn-submit" onclick="saveACE();">
-								
-							</form>
-								
-							<form action="{{path('upload', {'problem_id': problem.id}) }}" method="post" enctype="multipart/form-data">
 								<input type="hidden" name="ACE" id="ACE">
 								<input type="submit" value="Submit Solution" name="btn-submit" onclick="saveACE();">
 							</form>
@@ -104,6 +105,7 @@
 	</script>
 	
 	<script>
+
 		function saveACE() {
 			$("#ACE").val(editor.getValue());
 		}
@@ -133,7 +135,7 @@
 			editor.getSession().setMode("ace/mode/" + ace_modes[language]);	
 			
 			// This sets the default code for the selected language. add an if statement to put the code from the uploaded file here if it exists?
-			// editor.setValue(default_code[language], -1);
+			editor.setValue(default_code[language], -1);
 			if('{{fileContents}}' != "") {
 				$("#ACE").val(editor.setValue(atob('{{fileContents}}')));
 			}
