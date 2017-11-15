@@ -10,6 +10,7 @@ use AppBundle\Entity\Assignment;
 use AppBundle\Utils\Grader;
 
 use \DateTime;
+use \DateInterval;
 
 use Psr\Log\LoggerInterface;
 
@@ -28,59 +29,58 @@ class HomeController extends Controller {
 	  	if(!get_class($user)){
 			die("USER DOES NOT EXIST!");		  
 		}
+		
+		# get all of the non-deleted sections
+		$builder = $em->createQueryBuilder();
+		$builder->select('s')
+			->from('AppBundle\Entity\Section', 's')
+			->where('s.is_deleted = false');
+		
+		$section_query = $builder->getQuery();
+		$sections_notdeleted = $section_query->getResult();
 	  
-		# get the user section role entities using the user entity as the where
+		# get the user section role entities using the user entity and not deleted sections
 		$qb_usr = $em->createQueryBuilder();
 		$qb_usr->select('usr')
 			->from('AppBundle\Entity\UserSectionRole', 'usr')
 			->where('usr.user = ?1')
-			->setParameter(1, $user);
+			->andWhere('usr.section IN (?2)')
+			->setParameter(1, $user)
+			->setParameter(2, $sections_notdeleted);
 
 		$usr_query = $qb_usr->getQuery();
 		$usersectionroles = $usr_query->getResult();
 		
 		$sections = [];
 		$sections_taking = [];
+		$sections_teaching = [];
 		foreach($usersectionroles as $usr){
 			$sections[] = $usr->section->id;
 			
 			if($usr->role->role_name == 'Takes'){
 				$sections_taking[] = $usr->section;
+			} else if($usr->role->role_name == 'Teaches'){
+				$sections_teaching[] = $usr->section;
 			}
 		}
 		
-		# get assignments sorted by due date
+		# get upcoming assignments sorted by due date
+		$twoweeks_date = new DateTime();
+		$twoweeks_date = $twoweeks_date->add(new DateInterval('P2W'));
+		
 		$qb_asgn = $em->createQueryBuilder();
 		$qb_asgn->select('a')
 			->from('AppBundle\Entity\Assignment', 'a')
 			->where('a.section IN (?1)')
 			->andWhere('a.end_time > (?2)')
+			->andWhere('a.end_time < (?3)')
 			->setParameter(1, $sections)
 			->setParameter(2, new DateTime())
+			->setParameter(3, $twoweeks_date)
 			->orderBy('a.end_time', 'ASC');
 			
 		$asgn_query = $qb_asgn->getQuery();		
-
 		$assignments = $asgn_query->getResult();	
-		
-		$grades = [];
-		
-		foreach($assignments as $asgn){		
-			# get student grades
-			$qb_grades = $em->createQueryBuilder();
-			$qb_grades->select('COALESCE(AVG(s.percentage),0)')
-				->from('AppBundle\Entity\Submission', 's')
-				->where('s.user = ?1')
-				->andWhere('s.problem IN (?2)')
-				->setParameter(1, $user->id)
-				->setParameter(2, $asgn->problems);
-				
-			$grades_query = $qb_grades->getQuery();		
-		
-			$grade = $grades_query->getOneorNullResult();
-
-			$grades[$asgn->id] = $grade[1];
-		}
 		
 		$qb_users = $em->createQueryBuilder();
 		$qb_users->select('u')
@@ -102,6 +102,7 @@ class HomeController extends Controller {
 			'usersectionroles' => $usersectionroles,
 			'assignments' => $assignments,
 			'sections_taking' => $sections_taking,
+			'sections_teaching' => $sections_teaching,
 			
 			'grades' => $grades,
 			'user_impersonators' => $users

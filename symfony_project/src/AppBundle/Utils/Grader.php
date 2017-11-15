@@ -37,6 +37,30 @@ class Grader  {
 		$this->em = $em;		
 	}
 	
+	public function isTeaching($user, $section){
+		
+		$role = $this->em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Teaches'));		
+		
+		$qb = $this->em->createQueryBuilder();
+		$qb->select('usr')
+			->from('AppBundle\Entity\UserSectionRole', 'usr')
+			->where('usr.role = ?1')
+			->andWhere('usr.user = ?2')
+			->andWhere('usr.section = ?3')
+			->setParameter(1, $role)
+			->setParameter(2, $user)
+			->setParameter(3, $section);
+			
+		$query = $qb->getQuery();
+		$usr = $query->getOneOrNullResult();
+		
+		return $usr->section == $section;		
+	}
+	
+	public function isOnTeam($user, $assignment, $team){
+		return $team == $this->getTeam($user, $assignment);
+	}
+	
 	public function getTeam($user, $assignment){
 		
 		# get all of the teams
@@ -263,7 +287,7 @@ class Grader  {
 				$assignment_percentage += $problem_percentage*$problem->weight;
 			}
 			
-			if($problem_grades[$problem->id]['passed_testcases'] == $problem_grades[$problem->id]['total_testcases']){
+			if($problem_grades[$problem->id]['total_testcases'] > 0 && $problem_grades[$problem->id]['passed_testcases'] == $problem_grades[$problem->id]['total_testcases']){
 				
 				if($problem->is_extra_credit){
 					$num_extra_correct_problems++;

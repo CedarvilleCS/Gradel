@@ -24,7 +24,7 @@
 			
 			{% if future_assigs|length == 0 %}
 			
-				<li> No upcoming assignments </li>
+				<h4 style="background: grey; color: white; padding: 5px">  No upcoming assignments </h4>
 			
 			{% else %}
 
@@ -79,7 +79,7 @@
               
 								{% for asgn in assignments %}
 									
-									{% if grades[user.id][asgn.id]['num_correct_problems'] == grades[user.id][asgn.id]['num_problems'] %}
+									{% if grades[user.id][asgn.id]['num_correct_problems'] > 0 and grades[user.id][asgn.id]['num_correct_problems'] == grades[user.id][asgn.id]['num_problems'] %}
 									
 										<td style="color:green; font-size: 25px">&#x2713; 
 										
@@ -148,7 +148,6 @@
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('styles.css') }}" />
-	<link rel="stylesheet" href="{{ asset('home.css') }}" />
 	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
 {% endblock %}
 

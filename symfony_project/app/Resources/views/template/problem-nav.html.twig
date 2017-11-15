@@ -6,7 +6,7 @@
 <nav class="nav-left">
 	<ol style="padding-bottom: 10px">
 		{% if is_granted("ROLE_ADMIN") or is_granted("ROLE_SUPER") %}
-		<a href="{{path('problem_new1', {"sectionId": section.id, 'assignmentId': assignment.id})}}" class="btn"><div class="btn btn-center">+ Problem</div></a>
+		<a href="{{path('problem_new', {"sectionId": section.id, 'assignmentId': assignment.id})}}" class="btn"><div class="btn btn-center">+ Problem</div></a>
 	{% endif %}
 		{# overview of when the assignment is due #}		
 		<li style="padding-top: 0px; padding-bottom: 30px"> {{problem.assignment.name}} 
@@ -14,41 +14,34 @@
 		</li>
 		
 		{# problem list #}
-		{% if problem.assignment.problems|length == 0 %}
-		
-			<li> There are no problems for this assignment </li>
+		{% for prob in problem.assignment.problems %}
+		  
+			{% if prob.id != problem.id or result_page%}
 			
-		{% else %}
-		
-		  {# loop through all of the problems #}		  
-		  {% for prob in problem.assignment.problems %}
-		  
-				{% if prob.id != problem.id or result_page%}
-				
-					<a href="{{path("assignment", {'sectionId': prob.assignment.section.id, 'assignmentId': prob.assignment.id, 'problemId': prob.id})}}">
-						<li>
-							{{ prob.name }}&nbsp;
-							{% if usersectionrole.role.role_name == 'Takes' %}
-								<br/><small>{{grades[prob.id]['passed_testcases']}}/{{grades[prob.id]['total_testcases']}} - {{(grades[prob.id]['percentage_adj']*100)|number_format(1,'.')}}%</small>
-							{% endif %}
-						</li>
-					</a>
-					
-				{% else %}
-				
-					<li style="background: #5a5a5a">
-							{{ prob.name }}&nbsp;
-							
-							{% if usersectionrole.role.role_name == 'Takes' %}
-								<br/><small>{{grades[prob.id]['passed_testcases']}}/{{grades[prob.id]['total_testcases']}} - {{(grades[prob.id]['percentage_adj']*100)|number_format(1,'.')}}%</small>
-							{% endif %}
+				<a href="{{path("assignment", {'sectionId': prob.assignment.section.id, 'assignmentId': prob.assignment.id, 'problemId': prob.id})}}">
+					<li>
+						{{ prob.name }}&nbsp;
+						{% if usersectionrole.role.role_name == 'Takes' %}
+							<br/><small>{{grades[prob.id]['passed_testcases']}}/{{grades[prob.id]['total_testcases']}} - {{(grades[prob.id]['percentage_adj']*100)|number_format(1,'.')}}%</small>
+						{% endif %}
 					</li>
+				</a>
 				
-				{% endif %}
+			{% else %}
+			
+				<li style="background: #5a5a5a">
+						{{ prob.name }}&nbsp;
+						
+						{% if usersectionrole.role.role_name == 'Takes' %}
+							<br/><small>{{grades[prob.id]['passed_testcases']}}/{{grades[prob.id]['total_testcases']}} - {{(grades[prob.id]['percentage_adj']*100)|number_format(1,'.')}}%</small>
+						{% endif %}
+				</li>
+			
+			{% endif %}
 				
-		  {% endfor %}
-		  
-	  {% endif %}
+		{% else %}
+			<li> There are no problems for this assignment </li>
+		{% endfor %}
 	  
 	</ol>
 </nav>

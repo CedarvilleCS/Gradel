@@ -1,9 +1,0 @@
-#main {
-    background-color: #71BA62;
-    width: calc(100% - 200px);
-    float: right;
-    height: calc(100% - 50px);
-    overflow: scroll;
-    margin-top: 50px;
-}
-

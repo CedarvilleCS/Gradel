@@ -62,19 +62,28 @@ class ProblemController extends Controller {
 	public function resultAction($submission_id) {
 		
 		$em = $this->getDoctrine()->getManager();
+		$grader = new Grader($em);
 		
 		$submission = $em->find("AppBundle\Entity\Submission", $submission_id);	
 		
-		if(!submission){
+		if(!$submission){
 			echo "SUBMISSION DOES NOT EXIST";
 			die();
 		}
 		
+		# get the user
 		$user = $this->get('security.token_storage')->getToken()->getUser();  	  
-		if(!get_class($user)){
+		if(!$user){
 			die("USER DOES NOT EXIST!");		  
 		}
 		
+		# make sure the user has permissions to view the submission result
+		if($user->hasRole("ROLE_SUPER") && !$grader->isTeaching($user, $submission->problem->assignment->section) && !$grader->isOnTeam($user, $submission->problem->assignment, $submission->team)){
+			echo "YOU ARE NOT ALLOWED TO VIEW THIS SUBMISSION";
+			die();
+		}
+		
+		# get all of the contents of the compiler and file
 		$compiler_output = stream_get_contents($submission->compiler_output);
 		$submission_file = stream_get_contents($submission->submitted_file);
 		
