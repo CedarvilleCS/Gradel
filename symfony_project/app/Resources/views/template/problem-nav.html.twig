@@ -5,7 +5,9 @@
 
 <nav class="nav-left">
 	<ol style="padding-bottom: 10px">
-		
+		{% if is_granted("ROLE_ADMIN") or is_granted("ROLE_SUPER") %}
+		<a href="{{path('problem_new', {"sectionId": section.id, 'assignmentId': assignment.id})}}" class="btn"><div class="btn btn-center">+ Problem</div></a>
+	{% endif %}
 		{# overview of when the assignment is due #}		
 		<li style="padding-top: 0px; padding-bottom: 30px"> {{problem.assignment.name}} 
 			<div><small>Due on {{problem.assignment.end_time|date('F d')}} {{problem.assignment.end_time|date('\\a\\t  h:i:s A')}} </small></div>

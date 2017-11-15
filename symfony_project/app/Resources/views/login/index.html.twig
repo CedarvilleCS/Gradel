@@ -16,10 +16,11 @@
 {% else %}
 	
 	<div class="card">
-	<img id="logo" title="You aren't logged in, and we want you to be." src="{{ asset('logo1.png') }}">
-	<br> <br> <br> <br>
 	<a href="{{ path('hwi_oauth_service_redirect', {'service': 'google' }) }}">
-        <button class="btn">login</button>
+	<img id="logo" title="You aren't logged in, and we want you to be." src="{{ asset('logo1.png') }}">
+	<br> <br>
+	<strong id="name"> Gradel </strong>
+        <button class="btn">lorgin</button>
     </a>
 	</div>
 
@@ -30,6 +31,7 @@
 
 {% block stylesheets %}
 	<link rel="stylesheet" href="{{ asset('login.css') }}" />
+	<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
 {% endblock %}
 
 
