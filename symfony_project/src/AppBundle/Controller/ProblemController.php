@@ -59,6 +59,31 @@ class ProblemController extends Controller {
       ]);
     }
 	
+	public function deleteAction($sectionId, $assignmentId, $problemId){
+		
+		$em = $this->getDoctrine()->getManager();
+
+		$problem = $em->find('AppBundle\Entity\Problem', $problemId);	  
+		if(!$problem){
+			die("PROBLEM DOES NOT EXIST");
+		}
+		
+		$user = $this->get('security.token_storage')->getToken()->getUser();
+		if(!$user){
+			die("USER DOES NOT EXIST");
+		}
+		
+		# validate the user
+		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN") && !$grader->isTeaching($user, $problem->assignment->section)){
+			die("YOU ARE NOT ALLOWED TO DELETE THIS ASSIGNMENT");			
+		}
+		
+		$em->remove($problem);
+		$em->flush();
+		
+		return $this->redirectToRoute('homepage');	
+	}
+	
 	public function resultAction($submission_id) {
 		
 		$em = $this->getDoctrine()->getManager();

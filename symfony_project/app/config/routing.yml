@@ -8,6 +8,8 @@ alt_homepage:
     defaults: { _controller: AppBundle:Home:home} 
     
 # MAIN ROUTES
+
+# section routes
 section_delete:
   path: '/section/delete/{sectionId}'
   defaults: {_controller: AppBundle:Section:delete}
@@ -34,6 +36,7 @@ section_edit_query:
     _controller: AppBundle:Section:editQuery
 
 
+# assignment routes
 assignment_delete:
   path: '/section/{sectionId}/assignment/delete/{assignmentId}'
   defaults: {_controller: AppBundle:Assignment:delete}
@@ -60,6 +63,11 @@ assignment:
     _controller: AppBundle:Assignment:assignment
     problemId: 0
 
+
+    
+problem_delete:
+  path: '/section/{sectionId}/assignment/{assignmentId}/problem/delete/{problemId}'
+  defaults: {_controller: AppBundle:Problem:delete}
 
 problem_new:
   path: '/section/{sectionId}/assignment/{assignmentId}/new_problem'

@@ -13,6 +13,7 @@ use AppBundle\Utils\Grader;
 use \DateTime;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
+use Symfony\Bundle\FrameworkBundle\Routing\Router;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -192,6 +193,7 @@ class AssignmentController extends Controller {
 	
 	
 	public function deleteAction($sectionId, $assignmentId){
+	
 		
 		$em = $this->getDoctrine()->getManager();
 
@@ -213,7 +215,6 @@ class AssignmentController extends Controller {
 		
 		$em->remove($assignment);
 		$em->flush();
-		
 		return $this->redirectToRoute('homepage');
 	}
 }
