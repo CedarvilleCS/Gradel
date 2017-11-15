@@ -121,6 +121,10 @@
 	
 		function languageChange(){
 			
+			// FIXME: This only works for like a half second and then the page refreshes and nukes it.
+			// It comes from the controller now, just need to handle setting the language.
+			console.log('{{ fileType }}');
+
 			var filename = document.getElementById('fileToUpload').value;
 			var ext = filename.substr(filename.lastIndexOf('.') + 1);
 			var cls = filename.substr(filename.lastIndexOf('\\') + 1).replace("."+ext,"");

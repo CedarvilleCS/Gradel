@@ -86,26 +86,29 @@ class AssignmentController extends Controller {
 		$grader = new Grader($em);		
 		// If a file has been uploaded
 		if (file_get_contents($_FILES["fileToUpload"]["tmp_name"], $target_file)) {
-			$fileContents = file_get_contents($_FILES["fileToUpload"]["tmp_name"], $target_file);
 
-				$total_attempts = $problem_entity->gradingmethod->total_attempts;
+			// Get the file contents and extension
+			$fileContents = file_get_contents($_FILES["fileToUpload"]["tmp_name"], $target_file);
+			$fileType = end(explode(".", basename($_FILES["fileToUpload"]["name"])));
+
+			$total_attempts = $problem_entity->gradingmethod->total_attempts;
+			
+			if($total_attempts == 0){
+				$attempts_remaining = -1;
+			} else {
+				$attempts_remaining = max($total_attempts - $grader->getNumTotalAttempts($user, $problem_entity), 0);
+			}
 				
-				if($total_attempts == 0){
-					$attempts_remaining = -1;
-				} else {
-					$attempts_remaining = max($total_attempts - $grader->getNumTotalAttempts($user, $problem_entity), 0);
-				}
-					
-				# get the usersectionrole
-				$qb_accsub = $em->createQueryBuilder();
-				$qb_accsub->select('s')
-					->from('AppBundle\Entity\Submission', 's')
-					->where('s.team = ?1')
-					->andWhere('s.is_accepted = true')
-					->setParameter(1, $grader->getTeam($user, $assignment_entity));
-					
-				$sub_query = $qb_accsub->getQuery();
-				$best_submission = $sub_query->getOneOrNullResult();	
+			# get the usersectionrole
+			$qb_accsub = $em->createQueryBuilder();
+			$qb_accsub->select('s')
+				->from('AppBundle\Entity\Submission', 's')
+				->where('s.team = ?1')
+				->andWhere('s.is_accepted = true')
+				->setParameter(1, $grader->getTeam($user, $assignment_entity));
+				
+			$sub_query = $qb_accsub->getQuery();
+			$best_submission = $sub_query->getOneOrNullResult();	
 			
 
 			return $this->render('assignment/index.html.twig', [
@@ -124,6 +127,7 @@ class AssignmentController extends Controller {
 				'ace_modes' => $ace_modes,
 				'filetypes' => $filetypes,
 				"fileContents" => base64_encode($fileContents),
+				"fileType" => $fileType,
 			]);
 		}
 
@@ -142,7 +146,6 @@ class AssignmentController extends Controller {
 					'default_code' => $default_code,
 					'ace_modes' => $ace_modes,
 					'filetypes' => $filetypes,
-					"fileContents" => $fileContents,
 				]);
 
 	}
