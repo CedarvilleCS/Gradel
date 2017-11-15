@@ -10,19 +10,29 @@
     {{ include('template/top-nav.html.twig') }}
 
     <section id="course-container">
-      
     </section>
 
     {# Left Nav #}
     <nav class="nav-left">
+	
+		{% if is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") %}
+			<a href="{{path('assignment_delete', {'sectionId': assignment.section.id, 'assignmentId': assignment.id})}}" class="btn-delete">
+				- Delete
+			</a>
+		{% endif %}
+	
+	
         <a id="insert" class="btn"><div class="btn btn-center" href="">Save</div></a>
-        <br/>
-        <a href="{{path('problem_new', {'sectionId': sectionId, 'assignmentId': assignmentId})}}" class="btn"><div class="btn btn-center">+ Problem</div></a>
-        <ol>
-					{% for assignment in assignments %}
-						<h1>{{assignment.name}}
-					{% endfor %}
-        </ol>
+		<br/>
+		
+		<ol>		
+		{% for problem in assignment.problems %}
+			<li>{{problem.name}}</li>
+		{% else %}
+			<li> No problems in this assignment </li>
+		{% endfor %}		
+		</ol>
+		
     </nav>
 
     {# Main section #}
@@ -62,7 +72,6 @@
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('styles.css') }}" />
-    <link rel="stylesheet" href="{{ asset('home.css') }}" />
     <link rel="stylesheet" href="{{ asset('jquery.scrollbar.css') }}" />
 {% endblock %}
 
@@ -97,9 +106,9 @@
 
 				var path = "{{path('assignment_edit_query', { 'sectionId': 'sectionId', 'assignmentId': 'assignmentId', 'name': 'name', 'description': 'description'})}}";
 				path = path.replace("name", name);
-        path = path.replace("description", description)
-				path = path.replace("sectionId", {{sectionId}});
-        path = path.replace("assignmentId", {{assignment.id}});
+				path = path.replace("description", description)
+				path = path.replace("sectionId", {{assignment.section.id}});
+				path = path.replace("assignmentId", {{assignment.id}});
 				window.location.replace(path);
 			}
 

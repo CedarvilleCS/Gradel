@@ -6,6 +6,18 @@ html, body {
     font-family: sans-serif;
 }
 
+#main {
+    background-color: #71BA62;
+    width: calc(100% - 200px);
+    float: right;
+    height: calc(100% - 50px);
+    overflow-y: scroll;
+	overflow-x: hidden;
+    margin-top: 50px;
+}
+
+
+
 .nav-path {
     width: 90%;
     margin: auto;
@@ -40,7 +52,6 @@ strong, b{
 .btn {
     text-decoration: none;
     margin-top: 10px;
-    width: 100px;
     height: 30px;
     background-color: #71BA62;
     color: white;
@@ -107,6 +118,22 @@ a.preview {
     color: white;
 }
 
+.topnav .navbuttons {
+    float: right;
+ 	height: 100%;
+}
+
+.topnav #logo {
+    float: left;
+ 	height: 93%;
+ 	padding: 2px 3px;
+}
+ 
+.topnav #logo:hover {
+ 	background-color: inherit;
+ 	color: black;	
+}
+
 nav.nav-left {
     float: left;
     position: fixed;
@@ -114,10 +141,10 @@ nav.nav-left {
     border-right: 1px solid grey;
     background-color: grey;
     color: black;
-    height: 100vh;
+    height: calc(100vh - 50px);
     width: 200px;
     margin-top: 50px;
-    padding-top: 10px;
+	padding-top: 10px;
 
     -webkit-box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
     -moz-box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
@@ -170,6 +197,10 @@ nav.nav-left > ol > a > li:hover {
 	text-decoration: none;	
 }
 
+#past_sections_button:hover {
+	cursor: pointer;
+}
+
 .card {
     background-color: white;
     width: 90%;
@@ -192,6 +223,28 @@ nav.nav-left > ol > a > li:hover {
     /* float: right; */
     padding-bottom: 10px;
     border-bottom: 1px dotted #8DC26F;
+}
+
+.btn-delete{
+	position: absolute;
+	bottom: 30px;
+	left:5%;
+	width: 90%;
+	text-decoration: none;
+	color: white;
+	
+	margin:auto;
+    margin-top: 10px;
+    height: 30px;
+    background-color: #ff8b7f;
+    border: none;
+    text-align: center;
+	
+	padding-top: 12px;	
+}
+
+.btn-delete:hover{
+	background-color: #FF5A49;
 }
 
 /* i { 

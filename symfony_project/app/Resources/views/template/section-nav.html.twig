@@ -1,6 +1,6 @@
-{% if usersectionroles is defined and grades is defined %}
+{% if usersectionroles is defined and grades is defined and sections_taking is defined and sections_teaching is defined%}
 
-{# Left Nav #}
+{# Left Nav For the Section List (On the homepage) #}
 <nav class="nav-left">
 	
 	{% if is_granted("ROLE_SUPER") %}
@@ -21,28 +21,31 @@
 		</ol>			
 	
 	{% else %}
+	
+		{# list of all the sections being taken #}
 		<ol style="padding-bottom: 10px">
-			{% for usr in usersectionroles %}	
+			{% if sections_taking|length > 0 and sections_teaching|length > 0%} <li style="margin: 0px; padding-bottom: 5px"> TAKING: </li> {% endif %}
+			{% for section in sections_taking %}	
 			
-				<a href="{{path('section', {'sectionId':usr.section.id})}}">
+				<a href="{{path('section', {'sectionId':section.id})}}">
 					<li>
-						<span class="preview">{{usr.section.course.name}}
+						<span class="preview">{{section.course.name}}
 						
 							<small>
-							<br/>{{usr.section.name}}
+							<br/>{{section.name}}
 							
-							{% if grades[usr.section.id]['percentage_adj'] >= 0 and usr.role.role_name == 'Takes' %}
+							{% if grades[section.id]['percentage_adj'] >= 0 %}
 							
-								<br/>{{(grades[usr.section.id]['percentage_adj']*100)|number_format(1, '.') ~ '%'}}
+								<br/>{{(grades[section.id]['percentage_adj']*100)|number_format(1, '.') ~ '%'}}
 								
 							{% endif %}
 							
 							</small>
 						</span>	
 					
-					{% if usr.role.role_name == 'Teaches' or is_granted("ROLE_SUPER") %}
+					{% if is_granted("ROLE_SUPER") %}
 						<object>
-							<a title="Edit {{usr.section.name}}" id="edit-icon" href="{{path('section_edit', {'sectionId': usr.section.id})}}">
+							<a title="Edit {{section.name}}" id="edit-icon" href="{{path('section_edit', {'sectionId': section.id})}}">
 								<svg xmlns="http://www.w3.org/2000/svg" fill="#ffffff" height="15" viewBox="0 0 24 24" width="15">
 									<path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
 									<path d="M0 0h24v24H0z"  fill="none"/>
@@ -55,12 +58,87 @@
 				</a>	
 			{% endfor %}
 		</ol>
+		
+		
+		{# list of all the sections being taught #}
+		<ol style="padding-bottom: 10px">
+			{% if sections_taking|length > 0 and sections_teaching|length > 0 %} <li style="margin: 0px; padding-bottom: 5px"> TEACHING: </li> {% endif %}
+			{% for section in sections_teaching %}	
+			
+				<a href="{{path('section', {'sectionId':section.id})}}">
+					<li>
+						<span class="preview">{{section.course.name}}
+						
+							<small>
+							<br/>{{section.name}}
+							</small>
+						</span>	
+					
+						<object>
+							<a title="Edit {{section.name}}" id="edit-icon" href="{{path('section_edit', {'sectionId': section.id})}}">
+								<svg xmlns="http://www.w3.org/2000/svg" fill="#ffffff" height="15" viewBox="0 0 24 24" width="15">
+									<path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+									<path d="M0 0h24v24H0z"  fill="none"/>
+								</svg>
+							</a>							
+						</object>					
+					</li>
+				</a>	
+			{% endfor %}
+		</ol>
 	
 	{% endif %}
 	
-	<a href="" class="btn">
-		<div class="btn btn-center">&#9660; Load Past Sections </div>
-	</a>
+	<div class="btn btn-center" id="past_sections_button">&#9660; Load Past Sections </div>
+	
+	{# list of all the sections being taught #}
+	<ol id="past_list" style="padding-bottom: 10px; display: none">
+		{% if sections_taking|length > 0 and sections_teaching|length > 0 %} <li style="margin: 0px; padding-bottom: 5px"> TEACHING: </li> {% endif %}
+		{% for section in sections_teaching %}	
+		
+			<a href="{{path('section', {'sectionId':section.id})}}">
+				<li>
+					<span class="preview">{{section.course.name}}
+					
+						<small>
+						<br/>{{section.name}}
+						</small>
+					</span>					
+				</li>
+			</a>	
+		{% endfor %}
+	</ol>
+	
 </nav>
+
+<script>
+	
+	document.addEventListener("DOMContentLoaded", function(event) {
+		var past_hidden = true;
+		var past_sections_button = document.getElementById('past_sections_button');
+		past_sections_button.addEventListener("click", togglePastSections);
+		var past_list = document.getElementById('past_list');
+		
+		
+		
+		function togglePastSections(){
+			
+			if(past_hidden){
+			
+				past_sections_button.innerHTML = "&#9650; Hide Past Sections ";
+				past_list.style.display = "block";		
+			} else {		
+			
+				past_sections_button.innerHTML = "&#9660; Load Past Sections ";
+				past_list.style.display = "none";	
+			}
+			
+			past_hidden = !past_hidden;
+			
+		}
+	});
+
+</script>
+
 
 {% endif %}

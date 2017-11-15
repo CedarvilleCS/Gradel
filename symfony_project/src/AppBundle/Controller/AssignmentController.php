@@ -44,7 +44,7 @@ class AssignmentController extends Controller {
 		
 			$problem_entity = $em->find("AppBundle\Entity\Problem", $problemId);
 			
-			if(!problem_entity){
+			if(!$problem_entity || $problem_entity->assignment != $assignment_entity){
 				die("PROBLEM DOES NOT EXIST");
 			}
 
@@ -83,11 +83,26 @@ class AssignmentController extends Controller {
 			}
 		}
 		
-		$grader = new Grader($em);
+		$grader = new Grader($em);		
 		
-		$grades = $grader->getAllProblemGrades($user, $assignment_entity);
-		#die();
+		$total_attempts = $problem_entity->gradingmethod->total_attempts;
+		
+		if($total_attempts == 0){
+			$attempts_remaining = -1;
+		} else {
+			$attempts_remaining = max($total_attempts - $grader->getNumTotalAttempts($user, $problem_entity), 0);
+		}
 			
+		# get the usersectionrole
+		$qb_accsub = $em->createQueryBuilder();
+		$qb_accsub->select('s')
+			->from('AppBundle\Entity\Submission', 's')
+			->where('s.team = ?1')
+			->andWhere('s.is_accepted = true')
+			->setParameter(1, $grader->getTeam($user, $assignment_entity));
+			
+		$sub_query = $qb_accsub->getQuery();
+		$best_submission = $sub_query->getOneOrNullResult();	
 			
 		return $this->render('assignment/index.html.twig', [
 			'user' => $user,
@@ -98,8 +113,10 @@ class AssignmentController extends Controller {
 			'problemDescription' => $currentProblemDescription,
 			'languages' => $languages,
 			'usersectionrole' => $usersectionrole,
-			//'grades' => $grades,
 			'grader' => new Grader($em),
+			
+			'attempts_remaining' => $attempts_remaining,
+			'best_submission' => $best_submission,
 			
 			'default_code' => $default_code,
 			'ace_modes' => $ace_modes,
@@ -146,8 +163,6 @@ class AssignmentController extends Controller {
       $assignment = $em->find('AppBundle\Entity\Assignment', $assignmentId);
 
       return $this->render('assignment/edit.html.twig', [
-        "sectionId" => $sectionId,
-        "assignmentId" => $assignmentId,
         "assignment" => $assignment,
         "description" => stream_get_contents($assignment->description),
       ]);
@@ -174,6 +189,33 @@ class AssignmentController extends Controller {
 
       return new RedirectResponse($this->generateUrl('assignment', array('sectionId' => $sectionId, 'assignmentId' => $assignment->id)));
     }
+	
+	
+	public function deleteAction($sectionId, $assignmentId){
+		
+		$em = $this->getDoctrine()->getManager();
+
+		$assignment = $em->find('AppBundle\Entity\Assignment', $assignmentId);	  
+		if(!$assignment){
+			die("ASSIGNMENT DOES NOT EXIST");
+		}
+		
+		$user = $this->get('security.token_storage')->getToken()->getUser();
+		if(!$user){
+			die("USER DOES NOT EXIST");
+		}
+		
+		# validate the user
+		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN")){
+			die("YOU ARE NOT ALLOWED TO DELETE THIS ASSIGNMENT");
+			
+		}
+		
+		$em->remove($assignment);
+		$em->flush();
+		
+		return $this->redirectToRoute('homepage');
+	}
 }
 
 ?>
