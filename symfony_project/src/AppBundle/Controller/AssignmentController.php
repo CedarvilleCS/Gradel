@@ -124,26 +124,6 @@ class AssignmentController extends Controller {
 			]);
 		}
 
-		return $this->render('assignment/index.html.twig', [
-			'user' => $user,
-			'section' => $assignment_entity->section,
-			'assignment' => $assignment_entity,
-			'problem' => $problem_entity,
-			
-			'problemDescription' => $currentProblemDescription,
-			'languages' => $languages,
-			'usersectionrole' => $usersectionrole,
-			'grader' => new Grader($em),
-			
-			'attempts_remaining' => $attempts_remaining,
-			'best_submission' => $best_submission,
-			
-			'default_code' => $default_code,
-			'ace_modes' => $ace_modes,
-			'filetypes' => $filetypes,
-		]);
-    }
-
     public function newAction($sectionId) {
 	
       return $this->render('assignment/new.html.twig', [
@@ -151,28 +131,28 @@ class AssignmentController extends Controller {
     }
 
     public function insertAction($sectionId, $name, $description) {
-      $em = $this->getDoctrine()->getManager();
-      $user = $this->get('security.token_storage')->getToken()->getUser();
+		$em = $this->getDoctrine()->getManager();
+		$user = $this->get('security.token_storage')->getToken()->getUser();
 
-      $assignment = new Assignment();
-      $section = $em->find('AppBundle\Entity\Section', $sectionId);
+		$assignment = new Assignment();
+		$section = $em->find('AppBundle\Entity\Section', $sectionId);
 
-      $gradingmethod = $em->find('AppBundle\Entity\AssignmentGradingMethod', 1);
+		$gradingmethod = $em->find('AppBundle\Entity\AssignmentGradingMethod', 1);
 
-      $assignment->name = $name;
-      $assignment->description = $description;
-      $assignment->section = $section;
-      $assignment->start_time = new DateTime("now");
-      $assignment->end_time = new DateTime("2050-01-01");
-      $assignment->cutoff_time = new DateTime("2050-01-01");
-      $assignment->weight = 0;
-      $assignment->is_extra_credit = false;
-      $assignment->gradingmethod = $gradingmethod;
+		$assignment->name = $name;
+		$assignment->description = $description;
+		$assignment->section = $section;
+		$assignment->start_time = new DateTime("now");
+		$assignment->end_time = new DateTime("2050-01-01");
+		$assignment->cutoff_time = new DateTime("2050-01-01");
+		$assignment->weight = 0;
+		$assignment->is_extra_credit = false;
+		$assignment->gradingmethod = $gradingmethod;
 
-      $em->persist($assignment);
-      $em->flush();
+		$em->persist($assignment);
+		$em->flush();
 
-      return new RedirectResponse($this->generateUrl('assignment_edit', array('sectionId' => $sectionId, 'assignmentId' => $assignment->id)));
+		return new RedirectResponse($this->generateUrl('assignment_edit', array('sectionId' => $sectionId, 'assignmentId' => $assignment->id)));
 
     }
 
@@ -211,7 +191,7 @@ class AssignmentController extends Controller {
 	}
 
 	public function myuploadAction($sectionId, $assignmentId, $problemId) {
-		// echo("myuploadAction");
+		echo("myuploadAction");
 		if (file_get_contents($_FILES["fileToUpload"]["tmp_name"], $target_file)) {
 			$fileContents = file_get_contents($_FILES["fileToUpload"]["tmp_name"], $target_file);
 			// die($fileContents);
@@ -220,7 +200,7 @@ class AssignmentController extends Controller {
 			// 	editor.setValue("test");
 			// </script>');
 
-			// die($fileContents);
+			die($fileContents);
 		}
 
 
