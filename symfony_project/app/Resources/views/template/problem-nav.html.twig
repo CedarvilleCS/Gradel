@@ -4,41 +4,64 @@
 {% set grades = grader.getAllProblemGrades(app.user, problem.assignment) %}
 
 <nav class="nav-left">
-	<ol style="padding-bottom: 10px">
-		{% if is_granted("ROLE_ADMIN") or is_granted("ROLE_SUPER") %}
-		<a href="{{path('problem_new', {"sectionId": section.id, 'assignmentId': assignment.id})}}" class="btn"><div class="btn btn-center">+ Problem</div></a>
+
+	{% if is_granted("ROLE_ADMIN") or is_granted("ROLE_SUPER") %}
+		<a href="{{path('problem_new', {"sectionId": section.id, 'assignmentId': assignment.id})}}" class="btn">
+			<div class="btn btn-center">+ Problem</div>
+		</a>
+		<a href="{{path('assignment_delete', {'sectionId': section.id, 'assignmentId': assignment.id})}}" class="btn">
+			<div class="btn btn-delete btn-center">Delete Assignment</div>
+		</a>
 	{% endif %}
+	<ol style="padding-bottom: 10px">
+		
 		{# overview of when the assignment is due #}		
-		<li style="padding-top: 0px; padding-bottom: 30px"> {{problem.assignment.name}} 
+		<li style="padding-top: 0px;"> {{problem.assignment.name}} 
 			<div><small>Due on {{problem.assignment.end_time|date('F d')}} {{problem.assignment.end_time|date('\\a\\t  h:i:s A')}} </small></div>
 		</li>
 		
 		{# problem list #}
 		{% for prob in problem.assignment.problems %}
-		  
-			{% if prob.id != problem.id or result_page%}
+
+			{% if prob.id != problem.id or result_page %}
 			
 				<a href="{{path("assignment", {'sectionId': prob.assignment.section.id, 'assignmentId': prob.assignment.id, 'problemId': prob.id})}}">
-					<li>
+					<li class="sidebar" >
 						{{ prob.name }}&nbsp;
 						{% if usersectionrole.role.role_name == 'Takes' %}
 							<br/><small>{{grades[prob.id]['passed_testcases']}}/{{grades[prob.id]['total_testcases']}} - {{(grades[prob.id]['percentage_adj']*100)|number_format(1,'.')}}%</small>
 						{% endif %}
-					</li>
-				</a>
-				
+					
 			{% else %}
-			
-				<li style="background: #5a5a5a">
+				<li class="sidebar" style="background: #5a5a5a">
 						{{ prob.name }}&nbsp;
 						
 						{% if usersectionrole.role.role_name == 'Takes' %}
 							<br/><small>{{grades[prob.id]['passed_testcases']}}/{{grades[prob.id]['total_testcases']}} - {{(grades[prob.id]['percentage_adj']*100)|number_format(1,'.')}}%</small>
 						{% endif %}
-				</li>
-			
-			{% endif %}
 				
+			{% endif %}
+
+				{# display edit icon #}
+				{% if app.user in section_teachers or is_granted("ROLE_SUPER") %}
+					<object>
+						<a title="Delete assignment" href="{{path('assignment_delete', {'sectionId': assig.section.id, 'assignmentId': assig.id})}}">
+							<img class="small-icon" id="right-icon" src="{{ asset('trash.png') }}">
+						</a>
+					</object>
+					<object>
+						<a title="Edit Problem" href="{{path('assignment_edit', {'sectionId': assig.section.id, 'assignmentId': assig.id})}}">
+							<img class="small-icon" src="{{ asset('edit.png') }}">
+						</a>
+						
+					</object>
+				{% endif %}	
+				
+				</li>
+				{% if prob.id != problem.id or result_page %}
+					</a>
+				{% endif %}
+			
 		{% else %}
 			<li> There are no problems for this assignment </li>
 		{% endfor %}

@@ -16,8 +16,6 @@ html, body {
     margin-top: 50px;
 }
 
-
-
 .nav-path {
     width: 90%;
     margin: auto;
@@ -51,27 +49,52 @@ strong, b{
 
 .btn {
     text-decoration: none;
-    margin-top: 10px;
     height: 30px;
     background-color: #71BA62;
     color: white;
     border: none;
     text-align: center;
+	padding-top: 12px;
 }
 
-a#edit-icon {
+.btn-delete {
+    background-color: #FF3232;
+}
+
+.small-icon {
 	padding: 2 2 2 2;
 	float: right;
+	bottom: 7;
+    right: 23;
+    cursor: pointer;
+	height: 15; 
+	width: 15;
+	position: absolute;
 }
+
+#right-icon {
+	padding: 2 2 2 2;
+	float: right;
+    right: 5;
+	position: absolute;
+}
+
+
 
 a#edit-icon:hover {
 	
 }
 
+.sidebar{
+	display: inline-block;
+	width: 90%;
+	position: relative;
+}
+
 .btn-center {
     margin: auto;
     width: 90%;
-    padding-top: 12px;
+	margin-bottom: 10px;
 }
 
 .btn:hover {
@@ -225,7 +248,7 @@ nav.nav-left > ol > a > li:hover {
     border-bottom: 1px dotted #8DC26F;
 }
 
-.btn-delete{
+/*.btn-delete{
 	position: absolute;
 	bottom: 30px;
 	left:5%;
@@ -242,7 +265,7 @@ nav.nav-left > ol > a > li:hover {
 	
 	padding-top: 12px;	
 }
-
+*/
 .btn-delete:hover{
 	background-color: #FF5A49;
 }
@@ -340,6 +363,8 @@ select {
 table {
   width: 100%;
 }
+
+
 
 textarea {
   resize: none;
