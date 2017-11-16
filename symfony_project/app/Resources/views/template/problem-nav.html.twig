@@ -1,5 +1,4 @@
 {# make sure that the grader entity is define before doing all of this stuff #}
-{% if grader is defined and problem is defined and usersectionrole is defined%}
 
 {% set grades = grader.getAllProblemGrades(app.user, problem.assignment) %}
 
@@ -45,12 +44,12 @@
 				{# display edit icon #}
 				{% if app.user in section_teachers or is_granted("ROLE_SUPER") %}
 					<object>
-						<a title="Delete Problem" href="{{path('problem_delete', {'sectionId': prob.assignment.section.id, 'assignmentId': prob.assignment.id, 'problemId': prob.id})}}">
+						<a title="Delete assignment" href="{{path('assignment_delete', {'sectionId': assig.section.id, 'assignmentId': assig.id})}}">
 							<img class="small-icon" id="right-icon" src="{{ asset('trash.png') }}">
 						</a>
 					</object>
 					<object>
-						<a title="Edit Problem" href="{{path('problem_edit', {'sectionId': prob.assignment.section.id, 'assignmentId': prob.assignment.id, 'problemId': prob.id})}}">
+						<a title="Edit Problem" href="{{path('assignment_edit', {'sectionId': assig.section.id, 'assignmentId': assig.id})}}">
 							<img class="small-icon" src="{{ asset('edit.png') }}">
 						</a>
 						
@@ -68,6 +67,3 @@
 	  
 	</ol>
 </nav>
-
-
-{% endif %}

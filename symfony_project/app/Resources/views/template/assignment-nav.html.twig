@@ -1,12 +1,16 @@
 {# make sure that the grades is defined before doing all of this stuff #}
-{% if grades is defined and section is defined and assignments is defined and section_teachers is defined %}
 
 <nav class="nav-left">
 	{% if is_granted("ROLE_ADMIN") or is_granted("ROLE_SUPER") %}
 		<a href="{{path('assignment_new', {'sectionId': section.id})}}" class="btn">
 			<div class="btn btn-center">+ Assignment</div>
 		</a>
-		
+	{% endif %}
+	
+	{% if is_granted("ROLE_SUPER") %}
+		<a href="{{path('section_delete', {'sectionId': section.id})}}" class="btn">
+			<div class="btn btn-delete btn-center">Delete Section</div>
+		</a>
 	{% endif %}
 	
 	{# assignments list #}
@@ -52,5 +56,3 @@
 	</ol>
 	
 </nav>
-
-{% endif %}
