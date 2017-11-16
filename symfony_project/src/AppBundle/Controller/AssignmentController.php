@@ -190,11 +190,9 @@ class AssignmentController extends Controller {
 
       return new RedirectResponse($this->generateUrl('assignment', array('sectionId' => $sectionId, 'assignmentId' => $assignment->id)));
     }
-	
-	
+		
 	public function deleteAction($sectionId, $assignmentId){
 	
-		
 		$em = $this->getDoctrine()->getManager();
 
 		$assignment = $em->find('AppBundle\Entity\Assignment', $assignmentId);	  
@@ -208,14 +206,14 @@ class AssignmentController extends Controller {
 		}
 		
 		# validate the user
-		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN")){
-			die("YOU ARE NOT ALLOWED TO DELETE THIS ASSIGNMENT");
-			
+		$grader = new Grader($em);
+		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN") && !$grader->isTeaching($user, $assignment->section)){
+			die("YOU ARE NOT ALLOWED TO DELETE THIS ASSIGNMENT");			
 		}
 		
 		$em->remove($assignment);
 		$em->flush();
-		return $this->redirectToRoute('homepage');
+		return $this->redirectToRoute('section', ['sectionId' => $assignment->section->id]);
 	}
 }
 

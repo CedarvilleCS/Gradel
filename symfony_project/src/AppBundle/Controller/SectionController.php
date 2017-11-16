@@ -198,7 +198,6 @@ class SectionController extends Controller {
 		
 		$section->is_deleted = true;
 		$em->flush();
-		
 		return $this->redirectToRoute('homepage');
 	}
 
@@ -253,11 +252,9 @@ class SectionController extends Controller {
 		$em = $this->getDoctrine()->getManager();
 
 		$section = $em->find('AppBundle\Entity\Section', $sectionId);
-		$course = $em->find('AppBundle\Entity\Course', $courseId);
 		
 		$user = $this->get('security.token_storage')->getToken()->getUser();
-
-		if(!get_class($user)){
+		if(!$user){
 			die("USER DOES NOT EXIST");
 		}
 		
@@ -269,9 +266,13 @@ class SectionController extends Controller {
 		if(!$section && $sectionId != 0){
 			die("SECTION DOES NOT EXIST!");
 		} 
+		# create a new section if the sectionId = 0
 		else if($sectionId == 0){				
-			$section = new Section();		}
+			$section = new Section();
+		}
 		
+		# get the course
+		$course = $em->find('AppBundle\Entity\Course', $courseId);
 		if(!$course){
 			die("COURSE DOES NOT EXIST!");
 		}
@@ -326,16 +327,132 @@ class SectionController extends Controller {
 			}
 		}
 
-		return new RedirectResponse($this->generateUrl('section', array('sectionId' => $section->id)));
+		return $this->redirectToRoute('section', ['sectionId' => $section->id]);
     }
 
     public function insertSectionAction(Request $request, $courseId, $name, $students, $semester, $year, $start_time, $end_time, $is_public, $is_deleted) {
-
 		$sectionId = 0;	
 		return $this->editQueryAction($request, $sectionId, $courseId, $name, $students, $semester, $year, $start_time, $end_time, $is_public, $is_deleted);
     }
 
-    private function generateDateTime($year, $date) {
-      // TODO: create string based on start and end times for the fields in doctrine entity
-    }
+	
+	public function newSectionPostAction(Request $request){
+				
+		$em = $this->getDoctrine()->getManager();
+		
+		# validate the current user
+		$user = $this->get('security.token_storage')->getToken()->getUser();
+		if(!$user){			
+			return $this->returnForbiddenResponse("You are not a user.");
+		}
+		
+		# only super users and admins can make a section
+		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN")){			
+			return $this->returnForbiddenResponse("You do not have permission to make a section.");
+		}
+		
+		# see which fields were included
+		$postData = $request->request->all();
+		
+		# check mandatory fields
+		if(!$postData['name'] || !$postData['course'] || !$postData['semester'] || !$postData['year']){
+			return $this->returnForbiddenResponse("Not every required field is provided.");
+		} else {
+			
+			# validate the year
+			if(!is_numeric($postData['year'])){
+				return $this->returnForbiddenResponse($postData['year']." is not a valid year");
+			}
+
+			# validate the semester
+			if($postData['semester'] != 'Fall' && $postData['semester'] != 'Spring' && $postData['semester'] != 'Summer'){
+				return $this->returnForbiddenResponse($postData['semester']." is not a valid semester");
+			}
+		}
+		
+		# create new section
+		$section = new Section();
+		
+		# get the course
+		$course = $em->find('AppBundle\Entity\Course', $postData['course']);
+		if(!$course){
+			return $this->returnForbiddenResponse("Course provided does not exist.");
+		}
+		
+		# set the necessary fields
+		$section->name = $postData['name'];
+		$section->course = $course;
+		$section->semester = $postData['semester'];
+		$section->year = $postData['year'];
+		
+		# see if the dates were provided or if we will do them automatically
+		$dates = $this->getDateTime($postData['semester'], $postData['year']);
+		if($postData['start_time']){
+			$section->start_time =  new DateTime("now");
+		} else {
+			$section->start_time = $dates[0];
+		}
+		
+		if(!$postData['end_time']){
+			$section->end_time = new DateTime("now");
+		} else {
+			$section->end_time = $dates[1];
+		}	
+		
+		# default these to false
+		$section->is_deleted = false;
+		$section->is_public = false;
+
+		$em->persist($section);
+
+		# set the teacher to the person who made the section
+		$role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Teaches'));
+		
+		$usr = new UserSectionRole($user, $section, $role);
+		$em->persist($usr);			
+				
+		# add the students if there were any
+		$role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));
+		foreach (json_decode($postData['students']) as $student) {
+
+			if ($student != "") {
+				$user = $em->getRepository('AppBundle\Entity\User')->findOneBy(array('email' => $student));
+
+				$usr = new UserSectionRole($user, $section, $role);
+				$em->persist($usr);
+			}
+		}
+		
+		$em->flush();		
+		
+		# redirect to the section page
+		$url = $this->generateUrl('section', ['sectionId' => $section->id]);		
+		
+		$response = new Response(json_encode(array('redirect_url' => $url, 'date' => $dates)));
+		$response->headers->set('Content-Type', 'application/json');
+		$response->setStatusCode(Response::HTTP_OK);
+		
+		return $response;
+	}
+	
+	private function getDateTime($semester, $year){
+		
+		if($semester == 'Fall'){
+			return [DateTime::createFromFormat("m/d/Y H:i:s", "08/01/".$year." 00:00:00"), 
+					DateTime::createFromFormat("m/d/Y H:i:s", "12/31/".$year." 23:59:59")];
+		} else if($semester == 'Spring'){
+			return [DateTime::createFromFormat("m/d/Y H:i:s", "01/01/".$year." 00:00:00"), 
+					DateTime::createFromFormat("m/d/Y H:i:s", "05/31/".$year." 23:59:59")];			
+		} else {
+			return [DateTime::createFromFormat("m/d/Y H:i:s", "05/01/".$year." 00:00:00"), 
+					DateTime::createFromFormat("m/d/Y H:i:s", "08/31/".$year." 23:59:59")];			
+		}
+		
+	}
+		
+	private function returnForbiddenResponse($message){		
+		$response = new Response($message);
+		$response->setStatusCode(Response::HTTP_FORBIDDEN);
+		return $response;
+	}
 }
