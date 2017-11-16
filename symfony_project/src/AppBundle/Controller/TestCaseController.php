@@ -44,12 +44,12 @@ class TestCaseController extends Controller {
       $input = $post_data['input'];
       $output = $post_data['output'];
       $weight = $post_data['weight'];
-      $short_feedback = $post_data['short_feedback'];
-      $long_feedback = $post_data['long_feedback'];
+      $short_feedback = $post_data['short_response'];
+      $long_feedback = $post_data['long_response'];
 
       $feedback = new Feedback();
-      $feedback->short_response = $short_response;
-      $feedback->long_response = $long_response;
+      $feedback->short_response = $short_feedback;
+      $feedback->long_response = $long_feedback;
 
       $em->persist($feedback);
       $em->flush();
@@ -60,7 +60,7 @@ class TestCaseController extends Controller {
       $testcase->feedback = $feedback;
   	  $testcase->seq_num = 0; // Not yet being used
   	  $testcase->input = $input;
-  	  $testcase->output = $output;
+  	  $testcase->correct_output = $output;
   	  $testcase->weight = $weight;
       //
       $em->persist($testcase);

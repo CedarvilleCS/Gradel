@@ -12,7 +12,7 @@
 
     {# Left Nav #}
     <nav class="nav-left">
-        <div class="btn" href=""><div onclick="newProb()" class="btn btn-center">Save</div></div>
+        <div onclick="newProb()" class="btn btn-center">Save</div>
     </nav>
 
     {# Main section #}
@@ -159,18 +159,19 @@
 
 
 		async function insertTestCase(divname, problemId) {
-				const chris = document.getElementById(divname);
-				console.log(divname);
 
 				const input = $("#"+divname).find("#"+"input").val();
 				const output = $("#"+divname).find("#" + "output").val();
-				const fb = $("#"+divname).find("#"+"feedback").val();
+				const short_fb = $("#"+divname).find("#"+"short_feedback").val();
+        const long_fb = $('#'+divname).find("#" + "long_feedback").val();
         const weight = $('#' + divname).find("#" + "weight").val();
 				var path = "{{path('testcase_insert')}}";
+        console.log("problemID", problemId);
 
         $.post(path, {
-          "problemId": {{problemId}},
-          "feedback": fb,
+          "problemId": problemId,
+          "short_response": short_fb,
+          "long_response": long_fb,
           "output": output,
           "input": input,
           "weight": weight,
@@ -192,17 +193,14 @@
       path = path.replace("description", description);
       path = path.replace("weight", weight);
       path = path.replace("time_limit", timeLimit);
-      console.log(path);
-      const problemId = -1;
+      var problemId = -1;
       await $.post(path, {}, (data) => {
-        console.log("I made this thing");
         console.log(data);
+        problemId = data.problemId;
       }, "json");
       var tcs = document.getElementsByClassName("test-case");
-      console.log(tcs);
 
       for (testcase of tcs) {
-        console.log("TEST");
         await insertTestCase(testcase.id, problemId);
       }
 
