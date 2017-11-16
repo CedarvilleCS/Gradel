@@ -47,7 +47,7 @@
 							{# ACE editor and file upload#}
 							<form action="{{path('assignment', {'sectionId' : section.id, 'assignmentId' : assignment.id, 'problemId' : problem.id}) }}" method="post" enctype="multipart/form-data">
 								<input type="file" onchange="determineLanguage(); this.form.submit();" name="fileToUpload" id="fileToUpload" value="Upload File">
-								<br><br>
+								
 							</form>
 						
 							{# Language selection and hidden field to submit ACE contents #}
@@ -64,8 +64,7 @@
 								<br>
 								<div id="mainClassInput" style="display:none"><label for="main_class">Main Class: </label><input type="text" name="main_class" id="main_class_input"></div>
 								<div id="packgNameInput" style="display:none"><label for="package_name">Package Name: </label><input type="text" name="package_name" id="package_name_input"></div>
-								
-								<br><br>
+								<br/>
 								<input type="hidden" name="ACE" id="ACE">
 								<input type="submit" value="Submit Solution" name="btn-submit" onclick="saveACE();">
 							</form>
@@ -142,7 +141,7 @@
 			// This sets the default code for the selected language. add an if statement to put the code from the uploaded file here if it exists?
 			editor.setValue(default_code[language], -1);
 			if('{{fileContents}}' != "") {
-				$("#ACE").val(editor.setValue(atob('{{fileContents}}')));
+				$("#ACE").val(editor.setValue(atob('{{fileContents}}'), -1));
 			}
 		
 		}	
@@ -164,12 +163,12 @@
 	
 	<script>
 
-			if('{{ fileType }}' != null || document.getElementById('fileToUpload').value != null) {
-				determineLanguage();
-			}
+		if('{{ fileType }}' != null || document.getElementById('fileToUpload').value != null) {
+			determineLanguage();
+		}
 
 		function determineLanguage(){
-		
+	
 			var filetypes = JSON.parse('{{ filetypes|json_encode|raw }}');
 		
 			if (' {{ fileType }} ' != null) {
