@@ -119,13 +119,14 @@
 		
 		languageChange();
 	
-		function languageChange(){
-			
-			// FIXME: This only works for like a half second and then the page refreshes and nukes it.
-			// It comes from the controller now, just need to handle setting the language.
-			console.log('{{ fileType }}');
+		function languageChange() {
 
-			var filename = document.getElementById('fileToUpload').value;
+			if (' {{ fileType }} ' != null) {
+				var filename = '{{ fileType }}';
+			} else {
+				var filename = document.getElementById('fileToUpload').value;
+			}
+			
 			var ext = filename.substr(filename.lastIndexOf('.') + 1);
 			var cls = filename.substr(filename.lastIndexOf('\\') + 1).replace("."+ext,"");
 			
@@ -143,7 +144,6 @@
 			if('{{fileContents}}' != "") {
 				$("#ACE").val(editor.setValue(atob('{{fileContents}}')));
 			}
-
 		
 		}	
 	
@@ -163,19 +163,24 @@
 	</script>
 	
 	<script>
+
+			if('{{ fileType }}' != null || document.getElementById('fileToUpload').value != null) {
+				determineLanguage();
+			}
+
 		function determineLanguage(){
 		
 			var filetypes = JSON.parse('{{ filetypes|json_encode|raw }}');
 		
-			var filename = document.getElementById('fileToUpload').value;
-			
-			console.log(filename);
+			if (' {{ fileType }} ' != null) {
+				var filename = '{{ fileType }}';
+				console.log("filename was passed");
+			} else {
+				var filename = document.getElementById('fileToUpload').value;
+			}
 		
 			var ext = filename.substr(filename.lastIndexOf('.') + 1);
 			var cls = filename.substr(filename.lastIndexOf('\\') + 1).replace("."+ext,"");
-			
-			//console.log(ext);
-			//console.log(cls);
 
 			var selectObject = document.getElementById('languageSelect');
 				

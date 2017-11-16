@@ -89,7 +89,8 @@ class AssignmentController extends Controller {
 
 			// Get the file contents and extension
 			$fileContents = file_get_contents($_FILES["fileToUpload"]["tmp_name"], $target_file);
-			$fileType = end(explode(".", basename($_FILES["fileToUpload"]["name"])));
+			// $fileType = end(explode(".", basename($_FILES["fileToUpload"]["name"])));
+			$fileType = basename($_FILES["fileToUpload"]["name"]);
 
 			$total_attempts = $problem_entity->gradingmethod->total_attempts;
 			
