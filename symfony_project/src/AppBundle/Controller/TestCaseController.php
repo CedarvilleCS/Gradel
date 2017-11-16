@@ -10,6 +10,8 @@ use AppBundle\Entity\Submission;
 use AppBundle\Entity\Problem;
 use AppBundle\Entity\ProblemLanguage;
 use AppBundle\Entity\UserSectionRole;
+use AppBundle\Entity\Feedback;
+use AppBundle\Entity\Testcase;
 
 use AppBundle\Utils\Grader;
 
@@ -17,51 +19,64 @@ use Psr\Log\LoggerInterface;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 
 class TestCaseController extends Controller {
 
-   
+
     public function newAction($sectionId, $assignmentId) {
-		
+
       return $this->render('problem/new.html.twig', [
         'sectionId' => $sectionId,
         'assignmentId' => $assignmentId,
       ]);
     }
 
-	public function insertAction($sectionId, $assignmentId, $problem_id, $feedback_id, $seq_num, $input, $correct_output, $weight) {
-		echo json_decode("yo");
-		die();
+	public function insertAction(Request $request) {
+    echo json_decode("hi");
       $em = $this->getDoctrine()->getManager();
       $user = $this->get('security.token_storage')->getToken()->getUser();
+      $post_data = $request->request->all();
 
-      $testcase = new TestCase();
-      $section = $em->find('AppBundle\Entity\Section', $sectionId);
+      $problem = $em->find("AppBundle\Entity\Problem", $post_data['problemId']);
 
-      $gradingmethod = $em->find('AppBundle\Entity\AssignmentGradingMethod', 1);
+      $input = $post_data['input'];
+      $output = $post_data['output'];
+      $weight = $post_data['weight'];
+      $short_feedback = $post_data['short_feedback'];
+      $long_feedback = $post_data['long_feedback'];
 
-      $testcase->problem_id = $problem_id;
-      $testcase->feedback_id = $feedback_id;
-	  $testcase->seq_num = $seq_num;
-	  $testcase->input = $input;
-	  $testcase->correct_output = $correct_output;
-	  $testcase->weight = $weight;
+      $feedback = new Feedback();
+      $feedback->short_response = $short_response;
+      $feedback->long_response = $long_response;
 
+      $em->persist($feedback);
+      $em->flush();
+
+      $testcase = new Testcase();
+
+      $testcase->problem = $problem;
+      $testcase->feedback = $feedback;
+  	  $testcase->seq_num = 0; // Not yet being used
+  	  $testcase->input = $input;
+  	  $testcase->output = $output;
+  	  $testcase->weight = $weight;
+      //
       $em->persist($testcase);
       $em->flush();
 
-      return new RedirectResponse($this->generateUrl('testcase', array('sectionId' => $sectionId, 'assignmentId' => $assignment->id)));
+      return new JsonResponse(array("input" => $input));
     }
-	
+
     public function editAction() {
 
       return $this->render('problem/edit.html.twig', [
 
       ]);
     }
-	
-	
+
+
 }
 
 ?>

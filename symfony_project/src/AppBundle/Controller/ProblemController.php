@@ -17,75 +17,76 @@ use Psr\Log\LoggerInterface;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 
 class ProblemController extends Controller {
 
-   
+
     public function newAction($sectionId, $assignmentId) {
-		
+
       return $this->render('problem/new.html.twig', [
         'sectionId' => $sectionId,
         'assignmentId' => $assignmentId,
       ]);
     }
 
-	public function insertAction($problem_id, $feedback_id, $seq_num, $input, $correct_output, $weight) {
+	public function insertAction($assignmentId, $name, $description, $weight, $time_limit) {
       $em = $this->getDoctrine()->getManager();
       $user = $this->get('security.token_storage')->getToken()->getUser();
 
-      $assignment = new Problem();
-      $section = $em->find('AppBundle\Entity\Section', $sectionId);
+      $assignment = $em->find("AppBundle\Entity\Assignment", $assignmentId);
+      $problemGradingMethod = $em->find("AppBundle\Entity\ProblemGradingMethod", 1);
 
-      $gradingmethod = $em->find('AppBundle\Entity\AssignmentGradingMethod', 1);
+      $problem = new Problem();
+      $problem->assignment = $assignment;
+      $problem->gradingmethod = $problemGradingMethod;
+      $problem->name = $name;
+      $problem->description = $description;
+      $problem->weight = $weight;
+      $problem->is_extra_credit = false;
+      $problem->time_limit = $time_limit;
 
-      $testcase->problem_id = $problem_id;
-      $testcase->feedback_id = $feedback_id;
-	  $testcase->seq_num = $seq_num;
-	  $testcase->input = $input;
-	  $testcase->correct_output = $correct_output;
-	  $testcase->weight = $weight;
-
-      $em->persist($testcase);
+      $em->persist($problem);
       $em->flush();
 
-      return new RedirectResponse($this->generateUrl('testcase', array('sectionId' => $sectionId, 'assignmentId' => $assignment->id)));
+      return new JsonResponse(array('problemId' => $problem->id));
     }
-	
+
     public function editAction() {
 
       return $this->render('problem/edit.html.twig', [
 
       ]);
     }
-	
+
 	public function resultAction($submission_id) {
-		
+
 		$em = $this->getDoctrine()->getManager();
-		
-		$submission = $em->find("AppBundle\Entity\Submission", $submission_id);	
-		
+
+		$submission = $em->find("AppBundle\Entity\Submission", $submission_id);
+
 		if(!submission){
 			echo "SUBMISSION DOES NOT EXIST";
 			die();
 		}
-		
-		$user = $this->get('security.token_storage')->getToken()->getUser();  	  
+
+		$user = $this->get('security.token_storage')->getToken()->getUser();
 		if(!get_class($user)){
-			die("USER DOES NOT EXIST!");		  
+			die("USER DOES NOT EXIST!");
 		}
-		
+
 		$compiler_output = stream_get_contents($submission->compiler_output);
 		$submission_file = stream_get_contents($submission->submitted_file);
-		
+
 		foreach($submission->testcaseresults as $tc){
-			
+
 			$output["std_output"] = stream_get_contents($tc->std_output);
 			$output["runtime_output"] = stream_get_contents($tc->runtime_output);
 			$output["time_output"] = $tc->execution_time;
-			$tc_output[] = $output;	
+			$tc_output[] = $output;
 		}
-	
+
 		# get the usersectionrole
 		$qb_usr = $em->createQueryBuilder();
 		$qb_usr->select('usr')
@@ -94,10 +95,10 @@ class ProblemController extends Controller {
 			->andWhere('usr.section = ?2')
 			->setParameter(1, $user)
 			->setParameter(2, $submission->problem->assignment->section);
-			
+
 		$usr_query = $qb_usr->getQuery();
 		$usersectionrole = $usr_query->getOneOrNullResult();
-	
+
         return $this->render('problem/result.html.twig', [
 			'submission' => $submission,
 			'problem' => $submission->problem,
@@ -107,7 +108,7 @@ class ProblemController extends Controller {
 			'compiler_output' => $compiler_output,
 			'submission_file' => $submission_file,
 			'result_page' => true,
-        ]);	
+        ]);
 	}
 }
 

@@ -1,12 +1,12 @@
 # HOMEPAGE ROUTES
 homepage:
     path:   '/home'
-    defaults:  { _controller: AppBundle:Home:home} 
-    
+    defaults:  { _controller: AppBundle:Home:home}
+
 alt_homepage:
     path:   '/'
-    defaults: { _controller: AppBundle:Home:home} 
-    
+    defaults: { _controller: AppBundle:Home:home}
+
 # MAIN ROUTES
 section_new:
   path: '/section/new'
@@ -56,9 +56,9 @@ assignment:
 problem_new:
   path: '/section/{sectionId}/assignment/{assignmentId}/new_problem'
   defaults: {_controller: AppBundle:Problem:new}
-  
+
 problem_insert:
-  path: '/section/{sectionId}/assignment/{assignmentId}/new_problem'
+  path: '/problem/insert/{assignmentId}/{name}/{description}/{weight}/{time_limit}'
   defaults: {_controller: AppBundle:Problem:insert}
 
 problem_edit:
@@ -70,13 +70,13 @@ problem_result:
     defaults: {_controller: AppBundle:Problem:result}
     requirements:
         submission_id: '\d+'
-        
-testcase_new:
-  path: '/section/{sectionId}/assignment/{assignmentId}/new_problem'
-  defaults: {_controller: AppBundle:TestCase:new}
-  
+
+# testcase_new:
+#   path: '/section/{sectionId}/assignment/{assignmentId}/new_problem'
+#   defaults: {_controller: AppBundle:TestCase:new}
+
 testcase_insert:
-  path: '/section/{sectionId}/assignment/{assignmentId}/new_problem'
+  path: '/testcase/insert'
   defaults: {_controller: AppBundle:TestCase:insert}
 
 testcase_edit:
@@ -86,7 +86,7 @@ testcase_edit:
 testcase_result:
     path: '/result/{submission_id}'
     defaults: {_controller: AppBundle:TestCase:result}
-        
+
 
 # SUBMISSION ROUTES
 upload:
