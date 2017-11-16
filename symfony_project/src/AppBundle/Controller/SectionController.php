@@ -335,7 +335,6 @@ class SectionController extends Controller {
 		return $this->editQueryAction($request, $sectionId, $courseId, $name, $students, $semester, $year, $start_time, $end_time, $is_public, $is_deleted);
     }
 
-	
 	public function newSectionPostAction(Request $request){
 				
 		$em = $this->getDoctrine()->getManager();
@@ -387,17 +386,36 @@ class SectionController extends Controller {
 		
 		# see if the dates were provided or if we will do them automatically
 		$dates = $this->getDateTime($postData['semester'], $postData['year']);
-		if($postData['start_time']){
-			$section->start_time =  new DateTime("now");
+		if($postData['start_time'] && $postData['start_time'] != ''){
+			$customStartTime = DateTime::createFromFormat("m/d/Y H:i:s", $postData['start_time']." 00:00:00");
+			
+			if(!$customStartTime || $customStartTime->format("m/d/Y") != $postData['start_time']){
+				return $this->returnForbiddenResponse("Provided invalid start time ". $postData['start_time']);
+			} else {
+				$section->start_time = $customStartTime;
+			}
+			
 		} else {
 			$section->start_time = $dates[0];
 		}
 		
-		if(!$postData['end_time']){
-			$section->end_time = new DateTime("now");
+		if($postData['end_time'] && $postData['end_time'] != ''){
+			$customEndTime = DateTime::createFromFormat("m/d/Y H:i:s", $postData['end_time']." 23:59:59");
+			
+			if(!$customEndTime || $customEndTime->format("m/d/Y") != $postData['end_time']){
+				return $this->returnForbiddenResponse("Provided invalid end time ". $postData['end_time']);
+			} else {
+				$section->end_time = $customEndTime;
+			}
+			
 		} else {
 			$section->end_time = $dates[1];
-		}	
+		}
+
+		# validate that the end time is after the start time
+		if($section->end_time <= $section->start_time){
+			return $this->returnForbiddenResponse("The end time must be after the start time for the section");
+		}
 		
 		# default these to false
 		$section->is_deleted = false;
@@ -428,7 +446,7 @@ class SectionController extends Controller {
 		# redirect to the section page
 		$url = $this->generateUrl('section', ['sectionId' => $section->id]);		
 		
-		$response = new Response(json_encode(array('redirect_url' => $url, 'date' => $dates)));
+		$response = new Response(json_encode(array('redirect_url' => $url, 'start_time' => $section->start_time)));
 		$response->headers->set('Content-Type', 'application/json');
 		$response->setStatusCode(Response::HTTP_OK);
 		

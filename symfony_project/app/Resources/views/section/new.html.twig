@@ -14,87 +14,95 @@
 
     {# Left Nav #}
     <nav class="nav-left">
-        
 		<a id="save-btn" class="btn"><div class="btn btn-center">Save</div></a>
-		
-        <ol>
-			{% for assignment in assignments %}
-				<li>{{assignment.name}}</li>
-			{% endfor %}
-        </ol>
-		
     </nav>
+	
 
     {# Main section with the necessary variable#}
     <div class="scrollbar-macosx">
         <section id="main">
+		
+		
+			{{ include('template/path-nav.html.twig') }}
+		
             {# Cards #}
             <div class="card">
-				<table>
-					<tr>
-						<th colspan="3">
-							<label for="course">Course</label>
-							<select name="course" id="course">
-								{% for section in sections %}
-									<option  value="{{section.id}}">{{section.name}}</option>
-								{% endfor %}
-							</select>
-						</th>
-					</tr>
-					
-					<tr>
-						<th colspan="3">
-							<label for="name">Section Name</label>
-							<input id="name" name="name" type="text" value="">
-						</th>
-					</tr>
-					<tr>
-						<th colspan="3">
-							<label>Semester</label>
-							<select id="semester">
-								<option>Fall</option>
-								<option>Spring</option>
-							</select>
-						</th>
-					</tr>
-					<tr>
-						<th colspan="3">
-							<label>Year</label>
-							<select id="year">
-								<option>2017</option>
-								<option>2018</option>
-							</select>
-					</tr>
+				<div class="btn-close">
+					<h2 style="margin: 0px">New Section </h2>
+				</div>
+				
+				<div id="requiredFields" class="card-contents">				
+					<div>
+						<table>
+							<tr>
+								<th colspan="3">
+									<label for="course">Course</label>
+									<select name="course" id="course">
+										{% for section in sections %}
+											<option  value="{{section.id}}">{{section.name}}</option>
+										{% endfor %}
+									</select>
+								</th>
+							</tr>
+							
+							<tr>
+								<th colspan="3">
+									<label for="name">Section Name</label>
+									<input id="name" name="name" type="text" value="">
+								</th>
+							</tr>
+							<tr>
+								<th colspan="3">
+									<label>Semester</label>
+									<select id="semester">
+										<option>Fall</option>
+										<option>Spring</option>
+										<option>Summer</option>
+									</select>
+								</th>
+							</tr>
+							<tr>
+								<th colspan="3">
+									<label>Year</label>
+									<select id="year">
+										{% for yr in ("now"|date("Y"))-1..("now"|date("Y"))+3 %}
+											<option>{{yr}}</option>
+										{% endfor %}
+									</select>
+							</tr>
 
-					<tr>
-						<th>
-							<label>Add Student</label>
-							<select id="student-picker">
-								<option value="-1"></option>
-								{% for u in users %}
-									<option value="{{u.email}}">
-										{{u.getLastName() ~ ", " ~ u.getFirstName()}}
-									</option>
-								{% endfor %}
-							</select>
-						</th>
-						<th>
-							<button>upload csv</button>
-						</th>
-					</tr>
-					<tr>
-						<th colspan="3">
-							<textarea id="student-csv"></textarea>
-						</th>
-					</tr>
+							<tr>
+								<th>
+									<label>Add Student</label>
+									<select id="student-picker">
+										<option value="-1"></option>
+										{% for u in users %}
+											<option value="{{u.email}}">
+												{{u.getLastName() ~ ", " ~ u.getFirstName()}}
+											</option>
+										{% endfor %}
+									</select>
+								</th>
+								<th>
+									<button>upload csv</button>
+								</th>
+							</tr>
+							<tr>
+								<th colspan="3">
+									<textarea id="student-csv"></textarea>
+								</th>
+							</tr>
 
-				</table>
+						</table>
+					</div>
+				</div>
             </div>
 
 			<div class=card>
 				<div class="btn-close" onclick="collapseCard('additionalOptions')">
 					<h2 style="margin: 0px">Additional Options
 						<span style="float: right"><i class="fa fa-angle-down"></i></span>
+					</h2>
 				</div>
 				
 				<div id="additionalOptions" class="card-contents">				
@@ -134,6 +142,8 @@
 		$(document).ready(function() {
 		
 			collapseCard('additionalOptions');
+			
+			$('#year').val("{{'now'|date('Y')}}");
 		
 			$('#startdatepicker').datepicker({
 				showAnim: "slideDown",
@@ -167,9 +177,7 @@
 				/* Array of Students */
 				var students = document.getElementById('student-csv').value.split(", \n");
 				students.pop(); // remove the blank last element
-				
-				
-				
+
 				/* Post to the Symfony Route */
 				$.post( "{{path('section_new_post')}}", {				
 					name: $.trim($('#name').val()),
@@ -177,6 +185,8 @@
 					semester: $('#semester').val(),
 					year: $('#year').val(),
 					students: JSON.stringify(students),
+					start_time: $('#startdatepicker').val(),
+					end_time: $('#enddatepicker').val()
 					
 				}, function(data) {			
 					console.log(data);
@@ -216,7 +226,8 @@
 			var studentCSV = $('#student-csv');
 			studentCSV.val(studentCSV.val() + studentPicker.val() + ", \n");
 			
-			// reset the dropdown to black
+			// reset the dropdown to black			
+			$('option:selected', studentPicker).remove();
 			studentPicker.val(0);
 		}
 		
