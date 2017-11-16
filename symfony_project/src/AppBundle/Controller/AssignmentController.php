@@ -42,7 +42,6 @@ class AssignmentController extends Controller {
 		}
 		
 		if($problemId != null){
-		
 			$problem_entity = $em->find("AppBundle\Entity\Problem", $problemId);
 			
 			if(!$problem_entity || $problem_entity->assignment != $assignment_entity){
@@ -60,7 +59,6 @@ class AssignmentController extends Controller {
 				
 			$usr_query = $qb_usr->getQuery();
 			$usersectionrole = $usr_query->getOneOrNullResult();
-			
 			$currentProblemDescription = stream_get_contents($problem_entity->description);
 			$problem_languages = $problem_entity->problem_languages;
 
@@ -68,7 +66,6 @@ class AssignmentController extends Controller {
 			$default_code = [];
 			$ace_modes = [];
 			$filetypes = [];
-			
 			foreach($problem_languages as $pl){
 				$languages[] = $pl->language;
 				
@@ -85,6 +82,29 @@ class AssignmentController extends Controller {
 		}
 		
 		$grader = new Grader($em);		
+		
+		# figure out how many attempts they have left
+		$total_attempts = $problem_entity->gradingmethod->total_attempts;
+		if($total_attempts == 0){
+			$attempts_remaining = -1;
+		} else {
+			$attempts_remaining = max($total_attempts - $grader->getNumTotalAttempts($user, $problem_entity), 0);
+		}
+		
+		
+		# get the get the best submission so far
+		$qb_accsub = $em->createQueryBuilder();
+		$qb_accsub->select('s')
+			->from('AppBundle\Entity\Submission', 's')
+			->where('s.team = ?1')
+			->andWhere('s.problem = ?2')
+			->andWhere('s.is_accepted = true')
+			->setParameter(1, $grader->getTeam($user, $assignment_entity))
+			->setParameter(2, $problem_entity);
+			
+		$sub_query = $qb_accsub->getQuery();
+		$best_submission = $sub_query->getOneOrNullResult();
+		
 		// If a file has been uploaded
 		if (file_get_contents($_FILES["fileToUpload"]["tmp_name"], $target_file)) {
 
@@ -100,18 +120,6 @@ class AssignmentController extends Controller {
 			} else {
 				$attempts_remaining = max($total_attempts - $grader->getNumTotalAttempts($user, $problem_entity), 0);
 			}
-				
-			# get the usersectionrole
-			$qb_accsub = $em->createQueryBuilder();
-			$qb_accsub->select('s')
-				->from('AppBundle\Entity\Submission', 's')
-				->where('s.team = ?1')
-				->andWhere('s.is_accepted = true')
-				->setParameter(1, $grader->getTeam($user, $assignment_entity));
-				
-			$sub_query = $qb_accsub->getQuery();
-			$best_submission = $sub_query->getOneOrNullResult();	
-			
 
 			return $this->render('assignment/index.html.twig', [
 				'user' => $user,
@@ -122,8 +130,10 @@ class AssignmentController extends Controller {
 				'problemDescription' => $currentProblemDescription,
 				'languages' => $languages,
 				'usersectionrole' => $usersectionrole,
-				//'grades' => $grades,
 				'grader' => new Grader($em),
+				
+				'attempts_remaining' => $attempts_remaining,
+				'best_submission' => $best_submission,
 				
 				'default_code' => $default_code,
 				'ace_modes' => $ace_modes,
@@ -131,25 +141,29 @@ class AssignmentController extends Controller {
 				"fileContents" => base64_encode($fileContents),
 				"fileType" => $fileType,
 			]);
-		}
-
+		} 
+		// if there was no file uploaded
+		else {
+		
 			return $this->render('assignment/index.html.twig', [
-					'user' => $user,
-					'section' => $assignment_entity->section,
-					'assignment' => $assignment_entity,
-					'problem' => $problem_entity,
-		
-					'problemDescription' => $currentProblemDescription,
-					'languages' => $languages,
-					'usersectionrole' => $usersectionrole,
-					//'grades' => $grades,
-					'grader' => new Grader($em),
-		
-					'default_code' => $default_code,
-					'ace_modes' => $ace_modes,
-					'filetypes' => $filetypes,
-				]);
+				'user' => $user,
+				'section' => $assignment_entity->section,
+				'assignment' => $assignment_entity,
+				'problem' => $problem_entity,
 
+				'problemDescription' => $currentProblemDescription,
+				'languages' => $languages,
+				'usersectionrole' => $usersectionrole,
+				'grader' => new Grader($em),
+				
+				'attempts_remaining' => $attempts_remaining,
+				'best_submission' => $best_submission,
+
+				'default_code' => $default_code,
+				'ace_modes' => $ace_modes,
+				'filetypes' => $filetypes,
+			]);
+		}
 	}
 
     public function newAction($sectionId) {
