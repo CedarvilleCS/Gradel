@@ -18,31 +18,35 @@
 		{{ include('template/path-nav.html.twig') }}
 		
         <div class="card">
-            <div class="btn-close" onclick="collapseCard('courseInfo')"><h2 style="margin: 0px">Upcoming Assignments<span style="float: right"><i class="fa fa-angle-down"></i></span></h2></div>
+            <div class="btn-close" onclick="collapseCard('courseInfo')">
+				<h2 style="margin: 0px">Upcoming Assignments
+					<span style="float: right"><i class="fa fa-angle-down"></i></span>
+				</h2>
+			</div>
             <div id="courseInfo" class="card-contents">
-                
-				{% set oldDate = '' %}
-				
-				{% for asgn in assignments %}
-				
-					{% set newDate = asgn.end_time|date('m/d/Y') %}
+                <div>
+					{% set oldDate = '' %}
 					
-					{% if newDate != oldDate %}
-						<h4 style="background: grey; color: white; padding: 5px"> {{asgn.end_time|date('l, F d')}} </h4>
-					{% endif %}
+					{% for asgn in assignments %}
 					
-					{% set oldDate = newDate %}
-					
-					<div style="margin-left: 20px">
-						<small>{{asgn.section.name}}</small>
-						<a href="{{path('assignment', {'sectionId':asgn.section.id, 'assignmentId':asgn.id})}}">
-							{{asgn.name}}
-						</a>								
-					</div>
-				{% else %}
-					You have no upcoming assignments to be completed!
-				{% endfor %}
-				
+						{% set newDate = asgn.end_time|date('m/d/Y') %}
+						
+						{% if newDate != oldDate %}
+							<h4 style="background: grey; color: white; padding: 5px"> {{asgn.end_time|date('l, F d')}} </h4>
+						{% endif %}
+						
+						{% set oldDate = newDate %}
+						
+						<div style="margin-left: 20px">
+							<small>{{asgn.section.name}}</small>
+							<a href="{{path('assignment', {'sectionId':asgn.section.id, 'assignmentId':asgn.id})}}">
+								{{asgn.name}}
+							</a>								
+						</div>
+					{% else %}
+						You have no upcoming assignments to be completed!
+					{% endfor %}
+				</div>
             </div>
         </div>
 

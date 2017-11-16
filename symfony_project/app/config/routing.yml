@@ -10,6 +10,11 @@ alt_homepage:
 # MAIN ROUTES
 
 # section routes
+section_new_post:
+  path: '/section/new/post'
+  defaults: {_controller: AppBundle:Section:newSectionPost}
+  methods: [POST]
+
 section_delete:
   path: '/section/delete/{sectionId}'
   defaults: {_controller: AppBundle:Section:delete}
@@ -28,7 +33,7 @@ section:
 
 section_insert:
   path: '/section/insert/{courseId}/{name}/{students}/{semester}/{year}/{start_time}/{end_time}/{is_deleted}/{is_public}'
-  defaults: {_controller: AppBundle:Section:insertSection}
+  defaults: {_controller: AppBundle:Section:insertSection}    
 
 section_edit_query:
   path: '/section/edit_query/{sectionId}/{courseId}/{name}/{students}/{semester}/{year}/{start_time}/{end_time}/{is_deleted}/{is_public}'
@@ -68,7 +73,7 @@ assignment:
     problemId: 0
 
 
-    
+# problem routes
 problem_delete:
   path: '/section/{sectionId}/assignment/{assignmentId}/problem/delete/{problemId}'
   defaults: {_controller: AppBundle:Problem:delete}
@@ -91,6 +96,7 @@ problem_result:
     requirements:
         submission_id: '\d+'
         
+      
 testcase_new:
   path: '/section/{sectionId}/assignment/{assignmentId}/new_problem'
   defaults: {_controller: AppBundle:TestCase:new}

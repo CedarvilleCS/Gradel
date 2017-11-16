@@ -338,6 +338,10 @@ td, th {
 .dyLabel {
   display: inline-block;
 }
+
+label {
+	font-weight: bold;
+}
 /*tr:nth-child(even) {
     background-color: #dddddd;
 }*/
@@ -369,7 +373,7 @@ table {
 textarea {
   resize: none;
   width: 100%;
-  height: 200px;
+  height: 100px;
 }
 
 textarea.problem_creation{

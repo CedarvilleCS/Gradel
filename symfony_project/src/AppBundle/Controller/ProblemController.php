@@ -74,14 +74,14 @@ class ProblemController extends Controller {
 		}
 		
 		# validate the user
+		$grader = new Grader($em);
 		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN") && !$grader->isTeaching($user, $problem->assignment->section)){
-			die("YOU ARE NOT ALLOWED TO DELETE THIS ASSIGNMENT");			
+			die("YOU ARE NOT ALLOWED TO DELETE THIS PROBLEM");			
 		}
 		
 		$em->remove($problem);
 		$em->flush();
-		
-		return $this->redirectToRoute('homepage');	
+		return $this->redirectToRoute('assignment', ['sectionId' => $problem->assignment->section->id, 'assignmentId' => $problem->assignment->id]);
 	}
 	
 	public function resultAction($submission_id) {
