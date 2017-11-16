@@ -24,7 +24,7 @@ class AssignmentController extends Controller {
 
 
 	public function assignmentAction($sectionId, $assignmentId, $problemId) {
-	
+
 		$em = $this->getDoctrine()->getManager();
 		
 		$user = $this->get('security.token_storage')->getToken()->getUser();  	  
@@ -85,45 +85,72 @@ class AssignmentController extends Controller {
 		}
 		
 		$grader = new Grader($em);		
-		
-		$total_attempts = $problem_entity->gradingmethod->total_attempts;
-		
-		if($total_attempts == 0){
-			$attempts_remaining = -1;
-		} else {
-			$attempts_remaining = max($total_attempts - $grader->getNumTotalAttempts($user, $problem_entity), 0);
+		// If a file has been uploaded
+		if (file_get_contents($_FILES["fileToUpload"]["tmp_name"], $target_file)) {
+
+			// Get the file contents and extension
+			$fileContents = file_get_contents($_FILES["fileToUpload"]["tmp_name"], $target_file);
+			// $fileType = end(explode(".", basename($_FILES["fileToUpload"]["name"])));
+			$fileType = basename($_FILES["fileToUpload"]["name"]);
+
+			$total_attempts = $problem_entity->gradingmethod->total_attempts;
+			
+			if($total_attempts == 0){
+				$attempts_remaining = -1;
+			} else {
+				$attempts_remaining = max($total_attempts - $grader->getNumTotalAttempts($user, $problem_entity), 0);
+			}
+				
+			# get the usersectionrole
+			$qb_accsub = $em->createQueryBuilder();
+			$qb_accsub->select('s')
+				->from('AppBundle\Entity\Submission', 's')
+				->where('s.team = ?1')
+				->andWhere('s.is_accepted = true')
+				->setParameter(1, $grader->getTeam($user, $assignment_entity));
+				
+			$sub_query = $qb_accsub->getQuery();
+			$best_submission = $sub_query->getOneOrNullResult();	
+			
+
+			return $this->render('assignment/index.html.twig', [
+				'user' => $user,
+				'section' => $assignment_entity->section,
+				'assignment' => $assignment_entity,
+				'problem' => $problem_entity,
+				
+				'problemDescription' => $currentProblemDescription,
+				'languages' => $languages,
+				'usersectionrole' => $usersectionrole,
+				//'grades' => $grades,
+				'grader' => new Grader($em),
+				
+				'default_code' => $default_code,
+				'ace_modes' => $ace_modes,
+				'filetypes' => $filetypes,
+				"fileContents" => base64_encode($fileContents),
+				"fileType" => $fileType,
+			]);
 		}
-			
-		# get the usersectionrole
-		$qb_accsub = $em->createQueryBuilder();
-		$qb_accsub->select('s')
-			->from('AppBundle\Entity\Submission', 's')
-			->where('s.team = ?1')
-			->andWhere('s.is_accepted = true')
-			->setParameter(1, $grader->getTeam($user, $assignment_entity));
-			
-		$sub_query = $qb_accsub->getQuery();
-		$best_submission = $sub_query->getOneOrNullResult();	
-			
-		return $this->render('assignment/index.html.twig', [
-			'user' => $user,
-			'section' => $assignment_entity->section,
-			'assignment' => $assignment_entity,
-			'problem' => $problem_entity,
-			
-			'problemDescription' => $currentProblemDescription,
-			'languages' => $languages,
-			'usersectionrole' => $usersectionrole,
-			'grader' => new Grader($em),
-			
-			'attempts_remaining' => $attempts_remaining,
-			'best_submission' => $best_submission,
-			
-			'default_code' => $default_code,
-			'ace_modes' => $ace_modes,
-			'filetypes' => $filetypes,
-		]);
-    }
+
+			return $this->render('assignment/index.html.twig', [
+					'user' => $user,
+					'section' => $assignment_entity->section,
+					'assignment' => $assignment_entity,
+					'problem' => $problem_entity,
+		
+					'problemDescription' => $currentProblemDescription,
+					'languages' => $languages,
+					'usersectionrole' => $usersectionrole,
+					//'grades' => $grades,
+					'grader' => new Grader($em),
+		
+					'default_code' => $default_code,
+					'ace_modes' => $ace_modes,
+					'filetypes' => $filetypes,
+				]);
+
+	}
 
     public function newAction($sectionId) {
 	
@@ -132,28 +159,28 @@ class AssignmentController extends Controller {
     }
 
     public function insertAction($sectionId, $name, $description) {
-      $em = $this->getDoctrine()->getManager();
-      $user = $this->get('security.token_storage')->getToken()->getUser();
+		$em = $this->getDoctrine()->getManager();
+		$user = $this->get('security.token_storage')->getToken()->getUser();
 
-      $assignment = new Assignment();
-      $section = $em->find('AppBundle\Entity\Section', $sectionId);
+		$assignment = new Assignment();
+		$section = $em->find('AppBundle\Entity\Section', $sectionId);
 
-      $gradingmethod = $em->find('AppBundle\Entity\AssignmentGradingMethod', 1);
+		$gradingmethod = $em->find('AppBundle\Entity\AssignmentGradingMethod', 1);
 
-      $assignment->name = $name;
-      $assignment->description = $description;
-      $assignment->section = $section;
-      $assignment->start_time = new DateTime("now");
-      $assignment->end_time = new DateTime("2050-01-01");
-      $assignment->cutoff_time = new DateTime("2050-01-01");
-      $assignment->weight = 0;
-      $assignment->is_extra_credit = false;
-      $assignment->gradingmethod = $gradingmethod;
+		$assignment->name = $name;
+		$assignment->description = $description;
+		$assignment->section = $section;
+		$assignment->start_time = new DateTime("now");
+		$assignment->end_time = new DateTime("2050-01-01");
+		$assignment->cutoff_time = new DateTime("2050-01-01");
+		$assignment->weight = 0;
+		$assignment->is_extra_credit = false;
+		$assignment->gradingmethod = $gradingmethod;
 
-      $em->persist($assignment);
-      $em->flush();
+		$em->persist($assignment);
+		$em->flush();
 
-      return new RedirectResponse($this->generateUrl('assignment_edit', array('sectionId' => $sectionId, 'assignmentId' => $assignment->id)));
+		return new RedirectResponse($this->generateUrl('assignment_edit', array('sectionId' => $sectionId, 'assignmentId' => $assignment->id)));
 
     }
 
@@ -165,7 +192,7 @@ class AssignmentController extends Controller {
 
       return $this->render('assignment/edit.html.twig', [
         "assignment" => $assignment,
-        "description" => stream_get_contents($assignment->description),
+		"description" => stream_get_contents($assignment->description),
       ]);
     }
 
@@ -189,6 +216,27 @@ class AssignmentController extends Controller {
       $em->flush();
 
       return new RedirectResponse($this->generateUrl('assignment', array('sectionId' => $sectionId, 'assignmentId' => $assignment->id)));
+	}
+
+	public function myuploadAction($sectionId, $assignmentId, $problemId) {
+		echo("myuploadAction");
+		if (file_get_contents($_FILES["fileToUpload"]["tmp_name"], $target_file)) {
+			$fileContents = file_get_contents($_FILES["fileToUpload"]["tmp_name"], $target_file);
+			// die($fileContents);
+			// echo('<script>
+			// 	var editor = ace.edit("editor");
+			// 	editor.setValue("test");
+			// </script>');
+
+			die($fileContents);
+		}
+
+
+		// die();
+		return $this->redirectToRoute('assignment', 
+				['sectionId' => $sectionId,
+				'assignmentId' => $problem_entity->assignment->id,
+				'problemId' => $problem_entity->id]);
     }
 	
 	
