@@ -85,16 +85,12 @@ int main(int argc, char** argv){
 		java_package_name = "";
 	}
 	
-	// set the compiler_flags to "" if it wasn't set
-	/*if(compiler_flags.length() == 0){
-		compiler_flags = "''";
-	}*/	
-	
 	/* MOVE CODE TO SUBMISISON DIRECTORY */
 	string cp_cmd = "cp code_to_submit/" + filename + " submission/code/.";
 	cout << cp_cmd << endl;
 	system(cp_cmd.c_str());
 	
+	/* UNZIP FILES IF NECESSARY */
 	/* UNZIP FILES IF NECESSARY */
 	if(zipped){
 		
