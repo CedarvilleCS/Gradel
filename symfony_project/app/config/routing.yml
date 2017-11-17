@@ -62,10 +62,6 @@ assignment_edit_query:
   path: '/section/{sectionId}/assignment/edit_query/{assignmentId}/{name}/{description}'
   defaults: {_controller: AppBundle:Assignment:editQuery}
 
-assignment_upload:
-  path: '/section/{sectionId}/assignment/{assignmentId}/problem/{problemId}/upload'
-  defaults: {_controller: AppBundle:Assignment:myupload}
-
 assignment:
   path: '/section/{sectionId}/assignment/{assignmentId}/problem/{problemId}'
   defaults:
@@ -115,11 +111,13 @@ testcase_result:
         
 
 # SUBMISSION ROUTES
-upload:
+submission_upload:
   path: "/upload/{problem_id}"
-  defaults: {_controller: AppBundle:Upload:upload}
+  defaults: {_controller: AppBundle:Upload:submitProblemUpload}
+  methods: [POST]
   requirements:
     problem_id:     '\d+'
+  
 
 # temporary route for GUI development
 professorsection:

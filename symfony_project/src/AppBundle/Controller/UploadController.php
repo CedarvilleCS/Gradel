@@ -23,52 +23,108 @@ use AppBundle\Entity\TestcaseResult;
 
 use Psr\Log\LoggerInterface;
 
+use AppBundle\Utils\Uploader;
+
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 
 class UploadController extends Controller {
  
-    public function uploadAction($problem_id) {
+	
+	public function aceUploadAction($problem_id){
 		
-		echo(var_dump($_POST));
-		#echo(var_dump($_FILES));
-		#die();
-		
-        # entity manager
+		# entity manager
         $em = $this->getDoctrine()->getManager();
         
         # get the current problem
         $problem_entity = $em->find("AppBundle\Entity\Problem", $problem_id);        
 		if(!$problem_entity){
             die("PROBLEM DOES NOT EXIST");
-        } else{
-            #echo($problem_entity->id."<br/>");    
         }        
         
         # get the current user
         $user= $this->get('security.token_storage')->getToken()->getUser();        
         if(!$user){
             die("USER DOES NOT EXIST");
-        } else{
-            #echo($user->getFirstName()." ".$user->getLastName()."<br/>");
         }
 		
         // web_dir is /var/www/gradel_dev/user/gradel/symfony_project		
         // save uploaded file to $web_dir.compilation/uploads/user_id/
         $web_dir = $this->get('kernel')->getProjectDir()."/";
-		$uploads_directory = $web_dir."compilation/uploads/".$user->id."/".$problem_entity->id."/";
-		
-		# clear out the uploads directory and rebuild it
-		shell_exec("rm -rf ".$uploads_directory);		
-		shell_exec("mkdir -p ".$uploads_directory);
-		
-        $target_file = $uploads_directory . basename($_FILES["fileToUpload"]["name"]);
 
-        // Check if file already exists       
-		if (move_uploaded_file($_FILES["fileToUpload"]["tmp_name"], $target_file)) {
-			#echo "The file ". basename( $_FILES["fileToUpload"]["name"]). " has been uploaded.";
+        $uploader = new Uploader($web_dir);
+		
+		$language_id = $_POST["language"];
+			
+		$language_entity = $em->find("AppBundle\Entity\Language", $language_id);			
+		if(!$language_entity){
+			die("LANGUAGE DOES NOT EXIST!");
+		}
 
+		$uploads_directory = $uploader->getUploadDirectory($user, $problem_entity);
+		
+		if($language_entity->name == "Java"){
+			
+			if(!$_POST["main_class"] || $_POST["main_class"] == ""){
+				die("MAIN CLASS IS NEEDED");
+			}
+			
+			$main_class = $_POST["main_class"];
+			$package_name = $_POST["package_name"];
+
+			$filename = $main_class.".java";
+			
+		} else {
+			$main_class = '';
+			$package_name = '';
+
+			$filename = "problem". $problem_entity->id . $language_entity->filetype;
+		}
+		
+		if(!file_put_contents($uploads_directory . $filename, $_POST["ACE"], FILE_USE_INCLUDE_PATH)){
+			die("UNABLE TO MOVE THE ACE EDITOR CONTENTS");
+		}
+		
+		return $this->redirectToRoute('submit', [
+		
+			'problem_id' => $problem_entity->id, 
+			'submitted_filename' => $filename,
+			'language_id' => $language_id,
+			'main_class' => $main_class,
+			'package_name' => $package_name
+		
+		]);
+	}
+		
+	public function fileUploadAction($problem_id){
+		
+		# entity manager
+        $em = $this->getDoctrine()->getManager();
+        
+        # get the current problem
+        $problem_entity = $em->find("AppBundle\Entity\Problem", $problem_id);        
+		if(!$problem_entity){
+            die("PROBLEM DOES NOT EXIST");
+        }        
+        
+        # get the current user
+        $user= $this->get('security.token_storage')->getToken()->getUser();        
+        if(!$user){
+            die("USER DOES NOT EXIST");
+        }
+		
+        // web_dir is /var/www/gradel_dev/user/gradel/symfony_project		
+        // save uploaded file to $web_dir.compilation/uploads/user_id/
+        $web_dir = $this->get('kernel')->getProjectDir()."/";
+
+        $uploader = new Uploader($web_dir);
+		$target_file = $uploader->uploadSubmissionFile($_FILES["fileToUpload"], $user, $problem_entity);
+
+		#echo $target_file;
+		#die();
+		if($target_file){
+			
 			$language_id = $_POST["language"];
 			
 			$language_entity = $em->find("AppBundle\Entity\Language", $language_id);			
@@ -90,61 +146,47 @@ class UploadController extends Controller {
 				$package_name = '';
 			}
 			
-			return $this->redirectToRoute('submit', 
-										array('problem_id' => $problem_entity->id, 
-												'submitted_filename' => basename($_FILES["fileToUpload"]["name"]),
-												'language_id' => $language_id,
-												'main_class' => $main_class,
-												'package_name' => $package_name));
-												
-												
-			// INDICATE THAT FILE UPLOAD WAS SUCCESSFUL ON ASSIGNMENT/PROBLEM PAGE
-			
-		} else if($_POST["ACE"] != "") { // If ACE is not blank, and no file was uploaded, create a file with the ACE contents
-
-			#echo "Sorry, there was an error uploading your file.";
-			$language_id = $_POST["language"];
-			
-			$language_entity = $em->find("AppBundle\Entity\Language", $language_id);			
-			if(!$language_entity){
-				die("LANGUAGE DOES NOT EXIST!");
-			}
-
-			if($language_entity->name == "Java"){
+			return $this->redirectToRoute('submit', [
 				
-				if(strlen($_POST["main_class"]) == 0){
-					die("MAIN CLASS IS NEEDED");
-				}
+				'problem_id' => $problem_entity->id, 
+				'submitted_filename' => basename($_FILES["fileToUpload"]["name"]),
+				'language_id' => $language_id,
+				'main_class' => $main_class,
+				'package_name' => $package_name,
 				
-				$main_class = $_POST["main_class"];
-				$package_name = $_POST["package_name"];
-
-				file_put_contents($uploads_directory . $main_class . $language_entity->filetype, $_POST["ACE"], FILE_USE_INCLUDE_PATH);
-				
-				$submitted_filename = $main_class . $language_entity->filetype;
-
-			} else {
-				$main_class = '';
-				$package_name = '';
-
-				file_put_contents($uploads_directory . "problem". $problem_entity->id . $language_entity->filetype, $_POST["ACE"], FILE_USE_INCLUDE_PATH);
-
-				$submitted_filename = "problem". $problem_entity->id . $language_entity->filetype;
-			}
-			
-			return $this->redirectToRoute('submit', 
-										array('problem_id' => $problem_entity->id, 
-												'submitted_filename' => $submitted_filename,
-												'language_id' => $language_id,
-												'main_class' => $main_class,
-												'package_name' => $package_name));
+			]);
 		}
+	}
+	
+    public function submitProblemUploadAction($problem_id) {
 		
-        // if they didn't send a file, render upload page
-		return $this->redirectToRoute('assignment', 
-									array('sectionId' => $problem_entity->assignment->section->id,
-											'assignmentId' => $problem_entity->assignment->id,
-											'problemId' => $problem_entity->id));
+		
+		if($_POST["ACE"] && $_POST["ACE"] != ""){
+			
+			return $this->forward('AppBundle:Upload:aceUpload', [
+			
+				'problem_id' => $problem_id,
+		
+			]);
+		} else if($_FILES["fileToUpload"]){
+			
+			return $this->forward('AppBundle:Upload:fileUpload', [
+		
+				'problem_id' => $problem_id,
+			
+			]);
+			
+		} else {
+			
+			// if they didn't send a file and the , render upload page
+			return $this->redirectToRoute('assignment', [
+				
+				'sectionId' => $problem_entity->assignment->section->id,
+				'assignmentId' => $problem_entity->assignment->id,
+				'problemId' => $problem_entity->id,
+				
+			]);			
+		}        
     }
 }
 
