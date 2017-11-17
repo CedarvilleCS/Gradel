@@ -13,6 +13,10 @@
 		</a>
 	{% endif %}
 	
+	{% if edit %}
+		<a id="insert" class="btn"><div class="btn btn-center" href="">Save</div></a>
+	{% endif %}
+	
 	{# assignments list #}
 	<ol style="padding-bottom: 10px">
 		{% for assig in assignments %}
