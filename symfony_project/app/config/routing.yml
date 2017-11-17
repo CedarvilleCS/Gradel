@@ -8,17 +8,20 @@ alt_homepage:
     defaults: { _controller: AppBundle:Home:home}
 
 # MAIN ROUTES
+
+# section routes
+section_new_post:
+  path: '/section/new/post'
+  defaults: {_controller: AppBundle:Section:newSectionPost}
+  methods: [POST]
+
+section_delete:
+  path: '/section/delete/{sectionId}'
+  defaults: {_controller: AppBundle:Section:delete}
+
 section_new:
   path: '/section/new'
   defaults: {_controller: AppBundle:Section:newSection}
-
-section_insert:
-  path: '/section/insert/{courseId}/{name}/{students}/{semester}/{year}/{start_time}/{end_time}/{is_deleted}/{is_public}'
-  defaults: {_controller: AppBundle:Section:insertSection, name: "hey", semester: "Dr. G", year: "Node", start_time: "is way better", end_time: "than anything", is_deleted: "you have used", is_public: ":)", students: "love, Chris Brauns"}
-
-section_edit_query:
-  path: '/section/edit_query/{sectionId}/{courseId}/{name}/{students}/{semester}/{year}/{start_time}/{end_time}/{is_deleted}/{is_public}'
-  defaults: {_controller: AppBundle:Section:editQuery, sectionId: "BEGIN", name: "hey", semester: "Dr. G", year: "Node", start_time: "is way better", end_time: "than anything", is_deleted: "you have used", is_public: ":)", students: "love, Chris Brauns"}
 
 section_edit:
   path: '/section/edit/{sectionId}'
@@ -28,7 +31,20 @@ section:
   path: '/section/{sectionId}'
   defaults: {_controller: AppBundle:Section:section}
 
+section_insert:
+  path: '/section/insert/{courseId}/{name}/{students}/{semester}/{year}/{start_time}/{end_time}/{is_deleted}/{is_public}'
+  defaults: {_controller: AppBundle:Section:insertSection}
 
+section_edit_query:
+  path: '/section/edit_query/{sectionId}/{courseId}/{name}/{students}/{semester}/{year}/{start_time}/{end_time}/{is_deleted}/{is_public}'
+  defaults:
+    _controller: AppBundle:Section:editQuery
+
+
+# assignment routes
+assignment_delete:
+  path: '/section/{sectionId}/assignment/delete/{assignmentId}'
+  defaults: {_controller: AppBundle:Assignment:delete}
 
 assignment_new:
   path: '/section/{sectionId}/assignment/new'
@@ -46,6 +62,10 @@ assignment_edit_query:
   path: '/section/{sectionId}/assignment/edit_query/{assignmentId}/{name}/{description}'
   defaults: {_controller: AppBundle:Assignment:editQuery}
 
+assignment_upload:
+  path: '/section/{sectionId}/assignment/{assignmentId}/problem/{problemId}/upload'
+  defaults: {_controller: AppBundle:Assignment:myupload}
+
 assignment:
   path: '/section/{sectionId}/assignment/{assignmentId}/problem/{problemId}'
   defaults:
@@ -53,12 +73,17 @@ assignment:
     problemId: 0
 
 
+# problem routes
+problem_delete:
+  path: '/section/{sectionId}/assignment/{assignmentId}/problem/delete/{problemId}'
+  defaults: {_controller: AppBundle:Problem:delete}
+
 problem_new:
   path: '/section/{sectionId}/assignment/{assignmentId}/new_problem'
   defaults: {_controller: AppBundle:Problem:new}
 
 problem_insert:
-  path: '/problem/insert/{assignmentId}/{name}/{description}/{weight}/{time_limit}'
+  path: '/problem/insert'
   defaults: {_controller: AppBundle:Problem:insert}
 
 problem_edit:
@@ -70,10 +95,6 @@ problem_result:
     defaults: {_controller: AppBundle:Problem:result}
     requirements:
         submission_id: '\d+'
-
-# testcase_new:
-#   path: '/section/{sectionId}/assignment/{assignmentId}/new_problem'
-#   defaults: {_controller: AppBundle:TestCase:new}
 
 testcase_insert:
   path: '/testcase/insert'

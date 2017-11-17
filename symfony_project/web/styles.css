@@ -6,6 +6,16 @@ html, body {
     font-family: sans-serif;
 }
 
+#main {
+    background-color: #71BA62;
+    width: calc(100% - 200px);
+    float: right;
+    height: calc(100% - 50px);
+    overflow-y: scroll;
+	overflow-x: hidden;
+    margin-top: 50px;
+}
+
 .nav-path {
     width: 90%;
     margin: auto;
@@ -31,36 +41,60 @@ strong, b{
  	height: 93%;
  	padding: 2px 3px;
  }
- 
+
  .topnav #logo:hover {
  	background-color: inherit;
- 	color: black;	
+ 	color: black;
  }
 
 .btn {
     text-decoration: none;
-    margin-top: 10px;
-    width: 100px;
     height: 30px;
     background-color: #71BA62;
     color: white;
     border: none;
     text-align: center;
+	padding-top: 12px;
 }
 
-a#edit-icon {
+.btn-delete {
+    background-color: #FF3232;
+}
+
+.small-icon {
 	padding: 2 2 2 2;
 	float: right;
+	bottom: 7;
+    right: 23;
+    cursor: pointer;
+	height: 15;
+	width: 15;
+	position: absolute;
 }
 
+#right-icon {
+	padding: 2 2 2 2;
+	float: right;
+    right: 5;
+	position: absolute;
+}
+
+
+
 a#edit-icon:hover {
-	
+
+}
+
+.sidebar{
+	display: inline-block;
+	width: 90%;
+	position: relative;
 }
 
 .btn-center {
     margin: auto;
     width: 90%;
-    padding-top: 12px;
+	margin-bottom: 10px;
 }
 
 .btn:hover {
@@ -107,6 +141,22 @@ a.preview {
     color: white;
 }
 
+.topnav .navbuttons {
+    float: right;
+ 	height: 100%;
+}
+
+.topnav #logo {
+    float: left;
+ 	height: 93%;
+ 	padding: 2px 3px;
+}
+
+.topnav #logo:hover {
+ 	background-color: inherit;
+ 	color: black;
+}
+
 nav.nav-left {
     float: left;
     position: fixed;
@@ -114,10 +164,10 @@ nav.nav-left {
     border-right: 1px solid grey;
     background-color: grey;
     color: black;
-    height: 100vh;
+    height: calc(100vh - 50px);
     width: 200px;
     margin-top: 50px;
-    padding-top: 10px;
+	padding-top: 10px;
 
     -webkit-box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
     -moz-box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
@@ -167,7 +217,11 @@ nav.nav-left > ol > a > li:hover {
 }
 
 .pathnav a {
-	text-decoration: none;	
+	text-decoration: none;
+}
+
+#past_sections_button:hover {
+	cursor: pointer;
 }
 
 .card {
@@ -194,7 +248,29 @@ nav.nav-left > ol > a > li:hover {
     border-bottom: 1px dotted #8DC26F;
 }
 
-/* i { 
+/*.btn-delete{
+	position: absolute;
+	bottom: 30px;
+	left:5%;
+	width: 90%;
+	text-decoration: none;
+	color: white;
+
+	margin:auto;
+    margin-top: 10px;
+    height: 30px;
+    background-color: #ff8b7f;
+    border: none;
+    text-align: center;
+
+	padding-top: 12px;
+}
+*/
+.btn-delete:hover{
+	background-color: #FF5A49;
+}
+
+/* i {
     position: absolute;
     right: 20px;
     top: 14px;
@@ -245,7 +321,7 @@ atable {
 }
 
 a {
-	color: inherit;	
+	color: inherit;
 }
 
 td, th {
@@ -261,6 +337,10 @@ td, th {
 
 .dyLabel {
   display: inline-block;
+}
+
+label {
+	font-weight: bold;
 }
 /*tr:nth-child(even) {
     background-color: #dddddd;
@@ -288,10 +368,12 @@ table {
   width: 100%;
 }
 
+
+
 textarea {
   resize: none;
   width: 100%;
-  height: 200px;
+  height: 100px;
 }
 
 textarea.problem_creation{

@@ -12,6 +12,13 @@
 
     {# Left Nav #}
     <nav class="nav-left">
+		
+		{% if is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") %}
+			<a href="{{path('section_delete', {'sectionId': section.id})}}" class="btn-delete">
+				- Delete
+			</a>
+		{% endif %}
+		
         <a id="insert" class="btn"><div class="btn btn-center">Save</div></a>
         <br/>
         <a href="{{path('assignment_new', {'sectionId': section.id})}}" class="btn"><div class="btn btn-center">+ Assignment</div></a>
@@ -101,17 +108,7 @@
 										<textarea id="student-csv">{% for u in usr %}{{u.user.email ~ ", \n"}}{% endfor %}</textarea>
 									</th>
 								</tr>
-                <tr>
-                  <th colspan="3">
-                    <button>save</button>
-                  </th>
-                </tr>
 
-								<!-- <tr>
-									<th colspan="3">
-										<button id="insert">add</button>
-									</th>
-								</tr> -->
 							</table>
             </div>
         </section>
@@ -125,7 +122,6 @@
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('styles.css') }}" />
-    <link rel="stylesheet" href="{{ asset('home.css') }}" />
 {% endblock %}
 
 
@@ -136,33 +132,33 @@
     <script src="{{ asset('js/cards.js') }}"></script>
     <script>
 			$(document).ready(function() {
-				$('#insert').on('click', function(){insertSection();});
+				$('#insert').on('click', function(){editSection();});
 				$('#student-picker').on('change', function(){addStudent();});
 			});
 
-			var studentArray = [];
-
+			var studentArray = document.getElementById('student-csv').value.split(", \n");
+			
 			function addStudent() {
 				const studentPicker = document.getElementById('student-picker');
 				const value = studentPicker.value;
 				const studentInput = document.getElementById('student-csv');
+				
 				studentInput.value += value + ", \n"
 				studentArray = studentInput.value.split(", \n");
 				studentPicker.selectedIndex = 0;
 			}
 
-			function insertSection() {
+			function editSection() {
 				const test = document.getElementById("section");
 				const name = document.getElementById("name").value;
 				const semester = document.getElementById("semester").value;
 				const year = document.getElementById("year").value;
 				const id = test[test.selectedIndex].value;
-
-        console.log({{sectionId}})
-
+				
 				var path = "{{path('section_edit_query', { 'sectionId': 'section_id', 'courseId': 'course_id', 'name': 'name', 'students': 'students', 'semester': 'semester', 'year': 'year', 'start_time': 'start_time', 'end_time': 'end_time', 'is_deleted': 'is_deleted', 'is_public': 'is_public'})}}";
-        path = path.replace("section_id", {{sectionId}})
-        path = path.replace("course_id", id);
+				
+				path = path.replace("section_id", {{sectionId}})
+				path = path.replace("course_id", id);
 				path = path.replace("name", name);
 				path = path.replace("students", JSON.stringify(studentArray));
 				path = path.replace("semester", semester);
@@ -173,7 +169,8 @@
 				path = path.replace("end_time", new Date());
 				path = path.replace("is_deleted", false);
 				path = path.replace("is_public", false);
-				window.location.replace(path);
+				console.log(path);
+				
 			}
 
 		</script>

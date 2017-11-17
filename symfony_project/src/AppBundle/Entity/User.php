@@ -107,7 +107,12 @@ class User extends BaseUser{
 	}
 
 	public function getFirstName() {
-		return $this->first_name;
+		
+		if($this->first_name != ''){
+			return $this->first_name;
+		} else {
+			return $this->email;
+		}
 	}
 
 	public function setLastName($last_name) {
@@ -117,7 +122,11 @@ class User extends BaseUser{
 	}
 
 	public function getLastName() {
-		return $this->last_name;
+		if($this->last_name != ''){
+			return $this->last_name;
+		} else {
+			return '';
+		}
 	}
 
 	public function setGoogleAccessToken($googleAccessToken) {

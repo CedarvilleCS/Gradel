@@ -31,7 +31,7 @@ class UploadController extends Controller {
  
     public function uploadAction($problem_id) {
 		
-		#echo(var_dump($_POST));
+		echo(var_dump($_POST));
 		#echo(var_dump($_FILES));
 		#die();
 		

@@ -9,94 +9,114 @@
 	{{ include('template/top-nav.html.twig') }}
 
     <section id="course-container">
-        {# <h1>{{app.user.getFirstName()}}&#39;s Courses</h1> #}
 
-        {# <ol>
-            <li><a href="courses/assignments/CS-1210">CS 1210</a><div class="show-more" onclick="showAssignments();">+</div></li>
-            <li><a href="courses/assignments/CS-1220">CS 1220</a><div class="show-more" onclick="showAssignments();">+</div></li>
-        </ol> #}
     </section>
 
     {# Left Nav #}
     <nav class="nav-left">
-        <a id="insert" class="btn"><div class="btn btn-center">Save</div></a>
-        <ol>
-				{% for assignment in assignments %}
-					<h1>{{assignment.name}}
-				{% endfor %}
-        </ol>
+		<a id="save-btn" class="btn"><div class="btn btn-center">Save</div></a>
     </nav>
+	
 
-    {# Main section #}
+    {# Main section with the necessary variable#}
     <div class="scrollbar-macosx">
         <section id="main">
+		
+		
+			{{ include('template/path-nav.html.twig') }}
+		
             {# Cards #}
-            <div class="card-table">
-							<table>
-								<tr>
-									<th colspan="3">
-                    <label for="section">Course</label>
-										<select name="section" id="section">
-											{% for section in sections %}
-												<option  value="{{section.id}}">{{section.name}}</option>
-											{% endfor %}
-										</select>
-									</th>
-								</tr>
-								<tr>
-									<th colspan="3">
-                    <label for="name">Section Name</label>
-										<input id="name" name="name" type="text" value="">
-									</th>
-								</tr>
-								<tr>
-									<th colspan="3">
-                    <label>Semester</label>
-										<select id="semester">
-											<option>Fall</option>
-											<option>Spring</option>
-										</select>
-									</th>
-								</tr>
-								<tr>
-									<th colspan="3">
-                    <label>Year</label>
-										<select id="year">
-											<option>2017</option>
-											<option>2018</option>
-										</select>
-								</tr>
+            <div class="card">
+				<div class="btn-close">
+					<h2 style="margin: 0px">New Section </h2>
+				</div>
+				
+				<div id="requiredFields" class="card-contents">				
+					<div>
+						<table>
+							<tr>
+								<th colspan="3">
+									<label for="course">Course</label>
+									<select name="course" id="course">
+										{% for section in sections %}
+											<option  value="{{section.id}}">{{section.name}}</option>
+										{% endfor %}
+									</select>
+								</th>
+							</tr>
+							
+							<tr>
+								<th colspan="3">
+									<label for="name">Section Name</label>
+									<input id="name" name="name" type="text" value="">
+								</th>
+							</tr>
+							<tr>
+								<th colspan="3">
+									<label>Semester</label>
+									<select id="semester">
+										<option>Fall</option>
+										<option>Spring</option>
+										<option>Summer</option>
+									</select>
+								</th>
+							</tr>
+							<tr>
+								<th colspan="3">
+									<label>Year</label>
+									<select id="year">
+										{% for yr in ("now"|date("Y"))-1..("now"|date("Y"))+3 %}
+											<option>{{yr}}</option>
+										{% endfor %}
+									</select>
+							</tr>
 
-								<tr>
-									<th>
-                    <label>Add Student</label>
-										<select id="student-picker">
-											<option value="-1"></option>
-											{% for u in users %}
-												<option	onchange="addStudent()" value="{{u.email}}">
-													{{u.getLastName() ~ ", " ~ u.getFirstName()}}
-												</option>
-											{% endfor %}
-										</select>
-									</th>
-									<th>
-										<button>upload csv</button>
-									</th>
-								</tr>
-								<tr>
-									<th colspan="3">
-										<textarea id="student-csv"></textarea>
-									</th>
-								</tr>
-   
-							</table>
+							<tr>
+								<th>
+									<label>Add Student</label>
+									<select id="student-picker">
+										<option value="-1"></option>
+										{% for u in users %}
+											<option value="{{u.email}}">
+												{{u.getLastName() ~ ", " ~ u.getFirstName()}}
+											</option>
+										{% endfor %}
+									</select>
+								</th>
+								<th>
+									<button>upload csv</button>
+								</th>
+							</tr>
+							<tr>
+								<th colspan="3">
+									<textarea id="student-csv"></textarea>
+								</th>
+							</tr>
+
+						</table>
+					</div>
+				</div>
             </div>
 
-
+			<div class=card>
+				<div class="btn-close" onclick="collapseCard('additionalOptions')">
+					<h2 style="margin: 0px">Additional Options
+						<span style="float: right"><i class="fa fa-angle-down"></i></span>
+					</h2>
+				</div>
+				
+				<div id="additionalOptions" class="card-contents">				
+					<div>						
+						<label for="startdatepicker">Starting Date </label><input type="text" id="startdatepicker" style="width: 100px; margin-right: 20px">
+						<label for="enddatepicker">Ending Date </label><input type="text" id="enddatepicker" style="width: 100px">
+					</div>
+				</div>
         	</div>
         </section>
     </div>
 
+	
+	
 
 </body>
 
@@ -105,7 +125,9 @@
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('styles.css') }}" />
-    <link rel="stylesheet" href="{{ asset('home.css') }}" />
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
+
 {% endblock %}
 
 
@@ -114,57 +136,100 @@
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script src="{{ asset('js/cards.js') }}"></script>
-		<script src="{{ asset('js/newSection.js') }}"></script>
-		<script>
-			$(document).ready(function() {
-				$('#insert').on('click', function(){
-					// Make sure there is a course name
-					// Get the course name value and trim it
-					var name = $.trim($('#name').val());
-					var students = $.trim($('#student-csv').val())
-					// Check if empty of not
-					if (name  === '') {
-						$('#name').css('border', '3px solid red')
-						$('#name').css('background-color', '#FD8177')
-						return false;
-					}
-					
-					insertSection();
-				});
-				$('#student-picker').on('change', function(){addStudent();});
+	
+	<script>
+	
+		$(document).ready(function() {
+		
+			collapseCard('additionalOptions');
+			
+			$('#year').val("{{'now'|date('Y')}}");
+		
+			$('#startdatepicker').datepicker({
+				showAnim: "slideDown",
+				selectOtherMonths: true,
+				showOtherMonths: true,
+				showButtonPanel: true
 			});
+			
+			$('#enddatepicker').datepicker({
+				showAnim: "slideDown",
+				selectOtherMonths: true,
+				showOtherMonths: true,
+				showButtonPanel: true
+			});
+			
+			$('#save-btn').on('click', function(){
+				
+				/* Client-Side Field Validation */
+				
+				// section name
+				if ($.trim($('#name').val())  === '') {						
+					setInvalid($('#name'));
+					return false;
+				} else {
+					setValid($('#name'));
+				}
+				
+				// dates
+				
+				
+				/* Array of Students */
+				var students = document.getElementById('student-csv').value.split(", \n");
+				students.pop(); // remove the blank last element
 
-			var studentArray = [];
+				/* Post to the Symfony Route */
+				$.post( "{{path('section_new_post')}}", {				
+					name: $.trim($('#name').val()),
+					course: $('#course').val(),
+					semester: $('#semester').val(),
+					year: $('#year').val(),
+					students: JSON.stringify(students),
+					start_time: $('#startdatepicker').val(),
+					end_time: $('#enddatepicker').val()
+					
+				}, function(data) {			
+					console.log(data);
+					//window.location = data["redirect_url"];
+				}).fail(function(data) {
+				
+					alert(data["responseText"]);
+				
+				});				
+			});
+			
+			$('#student-picker').on('change', function(){
+				updateStudentCSV();
+			});
+		});
+		
+		function setInvalid(div) {
+			div.css('border', '3px solid red');
+			div.css('background-color', '#FD8177');
+		}
+		
+		function setValid(div) {
+			div.css('border', '');
+			div.css('background-color', '');
+		}
 
-			function addStudent() {
-				const studentPicker = document.getElementById('student-picker');
-				const value = studentPicker.value;
-				const studentInput = document.getElementById('student-csv');
-				studentInput.value += value + ", \n"
-				studentArray = studentInput.value.split(", \n");
-				studentPicker.selectedIndex = 0;
+		function updateStudentCSV() {
+			
+			// get the value of the new student
+			var studentPicker = $('#student-picker');
+			
+			if(studentPicker.val() == -1){
+				return;
 			}
-
-			function insertSection() {
-				const test = document.getElementById("section");
-				const name = document.getElementById("name").value;
-				const semester = document.getElementById("semester").value;
-				const year = document.getElementById("year").value;
-				const id = test[test.selectedIndex].value;
-
-				var path = "{{path('section_insert', { 'courseId': 'course_id',	'name': 'name', 'students': 'students', 'semester': 'semester', 'year': 'year', 'start_time': 'start_time', 'end_time': 'end_time', 'is_deleted': 'is_deleted', 'is_public': 'is_public'})}}";
-				path = path.replace("course_id", id);
-				path = path.replace("name", name);
-				path = path.replace("students", JSON.stringify(studentArray));
-				path = path.replace("semester", semester);
-				path = path.replace("year", year);
-				path = path.replace("name", name);
-				path = path.replace("name", name);
-				path = path.replace("start_time", new Date());
-				path = path.replace("end_time", new Date());
-				path = path.replace("is_deleted", false);
-				path = path.replace("is_public", false);
-				window.location.replace(path);
-			}
-		</script>
+			
+			// update the text area
+			var studentCSV = $('#student-csv');
+			studentCSV.val(studentCSV.val() + studentPicker.val() + ", \n");
+			
+			// reset the dropdown to black			
+			$('option:selected', studentPicker).remove();
+			studentPicker.val(0);
+		}
+		
+	</script>
 {% endblock %}

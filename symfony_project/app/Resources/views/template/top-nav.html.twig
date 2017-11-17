@@ -1,11 +1,14 @@
 <div class="topnav" id="myTopnav">
+	{# logout button #}
 	<a href="{{path('user_logout')}}" class="navbuttons">Logout</a>
 
-	{% if app.user.hasRole("ROLE_SUPER") or app.user.hasRole("ROLE_ADMIN")%}	
+	{# admin button #}
+	{% if is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN")%}	
 		<a href="" class="navbuttons">Admin</a>	
 	{% endif %}
 
 	
+	{# development user changer #}
 	{% if not is_granted('ROLE_PREVIOUS_ADMIN') and is_granted('ROLE_SUPER') and user_impersonators|length > 0 %}
 	
 		<div class="navbuttons" style="display: flex; flex-direction: row; align-items: center; color: #f2f2f2; font-size:17px; float: right; padding-right:25px">
@@ -25,11 +28,13 @@
 		<a href="{{ path('homepage', {'_switch_user': '_exit'}) }}" class="navbuttons">Exit Impersonation</a>
 	{% endif %}
 	
+	{# logo #}
     <a href="{{path('homepage')}}" id="logo"><img src="{{asset('logo1.png')}}" title= "Gradel, Gradel, Gradel, we made it out of code!" id="logo" alt="Gradel"></a>
 </div>
 
 
 <script>
+	// Script to redirect to the selected user 
 	function setImpersonate(){
 		var sel = document.getElementById("impersonateSelect");
 		

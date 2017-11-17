@@ -18,12 +18,13 @@
 		{{ include('template/path-nav.html.twig') }}
 		
         <div class="card">
-            <div class="btn-close" onclick="collapseCard('courseInfo')"><h2 style="margin: 0px">Upcoming Assignments<span style="float: right"><i class="fa fa-angle-down"></i></span></h2></div>
+            <div class="btn-close" onclick="collapseCard('courseInfo')">
+				<h2 style="margin: 0px">Upcoming Assignments
+					<span style="float: right"><i class="fa fa-angle-down"></i></span>
+				</h2>
+			</div>
             <div id="courseInfo" class="card-contents">
-                
-				{% if assignments|length == 0 %}
-					You have no upcoming assignments to be completed!				
-				{% else %}
+                <div>
 					{% set oldDate = '' %}
 					
 					{% for asgn in assignments %}
@@ -42,10 +43,10 @@
 								{{asgn.name}}
 							</a>								
 						</div>
-						
+					{% else %}
+						You have no upcoming assignments to be completed!
 					{% endfor %}
-					
-				{% endif %}
+				</div>
             </div>
         </div>
 
@@ -102,7 +103,6 @@
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('styles.css') }}" />
-	<link rel="stylesheet" href="{{ asset('home.css') }}" />
 	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
 {% endblock %}
 
@@ -112,4 +112,33 @@
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script src="{{ asset('js/cards.js') }}"></script>
+	
+	{# this needs to be in the section-nav.html.twig #}
+	<script>
+	
+		var past_hidden = true;
+		var past_sections_button = document.getElementById('past_sections_button');
+		past_sections_button.addEventListener("click", togglePastSections);
+		var past_list = document.getElementById('past_list');		
+		
+		function togglePastSections(){
+			
+			if(past_hidden){
+			
+				past_sections_button.innerHTML = "&#9650; Hide Past Sections ";
+				past_list.style.display = "block";		
+			} else {		
+			
+				past_sections_button.innerHTML = "&#9660; Load Past Sections ";
+				past_list.style.display = "none";	
+			}
+			
+			past_hidden = !past_hidden;
+			
+		}
+
+
+	</script>
+	
+	
 {% endblock %}
