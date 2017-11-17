@@ -36,6 +36,17 @@ class Uploader  {
 		$this->web_directory = $web_directory;		
 	}
 	
+	# returns the contents of the file base64-encoded and the name of the file
+	public function getFileContents($file){
+
+		# Get the file contents and name
+		$fileContents = base64_encode(file_get_contents($file["tmp_name"]));
+		$fileName = basename($file["name"]);
+
+		# return an array of the contents and name
+		return ["contents" => $fileContents, "name" => $fileName];
+	}
+	
 	public function getUploadDirectory($user, $problem){
 		
 		$target_directory = $this->web_directory."compilation/uploads/".$user->id."/".$problem->id."/";

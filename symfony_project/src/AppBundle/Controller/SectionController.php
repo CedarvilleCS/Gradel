@@ -335,6 +335,8 @@ class SectionController extends Controller {
 		return $this->editQueryAction($request, $sectionId, $courseId, $name, $students, $semester, $year, $start_time, $end_time, $is_public, $is_deleted);
     }
 
+	// the CURRENT section creation controller
+	// the other one should be removed
 	public function newSectionPostAction(Request $request){
 				
 		$em = $this->getDoctrine()->getManager();

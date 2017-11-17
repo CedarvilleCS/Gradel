@@ -30,9 +30,36 @@ use Symfony\Component\HttpFoundation\Response;
 
 
 class UploadController extends Controller {
+
+	# returns a json array of the file contents
+	public function getContentsAction(Request $request){
+		
+		if(!$_FILES["file"]){
+			$response = new Response("You should have provided a file, silly!");
+			$response->setStatusCode(Response::HTTP_FORBIDDEN);
+			return $response;
+		}
+		
+		$web_dir = $this->get('kernel')->getProjectDir()."/";
+        $uploader = new Uploader($web_dir);	
+		
+		$fileInfo = $uploader->getFileContents($_FILES["file"]);
+		
+		$response = new Response(json_encode([
+		
+			'contents' => $fileInfo['contents'],
+			'file' => $fileInfo['name'],
+			
+		]));
+		
+		$response->headers->set('Content-Type', 'application/json');
+		$response->setStatusCode(Response::HTTP_OK);
+		
+		return $response;
+	}
  
 	
-	public function aceUploadAction($problem_id){
+	public function aceUpload($problem_id){
 		
 		# entity manager
         $em = $this->getDoctrine()->getManager();
@@ -86,7 +113,7 @@ class UploadController extends Controller {
 			die("UNABLE TO MOVE THE ACE EDITOR CONTENTS");
 		}
 		
-		return $this->redirectToRoute('submit', [
+		return $this->generateUrl('submit', [
 		
 			'problem_id' => $problem_entity->id, 
 			'submitted_filename' => $filename,
@@ -97,7 +124,7 @@ class UploadController extends Controller {
 		]);
 	}
 		
-	public function fileUploadAction($problem_id){
+	public function fileUpload($problem_id, $postData){
 		
 		# entity manager
         $em = $this->getDoctrine()->getManager();
@@ -125,7 +152,7 @@ class UploadController extends Controller {
 		#die();
 		if($target_file){
 			
-			$language_id = $_POST["language"];
+			$language_id = $postData["language"];
 			
 			$language_entity = $em->find("AppBundle\Entity\Language", $language_id);			
 			if(!$language_entity){
@@ -134,19 +161,19 @@ class UploadController extends Controller {
 			
 			if($language_entity->name == "Java"){
 				
-				if(strlen($_POST["main_class"]) == 0){
+				if(strlen($postData["main_class"]) == 0){
 					die("MAIN CLASS IS NEEDED");
 				}
 				
-				$main_class = $_POST["main_class"];	
-				$package_name = $_POST["package_name"];		
+				$main_class = $postData["main_class"];	
+				$package_name = $postData["package_name"];		
 				
 			} else {
 				$main_class = '';
 				$package_name = '';
 			}
 			
-			return $this->redirectToRoute('submit', [
+			return $this->generateUrl('submit', [
 				
 				'problem_id' => $problem_entity->id, 
 				'submitted_filename' => basename($_FILES["fileToUpload"]["name"]),
@@ -158,35 +185,46 @@ class UploadController extends Controller {
 		}
 	}
 	
-    public function submitProblemUploadAction($problem_id) {
+    public function submitProblemUploadAction($problem_id) {		
+
 		
-		
-		if($_POST["ACE"] && $_POST["ACE"] != ""){
+		if($_FILES["fileToUpload"]){
 			
-			return $this->forward('AppBundle:Upload:aceUpload', [
+			$url = $this->fileUpload($problem_id);
 			
-				'problem_id' => $problem_id,
-		
-			]);
-		} else if($_FILES["fileToUpload"]){
+		} else if($_POST["ACE"] && $_POST["ACE"] != ""){
 			
-			return $this->forward('AppBundle:Upload:fileUpload', [
-		
-				'problem_id' => $problem_id,
-			
-			]);
+			$url = $this->aceUpload($problem_id, $_POST);
 			
 		} else {
 			
-			// if they didn't send a file and the , render upload page
-			return $this->redirectToRoute('assignment', [
+			# get the current problem
+			$em = $this->getDoctrine()->getManager();
+			$problem_entity = $em->find("AppBundle\Entity\Problem", $problem_id);        
+			if(!$problem_entity){
+				die("PROBLEM DOES NOT EXIST");
+			} 
+			// if they didn't send a file or ace, render upload page
+			$url = $this->generateUrl('assignment', [
 				
 				'sectionId' => $problem_entity->assignment->section->id,
 				'assignmentId' => $problem_entity->assignment->id,
 				'problemId' => $problem_entity->id,
 				
 			]);			
-		}        
+		}  
+		
+		
+		$response = new Response(json_encode([
+		
+			'redirect_url' => $url,
+			
+		]));
+		
+		$response->headers->set('Content-Type', 'application/json');
+		$response->setStatusCode(Response::HTTP_OK);
+		
+		return $response;
     }
 }
 

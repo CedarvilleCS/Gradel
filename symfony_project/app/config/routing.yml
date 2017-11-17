@@ -92,7 +92,8 @@ problem_result:
     requirements:
         submission_id: '\d+'
         
-      
+   
+# testcase routes
 testcase_new:
   path: '/section/{sectionId}/assignment/{assignmentId}/new_problem'
   defaults: {_controller: AppBundle:TestCase:new}
@@ -108,7 +109,12 @@ testcase_edit:
 testcase_result:
     path: '/result/{submission_id}'
     defaults: {_controller: AppBundle:TestCase:result}
-        
+
+# UPLOAD ROUTES
+get_contents:
+    path: '/get_contents'
+    defaults: { _controller: AppBundle:Upload:getContents}
+    methods: [POST]    
 
 # SUBMISSION ROUTES
 submission_upload:

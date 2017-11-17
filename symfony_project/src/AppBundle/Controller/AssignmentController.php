@@ -23,24 +23,6 @@ use Psr\Log\LoggerInterface;
 
 class AssignmentController extends Controller {
 
-	private function uploadFile($user, $problem_entity){
-		
-		$web_dir = $this->get('kernel')->getProjectDir()."/";
-		$uploader = new Uploader($web_dir);
-		
-		$target_file = $uploader->uploadSubmissionFile($_FILES["fileToUpload"], $user, $problem_entity);
-
-		if (!$target_file) {
-			die("ERROR GETTING UPLOADED FILE");
-		}
-
-		// Get the file contents and name
-		$fileContents = base64_encode(file_get_contents($target_file));
-		$fileName = basename($target_file);
-
-		return ["fileContent" => $fileContents, "fileName" => $fileName];
-	}
-
 	public function assignmentAction($sectionId, $assignmentId, $problemId) {
 
 		$em = $this->getDoctrine()->getManager();
@@ -122,21 +104,7 @@ class AssignmentController extends Controller {
 			
 		$sub_query = $qb_accsub->getQuery();
 		$best_submission = $sub_query->getOneOrNullResult();
-		
-		
-		# if there was a file to upload get it
-		if($_FILES["fileToUpload"]){
-			
-			$fileInfo = $this->uploadFile($user, $problem_entity);
-			
-			$fileContent = $fileInfo["fileContent"];
-			$fileName = $fileInfo["fileName"];
-			
-		} else {
 
-			$fileContent = null;
-			$fileName = null;
-		}		
 		
 		return $this->render('assignment/index.html.twig', [
 			'user' => $user,
@@ -155,8 +123,6 @@ class AssignmentController extends Controller {
 			'default_code' => $default_code,
 			'ace_modes' => $ace_modes,
 			'filetypes' => $filetypes,
-			'fileContents' => $fileContent,
-			'fileName' => $fileName,
 		]);	
 	}
 
