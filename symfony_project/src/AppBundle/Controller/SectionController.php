@@ -243,7 +243,7 @@ class SectionController extends Controller {
 			->from('AppBundle\Entity\Assignment', 'a')
 			->where('a.section = ?1')
 			->orderBy('a.end_time', 'ASC')
-			->setParameter(1, $section_entity);
+			->setParameter(1, $section);
 
 		$query = $qb->getQuery();
 		$assignments = $query->getResult();
@@ -255,6 +255,7 @@ class SectionController extends Controller {
         'usr' => $section_takers,
         'users' => $users,
 		'assignments' => $assignments,
+		'edit' => true,
       ]);
     }
 
