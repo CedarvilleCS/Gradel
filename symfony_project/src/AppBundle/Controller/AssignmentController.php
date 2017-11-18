@@ -9,6 +9,7 @@ use AppBundle\Entity\Section;
 use AppBundle\Entity\Assignment;
 
 use AppBundle\Utils\Grader;
+use AppBundle\Utils\Uploader;
 
 use \DateTime;
 
@@ -21,7 +22,6 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Psr\Log\LoggerInterface;
 
 class AssignmentController extends Controller {
-
 
 	public function assignmentAction($sectionId, $assignmentId, $problemId) {
 
@@ -104,66 +104,26 @@ class AssignmentController extends Controller {
 			
 		$sub_query = $qb_accsub->getQuery();
 		$best_submission = $sub_query->getOneOrNullResult();
+
 		
-		// If a file has been uploaded
-		if (file_get_contents($_FILES["fileToUpload"]["tmp_name"], $target_file)) {
+		return $this->render('assignment/index.html.twig', [
+			'user' => $user,
+			'section' => $assignment_entity->section,
+			'assignment' => $assignment_entity,
+			'problem' => $problem_entity,
 
-			// Get the file contents and extension
-			$fileContents = file_get_contents($_FILES["fileToUpload"]["tmp_name"], $target_file);
-			// $fileType = end(explode(".", basename($_FILES["fileToUpload"]["name"])));
-			$fileType = basename($_FILES["fileToUpload"]["name"]);
-
-			$total_attempts = $problem_entity->gradingmethod->total_attempts;
+			'problemDescription' => $currentProblemDescription,
+			'languages' => $languages,
+			'usersectionrole' => $usersectionrole,
+			'grader' => new Grader($em),
 			
-			if($total_attempts == 0){
-				$attempts_remaining = -1;
-			} else {
-				$attempts_remaining = max($total_attempts - $grader->getNumTotalAttempts($user, $problem_entity), 0);
-			}
+			'attempts_remaining' => $attempts_remaining,
+			'best_submission' => $best_submission,
 
-			return $this->render('assignment/index.html.twig', [
-				'user' => $user,
-				'section' => $assignment_entity->section,
-				'assignment' => $assignment_entity,
-				'problem' => $problem_entity,
-				
-				'problemDescription' => $currentProblemDescription,
-				'languages' => $languages,
-				'usersectionrole' => $usersectionrole,
-				'grader' => new Grader($em),
-				
-				'attempts_remaining' => $attempts_remaining,
-				'best_submission' => $best_submission,
-				
-				'default_code' => $default_code,
-				'ace_modes' => $ace_modes,
-				'filetypes' => $filetypes,
-				"fileContents" => base64_encode($fileContents),
-				"fileType" => $fileType,
-			]);
-		} 
-		// if there was no file uploaded
-		else {
-		
-			return $this->render('assignment/index.html.twig', [
-				'user' => $user,
-				'section' => $assignment_entity->section,
-				'assignment' => $assignment_entity,
-				'problem' => $problem_entity,
-
-				'problemDescription' => $currentProblemDescription,
-				'languages' => $languages,
-				'usersectionrole' => $usersectionrole,
-				'grader' => new Grader($em),
-				
-				'attempts_remaining' => $attempts_remaining,
-				'best_submission' => $best_submission,
-
-				'default_code' => $default_code,
-				'ace_modes' => $ace_modes,
-				'filetypes' => $filetypes,
-			]);
-		}
+			'default_code' => $default_code,
+			'ace_modes' => $ace_modes,
+			'filetypes' => $filetypes,
+		]);	
 	}
 
     public function newAction($sectionId) {
@@ -239,27 +199,6 @@ class AssignmentController extends Controller {
 
       return new RedirectResponse($this->generateUrl('assignment', array('sectionId' => $sectionId, 'assignmentId' => $assignment->id)));
 	}
-
-	public function myuploadAction($sectionId, $assignmentId, $problemId) {
-		echo("myuploadAction");
-		if (file_get_contents($_FILES["fileToUpload"]["tmp_name"], $target_file)) {
-			$fileContents = file_get_contents($_FILES["fileToUpload"]["tmp_name"], $target_file);
-			// die($fileContents);
-			// echo('<script>
-			// 	var editor = ace.edit("editor");
-			// 	editor.setValue("test");
-			// </script>');
-
-			die($fileContents);
-		}
-
-
-		// die();
-		return $this->redirectToRoute('assignment', 
-				['sectionId' => $sectionId,
-				'assignmentId' => $problem_entity->assignment->id,
-				'problemId' => $problem_entity->id]);
-    }
 		
 	public function deleteAction($sectionId, $assignmentId){
 	

@@ -21,7 +21,7 @@
 				<div id="courseInfo" class="card-contents">
 				<h2>SUBMISSION ID: {{submission.id}}</h2>
 				<h3>RESULT: 
-					{% if submission.percentage == 1 %}
+					{% if submission.percentage >= 1 %}
 						<span style="color:green">CORRECT!</span>
 					{% else %}
 						<span style="color:red">

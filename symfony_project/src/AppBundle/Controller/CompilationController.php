@@ -154,6 +154,8 @@ class CompilationController extends Controller {
 		
 		# query for the current filetype		
 		$extension = pathinfo($submitted_file_path, PATHINFO_EXTENSION);
+
+		
 		$is_zipped = "false";
 		if($extension == "zip"){
 			$is_zipped = "true";
@@ -191,7 +193,7 @@ class CompilationController extends Controller {
 		$docker_time_limit = intval(count($problem_entity->testcases) * ceil(floatval($problem_entity->time_limit)/1000.0)) + 8 + rand(1,4);
 
 		$docker_script = $web_dir."/compilation/dockercompiler.sh ".$problem_entity->id." ".$team_entity->id." ".dirname($submitted_file_path)." ".basename($submitted_file_path)." ".$language_entity->name." ".$is_zipped." ".$docker_time_limit." \"".$compilation_options."\" ".$submission_entity->id." ".$submission_entity->main_class_name." ".$submission_entity->package_name;
-		# die($docker_script);
+		#die("<br/>".$docker_script);
 		
 		$docker_output = shell_exec($docker_script);	
 		
