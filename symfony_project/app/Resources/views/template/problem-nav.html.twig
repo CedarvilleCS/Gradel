@@ -1,11 +1,10 @@
 {# make sure that the grader entity is define before doing all of this stuff #}
-{% if grader is defined and problem is defined and usersectionrole is defined%}
 
 {% set grades = grader.getAllProblemGrades(app.user, problem.assignment) %}
 
 <nav class="nav-left">
 
-	{% if is_granted("ROLE_ADMIN") or is_granted("ROLE_SUPER") %}
+	{% if app.user in section_teachers or is_granted("ROLE_SUPER") %}
 		<a href="{{path('problem_new', {"sectionId": section.id, 'assignmentId': assignment.id})}}" class="btn">
 			<div class="btn btn-center">+ Problem</div>
 		</a>
@@ -13,8 +12,13 @@
 			<div class="btn btn-delete btn-center">Delete Assignment</div>
 		</a>
 	{% endif %}
+
+	{% if edit %}
+		<a id="insert" class="btn"><div class="btn btn-center" href="">Save</div></a>
+	{% endif %}
+	
+	
 	<ol style="padding-bottom: 10px">
-		
 		{# overview of when the assignment is due #}		
 		<li style="padding-top: 0px;"> {{problem.assignment.name}} 
 			<div><small>Due on {{problem.assignment.end_time|date('F d')}} {{problem.assignment.end_time|date('\\a\\t  h:i:s A')}} </small></div>
@@ -69,5 +73,3 @@
 	</ol>
 </nav>
 
-
-{% endif %}

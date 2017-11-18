@@ -236,7 +236,17 @@ class SectionController extends Controller {
               ->setParameter(1, $section)
               ->setParameter(2, $takes_role);
       $query = $builder->getQuery();
-      $section_takers = $query->getResult();	  
+      $section_takers = $query->getResult();	
+
+		$qb = $em->createQueryBuilder();
+		$qb->select('a')
+			->from('AppBundle\Entity\Assignment', 'a')
+			->where('a.section = ?1')
+			->orderBy('a.end_time', 'ASC')
+			->setParameter(1, $section);
+
+		$query = $qb->getQuery();
+		$assignments = $query->getResult();
 
       return $this->render('section/edit.html.twig', [
         'section' => $section,
@@ -244,6 +254,8 @@ class SectionController extends Controller {
         'sections' => $sections,
         'usr' => $section_takers,
         'users' => $users,
+		'assignments' => $assignments,
+		'edit' => true,
       ]);
     }
 

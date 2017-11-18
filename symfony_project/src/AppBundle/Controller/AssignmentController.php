@@ -163,10 +163,18 @@ class AssignmentController extends Controller {
       $em = $this->getDoctrine()->getManager();
 
       $assignment = $em->find('AppBundle\Entity\Assignment', $assignmentId);
-
+		
+	  if($problemId == 0){
+			$problemId = $assignment->problems[0]->id;
+		}
+		if($problemId != null){
+			$problem_entity = $em->find("AppBundle\Entity\Problem", $problemId);
+		}
       return $this->render('assignment/edit.html.twig', [
         "assignment" => $assignment,
 		"description" => stream_get_contents($assignment->description),
+		"edit" => true,
+		"problem" => $problem_entity,
       ]);
     }
 
