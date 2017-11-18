@@ -30,18 +30,18 @@
 			{% if prob.id != problem.id or result_page %}
 			
 				<a href="{{path("assignment", {'sectionId': prob.assignment.section.id, 'assignmentId': prob.assignment.id, 'problemId': prob.id})}}">
-					<li class="sidebar" >
-						{{ prob.name }}&nbsp;
-						{% if usersectionrole.role.role_name == 'Takes' %}
-							<br/><small>{{grades[prob.id]['passed_testcases']}}/{{grades[prob.id]['total_testcases']}} - {{(grades[prob.id]['percentage_adj']*100)|number_format(1,'.')}}%</small>
-						{% endif %}
-					
+				<li class="sidebar" >
+					{{ prob.name }}&nbsp;
+					{% if usersectionrole.role.role_name == 'Takes' %}
+						<br/><small>{{grades[prob.id]['passed_testcases']+grades[prob.id]['passed_extra_testcases']}}/{{grades[prob.id]['total_testcases']}} - {{(grades[prob.id]['percentage_adj']*100)|number_format(1,'.')}}%</small>
+					{% endif %}
+				
 			{% else %}
 				<li class="sidebar" style="background: #5a5a5a">
 						{{ prob.name }}&nbsp;
 						
 						{% if usersectionrole.role.role_name == 'Takes' %}
-							<br/><small>{{grades[prob.id]['passed_testcases']}}/{{grades[prob.id]['total_testcases']}} - {{(grades[prob.id]['percentage_adj']*100)|number_format(1,'.')}}%</small>
+							<br/><small>{{grades[prob.id]['passed_testcases']+grades[prob.id]['passed_extra_testcases']}}/{{grades[prob.id]['total_testcases']}} - {{(grades[prob.id]['percentage_adj']*100)|number_format(1,'.')}}%</small>
 						{% endif %}
 				
 			{% endif %}
@@ -62,8 +62,9 @@
 				{% endif %}	
 				
 				</li>
+				
 				{% if prob.id != problem.id or result_page %}
-					</a>
+				</a>
 				{% endif %}
 			
 		{% else %}

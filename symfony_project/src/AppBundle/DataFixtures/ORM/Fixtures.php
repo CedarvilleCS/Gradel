@@ -152,7 +152,7 @@ class Fixtures extends Fixture {
 									"Homework #2", "This is the second homework assignment", 
 									\DateTime::createFromFormat($date_format, "00:00:00 10/30/2017"), 
 									\DateTime::createFromFormat($date_format, "23:59:59 11/30/2017"), 
-									\DateTime::createFromFormat($date_format, "23:59:59 12/15/2017"), 0.0, $assignment_grdmethod0, false);
+									\DateTime::createFromFormat($date_format, "23:59:59 12/15/2017"), 1, $assignment_grdmethod0, false);
 			$manager->persist($assignment_04);
 			
 			
@@ -160,28 +160,28 @@ class Fixtures extends Fixture {
 									"Practice Contest", "The is the practice contest before the actual contest", 
 									\DateTime::createFromFormat($date_format, "13:00:00 10/30/2017"), 
 									\DateTime::createFromFormat($date_format, "17:00:00 11/30/2017"), 
-									\DateTime::createFromFormat($date_format, "17:00:00 12/15/2017"), 0.0, $assignment_grdmethod1, false);
+									\DateTime::createFromFormat($date_format, "17:00:00 12/15/2017"), 1, $assignment_grdmethod1, false);
 			$manager->persist($assignment_02);
 			
 			$assignment_03 = new Assignment($contest_2017, 
 									"Actual Contest", "The is the contest", 
 									\DateTime::createFromFormat($date_format, "13:00:00 10/30/2017"), 
 									\DateTime::createFromFormat($date_format, "17:00:00 11/30/2017"), 
-									\DateTime::createFromFormat($date_format, "17:00:00 12/15/2017"), 0.0, $assignment_grdmethod2, false);
+									\DateTime::createFromFormat($date_format, "17:00:00 12/15/2017"), 1, $assignment_grdmethod2, false);
 			$manager->persist($assignment_03);
 			
 			$assignment_01 = new Assignment($CS1210_01, 
 									"Homework #1", "This is the first homework assignment", 
 									\DateTime::createFromFormat($date_format, "00:00:00 10/30/2017"), 
 									\DateTime::createFromFormat($date_format, "23:59:59 11/01/2017"), 
-									\DateTime::createFromFormat($date_format, "23:59:59 12/15/2017"), 0.0, $assignment_grdmethod0, false);
+									\DateTime::createFromFormat($date_format, "23:59:59 12/15/2017"), 1, $assignment_grdmethod0, false);
 			$manager->persist($assignment_01);
 			
 			$old_assignment_01 = new Assignment($oldsection, 
 									"Old #1", "This is the old homework assignment", 
 									\DateTime::createFromFormat($date_format, "00:00:00 01/11/2017"), 
 									\DateTime::createFromFormat($date_format, "23:59:59 01/30/2017"), 
-									\DateTime::createFromFormat($date_format, "23:59:59 05/04/2017"), 0.0, $assignment_grdmethod0, false);
+									\DateTime::createFromFormat($date_format, "23:59:59 05/04/2017"), 1, $assignment_grdmethod0, false);
 			$manager->persist($old_assignment_01);
 		}
 		
@@ -287,88 +287,88 @@ class Fixtures extends Fixture {
 			
 			# HOMEWORK 1 For CS-1210-01
 			$desc_file_01 = fopen($folder_path."sum/description.txt", "r") or die("Unable to open 1.desc");
-			$problem_01 = new Problem($assignment_04, "Calculate the Sum", $desc_file_01, 0.0, $prob_grdmethod00, 1000, false);
+			$problem_01 = new Problem($assignment_04, "Calculate the Sum", $desc_file_01, 1, $prob_grdmethod00, 1000, false);
 			$problems[] = $problem_01;
 			$prob_folds[$problem_01->name] = "sum";
 			
 			$desc_file_02 = fopen($folder_path."diff/description.txt", "r") or die("Unable to open 2.desc");
-			$problem_02 = new Problem($assignment_04, "Calculate the Difference", $desc_file_02, 0.0, $prob_grdmethod00, 1000, false);
+			$problem_02 = new Problem($assignment_04, "Calculate the Difference", $desc_file_02, 1, $prob_grdmethod00, 1000, false);
 			$problems[] = $problem_02;
 			$prob_folds[$problem_02->name] = "diff";
 			
 			$desc_file_03 = fopen($folder_path."prod/description.txt", "r") or die("Unable to open 3.desc");
-			$problem_03 = new Problem($assignment_04, "Calculate the Product", $desc_file_03, 0.0, $prob_grdmethod00, 1000, false);
+			$problem_03 = new Problem($assignment_04, "Calculate the Product", $desc_file_03, 1, $prob_grdmethod00, 1000, false);
 			$problems[] = $problem_03;
 			$prob_folds[$problem_03->name] = "prod";
 			
 			$desc_file_04 = fopen($folder_path."quot/description.txt", "r") or die("Unable to open 4.desc");
-			$problem_04 = new Problem($assignment_04, "Calculate the Quotient", $desc_file_04, 0.0, $prob_grdmethod00, 1000, false);
+			$problem_04 = new Problem($assignment_04, "Calculate the Quotient", $desc_file_04, 1, $prob_grdmethod00, 1000, false);
 			$problems[] = $problem_04;
 			$prob_folds[$problem_04->name] = "quot";
 			
 			
 			# HOMEWORK 2 For CS-1210-01
 			$desc_file_11 = fopen($folder_path."sum/description.txt", "r") or die("Unable to open 1.desc");
-			$problem_11 = new Problem($assignment_01, "Get the Sum", $desc_file_11, 0.0, $prob_grdmethod00, 1000, false);
+			$problem_11 = new Problem($assignment_01, "Get the Sum", $desc_file_11, 2, $prob_grdmethod00, 1000, false);
 			$problems[] = $problem_11;
 			$prob_folds[$problem_11->name] = "sum";
 			
 			$desc_file_12 = fopen($folder_path."diff/description.txt", "r") or die("Unable to open 2.desc");
-			$problem_12 = new Problem($assignment_01, "Get the Difference", $desc_file_12, 0.0, $prob_grdmethod00, 1000, false);
+			$problem_12 = new Problem($assignment_01, "Get the Difference", $desc_file_12, 2, $prob_grdmethod00, 1000, false);
 			$problems[] = $problem_12;
 			$prob_folds[$problem_12->name] = "diff";
 			
 			$desc_file_13 = fopen($folder_path."prod/description.txt", "r") or die("Unable to open 3.desc");
-			$problem_13 = new Problem($assignment_01, "Get the Product", $desc_file_13, 0.0, $prob_grdmethod00, 1000, false);
+			$problem_13 = new Problem($assignment_01, "Get the Product", $desc_file_13, 2, $prob_grdmethod00, 1000, false);
 			$problems[] = $problem_13;
 			$prob_folds[$problem_13->name] = "prod";
 			
 			$desc_file_14 = fopen($folder_path."quot/description.txt", "r") or die("Unable to open 4.desc");
-			$problem_14 = new Problem($assignment_01, "Get the Quotient", $desc_file_14, 0.0, $prob_grdmethod00, 1000, false);
+			$problem_14 = new Problem($assignment_01, "Get the Quotient", $desc_file_14, 2, $prob_grdmethod00, 1000, false);
 			$problems[] = $problem_14;
 			$prob_folds[$problem_14->name] = "quot";
 			
 			
 			# PRACTICE CONTEST
 			$desc_file_05 = fopen($folder_path."Z/description.txt", "r") or die("Unable to open 5.desc");
-			$problem_05 = new Problem($assignment_02, "Z - Happy Trails", $desc_file_05, 0.0, $prob_grdmethod10, 1000, false);
+			$problem_05 = new Problem($assignment_02, "Z - Happy Trails", $desc_file_05, 1, $prob_grdmethod10, 1000, false);
 			$problems[] = $problem_05;
 			$prob_folds[$problem_05->name] = "Z";
 			
 			# ACTUAL CONTEST
 			$desc_file_06 = fopen($folder_path."A/description.txt", "r") or die("Unable to open 6.desc");
-			$problem_06 = new Problem($assignment_03, "A - The Key to Cryptography", $desc_file_06, 0.0, $prob_grdmethod01, 1000, false);
+			$problem_06 = new Problem($assignment_03, "A - The Key to Cryptography", $desc_file_06, 1, $prob_grdmethod01, 1000, false);
 			$problems[] = $problem_06;
 			$prob_folds[$problem_06->name] = "A";
 			
 			$desc_file_07 = fopen($folder_path."B/description.txt", "r") or die("Unable to open 7.desc");
-			$problem_07 = new Problem($assignment_03, "B - Red Rover", $desc_file_07, 0.0, $prob_grdmethod01, 1000, false);
+			$problem_07 = new Problem($assignment_03, "B - Red Rover", $desc_file_07, 2, $prob_grdmethod01, 1000, false);
 			$problems[] = $problem_07;
 			$prob_folds[$problem_07->name] = "B";
 			
 			$desc_file_08 = fopen($folder_path."C/description.txt", "r") or die("Unable to open 8.desc");
-			$problem_08 = new Problem($assignment_03, "C - Lost In Translation", $desc_file_08, 0.0, $prob_grdmethod01, 1000, false);
+			$problem_08 = new Problem($assignment_03, "C - Lost In Translation", $desc_file_08, 3, $prob_grdmethod01, 1000, false);
 			$problems[] = $problem_08;
 			$prob_folds[$problem_08->name] = "C";
 			
 			# HOMEWORK OLD For OLD-1234-01
 			$desc_file_old1 = fopen($folder_path."sum/description.txt", "r") or die("Unable to open old.desc");
-			$problem_old1 = new Problem($old_assignment_01, "Old the Sum", $desc_file_old1, 0.0, $prob_grdmethod00, 1000, false);
+			$problem_old1 = new Problem($old_assignment_01, "Old the Sum", $desc_file_old1, 1, $prob_grdmethod00, 1000, false);
 			$problems[] = $problem_old1;
 			$prob_folds[$problem_old1->name] = "sum";
 			
 			$desc_file_old2 = fopen($folder_path."diff/description.txt", "r") or die("Unable to open 2.desc");
-			$problem_old2 = new Problem($old_assignment_01, "Old the Difference", $desc_file_old2, 0.0, $prob_grdmethod00, 1000, false);
+			$problem_old2 = new Problem($old_assignment_01, "Old the Difference", $desc_file_old2, 1, $prob_grdmethod00, 1000, false);
 			$problems[] = $problem_old2;
 			$prob_folds[$problem_old2->name] = "diff";
 			
 			$desc_file_old3 = fopen($folder_path."prod/description.txt", "r") or die("Unable to open 3.desc");
-			$problem_old3 = new Problem($old_assignment_01, "Old the Product", $desc_file_old3, 0.0, $prob_grdmethod00, 1000, false);
+			$problem_old3 = new Problem($old_assignment_01, "Old the Product", $desc_file_old3, 1, $prob_grdmethod00, 1000, false);
 			$problems[] = $problem_old3;
 			$prob_folds[$problem_old3->name] = "prod";
 			
 			$desc_file_old4 = fopen($folder_path."quot/description.txt", "r") or die("Unable to open 4.desc");
-			$problem_old4 = new Problem($old_assignment_01, "Old the Quotient", $desc_file_old4, 0.0, $prob_grdmethod00, 1000, false);
+			$problem_old4 = new Problem($old_assignment_01, "Old the Quotient", $desc_file_old4, 1, $prob_grdmethod00, 1000, false);
 			$problems[] = $problem_old4;
 			$prob_folds[$problem_old4->name] = "quot";
 			
@@ -436,10 +436,10 @@ class Fixtures extends Fixture {
 				$out_file_03 = fopen($folder_path.$prob_name."/3.out", "r") or die("Unable to open 3.out!");
 				$out_file_04 = fopen($folder_path.$prob_name."/4.out", "r") or die("Unable to open 4.out!");
 							
-				$testcase_01 = new Testcase($prob, 1, $in_file_01, $out_file_01, $feedback_general, 0.0);
-				$testcase_02 = new Testcase($prob, 2, $in_file_02, $out_file_02, $feedback_general, 0.0);
-				$testcase_03 = new Testcase($prob, 3, $in_file_03, $out_file_03, $feedback_negatives, 0.0);
-				$testcase_04 = new Testcase($prob, 4, $in_file_04, $out_file_04, $feedback_negatives, 0.0);
+				$testcase_01 = new Testcase($prob, 1, $in_file_01, $out_file_01, $feedback_general, 1, false);
+				$testcase_02 = new Testcase($prob, 2, $in_file_02, $out_file_02, $feedback_general, 2, false);
+				$testcase_03 = new Testcase($prob, 3, $in_file_03, $out_file_03, $feedback_negatives, 3, false);
+				$testcase_04 = new Testcase($prob, 4, $in_file_04, $out_file_04, $feedback_negatives, 6, false);
 			
 				$manager->persist($testcase_01);
 				$manager->persist($testcase_02);	

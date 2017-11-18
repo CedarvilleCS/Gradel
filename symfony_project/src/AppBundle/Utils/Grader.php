@@ -180,7 +180,19 @@ class Grader  {
 		
 		# test cases total
 		$total_testcases = count($problem->testcases);
-		$grades['total_testcases'] = $total_testcases;
+		
+		$total_normal_testcases = 0;
+		foreach($problem->testcases as $tc){
+			
+			if($tc->is_extra_credit){
+				continue;
+			}
+			
+			$total_normal_testcases++;			
+		}
+		
+		$grades['total_testcases'] = $total_normal_testcases;	
+		$grades['total_extra_testcases'] = $total_testcases - $total_normal_testcases;
 			
 				
 		# array of all submissions
@@ -210,12 +222,20 @@ class Grader  {
 			
 			# test cases passed
 			$passed_testcases = 0;
+			$passed_extra_testcases = 0;
 			foreach($accepted_sub->testcaseresults as $tcr){
 				if($tcr->is_correct){
-					$passed_testcases++;
+					
+					if($tcr->testcase->is_extra_credit){
+						
+						$passed_extra_testcases++;
+					} else {
+						$passed_testcases++;
+					}
 				}
 			}
-			$grades['passed_testcases'] = $passed_testcases;		
+			$grades['passed_testcases'] = $passed_testcases;
+			$grades['passed_extra_testcases'] = $passed_extra_testcases;
 			
 			# percentage grade - raw
 			$grades['percentage_raw'] = (float)$accepted_sub->percentage;
@@ -255,14 +275,20 @@ class Grader  {
 		# get what kind of problems they are based on extra credit
 		$normal_problem_count = 0;
 		$extra_problem_count = 0;
+		
+		# get the total weight of problems
+		$total_problem_weight = 0;		
 		foreach($assignment->problems as $problem){
 			
 			if($problem->is_extra_credit){
 				$extra_problem_count++;
 			} else{
 				$normal_problem_count++;
+				$total_problem_weight+= $problem->weight;
 			}			
 		}	
+		
+		$total_problem_weight = max(1, $total_problem_weight);
 	
 		$num_correct_problems = 0;
 		$num_extra_correct_problems = 0;
@@ -271,22 +297,21 @@ class Grader  {
 		$grade['num_extra_problems'] = $extra_problem_count;
 		$grade['num_correct_problems'] = 0;
 		$grade['num_extra_correct_problems'] = 0;
+		
 		$grade['percentage_raw'] = 0.0;
 		$grade['percentage_adj'] = 0.0;
 		
 		$problem_grades = $this->getAllProblemGrades($user, $assignment);
 		$grade['problem_grades'] = $problem_grades;
 		
+		
 		$assignment_percentage = 0.0;
 		foreach($assignment->problems as $problem){	
 		
 			$problem_percentage = $problem_grades[$problem->id]['percentage_adj'];
-			if($problem->weight == 0){
-				$assignment_percentage += $problem_percentage*(1.0/$normal_problem_count);
-			} else{		
-				$assignment_percentage += $problem_percentage*$problem->weight;
-			}
 			
+			$assignment_percentage += $problem_percentage*$problem->weight/$total_problem_weight;
+						
 			if($problem_grades[$problem->id]['total_testcases'] > 0 && $problem_grades[$problem->id]['passed_testcases'] == $problem_grades[$problem->id]['total_testcases']){
 				
 				if($problem->is_extra_credit){
@@ -353,52 +378,19 @@ class Grader  {
 		
 		$curr_time = new DateTime();
 		
+		$total_finished_weight = 0;
 		foreach($section->assignments as $assignment){
 			
-			if($curr_time < $assignment->end_time){
-
-				if($assignment->is_extra_credit){
-					$num_future_extra_assignments++;
-				}else {
-					
-					if($assignment->weight == 0){
-						$num_future_assignments_noweight++;
-					}
-					
-					$num_future_assignments++;
-				}
-				
-			} else {	
-			
-				if($assignment->is_extra_credit){
-					$num_finished_extra_assignments++;
-				}else {
-					
-					if($assignment->weight == 0){
-						$num_finished_assignments_noweight++;
-					}
-					
-					$total_finished_weight += $assignment->weight;
-					$num_finished_assignments++;
-				}
+			if($curr_time < $assignment->end_time || $assignment->is_extra_credit){
+				continue;
 			}
 			
-			$total_weight += $assignment->weight;
+			$total_finished_weight += $assignment->weight;			
 		}
+		
+		$total_finished_weight = max(1, $total_finished_weight);
 		
 		$assignment_grades = $this->getAllAssignmentGrades($user, $section);
-		
-		if($num_finished_assignments_noweight > 0){
-			$total_percentage_unweighted = 0;
-		} else{
-			$total_percentage_unweighted = 1;
-		}
-		
-		if($num_finished_assignments-$num_finished_assignments_noweight > 0){
-			$total_percentage_weighted = 0;
-		} else {
-			$total_percentage_weighted = 1;
-		}
 		
 		foreach($section->assignments as $assignment){
 			
@@ -406,23 +398,12 @@ class Grader  {
 				continue;
 			}
 						
-			$percentage = $assignment_grades[$assignment->id]['percentage_adj'];
+			$assignment_percentage = $assignment_grades[$assignment->id]['percentage_adj'];
 			
-			if($assignment->weight == 0){
-				$adj_percentage = $percentage*(1.0/$num_finished_assignments_noweight);
-				$total_percentage_unweighted += $adj_percentage;
-			} else {
-				$total_percentage_weighted += ($percentage*$assignment->weight/$total_finished_weight);
-			}	
+			$total_percentage_weighted += $assignment_percentage*$assignment->weight/$total_finished_weight;
 		}
 		
-		$total_percentage = $total_percentage_unweighted*(1.0-$total_finished_weight) + $total_percentage_weighted*$total_finished_weight;
-		
-		if($num_finished_assignments == 0){
-			$total_percentage = -1;
-		}
-		
-		$grade['percentage_adj'] = $total_percentage;
+		$grade['percentage_adj'] = $total_percentage_weighted;
 
 		return $grade;
 	}
