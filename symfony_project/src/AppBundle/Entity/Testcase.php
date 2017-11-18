@@ -22,13 +22,14 @@ class Testcase {
 		}
 	}
 
-	public function __construct6($prob, $seq, $in, $out, $feed, $wght){
+	public function __construct7($prob, $seq, $in, $out, $feed, $wght, $extra){
 		$this->problem = $prob;
 		$this->seq_num = $seq;
 		$this->input = $in;
 		$this->correct_output = $out;
 		$this->feedback = $feed;
 		$this->weight = $wght;
+		$this->is_extra_credit = $extra;
 	}
 
 	/**
@@ -76,8 +77,13 @@ class Testcase {
 	public $feedback;
 
 	/**
-	*@ORM\Column(type="decimal", precision=9, scale=8)
+	*@ORM\Column(type="integer")
 	*/
 	public $weight;
+	
+	/**
+	*@ORM\Column(type="boolean")
+	*/
+	public $is_extra_credit;
 }
 ?>

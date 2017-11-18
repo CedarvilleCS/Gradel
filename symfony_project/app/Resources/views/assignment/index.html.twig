@@ -202,12 +202,11 @@
 			
 			if(contents != "") {
 				editor.setValue(contents, -1);
-				$("#ACE").val(editor.getValue());
-			} else {
-				
+			} else {				
 				// This sets the default code for the selected language.
 				editor.setValue(default_code[language], -1);			
 			}
+			$("#ACE").val(editor.getValue());
 		}
 	
 	</script>
@@ -259,6 +258,10 @@
 					main_class = "";
 					package_name = "";
 				}
+				
+				var editor = ace.edit("editor");			
+				editor.$blockScrolling = Infinity;
+				updateAceCode(editor.getValue(), languageText);
 				
 				var ACE = $('#ACE').val();
 				
