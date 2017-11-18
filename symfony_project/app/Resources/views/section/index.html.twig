@@ -119,7 +119,7 @@
 						{% else %}
 							
 							{% for sub in recent_submissions %}
-								{% if sub.percentage == 1 %}
+								{% if sub.percentage >= 1 %}
 									<div style="color: green">
 								{% else %}
 									<div style="color: red">

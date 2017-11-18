@@ -1,6 +1,8 @@
-{# make sure that the grader entity is define before doing all of this stuff #}
+{% if grader is defined or result_page %}
 
+{# make sure that the grader entity is defined before doing all of this stuff #}
 {% set grades = grader.getAllProblemGrades(app.user, problem.assignment) %}
+
 
 <nav class="nav-left">
 
@@ -21,7 +23,26 @@
 	<ol style="padding-bottom: 10px">
 		{# overview of when the assignment is due #}		
 		<li style="padding-top: 0px;"> {{problem.assignment.name}} 
-			<div><small>Due on {{problem.assignment.end_time|date('F d')}} {{problem.assignment.end_time|date('\\a\\t  h:i:s A')}} </small></div>
+			
+			<div><small>
+			{% if problem.assignment.start_time|date('U') > "now"|date('U') %}
+			
+				Opens: {{problem.assignment.start_time|date('M d \\a\\t  h:i A')}}
+			
+			{% elseif problem.assignment.end_time|date('U') > "now"|date('U') %}
+			
+				Due: {{problem.assignment.end_time|date('M d \\a\\t  h:i A')}}
+			
+			{% elseif problem.assignment.cutoff_time|date('U') > "now"|date('U') %}
+				Due: {{problem.assignment.end_time|date('M d \\a\\t  h:i A')}} </br>
+				<i>Closes: {{problem.assignment.cutoff_time|date('M d \\a\\t  h:i A')}}</i>
+			
+			{% else %}
+			
+				<i>Closed: {{problem.assignment.cutoff_time|date('M d \\a\\t  h:i A')}}</i>
+			
+			{% endif %}
+			</small></div>
 		</li>
 		
 		{# problem list #}
@@ -36,6 +57,10 @@
 						<br/><small>{{grades[prob.id]['passed_testcases']+grades[prob.id]['passed_extra_testcases']}}/{{grades[prob.id]['total_testcases']}} - {{(grades[prob.id]['percentage_adj']*100)|number_format(1,'.')}}%</small>
 					{% endif %}
 				
+				{% if prob.id == problem.id %}
+					<div class="selectbar" style="margin: 0px; padding: 0px; position: absolute; right:0; top:0; height:100%; width:5px; background-color: #78ba62;" ></div>
+				{% endif %}
+				
 			{% else %}
 				<li class="sidebar" style="background: #5a5a5a">
 						{{ prob.name }}&nbsp;
@@ -43,7 +68,8 @@
 						{% if usersectionrole.role.role_name == 'Takes' %}
 							<br/><small>{{grades[prob.id]['passed_testcases']+grades[prob.id]['passed_extra_testcases']}}/{{grades[prob.id]['total_testcases']}} - {{(grades[prob.id]['percentage_adj']*100)|number_format(1,'.')}}%</small>
 						{% endif %}
-				
+				<div class="selectbar" style="margin: 0px; padding: 0px; position: absolute; right:0; top:0; height:100%; width:5px; background-color: #78ba62;" ></div>
+
 			{% endif %}
 
 				{# display edit icon #}
@@ -74,3 +100,4 @@
 	</ol>
 </nav>
 
+{% endif %}

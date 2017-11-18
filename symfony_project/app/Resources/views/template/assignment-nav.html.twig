@@ -34,11 +34,11 @@
 							<small>
 								{% if assig.end_time|date('U') > "now"|date('U') %}					
 								
-									{{assig.end_time|date('F d - h:i:s A')}}							
+									{{assig.end_time|date('F d - h:i A')}}							
 								
 								{% elseif assig.cutoff_time|date('U') > "now"|date('U') %}
 
-									<i>{{assig.cutoff_time|date('F d - h:i:s A')}}</i>
+									<i>{{assig.cutoff_time|date('F d - h:i A')}}</i>
 									
 								{% else %}
 									
@@ -90,7 +90,7 @@
 						{{ assig.name }}
 						<br>
 						<small>
-							<i>{{assig.start_time|date('F d - h:i:s A')}}</i>							
+							<i>{{assig.start_time|date('F d - h:i A')}}</i>							
 						</small>
 					</span>
 				</li>
