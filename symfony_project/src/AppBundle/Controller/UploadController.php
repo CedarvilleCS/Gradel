@@ -124,7 +124,7 @@ class UploadController extends Controller {
 		]);
 	}
 		
-	public function fileUpload($problem_id, $postData){
+	public function fileUpload($problem_id, $postData, $file){
 		
 		# entity manager
         $em = $this->getDoctrine()->getManager();
@@ -146,7 +146,7 @@ class UploadController extends Controller {
         $web_dir = $this->get('kernel')->getProjectDir()."/";
 
         $uploader = new Uploader($web_dir);
-		$target_file = $uploader->uploadSubmissionFile($_FILES["fileToUpload"], $user, $problem_entity);
+		$target_file = $uploader->uploadSubmissionFile($file, $user, $problem_entity);
 
 		#echo $target_file;
 		#die();
@@ -176,7 +176,7 @@ class UploadController extends Controller {
 			return $this->generateUrl('submit', [
 				
 				'problem_id' => $problem_entity->id, 
-				'submitted_filename' => basename($_FILES["fileToUpload"]["name"]),
+				'submitted_filename' => basename($file["name"]),
 				'language_id' => $language_id,
 				'main_class' => $main_class,
 				'package_name' => $package_name,
@@ -186,11 +186,10 @@ class UploadController extends Controller {
 	}
 	
     public function submitProblemUploadAction($problem_id) {		
-
 		
-		if($_FILES["fileToUpload"]){
+		if($_FILES["file"]){
 			
-			$url = $this->fileUpload($problem_id);
+			$url = $this->fileUpload($problem_id, $_POST, $_FILES["file"]);
 			
 		} else if($_POST["ACE"] && $_POST["ACE"] != ""){
 			
@@ -212,7 +211,7 @@ class UploadController extends Controller {
 				'problemId' => $problem_entity->id,
 				
 			]);			
-		}  
+		} 
 		
 		
 		$response = new Response(json_encode([

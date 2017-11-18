@@ -242,12 +242,14 @@
 
 			$('#submissionButton').click( function() {
 			
+				// Create a FormData object
+				var formData = new FormData();
+			
 				// validate that fields are filled in
 				var language = $('#languageSelect option:selected').val();
 				var languageText = $('#languageSelect option:selected').text();
 				var main_class = $('#main_class_input').val();
-				var package_name = $('#package_name_input').val();
-				
+				var package_name = $('#package_name_input').val();				
 				
 				if(languageText == 'Java' && main_class == ''){
 				
@@ -260,20 +262,34 @@
 				
 				var ACE = $('#ACE').val();
 				
+				formData.append('language', language);
+				formData.append('main_class', main_class);
+				formData.append('package_name', package_name);
+				formData.append('ACE', ACE);
 				
-			
-				// post the submission
-				$.post( "{{path('submission_upload', {'problem_id': problem.id}) }}", {
 				
-					language: language,
-					main_class: main_class,
-					package_name: package_name,
-					ACE: ACE
+				if(getExtension($('#submissionUploadForm #file').val()) == "zip"){
 				
-				}).done( function(data ) {
+					var file = $('#submissionUploadForm #file').prop('files')[0];	
+					
+					if(file){
+						formData.append('file', file);
+					}
+				}
 				
-					window.location = data["redirect_url"];
+				$.ajax({
+					type: "POST",
+					url: "{{path('submission_upload', {'problem_id': problem.id}) }}",
+					data: formData,
+					processData: false,
+					contentType: false,
+					success: function(data){
+						
+						console.log(data);
+						window.location = data["redirect_url"];
+					}
 				});
+				
 			});
 
 				
