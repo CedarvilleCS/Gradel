@@ -80,6 +80,26 @@
 			<li> No Assignments Found </li>
 			
 		{% endfor %}
+		
+		<li></li>
+		{% for assig in assignments %}
+			
+			{% if assig.start_time|date('U') > "now"|date("U") %}
+				<li class="sidebar">
+					<span class="preview">
+						{{ assig.name }}
+						<br>
+						<small>
+							{{assig.end_time|date('F d - h:i:s A')}}							
+						</small>
+					</span>
+				</li>
+			{% endif %}		
+		
+		{% endfor %}
+		
+		
+		
 	</ol>
 	
 </nav>
