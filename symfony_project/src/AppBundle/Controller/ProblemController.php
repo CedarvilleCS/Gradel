@@ -9,6 +9,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use AppBundle\Entity\Submission;
 use AppBundle\Entity\Problem;
 use AppBundle\Entity\ProblemLanguage;
+use AppBundle\Entity\Language;
 use AppBundle\Entity\UserSectionRole;
 use AppBundle\Entity\ProblemGradingMethod;
 
@@ -118,10 +119,38 @@ class ProblemController extends Controller {
       return new JsonResponse(array("errors"=> $errors, "problemId"=> $problem->id));
     }
 
-    public function editAction() {
+    public function editAction($problemId, $assignmentId) {
+      $em = $this->getDoctrine()->getManager();
+      $problem = $em->find("AppBundle\Entity\Problem", $problemId);
+      $problemLanguages = [];
+
+
+      foreach ($problem->problem_languages as $pl) {
+        array_push($problemLanguages, $pl->language->name);
+      }
+
+      $qb = $em->createQueryBuilder();
+
+      $qb->select('l')
+        ->from('AppBundle\Entity\Language', 'l')
+        ->where('1 = 1');
+
+      $languages = $qb->getQuery()->getResult();
+
+      $qb = $em->createQueryBuilder();
+      $qb->select('gm')
+        ->from('AppBundle\Entity\ProblemGradingMethod', 'gm')
+        ->where('1 = 1');
+
+      $gradingMethods = $qb->getQuery()->getResult();
 
       return $this->render('problem/edit.html.twig', [
-
+        "problem" => $problem,
+        "assignmentId" => $assignmentId,
+        "gradingMethods" => $gradingMethods,
+        "problemDescription" => stream_get_contents($problem->description),
+        "languages" => $languages,
+        "problemLanguages" => $problemLanguages,
       ]);
     }
 	public function deleteAction($sectionId, $assignmentId, $problemId){
@@ -211,13 +240,13 @@ class ProblemController extends Controller {
 
 
   // Then reduce any list of integer
-  private function gcdArr($arr) {
-    return array_reduce($arr, array($this, 'gcd'));
-  }
-
-  private function gcd ($a, $b) {
-    return $b ? $this->gcd($b, $a % $b) : $a;
-  }
+  // private function gcdArr($arr) {
+  //   return array_reduce($arr, array($this, 'gcd'));
+  // }
+  //
+  // private function gcd ($a, $b) {
+  //   return $b ? $this->gcd($b, $a % $b) : $a;
+  // }
 }
 
 

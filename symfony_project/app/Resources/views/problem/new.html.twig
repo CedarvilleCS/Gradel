@@ -76,7 +76,6 @@
     					<tr>
     						<th colspan="3">
                   <button class="btn btn-center" id="add-test">Add Test Case Manually</button></br>
-    							<button class="btn btn-center" id="add-test-file">Add Test Case By File</button>
                 </th>
               </tr>
 
@@ -96,7 +95,6 @@
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('styles.css') }}" />
-    <link rel="stylesheet" href="{{ asset('home.css') }}" />
 {% endblock %}
 
 
@@ -104,12 +102,14 @@
     <!-- JQuery -->
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="http://malsup.github.com/jquery.form.js"></script>
     <script src="{{ asset('js/cards.js') }}"></script>
 	<script src="{{ asset('js/newSection.js') }}"></script>
 	<script>
+    var changeVar = "";
     var languages = [];
 		testCases = 0;
-		$("#add-test").click(function () {
+		$("#add-test").click(async function () {
 			testCases++;
 			div_name ="testcases"+testCases;
 			formalName="Test Case "+testCases;
@@ -121,62 +121,56 @@
 					<table>
 						<tr>
 							<th colspan="1">
-								<label for="input">Input</label>
-								<textarea rows="2" id="input" class="problem_creation" type="text" value=""></textarea>
+                <form id="submissionUploadForm" method="post" action="{{path("get_contents")}}">
+
+  								<label for="input">Input</label>
+                    <input id="file" name="file" type="file" value="">
+
+  								<textarea rows="2" id="input" class="problem_creation" type="text" value=""></textarea>
+                </form>
 							<th colspan="1">
 								<label for="output">Output</label>
+                <input id="input" type="file" value="">
 								<textarea rows="2" id="output" class="output problem_creation" type="text" value=""></textarea>
 							<th colspan="2">
 								<label for="weight">Weight</label>
-								<input id="weight" name="weight" type="text"></th>
+								<input id="weight" name="weight" type="text" value="1"></th>
 						</tr>
 						<tr>
 							<th colspan="3">
 								<label>Short Feedback</label>
+                <input id="input" type="file" value="">
 								<textarea rows="2" class="problem_creation" id="short_feedback" type="text" value=""></textarea></th>
 						</tr>
             <tr>
 							<th colspan="3">
 								<label>Long Feedback</label>
+                <input id="input" type="file" value="">
 								<textarea rows="2" class="problem_creation" id="long_feedback" type="text" value=""></textarea></th>
 						</tr>
 					</table>
 				</div>
 			</div>`;
 			newTestCard = newTestCard.replace(new RegExp('\r?\n','g'), "");
-			$("#main").append(newTestCard);
-		});
+			await $("#main").append(newTestCard);
 
-		$("#add-test-file").click(function () {
-			testCases++;
-			div_name ="testcases"+testCases;
-			formalName="Test Case "+testCases;
-			newTestCard = `<div class="card">
-				<div class="btn-close" onclick="collapseCard(&quot;`+div_name+`&quot;,)">
-					<h2 style="margin: 0px">`+formalName+`<span style="float: right"><i class="fa fa-angle-down"></i></span></h2>
-				</div>
-				<div id=`+div_name+`x class="test-case">
-					<table>
-						<tr>
-							<th colspan="1">
-								<label for="input">Input</label>
-								<input id="input" type="file" value=""></th>
-							<th colspan="1">
-								<label for="output">Output</label>
-								<input id="output" type="file" value=""></th>
-							<th colspan="2">
-								<label for="weight">Weight</label>
-								<input id="weight" name="weight" type="text"></th>
-						</tr>
-						<tr>
-							<th colspan="1">
-								<label>Feedback</label><textarea rows="2" id="feedback" class="problem_creation" type="text" value=""></textarea></th>
-						</tr>
-					</table>
-				</div>
-			</div>`;
-			newTestCard = newTestCard.replace(new RegExp('\r?\n','g'), "");
-			$("#main").append(newTestCard);
+      $('#submissionUploadForm #file').change(async function(data) {
+        // console.log($(this));
+        await $('#submissionUploadForm').submit();
+        console.log(changeVar);
+      });
+
+      // overwrite the normal submit to call the ajaxsubmit
+      $('#submissionUploadForm').submit(async function() {
+        console.log($(this));
+        await $(this).ajaxSubmit();
+      });
+
+      // asynchronous script to handle the submission form upload
+      $('#submissionUploadForm').ajaxForm(function(data) {
+        // console.log($(this));
+        changeVar = atob(data.contents);
+      });
 		});
 
     function languageSelect() {
@@ -250,6 +244,9 @@
       // for (testcase of tcs) {
         await insertTestCase(testcase.id, problemId);
       }
-      // insertTestCase("testcases1");
+      $(document).ready(function() {
+        // submit the form if the file upload is changed
+
+      });
 	</script>
 {% endblock %}

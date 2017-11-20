@@ -16,11 +16,11 @@
     </nav>
 
     {# Main section #}
-	
+
     <div class="scrollbar-macosx">
         <section id="main">
 			{{ include('template/path-nav.html.twig') }}
-		
+
             {# Cards #}
                     <div class="card">
             <table>
@@ -46,16 +46,15 @@
                             <input type="checkbox" name="extra-credit" value="extra-credit">
                         </th>
                     </tr>
-					
+
 					<tr>
                         <th colspan="2">
                             <label for="time_limit">Time Limit</label>
 							<input type="text" id="time_limit">
                         </th>
-						
+
 						<th colspan="2">
                             <button class="btn btn-center" id="add-test">Add Test Case Manually</button></br>
-							<button class="btn btn-center" id="add-test-file">Add Test Case By File</button>
                         </th>
                     </tr>
 
@@ -99,10 +98,10 @@
 					<table>
 						<tr>
 							<th colspan="1">
-								<label for="input">Input</label>  
+								<label for="input">Input</label>
 								<textarea rows="2" id="input" class="problem_creation" type="text" value=""></textarea>
 							<th colspan="1">
-								<label for="output">Output</label>  
+								<label for="output">Output</label>
 								<textarea rows="2" id="output" class="problem_creation" type="text" value=""></textarea>
 							<th colspan="2">
 								<label for="weight">Weight</label>
@@ -124,7 +123,7 @@
 			newTestCard = newTestCard.replace(new RegExp('\r?\n','g'), "");
 			$("#main").append(newTestCard);
 		});
-		
+
 		$("#add-test-file").click(function () {
 			testCases++;
 			div_name ="testcases"+testCases;
@@ -137,10 +136,10 @@
 					<table>
 						<tr>
 							<th colspan="1">
-								<label for="input">Input</label>  
+								<label for="input">Input</label>
 								<input id="input" type="file" value=""></th>
 							<th colspan="1">
-								<label for="output">Output</label>  
+								<label for="output">Output</label>
 								<input id="output" type="file" value=""></th>
 							<th colspan="2">
 								<label for="weight">Weight</label>
@@ -159,9 +158,9 @@
 			</div>`;
 			newTestCard = newTestCard.replace(new RegExp('\r?\n','g'), "");
 			$("#main").append(newTestCard);
-		});	
-		
-		
+		});
+
+
 		function insertTestCase(divname) {
 				alert(divname);
 				const the_input = divname.getElementById("input").value;
