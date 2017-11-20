@@ -45,7 +45,7 @@
 							<tr>
 								<th colspan="2">
 									<label for="description">Description</label>
-									<input id="description" name="description" type="text" value="{{description}}">
+									<input id="description" name="description" type="text">
 								</th>
 							</tr>
 							
@@ -78,7 +78,7 @@
 			
 				<div id="additionalOptions" class="card-contents">
 					<div>
-						<label for="extracredit">Is Extra Credit</label> <input type="checkbox" name="extracredit" value="extracredit">
+						<label for="extracredit">Is Extra Credit</label> <input id="extracredit" type="checkbox" name="extracredit" value="extracredit">
 					</div>
 					<div style="margin-top:5px">
 						<label for="weight">Weight </label> <input id="weight" name="weight" type="text" style="width: 50px">
@@ -117,51 +117,88 @@
 	<script src="{{ asset('jquery/jquery-ui-timepicker-addon.js') }}"></script>
 	
     <script>
-			$(document).ready(function() {
-				$('#insert').on('click', function(){insertSection();});
-				$('#student-picker').on('change', function(){addStudent();});
-								
-				$( "#opendatepicker" ).datetimepicker();
-				$( "#closedatepicker" ).datetimepicker();
-				$( "#cutoffdatepicker" ).datetimepicker();
+		$(document).ready(function() {
+			$('#insert').on('click', function(){insertSection();});
+			$('#student-picker').on('change', function(){addStudent();});
+							
+			$( "#opendatepicker" ).datetimepicker();
+			$( "#closedatepicker" ).datetimepicker();
+			$( "#cutoffdatepicker" ).datetimepicker();
+			
+			{% if assignment is not null %}
+			populateForm();
+			{% else %}
+			collapseCard('additionalOptions');
+			{% endif %}
+			
+			
+			$('#save-btn').on('click', function(){
+			
+				/* Client-Side Field Validation */
 				
-				
-				$('#save-btn').on('click', function(){
-				
-					/* Client-Side Field Validation */
+				/* Post to the Symfony Route */
+				$.post( "{{path('assignment_modify')}}", {				
 					
-					/* Post to the Symfony Route */
-					$.post( "{{path('assignment_modify')}}", {				
-						
-					}, function(data) {			
-						console.log(data);
-						
-						//window.location = data["redirect_url"];
-					}).fail(function(data) {
+				}, function(data) {			
+					console.log(data);
 					
-						alert(data["responseText"]);
-					
-					});				
-				});
+					//window.location = data["redirect_url"];
+				}).fail(function(data) {
 				
+					alert(data["responseText"]);
+				
+				});				
 			});
+			
+		});
 
-			var studentArray = [];
+		var studentArray = [];
 
-			function addStudent() {
-				const studentPicker = document.getElementById('student-picker');
-				const value = studentPicker.value;
-				const studentInput = document.getElementById('student-csv');
-				studentInput.value += value + ", \n"
-				studentArray = studentInput.value.split(", \n");
-				studentPicker.selectedIndex = 0;
-			}
+		function addStudent() {
+			const studentPicker = document.getElementById('student-picker');
+			const value = studentPicker.value;
+			const studentInput = document.getElementById('student-csv');
+			studentInput.value += value + ", \n"
+			studentArray = studentInput.value.split(", \n");
+			studentPicker.selectedIndex = 0;
+		}
 
-			function insertSection() {
-				const name = document.getElementById("name").value;
-				const description = document.getElementById("description").value;
+		function insertSection() {
+			const name = document.getElementById("name").value;
+			const description = document.getElementById("description").value;
 
-				// POST
-			}
-		</script>
+			// POST
+		}
+	</script>
+		
+		
+	{% if assignment is not null %}
+	<script>
+	function populateForm(){
+
+		// set the name
+		$('#name').val("{{assignment.name}}");
+		
+		// set the description
+		$('#description').val("{{assignment.deblobinateDescription()}}");
+		
+		// set the open date
+		$('#opendatepicker').val("{{assignment.start_time|date('m/d/Y h:i')}}");		
+		
+		// set the close date
+		$('#closedatepicker').val("{{assignment.end_time|date('m/d/Y h:i')}}");
+		
+		// set the cuttoff date
+		$('#cutoffdatepicker').val("{{assignment.cutoff_time|date('m/d/Y h:i')}}");
+		
+		// set the weight
+		$('#weight').val({{assignment.weight}});
+		
+		// set the checkbox
+		$('#extracredit').attr('checked', {% if assignment.is_extra_credit %} true {% else %} false {% endif %});
+		
+	}
+	
+	</script>
+	{% endif %}
 {% endblock %}

@@ -130,15 +130,16 @@ class AssignmentController extends Controller {
 
     public function editAction($sectionId, $assignmentId) {
 
-      $em = $this->getDoctrine()->getManager();
+	$em = $this->getDoctrine()->getManager();
 
-      $assignment = $em->find('AppBundle\Entity\Assignment', $assignmentId);
-		
-      return $this->render('assignment/edit.html.twig', [
-        "assignment" => $assignment,
-		"description" => stream_get_contents($assignment->description),
+	if($assignmentId != 0){
+		$assignment = $em->find('AppBundle\Entity\Assignment', $assignmentId);
+	}
+
+	return $this->render('assignment/edit.html.twig', [
+		"assignment" => $assignment,
 		"edit" => true,
-      ]);
+		]);
     }
 
     public function deleteAction($sectionId, $assignmentId){
