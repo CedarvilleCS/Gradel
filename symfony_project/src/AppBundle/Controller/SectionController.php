@@ -141,42 +141,7 @@ class SectionController extends Controller {
 		]);
     }
 
-	public function newSectionAction() {
-
-		$em = $this->getDoctrine()->getManager();
-		$builder = $em->createQueryBuilder();
-
-		$builder->select('c')
-				->from('AppBundle\Entity\Course', 'c')
-				->where('1 = 1');
-		$query = $builder->getQuery();
-		$sections = $query->getResult();
-
-
-		$section = new Section();
-		$form = $this->createFormBuilder($section)
-					->add('name', TextType::class)
-					->add('year', DateType::class)
-					->add('save', SubmitType::class, array('label' => 'Create Section'))
-					->getForm();
-
-		$user = $this->get('security.token_storage')->getToken()->getUser();
-					
-		$builder = $em->createQueryBuilder();
-		$builder->select('u')
-				->from('AppBundle\Entity\User', 'u')
-				->where('1 = 1');
-		$query = $builder->getQuery();
-		$users = $query->getResult();
-
-		return $this->render('section/new.html.twig', [
-			'sections' => $sections,
-			'users' => $users,
-			'form' => $form->createView(),
-		]);
-	}
-	
-	public function deleteAction($sectionId){
+	public function deleteSectionAction($sectionId){
 		
 		$em = $this->getDoctrine()->getManager();
 
@@ -201,156 +166,53 @@ class SectionController extends Controller {
 		return $this->redirectToRoute('homepage');
 	}
 
-	# called when the edit button is clicked on an already existing section
     public function editSectionAction($sectionId) {
       $em = $this->getDoctrine()->getManager();
-	  
-	  $section = $em->find('AppBundle\Entity\Section', $sectionId);	  
-	  if(!$section){
-		die("SECTION DOES NOT EXIST");
-	  }     
+		$builder = $em->createQueryBuilder();
 
-	  # get all of the courses for the dropdown
-      $builder = $em->createQueryBuilder();
-      $builder->select('c')
-              ->from('AppBundle\Entity\Course', 'c')
-              ->where('1 = 1');
-      $query = $builder->getQuery();
-      $sections = $query->getResult();
+		$builder->select('c')
+				->from('AppBundle\Entity\Course', 'c')
+				->where('1 = 1');
+		$query = $builder->getQuery();
+		$courses = $query->getResult();
 
-	  # get all of the users for the dropdown
-      $builder = $em->createQueryBuilder();
-      $builder->select('u')
-              ->from('AppBundle\Entity\User', 'u')
-              ->where('1 = 1');
-      $query = $builder->getQuery();
-      $users = $query->getResult();
-	  
-	  # get all of the users taking the section
-	  $takes_role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));
-      $builder = $em->createQueryBuilder();
-      $builder->select('u')
-              ->from('AppBundle\Entity\UserSectionRole', 'u')
-              ->where('u.section = ?1')
-              ->andWhere('u.role = ?2')
-              ->setParameter(1, $section)
-              ->setParameter(2, $takes_role);
-      $query = $builder->getQuery();
-      $section_takers = $query->getResult();	
 
-		$qb = $em->createQueryBuilder();
-		$qb->select('a')
-			->from('AppBundle\Entity\Assignment', 'a')
-			->where('a.section = ?1')
-			->orderBy('a.end_time', 'ASC')
-			->setParameter(1, $section);
-
-		$query = $qb->getQuery();
-		$assignments = $query->getResult();
-
-      return $this->render('section/edit.html.twig', [
-        'section' => $section,
-        'sectionId' => $sectionId,
-        'sections' => $sections,
-        'usr' => $section_takers,
-        'users' => $users,
-		'assignments' => $assignments,
-		'edit' => true,
-      ]);
-    }
-
-    public function editQueryAction(Request $request, $sectionId, $courseId, $name, $students, $semester, $year, $start_time, $end_time, $is_public, $is_deleted) {
-		
-		$em = $this->getDoctrine()->getManager();
-
-		$section = $em->find('AppBundle\Entity\Section', $sectionId);
-		
 		$user = $this->get('security.token_storage')->getToken()->getUser();
 		if(!$user){
 			die("USER DOES NOT EXIST");
 		}
+					
+		$users = $em->getRepository("AppBundle\Entity\User")->findAll();
 		
-		# make sure the user can add a new section
-		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN")){
-			die("YOU ARE NOT ALLOWED TO MAKE A NEW SECTION"); 
-		}
-
-		if(!$section && $sectionId != 0){
-			die("SECTION DOES NOT EXIST!");
-		} 
-		# create a new section if the sectionId = 0
-		else if($sectionId == 0){				
-			$section = new Section();
-		}
-		
-		# get the course
-		$course = $em->find('AppBundle\Entity\Course', $courseId);
-		if(!$course){
-			die("COURSE DOES NOT EXIST!");
-		}
-		
-		$section->name = $name;
-		$section->course = $course;
-		$section->semester = $semester;
-		$section->year = $year;
-		$section->start_time =  new DateTime("now");
-		$section->end_time = new DateTime("now");
-		$section->is_deleted = $is_deleted;
-		$section->is_public = $is_public;
-
-		$em->persist($section);
-
-		if($sectionId == 0){
-			$role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Teaches'));
-			$usr = new UserSectionRole($user, $section, $role);
+		if($sectionId != 0){
+			$section = $em->find('AppBundle\Entity\Section', $sectionId);
 			
-			$em->persist($usr);
-		}
-			
-		$em->flush();
-
-	    # remove all of the old roles
-		$role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));
-
-		$builder = $em->createQueryBuilder();
-		$builder->select('u')
-			->from('AppBundle\Entity\UserSectionRole', 'u')
-			->where('u.section = ?1')
-			->andWhere('u.role = ?2')
-			->setParameter(1, $section)
-			->setParameter(2, $role);
-		$query = $builder->getQuery();
-		$usr = $query->getResult();
-
-		foreach ($usr as $u) {
-			$em->remove($u);
-		}
-		$em->flush();
-
-		# add the roles back in
-		foreach (json_decode($students) as $student) {
-
-			if ($student != "") {
-				$user = $em->getRepository('AppBundle\Entity\User')->findOneBy(array('email' => $student));
-
-				$usr = new UserSectionRole($user, $section, $role);
-				$em->persist($usr);
-				$em->flush();
+			if(!$section){
+				die("SECTION DOES NOT EXIST");
 			}
+			
+			$takes_role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));
+			$builder = $em->createQueryBuilder();
+			$builder->select('u')
+				  ->from('AppBundle\Entity\UserSectionRole', 'u')
+				  ->where('u.section = ?1')
+				  ->andWhere('u.role = ?2')
+				  ->setParameter(1, $section)
+				  ->setParameter(2, $takes_role);
+			$query = $builder->getQuery();
+			$section_taker_roles = $query->getResult();
 		}
 
-		return $this->redirectToRoute('section', ['sectionId' => $section->id]);
+		return $this->render('section/edit.html.twig', [
+			'courses' => $courses,
+			'users' => $users,
+			'section' => $section,
+			'section_taker_roles' => $section_taker_roles
+		]);
     }
-
-    public function insertSectionAction(Request $request, $courseId, $name, $students, $semester, $year, $start_time, $end_time, $is_public, $is_deleted) {
-		$sectionId = 0;	
-		return $this->editQueryAction($request, $sectionId, $courseId, $name, $students, $semester, $year, $start_time, $end_time, $is_public, $is_deleted);
-    }
-
-	// the CURRENT section creation controller
-	// the other one should be removed
-	public function newSectionPostAction(Request $request){
-				
+	
+	public function modifyPostAction(Request $request){
+		
 		$em = $this->getDoctrine()->getManager();
 		
 		# validate the current user
@@ -359,7 +221,7 @@ class SectionController extends Controller {
 			return $this->returnForbiddenResponse("You are not a user.");
 		}
 		
-		# only super users and admins can make a section
+		# only super users and admins can make/edit a section
 		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN")){			
 			return $this->returnForbiddenResponse("You do not have permission to make a section.");
 		}
@@ -383,8 +245,16 @@ class SectionController extends Controller {
 			}
 		}
 		
-		# create new section
-		$section = new Section();
+		# create new section		
+		if($postData['section'] == 0){
+			$section = new Section();
+		} else {
+			$section = $em->find('AppBundle\Entity\Section', $postData['section']);
+			
+			if(!$section){
+				return $this->returnForbiddenResponse("Section ".$postData['section']." does not exist");
+			}
+		}
 		
 		# get the course
 		$course = $em->find('AppBundle\Entity\Course', $postData['course']);
@@ -434,38 +304,67 @@ class SectionController extends Controller {
 		# default these to false
 		$section->is_deleted = false;
 		$section->is_public = false;
-
-		$em->persist($section);
-
-		# set the teacher to the person who made the section
-		$role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Teaches'));
 		
-		$usr = new UserSectionRole($user, $section, $role);
-		$em->persist($usr);			
-				
-		# add the students if there were any
+		$em->persist($section);
+		
+		if($postData['section'] == 0){
+			# set the teacher to the person who made the section TODO
+			if($course->is_contest){
+				$role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Judges'));
+			} else {
+				$role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Teaches'));
+			}
+					
+			$usr = new UserSectionRole($user, $section, $role);
+			$em->persist($usr);			
+		
+		} else {
+			# remove all the previous students before the "edit" if there was one
+			$role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));
+			
+			$builder = $em->createQueryBuilder();
+			$builder->select('u')
+				  ->from('AppBundle\Entity\UserSectionRole', 'u')
+				  ->where('u.section = ?1')
+				  ->andWhere('u.role = ?2')
+				  ->setParameter(1, $section)
+				  ->setParameter(2, $role);
+			$query = $builder->getQuery();
+			$current_student_roles = $query->getResult();
+			
+			foreach($current_student_roles as $student_role){
+				$em->remove($student_role);
+			}
+			
+			$em->flush();
+		}
+		
+		# add the students from the students array
+		$students = array_unique(json_decode($postData['students']));
+
+		
 		$role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));
-		foreach (json_decode($postData['students']) as $student) {
+		foreach ($students as $student) {
 
 			if ($student != "") {
-				$user = $em->getRepository('AppBundle\Entity\User')->findOneBy(array('email' => $student));
+				$stud_user = $em->getRepository('AppBundle\Entity\User')->findOneBy(array('email' => $student));
 
-				$usr = new UserSectionRole($user, $section, $role);
+				$usr = new UserSectionRole($stud_user, $section, $role);
 				$em->persist($usr);
 			}
 		}
 		
-		$em->flush();		
+		$em->flush();
 		
 		# redirect to the section page
 		$url = $this->generateUrl('section', ['sectionId' => $section->id]);		
 		
-		$response = new Response(json_encode(array('redirect_url' => $url, 'start_time' => $section->start_time)));
+		$response = new Response(json_encode(array('redirect_url' => $url, 'students' => $students)));
 		$response->headers->set('Content-Type', 'application/json');
 		$response->setStatusCode(Response::HTTP_OK);
 		
 		return $response;
-	}
+	}	
 	
 	private function getDateTime($semester, $year){
 		

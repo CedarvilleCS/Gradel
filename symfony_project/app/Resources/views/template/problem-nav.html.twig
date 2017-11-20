@@ -29,18 +29,16 @@
 			
 				Opens: {{problem.assignment.start_time|date('M d \\a\\t  h:i A')}}
 			
-			{% elseif problem.assignment.end_time|date('U') > "now"|date('U') %}
-			
-				Due: {{problem.assignment.end_time|date('M d \\a\\t  h:i A')}}
-			
+			{% elseif problem.assignment.end_time|date('U') > "now"|date('U') %}			
+				Due: {{problem.assignment.end_time|date('M d \\a\\t  h:i A')}}	
+				
 			{% elseif problem.assignment.cutoff_time|date('U') > "now"|date('U') %}
 				Due: {{problem.assignment.end_time|date('M d \\a\\t  h:i A')}} </br>
-				<i>Closes: {{problem.assignment.cutoff_time|date('M d \\a\\t  h:i A')}}</i>
-			
-			{% else %}
-			
-				<i>Closed: {{problem.assignment.cutoff_time|date('M d \\a\\t  h:i A')}}</i>
-			
+				<i>Closes: {{problem.assignment.cutoff_time|date('M d \\a\\t  h:i A')}}</i>			
+				
+			{% else %}			
+				<i>Closed: {{problem.assignment.cutoff_time|date('M d \\a\\t  h:i A')}}</i>		
+				
 			{% endif %}
 			</small></div>
 		</li>
@@ -51,7 +49,13 @@
 			{% if prob.id != problem.id or result_page %}
 			
 				<a href="{{path("assignment", {'sectionId': prob.assignment.section.id, 'assignmentId': prob.assignment.id, 'problemId': prob.id})}}">
-				<li class="sidebar" >
+				
+				{% if prob.id == problem.id %}
+					<li class="sidebar" style="background: #5a5a5a">
+				{% else %}
+					<li class="sidebar">
+				{% endif %}
+				
 					{{ prob.name }}&nbsp;
 					{% if usersectionrole.role.role_name == 'Takes' %}
 						<br/><small>{{grades[prob.id]['passed_testcases']+grades[prob.id]['passed_extra_testcases']}}/{{grades[prob.id]['total_testcases']}} - {{(grades[prob.id]['percentage_adj']*100)|number_format(1,'.')}}%</small>

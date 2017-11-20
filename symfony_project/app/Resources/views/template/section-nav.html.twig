@@ -10,7 +10,7 @@
 	{% endif %}
 	
 	{% if is_granted("ROLE_ADMIN") or is_granted("ROLE_SUPER") %}
-		<a href="{{path('section_new')}}" class="btn">
+		<a href="{{path('section_edit')}}" class="btn">
 			<div class="btn btn-center">+ Section</div>
 		</a>
 	{% endif %}
