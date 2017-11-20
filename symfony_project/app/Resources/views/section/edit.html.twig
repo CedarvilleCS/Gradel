@@ -180,6 +180,13 @@
 				}				
 				students.pop(); // remove the blank last element
 
+				// check to see if this button is allowed to be pressed
+				if($(this).prop('disabled')){
+					return false;
+				} else {
+					$(this).prop('disabled', true);
+				}
+				
 				/* Post to the Symfony Route */
 				$.post( "{{path('section_modify')}}", {				
 					name: $.trim($('#name').val()),
@@ -197,8 +204,8 @@
 					window.location = data["redirect_url"];
 				}).fail(function(data) {
 				
-					alert(data["responseText"]);
-				
+					alert(data["responseText"]);					
+					$(this).prop('disabled', false);
 				});				
 			});
 			

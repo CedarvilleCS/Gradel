@@ -178,8 +178,7 @@ class AssignmentController extends Controller {
 		return $this->redirectToRoute('section', ['sectionId' => $assignment->section->id]);
 	}
 	
-	
-    public function modifyPostAction(Request $request) {
+	public function modifyPostAction(Request $request) {
 		
 		$em = $this->getDoctrine()->getManager();
 		
@@ -204,9 +203,70 @@ class AssignmentController extends Controller {
 			return $this->returnForbiddenResponse("You do not have permission to make an assignment.");
 		}		
 		
-		$url = "HELLO!";
+		# check mandatory fields
+		if(!$postData['name'] || !$postData['open_time'] || !$postData['close_time']){
+			return $this->returnForbiddenResponse("Not every required field is provided.");			
+		} else {
+			
+			# validate the weight if there is one
+			if($postData['weight'] && ($postData['weight'] < 1 || $postData['weight'] % 1 != 0)){
+				$this->returnForbiddenResponse("The weight provided - ".$postData['weight']." - is not permitted.");
+			}	
+		}
 		
-		$response = new Response(json_encode(array('redirect_url' => $url, 'postData' => $postData)));
+		
+		# create new assignment
+		if($postData['assignment'] == 0){
+			$assignment = new Assignment();			
+		} else {
+			$assignment = $em->find('AppBundle\Entity\Assignment', $postData['assignment']);
+			
+			if(!$assignment || $section != $assignment->section){
+				return $this->returnForbiddenResponse("Assignment ".$postData['assignment']." does not exist for the given section.");
+			}			
+		}
+		
+		# set the necessary fields
+		$assignment->name = $postData['name'];
+		$assignment->description = $postData['description'];
+		$assignment->section = $section;
+		
+		# set the times		
+		$openTime = DateTime::createFromFormat("m/d/Y H:i:s", $postData['open_time'].":00");
+		$closeTime = DateTime::createFromFormat("m/d/Y H:i:s", $postData['close_time'].":00");
+		
+		if(!$openTime || $openTime->format("m/d/Y H:i") != $postData['open_time']){
+			return $this->returnForbiddenResponse("Provided opening time ".$postData['open_time']." is not valid.");
+		}
+		
+		if(!$closeTime || $closeTime->format("m/d/Y H:i") != $postData['close_time']){
+			return $this->returnForbiddenResponse("Provided closing time ".$postData['close_time']." is not valid.");
+		}
+		
+		if($postData['cutoff_time']){
+			
+			$cutoffTime = DateTime::createFromFormat("m/d/Y H:i:s", $postData['cutoff_time'].":00");
+			
+			if(!$cutoffTime || $cutoffTime->format("m/d/Y H:i") != $postData['cutoff_time']){
+			return $this->returnForbiddenResponse("Provided cutoff time. ".$postData['cutoff_time']." is not valid.");
+		}
+			
+		} else {
+			$cutoffTime = $closeTime;
+		}
+		
+		#
+		
+		$assignment->start_time = $openTime;
+		$assignment->end_time = $closeTime;
+		$assignment->cutoff_time = $cutoffTime;
+		
+		
+		
+		
+		
+		
+		$response = new Response(json_encode(array('redirect_url' => $url, 'assignment' => $assignment, 'postData' => $postData)));
 		$response->headers->set('Content-Type', 'application/json');
 		$response->setStatusCode(Response::HTTP_OK);
 		

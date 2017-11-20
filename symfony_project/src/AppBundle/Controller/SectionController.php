@@ -141,31 +141,6 @@ class SectionController extends Controller {
 		]);
     }
 
-	public function deleteSectionAction($sectionId){
-		
-		$em = $this->getDoctrine()->getManager();
-
-		$section = $em->find('AppBundle\Entity\Section', $sectionId);	  
-		if(!$section){
-			die("SECTION DOES NOT EXIST");
-		}
-		
-		$user = $this->get('security.token_storage')->getToken()->getUser();
-		if(!$user){
-			die("USER DOES NOT EXIST");
-		}
-		
-		# validate the user
-		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN")){
-			die("YOU ARE NOT ALLOWED TO DELETE THIS SECTION");
-			
-		}
-		
-		$section->is_deleted = true;
-		$em->flush();
-		return $this->redirectToRoute('homepage');
-	}
-
     public function editSectionAction($sectionId) {
       $em = $this->getDoctrine()->getManager();
 		$builder = $em->createQueryBuilder();
@@ -211,6 +186,31 @@ class SectionController extends Controller {
 		]);
     }
 	
+	public function deleteSectionAction($sectionId){
+		
+		$em = $this->getDoctrine()->getManager();
+
+		$section = $em->find('AppBundle\Entity\Section', $sectionId);	  
+		if(!$section){
+			die("SECTION DOES NOT EXIST");
+		}
+		
+		$user = $this->get('security.token_storage')->getToken()->getUser();
+		if(!$user){
+			die("USER DOES NOT EXIST");
+		}
+		
+		# validate the user
+		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN")){
+			die("YOU ARE NOT ALLOWED TO DELETE THIS SECTION");
+			
+		}
+		
+		$section->is_deleted = true;
+		$em->flush();
+		return $this->redirectToRoute('homepage');
+	}
+
 	public function modifyPostAction(Request $request){
 		
 		$em = $this->getDoctrine()->getManager();
@@ -349,6 +349,10 @@ class SectionController extends Controller {
 			if ($student != "") {
 				$stud_user = $em->getRepository('AppBundle\Entity\User')->findOneBy(array('email' => $student));
 
+				if(!$stud_user){
+					continue;
+				}
+				
 				$usr = new UserSectionRole($stud_user, $section, $role);
 				$em->persist($usr);
 			}
