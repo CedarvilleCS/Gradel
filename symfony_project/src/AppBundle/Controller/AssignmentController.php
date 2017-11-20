@@ -209,11 +209,10 @@ class AssignmentController extends Controller {
 		} else {
 			
 			# validate the weight if there is one
-			if($postData['weight'] && ($postData['weight'] < 1 || $postData['weight'] % 1 != 0)){
-				$this->returnForbiddenResponse("The weight provided - ".$postData['weight']." - is not permitted.");
+			if($postData['weight'] != null && (intval($postData['weight']) < 1 || $postData['weight'] % 1 != 0)){
+				return $this->returnForbiddenResponse("The provided weight ".$postData['weight']." is not permitted.");
 			}	
-		}
-		
+		}		
 		
 		# create new assignment
 		if($postData['assignment'] == 0){
@@ -255,18 +254,34 @@ class AssignmentController extends Controller {
 			$cutoffTime = $closeTime;
 		}
 		
-		#
-		
 		$assignment->start_time = $openTime;
 		$assignment->end_time = $closeTime;
 		$assignment->cutoff_time = $cutoffTime;
 		
+		# set the weight
+		if($postData['weight']){
+			$assignment->weight = intval($postData['weight']);
+		} else {
+			$assignment->weight = 1;
+		}				
+				
+		# set extra credit
+		if($postData["is_extra_credit"] && $postData["is_extra_credit"] == "true"){
+			$assignment->is_extra_credit = true;
+		} else {			
+			$assignment->is_extra_credit = false;
+		}
 		
+		# set grading method
+		$gradingmethod = $em->find('AppBundle\Entity\AssignmentGradingmethod', 1);
+		$assignment->gradingmethod = $gradingmethod;
+				
+		$em->persist($assignment);	
+		$em->flush();
 		
-		
-		
-		
-		$response = new Response(json_encode(array('redirect_url' => $url, 'assignment' => $assignment, 'postData' => $postData)));
+		$url = $this->generateUrl('assignment', ['sectionId' => $assignment->section->id, 'assignmentId' => $assignment->id]);
+				
+		$response = new Response(json_encode(array('redirect_url' => $url, 'assignment' => $assignment)));
 		$response->headers->set('Content-Type', 'application/json');
 		$response->setStatusCode(Response::HTTP_OK);
 		
