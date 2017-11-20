@@ -7,6 +7,7 @@ use AppBundle\Entity\Course;
 use AppBundle\Entity\UserSectionRole;
 use AppBundle\Entity\Section;
 use AppBundle\Entity\Assignment;
+use AppBundle\Entity\Team;
 
 use AppBundle\Utils\Grader;
 use AppBundle\Utils\Uploader;
@@ -216,7 +217,27 @@ class AssignmentController extends Controller {
 		
 		# create new assignment
 		if($postData['assignment'] == 0){
-			$assignment = new Assignment();			
+			$assignment = new Assignment();		
+			
+			# create teams			
+			# get all the users taking the course
+			$takes_role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));
+			$builder = $em->createQueryBuilder();
+			$builder->select('u')
+				  ->from('AppBundle\Entity\UserSectionRole', 'u')
+				  ->where('u.section = ?1')
+				  ->andWhere('u.role = ?2')
+				  ->setParameter(1, $section)
+				  ->setParameter(2, $takes_role);
+			$query = $builder->getQuery();
+			$section_taker_roles = $query->getResult();
+
+			foreach($section_taker_roles as $usr){
+				$team = new Team($usr->user->getFirstName(), $assignment);					
+				$team->users[] = $usr->user;
+				$em->persist($team);				
+			}			
+			
 		} else {
 			$assignment = $em->find('AppBundle\Entity\Assignment', $postData['assignment']);
 			
