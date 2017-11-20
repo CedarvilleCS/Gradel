@@ -61,6 +61,10 @@ class CompilationController extends Controller {
 			die("TOO LATE TO SUBMIT FOR THIS PROBLEM");
 		}
 		
+		if($problem_entity->assignment->start_time > new \DateTime("now")){
+			die("TOO EARLY TO SUBMIT FOR THIS PROBLEM");
+		}
+		
 		# get the current team
 		$team_entity = $grader->getTeam($user_entity, $problem_entity->assignment);		
 		if(!$team_entity){

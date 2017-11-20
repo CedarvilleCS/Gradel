@@ -43,7 +43,9 @@
 						<br/>
 						
 						{# display the form or not #}
-						{% if usersectionrole.role.role_name == 'Takes' %}
+						{% set open = (problem.assignment.start_time|date('U') < "now"|date('U') and problem.assignment.cutoff_time|date('U') > "now"|date('U')) %}
+						
+						{% if usersectionrole.role.role_name == 'Takes' and open and attempts_remaining != 0%}
 
 							{# ACE editor and file upload#}
 							<form id="submissionUploadForm" action="{{path('get_contents')}}" method="post">
@@ -71,11 +73,12 @@
 							
 						{% elseif attempts_remaining == 0 %}
 							You are out of attempts for this problem.
-						{% else %}
+						{% elseif open %}
 							You are not "Taking" this class, so you cannot submit a problem.
+						{% else %}
+							This problem is not currently open.
 						{% endif %}
-				
-						<p>{{upload_message}}</p>
+						
 				</div>
         </div>
 		
