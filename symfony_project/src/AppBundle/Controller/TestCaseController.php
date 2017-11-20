@@ -62,6 +62,7 @@ class TestCaseController extends Controller {
   	  $testcase->input = $input;
   	  $testcase->correct_output = $output;
   	  $testcase->weight = $weight;
+      $testcase->is_extra_credit = false;
       //
       $em->persist($testcase);
       $em->flush();
