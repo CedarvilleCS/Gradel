@@ -16,9 +16,10 @@
 	{% if edit %}
 		<a id="insert" class="btn"><div class="btn btn-center" href="">Save</div></a>
 	{% endif %}
-	
-	
+
+
 	<ol style="padding-bottom: 10px">
+
 		{# overview of when the assignment is due #}		
 		<li style="padding-top: 0px;"> {{assignment.name}} 
 			
@@ -36,37 +37,38 @@
 				
 			{% else %}			
 				<i>Closed: {{assignment.cutoff_time|date('M d \\a\\t  h:i A')}}</i>		
-				
 			{% endif %}
 			</small></div>
 		</li>
-		
+
 		{# problem list #}
+
 		{% for prob in assignment.problems %}
 
+
 			{% if prob.id != problem.id or result_page %}
-			
+
 				<a href="{{path("assignment", {'sectionId': prob.assignment.section.id, 'assignmentId': prob.assignment.id, 'problemId': prob.id})}}">
-				
+
 				{% if prob.id == problem.id %}
 					<li class="sidebar" style="background: #5a5a5a">
 				{% else %}
 					<li class="sidebar">
 				{% endif %}
-				
+        
 					{{ prob.name }}&nbsp;
 					{% if usersectionrole.role.role_name == 'Takes' %}
 						<br/><small>{{grades[prob.id]['passed_testcases']+grades[prob.id]['passed_extra_testcases']}}/{{grades[prob.id]['total_testcases']}} - {{(grades[prob.id]['percentage_adj']*100)|number_format(1,'.')}}%</small>
 					{% endif %}
-				
+
 				{% if prob.id == problem.id %}
 					<div class="selectbar" style="margin: 0px; padding: 0px; position: absolute; right:0; top:0; height:100%; width:5px; background-color: #78ba62;" ></div>
 				{% endif %}
-				
+
 			{% else %}
 				<li class="sidebar" style="background: #5a5a5a">
 						{{ prob.name }}&nbsp;
-						
+
 						{% if usersectionrole.role.role_name == 'Takes' %}
 							<br/><small>{{grades[prob.id]['passed_testcases']+grades[prob.id]['passed_extra_testcases']}}/{{grades[prob.id]['total_testcases']}} - {{(grades[prob.id]['percentage_adj']*100)|number_format(1,'.')}}%</small>
 						{% endif %}
@@ -85,19 +87,19 @@
 						<a title="Edit Problem" href="{{path('problem_edit', {'sectionId': prob.assignment.section.id, 'assignmentId': prob.assignment.id, 'problemId': prob.id})}}">
 							<img class="small-icon" src="{{ asset('edit.png') }}">
 						</a>
-						
+
 					</object>
-				{% endif %}	
-				
+				{% endif %}
+
 				</li>
-				
+
 				{% if prob.id != problem.id or result_page %}
 				</a>
 				{% endif %}
-			
+
 		{% else %}
 			<li> There are no problems for this assignment </li>
 		{% endfor %}
-	  
+
 	</ol>
 </nav>

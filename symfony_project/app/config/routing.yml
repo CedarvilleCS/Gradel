@@ -1,8 +1,8 @@
 # HOMEPAGE ROUTES
 homepage:
     path:   '/home'
-    defaults:  { _controller: AppBundle:Home:home} 
-    
+    defaults:  { _controller: AppBundle:Home:home}
+
 alt_homepage:
     path:   '/'
     defaults: { _controller: AppBundle:Home:home} 
@@ -12,7 +12,7 @@ section_delete:
   path: '/section/delete/{sectionId}'
   defaults: {_controller: AppBundle:Section:deleteSection}
   methods: [GET]
-  
+
 section_edit:
   path: '/section/edit/{sectionId}'
   defaults: 
@@ -61,6 +61,10 @@ assignment_modify:
 
 
 # problem routes
+problem_edit:
+  path: '/section/{sectionId}/assignment/{assignmentId}/problem/{problemId}/edit'
+  defaults: {_controller: AppBundle:Problem:edit}
+
 problem_delete:
   path: '/section/{sectionId}/assignment/{assignmentId}/problem/delete/{problemId}'
   defaults: {_controller: AppBundle:Problem:delete}
@@ -69,29 +73,26 @@ problem_delete:
 problem_new:
   path: '/section/{sectionId}/assignment/{assignmentId}/new_problem'
   defaults: {_controller: AppBundle:Problem:new}
-  
+
 problem_insert:
-  path: '/section/{sectionId}/assignment/{assignmentId}/new_problem'
+  path: '/problem/insert'
   defaults: {_controller: AppBundle:Problem:insert}
 
-problem_edit:
-  path: '/section/{sectionId}/assignment/{assignmentId}/problem/edit/{problemId}'
-  defaults: {_controller: AppBundle:Problem:edit}
+
 
 problem_result:
     path: '/result/{submission_id}'
     defaults: {_controller: AppBundle:Problem:result}
     requirements:
         submission_id: '\d+'
-        
-   
+
 # testcase routes
 testcase_new:
   path: '/section/{sectionId}/assignment/{assignmentId}/new_problem'
   defaults: {_controller: AppBundle:TestCase:new}
-  
+
 testcase_insert:
-  path: '/section/{sectionId}/assignment/{assignmentId}/new_problem'
+  path: '/testcase/insert'
   defaults: {_controller: AppBundle:TestCase:insert}
 
 testcase_edit:
@@ -106,7 +107,7 @@ testcase_result:
 get_contents:
     path: '/get_contents'
     defaults: { _controller: AppBundle:Upload:getContents}
-    methods: [POST]    
+    methods: [POST]
 
 # SUBMISSION ROUTES
 submission_upload:
@@ -115,7 +116,7 @@ submission_upload:
   methods: [POST]
   requirements:
     problem_id:     '\d+'
-  
+
 
 # temporary route for GUI development
 professorsection:
