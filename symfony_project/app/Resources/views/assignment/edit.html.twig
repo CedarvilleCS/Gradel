@@ -167,9 +167,10 @@
 					close_time: $('#closedatepicker').val(),
 					cutoff_time: $('#cutoffdatepicker').val(),
 					
-					is_extra_credit: $('#extracredit').val(),
+					is_extra_credit: $('#extracredit').is(':checked'),
 					weight: $('#weight').val(),
 					
+					section: {{section.id}},
 					assignment: {% if assignment is not null %} {{assignment.id}} {% else %} 0 {% endif %}
 					
 				}, function(data) {			

@@ -132,12 +132,23 @@ class AssignmentController extends Controller {
 
 	$em = $this->getDoctrine()->getManager();
 
+	$section = $em->find('AppBundle\Entity\Section', $sectionId);
+	
+	if(!$section){
+		die("SECTION DOES NOT EXIST");
+	}
+	
 	if($assignmentId != 0){
 		$assignment = $em->find('AppBundle\Entity\Assignment', $assignmentId);
+		
+		if(!$assignment || $section != $assignment->section){
+			die("Assignment does not exist or does not belong to given section");
+		}
 	}
 
 	return $this->render('assignment/edit.html.twig', [
 		"assignment" => $assignment,
+		"section" => $section,
 		"edit" => true,
 		]);
     }
@@ -170,11 +181,32 @@ class AssignmentController extends Controller {
 	
     public function modifyPostAction(Request $request) {
 		
-		return $this->returnForbiddenResponse("UHOH!");
+		$em = $this->getDoctrine()->getManager();
+		
+		# validate the current user
+		$user = $this->get('security.token_storage')->getToken()->getUser();
+		if(!$user){			
+			return $this->returnForbiddenResponse("You are not a user.");
+		}
+		
+		# see which fields were included
+		$postData = $request->request->all();
+		
+		# get the current section
+		$section = $em->find('AppBundle\Entity\Section', $postData['section']);		
+		if(!$section){
+			return $this->returnForbiddenResponse("Section ".$postData['section']." does not exist");
+		}
+		
+		# only super users/admins/teacher can make/edit an assignment
+		$grader = new Grader($em);		
+		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN") && !isTeaching($user, $section)){			
+			return $this->returnForbiddenResponse("You do not have permission to make an assignment.");
+		}		
 		
 		$url = "HELLO!";
 		
-		$response = new Response(json_encode(array('redirect_url' => $url)));
+		$response = new Response(json_encode(array('redirect_url' => $url, 'postData' => $postData)));
 		$response->headers->set('Content-Type', 'application/json');
 		$response->setStatusCode(Response::HTTP_OK);
 		
