@@ -87,7 +87,7 @@ class AssignmentController extends Controller {
 		$grader = new Grader($em);		
 		
 		# figure out how many attempts they have left
-		$total_attempts = $problem_entity->gradingmethod->total_attempts;
+		$total_attempts = $problem_entity->total_attempts;
 		if($total_attempts == 0){
 			$attempts_remaining = -1;
 		} else {

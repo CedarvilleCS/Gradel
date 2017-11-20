@@ -14,7 +14,6 @@ use AppBundle\Entity\UserSectionRole;
 use AppBundle\Entity\Testcase;
 use AppBundle\Entity\Submission;
 use AppBundle\Entity\Language;
-use AppBundle\Entity\ProblemGradingMethod;
 use AppBundle\Entity\AssignmentGradingMethod;
 use AppBundle\Entity\Feedback;
 use AppBundle\Entity\TestcaseResult;
@@ -240,10 +239,9 @@ class Grader  {
 			# percentage grade - raw
 			$grades['percentage_raw'] = (float)$accepted_sub->percentage;
 			
-			# percentage grade - after mods
-			$gradingmethod = $problem->gradingmethod;				
-			$num_before_penalty = $gradingmethod->attempts_before_penalty;
-			$penalty_percentage = $gradingmethod->penalty_per_attempt;
+			# percentage grade - after mods			
+			$num_before_penalty = $problem->attempts_before_penalty;
+			$penalty_percentage = $problem->penalty_per_attempt;
 			
 			$attempts_to_penalize = max($attempts - $num_before_penalty, 0);
 			$total_penalty = $attempts_to_penalize*$penalty_percentage;

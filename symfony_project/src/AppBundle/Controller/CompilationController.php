@@ -14,7 +14,6 @@ use AppBundle\Entity\UserSectionRole;
 use AppBundle\Entity\Testcase;
 use AppBundle\Entity\Submission;
 use AppBundle\Entity\Language;
-use AppBundle\Entity\ProblemGradingMethod;
 use AppBundle\Entity\AssignmentGradingMethod;
 use AppBundle\Entity\Feedback;
 use AppBundle\Entity\TestcaseResult;
@@ -75,7 +74,7 @@ class CompilationController extends Controller {
 		
 		# make sure that you haven't submitted too many times yet
 		$curr_attempts = $grader->getNumTotalAttempts($user_entity, $problem_entity);		
-		if($problem_entity->gradingmethod->total_attempts > 0 && $curr_attempts >= $problem_entity->gradingmethod->total_attempts){
+		if($problem_entity->total_attempts > 0 && $curr_attempts >= $problem_entity->total_attempts){
 			die("ALREADY REACHED MAX ATTEMPTS FOR PROBLEM AT ".$curr_attempts);
 		}
 		
