@@ -23,3 +23,10 @@ function setInvalid(element) {
       setValid(element);
     });
   }
+
+  function validateMessage(element, label, message) {
+    validate(element);
+    $('#save-btn').on('click', function(){          
+        label.append(message);
+    });
+  }

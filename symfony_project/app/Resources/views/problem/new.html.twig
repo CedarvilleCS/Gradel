@@ -3,6 +3,9 @@
 <link rel="icon" type="image/x-icon" href="{{ asset('logo1.png') }}" />
 {% endblock %}
 
+{% block stylesheets %}
+<link rel="stylesheet" href="{{ asset('styles.css') }}" />
+{% endblock %}
 
 {% block body %}
 
@@ -93,13 +96,6 @@
 
 {% endblock %}
 
-
-{% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('styles.css') }}" />
-    <link rel="stylesheet" href="{{ asset('home.css') }}" />
-{% endblock %}
-
-
 {% block scripts %}
   <!-- JQuery -->
   <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
@@ -111,13 +107,7 @@
   <script>
     validate($("#name"));
     validate($("#description"));
-    validate($("#languages"));
-    $('#save-btn').on('click', function(){          
-      // language error message
-      if ($.trim($('#languages').val())  === '') {  
-        $("#languagesLabel").append(" (you must select at least one language)");
-      }
-    });
+    validateMessage($("#languages"), $("#languagesLabel"), " (you must select at least one language)");
   </script>
   
   <script>
