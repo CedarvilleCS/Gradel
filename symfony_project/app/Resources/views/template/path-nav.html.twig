@@ -2,13 +2,30 @@
 	
 	<a href="{{path('homepage')}}"> {{app.user.getFirstName() ~ '\''}}s Overview&nbsp;</a>
 	
-	{% if section is defined %}
-		>&nbsp;<a href="{{path('section', {'userId': app.user.id, 'sectionId': section.id})}}" >&nbsp;{{section.name}}&nbsp;</a>
+	{% if problem is defined or assignment is defined or section is defined %}		
+		{% if problem is defined %}
+			>&nbsp;<a href="{{path('section', {'sectionId': problem.assignment.section.id})}}" >&nbsp;{{problem.assignment.section.name}}&nbsp;</a>>&nbsp;<a href="{{path('assignment', {'sectionId': problem.assignment.section.id, 'assignmentId': problem.assignment.id})}}" >&nbsp;{{problem.assignment.name}}&nbsp;</a>
+		{% elseif assignment is defined %}
+		
+			{% if assignment is null %}
+			>&nbsp;<a href="{{path('section', {'sectionId': assignment.section.id})}}" >&nbsp;{{section.name}}&nbsp;</a>>&nbsp;New Assignment
+			{% else %}		
+			>&nbsp;<a href="{{path('section', {'sectionId': assignment.section.id})}}" >&nbsp;{{assignment.section.name}}&nbsp;</a>>&nbsp;<a href="{{path('assignment', {'sectionId': assignment.section.id, 'assignmentId': assignment.id})}}" >&nbsp;{{assignment.name}}&nbsp;</a>
+			{% endif %}
+		{% elseif section is defined %}
+		
+			{% if section is null %}
+			> New Section
+			{% else %}		
+			>&nbsp;<a href="{{path('section', {'sectionId': section.id})}}" >&nbsp;{{section.name}}&nbsp;</a>
+			{% endif %}
+		{% endif %}
+	{% else %}
+		> New Problem
 	{% endif %}
 	
-	{% if assignment is defined %}
-		>&nbsp;<a href="{{path('assignment', {'userId': app.user.id, 'sectionId': section.id, 'assignmentId': assignment.id})}}" >&nbsp;{{assignment.name}}&nbsp;</a>
-	{% endif %}
+	
+	
 	
 </div>
 

@@ -1,4 +1,8 @@
 {# make sure that the grader entity is defined before doing all of this stuff #}
+{% if problem is defined %}
+	{% set assignment = problem.assignment %}
+{% endif %}
+
 {% set grades = grader.getAllProblemGrades(app.user, assignment) %}
 
 
@@ -44,7 +48,6 @@
 		{# problem list #}
 
 		{% for prob in assignment.problems %}
-
 
 			{% if prob.id != problem.id or result_page %}
 
