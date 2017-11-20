@@ -47,14 +47,14 @@
 							</small>
 						</span>	
 					
-					{% if is_granted("ROLE_SUPER") %}
-						<object>
-						<a title="Edit Problem" href="{{path('section_edit', {'sectionId': section.id})}}">
-							<img class="small-icon" id="right-icon" src="{{ asset('edit.png') }}">
+					{% if app.user in section_teachers or is_granted("ROLE_SUPER") %}
+					<object>
+						<a title="Edit Section" href="{{path('section_edit', {'sectionId': section.id})}}">
+							<img class="small-icon" src="{{ asset('edit.png') }}">
 						</a>
 						
 					</object>
-					{% endif %}
+				{% endif %}	
 					
 					</li>
 				</a>	

@@ -1,5 +1,3 @@
-{% if grader is defined or result_page %}
-
 {# make sure that the grader entity is defined before doing all of this stuff #}
 {% set grades = grader.getAllProblemGrades(app.user, problem.assignment) %}
 
@@ -99,5 +97,3 @@
 	  
 	</ol>
 </nav>
-
-{% endif %}
