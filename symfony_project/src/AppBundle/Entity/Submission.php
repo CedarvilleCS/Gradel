@@ -67,6 +67,16 @@ class Submission {
 		$this->percentage = $perc;
 		$this->questionable_behavior = $ques;
 	}
+	
+	public function isCorrect(){
+		$tcs = count($this->problem->testcases);
+		
+		$tcrs = count($this->testcaseresults);
+		
+		$tcr_correct = $this->getNumTestCasesCorrect(); 
+		
+		return $tcs == $tcrs && $tcrs == $tcr_correct;
+	}
 
 	/**
 	*@ORM\Column(type="integer")
@@ -79,6 +89,18 @@ class Submission {
 	* @ORM\OneToMany(targetEntity="TestcaseResult", mappedBy="submission")
 	*/
 	public $testcaseresults;
+	
+	public function getNumTestCasesCorrect(){
+		
+		$count = 0;
+		foreach($this->testcaseresults as $tc){
+			if($tc->is_correct){
+				$count++;
+			}
+		}
+		
+		return $count;
+	}
 	
 	/**
      * @ORM\ManyToOne(targetEntity="Problem")

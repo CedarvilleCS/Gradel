@@ -1,5 +1,5 @@
 {# make sure that the grader entity is defined before doing all of this stuff #}
-{% set grades = grader.getAllProblemGrades(app.user, problem.assignment) %}
+{% set grades = grader.getAllProblemGrades(app.user, assignment) %}
 
 
 <nav class="nav-left">
@@ -20,36 +20,40 @@
 	
 	<ol style="padding-bottom: 10px">
 		{# overview of when the assignment is due #}		
-		<li style="padding-top: 0px;"> {{problem.assignment.name}} 
+		<li style="padding-top: 0px;"> {{assignment.name}} 
 			
 			<div><small>
-			{% if problem.assignment.start_time|date('U') > "now"|date('U') %}
+			{% if assignment.start_time|date('U') > "now"|date('U') %}
 			
-				Opens: {{problem.assignment.start_time|date('M d \\a\\t  h:i A')}}
+				Opens: {{assignment.start_time|date('M d \\a\\t  h:i A')}}
 			
-			{% elseif problem.assignment.end_time|date('U') > "now"|date('U') %}
-			
-				Due: {{problem.assignment.end_time|date('M d \\a\\t  h:i A')}}
-			
-			{% elseif problem.assignment.cutoff_time|date('U') > "now"|date('U') %}
-				Due: {{problem.assignment.end_time|date('M d \\a\\t  h:i A')}} </br>
-				<i>Closes: {{problem.assignment.cutoff_time|date('M d \\a\\t  h:i A')}}</i>
-			
-			{% else %}
-			
-				<i>Closed: {{problem.assignment.cutoff_time|date('M d \\a\\t  h:i A')}}</i>
-			
+			{% elseif assignment.end_time|date('U') > "now"|date('U') %}			
+				Due: {{assignment.end_time|date('M d \\a\\t  h:i A')}}	
+				
+			{% elseif assignment.cutoff_time|date('U') > "now"|date('U') %}
+				Due: {{assignment.end_time|date('M d \\a\\t  h:i A')}} </br>
+				<i>Closes: {{assignment.cutoff_time|date('M d \\a\\t  h:i A')}}</i>			
+				
+			{% else %}			
+				<i>Closed: {{assignment.cutoff_time|date('M d \\a\\t  h:i A')}}</i>		
+				
 			{% endif %}
 			</small></div>
 		</li>
 		
 		{# problem list #}
-		{% for prob in problem.assignment.problems %}
+		{% for prob in assignment.problems %}
 
 			{% if prob.id != problem.id or result_page %}
 			
 				<a href="{{path("assignment", {'sectionId': prob.assignment.section.id, 'assignmentId': prob.assignment.id, 'problemId': prob.id})}}">
-				<li class="sidebar" >
+				
+				{% if prob.id == problem.id %}
+					<li class="sidebar" style="background: #5a5a5a">
+				{% else %}
+					<li class="sidebar">
+				{% endif %}
+				
 					{{ prob.name }}&nbsp;
 					{% if usersectionrole.role.role_name == 'Takes' %}
 						<br/><small>{{grades[prob.id]['passed_testcases']+grades[prob.id]['passed_extra_testcases']}}/{{grades[prob.id]['total_testcases']}} - {{(grades[prob.id]['percentage_adj']*100)|number_format(1,'.')}}%</small>

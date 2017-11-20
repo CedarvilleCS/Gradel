@@ -16,6 +16,8 @@ use \DateTime;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Routing\Router;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
@@ -126,81 +128,32 @@ class AssignmentController extends Controller {
 		]);	
 	}
 
-    public function newAction($sectionId) {
-	
-      return $this->render('assignment/new.html.twig', [
-        "sectionId" => $sectionId]);
-    }
-
-    public function insertAction($sectionId, $name, $description) {
-		$em = $this->getDoctrine()->getManager();
-		$user = $this->get('security.token_storage')->getToken()->getUser();
-
-		$assignment = new Assignment();
-		$section = $em->find('AppBundle\Entity\Section', $sectionId);
-
-		$gradingmethod = $em->find('AppBundle\Entity\AssignmentGradingMethod', 1);
-
-		$assignment->name = $name;
-		$assignment->description = $description;
-		$assignment->section = $section;
-		$assignment->start_time = new DateTime("now");
-		$assignment->end_time = new DateTime("2050-01-01");
-		$assignment->cutoff_time = new DateTime("2050-01-01");
-		$assignment->weight = 0;
-		$assignment->is_extra_credit = false;
-		$assignment->gradingmethod = $gradingmethod;
-
-		$em->persist($assignment);
-		$em->flush();
-
-		return new RedirectResponse($this->generateUrl('assignment_edit', array('sectionId' => $sectionId, 'assignmentId' => $assignment->id)));
-
-    }
-
     public function editAction($sectionId, $assignmentId) {
 
-      $em = $this->getDoctrine()->getManager();
+	$em = $this->getDoctrine()->getManager();
 
-      $assignment = $em->find('AppBundle\Entity\Assignment', $assignmentId);
+	$section = $em->find('AppBundle\Entity\Section', $sectionId);
+	
+	if(!$section){
+		die("SECTION DOES NOT EXIST");
+	}
+	
+	if($assignmentId != 0){
+		$assignment = $em->find('AppBundle\Entity\Assignment', $assignmentId);
 		
-	  if($problemId == 0){
-			$problemId = $assignment->problems[0]->id;
+		if(!$assignment || $section != $assignment->section){
+			die("Assignment does not exist or does not belong to given section");
 		}
-		if($problemId != null){
-			$problem_entity = $em->find("AppBundle\Entity\Problem", $problemId);
-		}
-      return $this->render('assignment/edit.html.twig', [
-        "assignment" => $assignment,
-		"description" => stream_get_contents($assignment->description),
+	}
+
+	return $this->render('assignment/edit.html.twig', [
+		"assignment" => $assignment,
+		"section" => $section,
 		"edit" => true,
-		"problem" => $problem_entity,
-      ]);
+		]);
     }
 
-    public function editQueryAction($sectionId, $assignmentId, $name, $description) {
-      $em = $this->getDoctrine()->getManager();
-
-      $user = $this->get('security.token_storage')->getToken()->getUser();
-
-
-      $assignment = $em->find('AppBundle\Entity\Assignment', $assignmentId);
-      $assignment->name = $name;
-      $assignment->description = $description;
-      // $assignment->start_time = new DateTime("now");
-      // $assignment->end_time = new DateTime("2050-01-01");
-      // $assignment->cutoff_time = new DateTime("2050-01-01");
-      // $assignment->weight = 0;
-      // $assignment->is_extra_credit = false;
-      // $assignment->gradingmethod = $gradingmethod;
-
-      $em->persist($assignment);
-      $em->flush();
-
-      return new RedirectResponse($this->generateUrl('assignment', array('sectionId' => $sectionId, 'assignmentId' => $assignment->id)));
-	}
-		
-	public function deleteAction($sectionId, $assignmentId){
+    public function deleteAction($sectionId, $assignmentId){
 	
 		$em = $this->getDoctrine()->getManager();
 
@@ -223,6 +176,107 @@ class AssignmentController extends Controller {
 		$em->remove($assignment);
 		$em->flush();
 		return $this->redirectToRoute('section', ['sectionId' => $assignment->section->id]);
+	}
+	
+	public function modifyPostAction(Request $request) {
+		
+		$em = $this->getDoctrine()->getManager();
+		
+		# validate the current user
+		$user = $this->get('security.token_storage')->getToken()->getUser();
+		if(!$user){			
+			return $this->returnForbiddenResponse("You are not a user.");
+		}
+		
+		# see which fields were included
+		$postData = $request->request->all();
+		
+		# get the current section
+		$section = $em->find('AppBundle\Entity\Section', $postData['section']);		
+		if(!$section){
+			return $this->returnForbiddenResponse("Section ".$postData['section']." does not exist");
+		}
+		
+		# only super users/admins/teacher can make/edit an assignment
+		$grader = new Grader($em);		
+		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN") && !isTeaching($user, $section)){			
+			return $this->returnForbiddenResponse("You do not have permission to make an assignment.");
+		}		
+		
+		# check mandatory fields
+		if(!$postData['name'] || !$postData['open_time'] || !$postData['close_time']){
+			return $this->returnForbiddenResponse("Not every required field is provided.");			
+		} else {
+			
+			# validate the weight if there is one
+			if($postData['weight'] && ($postData['weight'] < 1 || $postData['weight'] % 1 != 0)){
+				$this->returnForbiddenResponse("The weight provided - ".$postData['weight']." - is not permitted.");
+			}	
+		}
+		
+		
+		# create new assignment
+		if($postData['assignment'] == 0){
+			$assignment = new Assignment();			
+		} else {
+			$assignment = $em->find('AppBundle\Entity\Assignment', $postData['assignment']);
+			
+			if(!$assignment || $section != $assignment->section){
+				return $this->returnForbiddenResponse("Assignment ".$postData['assignment']." does not exist for the given section.");
+			}			
+		}
+		
+		# set the necessary fields
+		$assignment->name = $postData['name'];
+		$assignment->description = $postData['description'];
+		$assignment->section = $section;
+		
+		# set the times		
+		$openTime = DateTime::createFromFormat("m/d/Y H:i:s", $postData['open_time'].":00");
+		$closeTime = DateTime::createFromFormat("m/d/Y H:i:s", $postData['close_time'].":00");
+		
+		if(!$openTime || $openTime->format("m/d/Y H:i") != $postData['open_time']){
+			return $this->returnForbiddenResponse("Provided opening time ".$postData['open_time']." is not valid.");
+		}
+		
+		if(!$closeTime || $closeTime->format("m/d/Y H:i") != $postData['close_time']){
+			return $this->returnForbiddenResponse("Provided closing time ".$postData['close_time']." is not valid.");
+		}
+		
+		if($postData['cutoff_time']){
+			
+			$cutoffTime = DateTime::createFromFormat("m/d/Y H:i:s", $postData['cutoff_time'].":00");
+			
+			if(!$cutoffTime || $cutoffTime->format("m/d/Y H:i") != $postData['cutoff_time']){
+			return $this->returnForbiddenResponse("Provided cutoff time. ".$postData['cutoff_time']." is not valid.");
+		}
+			
+		} else {
+			$cutoffTime = $closeTime;
+		}
+		
+		#
+		
+		$assignment->start_time = $openTime;
+		$assignment->end_time = $closeTime;
+		$assignment->cutoff_time = $cutoffTime;
+		
+		
+		
+		
+		
+		
+		$response = new Response(json_encode(array('redirect_url' => $url, 'assignment' => $assignment, 'postData' => $postData)));
+		$response->headers->set('Content-Type', 'application/json');
+		$response->setStatusCode(Response::HTTP_OK);
+		
+		return $response;
+    }
+	
+	private function returnForbiddenResponse($message){		
+		$response = new Response($message);
+		$response->setStatusCode(Response::HTTP_FORBIDDEN);
+		return $response;
 	}
 }
 
