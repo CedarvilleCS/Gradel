@@ -1,4 +1,3 @@
-{# make sure that the grades is defined before doing all of this stuff #}
 
 <nav class="nav-left">
 	{% if is_granted("ROLE_ADMIN") or is_granted("ROLE_SUPER") %}
@@ -23,7 +22,7 @@
 			
 			{% if assig.start_time|date('U') < "now"|date('U') %}
 		
-				{% if assig.cutoff_time|date('U') > "now"|date('U') %}
+				{% if assig.cutoff_time|date('U') > "now"|date('U') or app.user in section_teachers or is_granted("ROLE_SUPER") %}
 					<a href={{path('assignment', {'sectionId': assig.section.id, "assignmentId": assig.id})}}>
 				{% endif %}
 				

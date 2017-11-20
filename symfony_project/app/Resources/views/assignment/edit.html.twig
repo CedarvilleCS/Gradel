@@ -10,8 +10,10 @@
     {{ include('template/top-nav.html.twig') }}
 	
     {# left panel with the problem links #}
-	{{ include('template/problem-nav.html.twig') }}
-	
+	{#{{ include('template/problem-nav.html.twig') }}#}
+	<nav class="nav-left">
+		<a id="save-btn" class="btn"><div class="btn btn-center">Save</div></a>
+    </nav>
     
     {# Main section #}
     <div class="scrollbar-macosx">
@@ -19,55 +21,75 @@
             {# Cards #}
 
 			{{ include('template/path-nav.html.twig') }}
+	
+			<div class="card">
+				
+				<div class="btn-close">
+					<h2 style="margin: 0px">
+					{% if assignment is not null %}
+						Edit Assignment
+					{% else %}
+						New Assignment
+					{% endif %}					
+					</h2>
+				</div>
+			
+				<div id="requiredFields" class="card-contents">
+					<div>
+						<table>
+							<tr> <th colspan="1">
+									<label for="name">Name</label>
+									<input id="name" name="name" type="text" value="{{assignment.name}}">
+								</th>
+							</tr>
+							<tr>
+								<th colspan="2">
+									<label for="description">Description</label>
+									<input id="description" name="description" type="text" value="{{description}}">
+								</th>
+							</tr>
+							
+							<tr>
+								<th colspan="2">
+									<label for="startdatepicker">Open Time</label>
+									<input type="text" id="opendatepicker" style="width:150px; margin-right:20px">
 
-            <div class="card">
-							<table>
-								<tr>
-									<th colspan="1">
-										<label for="name">Name</label>
-										<input id="name" name="name" type="text" value="{{assignment.name}}">
-									</th>
-									<th colspan="2">
-										<label for="description">Description</label>
-										<input id="description" name="description" type="text" value="{{description}}">
-									</th>
-								</tr>
+									<label for="enddatepicker">Close Time</label>
+									<input type="text" id="closedatepicker" style="width:150px">
+								</th>
+							</tr>
+							
+							 <tr>
 								
-								 <tr>
-									<th colspan="2">
-										<label for="start-date">Start Date</label>
-										<input type="text" id="start-date">
-
-									</th>
-									<th colspan="2">
-										<label for="end-date">End Date</label>
-										<input type="text" id="end-date">
-									</th>
-								</tr>
 								
-								 <tr>
-									<th colspan="2">
-										<label for="start-date">Weight</label>
-										<input id="weight" name="weight" type="text">
-									</th>
-									<th colspan="2">
-										<label for="extra-credit">Is Extra Credit</label>
-										<input type="checkbox" name="extra-credit" value="extra-credit">
-									</th>
-								</tr>
-								
-								<tr>
-									<th colspan="2">
-										<label for="cutoff-date">Cutoff Date</label>
-										<input type="text" id="cutoff-date">
-									</th>
-									
-								</tr>
-							</table>
-            </div>
-
-
-        	</div>
+							</tr>
+						</table>
+					</div>
+				</div>
+			</div>
+			
+			<div class="card">
+				
+				<div class="btn-close" onclick="collapseCard('additionalOptions')">
+					<h2 style="margin: 0px">Additional Options
+						<span style="float: right"><i class="fa fa-angle-down"></i></span>
+					</h2>
+				</div>
+			
+				<div id="additionalOptions" class="card-contents">
+					<div>
+						<label for="extracredit">Is Extra Credit</label> <input type="checkbox" name="extracredit" value="extracredit">
+					</div>
+					<div style="margin-top:5px">
+						<label for="weight">Weight </label> <input id="weight" name="weight" type="text" style="width: 50px">
+						LIST OTHER ASSIGNMENT WEIGHTS HERE					
+					</div>
+					<div>
+						<label for="cutoffdatepicker">Cutoff Time</label> <input type="text" id="cutoffdatepicker" style="width: 150px">
+					</div>
+				</div>
+			</div>
+			
         </section>
     </div>
 
@@ -81,6 +103,7 @@
     <link rel="stylesheet" href="{{ asset('styles.css') }}" />
 	<link rel="stylesheet" href="{{ asset('jquery/jquery-ui.css') }}" />
 	<link rel="stylesheet" href="{{ asset('jquery/jquery-ui-timepicker-addon.css') }}" />
+	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
 {% endblock %}
 
 
@@ -89,7 +112,7 @@
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script src="{{ asset('js/cards.js') }}"></script>
-	<script src="{{ asset('js/newSection.js') }}"></script>
+	
 	<script src="{{ asset('jquery/jquery-ui-sliderAccess.js') }}"></script>
 	<script src="{{ asset('jquery/jquery-ui-timepicker-addon.js') }}"></script>
 	
@@ -97,6 +120,30 @@
 			$(document).ready(function() {
 				$('#insert').on('click', function(){insertSection();});
 				$('#student-picker').on('change', function(){addStudent();});
+								
+				$( "#opendatepicker" ).datetimepicker();
+				$( "#closedatepicker" ).datetimepicker();
+				$( "#cutoffdatepicker" ).datetimepicker();
+				
+				
+				$('#save-btn').on('click', function(){
+				
+					/* Client-Side Field Validation */
+					
+					/* Post to the Symfony Route */
+					$.post( "{{path('assignment_modify')}}", {				
+						
+					}, function(data) {			
+						console.log(data);
+						
+						//window.location = data["redirect_url"];
+					}).fail(function(data) {
+					
+						alert(data["responseText"]);
+					
+					});				
+				});
+				
 			});
 
 			var studentArray = [];
@@ -116,15 +163,5 @@
 
 				// POST
 			}
-		
-		$( function() {
-        $( "#start-date" ).datetimepicker();
-      } );
-      $( function() {
-        $( "#end-date" ).datetimepicker();
-      } );
-	  $( function() {
-        $( "#cutoff-date" ).datetimepicker();
-      } );
 		</script>
 {% endblock %}

@@ -56,7 +56,7 @@ assignment:
 assignment_modify:
   path: '/modify/assignment'
   defaults:
-    _controller: AppBundle:Assignment:modifyPost}
+    _controller: AppBundle:Assignment:modifyPost
   methods: [POST]
 
 
