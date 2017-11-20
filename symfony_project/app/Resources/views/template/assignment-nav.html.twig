@@ -16,12 +16,6 @@
 		<a id="insert" class="btn"><div class="btn btn-center" href="">Save</div></a>
 	{% endif %}
 
-	{% if is_granted("ROLE_SUPER") %}
-		<a href="{{path('section_delete', {'sectionId': section.id})}}" class="btn">
-			<div class="btn btn-delete btn-center">Delete Section</div>
-		</a>
-	{% endif %}
-
 	{# assignments list #}
 	<ol style="padding-bottom: 10px">
 		{% for assig in assignments %}
