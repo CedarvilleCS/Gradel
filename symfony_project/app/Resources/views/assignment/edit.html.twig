@@ -8,9 +8,12 @@
 
 <body>
     {{ include('template/top-nav.html.twig') }}
-
+	
     {# left panel with the problem links #}
-	  {{ include('template/problem-nav.html.twig') }}
+	{#{{ include('template/problem-nav.html.twig') }}#}
+	<nav class="nav-left">
+		<a id="save-btn" class="btn"><div class="btn btn-center">Save</div></a>
+    </nav>
     
     {# Main section #}
     <div class="scrollbar-macosx">
@@ -18,26 +21,71 @@
             {# Cards #}
 
 			{{ include('template/path-nav.html.twig') }}
+	
+			<div class="card">
+				
+				<div class="btn-close">
+					<h2 style="margin: 0px">
+					{% if assignment is not null %}
+						Edit Assignment
+					{% else %}
+						New Assignment
+					{% endif %}					
+					</h2>
+				</div>
+			
+				<div id="requiredFields" class="card-contents">
+					<div>
+						<table>
+							<tr> <th colspan="1">
+									<label for="name">Name</label>
+									<input id="name" name="name" type="text" value="{{assignment.name}}">
+								</th>
+							</tr>
+							<tr>
+								<th colspan="2">
+									<label for="description">Description</label>
+									<input id="description" name="description" type="text">
+								</th>
+							</tr>
+							
+							<tr>
+								<th colspan="2">
+									<label for="startdatepicker">Open Time</label>
+									<input type="text" id="opendatepicker" style="width:150px; margin-right:20px">
 
-            <div class="card">
-							<table>
-								<tr>
-									<th colspan="3">
-                    <label for="name">Name</label>
-										<input id="name" name="name" type="text" value="{{assignment.name}}">
-									</th>
-								</tr>
-                <tr>
-									<th colspan="3">
-                    <label for="description">Description</label>
-										<input id="description" name="description" type="text" value="{{description}}">
-									</th>
-								</tr>
-							</table>
-            </div>
-
-
-        	</div>
+									<label for="enddatepicker">Close Time</label>
+									<input type="text" id="closedatepicker" style="width:150px">
+								</th>
+							</tr>
+							
+						</table>
+					</div>
+				</div>
+			</div>
+			
+			<div class="card">
+				
+				<div class="btn-close" onclick="collapseCard('additionalOptions')">
+					<h2 style="margin: 0px">Additional Options
+						<span style="float: right"><i class="fa fa-angle-down"></i></span>
+					</h2>
+				</div>
+			
+				<div id="additionalOptions" class="card-contents">
+					<div>
+						<label for="extracredit">Is Extra Credit</label> <input id="extracredit" type="checkbox" name="extracredit" value=1>
+					</div>
+					<div style="margin-top:5px">
+						<label for="weight">Weight </label> <input id="weight" name="weight" type="text" style="width: 50px">
+						LIST OTHER ASSIGNMENT WEIGHTS HERE					
+					</div>
+					<div>
+						<label for="cutoffdatepicker">Cutoff Time</label> <input type="text" id="cutoffdatepicker" style="width: 150px">
+					</div>
+				</div>
+			</div>
+			
         </section>
     </div>
 
@@ -49,50 +97,153 @@
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('styles.css') }}" />
-    <link rel="stylesheet" href="{{ asset('jquery.scrollbar.css') }}" />
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
+	<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/jquery-ui-timepicker-addon@1.6.3/dist/jquery-ui-timepicker-addon.css" />
+	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
 {% endblock %}
 
 
 {% block scripts %}
     <!-- JQuery -->
-    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
-    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-    <script src="{{ asset('js/cards.js') }}"></script>
-		<script src="{{ asset('js/newSection.js') }}"></script>
-    <script src="{{ asset('js/jquery.scrollbar.js') }}"></script>
+    <script src="//code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="//code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+	
+	<script src="//cdn.jsdelivr.net/npm/jquery-ui-timepicker-addon@1.6.3/dist/jquery-ui-sliderAccess.js"></script>
+	<script src="//cdn.jsdelivr.net/npm/jquery-ui-timepicker-addon@1.6.3/dist/jquery-ui-timepicker-addon.js"></script>
+	
+    <script src="{{ asset('js/cards.js') }}"></script>	
+	
     <script>
-			$(document).ready(function() {
-				$('#insert').on('click', function(){insertSection();});
-				$('#student-picker').on('change', function(){addStudent();});
+	
+		$(document).ready(function() {
+			$('#insert').on('click', function(){insertSection();});
+			$('#student-picker').on('change', function(){addStudent();});
+							
+			$( "#opendatepicker" ).datetimepicker();
+			$( "#closedatepicker" ).datetimepicker();
+			$( "#cutoffdatepicker" ).datetimepicker();
+			
+			{% if assignment is not null %}
+			populateForm();
+			{% else %}
+			collapseCard('additionalOptions');
+			{% endif %}
+			
+			
+			$('#save-btn').on('click', function(){
+			
+				/* Client-Side Field Validation */
+				
+				// assignment name
+				if ($.trim($('#name').val())  === '') {						
+					setInvalid($('#name'));
+					return false;
+				} else {
+					setValid($('#name'));
+				}
+				
+				// assignment open time
+				if ($('#opendatepicker').val()  === '') {						
+					setInvalid($('#opendatepicker'));
+					return false;
+				} else {
+					setValid($('#opendatepicker'));
+				}
+				
+				// assignment close time
+				if ($('#closedatepicker').val()  === '') {						
+					setInvalid($('#closedatepicker'));
+					return false;
+				} else {
+					setValid($('#closedatepicker'));
+				}
+				
+				// weight
+				var wght = new Number($('#weight').val());
+				/*
+				if($('#weight').val() != '' && (wght < 1 || wght % 1 != 0)){						
+					setInvalid($('#weight'));
+					return false;
+				} else {
+					setValid($('#weight'));				
+				}*/
+				
+				// check to see if this button is allowed to be pressed
+				if($(this).prop('disabled')){
+					return false;
+				} else {
+					$(this).prop('disabled', true);
+				}
+				
+				/* Post to the Symfony Route */
+				$.post( "{{path('assignment_modify')}}", {				
+					
+					name: $.trim($('#name').val()),
+					description: $.trim($('#description').val()),
+					
+					open_time: $('#opendatepicker').val(),
+					close_time: $('#closedatepicker').val(),
+					cutoff_time: $('#cutoffdatepicker').val(),
+					
+					is_extra_credit: $('#extracredit').is(':checked'),
+					weight: $('#weight').val(),
+					
+					section: {{section.id}},
+					assignment: {% if assignment is not null %} {{assignment.id}} {% else %} 0 {% endif %}
+					
+				}, function(data) {			
+					console.log(data);
+					
+					window.location = data["redirect_url"];
+				}).fail(function(data) {
+				
+					alert(data["responseText"]);					
+					$(this).prop('disabled', false);				
+				});				
 			});
+			
+		});
+		
+		function setInvalid(div) {
+			div.css('border', '3px solid red');
+			div.css('background-color', '#FD8177');
+		}
+		
+		function setValid(div) {
+			div.css('border', '');
+			div.css('background-color', '');
+		}
 
-			var studentArray = [];
+	</script>
+		
+		
+	{% if assignment is not null %}
+	<script>
+	function populateForm(){
 
-			function addStudent() {
-				const studentPicker = document.getElementById('student-picker');
-				const value = studentPicker.value;
-				const studentInput = document.getElementById('student-csv');
-				studentInput.value += value + ", \n"
-				studentArray = studentInput.value.split(", \n");
-				studentPicker.selectedIndex = 0;
-			}
-
-			function insertSection() {
-				const name = document.getElementById("name").value;
-				const description = document.getElementById("description").value;
-
-				var path = "{{path('assignment_edit_query', { 'sectionId': 'sectionId', 'assignmentId': 'assignmentId', 'name': 'name', 'description': 'description'})}}";
-				path = path.replace("name", name);
-				path = path.replace("description", description)
-				path = path.replace("sectionId", {{assignment.section.id}});
-				path = path.replace("assignmentId", {{assignment.id}});
-				window.location.replace(path);
-			}
-
-		</script>
-    <script>
-        jQuery(document).ready(function(){
-            jQuery('.scrollbar-macosx').scrollbar();
-        });
-    </script>
+		// set the name
+		$('#name').val("{{assignment.name}}");
+		
+		// set the description
+		$('#description').val("{{assignment.deblobinateDescription()}}");
+		
+		// set the open date
+		$('#opendatepicker').val("{{assignment.start_time|date('m/d/Y h:i')}}");		
+		
+		// set the close date
+		$('#closedatepicker').val("{{assignment.end_time|date('m/d/Y h:i')}}");
+		
+		// set the cuttoff date
+		$('#cutoffdatepicker').val("{{assignment.cutoff_time|date('m/d/Y h:i')}}");
+		
+		// set the weight
+		$('#weight').val({{assignment.weight}});
+		
+		// set the checkbox
+		$('#extracredit').attr('checked', {% if assignment.is_extra_credit %} true {% else %} false {% endif %});
+		
+	}
+	
+	</script>
+	{% endif %}
 {% endblock %}
