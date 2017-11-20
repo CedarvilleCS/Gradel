@@ -24,12 +24,10 @@ section:
   path: '/section/{sectionId}'
   defaults: {_controller: AppBundle:Section:section}
   methods: [GET]
-  requirements:
-        sectionId: '\d+'
 
     # section posts
 section_modify:
-  path: '/section/modify'
+  path: '/modify/section'
   defaults: {_controller: AppBundle:Section:modifyPost}
   methods: [POST]
 
@@ -40,24 +38,11 @@ assignment_delete:
   defaults: {_controller: AppBundle:Assignment:delete}
   methods: [GET]
 
-assignment_new:
-  path: '/section/{sectionId}/assignment/new'
-  defaults: {_controller: AppBundle:Assignment:new}
-  methods: [GET]
-
 assignment_edit:
   path: '/section/{sectionId}/assignment/edit/{assignmentId}'
-  defaults: {_controller: AppBundle:Assignment:edit}
-  methods: [GET]
-
-assignment_insert:
-  path: '/section/{sectionId}/assignment/insert/{name}/{description}'
-  defaults: {_controller: AppBundle:Assignment:insert}
-  methods: [GET]
-
-assignment_edit_query:
-  path: '/section/{sectionId}/assignment/edit_query/{assignmentId}/{name}/{description}'
-  defaults: {_controller: AppBundle:Assignment:editQuery}
+  defaults: 
+    _controller: AppBundle:Assignment:edit
+    assignmentId: 0
   methods: [GET]
 
 assignment:
@@ -66,6 +51,13 @@ assignment:
     _controller: AppBundle:Assignment:assignment
     problemId: 0
   methods: [GET]
+  
+  # assignment posts
+assignment_modify:
+  path: '/modify/assignment'
+  defaults:
+    _controller: AppBundle:Assignment:modifyPost}
+  methods: [POST]
 
 
 # problem routes

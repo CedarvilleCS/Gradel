@@ -2,7 +2,7 @@
 
 <nav class="nav-left">
 	{% if is_granted("ROLE_ADMIN") or is_granted("ROLE_SUPER") %}
-		<a href="{{path('assignment_new', {'sectionId': section.id})}}" class="btn">
+		<a href="{{path('assignment_edit', {'sectionId': section.id})}}" class="btn">
 			<div class="btn btn-center">+ Assignment</div>
 		</a>
 	{% endif %}

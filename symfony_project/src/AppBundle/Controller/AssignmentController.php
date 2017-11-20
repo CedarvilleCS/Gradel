@@ -126,13 +126,46 @@ class AssignmentController extends Controller {
 		]);	
 	}
 
-    public function newAction($sectionId) {
-	
-      return $this->render('assignment/new.html.twig', [
-        "sectionId" => $sectionId]);
+    public function editAction($sectionId, $assignmentId) {
+
+      $em = $this->getDoctrine()->getManager();
+
+      $assignment = $em->find('AppBundle\Entity\Assignment', $assignmentId);
+		
+      return $this->render('assignment/edit.html.twig', [
+        "assignment" => $assignment,
+		"description" => stream_get_contents($assignment->description),
+		"edit" => true,
+      ]);
     }
 
-    public function insertAction($sectionId, $name, $description) {
+    public function deleteAction($sectionId, $assignmentId){
+	
+		$em = $this->getDoctrine()->getManager();
+
+		$assignment = $em->find('AppBundle\Entity\Assignment', $assignmentId);	  
+		if(!$assignment){
+			die("ASSIGNMENT DOES NOT EXIST");
+		}
+		
+		$user = $this->get('security.token_storage')->getToken()->getUser();
+		if(!$user){
+			die("USER DOES NOT EXIST");
+		}
+		
+		# validate the user
+		$grader = new Grader($em);
+		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN") && !$grader->isTeaching($user, $assignment->section)){
+			die("YOU ARE NOT ALLOWED TO DELETE THIS ASSIGNMENT");			
+		}
+		
+		$em->remove($assignment);
+		$em->flush();
+		return $this->redirectToRoute('section', ['sectionId' => $assignment->section->id]);
+	}
+	
+	
+    public function modifyPostAction(Request $request) {
 		$em = $this->getDoctrine()->getManager();
 		$user = $this->get('security.token_storage')->getToken()->getUser();
 
@@ -157,73 +190,6 @@ class AssignmentController extends Controller {
 		return new RedirectResponse($this->generateUrl('assignment_edit', array('sectionId' => $sectionId, 'assignmentId' => $assignment->id)));
 
     }
-
-    public function editAction($sectionId, $assignmentId) {
-
-      $em = $this->getDoctrine()->getManager();
-
-      $assignment = $em->find('AppBundle\Entity\Assignment', $assignmentId);
-		
-	  if($problemId == 0){
-			$problemId = $assignment->problems[0]->id;
-		}
-		if($problemId != null){
-			$problem_entity = $em->find("AppBundle\Entity\Problem", $problemId);
-		}
-      return $this->render('assignment/edit.html.twig', [
-        "assignment" => $assignment,
-		"description" => stream_get_contents($assignment->description),
-		"edit" => true,
-		"problem" => $problem_entity,
-      ]);
-    }
-
-    public function editQueryAction($sectionId, $assignmentId, $name, $description) {
-      $em = $this->getDoctrine()->getManager();
-
-      $user = $this->get('security.token_storage')->getToken()->getUser();
-
-
-      $assignment = $em->find('AppBundle\Entity\Assignment', $assignmentId);
-      $assignment->name = $name;
-      $assignment->description = $description;
-      // $assignment->start_time = new DateTime("now");
-      // $assignment->end_time = new DateTime("2050-01-01");
-      // $assignment->cutoff_time = new DateTime("2050-01-01");
-      // $assignment->weight = 0;
-      // $assignment->is_extra_credit = false;
-      // $assignment->gradingmethod = $gradingmethod;
-
-      $em->persist($assignment);
-      $em->flush();
-
-      return new RedirectResponse($this->generateUrl('assignment', array('sectionId' => $sectionId, 'assignmentId' => $assignment->id)));
-	}
-		
-	public function deleteAction($sectionId, $assignmentId){
-	
-		$em = $this->getDoctrine()->getManager();
-
-		$assignment = $em->find('AppBundle\Entity\Assignment', $assignmentId);	  
-		if(!$assignment){
-			die("ASSIGNMENT DOES NOT EXIST");
-		}
-		
-		$user = $this->get('security.token_storage')->getToken()->getUser();
-		if(!$user){
-			die("USER DOES NOT EXIST");
-		}
-		
-		# validate the user
-		$grader = new Grader($em);
-		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN") && !$grader->isTeaching($user, $assignment->section)){
-			die("YOU ARE NOT ALLOWED TO DELETE THIS ASSIGNMENT");			
-		}
-		
-		$em->remove($assignment);
-		$em->flush();
-		return $this->redirectToRoute('section', ['sectionId' => $assignment->section->id]);
-	}
 }
 
 ?>

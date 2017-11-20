@@ -80,12 +80,7 @@
 				const name = document.getElementById("name").value;
 				const description = document.getElementById("description").value;
 
-				var path = "{{path('assignment_edit_query', { 'sectionId': 'sectionId', 'assignmentId': 'assignmentId', 'name': 'name', 'description': 'description'})}}";
-				path = path.replace("name", name);
-				path = path.replace("description", description)
-				path = path.replace("sectionId", {{assignment.section.id}});
-				path = path.replace("assignmentId", {{assignment.id}});
-				window.location.replace(path);
+				// POST
 			}
 
 		</script>
