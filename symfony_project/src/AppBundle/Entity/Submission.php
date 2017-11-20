@@ -75,7 +75,7 @@ class Submission {
 		
 		$tcr_correct = $this->getNumTestCasesCorrect(); 
 		
-		return $tcs == $tcrs && $tcrs == $tcr_correct;
+		return $tcs > 0 && $tcs == $tcrs && $tcrs == $tcr_correct;
 	}
 
 	/**
