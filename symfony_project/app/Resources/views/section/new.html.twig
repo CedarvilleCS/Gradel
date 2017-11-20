@@ -135,10 +135,12 @@
     <!-- JQuery -->
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-    <script src="{{ asset('js/cards.js') }}"></script>
+	<script src="{{ asset('js/cards.js') }}"></script>
+	<script src="{{ asset('js/validation.js') }}"></script>
 	
 	<script>
-	
+		validate($("#name"));
+
 		$(document).ready(function() {
 		
 			collapseCard('additionalOptions');
@@ -161,18 +163,7 @@
 			
 			$('#save-btn').on('click', function(){
 				
-				/* Client-Side Field Validation */
-				
-				// section name
-				if ($.trim($('#name').val())  === '') {						
-					setInvalid($('#name'));
-					return false;
-				} else {
-					setValid($('#name'));
-				}
-				
-				// dates
-				
+				/* Client-Side Field Validation */			
 				
 				/* Array of Students */
 				var students = document.getElementById('student-csv').value.split(", \n");
@@ -202,16 +193,6 @@
 				updateStudentCSV();
 			});
 		});
-		
-		function setInvalid(div) {
-			div.css('border', '3px solid red');
-			div.css('background-color', '#FD8177');
-		}
-		
-		function setValid(div) {
-			div.css('border', '');
-			div.css('background-color', '');
-		}
 
 		function updateStudentCSV() {
 			
