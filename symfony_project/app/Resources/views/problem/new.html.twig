@@ -12,7 +12,7 @@
 
     {# Left Nav #}
     <nav class="nav-left">
-        <div onclick="newProb()" class="btn btn-center">Save</div>
+        <div onclick="newProb()" class="btn btn-center" id="save-btn">Save</div>
     </nav>
 
     {# Main section #}
@@ -37,7 +37,7 @@
                     </th>
                 </tr>
                 <th colspan="1.5">
-                    <label for="languages">Languages</label>
+                    <label for="languages" id="languagesLabel">Languages</label>
                     <select id="languages" onchange="languageSelect()" name="languages" type="text">
                       <option></option>
                       {% for language in languages %}
@@ -101,11 +101,52 @@
 
 
 {% block scripts %}
-    <!-- JQuery -->
-    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
-    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-    <script src="{{ asset('js/cards.js') }}"></script>
-	<script src="{{ asset('js/newSection.js') }}"></script>
+  <!-- JQuery -->
+  <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <script src="{{ asset('js/cards.js') }}"></script>
+  <script src="{{ asset('js/newSection.js') }}"></script>
+  <script>
+    /* Client-Side Field Validation */
+    function setInvalid(element) {
+      element.css('border', '3px solid red');
+      element.css('background-color', '#FD8177');
+    }
+    
+    function setValid(element) {
+      element.css('border', '2px solid #6C6E71');
+      element.css('background-color', 'transparent');
+    }
+
+    $('#save-btn').on('click', function(){          
+      // name
+      if ($.trim($('#name').val())  === '') {	
+        setInvalid($('#name'));
+      }
+
+      // description
+      if ($.trim($('#description').val())  === '') {	
+        setInvalid($('#description'));
+      }
+
+      // language
+      if ($.trim($('#languages').val())  === '') {	
+        $("#languagesLabel").append(" (you must select at least one language)");
+        setInvalid($('#languages'));
+      }
+    });
+
+    /* Mark fields as valid once the user changes them */
+    $("#name").on('input',function(e){
+      setValid($("#name"));
+    });
+    $("#description").on('input',function(e){
+      setValid($("#description"));
+    });
+    $("#languages").on('input',function(e){
+      setValid($("#languages"));
+    });
+  </script>
 	<script>
     var languages = [];
 		testCases = 0;
@@ -236,13 +277,6 @@
         "is_extra_credit": extraCredit,
       }, (data) => {
         console.log(data);
-        if (data.errors.length > 0) {
-          errorMessage = "";
-          for (error of data.errors) {
-            errorMessage += (" - " + error + "\n");
-          }
-          alert(errorMessage);
-        }
         problemId = data.problemId;
       }, "json");
       var tcs = document.getElementsByClassName("test-case");
