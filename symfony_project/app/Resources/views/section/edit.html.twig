@@ -241,12 +241,6 @@
 	{% if section is not null %}
 	<script>
 	function populateForm(){
-		/*
-		
-		students: JSON.stringify(students),
-		start_time: $('#startdatepicker').val(),
-		end_time: $('#enddatepicker').val()
-		*/
 		
 		// set the course
 		$('#course').val({{section.course.id}});
