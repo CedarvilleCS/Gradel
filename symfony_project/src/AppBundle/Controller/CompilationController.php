@@ -61,6 +61,10 @@ class CompilationController extends Controller {
 			die("TOO LATE TO SUBMIT FOR THIS PROBLEM");
 		}
 		
+		if($problem_entity->assignment->start_time > new \DateTime("now")){
+			die("TOO EARLY TO SUBMIT FOR THIS PROBLEM");
+		}
+		
 		# get the current team
 		$team_entity = $grader->getTeam($user_entity, $problem_entity->assignment);		
 		if(!$team_entity){
@@ -154,6 +158,8 @@ class CompilationController extends Controller {
 		
 		# query for the current filetype		
 		$extension = pathinfo($submitted_file_path, PATHINFO_EXTENSION);
+
+		
 		$is_zipped = "false";
 		if($extension == "zip"){
 			$is_zipped = "true";
@@ -191,7 +197,7 @@ class CompilationController extends Controller {
 		$docker_time_limit = intval(count($problem_entity->testcases) * ceil(floatval($problem_entity->time_limit)/1000.0)) + 8 + rand(1,4);
 
 		$docker_script = $web_dir."/compilation/dockercompiler.sh ".$problem_entity->id." ".$team_entity->id." ".dirname($submitted_file_path)." ".basename($submitted_file_path)." ".$language_entity->name." ".$is_zipped." ".$docker_time_limit." \"".$compilation_options."\" ".$submission_entity->id." ".$submission_entity->main_class_name." ".$submission_entity->package_name;
-		# die($docker_script);
+		#die("<br/>".$docker_script);
 		
 		$docker_output = shell_exec($docker_script);	
 		
@@ -232,6 +238,20 @@ class CompilationController extends Controller {
 			
 			# used to keep track of the total number of testcases passed
 			$correct_testcase_count = 0;
+			$correct_extra_testcase_count = 0;
+			
+			# get the total testcase weights
+			$total_points = 0;
+			foreach($problem_entity->testcases as $tc){
+				
+				if($tc->is_extra_credit){
+					continue;
+				}
+				
+				$total_points += $tc->weight;
+			}
+			
+			$total_points = max(1, $total_points);
 			
 			# used to keep track of the last correct testcase before things went south
 			$already_wrong_tc = false;
@@ -301,10 +321,16 @@ class CompilationController extends Controller {
 						
 						if(strcmp("YES", $diff_string) == 0){							
 							$testcase_is_correct = true;
-							$correct_testcase_count++;	
+							
+							
+							if($tc->is_extra_credit){
+								$correct_extra_testcase_count++;
+							} else{
+								$correct_testcase_count++;	
+							}
 							
 							# update submission_percentage
-							$submission_percentage += max($tc->weight, floatval(1.0 / count($problem_entity->testcases)));
+							$submission_percentage += $tc->weight/$total_points;
 						} else {
 							
 							$already_wrong_tc = true;

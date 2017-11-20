@@ -92,7 +92,7 @@ class Assignment{
 	public $gradingmethod;
 	
 	/**
-	* @ORM\Column(type="decimal", precision=12, scale=8)
+	* @ORM\Column(type="integer")
 	*/
 	public $weight;
 

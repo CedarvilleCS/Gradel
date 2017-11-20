@@ -1,3 +1,5 @@
+
+
 {% extends 'base.html.twig' %}
 
 {% block title %}
@@ -5,6 +7,14 @@
 {% endblock %}
 
 {% block body %}
+
+{% if grader is not defined %}
+
+The grader was not passed from the controller.
+
+{% else %}
+
+{% set grades = grader.getProblemGrade(app.user, problem) %}
 
 <body>
 	{{ include('template/top-nav.html.twig') }}
@@ -21,9 +31,11 @@
 				<div id="courseInfo" class="card-contents">
 				<h2>SUBMISSION ID: {{submission.id}}</h2>
 				<h3>RESULT: 
-					{% if submission.percentage == 1 %}
+					{% if grades['total_testcases'] > 0 and grades['total_testcases'] == grades['passed_testcases'] %}
 						<span style="color:green">CORRECT!</span>
+						
 					{% else %}
+					
 						<span style="color:red">
 						{% if submission.compiler_error %}
 						COMPILER ERROR!
@@ -47,6 +59,26 @@
 						{% endif %}
 						</span>
 					{% endif %}
+				</h3>
+				
+				<h3> TESTCASES: 
+				{% for tcr in submission.testcaseresults %}
+				
+					{% if tcr.testcase.is_extra_credit %}
+						{% set var1='lightgreen' %}
+						{% set var2='pink' %}
+					{% else %}
+						{% set var1='green' %}
+						{% set var2='red' %}
+					{% endif %}
+				
+					{% if tcr.is_correct %}
+						<span style="color:{{var1}}; font-size: 20px"> &#x2713; </span> 				
+					{% else %}
+						<span style="color:{{var2}}; font-size: 20px"> &#x2718</span>
+					{% endif %}
+				
+				{% endfor %}
 				</h3>
 
 				<div id="status">
@@ -81,6 +113,9 @@
 	</section>
 	
 	</body>
+	
+{% endif %}
+	
 {% endblock %}
 
 {% block stylesheets %}
@@ -98,7 +133,6 @@
 	<script>
 		var editor = ace.edit("editor");
 		editor.setTheme("ace/theme/xcode");
-		editor.getSession().setMode("ace/mode/c_cpp");
 	</script>
 
 {% endblock %}

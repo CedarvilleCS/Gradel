@@ -247,11 +247,9 @@
       }, "json");
       var tcs = document.getElementsByClassName("test-case");
 
-      for (testcase of tcs) {
+      // for (testcase of tcs) {
         await insertTestCase(testcase.id, problemId);
       }
-
       // insertTestCase("testcases1");
-		}
 	</script>
 {% endblock %}

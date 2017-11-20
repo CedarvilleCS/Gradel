@@ -13,46 +13,98 @@
 		</a>
 	{% endif %}
 
+	{% if edit %}
+		<a id="insert" class="btn"><div class="btn btn-center" href="">Save</div></a>
+	{% endif %}
+
+	{% if is_granted("ROLE_SUPER") %}
+		<a href="{{path('section_delete', {'sectionId': section.id})}}" class="btn">
+			<div class="btn btn-delete btn-center">Delete Section</div>
+		</a>
+	{% endif %}
+
 	{# assignments list #}
 	<ol style="padding-bottom: 10px">
 		{% for assig in assignments %}
 
-			<a href={{path('assignment', {'sectionId': assig.section.id, "assignmentId": assig.id})}}>
-				<li class="sidebar">
-					<span class="preview">
-						{{ assig.name }}
-						<br>
-						<small>
-							{{assig.end_time|date('F d, Y')}}
-							{% if app.user in section_takers %}
-								<br/>{{grades[app.user.id][assig.id]['num_correct_problems']}}/{{grades[app.user.id][assig.id]['num_problems']}} - {{(grades[app.user.id][assig.id]['percentage_adj']*100)|number_format(1,'.')}}%
-							{% endif %}
-						</small>
-					</span>
+			{% if assig.start_time|date('U') < "now"|date('U') %}
 
-				{# display edit icon #}
-				{% if app.user in section_teachers or is_granted("ROLE_SUPER") %}
-					<object>
-						<a title="Delete assignment" href="{{path('assignment_delete', {'sectionId': assig.section.id, 'assignmentId': assig.id})}}">
-							<img class="small-icon" id="right-icon" src="{{ asset('trash.png') }}">
-						</a>
-					</object>
-					<object>
-						<a title="Edit assignment" href="{{path('assignment_edit', {'sectionId': assig.section.id, 'assignmentId': assig.id})}}">
-							<img class="small-icon" src="{{ asset('edit.png') }}">
-						</a>
-
-					</object>
+				{% if assig.cutoff_time|date('U') > "now"|date('U') %}
+					<a href={{path('assignment', {'sectionId': assig.section.id, "assignmentId": assig.id})}}>
 				{% endif %}
 
-				</li>
-			</a>
+					<li class="sidebar">
+						<span class="preview">
+							{{ assig.name }}
+							<br>
+							<small>
+								{% if assig.end_time|date('U') > "now"|date('U') %}
+
+									{{assig.end_time|date('F d - h:i A')}}
+
+								{% elseif assig.cutoff_time|date('U') > "now"|date('U') %}
+
+									<i>{{assig.cutoff_time|date('F d - h:i A')}}</i>
+
+								{% else %}
+
+									<i> Closed </i>
+
+								{% endif %}
+
+								{% if app.user in section_takers %}
+									<br/>{{grades[app.user.id][assig.id]['num_correct_problems']}}/{{grades[app.user.id][assig.id]['num_problems']}} - {{(grades[app.user.id][assig.id]['percentage_adj']*100)|number_format(1,'.')}}%
+								{% endif %}
+							</small>
+						</span>
+
+					{# display edit icon #}
+					{% if app.user in section_teachers or is_granted("ROLE_SUPER") %}
+						<object>
+							<a title="Delete assignment" href="{{path('assignment_delete', {'sectionId': assig.section.id, 'assignmentId': assig.id})}}">
+								<img class="small-icon" id="right-icon" src="{{ asset('trash.png') }}">
+							</a>
+						</object>
+						<object>
+							<a title="Edit assignment" href="{{path('assignment_edit', {'sectionId': assig.section.id, 'assignmentId': assig.id})}}">
+								<img class="small-icon" src="{{ asset('edit.png') }}">
+							</a>
+
+						</object>
+					{% endif %}
+
+					</li>
+
+				{% if assig.cutoff_time|date('U') > "now"|date('U') %}
+					</a>
+				{% endif %}
+
+			{% endif %}
 
 		{% else %}
 
 			<li> No Assignments Found </li>
 
 		{% endfor %}
-	</ol>
 
+		<li></li>
+		{% for assig in assignments %}
+
+			{% if assig.start_time|date('U') > "now"|date("U") %}
+				<li class="sidebar">
+					<span class="preview">
+						{{ assig.name }}
+						<br>
+						<small>
+							<i>{{assig.start_time|date('F d - h:i A')}}</i>
+						</small>
+					</span>
+				</li>
+			{% endif %}
+
+		{% endfor %}
+
+
+
+	</ol>
 </nav>

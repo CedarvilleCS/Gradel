@@ -41,20 +41,22 @@
 						<div id="editor"></div>
 
 						<br/>
+
 						{# display the form or not #}
-						{% if usersectionrole.role.role_name == 'Takes' %}
+						{% set open = (problem.assignment.start_time|date('U') < "now"|date('U') and problem.assignment.cutoff_time|date('U') > "now"|date('U')) %}
+
+						{% if usersectionrole.role.role_name == 'Takes' and open and attempts_remaining != 0%}
 
 							{# ACE editor and file upload#}
-							<form action="{{path('assignment', {'sectionId' : section.id, 'assignmentId' : assignment.id, 'problemId' : problem.id}) }}" method="post" enctype="multipart/form-data">
-								<input type="file" onchange="determineLanguage(); this.form.submit();" name="fileToUpload" id="fileToUpload" value="Upload File">
-
+							<form id="submissionUploadForm" action="{{path('get_contents')}}" method="post">
+								<input type="file" name="file" id="file" value="Upload File">
 							</form>
 
 							{# Language selection and hidden field to submit ACE contents #}
-							<form action="{{path('upload', {'problem_id': problem.id}) }}" method="post" enctype="multipart/form-data">
+							<div id="submissionForm">
 
 								Language:
-								<select id="languageSelect" name="language" onchange="languageChange()">
+								<select id="languageSelect" name="language">
 									{% for lang in languages %}
 										{% if lang.name != "No Language Restriction" %}
 											<option value={{lang.id}}>{{lang.name}}</option>
@@ -66,16 +68,17 @@
 								<div id="packgNameInput" style="display:none"><label for="package_name">Package Name: </label><input type="text" name="package_name" id="package_name_input"></div>
 								<br/>
 								<input type="hidden" name="ACE" id="ACE">
-								<input type="submit" value="Submit Solution" name="btn-submit" onclick="saveACE();">
-							</form>
+								<div class="btn" id="submissionButton"> Submit </div>
+							</div>
 
 						{% elseif attempts_remaining == 0 %}
 							You are out of attempts for this problem.
-						{% else %}
+						{% elseif open %}
 							You are not "Taking" this class, so you cannot submit a problem.
+						{% else %}
+							This problem is not currently open.
 						{% endif %}
 
-						<p>{{upload_message}}</p>
 				</div>
         </div>
 
@@ -89,6 +92,13 @@
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('styles.css') }}" />
     <link rel="stylesheet" href="{{ asset('submit.css') }}" />
+
+	<style>
+		#submissionButton:hover {
+			cursor:pointer;
+		}
+
+	</style>
 {% endblock %}
 
 {% block scripts %}
@@ -97,53 +107,72 @@
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 	<script src="{{ asset('src-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>
 
-	<script>
-		var editor = ace.edit("editor");
-		editor.setTheme("ace/theme/xcode");
-		editor.getSession().setMode("ace/mode/c_cpp");
-	</script>
+	{# asynchronous file upload #}
+	<script src="http://malsup.github.com/jquery.form.js"></script>
 
 	<script>
 
-		function saveACE() {
-			$("#ACE").val(editor.getValue());
+		function getLanguage(filename){
+
+			var filetypes = JSON.parse('{{ filetypes|json_encode|raw }}');
+			var ext = getExtension(filename);
+
+			return filetypes[ext];
 		}
 
-	</script>
-
-	<script>
-
-		var default_code = JSON.parse('{{ default_code|json_encode|replace({'\\':'\\\\'})|raw }}');
-		var ace_modes = JSON.parse('{{ ace_modes|json_encode|raw }}');
-
-		languageChange();
-
-		function languageChange() {
-
-			if (' {{ fileType }} ' != null) {
-				var filename = '{{ fileType }}';
-			} else {
-				var filename = document.getElementById('fileToUpload').value;
-			}
+		function getExtension(filename){
 
 			var ext = filename.substr(filename.lastIndexOf('.') + 1);
+
+			return ext;
+		}
+
+		function getName(filename){
+
+			var ext = getExtension(filename);
+
 			var cls = filename.substr(filename.lastIndexOf('\\') + 1).replace("."+ext,"");
 
-			var sel = document.getElementById('languageSelect');
-			var language = sel.options[sel.selectedIndex].text;
+			return cls;
+		}
 
-			var editor = ace.edit("editor");
+		function setLanguageFromFilename(filename){
 
-			toggleJavaInputs(language == "Java", ext == "zip");
+			var classname = getName(filename);
+			var ext = getExtension(filename);
+			var language = getLanguage(filename);
 
-			editor.getSession().setMode("ace/mode/" + ace_modes[language]);
-
-			// This sets the default code for the selected language. add an if statement to put the code from the uploaded file here if it exists?
-			editor.setValue(default_code[language], -1);
-			if('{{fileContents}}' != "") {
-				$("#ACE").val(editor.setValue(atob('{{fileContents}}'), -1));
+			if(!language){
+				language = $('#languageSelect option:selected').text();
 			}
 
+			setLanguage(language);
+
+			// set the main class
+			document.getElementById('main_class_input').value = classname;
+
+			// toggle the java inputs
+			toggleJavaInputs(language == "Java", ext == "zip");
+		}
+
+		function setLanguage(language){
+
+			// set the language selector
+			var selectObject = document.getElementById('languageSelect');
+			for(var i=0; i<selectObject.length; i++){
+				if(selectObject.options[i].text == language){
+					selectObject.selectedIndex = i;
+					break;
+				}
+			}
+
+			var editor = ace.edit("editor");
+			editor.$blockScrolling = Infinity;
+			updateAceCode(editor.getValue(), language);
+
+			// toggle the java inputs
+			var ext = getExtension($('#submissionUploadForm #file').val());
+			toggleJavaInputs(language == "Java", ext == "zip");
 		}
 
 		function toggleJavaInputs(state1, state2){
@@ -159,41 +188,125 @@
 				document.getElementById('packgNameInput').style.display = 'block';
 			}
 		}
+
+		function updateAceCode(contents, language){
+
+			var default_code = JSON.parse('{{ default_code|json_encode|replace({'\\':'\\\\'})|raw }}');
+			var ace_modes = JSON.parse('{{ ace_modes|json_encode|raw }}');
+
+			var editor = ace.edit("editor");
+			editor.$blockScrolling = Infinity;
+
+			if(!language){
+				language = $('#languageSelect option:selected').text();
+			}
+
+			editor.getSession().setMode("ace/mode/" + ace_modes[language]);
+
+			if(contents != "") {
+				editor.setValue(contents, -1);
+			} else {
+				// This sets the default code for the selected language.
+				editor.setValue(default_code[language], -1);
+			}
+			$("#ACE").val(editor.getValue());
+		}
+
 	</script>
 
 	<script>
+		$(document).ready(function() {
 
-		if('{{ fileType }}' != null || document.getElementById('fileToUpload').value != null) {
-			determineLanguage();
-		}
+			// make the language dropdown change affect the code
+			$('#languageSelect').change( function(data) {
 
-		function determineLanguage(){
+				var language = $('#languageSelect option:selected').text();
 
-			var filetypes = JSON.parse('{{ filetypes|json_encode|raw }}');
+				setLanguage(language);
+			});
 
-			if (' {{ fileType }} ' != null) {
-				var filename = '{{ fileType }}';
-			} else {
-				var filename = document.getElementById('fileToUpload').value;
-			}
+			// submit the form if the file upload is changed
+			$('#submissionUploadForm #file').change( function(data) {
+				$('#submissionUploadForm').submit();
+			});
 
-			var ext = filename.substr(filename.lastIndexOf('.') + 1);
-			var cls = filename.substr(filename.lastIndexOf('\\') + 1).replace("."+ext,"");
+			// overwrite the normal submit to call the ajaxsubmit
+			$('#submissionUploadForm').submit(function() {
+				$(this).ajaxSubmit();
+			});
 
-			var selectObject = document.getElementById('languageSelect');
+			// asynchronous script to handle the submission form upload
+			$('#submissionUploadForm').ajaxForm(function(data) {
+				//console.log(data);
+				setLanguageFromFilename(data["file"]);
+				updateAceCode(atob(data["contents"]), getLanguage(data["file"]));
+			});
 
-			for(var i=0; i<selectObject.length; i++){
-				//console.log(filetypes[ext]);
-				if(selectObject.options[i].text == filetypes[ext]){
-					selectObject.selectedIndex = i;
-					break;
+			$('#submissionButton').click( function() {
+
+				// Create a FormData object
+				var formData = new FormData();
+
+				// validate that fields are filled in
+				var language = $('#languageSelect option:selected').val();
+				var languageText = $('#languageSelect option:selected').text();
+				var main_class = $('#main_class_input').val();
+				var package_name = $('#package_name_input').val();
+
+				if(languageText == 'Java' && main_class == ''){
+
+					return false;
+				} else if(languageText != 'Java'){
+
+					main_class = "";
+					package_name = "";
 				}
-			}
 
-			document.getElementById('main_class_input').value = cls;
+				var editor = ace.edit("editor");
+				editor.$blockScrolling = Infinity;
+				updateAceCode(editor.getValue(), languageText);
 
-			languageChange();
-		}
+				var ACE = $('#ACE').val();
+
+				formData.append('language', language);
+				formData.append('main_class', main_class);
+				formData.append('package_name', package_name);
+				formData.append('ACE', ACE);
+
+
+				if(getExtension($('#submissionUploadForm #file').val()) == "zip"){
+
+					var file = $('#submissionUploadForm #file').prop('files')[0];
+
+					if(file){
+						formData.append('file', file);
+					}
+				}
+
+				$.ajax({
+					type: "POST",
+					url: "{{path('submission_upload', {'problem_id': problem.id}) }}",
+					data: formData,
+					processData: false,
+					contentType: false,
+					success: function(data){
+
+						console.log(data);
+						window.location = data["redirect_url"];
+					}
+				});
+
+			});
+
+
+
+			// set default stuff for the ace editor
+			var editor = ace.edit("editor");
+			editor.$blockScrolling = Infinity;
+			editor.setTheme("ace/theme/xcode");
+
+			updateAceCode("", getLanguage("file.cpp"));
+		});
 
 	</script>
 
