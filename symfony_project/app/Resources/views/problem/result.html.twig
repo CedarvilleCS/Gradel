@@ -31,7 +31,8 @@ The grader was not passed from the controller.
 				<div id="courseInfo" class="card-contents">
 				<h2>SUBMISSION ID: {{submission.id}}</h2>
 				<h3>RESULT: 
-					{% if grades['total_testcases'] > 0 and grades['total_testcases'] == grades['passed_testcases'] %}
+					{% if submission.isCorrect %}
+						
 						<span style="color:green">CORRECT!</span>
 						
 					{% else %}

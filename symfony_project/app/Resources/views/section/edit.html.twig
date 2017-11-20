@@ -7,90 +7,112 @@
 {% block body %}
 
 <body>
-    {{ include('template/top-nav.html.twig') }}
-	{{ include('template/assignment-nav.html.twig') }}
+	{{ include('template/top-nav.html.twig') }}
 
-    {# Main section #}
+    <section id="course-container">
+
+    </section>
+
+    {# Left Nav #}
+    <nav class="nav-left">
+		<a id="save-btn" class="btn"><div class="btn btn-center">Save</div></a>
+    </nav>
+	
+
+    {# Main section with the necessary variable#}
     <div class="scrollbar-macosx">
-
         <section id="main">
-              {# Cards #}
-			  
+		
+		
 			{{ include('template/path-nav.html.twig') }}
-
+		
+            {# Cards #}
             <div class="card">
-                <div class="btn-close" onclick="collapseCard('courseInfo')" style="margin: 0px; padding: 0px"><h2 style="margin: 0px">Section Info<span style="float: right">&#9660;</span><h2></div>
-                <div id="courseInfo" class="card-contents">
-                <div class="dyLabel"> Section Name: </div><div class="dynamicVal">&nbsp;{{section.name}} </div> <br/>
-				<div class="dyLabel"> Course Name: </div><div class="dynamicVal">&nbsp;{{section.course.name}} </div>
-                </div>
+				<div class="btn-close">
+					<h2 style="margin: 0px">
+					{% if section is not null %}
+						Edit Section
+					{% else %}
+						New Section
+					{% endif %}					
+					</h2>
+				</div>
+				
+				<div id="requiredFields" class="card-contents">				
+					<div>
+						<table>
+							<tr> <th colspan="3">
+								<label for="course">Course</label>
+								<select name="course" id="course">
+								{% for course in courses %}
+									<option value="{{course.id}}">{{course.name}}</option>
+								{% endfor %}
+								</select>
+							</th> </tr>
+							
+							<tr> <th colspan="3">
+								<label for="name">Section Name</label>
+								<input id="name" name="name" type="text" value="">
+							</th> </tr>
+							
+							<tr> <th colspan="3">
+								<label>Semester</label>
+								<select id="semester">
+									<option>Fall</option>
+									<option>Spring</option>
+									<option>Summer</option>
+								</select>
+							</th> </tr>
+							
+							<tr> <th colspan="3">
+								<label>Year</label>
+								<select id="year">
+								{% for yr in ("now"|date("Y"))-1..("now"|date("Y"))+3 %}
+									<option>{{yr}}</option>
+								{% endfor %}
+								</select>
+							</th> </tr>
+
+							<tr> <th>
+								<label>Add Student</label>
+								<select id="student-picker">
+									<option value="-1"></option>
+									{% for u in users %}
+										<option value="{{u.email}}">
+										{{u.getLastName() ~ ", " ~ u.getFirstName()}}
+										</option>
+									{% endfor %}
+								</select>
+							</th> </tr>
+							
+							<tr> <th colspan="3">
+								<textarea id="student-csv"></textarea>
+							</th> </tr>
+
+						</table>
+					</div>
+				</div>
             </div>
 
-
-            <div class="card-table">
-							<table>
-								<tr>
-									<th colspan="3">
-
-                    <label for="section">Course</label>
-										<select name="section" id="section">
-											{% for sec in sections %}
-												<option  value="{{section.id}}" {{ (sec.id == section.course.id) ? "selected" : "" }}>{{sec.name}}</option>
-											{% endfor %}
-										</select>
-									</th>
-								</tr>
-								<tr>
-									<th colspan="3">
-                    <label for="name">Section Name</label>
-										<input id="name" name="name" type="text" value="{{section.name}}">
-									</th>
-								</tr>
-								<tr>
-									<th colspan="3">
-                    <label>Semester</label>
-										<select id="semester">
-											<option {{section.semester == "Fall" ? "selected" : ""}}>Fall</option>
-											<option {{section.semester == "Spring" ? "selected" : ""}}>Spring</option>
-										</select>
-									</th>
-								</tr>
-								<tr>
-									<th colspan="3">
-                    <label>Year</label>
-										<select id="year">
-											<option {{section.year == "2017" ? "selected" : ""}}>2017</option>
-											<option {{section.year == "2018" ? "selected" : ""}}>2018</option>
-										</select>
-								</tr>
-
-								<tr>
-									<th>
-                    <label>Add Student</label>
-										<select id="student-picker">
-											<option value="-1"></option>
-											{% for u in users %}
-												<option	onchange="addStudent()" value="{{u.email}}">
-													{{u.getLastName() ~ ", " ~ u.getFirstName()}}
-												</option>
-											{% endfor %}
-										</select>
-									</th>
-									<th>
-										<button>upload csv</button>
-									</th>
-								</tr>
-								<tr>
-									<th colspan="3">
-										<textarea id="student-csv">{% for u in usr %}{{u.user.email ~ ", \n"}}{% endfor %}</textarea>
-									</th>
-								</tr>
-
-							</table>
-            </div>
+			<div class=card>
+				<div class="btn-close" onclick="collapseCard('additionalOptions')">
+					<h2 style="margin: 0px">Additional Options
+						<span style="float: right"><i class="fa fa-angle-down"></i></span>
+					</h2>
+				</div>
+				
+				<div id="additionalOptions" class="card-contents">				
+					<div>						
+						<label for="startdatepicker">Starting Date </label><input type="text" id="startdatepicker" style="width: 100px; margin-right: 20px">
+						<label for="enddatepicker">Ending Date </label><input type="text" id="enddatepicker" style="width: 100px">
+					</div>
+				</div>
+        	</div>
         </section>
     </div>
 
+	
+	
 
 </body>
 
@@ -99,6 +121,9 @@
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('styles.css') }}" />
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
+
 {% endblock %}
 
 
@@ -107,48 +132,150 @@
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script src="{{ asset('js/cards.js') }}"></script>
-    <script>
-			$(document).ready(function() {
-				$('#insert').on('click', function(){editSection();});
-				$('#student-picker').on('change', function(){addStudent();});
-			});
-
-			var studentArray = document.getElementById('student-csv').value.split(", \n");
+	
+	<script>
+	
+		$(document).ready(function() {
+		
 			
-			function addStudent() {
-				const studentPicker = document.getElementById('student-picker');
-				const value = studentPicker.value;
-				const studentInput = document.getElementById('student-csv');
+			$('#year').val("{{'now'|date('Y')}}");
+		
+			$('#startdatepicker').datepicker({
+				showAnim: "slideDown",
+				selectOtherMonths: true,
+				showOtherMonths: true,
+				showButtonPanel: true
+			});
+			
+			$('#enddatepicker').datepicker({
+				showAnim: "slideDown",
+				selectOtherMonths: true,
+				showOtherMonths: true,
+				showButtonPanel: true
+			});
+			
+			{% if section is not null %}
+			populateForm();
+			{% else %}			
+			collapseCard('additionalOptions');
+			{% endif %}
+			
+			$('#save-btn').on('click', function(){
 				
-				studentInput.value += value + ", \n"
-				studentArray = studentInput.value.split(", \n");
-				studentPicker.selectedIndex = 0;
-			}
+				/* Client-Side Field Validation */
+				
+				// section name
+				if ($.trim($('#name').val())  === '') {						
+					setInvalid($('#name'));
+					return false;
+				} else {
+					setValid($('#name'));
+				}
+								
+				/* Array of Students */
+				var students = document.getElementById('student-csv').value.split(",");
+				for(var i=0; i<students.length; i++){
+					students[i] = students[i].replace(/\n/g, '');
+					students[i] = students[i].replace(/ /g, '');
+				}				
+				students.pop(); // remove the blank last element
 
-			function editSection() {
-				const test = document.getElementById("section");
-				const name = document.getElementById("name").value;
-				const semester = document.getElementById("semester").value;
-				const year = document.getElementById("year").value;
-				const id = test[test.selectedIndex].value;
+				// check to see if this button is allowed to be pressed
+				if($(this).prop('disabled')){
+					return false;
+				} else {
+					$(this).prop('disabled', true);
+				}
 				
-				var path = "{{path('section_edit_query', { 'sectionId': 'section_id', 'courseId': 'course_id', 'name': 'name', 'students': 'students', 'semester': 'semester', 'year': 'year', 'start_time': 'start_time', 'end_time': 'end_time', 'is_deleted': 'is_deleted', 'is_public': 'is_public'})}}";
+				/* Post to the Symfony Route */
+				$.post( "{{path('section_modify')}}", {				
+					name: $.trim($('#name').val()),
+					course: $('#course').val(),
+					semester: $('#semester').val(),
+					year: $('#year').val(),
+					students: JSON.stringify(students),
+					start_time: $('#startdatepicker').val(),
+					end_time: $('#enddatepicker').val(),
+					section: {% if section is not null %} {{section.id}} {% else %} 0 {% endif %}
+					
+				}, function(data) {			
+					console.log(data);
+					
+					window.location = data["redirect_url"];
+				}).fail(function(data) {
 				
-				path = path.replace("section_id", {{sectionId}})
-				path = path.replace("course_id", id);
-				path = path.replace("name", name);
-				path = path.replace("students", JSON.stringify(studentArray));
-				path = path.replace("semester", semester);
-				path = path.replace("year", year);
-				path = path.replace("name", name);
-				path = path.replace("name", name);
-				path = path.replace("start_time", new Date());
-				path = path.replace("end_time", new Date());
-				path = path.replace("is_deleted", false);
-				path = path.replace("is_public", false);
-				console.log(path);
-				
-			}
+					alert(data["responseText"]);					
+					$(this).prop('disabled', false);
+				});				
+			});
+			
+			$('#student-picker').on('change', function(){
+				updateStudentCSV();
+			});
+		});
+		
+		function setInvalid(div) {
+			div.css('border', '3px solid red');
+			div.css('background-color', '#FD8177');
+		}
+		
+		function setValid(div) {
+			div.css('border', '');
+			div.css('background-color', '');
+		}
 
-		</script>
+		function updateStudentCSV() {
+			
+			// get the value of the new student
+			var studentPicker = $('#student-picker');
+			
+			if(studentPicker.val() == -1){
+				return;
+			}
+			
+			// update the text area
+			var studentCSV = $('#student-csv');
+			studentCSV.val(studentCSV.val() + studentPicker.val() + ", \n");
+			
+			// reset the dropdown to black			
+			$('option:selected', studentPicker).remove();
+			studentPicker.val(0);
+		}
+		
+	</script>
+	
+	
+	{% if section is not null %}
+	<script>
+	function populateForm(){
+		
+		// set the course
+		$('#course').val({{section.course.id}});
+		
+		// set the name
+		$('#name').val("{{section.name}}");
+		
+		// set the semester
+		$('#semester').val("{{section.semester}}");
+		
+		// set the year
+		$('#year').val("{{section.year}}");
+		
+		// set the students csv
+		{% for std in section_taker_roles %}
+		$('#student-picker').val("{{std.user.email}}");
+		updateStudentCSV();
+		{% endfor %}
+		
+		// set the starting date
+		$('#startdatepicker').val("{{section.start_time|date('m/d/Y')}}");		
+		
+		// set the ending date
+		$('#enddatepicker').val("{{section.end_time|date('m/d/Y')}}");
+		
+	}
+	
+	</script>
+	{% endif %}
+	
 {% endblock %}

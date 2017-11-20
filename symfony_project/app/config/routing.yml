@@ -5,68 +5,59 @@ homepage:
 
 alt_homepage:
     path:   '/'
-    defaults: { _controller: AppBundle:Home:home}
-
-# MAIN ROUTES
-
+    defaults: { _controller: AppBundle:Home:home} 
+    
 # section routes
-section_new_post:
-  path: '/section/new/post'
-  defaults: {_controller: AppBundle:Section:newSectionPost}
-  methods: [POST]
-
 section_delete:
   path: '/section/delete/{sectionId}'
-  defaults: {_controller: AppBundle:Section:delete}
-
-section_new:
-  path: '/section/new'
-  defaults: {_controller: AppBundle:Section:newSection}
+  defaults: {_controller: AppBundle:Section:deleteSection}
+  methods: [GET]
 
 section_edit:
   path: '/section/edit/{sectionId}'
-  defaults: {_controller: AppBundle:Section:editSection}
+  defaults: 
+    _controller: AppBundle:Section:editSection
+    sectionId: 0
+  methods: [GET]
 
 section:
   path: '/section/{sectionId}'
   defaults: {_controller: AppBundle:Section:section}
+  methods: [GET]
 
-section_insert:
-  path: '/section/insert/{courseId}/{name}/{students}/{semester}/{year}/{start_time}/{end_time}/{is_deleted}/{is_public}'
-  defaults: {_controller: AppBundle:Section:insertSection}
-
-section_edit_query:
-  path: '/section/edit_query/{sectionId}/{courseId}/{name}/{students}/{semester}/{year}/{start_time}/{end_time}/{is_deleted}/{is_public}'
-  defaults:
-    _controller: AppBundle:Section:editQuery
+    # section posts
+section_modify:
+  path: '/modify/section'
+  defaults: {_controller: AppBundle:Section:modifyPost}
+  methods: [POST]
 
 
 # assignment routes
 assignment_delete:
   path: '/section/{sectionId}/assignment/delete/{assignmentId}'
   defaults: {_controller: AppBundle:Assignment:delete}
-
-assignment_new:
-  path: '/section/{sectionId}/assignment/new'
-  defaults: {_controller: AppBundle:Assignment:new}
+  methods: [GET]
 
 assignment_edit:
   path: '/section/{sectionId}/assignment/edit/{assignmentId}'
-  defaults: {_controller: AppBundle:Assignment:edit}
-
-assignment_insert:
-  path: '/section/{sectionId}/assignment/insert/{name}/{description}'
-  defaults: {_controller: AppBundle:Assignment:insert}
-
-assignment_edit_query:
-  path: '/section/{sectionId}/assignment/edit_query/{assignmentId}/{name}/{description}'
-  defaults: {_controller: AppBundle:Assignment:editQuery}
+  defaults: 
+    _controller: AppBundle:Assignment:edit
+    assignmentId: 0
+  methods: [GET]
 
 assignment:
   path: '/section/{sectionId}/assignment/{assignmentId}/problem/{problemId}'
   defaults:
     _controller: AppBundle:Assignment:assignment
     problemId: 0
+  methods: [GET]
+  
+  # assignment posts
+assignment_modify:
+  path: '/modify/assignment'
+  defaults:
+    _controller: AppBundle:Assignment:modifyPost
+  methods: [POST]
 
 
 # problem routes
@@ -77,6 +68,7 @@ problem_edit:
 problem_delete:
   path: '/section/{sectionId}/assignment/{assignmentId}/problem/delete/{problemId}'
   defaults: {_controller: AppBundle:Problem:delete}
+  methods: [GET]
 
 problem_new:
   path: '/section/{sectionId}/assignment/{assignmentId}/new_problem'
@@ -130,8 +122,6 @@ submission_upload:
 professorsection:
     path: "/professor/section/{userId}/{sectionId}"
     defaults: {_controller: AppBundle:Professorsection:professorsection}
-
-
 
 submit:
     path: '/submit/{problem_id}/{language_id}/{submitted_filename}/{main_class}/{package_name}'
