@@ -1,8 +1,7 @@
-{# make sure that the grades is defined before doing all of this stuff #}
 
 <nav class="nav-left">
 	{% if is_granted("ROLE_ADMIN") or is_granted("ROLE_SUPER") %}
-		<a href="{{path('assignment_new', {'sectionId': section.id})}}" class="btn">
+		<a href="{{path('assignment_edit', {'sectionId': section.id})}}" class="btn">
 			<div class="btn btn-center">+ Assignment</div>
 		</a>
 	{% endif %}
@@ -17,19 +16,13 @@
 		<a id="insert" class="btn"><div class="btn btn-center" href="">Save</div></a>
 	{% endif %}
 
-	{% if is_granted("ROLE_SUPER") %}
-		<a href="{{path('section_delete', {'sectionId': section.id})}}" class="btn">
-			<div class="btn btn-delete btn-center">Delete Section</div>
-		</a>
-	{% endif %}
-
 	{# assignments list #}
 	<ol style="padding-bottom: 10px">
 		{% for assig in assignments %}
 
 			{% if assig.start_time|date('U') < "now"|date('U') %}
 
-				{% if assig.cutoff_time|date('U') > "now"|date('U') %}
+				{% if assig.cutoff_time|date('U') > "now"|date('U') or app.user in section_teachers or is_granted("ROLE_SUPER") %}
 					<a href={{path('assignment', {'sectionId': assig.section.id, "assignmentId": assig.id})}}>
 				{% endif %}
 

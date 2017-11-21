@@ -10,7 +10,6 @@ use AppBundle\Entity\Submission;
 use AppBundle\Entity\Problem;
 use AppBundle\Entity\ProblemLanguage;
 use AppBundle\Entity\UserSectionRole;
-use AppBundle\Entity\ProblemGradingMethod;
 
 use AppBundle\Utils\Grader;
 
@@ -38,19 +37,10 @@ class ProblemController extends Controller {
 
       $languages = $qb->getQuery()->getResult();
 
-      $qb = $em->createQueryBuilder();
-      $qb->select('gm')
-        ->from('AppBundle\Entity\ProblemGradingMethod', 'gm')
-        ->where('1 = 1');
-
-      $gradingMethods = $qb->getQuery()->getResult();
-
-
       return $this->render('problem/new.html.twig', [
         'languages' => $languages,
         'sectionId' => $sectionId,
         'assignmentId' => $assignmentId,
-        'gradingMethods' => $gradingMethods,
       ]);
     }
 
@@ -65,7 +55,11 @@ class ProblemController extends Controller {
       if (sizeof($languageArr) == 0) {
         array_push($errors, "You must provide at least one language");
       }
-      $assignment = $em->find("AppBundle\Entity\Assignment", $post_data['assignmentId']);
+      
+	  $assignment = $em->find("AppBundle\Entity\Assignment", $post_data['assignmentId']);
+	  if (!$assignment) {
+		  array_push($errors, "Assignment provided does not exist");
+	  }
 
       $name = $post_data['name'];
       if ($name == "") {
@@ -76,31 +70,37 @@ class ProblemController extends Controller {
       if ($description == "") {
         array_push($errors, "Description must be set");
       }
-      $weight = $post_data['weight'];
-      if (!is_numeric($weight) || ((int)$weight < 0)) {
+      
+	  $weight = $post_data['weight'];
+      if (!is_numeric($weight) || ((int)$weight < 1)) {
         array_push($errors, "You must provide an integer weight greater than 0. You provided: " . $weight);
       }
+	  
       $is_extra_credit = $post_data['is_extra_credit'];
       if ($is_extra_credit !== "true" && $is_extra_credit !== "false") {
         array_push($errors, "You are trying to be malicious! Stop it! Extra Credit must be a boolean");
       }
+	  
       $time_limit = $post_data['time_limit'];
       if ($time_limit <= 0) {
         array_push($errors, "Time limit must be greater than 0!");
       }
+	  
 
       if (sizeof($errors) == 0) {
 
         $problem = new Problem();
-        $problemGradingMethod = $em->find("AppBundle\Entity\ProblemGradingMethod", $post_data['grading_method']);
 
         $problem->assignment = $assignment;
-        $problem->gradingmethod = $problemGradingMethod;
         $problem->name = $name;
         $problem->description = $description;
         $problem->weight = $weight;
         $problem->is_extra_credit = ($is_extra_credit == "true") ? 1 : 0;
         $problem->time_limit = $time_limit;
+		
+		$problem->total_attempts = 0; // change this Chris
+		$problem->attempts_before_penalty = 0; // change this Chris
+		$problem->penalty_per_attempt = 0.00; // change this Chris
 
         $em->persist($problem);
 
