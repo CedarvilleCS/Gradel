@@ -59,7 +59,9 @@
 							<tr>
 								<th>
 								<label for="weight">Weight </label> <input id="weight" name="weight" type="text" style="width: 50px">
-								LIST OTHER ASSIGNMENT WEIGHTS HERE					
+								<div id="other-assignments" style="font-weight: normal">
+			
+								</div>
 								</th>
 							</tr>
 							
@@ -156,15 +158,18 @@
 			$( "#closedatepicker" ).datetimepicker();
 			$( "#cutoffdatepicker" ).datetimepicker();
 			
+			// show other assignment weights
+			showAssignmentWeights();
+			
+			// format the teampicker
+			formatTeamCreator();
+						
 			{% if assignment is not null %}
 			populateForm();
 			{% else %}
 			//collapseCard('additionalOptions');
-			{% endif %}
-			
-			// format the teampicker
-			formatTeamCreator();
 			$('#gen-team-button').click();
+			{% endif %}			
 			
 			
 			$('#save-btn').on('click', function(){
@@ -195,6 +200,18 @@
 					setValid($('#closedatepicker'));
 				}
 				
+				// compare dates
+				if ($('#closedatepicker').datepicker('getDate') < $('#opendatepicker').datepicker('getDate')){
+					setInvalid($('#closedatepicker'));
+					setInvalid($('#opendatepicker'));
+					return false;
+				}
+				
+				if ($('#cutoffdatepicker').datepicker('getDate') < $('#closedatepicker').datepicker('getDate')){
+					setInvalid($('#cutoffdatepicker'));
+					return false;
+				}
+				
 				// weight
 				var wght = new Number($('#weight').val());
 				if($('#weight').val() != '' && (wght < 1 || wght % 1 != 0)){						
@@ -219,6 +236,7 @@
 					//$(this).prop('disabled', true);
 				}
 				
+				// get JSON structure for the teams
 				var teamarray = getTeams();				
 				
 				/* Post to the Symfony Route */
@@ -242,12 +260,11 @@
 					
 				}, function(data) {			
 					console.log(data);					
-					//window.location = data["redirect_url"];
+					window.location = data["redirect_url"];
 					
-				}).fail(function(data) {
-				
+				}).fail(function(data) {				
 					alert(data["responseText"]);					
-					$(this).prop('disabled', false);				
+					$('#save-btn').prop('disabled', false);				
 				});				
 			});
 		});
@@ -266,6 +283,20 @@
 	
 	<script> 
 	
+	function showAssignmentWeights(){
+	
+		var assignments = JSON.parse('{{ assignment.section.assignments.toArray()|json_encode|raw }}');
+		console.log(assignments);
+		
+		var str = "Assignment Weights for {{assignment.section.name}}<ul style='margin: 0; list-style-type: none'>";
+		for(var i=0; i<assignments.length; i++){
+			str += "<li>" + assignments[i].name + ": " +assignments[i].weight +"</li>";
+
+		}
+		str += "</ul>";
+		$('#other-assignments').html(str);
+	}
+	
 	function formatTeamCreator(){
 	
 		// create all of the students
@@ -276,6 +307,10 @@
 			$('#team-pool').append("<div class='user' id='"+students[i].id+"'>"+students[i].name+"</div>");
 		}
 	
+		createTeamEvents();
+	}
+	
+	function createTeamEvents(){
 		// hide the team names option
 		$('#team-name-container').hide();
 	
@@ -375,23 +410,7 @@
 				newTeam.append($(this));
 			});
 			
-			if($(".team").length > 0){
-				$('#team-name-container').show();
-			} else {
-				$('#team-name-container').hide();
-			}
-			
-			if($('#team-pool .user').length == 0){
-				$('#gen-team-button').hide();
-			} else {
-				$('#gen-team-button').show();
-			}	
-
-			if($('#team-name-checkbox').is(":checked")) {				
-				$('.team #team-name').show();				
-			} else {
-				$('.team #team-name').hide();
-			}			
+			toggleTeamOptions();		
 		});
 	}
 	
@@ -428,6 +447,27 @@
 		}
 	}
 	
+	function toggleTeamOptions(){
+				
+		if($(".team").length > 0){
+			$('#team-name-container').show();
+		} else {
+			$('#team-name-container').hide();
+		}
+		
+		if($('#team-pool .user').length == 0){
+			$('#gen-team-button').hide();
+		} else {
+			$('#gen-team-button').show();
+		}	
+
+		if($('#team-name-checkbox').is(":checked")) {				
+			$('.team #team-name').show();				
+		} else {
+			$('.team #team-name').hide();
+		}	
+	}
+	
 	</script>
 		
 		
@@ -442,19 +482,52 @@
 		$('#description').val("{{assignment.deblobinateDescription()}}");
 		
 		// set the open date
-		$('#opendatepicker').val("{{assignment.start_time|date('m/d/Y h:i')}}");		
+		$('#opendatepicker').val("{{assignment.start_time|date('m/d/Y H:i')}}");		
 		
 		// set the close date
-		$('#closedatepicker').val("{{assignment.end_time|date('m/d/Y h:i')}}");
+		$('#closedatepicker').val("{{assignment.end_time|date('m/d/Y H:i')}}");
 		
 		// set the cuttoff date
-		$('#cutoffdatepicker').val("{{assignment.cutoff_time|date('m/d/Y h:i')}}");
+		$('#cutoffdatepicker').val("{{assignment.cutoff_time|date('m/d/Y H:i')}}");
 		
 		// set the weight
 		$('#weight').val({{assignment.weight}});
 		
 		// set the checkbox
 		$('#extracredit').attr('checked', {% if assignment.is_extra_credit %} true {% else %} false {% endif %});
+		
+		// set the teams
+		var teams_str = '{{assignment.teams.toArray()|json_encode|raw}}'.replace(/\\/g, "");
+		var teams = JSON.parse(teams_str);
+		
+		for(var i=0; i<teams.length; i++){
+			
+			$('#team-pool .user').remove();
+			
+			var newTeam = $("<div>", {"class": "team"});
+			newTeam.html("<input type='text' id='team-name' value='"+teams[i].name+"'>");
+			
+			newTeam.droppable({
+				accept: ".user",
+				drop: function(event, ui) {						
+					$(this).append($(ui.draggable));								
+				}
+			});				
+		
+			$('#team-picker').append(newTeam);
+						
+			for(var j=0; j<teams[i].users.length; j++){
+			
+				var newUser = $("<div>", {"class": "user", "id": teams[i].users[j].id});
+				newUser.html(teams[i].users[j].first_name + " " + teams[i].users[j].last_name);
+				
+				newTeam.append(newUser);			
+			}			
+		}
+		
+		createTeamEvents();
+		toggleTeamOptions();
+		
 	}
 	
 	</script>

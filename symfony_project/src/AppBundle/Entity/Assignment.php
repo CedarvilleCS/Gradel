@@ -2,6 +2,8 @@
 
 namespace AppBundle\Entity;
 
+use JsonSerializable;
+
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Config\Definition\Exception\Exception;
@@ -10,7 +12,7 @@ use Symfony\Component\Config\Definition\Exception\Exception;
  * @ORM\Entity
  * @ORM\Table(name="assignment")
  */
-class Assignment{
+class Assignment implements JsonSerializable{
 	
 	public function __construct(){
 		
@@ -106,6 +108,13 @@ class Assignment{
 	* @ORM\OneToMany(targetEntity="Team", mappedBy="assignment")
 	*/
 	public $teams;
+	
+	public function jsonSerialize(){
+		return [
+			'name' => $this->name,			
+			'weight' => $this->weight,
+		];
+	}
 }
 
 ?>

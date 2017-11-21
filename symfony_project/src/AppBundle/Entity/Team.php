@@ -2,6 +2,8 @@
 
 namespace AppBundle\Entity;
 
+use JsonSerializable;
+
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping\UniqueConstraint;
@@ -11,7 +13,7 @@ use Symfony\Component\Config\Definition\Exception\Exception;
  * @ORM\Entity
  * @ORM\Table(name="team", uniqueConstraints={@UniqueConstraint(name="team_name_assignment", columns={"name", "assignment_id"})})
  */
-class Team{
+class Team implements JsonSerializable{
 	
 	public function __construct(){
 		
@@ -64,6 +66,14 @@ class Team{
 	*	)
 	*/
 	public $users;
+	
+	
+	public function jsonSerialize(){
+		return [
+			'name' => $this->name,			
+			'users' => $this->users->toArray(),
+		];
+	}
 }
 
 ?>

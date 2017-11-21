@@ -110,7 +110,6 @@ class AssignmentController extends Controller {
 		$sub_query = $qb_accsub->getQuery();
 		$best_submission = $sub_query->getOneOrNullResult();
 
-		
 		return $this->render('assignment/index.html.twig', [
 			'user' => $user,
 			'section' => $assignment_entity->section,
@@ -148,8 +147,7 @@ class AssignmentController extends Controller {
 			die("Assignment does not exist or does not belong to given section");
 		}
 	}
-	
-	# create teams			
+			
 	# get all the users taking the course
 	$takes_role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));
 	$builder = $em->createQueryBuilder();
@@ -170,8 +168,8 @@ class AssignmentController extends Controller {
 		$student['name'] = $usr->user->getFirstName()." ".$usr->user->getLastName();
 		
 		$students[] = $student;
-	}	
-
+	}
+	
 	return $this->render('assignment/edit.html.twig', [
 		"assignment" => $assignment,
 		"section" => $section,
@@ -208,7 +206,7 @@ class AssignmentController extends Controller {
 	public function modifyPostAction(Request $request) {
 		
 		$em = $this->getDoctrine()->getManager();
-		
+				
 		# validate the current user
 		$user = $this->get('security.token_storage')->getToken()->getUser();
 		if(!$user){			
@@ -282,6 +280,11 @@ class AssignmentController extends Controller {
 			$cutoffTime = $closeTime;
 		}
 		
+		
+		if($cutoffTime < $closeTime || $closeTime < $openTime){
+			return $this->returnForbiddenResponse("Provided times are not valid. The closing time must be after the opening time.");			
+		}
+		
 		$assignment->start_time = $openTime;
 		$assignment->end_time = $closeTime;
 		$assignment->cutoff_time = $cutoffTime;
@@ -309,13 +312,14 @@ class AssignmentController extends Controller {
 		
 		$assignment->gradingmethod = $gradingmethod;
 		
-		# create teams					
+		# create teams	
+		# transfer over the submissions to the new teams
 		foreach($assignment->teams as $del_team){
 			$em->remove($del_team);
-			$em->flush();
+			//$em->flush();
 		}
 		
-		# get all the users taking the course
+		# get all the users taking the course and put them in an array
 		$takes_role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));
 		$builder = $em->createQueryBuilder();
 		$builder->select('u')
@@ -355,18 +359,17 @@ class AssignmentController extends Controller {
 				if($index !== false){
 					unset($section_takers[$index]);
 				} else {
-					return $this->returnForbiddenResponse("User with id ".$user_id." is not in this section or is already in a team");
+					return $this->returnForbiddenResponse($temp_user->getFirstName()." ".$temp_user->getLastName()." is not in this section or is already in a team");
 				}
 				
 				$team->users[] = $temp_user;				
 			}
 			
 			if(count($team->users) == 0){
-				return $this->returnForbiddenResponse("Team did not have any users provided");
+				return $this->returnForbiddenResponse($team->name." did not have any users provided");
 			}
 			
 			$em->persist($team);
-			$em->flush();
 			
 			$count++;
 		}
