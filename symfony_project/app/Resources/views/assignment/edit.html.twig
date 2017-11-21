@@ -39,27 +39,58 @@
 						<table>
 							<tr> <th colspan="1">
 									<label for="name">Name</label>
-									<input id="name" name="name" type="text" value="{{assignment.name}}">
-								</th>
-							</tr>
-							<tr>
-								<th colspan="2">
-									<label for="description">Description</label>
-									<input id="description" name="description" type="text">
+									<input id="name" name="name" type="text" value="{{assignment.name}}" style="width: 200px">
 								</th>
 							</tr>
 							
 							<tr>
 								<th colspan="2">
-									<label for="startdatepicker">Open Time</label>
+									<label for="startdatepicker">Open Date</label>
 									<input type="text" id="opendatepicker" style="width:150px; margin-right:20px">
 
-									<label for="enddatepicker">Close Time</label>
-									<input type="text" id="closedatepicker" style="width:150px">
+									<label for="enddatepicker">Close Date</label>
+									<input type="text" id="closedatepicker" style="width:150px; margin-right:20px">
+									
+									<label for="cutoffdatepicker">Cutoff Date</label>
+									<input type="text" id="cutoffdatepicker" style="width: 150px">
+								</th>
+							</tr>
+							
+							<tr>
+								<th>
+								<label for="weight">Weight </label> <input id="weight" name="weight" type="text" style="width: 50px">
+								LIST OTHER ASSIGNMENT WEIGHTS HERE					
 								</th>
 							</tr>
 							
 						</table>
+					</div>
+				</div>
+			</div>
+			
+			<div class="card">
+				
+				<div class="btn-close" onclick="collapseCard('createTeams')">
+					<h2 style="margin: 0px">Team Creation
+						<span style="float: right"><i class="fa fa-angle-down"></i></span>
+					</h2>
+				</div>
+			
+				<div id="createTeams" class="card-contents" style="margin-top: 0px">
+					<div>
+						<div id="team-pool"></div>						
+						<div id="team-picker"></div>
+												
+						<div id="team-name-container" class="toggle-container">
+							<label for="teamnames"> Team Names </label>
+							<label class="switch">
+							  <input type="checkbox" id="team-name-checkbox" name="team-name-checkbox" checked>
+							  <span class="slider round"></span>
+							</label>
+						</div>
+						
+						<div class="btn" id="gen-team-button" style="margin-top: 10px; width: 150px"> Distribute Teams </div>
+						
 					</div>
 				</div>
 			</div>
@@ -72,17 +103,17 @@
 					</h2>
 				</div>
 			
-				<div id="additionalOptions" class="card-contents">
-					<div>
-						<label for="extracredit">Is Extra Credit</label> <input id="extracredit" type="checkbox" name="extracredit" value=1>
+				<div id="additionalOptions" class="card-contents" style="margin-top:10px">
+					<div class="toggle-container">
+						<label for="extracredit"> Extra Credit </label>
+						<label class="switch">
+						  <input type="checkbox" id="extracredit" name="extracredit">
+						  <span class="slider round"></span>
+						</label>
 					</div>
-					<div style="margin-top:5px">
-						<label for="weight">Weight </label> <input id="weight" name="weight" type="text" style="width: 50px">
-						LIST OTHER ASSIGNMENT WEIGHTS HERE					
-					</div>
-					<div>
-						<label for="cutoffdatepicker">Cutoff Time</label> <input type="text" id="cutoffdatepicker" style="width: 150px">
-					</div>
+					
+					<label for="description">Description</label> <input id="description" name="description" type="text">
+					
 				</div>
 			</div>
 			
@@ -100,6 +131,9 @@
 	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
 	<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/jquery-ui-timepicker-addon@1.6.3/dist/jquery-ui-timepicker-addon.css" />
 	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
+	
+	<link rel="stylesheet" href="{{ asset('team-creation.css') }}">
+	<link rel="stylesheet" href="{{ asset('custom-toggle.css') }}">
 {% endblock %}
 
 
@@ -113,8 +147,7 @@
 	
     <script src="{{ asset('js/cards.js') }}"></script>	
 	
-    <script>
-	
+    <script>	
 		$(document).ready(function() {
 			$('#insert').on('click', function(){insertSection();});
 			$('#student-picker').on('change', function(){addStudent();});
@@ -126,8 +159,12 @@
 			{% if assignment is not null %}
 			populateForm();
 			{% else %}
-			collapseCard('additionalOptions');
+			//collapseCard('additionalOptions');
 			{% endif %}
+			
+			// format the teampicker
+			formatTeamCreator();
+			$('#gen-team-button').click();
 			
 			
 			$('#save-btn').on('click', function(){
@@ -160,20 +197,29 @@
 				
 				// weight
 				var wght = new Number($('#weight').val());
-				/*
 				if($('#weight').val() != '' && (wght < 1 || wght % 1 != 0)){						
 					setInvalid($('#weight'));
 					return false;
 				} else {
 					setValid($('#weight'));				
-				}*/
+				}
+				
+				// teams
+				if(!validateTeams()){
+					setInvalid($('#team-picker'));		
+					return false;
+				} else {
+					setValid($('#team-picker'));
+				}
 				
 				// check to see if this button is allowed to be pressed
 				if($(this).prop('disabled')){
 					return false;
 				} else {
-					$(this).prop('disabled', true);
+					//$(this).prop('disabled', true);
 				}
+				
+				var teamarray = getTeams();				
 				
 				/* Post to the Symfony Route */
 				$.post( "{{path('assignment_modify')}}", {				
@@ -189,19 +235,21 @@
 					weight: $('#weight').val(),
 					
 					section: {{section.id}},
-					assignment: {% if assignment is not null %} {{assignment.id}} {% else %} 0 {% endif %}
+					assignment: {% if assignment is not null %} {{assignment.id}} {% else %} 0 {% endif %},
+					
+					teams: JSON.stringify(teamarray[0]),
+					teamnames: JSON.stringify(teamarray[1])
 					
 				}, function(data) {			
-					console.log(data);
+					console.log(data);					
+					//window.location = data["redirect_url"];
 					
-					window.location = data["redirect_url"];
 				}).fail(function(data) {
 				
 					alert(data["responseText"]);					
 					$(this).prop('disabled', false);				
 				});				
 			});
-			
 		});
 		
 		function setInvalid(div) {
@@ -214,6 +262,172 @@
 			div.css('background-color', '');
 		}
 
+	</script>
+	
+	<script> 
+	
+	function formatTeamCreator(){
+	
+		// create all of the students
+		
+		var students = JSON.parse('{{ students|json_encode|raw }}');
+	
+		for(var i=0; i<students.length; i++){
+			$('#team-pool').append("<div class='user' id='"+students[i].id+"'>"+students[i].name+"</div>");
+		}
+	
+		// hide the team names option
+		$('#team-name-container').hide();
+	
+		$('.user').draggable({
+			revert: true,
+			revertDuration: 0,
+			start: function() {
+			
+				var newTeam = $("<div>", {"class": "team"});
+				newTeam.html("<input type='text' id='team-name' value='Team Name'>");
+				
+				newTeam.droppable({
+					accept: ".user",
+					drop: function(event, ui) {						
+						$(this).append($(ui.draggable));								
+					}
+				});				
+			
+				$('#team-picker').append(newTeam);
+			},
+			stop: function() {				
+				$(".team:not(:has(.user))").remove();
+
+				if($(".team").length > 0){
+					$('#team-name-container').show();
+				} else {
+					$('#team-name-container').hide();
+				}
+				
+				if($('#team-pool .user').length == 0){
+					$('#gen-team-button').hide();
+				} else {
+					$('#gen-team-button').show();
+				}
+			}
+		});
+		
+		$('.user').contextmenu(function(event) {
+			$(this).appendTo('#team-pool');
+			$(".team:not(:has(.user))").remove();
+			
+			if($(".team").length > 0){
+				$('#team-name-container').show();
+			} else {
+				$('#team-name-container').hide();
+			}
+			
+			if($('#team-pool .user').length == 0){
+				$('#gen-team-button').hide();
+			} else {
+				$('#gen-team-button').show();
+			}
+			
+			return false;
+		});
+		
+		$('.team').droppable({
+			accept: ".user",
+			drop: function(event, ui) {						
+				$(this).append($(ui.draggable));
+			}
+		});
+		
+		$('#team-pool').droppable({
+			accept: ".user",
+			drop: function(event, ui) {
+				$(this).append($(ui.draggable));
+			}
+		});		
+		
+		$('#team-name-checkbox').change(function() {
+			if($(this).is(":checked")) {				
+				$('.team #team-name').show();				
+			} else {
+				$('.team #team-name').hide();
+			}
+		});
+		
+		$('#gen-team-button').click(function() {
+
+			$('#team-pool').append($('.user'));
+			$('.team').remove();
+
+			$('.user').each(function( index ) {
+				var newTeam = $("<div>", {"class": "team"});
+				newTeam.html("<input type='text' id='team-name' value='Team #"+(index+1)+"'>");
+				
+				newTeam.droppable({
+					accept: ".user",
+					drop: function(event, ui) {						
+						$(this).append($(ui.draggable));								
+					}
+				});				
+			
+				$('#team-picker').append(newTeam);
+				
+				newTeam.append($(this));
+			});
+			
+			if($(".team").length > 0){
+				$('#team-name-container').show();
+			} else {
+				$('#team-name-container').hide();
+			}
+			
+			if($('#team-pool .user').length == 0){
+				$('#gen-team-button').hide();
+			} else {
+				$('#gen-team-button').show();
+			}	
+
+			if($('#team-name-checkbox').is(":checked")) {				
+				$('.team #team-name').show();				
+			} else {
+				$('.team #team-name').hide();
+			}			
+		});
+	}
+	
+	function getTeams(){
+	
+		var teams = [];
+		var teamnames = [];
+	
+		$('.team').each(function( index ) {
+		
+			var name = $('#team-name', this).val();
+			
+			teamnames[index] = name;
+			teams[index] = [];
+			
+			$(this).children('.user').each(function(index2) {
+				teams[index][index2] = $(this).prop('id');
+			});
+			
+		});
+		
+		var res = [];
+		res[0] = teams;
+		res[1] = teamnames;
+		return res;
+	}
+	
+	function validateTeams(){
+	
+		if($('#team-pool .user').length == 0){
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
 	</script>
 		
 		
@@ -241,9 +455,9 @@
 		
 		// set the checkbox
 		$('#extracredit').attr('checked', {% if assignment.is_extra_credit %} true {% else %} false {% endif %});
-		
 	}
 	
 	</script>
 	{% endif %}
+	
 {% endblock %}

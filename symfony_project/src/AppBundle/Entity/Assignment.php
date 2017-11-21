@@ -24,6 +24,7 @@ class Assignment{
 		}
 		
 		$this->problems = new ArrayCollection();
+		$this->teams = new ArrayCollection();
 	}
 	
 	public function __construct9($sect, $nm, $desc, $start, $end, $cutoff, $wght, $grade, $extra){
@@ -100,6 +101,11 @@ class Assignment{
 	* @ORM\Column(type="boolean")
 	*/
 	public $is_extra_credit;
+	
+	/**
+	* @ORM\OneToMany(targetEntity="Team", mappedBy="assignment")
+	*/
+	public $teams;
 }
 
 ?>
