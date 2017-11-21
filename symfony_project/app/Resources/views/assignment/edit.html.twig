@@ -111,7 +111,14 @@
 	<script src="//cdn.jsdelivr.net/npm/jquery-ui-timepicker-addon@1.6.3/dist/jquery-ui-sliderAccess.js"></script>
 	<script src="//cdn.jsdelivr.net/npm/jquery-ui-timepicker-addon@1.6.3/dist/jquery-ui-timepicker-addon.js"></script>
 	
-    <script src="{{ asset('js/cards.js') }}"></script>	
+	<script src="{{ asset('js/cards.js') }}"></script>	
+	
+	<script src="{{ asset('js/validation.js') }}"></script>
+	<script>
+	  validate($("#name"));
+	  validate($('#opendatepicker'));
+	  validate($('#closedatepicker'));
+	</script>
 	
     <script>
 	
@@ -133,31 +140,7 @@
 			$('#save-btn').on('click', function(){
 			
 				/* Client-Side Field Validation */
-				
-				// assignment name
-				if ($.trim($('#name').val())  === '') {						
-					setInvalid($('#name'));
-					return false;
-				} else {
-					setValid($('#name'));
-				}
-				
-				// assignment open time
-				if ($('#opendatepicker').val()  === '') {						
-					setInvalid($('#opendatepicker'));
-					return false;
-				} else {
-					setValid($('#opendatepicker'));
-				}
-				
-				// assignment close time
-				if ($('#closedatepicker').val()  === '') {						
-					setInvalid($('#closedatepicker'));
-					return false;
-				} else {
-					setValid($('#closedatepicker'));
-				}
-				
+
 				// weight
 				var wght = new Number($('#weight').val());
 				/*

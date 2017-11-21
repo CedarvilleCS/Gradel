@@ -131,7 +131,11 @@
     <!-- JQuery -->
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-    <script src="{{ asset('js/cards.js') }}"></script>
+	<script src="{{ asset('js/cards.js') }}"></script>
+	<script src="{{ asset('js/validation.js') }}"></script>
+	<script>
+	  validate($("#name"));
+	</script>
 	
 	<script>
 	
@@ -161,16 +165,6 @@
 			{% endif %}
 			
 			$('#save-btn').on('click', function(){
-				
-				/* Client-Side Field Validation */
-				
-				// section name
-				if ($.trim($('#name').val())  === '') {						
-					setInvalid($('#name'));
-					return false;
-				} else {
-					setValid($('#name'));
-				}
 								
 				/* Array of Students */
 				var students = document.getElementById('student-csv').value.split(",");
