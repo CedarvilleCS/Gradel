@@ -106,6 +106,20 @@
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 	<script src="{{ asset('src-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>
+	<script src="{{ asset('js/validation.js') }}"></script>
+	<script>
+		element = $("#main_class_input");
+		$('#submissionButton').on('click', function(){          
+			if ($.trim(element.val())  === '') {	
+			setInvalid(element);
+			}
+		});
+		
+		/* Mark fields as valid once the user changes them */
+		element.on('input',function(e){
+			setValid(element);
+		});
+</script>
 
 	{# asynchronous file upload #}
 	<script src="http://malsup.github.com/jquery.form.js"></script>
@@ -253,8 +267,7 @@
 				var main_class = $('#main_class_input').val();
 				var package_name = $('#package_name_input').val();
 
-				if(languageText == 'Java' && main_class == ''){
-
+				if(languageText == 'Java' && main_class == '') {
 					return false;
 				} else if(languageText != 'Java'){
 
