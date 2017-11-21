@@ -224,7 +224,7 @@ class AssignmentController extends Controller {
 		
 		# only super users/admins/teacher can make/edit an assignment
 		$grader = new Grader($em);		
-		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN") && !isTeaching($user, $section)){			
+		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN") && !$grader->isTeaching($user, $section)){			
 			return $this->returnForbiddenResponse("You do not have permission to make an assignment.");
 		}		
 		

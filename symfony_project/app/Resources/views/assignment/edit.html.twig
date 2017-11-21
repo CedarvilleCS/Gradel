@@ -56,14 +56,12 @@
 								</th>
 							</tr>
 							
-							<tr>
-								<th>
-								<label for="weight">Weight </label> <input id="weight" name="weight" type="text" style="width: 50px">
-								<div id="other-assignments" style="font-weight: normal">
-			
+							<tr> <th>
+								<div style="display:flex; justify-content:space-between; align-items: center">
+									<span><label for="weight">Weight </label> <input id="weight" name="weight" type="text" style="width: 50px"></span>
+									<div id="other-assignments" style="font-weight: normal">				
 								</div>
-								</th>
-							</tr>
+							</th> </tr>
 							
 						</table>
 					</div>
@@ -288,7 +286,7 @@
 		var assignments = JSON.parse('{{ section.assignments.toArray()|json_encode|raw }}');
 		console.log(assignments);
 		
-		var str = "Assignment Weights for {{section.name}}<ul style='margin: 0; list-style-type: none'>";
+		var str = "<b>Assignment Weights for {{section.name}}</b><ul style='margin: 0; padding-left: 10px; list-style-type: none'>";
 		for(var i=0; i<assignments.length; i++){
 			str += "<li>" + assignments[i].name + ": " +assignments[i].weight +"</li>";
 
