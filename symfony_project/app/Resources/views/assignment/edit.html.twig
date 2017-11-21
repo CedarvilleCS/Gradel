@@ -207,7 +207,7 @@
 					return false;
 				}
 				
-				if ($('#cutoffdatepicker').datepicker('getDate') < $('#closedatepicker').datepicker('getDate')){
+				if ($('#cutoffdatepicker').val() != '' && $('#cutoffdatepicker').datepicker('getDate') < $('#closedatepicker').datepicker('getDate')){
 					setInvalid($('#cutoffdatepicker'));
 					return false;
 				}
@@ -285,10 +285,10 @@
 	
 	function showAssignmentWeights(){
 	
-		var assignments = JSON.parse('{{ assignment.section.assignments.toArray()|json_encode|raw }}');
+		var assignments = JSON.parse('{{ section.assignments.toArray()|json_encode|raw }}');
 		console.log(assignments);
 		
-		var str = "Assignment Weights for {{assignment.section.name}}<ul style='margin: 0; list-style-type: none'>";
+		var str = "Assignment Weights for {{section.name}}<ul style='margin: 0; list-style-type: none'>";
 		for(var i=0; i<assignments.length; i++){
 			str += "<li>" + assignments[i].name + ": " +assignments[i].weight +"</li>";
 

@@ -11,7 +11,7 @@ use Symfony\Component\Config\Definition\Exception\Exception;
 
 /**
  * @ORM\Entity
- * @ORM\Table(name="team", uniqueConstraints={@UniqueConstraint(name="team_name_assignment", columns={"name", "assignment_id"})})
+ * @ORM\Table(name="team")
  */
 class Team implements JsonSerializable{
 	
