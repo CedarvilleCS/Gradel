@@ -53,7 +53,7 @@ class Team implements JsonSerializable{
 	public $name;
 
 	/**
-	* @ORM\ManyToOne(targetEntity="Assignment")
+	* @ORM\ManyToOne(targetEntity="Assignment", inversedBy="teams")
 	* @ORM\JoinColumn(name="assignment_id", referencedColumnName="id", nullable=false, onDelete="CASCADE")
 	*/
 	public $assignment;
