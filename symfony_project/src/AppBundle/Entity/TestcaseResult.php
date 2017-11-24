@@ -59,7 +59,10 @@ class TestcaseResult {
 	public $std_output;
 
 	public function deblobinateStdOutput(){
-		return stream_get_contents($this->std_output);
+		$val = stream_get_contents($this->std_output);
+		rewind($this->std_output);
+		
+		return $val;
 	}
 
 	/**
@@ -68,7 +71,10 @@ class TestcaseResult {
 	public $runtime_output;
 
 	public function deblobinateRuntimeOutput(){
-		return stream_get_contents($this->runtime_output);
+		$val = stream_get_contents($this->runtime_output);
+		rewind($this->runtime_output);
+		
+		return $val;
 	}
 
 	/**

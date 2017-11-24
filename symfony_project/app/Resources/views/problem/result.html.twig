@@ -1,9 +1,7 @@
-
-
 {% extends 'base.html.twig' %}
 
 {% block title %}
-	Submission {{submission.id}} Result
+	Gradel | Submission {{submission.id}}
 {% endblock %}
 
 {% block body %}
@@ -14,7 +12,7 @@ The grader was not passed from the controller.
 
 {% else %}
 
-{% set grades = grader.getProblemGrade(app.user, problem) %}
+{% set grades = grader.getProblemGrade(app.user, submission.problem) %}
 
 <body>
 	{{ include('template/top-nav.html.twig') }}
@@ -28,15 +26,13 @@ The grader was not passed from the controller.
 	
 		<div class="card">
 			<h2 style="margin: 0px">{{submission.problem.name}}</h2>
-				<div id="courseInfo" class="card-contents">
-				<h2>SUBMISSION ID: {{submission.id}}</h2>
-				<h3>RESULT: 
-					{% if submission.isCorrect %}
-						
+			<div id="submissionOverview" class="card-contents">
+				<h3 style="margin-top: 2px; margin-bottom: 2px">
+					RESULT: 
+					{% if submission.isCorrect() %}						
 						<span style="color:green">CORRECT!</span>
 						
-					{% else %}
-					
+					{% else %}					
 						<span style="color:red">
 						{% if submission.compiler_error %}
 						COMPILER ERROR!
@@ -59,30 +55,13 @@ The grader was not passed from the controller.
 						WRONG ANSWER!
 						{% endif %}
 						</span>
+						
 					{% endif %}
-				</h3>
+				</h3>				
 				
-				<h3> TESTCASES: 
-				{% for tcr in submission.testcaseresults %}
 				
-					{% if tcr.testcase.is_extra_credit %}
-						{% set var1='lightgreen' %}
-						{% set var2='pink' %}
-					{% else %}
-						{% set var1='green' %}
-						{% set var2='red' %}
-					{% endif %}
-				
-					{% if tcr.is_correct %}
-						<span style="color:{{var1}}; font-size: 20px"> &#x2713; </span> 				
-					{% else %}
-						<span style="color:{{var2}}; font-size: 20px"> &#x2718</span>
-					{% endif %}
-				
-				{% endfor %}
-				</h3>
 
-				<div id="status">
+				<div>
 				{% if submission.questionable_behavior %}
 					POSSIBLE MALICIOUS BEHAVIOR DETECTED
 				{% endif %}
@@ -90,38 +69,158 @@ The grader was not passed from the controller.
 				{% if submission.compiler_error %}
 					<h2> COMPILER OUTPUT </h2>
 					<hr>
-					{{compiler_output}}			
+					{{submission.deblobinateCompilerOutput()}}			
 					<hr>
 				{% elseif submission.runtime_error %}
 					<h2> RUNTIME OUTPUT </h2>
 					<hr>
-					{% for tc in testcases_output %}
-						{{tc.runtime_output}}<br/>			
+					{% for tcr in submission.testcaseresults %}
+						{{tcr.deblobinateRuntimeOutput()}}<br/>			
 						<hr>			
 					{% endfor %}
 				{% endif %}
 				
-				{% if submission_file != "" %}	
-						<h3> SUBMITTED CODE </h3>
-						<h4> {{submission.filename}} </h4>
-						<hr>
-<div id="editor">{{submission_file|nl2br}}</div>
-						<hr>
-				{% endif %}
+				</div>
+					
+				<!--span style="word-wrap: break-word"> {{feedback|json_encode}} </span-->
+				<div id="feedback-holder">
+					{% if feedback.display_markers %}
+					<div id="testcase-markers-container">
+						<h3>TESTCASES:</h3>				
+						
+							{% if feedback.output|length > 0 %}
+							<div id="testcase-markers">
+								<ul>
+									{% set failed = false %}
+									{% for tcr in submission.testcaseresults %}						
+									
+										{% if not failed or not feedback.stop_on_first_fail %}
+										{% if not tcr.testcase.is_extra_credit or feedback.extra_testcases_display %}
+										
+										{% if tcr.is_correct %}
+											{% set classname = 'correct'%}
+										{% else %}
+											{% set classname = 'incorrect'%}
+										{% endif %}
+										
+										<li id="{{classname}}"> <a href="#testcase-tab-{{tcr.id}}">
+											{% if tcr.is_correct %}
+												<span style="color:green; font-size: 20px;"> &#x2713;</span> 				
+											{% else %}
+												{% set failed = true %}
+												<span style="color:red; font-size: 20px;"> &#x2718;</span>
+											{% endif %}
+										</a></li>	
+										
+										{% endif %}
+										{% endif %}
+									
+									{% endfor %}
+								</ul>
+								
+								{% set failed = false %}									
+								{% for tcr in submission.testcaseresults %}
+								
+									{% if not failed or not feedback.stop_on_first_fail %}
+									{% if not tcr.testcase.is_extra_credit or feedback.extra_testcases_display %}
+									
+									
+									<div id="testcase-tab-{{tcr.id}}">
+										<div class="testcase-data">
+											{% if feedback.input[tcr.testcase.seq_num] != '' %}
+											<div id="testcase-input">
+												<div class="testcase-data-heading">Input:</div>
+												<textarea disabled>{{feedback.input[tcr.testcase.seq_num]}}</textarea>
+											</div>	
+											{% endif %}
+											
+											
+											
+											<div id="testcase-outputexp">
+												<div class="testcase-data-heading">Expected Output:</div>
+												<textarea disabled>{{feedback.output[tcr.testcase.seq_num]}}</textarea>
+											</div>
+											
+											<div id="testcase-outputyrs">
+												<div class="testcase-data-heading">Your Output:</div>
+												<textarea disabled>{{submission.testcaseresults[loop.index0].deblobinateStdOutput()}}</textarea>
+											</div>
+										</div>
+									</div>
+									
+									{% if not tcr.is_correct %}
+										{% set failed = true %}
+									{% endif %}
+									
+									{% endif %}
+									{% endif %}
+								
+								{% endfor %}
+						
+							</div>	
+							{% else %}
+							<div id="testcase-markers-no-out">
+								{% set failed = false %}
+								{% for tcr in submission.testcaseresults %}						
+									
+									{% if not failed or not feedback.stop_on_first_fail %}
+									{% if not tcr.testcase.is_extra_credit or feedback.extra_testcases_display %}
+									
+									{% if tcr.is_correct %}
+										<span style="color:green; font-size: 20px;"> &#x2713;</span> 				
+									{% else %}
+										{% set failed = true %}
+										<span style="color:red; font-size: 20px;"> &#x2718;</span>
+									{% endif %}
+									
+									{% endif %}
+									{% endif %}
+								
+								{% endfor %}						
+							
+							</div>						
+							{% endif %}
+					</div>
+					{% endif %}
+					
+					{% if feedback.response|length > 0 %}
+					<div id="feedback"> 
+						<h3> TIPS: </h3>
+						<ul>
+						{% for response in feedback.response %}
+							<li>{{response}}</li>
+						{% endfor %}
+						
+						{% endif %}
+						</ul>
+					</div>
+				</div>
+				
+				<h2 style="">SUBMITTED CODE</h2>
+				<a href="{{path('assignment', {'sectionId': submission.problem.assignment.section.id, 'assignmentId': submission.problem.assignment.id, 'problemId': submission.problem.id} )}}">
+					Edit and resubmit
+				</a>
+				<div id="editor">{{submission.deblobinateSubmittedFile()|nl2br}}</div>
+				
+				<h3 style="margin-top: 10px; margin-bottom: 0px">Submission ID: {{submission.id}}</h3>
 			</div>
 		</div>
-	
+		
 	</section>
 	
 	</body>
 	
 {% endif %}
+
 	
 {% endblock %}
 
 {% block stylesheets %}
-<link rel="stylesheet" href="{{ asset('styles.css') }}" />
-<link rel="stylesheet" href="{{ asset('submit.css') }}" />
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
+	<link rel="stylesheet" href="{{ asset('styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('submit.css') }}" />
+	<link rel="stylesheet" href="{{ asset('submission-results.css') }}">
 
 {% endblock %}
 
@@ -129,11 +228,19 @@ The grader was not passed from the controller.
     <!-- JQuery -->
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-	<script src="{{ asset('src-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>
-
+	<script src="{{ asset('src-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>	
+	
 	<script>
+	
+	$(document).ready( function() {
+	
+		$('#testcase-markers').tabs();
+
 		var editor = ace.edit("editor");
-		editor.setTheme("ace/theme/xcode");
+		editor.setTheme("ace/theme/xcode");	
+	});
+	
+	
 	</script>
 
 {% endblock %}

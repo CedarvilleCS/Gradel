@@ -39,7 +39,7 @@ class ProblemLanguage{
 
 	/**
 	* @ORM\Id
-	* @ORM\ManyToOne(targetEntity="Problem", inversedBy="languages")
+	* @ORM\ManyToOne(targetEntity="Problem", inversedBy="problem_languages")
 	* @ORM\JoinColumn(name="problem_id", referencedColumnName="id", onDelete="CASCADE")
 	*/
 	public $problem;

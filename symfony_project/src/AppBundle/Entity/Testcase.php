@@ -57,7 +57,9 @@ class Testcase {
 	public $input;
 
 	public function deblobinateInput(){
-		return stream_get_contents($this->input);
+		$val = stream_get_contents($this->input);
+		rewind($this->input);
+		return $val;
 	}
 
 	/**
@@ -66,7 +68,10 @@ class Testcase {
 	public $correct_output;
 
 	public function deblobinateCorrectOutput(){
-		return stream_get_contents($this->correct_output);
+		$val = stream_get_contents($this->correct_output);
+		rewind($this->correct_output);
+		return $val;
+		
 	}
 
 	/**

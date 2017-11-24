@@ -27,7 +27,7 @@ class Problem{
 		$this->problem_languages = new ArrayCollection();
 	}
 	
-	public function __construct9($assign, $nm, $desc, $wght, $limit, $credit, $tot, $bef, $pen){
+	public function __construct14($assign, $nm, $desc, $wght, $limit, $credit, $tot, $bef, $pen, $stop, $resp, $disp_tcr, $tc_lev, $disp_ext){
 		$this->assignment = $assign;
 		$this->name = $nm;
 		$this->description = $desc;
@@ -38,6 +38,12 @@ class Problem{
 		$this->total_attempts = $tot;
 		$this->attempts_before_penalty = $bef;
 		$this->penalty_per_attempt = $pen;
+		
+		$this->stop_on_first_fail = $stop;
+		$this->response_level = $resp;
+		$this->display_testcaseresults = $disp_tcr;
+		$this->testcase_output_level = $tc_lev;
+		$this->extra_testcases_display = $disp_ext;
 	}
 	
 	/** 
@@ -74,7 +80,10 @@ class Problem{
 	public $description;
 	
 	public function deblobinateDescription(){			
-		return stream_get_contents($this->description);
+		$val = stream_get_contents($this->description);
+		rewind($this->description);
+		
+		return $val;
 	}
 		
 	/**
@@ -106,6 +115,31 @@ class Problem{
 	* @ORM\Column(type="decimal", precision=12, scale=8)
 	*/
 	public $penalty_per_attempt;
+	
+	/**
+	* @ORM\Column(type="boolean")
+	*/
+	public $stop_on_first_fail;
+	
+	/**
+	* @ORM\Column(type="string", length=10)
+	*/
+	public $response_level;
+	
+	/**
+	* @ORM\Column(type="boolean")
+	*/
+	public $display_testcaseresults;
+	
+	/**
+	* @ORM\Column(type="string", length=20)
+	*/
+	public $testcase_output_level;
+	
+	/**
+	* @ORM\Column(type="boolean")
+	*/
+	public $extra_testcases_display;
 }
 
 ?>
