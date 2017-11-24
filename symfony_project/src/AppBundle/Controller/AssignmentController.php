@@ -104,11 +104,22 @@ class AssignmentController extends Controller {
 			->andWhere('s.is_accepted = true')
 			->setParameter(1, $grader->getTeam($user, $assignment_entity))
 			->setParameter(2, $problem_entity);
+		
 			
 		$sub_query = $qb_accsub->getQuery();
 		$best_submission = $sub_query->getOneOrNullResult();
 
-		
+		# get the code from the last submission
+		$qb_lastsub = $em->createQueryBuilder();
+		$qb_lastsub->select('s')
+			->from('AppBundle\Entity\Submission', 's')
+			->where('s.team = ?1')
+			->andWhere('s.problem = ?2')
+			->setParameter(1, $grader->getTeam($user, $assignment_entity))
+			->setParameter(2, $problem_entity);
+		 $lastsub_query = $qb_lastsub->getQuery();
+		 $last_submission->$lastsub_query->getOneOrNullResult();
+
 		return $this->render('assignment/index.html.twig', [
 			'user' => $user,
 			'section' => $assignment_entity->section,
