@@ -3,6 +3,9 @@
 <link rel="icon" type="image/x-icon" href="{{ asset('logo1.png') }}" />
 {% endblock %}
 
+{% block stylesheets %}
+<link rel="stylesheet" href="{{ asset('styles.css') }}" />
+{% endblock %}
 
 {% block body %}
 
@@ -12,7 +15,7 @@
 
     {# Left Nav #}
     <nav class="nav-left">
-        <div onclick="newProb()" class="btn btn-center">Save</div>
+        <div onclick="newProb()" class="btn btn-center" id="save-btn">Save</div>
     </nav>
 
     {# Main section #}
@@ -37,7 +40,7 @@
                     </th>
                 </tr>
                 <th colspan="1.5">
-                    <label for="languages">Languages</label>
+                    <label for="languages" id="languagesLabel">Languages</label>
                     <select id="languages" onchange="languageSelect()" name="languages" type="text">
                       <option></option>
                       {% for language in languages %}
@@ -93,19 +96,21 @@
 
 {% endblock %}
 
-
-{% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('styles.css') }}" />
-    <link rel="stylesheet" href="{{ asset('home.css') }}" />
-{% endblock %}
-
-
 {% block scripts %}
-    <!-- JQuery -->
-    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
-    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-    <script src="{{ asset('js/cards.js') }}"></script>
-	<script>
+  <!-- JQuery -->
+  <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <script src="{{ asset('js/cards.js') }}"></script>
+  <script src="{{ asset('js/newSection.js') }}"></script>
+  
+  <script src="{{ asset('js/validation.js') }}"></script>
+  <script>
+    validate($("#name"));
+    validate($("#description"));
+    validateMessage($("#languages"), $("#languagesLabel"), " (you must select at least one language)");
+  </script>
+  
+  <script>
     var languages = [];
 		testCases = 0;
 		$("#add-test").click(function () {
@@ -235,13 +240,6 @@
         "is_extra_credit": extraCredit,
       }, (data) => {
         console.log(data);
-        if (data.errors.length > 0) {
-          errorMessage = "";
-          for (error of data.errors) {
-            errorMessage += (" - " + error + "\n");
-          }
-          alert(errorMessage);
-        }
         problemId = data.problemId;
       }, "json");
       var tcs = document.getElementsByClassName("test-case");
