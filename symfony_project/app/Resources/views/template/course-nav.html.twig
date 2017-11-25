@@ -1,0 +1,25 @@
+{% if courses is defined%}
+
+{# Left Nav For the Section List (On the homepage) #}
+<nav class="nav-left">
+	
+	<ol style="padding-top: 0px">
+		
+		<li style="margin: 0px; padding-bottom: 5px"> EDIT COURSE </li>
+		
+		{% for course in courses %}	
+		
+			<a href="{{path('course_edit', {'courseId':course.id})}}">
+				<li class="sidebar">
+					<span class="preview">{{course.name}}</span>	
+				
+				</li>
+			</a>	
+			
+		{% endfor %}
+	</ol>
+	
+</nav>
+
+
+{% endif %}

@@ -1,0 +1,86 @@
+{% block head %}
+<title>Gradel | Course Edit</title>
+<link rel="icon" type="image/x-icon" href="{{ asset('logo1.png') }}" />
+{% endblock %}
+
+
+{% block body %}
+
+<body>
+	{{ include('template/top-nav.html.twig') }}
+
+    {{ include('template/course-nav.html.twig') }}
+	
+    {# Main section with the necessary variable#}
+    <div class="scrollbar-macosx">
+        <section id="main">
+			
+			{{ include('template/path-nav.html.twig') }}
+		
+            {# Cards #}
+            <div class="card">
+				<div class="btn-close">
+					<h2 style="margin: 0px">
+					{% if course is not null %}
+						Edit {{course.name}}
+					{% else %}
+						New Course
+					{% endif %}					
+					</h2>
+				</div>
+				
+				<div id="requiredFields" class="card-contents">				
+					<div>
+						HELLO!
+					</div>
+				</div>
+            </div>
+
+        </section>
+    </div>
+
+	
+	
+
+</body>
+
+{% endblock %}
+
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('styles.css') }}" />
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
+
+{% endblock %}
+
+
+{% block scripts %}
+    <!-- JQuery -->
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+	<script src="{{ asset('js/cards.js') }}"></script>
+	<script src="{{ asset('js/validation.js') }}"></script>
+	
+	<script>
+	
+		$(document).ready(function() {
+		
+			
+			
+		}
+		
+	</script>
+	
+	
+	{% if course is not null %}
+	<script>
+		function populateForm(){
+			
+			
+		}
+	
+	</script>
+	{% endif %}
+	
+{% endblock %}
