@@ -35,9 +35,13 @@ class HomeController extends Controller {
 		$builder->select('s')
 			->from('AppBundle\Entity\Section', 's')
 			->where('s.is_deleted = false');
+			//->andWhere('s.start_time < ?1')
+			//->andWhere('s.end_time > ?2')
+			//->setParameter(1, new DateTime())
+			//->setParameter(2, new DateTime());
 		
 		$section_query = $builder->getQuery();
-		$sections_notdeleted = $section_query->getResult();
+		$sections_active = $section_query->getResult();
 	  
 		# get the user section role entities using the user entity and not deleted sections
 		$qb_usr = $em->createQueryBuilder();
@@ -46,7 +50,7 @@ class HomeController extends Controller {
 			->where('usr.user = ?1')
 			->andWhere('usr.section IN (?2)')
 			->setParameter(1, $user)
-			->setParameter(2, $sections_notdeleted);
+			->setParameter(2, $sections_active);
 
 		$usr_query = $qb_usr->getQuery();
 		$usersectionroles = $usr_query->getResult();

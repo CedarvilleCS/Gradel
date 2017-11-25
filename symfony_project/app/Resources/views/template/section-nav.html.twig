@@ -3,13 +3,13 @@
 {# Left Nav For the Section List (On the homepage) #}
 <nav class="nav-left">
 	
-	{% if is_granted("ROLE_SUPER") %}
-		<a class="btn">
+	{% if is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") %}
+		<a href="{{path('course_edit')}}" class="btn">
 			<div class="btn btn-center">+ Course</div>
 		</a>
 	{% endif %}
 	
-	{% if is_granted("ROLE_ADMIN") or is_granted("ROLE_SUPER") %}
+	{% if is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") %}
 		<a href="{{path('section_edit')}}" class="btn">
 			<div class="btn btn-center">+ Section</div>
 		</a>
@@ -23,9 +23,10 @@
 	{% else %}
 	
 		{# list of all the sections being taken #}
+		{% if sections_taking|length > 0 %}
 		<ol style="padding-bottom: 10px">
 			
-			{% if sections_taking|length > 0 and sections_teaching|length > 0%}
+			{% if sections_teaching|length > 0%}
 				<li style="margin: 0px; padding-bottom: 5px"> TAKING: </li> 
 			{% endif %}
 			
@@ -38,7 +39,7 @@
 							<small>
 							<br/>{{section.name}}
 							
-							{% if grades[section.id]['percentage_adj'] >= 0 %}
+							{% if grades[section.id]['percentage_adj'] > 0 %}
 							
 								<br/>{{(grades[section.id]['percentage_adj']*100)|number_format(1, '.') ~ '%'}}
 								
@@ -60,11 +61,12 @@
 				</a>	
 			{% endfor %}
 		</ol>
-		
+		{% endif %}
 		
 		{# list of all the sections being taught #}
+		{% if sections_teaching|length > 0 %}
 		<ol style="padding-bottom: 10px">
-			{% if sections_taking|length > 0 and sections_teaching|length > 0 %} <li style="margin: 0px; padding-bottom: 5px"> TEACHING: </li> {% endif %}
+			{% if sections_taking|length > 0%} <li style="margin: 0px; padding-bottom: 5px"> TEACHING: </li> {% endif %}
 			{% for section in sections_teaching %}	
 			
 				<a href="{{path('section', {'sectionId':section.id})}}">
@@ -88,7 +90,7 @@
 				</a>	
 			{% endfor %}
 		</ol>
-	
+		{% endif %}
 	{% endif %}
 	
 	<div class="btn btn-center" id="past_sections_button">&#9660; Load Past Sections </div>
