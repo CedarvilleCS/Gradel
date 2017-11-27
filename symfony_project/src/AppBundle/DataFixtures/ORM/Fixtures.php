@@ -86,7 +86,7 @@ class Fixtures extends Fixture {
 			$course1 = new Course("CS-1210", "C++ Programming", "A class where you learn how to program", false, false, false);
 			$manager->persist($course1);
 
-			$course2 = new Course("CS-1210", "Object-Oriented Design", "A class where you learn how to do the OOD", false, false, false);
+			$course2 = new Course("CS-1220", "Object-Oriented Design", "A class where you learn how to do the OOD", false, false, false);
 			$manager->persist($course2);
 			
 			$contest = new Course("", "Cedarville University Programming Contest", "The annual programming contest open to all majors and walks of life", true, true, false);
@@ -275,44 +275,44 @@ class Fixtures extends Fixture {
 			
 			# HOMEWORK 1 For CS-1210-01
 			$desc_file_01 = fopen($folder_path."sum/description.txt", "r") or die("Unable to open 1.desc");
-			$problem_01 = new Problem($assignment_04, "Calculate the Sum", $desc_file_01, 1, 1000, false, 0, 0, 0, true, "Short", false, "None", true);
+			$problem_01 = new Problem($assignment_04, "Calculate the Sum", $desc_file_01, 1, 1000, false, 0, 0, 0, false, "Long", true, "Both", true);
 			$problems[] = $problem_01;
 			$prob_folds[$problem_01->name] = "sum";
 			
 			$desc_file_02 = fopen($folder_path."diff/description.txt", "r") or die("Unable to open 2.desc");
-			$problem_02 = new Problem($assignment_04, "Calculate the Difference", $desc_file_02, 1, 1000, false, 0, 0, 0, true, "Long", false, "None", true);
+			$problem_02 = new Problem($assignment_04, "Calculate the Difference", $desc_file_02, 1, 1000, false, 0, 0, 0, false, "Long", true, "Both", true);
 			$problems[] = $problem_02;
 			$prob_folds[$problem_02->name] = "diff";
 			
 			$desc_file_03 = fopen($folder_path."prod/description.txt", "r") or die("Unable to open 3.desc");
-			$problem_03 = new Problem($assignment_04, "Calculate the Product", $desc_file_03, 1, 1000, false, 0, 0, 0, false, "Short", true, "None", true);
+			$problem_03 = new Problem($assignment_04, "Calculate the Product", $desc_file_03, 1, 1000, false, 0, 0, 0, false, "Long", true, "Both", true);
 			$problems[] = $problem_03;
 			$prob_folds[$problem_03->name] = "prod";
 			
 			$desc_file_04 = fopen($folder_path."quot/description.txt", "r") or die("Unable to open 4.desc");
-			$problem_04 = new Problem($assignment_04, "Calculate the Quotient", $desc_file_04, 1, 1000, false, 0, 0, 0, false, "Long", true, "None", true);
+			$problem_04 = new Problem($assignment_04, "Calculate the Quotient", $desc_file_04, 1, 1000, false, 0, 0, 0, false, "Long", true, "Both", true);
 			$problems[] = $problem_04;
 			$prob_folds[$problem_04->name] = "quot";
 			
 			
 			# HOMEWORK 2 For CS-1210-01
 			$desc_file_11 = fopen($folder_path."sum/description.txt", "r") or die("Unable to open 1.desc");
-			$problem_11 = new Problem($assignment_01, "Get the Sum", $desc_file_11, 2, 1000, false, 0, 0, 0, true, "None", false, "Output", true);
+			$problem_11 = new Problem($assignment_01, "Get the Sum", $desc_file_11, 2, 1000, false, 0, 0, 0, false, "Long", true, "Both", true);
 			$problems[] = $problem_11;
 			$prob_folds[$problem_11->name] = "sum";
 			
 			$desc_file_12 = fopen($folder_path."diff/description.txt", "r") or die("Unable to open 2.desc");
-			$problem_12 = new Problem($assignment_01, "Get the Difference", $desc_file_12, 2, 1000, false, 0, 0, 0, true, "None", false, "Output", true);
+			$problem_12 = new Problem($assignment_01, "Get the Difference", $desc_file_12, 2, 1000, false, 0, 0, 0, false, "Long", true, "Both", true);
 			$problems[] = $problem_12;
 			$prob_folds[$problem_12->name] = "diff";
 			
 			$desc_file_13 = fopen($folder_path."prod/description.txt", "r") or die("Unable to open 3.desc");
-			$problem_13 = new Problem($assignment_01, "Get the Product", $desc_file_13, 2, 1000, false, 0, 0, 0, false, "None", true, "Both", true);
+			$problem_13 = new Problem($assignment_01, "Get the Product", $desc_file_13, 2, 1000, false, 0, 0, 0, false, "Long", true, "Both", true);
 			$problems[] = $problem_13;
 			$prob_folds[$problem_13->name] = "prod";
 			
 			$desc_file_14 = fopen($folder_path."quot/description.txt", "r") or die("Unable to open 4.desc");
-			$problem_14 = new Problem($assignment_01, "Get the Quotient", $desc_file_14, 2, 1000, false, 0, 0, 0, false, "None", true, "Both", true);
+			$problem_14 = new Problem($assignment_01, "Get the Quotient", $desc_file_14, 2, 1000, false, 0, 0, 0, false, "Long", true, "Both", true);
 			$problems[] = $problem_14;
 			$prob_folds[$problem_14->name] = "quot";
 			

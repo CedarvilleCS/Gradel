@@ -101,6 +101,12 @@ class ProblemController extends Controller {
 		$problem->total_attempts = 0; // change this Chris
 		$problem->attempts_before_penalty = 0; // change this Chris
 		$problem->penalty_per_attempt = 0.00; // change this Chris
+		
+		$problem->stop_on_first_fail = false; // change this Chris
+		$problem->response_level = "Long"; // change this Chris
+		$problem->display_testcaseresults = true; // change this Chris
+		$problem->testcase_output_level = "Both"; // change this Chris
+		$problem->extra_testcases_display = true; // change this Chris
 
         $em->persist($problem);
 

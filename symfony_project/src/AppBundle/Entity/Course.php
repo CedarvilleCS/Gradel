@@ -77,7 +77,19 @@ class Course{
 	* @ORM\Column(type="boolean")
 	*/
 	public $is_public;
-
+	
+	public static function cmp($a, $b){
+		
+		if($a->code == ''){
+			return 1;
+		} 
+		
+		if($b->code == ''){
+			return -1;
+		}
+		
+		return strcmp($a->code, $b->code);
+	}
 }
 
 ?>

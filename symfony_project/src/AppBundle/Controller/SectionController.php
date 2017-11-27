@@ -206,8 +206,9 @@ class SectionController extends Controller {
 			
 		}
 		
-		$section->is_deleted = true;
+		$section->is_deleted = !$section->is_deleted;
 		$em->flush();
+		
 		return $this->redirectToRoute('homepage');
 	}
 

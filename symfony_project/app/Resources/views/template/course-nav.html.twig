@@ -1,0 +1,51 @@
+{% if courses is defined and deleted_courses is defined%}
+
+{# Left Nav For the Course List (On the Courses Page) #}
+<nav class="nav-left">
+	
+	<ol style="padding-top: 0px">
+		
+		<li style="margin: 0px; padding-bottom: 5px"> EDIT COURSE </li>
+		
+		{% for course in courses %}	
+		
+			<a href="{{path('course_edit', {'courseId':course.id})}}">
+				<li class="sidebar">
+					<span class="preview">{{course.name}}</span>	
+					<object>
+						<a title="Delete Course" href="{{path('course_delete', {'courseId': course.id})}}">
+							<img class="small-icon" style="right: -1" id="right-icon" src="{{ asset('trash.png') }}">
+						</a>
+					</object>
+				</li>
+			</a>	
+			
+		{% endfor %}
+		
+		
+	</ol>
+	
+	<div class="btn btn-center" id="past_courses_button" style="margin-top: 10px; margin-bottom: 0px">&#9660; Show Deleted </div>
+	
+	{# list of all the deleted courses #}
+	<ol id="past_list" style="padding-bottom: 10px; display: none">
+		{% for course in deleted_courses %}
+			<a href="{{path('course_edit', {'courseId':course.id})}}">
+				<li class="sidebar">
+					<span class="preview">{{course.name}}</span>	
+					<object>
+						<a title="Open Course" href="{{path('course_delete', {'courseId': course.id})}}">
+							<img class="small-icon" style="right: -1" id="right-icon" src="{{ asset('trash.png') }}">
+						</a>
+					</object>
+				</li>
+			</a>
+		{% else %}
+			<li> No deleted courses </li>
+		{% endfor %}
+	</ol>
+	
+</nav>
+
+
+{% endif %}
