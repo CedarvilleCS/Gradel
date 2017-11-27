@@ -111,6 +111,7 @@
 	<script src="http://malsup.github.com/jquery.form.js"></script>
 
 	<script>
+		var saved_code = "";
 
 		function getLanguage(filename){
 
@@ -168,7 +169,7 @@
 
 			var editor = ace.edit("editor");
 			editor.$blockScrolling = Infinity;
-			updateAceCode(editor.getValue(), language);
+			updateAceCode();
 
 			// toggle the java inputs
 			var ext = getExtension($('#submissionUploadForm #file').val());
@@ -189,27 +190,24 @@
 			}
 		}
 
-		function updateAceCode(contents, language){
+		function updateAceCode(){
 
 			var default_code = JSON.parse('{{ default_code|json_encode|replace({'\\':'\\\\'})|raw }}');
 			var ace_modes = JSON.parse('{{ ace_modes|json_encode|raw }}');
 
 			var editor = ace.edit("editor");
 			editor.$blockScrolling = Infinity;
-
-			if(!language){
-				language = $('#languageSelect option:selected').text();
-			}
-
-			editor.getSession().setMode("ace/mode/" + ace_modes[language]);
-
-			if(contents != "") {
-				editor.setValue(contents, -1);
+			
+			language = $('#languageSelect option:selected').text();
+			
+			if(saved_code !== editor.getValue()) {
+				editor.setValue(editor.getValue(), -1);
 			} else {
 				// This sets the default code for the selected language.
 				editor.setValue(default_code[language], -1);
+				saved_code = default_code[language];
 			}
-			$("#ACE").val(editor.getValue());
+			editor.getSession().setMode("ace/mode/" + ace_modes[language]);
 		}
 
 	</script>
@@ -221,7 +219,6 @@
 			$('#languageSelect').change( function(data) {
 
 				var language = $('#languageSelect option:selected').text();
-
 				setLanguage(language);
 			});
 
@@ -263,8 +260,8 @@
 				}
 
 				var editor = ace.edit("editor");
-				editor.$blockScrolling = Infinity;
-				updateAceCode(editor.getValue(), languageText);
+				editor.$blockScrolling = Infinity;				
+				$("#ACE").val(editor.getValue());
 
 				var ACE = $('#ACE').val();
 
@@ -298,16 +295,13 @@
 
 			});
 
-
-
 			// set default stuff for the ace editor
 			var editor = ace.edit("editor");
 			editor.$blockScrolling = Infinity;
 			editor.setTheme("ace/theme/xcode");
 
-			updateAceCode("", getLanguage("file.cpp"));
+			$('#languageSelect').change();
 		});
-
 	</script>
 
 {% endblock %}
