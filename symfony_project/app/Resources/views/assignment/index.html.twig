@@ -37,14 +37,8 @@
 				<div id="courseInfo" class="card-contents">
 					<p>{{problemDescription|nl2br}}</p>
 
-					{% if last_submission != null %}
-						<p>Last Submission Code: {{ last_submission.deblobinateSubmittedFile()|nl2br }}</p>
-						{# {{submission.deblobinateSubmittedFile()|nl2br}} #}
-					{% endif %}
-
 					{# the ACE editor text area #}
-					<div id="editor"></div>
-
+					<div id="editor">{% if last_submission != null %}{{ last_submission.deblobinateSubmittedFile()|nl2br }}{% endif %}</div>
 					<br/>
 
 					{# display the form or not #}
@@ -232,6 +226,9 @@
 
 	<script>
 		$(document).ready(function() {
+
+				var editor = ace.edit("editor");
+				editor.$blockScrolling = Infinity;
 
 			// make the language dropdown change affect the code
 			$('#languageSelect').change( function(data) {
