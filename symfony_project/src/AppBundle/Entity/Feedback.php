@@ -40,7 +40,9 @@ class Feedback {
 	public $short_response;
 	
 	public function deblobinateShortResponse(){			
-		return stream_get_contents($this->short_response);
+		$val = stream_get_contents($this->short_response);
+		rewind($this->short_response);
+		return $val;
 	}
 
 	/**
@@ -49,7 +51,9 @@ class Feedback {
 	public $long_response;
 	
 	public function deblobinateLongResponse(){			
-		return stream_get_contents($this->long_response);
+		$val = stream_get_contents($this->long_response);
+		rewind($this->long_response);
+		return $val;
 	}
 	
 }

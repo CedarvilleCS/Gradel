@@ -101,6 +101,12 @@ class ProblemController extends Controller {
 		$problem->total_attempts = 0; // change this Chris
 		$problem->attempts_before_penalty = 0; // change this Chris
 		$problem->penalty_per_attempt = 0.00; // change this Chris
+		
+		$problem->stop_on_first_fail = false; // change this Chris
+		$problem->response_level = "Long"; // change this Chris
+		$problem->display_testcaseresults = true; // change this Chris
+		$problem->testcase_output_level = "Both"; // change this Chris
+		$problem->extra_testcases_display = true; // change this Chris
 
         $em->persist($problem);
 
@@ -124,6 +130,7 @@ class ProblemController extends Controller {
 
       ]);
     }
+	
 	public function deleteAction($sectionId, $assignmentId, $problemId){
 
 		$em = $this->getDoctrine()->getManager();
@@ -173,39 +180,14 @@ class ProblemController extends Controller {
 			die();
 		}
 
-		# get all of the contents of the compiler and file
-		$compiler_output = stream_get_contents($submission->compiler_output);
-		$submission_file = stream_get_contents($submission->submitted_file);
-
-		foreach($submission->testcaseresults as $tc){
-
-			$output["std_output"] = stream_get_contents($tc->std_output);
-			$output["runtime_output"] = stream_get_contents($tc->runtime_output);
-			$output["time_output"] = $tc->execution_time;
-			$tc_output[] = $output;
-		}
-
-		# get the usersectionrole
-		$qb_usr = $em->createQueryBuilder();
-		$qb_usr->select('usr')
-			->from('AppBundle\Entity\UserSectionRole', 'usr')
-			->where('usr.user = ?1')
-			->andWhere('usr.section = ?2')
-			->setParameter(1, $user)
-			->setParameter(2, $submission->problem->assignment->section);
-
-		$usr_query = $qb_usr->getQuery();
-		$usersectionrole = $usr_query->getOneOrNullResult();
+		$grader = new Grader($em);
+		$feedback = $grader->getFeedback($submission);
 
         return $this->render('problem/result.html.twig', [
 			'submission' => $submission,
-			'problem' => $submission->problem,
 			'grader' => new Grader($em),
-			'usersectionrole' => $usersectionrole,
-			'testcases_output' => $tc_output,
-			'compiler_output' => $compiler_output,
-			'submission_file' => $submission_file,
 			'result_page' => true,
+			'feedback' => $feedback,
         ]);
 	}
 
