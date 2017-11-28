@@ -4,6 +4,9 @@
 <nav class="nav-left">
 	
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> ea763dd3a3bbe9bcea9d4ebe042ad75904c59a3f
 	{% if is_granted("ROLE_SUPER") %}
 		<a class="btn">
 			<div class="btn btn-center">+ Course</div>
@@ -12,10 +15,13 @@
 	
 	{% if is_granted("ROLE_ADMIN") or is_granted("ROLE_SUPER") %}
 		<a href="{{path('section_modify')}}" class="btn">
+<<<<<<< HEAD
 =======
 	{% if is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") %}
 		<a href="{{path('section_edit')}}" class="btn">
 >>>>>>> f2adab096de940765456ae97971d4307cb57e097
+=======
+>>>>>>> ea763dd3a3bbe9bcea9d4ebe042ad75904c59a3f
 			<div class="btn btn-center">+ Section</div>
 		</a>
 	{% endif %}
