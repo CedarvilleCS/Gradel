@@ -52,8 +52,9 @@
             </div>
         </div>
 
+		{% if sections_taking|length > 0 or not sections_teaching|length > 0 %}
         <div class="card">
-            <div class="btn-close" onclick="collapseCard('gradeReport')"><h2 style="margin: 0px">Grade Report<span style="float: right"><i class="fa fa-angle-down"></i></span></h2></div>
+            <div class="btn-close" onclick="collapseCard('gradeReport')"><h2 style="margin: 0px">Your Student Report<span style="float: right"><i class="fa fa-angle-down"></i></span></h2></div>
             <div id="gradeReport" class="card-contents">
                 <div>
 				
@@ -63,7 +64,7 @@
 					
 					{% else %}
 				
-						You are doing well in your classes!
+						<i>Proverbs 12:24 - "Diligent hands will rule, but laziness ends in forced labor."</i>
 						<ul>
 						{% for section in sections_taking %}
 						
@@ -83,6 +84,35 @@
                 </div>
             </div>
         </div>
+		{% endif %}
+		
+		{% if sections_teaching|length > 0 %}
+        <div class="card">
+            <div class="btn-close" onclick="collapseCard('teachReport')"><h2 style="margin: 0px">Teacher Report<span style="float: right"><i class="fa fa-angle-down"></i></span></h2></div>
+            <div id="teachReport" class="card-contents">
+                <div>
+				
+					{% if sections_teaching|length == 0 %}
+						
+						You do not have any classes to do well in!
+					
+					{% else %}
+				
+						<i>Proverbs 11:25 - "A generous person will prosper; whoever refreshes others will be refreshed."</i>
+						<ul>
+						{% for section in sections_teaching %}
+						
+							{{section.course.name}} <small><i>{{section.name}}<i/></small><br/>
+						
+						{% endfor %}						
+						<ul/>
+					
+					{% endif %}
+					
+                </div>
+            </div>
+        </div>
+		{% endif %}
         
         <div class="card">
             <div class="btn-close" onclick="collapseCard('studentInfo')"><h2 style="margin: 0px">User Information (Debug Info)<span style="float: right"><i class="fa fa-angle-down"></i></span></h2></div>

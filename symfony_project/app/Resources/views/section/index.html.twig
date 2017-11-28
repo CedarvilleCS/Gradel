@@ -51,7 +51,8 @@
 			</div>
 		</div>
 
-
+		{# Student Info Card #}
+		{% if is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") or grader.isTeaching(user, section) %}
 		<div class="card">
 			<div class="btn-close" onclick="collapseCard('studentInfo')"><h2 style="margin: 0px">Student Info<span style="float: right"><i class="fa fa-angle-down"></i></span></h2></div>
 			<div id="studentInfo" class="card-contents">
@@ -74,7 +75,7 @@
 						</tr>
 						
 						{% for user in section_takers %}
-							
+														
 							<tr> <th>{{user.getFirstName()}} {{user.getLastName()}}</th>
               
 								{% for asgn in assignments %}
@@ -105,40 +106,63 @@
 				</div>
 			</div>
 		</div>
+		{% endif %}
 		
-		{% if app.user in section_teachers or is_granted("ROLE_SUPER") %}
-		
-			<div class="card">
-				<div class="btn-close" onclick="collapseCard('recentSubs')"><h2 style="margin: 0px">Recent Submissions<span style="float: right"><i class="fa fa-angle-down"></i></span></h2></div>
-				<div id="recentSubs" class="card-contents">
+		{# Recent Submissions Card #}	
+		<div class="card">
+			<div class="btn-close" onclick="collapseCard('recentSubs')">
+				<h2 style="margin: 0px">
+					
+					{% if not is_granted("ROLE_ADMIN") and not is_granted("ROLE_SUPER") and not grader.isTeaching(user, section) %}	
+					Your 
+					{% endif %}Recent Submissions					
+					<span style="float: right"><i class="fa fa-angle-down"></i></span>
+				</h2>
+			</div>
+			<div id="recentSubs" class="card-contents">
+					
+				<div>   
+					<ul>
+					{% if recent_submissions|length == 0 %}
+						<li> No recent submissions </li>
+					{% else %}
 						
-					<div>   
-						<ul>
-						{% if recent_submissions|length == 0 %}
-							<li> No recent submissions </li>
-						{% else %}
-							
-							{% for sub in recent_submissions %}
-								{% if sub.isCorrect %}
-									<div style="color: green">
-								{% else %}
-									
-									<div style="color: red">
-								{% endif %}
+						{% for sub in recent_submissions %}
+							{% if sub.isCorrect %}
+								<div style="color: green">
+							{% else %}
 								
-								<li><a href="{{path('problem_result', {'submission_id': sub.id})}}">[{{sub.problem.name}}] {{sub.user.getFirstName}} {{sub.user.getLastName}} - {{sub.timestamp|date('F d, Y  \\a\\t  h:i:s')}} ({{sub.filename}})</a> </li>
+								<div style="color: red">
+							{% endif %}
 							
-								</div>
-							{% endfor %}
-							
-						{% endif %}
+							<li><a href="{{path('problem_result', {'submission_id': sub.id})}}">
+								[{{sub.problem.name}}] 
+									{% if sub.team.users|length == 1 %}
+										{{sub.user.getFirstName}} {{sub.user.getLastName}} 
+									{% else %}
+										{
+										{% for user in sub.team.users %}
+											
+											{{user.getLastName}}
+											{% if not loop.last %}
+											, 
+											{% endif%}
+										{% endfor %}
+										}
+									{% endif %}
+									- {{sub.timestamp|date('F d, Y  \\a\\t  h:i:s')}} ({{sub.filename}})
+							</a> </li>
 						
-						</ul>
-					</div>
+							</div>
+						{% endfor %}
+						
+					{% endif %}
+					
+					</ul>
 				</div>
 			</div>
+		</div>
 		
-		{% endif %}
 		
 	</section>
 
