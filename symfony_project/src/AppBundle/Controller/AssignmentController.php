@@ -113,7 +113,7 @@ class AssignmentController extends Controller {
 
 		# get the code from the last submission
 		$qb_lastsub = $em->createQueryBuilder();
-		$qb_lastsub->select('last.submitted_file')
+		$qb_lastsub->select('last')
 			->from('AppBundle\Entity\Submission', 'last')
 			->where('last.team = ?1')
 			->andWhere('last.problem = ?2')
@@ -127,11 +127,11 @@ class AssignmentController extends Controller {
 		# check if there is anything in the last submission query
 		# if so, pass the contents of the blob to the view, create a function there to fill ACE
 
-		if($last_submission != null) {
-			echo("last submission not null");
-			echo($last_submission);
-			die(stream_get_contents($last_submission));
-		}
+		// if($last_submission != null) {
+		// 	echo("last submission not null");
+		// 	echo($last_submission);
+		// 	die(stream_get_contents($last_submission));
+		// }
 
 		return $this->render('assignment/index.html.twig', [
 			'user' => $user,
