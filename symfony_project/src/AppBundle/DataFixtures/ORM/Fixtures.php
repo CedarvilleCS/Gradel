@@ -14,7 +14,6 @@ use AppBundle\Entity\UserSectionRole;
 use AppBundle\Entity\Testcase;
 use AppBundle\Entity\Submission;
 use AppBundle\Entity\Language;
-use AppBundle\Entity\ProblemGradingMethod;
 use AppBundle\Entity\AssignmentGradingMethod;
 use AppBundle\Entity\Feedback;
 use AppBundle\Entity\TestcaseResult;
@@ -87,7 +86,7 @@ class Fixtures extends Fixture {
 			$course1 = new Course("CS-1210", "C++ Programming", "A class where you learn how to program", false, false, false);
 			$manager->persist($course1);
 
-			$course2 = new Course("CS-1210", "Object-Oriented Design", "A class where you learn how to do the OOD", false, false, false);
+			$course2 = new Course("CS-1220", "Object-Oriented Design", "A class where you learn how to do the OOD", false, false, false);
 			$manager->persist($course2);
 			
 			$contest = new Course("", "Cedarville University Programming Contest", "The annual programming contest open to all majors and walks of life", true, true, false);
@@ -266,17 +265,6 @@ class Fixtures extends Fixture {
 			$manager->persist($language_JAVA);			
 		}
 		
-		# PROBLEMGRADINGMETHOD Testing
-		{
-			$prob_grdmethod00 = new ProblemGradingMethod(0, 0, 0);
-			$prob_grdmethod10 = new ProblemGradingMethod(10, 10, .10);
-			$prob_grdmethod01 = new ProblemGradingMethod(10, 1, .10);
-			
-			$manager->persist($prob_grdmethod00);
-			$manager->persist($prob_grdmethod10);
-			$manager->persist($prob_grdmethod01);
-		}
-		
 		# PROBLEM Testing
 		{
 			$problems = [];
@@ -287,109 +275,86 @@ class Fixtures extends Fixture {
 			
 			# HOMEWORK 1 For CS-1210-01
 			$desc_file_01 = fopen($folder_path."sum/description.txt", "r") or die("Unable to open 1.desc");
-			$problem_01 = new Problem($assignment_04, "Calculate the Sum", $desc_file_01, 1, $prob_grdmethod00, 1000, false);
+			$problem_01 = new Problem($assignment_04, "Calculate the Sum", $desc_file_01, 1, 1000, false, 0, 0, 0, false, "Long", true, "Both", true);
 			$problems[] = $problem_01;
 			$prob_folds[$problem_01->name] = "sum";
 			
 			$desc_file_02 = fopen($folder_path."diff/description.txt", "r") or die("Unable to open 2.desc");
-			$problem_02 = new Problem($assignment_04, "Calculate the Difference", $desc_file_02, 1, $prob_grdmethod00, 1000, false);
+			$problem_02 = new Problem($assignment_04, "Calculate the Difference", $desc_file_02, 1, 1000, false, 0, 0, 0, false, "Long", true, "Both", true);
 			$problems[] = $problem_02;
 			$prob_folds[$problem_02->name] = "diff";
 			
 			$desc_file_03 = fopen($folder_path."prod/description.txt", "r") or die("Unable to open 3.desc");
-			$problem_03 = new Problem($assignment_04, "Calculate the Product", $desc_file_03, 1, $prob_grdmethod00, 1000, false);
+			$problem_03 = new Problem($assignment_04, "Calculate the Product", $desc_file_03, 1, 1000, false, 0, 0, 0, false, "Long", true, "Both", true);
 			$problems[] = $problem_03;
 			$prob_folds[$problem_03->name] = "prod";
 			
 			$desc_file_04 = fopen($folder_path."quot/description.txt", "r") or die("Unable to open 4.desc");
-			$problem_04 = new Problem($assignment_04, "Calculate the Quotient", $desc_file_04, 1, $prob_grdmethod00, 1000, false);
+			$problem_04 = new Problem($assignment_04, "Calculate the Quotient", $desc_file_04, 1, 1000, false, 0, 0, 0, false, "Long", true, "Both", true);
 			$problems[] = $problem_04;
 			$prob_folds[$problem_04->name] = "quot";
 			
 			
 			# HOMEWORK 2 For CS-1210-01
 			$desc_file_11 = fopen($folder_path."sum/description.txt", "r") or die("Unable to open 1.desc");
-			$problem_11 = new Problem($assignment_01, "Get the Sum", $desc_file_11, 2, $prob_grdmethod00, 1000, false);
+			$problem_11 = new Problem($assignment_01, "Get the Sum", $desc_file_11, 2, 1000, false, 0, 0, 0, false, "Long", true, "Both", true);
 			$problems[] = $problem_11;
 			$prob_folds[$problem_11->name] = "sum";
 			
 			$desc_file_12 = fopen($folder_path."diff/description.txt", "r") or die("Unable to open 2.desc");
-			$problem_12 = new Problem($assignment_01, "Get the Difference", $desc_file_12, 2, $prob_grdmethod00, 1000, false);
+			$problem_12 = new Problem($assignment_01, "Get the Difference", $desc_file_12, 2, 1000, false, 0, 0, 0, false, "Long", true, "Both", true);
 			$problems[] = $problem_12;
 			$prob_folds[$problem_12->name] = "diff";
 			
 			$desc_file_13 = fopen($folder_path."prod/description.txt", "r") or die("Unable to open 3.desc");
-			$problem_13 = new Problem($assignment_01, "Get the Product", $desc_file_13, 2, $prob_grdmethod00, 1000, false);
+			$problem_13 = new Problem($assignment_01, "Get the Product", $desc_file_13, 2, 1000, false, 0, 0, 0, false, "Long", true, "Both", true);
 			$problems[] = $problem_13;
 			$prob_folds[$problem_13->name] = "prod";
 			
 			$desc_file_14 = fopen($folder_path."quot/description.txt", "r") or die("Unable to open 4.desc");
-			$problem_14 = new Problem($assignment_01, "Get the Quotient", $desc_file_14, 2, $prob_grdmethod00, 1000, false);
+			$problem_14 = new Problem($assignment_01, "Get the Quotient", $desc_file_14, 2, 1000, false, 0, 0, 0, false, "Long", true, "Both", true);
 			$problems[] = $problem_14;
 			$prob_folds[$problem_14->name] = "quot";
 			
-			
+			/*
 			# PRACTICE CONTEST
 			$desc_file_05 = fopen($folder_path."Z/description.txt", "r") or die("Unable to open 5.desc");
-			$problem_05 = new Problem($assignment_02, "Z - Happy Trails", $desc_file_05, 1, $prob_grdmethod10, 1000, false);
+			$problem_05 = new Problem($assignment_02, "Z - Happy Trails", $desc_file_05, 1, 1000, false, 10, 5, .10, true, "Short", false, "None", true);
 			$problems[] = $problem_05;
 			$prob_folds[$problem_05->name] = "Z";
 			
 			# ACTUAL CONTEST
 			$desc_file_06 = fopen($folder_path."A/description.txt", "r") or die("Unable to open 6.desc");
-			$problem_06 = new Problem($assignment_03, "A - The Key to Cryptography", $desc_file_06, 1, $prob_grdmethod01, 1000, false);
+			$problem_06 = new Problem($assignment_03, "A - The Key to Cryptography", $desc_file_06, 1, 1000, false, 10, 5, .10, $fblevel01);
 			$problems[] = $problem_06;
 			$prob_folds[$problem_06->name] = "A";
 			
 			$desc_file_07 = fopen($folder_path."B/description.txt", "r") or die("Unable to open 7.desc");
-			$problem_07 = new Problem($assignment_03, "B - Red Rover", $desc_file_07, 2, $prob_grdmethod01, 1000, false);
+			$problem_07 = new Problem($assignment_03, "B - Red Rover", $desc_file_07, 2, 1000, false, 10, 5, .10, $fblevel01);
 			$problems[] = $problem_07;
 			$prob_folds[$problem_07->name] = "B";
 			
 			$desc_file_08 = fopen($folder_path."C/description.txt", "r") or die("Unable to open 8.desc");
-			$problem_08 = new Problem($assignment_03, "C - Lost In Translation", $desc_file_08, 3, $prob_grdmethod01, 1000, false);
+			$problem_08 = new Problem($assignment_03, "C - Lost In Translation", $desc_file_08, 3, 1000, false, 10, 5, .10, $fblevel01);
 			$problems[] = $problem_08;
 			$prob_folds[$problem_08->name] = "C";
-			
-			# HOMEWORK OLD For OLD-1234-01
-			$desc_file_old1 = fopen($folder_path."sum/description.txt", "r") or die("Unable to open old.desc");
-			$problem_old1 = new Problem($old_assignment_01, "Old the Sum", $desc_file_old1, 1, $prob_grdmethod00, 1000, false);
-			$problems[] = $problem_old1;
-			$prob_folds[$problem_old1->name] = "sum";
-			
-			$desc_file_old2 = fopen($folder_path."diff/description.txt", "r") or die("Unable to open 2.desc");
-			$problem_old2 = new Problem($old_assignment_01, "Old the Difference", $desc_file_old2, 1, $prob_grdmethod00, 1000, false);
-			$problems[] = $problem_old2;
-			$prob_folds[$problem_old2->name] = "diff";
-			
-			$desc_file_old3 = fopen($folder_path."prod/description.txt", "r") or die("Unable to open 3.desc");
-			$problem_old3 = new Problem($old_assignment_01, "Old the Product", $desc_file_old3, 1, $prob_grdmethod00, 1000, false);
-			$problems[] = $problem_old3;
-			$prob_folds[$problem_old3->name] = "prod";
-			
-			$desc_file_old4 = fopen($folder_path."quot/description.txt", "r") or die("Unable to open 4.desc");
-			$problem_old4 = new Problem($old_assignment_01, "Old the Quotient", $desc_file_old4, 1, $prob_grdmethod00, 1000, false);
-			$problems[] = $problem_old4;
-			$prob_folds[$problem_old4->name] = "quot";
+			*/
 			
 			$manager->persist($problem_01);		
 			$manager->persist($problem_02);
 			$manager->persist($problem_03);		
 			$manager->persist($problem_04);
-			$manager->persist($problem_05);
-			$manager->persist($problem_06);
-			$manager->persist($problem_07);
-			$manager->persist($problem_08);
 			$manager->persist($problem_11);		
 			$manager->persist($problem_12);
 			$manager->persist($problem_13);		
 			$manager->persist($problem_14);
 			
-			
-			$manager->persist($problem_old1);		
-			$manager->persist($problem_old2);
-			$manager->persist($problem_old3);		
-			$manager->persist($problem_old4);
+			/*
+			$manager->persist($problem_05);
+			$manager->persist($problem_06);
+			$manager->persist($problem_07);
+			$manager->persist($problem_08);
+			*/
 		}
 		
 		# PROBLEM LANGUAGE Testing
@@ -413,8 +378,11 @@ class Fixtures extends Fixture {
 			$short_file_01 = fopen($folder_path."1.short", "r") or die("Unable to open 1.short!");			
 			$long_file_01 = fopen($folder_path."1.long", "r") or die("Unable to open 1.long!");
 			
+			$short_file_02 = fopen($folder_path."2.short", "r") or die("Unable to open 2.short!");			
+			$long_file_02 = fopen($folder_path."2.long", "r") or die("Unable to open 2.long!");
+			
 			$feedback_general = new Feedback($short_file_01, $long_file_01);
-			$feedback_negatives = new Feedback($short_file_01, $long_file_01);
+			$feedback_negatives = new Feedback($short_file_02, $long_file_02);
 			
 			$manager->persist($feedback_general);		
 			$manager->persist($feedback_negatives);		

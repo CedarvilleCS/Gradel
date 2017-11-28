@@ -14,7 +14,6 @@ use AppBundle\Entity\UserSectionRole;
 use AppBundle\Entity\Testcase;
 use AppBundle\Entity\Submission;
 use AppBundle\Entity\Language;
-use AppBundle\Entity\ProblemGradingMethod;
 use AppBundle\Entity\AssignmentGradingMethod;
 use AppBundle\Entity\Feedback;
 use AppBundle\Entity\TestcaseResult;
@@ -240,10 +239,9 @@ class Grader  {
 			# percentage grade - raw
 			$grades['percentage_raw'] = (float)$accepted_sub->percentage;
 			
-			# percentage grade - after mods
-			$gradingmethod = $problem->gradingmethod;				
-			$num_before_penalty = $gradingmethod->attempts_before_penalty;
-			$penalty_percentage = $gradingmethod->penalty_per_attempt;
+			# percentage grade - after mods			
+			$num_before_penalty = $problem->attempts_before_penalty;
+			$penalty_percentage = $problem->penalty_per_attempt;
 			
 			$attempts_to_penalize = max($attempts - $num_before_penalty, 0);
 			$total_penalty = $attempts_to_penalize*$penalty_percentage;
@@ -434,6 +432,58 @@ class Grader  {
 		}
 		
 		return $grades;
+	}
+
+	public function getFeedback($submission){
+		
+		if($submission->compiler_error){
+			return null;
+		}
+		
+		$problem = $submission->problem;
+		
+		$stop_on_first_fail = $problem->stop_on_first_fail;
+		$response_level = $problem->response_level;
+		$display_testcaseresults = $problem->display_testcaseresults;
+		$testcase_output_level = $problem->testcase_output_level;
+		$extra_testcases_display = $problem->extra_testcases_display;		
+		
+		$feedback = [];	
+		
+		$feedback['stop_on_first_fail'] = $stop_on_first_fail;
+		$feedback['display_markers'] = $display_testcaseresults;
+		$feedback['extra_testcases_display'] = $extra_testcases_display;
+		$feedback['response'] = [];
+		$feedback['input'] = [];
+		$feedback['output'] = [];		
+		
+		foreach($submission->testcaseresults as $tcr){
+
+			if($tcr->testcase->is_extra_credit && !$extra_testcases_display){
+				continue;
+			}
+			
+			if(!$tcr->is_correct && $response_level == "Short"){
+				$feedback['response'][$tcr->testcase->seq_num] = $tcr->testcase->feedback->deblobinateShortResponse();
+			} else if(!$tcr->is_correct && $response_level == "Long"){
+				$feedback['response'][$tcr->testcase->seq_num] = $tcr->testcase->feedback->deblobinateLongResponse();
+			}
+			
+			if($testcase_output_level == "Output"){
+				$feedback['output'][$tcr->testcase->seq_num] = $tcr->testcase->deblobinateCorrectOutput();
+			} else if($testcase_output_level == "Both"){
+				$feedback['output'][$tcr->testcase->seq_num] = $tcr->testcase->deblobinateCorrectOutput();
+				$feedback['input'][$tcr->testcase->seq_num] = $tcr->testcase->deblobinateInput();
+			}
+			
+			if(!$tcr->is_correct && $stop_on_first_fail){
+				break;
+			}
+		}
+			
+		$feedback['response'] = array_unique($feedback['response']);
+		
+		return $feedback;		
 	}
 }
 

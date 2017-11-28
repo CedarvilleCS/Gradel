@@ -34,12 +34,16 @@ class TestCaseController extends Controller {
     }
 
 	public function insertAction(Request $request) {
-    echo json_decode("hi");
+   
       $em = $this->getDoctrine()->getManager();
       $user = $this->get('security.token_storage')->getToken()->getUser();
       $post_data = $request->request->all();
 
       $problem = $em->find("AppBundle\Entity\Problem", $post_data['problemId']);
+	  
+	  if(!$problem){
+		  die("PROBLEM GIVEN DOES NOT EXIST");
+	  }
 
       $input = $post_data['input'];
       $output = $post_data['output'];
@@ -52,16 +56,16 @@ class TestCaseController extends Controller {
       $feedback->long_response = $long_feedback;
 
       $em->persist($feedback);
-      $em->flush();
 
       $testcase = new Testcase();
 
       $testcase->problem = $problem;
       $testcase->feedback = $feedback;
-  	  $testcase->seq_num = 0; // Not yet being used
+  	  $testcase->seq_num = 0; // Needs to be used
   	  $testcase->input = $input;
   	  $testcase->correct_output = $output;
   	  $testcase->weight = $weight;
+      $testcase->is_extra_credit = false;
       //
       $em->persist($testcase);
       $em->flush();

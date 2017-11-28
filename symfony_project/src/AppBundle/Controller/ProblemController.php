@@ -11,7 +11,6 @@ use AppBundle\Entity\Problem;
 use AppBundle\Entity\ProblemLanguage;
 use AppBundle\Entity\Language;
 use AppBundle\Entity\UserSectionRole;
-use AppBundle\Entity\ProblemGradingMethod;
 
 use AppBundle\Utils\Grader;
 
@@ -39,19 +38,10 @@ class ProblemController extends Controller {
 
       $languages = $qb->getQuery()->getResult();
 
-      $qb = $em->createQueryBuilder();
-      $qb->select('gm')
-        ->from('AppBundle\Entity\ProblemGradingMethod', 'gm')
-        ->where('1 = 1');
-
-      $gradingMethods = $qb->getQuery()->getResult();
-
-
       return $this->render('problem/new.html.twig', [
         'languages' => $languages,
         'sectionId' => $sectionId,
         'assignmentId' => $assignmentId,
-        'gradingMethods' => $gradingMethods,
       ]);
     }
 
@@ -66,7 +56,11 @@ class ProblemController extends Controller {
       if (sizeof($languageArr) == 0) {
         array_push($errors, "You must provide at least one language");
       }
-      $assignment = $em->find("AppBundle\Entity\Assignment", $post_data['assignmentId']);
+      
+	  $assignment = $em->find("AppBundle\Entity\Assignment", $post_data['assignmentId']);
+	  if (!$assignment) {
+		  array_push($errors, "Assignment provided does not exist");
+	  }
 
       $name = $post_data['name'];
       if ($name == "") {
@@ -77,31 +71,43 @@ class ProblemController extends Controller {
       if ($description == "") {
         array_push($errors, "Description must be set");
       }
-      $weight = $post_data['weight'];
-      if (!is_numeric($weight) || ((int)$weight < 0)) {
+      
+	  $weight = $post_data['weight'];
+      if (!is_numeric($weight) || ((int)$weight < 1)) {
         array_push($errors, "You must provide an integer weight greater than 0. You provided: " . $weight);
       }
+	  
       $is_extra_credit = $post_data['is_extra_credit'];
       if ($is_extra_credit !== "true" && $is_extra_credit !== "false") {
         array_push($errors, "You are trying to be malicious! Stop it! Extra Credit must be a boolean");
       }
+	  
       $time_limit = $post_data['time_limit'];
       if ($time_limit <= 0) {
         array_push($errors, "Time limit must be greater than 0!");
       }
+	  
 
       if (sizeof($errors) == 0) {
 
         $problem = new Problem();
-        $problemGradingMethod = $em->find("AppBundle\Entity\ProblemGradingMethod", $post_data['grading_method']);
 
         $problem->assignment = $assignment;
-        $problem->gradingmethod = $problemGradingMethod;
         $problem->name = $name;
         $problem->description = $description;
         $problem->weight = $weight;
         $problem->is_extra_credit = ($is_extra_credit == "true") ? 1 : 0;
         $problem->time_limit = $time_limit;
+		
+		$problem->total_attempts = 0; // change this Chris
+		$problem->attempts_before_penalty = 0; // change this Chris
+		$problem->penalty_per_attempt = 0.00; // change this Chris
+		
+		$problem->stop_on_first_fail = false; // change this Chris
+		$problem->response_level = "Long"; // change this Chris
+		$problem->display_testcaseresults = true; // change this Chris
+		$problem->testcase_output_level = "Both"; // change this Chris
+		$problem->extra_testcases_display = true; // change this Chris
 
         $em->persist($problem);
 
@@ -153,6 +159,7 @@ class ProblemController extends Controller {
         "problemLanguages" => $problemLanguages,
       ]);
     }
+	
 	public function deleteAction($sectionId, $assignmentId, $problemId){
 
 		$em = $this->getDoctrine()->getManager();
@@ -202,39 +209,14 @@ class ProblemController extends Controller {
 			die();
 		}
 
-		# get all of the contents of the compiler and file
-		$compiler_output = stream_get_contents($submission->compiler_output);
-		$submission_file = stream_get_contents($submission->submitted_file);
-
-		foreach($submission->testcaseresults as $tc){
-
-			$output["std_output"] = stream_get_contents($tc->std_output);
-			$output["runtime_output"] = stream_get_contents($tc->runtime_output);
-			$output["time_output"] = $tc->execution_time;
-			$tc_output[] = $output;
-		}
-
-		# get the usersectionrole
-		$qb_usr = $em->createQueryBuilder();
-		$qb_usr->select('usr')
-			->from('AppBundle\Entity\UserSectionRole', 'usr')
-			->where('usr.user = ?1')
-			->andWhere('usr.section = ?2')
-			->setParameter(1, $user)
-			->setParameter(2, $submission->problem->assignment->section);
-
-		$usr_query = $qb_usr->getQuery();
-		$usersectionrole = $usr_query->getOneOrNullResult();
+		$grader = new Grader($em);
+		$feedback = $grader->getFeedback($submission);
 
         return $this->render('problem/result.html.twig', [
 			'submission' => $submission,
-			'problem' => $submission->problem,
 			'grader' => new Grader($em),
-			'usersectionrole' => $usersectionrole,
-			'testcases_output' => $tc_output,
-			'compiler_output' => $compiler_output,
-			'submission_file' => $submission_file,
 			'result_page' => true,
+			'feedback' => $feedback,
         ]);
 	}
 

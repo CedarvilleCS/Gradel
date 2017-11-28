@@ -75,7 +75,7 @@ class Submission {
 		
 		$tcr_correct = $this->getNumTestCasesCorrect(); 
 		
-		return $tcs == $tcrs && $tcrs == $tcr_correct;
+		return $tcs > 0 && $tcs == $tcrs && $tcrs == $tcr_correct;
 	}
 
 	/**
@@ -135,8 +135,10 @@ class Submission {
 	*/
 	public $submitted_file;
 	
-	public function deblobinateSubmission(){			
-		return stream_get_contents($this->submission);
+	public function deblobinateSubmittedFile(){			
+		$val = stream_get_contents($this->submitted_file);
+		rewind($this->submitted_file);
+		return $val;
 	}
 	
 	/**
@@ -145,7 +147,9 @@ class Submission {
 	public $log_directory;
 	
 	public function deblobinateLogDirectory(){			
-		return stream_get_contents($this->log_directory);
+		$val = stream_get_contents($this->log_directory);
+		rewind($this->log_directory);
+		return $val;
 	}
 	
 	/**
@@ -170,7 +174,9 @@ class Submission {
 	public $compiler_output;
 	
 	public function deblobinateCompilerOutput(){			
-		return stream_get_contents($this->compiler_output);
+		$val = stream_get_contents($this->compiler_output);
+		rewind($this->compiler_output);
+		return $val;
 	}
 	
 	/**
