@@ -2,6 +2,8 @@
 
 namespace AppBundle\Entity;
 
+use JsonSerializable;
+
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Config\Definition\Exception\Exception;
@@ -10,7 +12,7 @@ use Symfony\Component\Config\Definition\Exception\Exception;
  * @ORM\Entity
  * @ORM\Table(name="assignment")
  */
-class Assignment{
+class Assignment implements JsonSerializable{
 	
 	public function __construct(){
 		
@@ -24,6 +26,7 @@ class Assignment{
 		}
 		
 		$this->problems = new ArrayCollection();
+		$this->teams = new ArrayCollection();
 	}
 	
 	public function __construct9($sect, $nm, $desc, $start, $end, $cutoff, $wght, $grade, $extra){
@@ -100,6 +103,18 @@ class Assignment{
 	* @ORM\Column(type="boolean")
 	*/
 	public $is_extra_credit;
+	
+	/**
+	* @ORM\OneToMany(targetEntity="Team", mappedBy="assignment")
+	*/
+	public $teams;
+	
+	public function jsonSerialize(){
+		return [
+			'name' => $this->name,			
+			'weight' => $this->weight,
+		];
+	}
 }
 
 ?>

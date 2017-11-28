@@ -1,0 +1,173 @@
+{% block head %}
+<title>Gradel | Course Edit</title>
+<link rel="icon" type="image/x-icon" href="{{ asset('logo1.png') }}" />
+{% endblock %}
+
+
+{% block body %}
+
+<body>
+	{{ include('template/top-nav.html.twig') }}
+
+    {# left panel with the problem links #}
+	{#{{ include('template/course-nav.html.twig') }}#}
+	<nav class="nav-left">
+		<a id="save-btn" class="btn"><div class="btn btn-center">Save</div></a>
+    </nav>
+	
+    {# Main section with the necessary variable#}
+    <div class="scrollbar-macosx">
+        <section id="main">
+			
+			{{ include('template/path-nav.html.twig') }}
+		
+            {# Cards #}
+            <div class="card">
+				<div class="btn-close">
+					<h2 style="margin: 0px">
+					{% if course is not null %}
+						Edit {{course.name}}
+					{% else %}
+						New Course
+					{% endif %}					
+					</h2>
+				</div>
+				
+				<div id="requiredFields" class="card-contents">				
+					<div>
+						<label for="name">Name</label> <br/>
+						<input id="name" name="name" type="text" style="width: 350px"> <br/>
+						
+						<label for="code">Code</label> <br/>
+						<input id="code" name="code" type="text" style="width: 200px"> <br/>
+						
+						<label for="description">Description</label>
+						<textarea style="margin-top: 8px; margin-bottom: 8px; border: 2px solid #6C6E71; background-color: transparent; border-radius: 4px" id="description"></textarea>
+									
+						<div class="toggle-container">
+							<label for="contest"> Contest </label>
+							<label class="switch">
+							  <input type="checkbox" id="contest" name="contest">
+							  <span class="slider round"></span>
+							</label>
+						</div>
+					</div>
+				</div>
+            </div>
+
+        </section>
+    </div>
+
+	
+	
+
+</body>
+
+{% endblock %}
+
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('styles.css') }}" />
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
+	<link rel="stylesheet" href="{{ asset('custom-toggle.css') }}">
+{% endblock %}
+
+
+{% block scripts %}
+    <!-- JQuery -->
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+	<script src="{{ asset('js/cards.js') }}"></script>
+	<script src="{{ asset('js/validation.js') }}"></script>
+	
+	<script>
+	
+		$(document).ready(function() {		
+			
+			{% if course is not null %}
+				populateForm();
+			{% endif %}
+			
+			
+			$('#save-btn').on('click', function(){
+			
+				/* Client-Side Field Validation */
+        
+				// course name
+				if ($.trim($('#name').val())  === '') {						
+					setInvalid($('#name'));
+					return false;
+				} else {
+					setValid($('#name'));
+				}
+				
+				// course code
+				if ($.trim($('#code').val())  === '') {						
+					setInvalid($('#code'));
+					return false;
+				} else {
+					setValid($('#code'));
+				}
+				
+				// course description
+				if ($.trim($('#description').val())  === '') {						
+					setInvalid($('#description'));
+					return false;
+				} else {
+					setValid($('#description'));
+				}
+				
+				// check to see if this button is allowed to be pressed
+				if($(this).prop('disabled')){
+					return false;
+				} else {
+					$(this).prop('disabled', true);
+				}
+						
+				/* Post to the Symfony Route */
+				$.post( "{{path('course_modify')}}", {				
+					
+					name: $.trim($('#name').val()),
+					code: $.trim($('#code').val()),
+					description: $.trim($('#description').val()),
+					
+					is_contest: $('#contest').is(':checked'),
+					
+					course: {% if course is not null %} {{course.id}} {% else %} 0 {% endif %},
+					
+				}, function(data) {			
+					console.log(data);					
+					window.location = data["redirect_url"];
+					
+				}).fail(function(data) {				
+					alert(data["responseText"]);					
+					$('#save-btn').prop('disabled', false);				
+				});				
+			});
+			
+		});
+		
+	</script>
+	
+	
+	{% if course is not null %}
+	<script>
+		function populateForm(){			
+			// set the name field
+			$('#name').val("{{course.name}}");
+			
+			// set the code field
+			$('#code').val("{{course.code}}");
+			
+			// set the description field
+			$('#description').val("{{course.description|replace({'\n':'\\n'})|raw}}");
+			
+			// set the contest checkbox
+			$('#contest').attr('checked', {% if course.is_contest %} true {% else %} false {% endif %});
+		}
+	
+	</script>
+	{% endif %}
+	
+{% endblock %}

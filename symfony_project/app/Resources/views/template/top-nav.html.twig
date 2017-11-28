@@ -4,7 +4,7 @@
 
 	{# admin button #}
 	{% if is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN")%}	
-		<a href="" class="navbuttons">Admin</a>	
+		<a href="{{path('courses')}}" class="navbuttons">Courses</a>	
 	{% endif %}
 
 	
