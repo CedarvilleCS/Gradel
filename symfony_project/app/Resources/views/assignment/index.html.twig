@@ -251,7 +251,12 @@
 			$('#submissionUploadForm').ajaxForm(function(data) {
 				//console.log(data);
 				setLanguageFromFilename(data["file"]);
-				updateAceCode(atob(data["contents"]), getLanguage(data["file"]));
+				
+				var editor = ace.edit("editor");
+				editor.$blockScrolling = Infinity;
+				editor.setValue(atob(data["contents"]));
+				
+				updateAceCode();
 			});
 
 			$('#submissionButton').click( function() {
@@ -313,8 +318,12 @@
 			var editor = ace.edit("editor");
 			editor.$blockScrolling = Infinity;
 			editor.setTheme("ace/theme/xcode");
-
-			$('#languageSelect').change();
+			
+			{% if last_submission != null %}
+			setLanguageFromFilename("{{last_submission.filename}}");
+			{% else %}
+			$('#languageSelect').change();			
+			{% endif %}
 		});
 	</script>
 
