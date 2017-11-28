@@ -105,18 +105,43 @@ class SectionController extends Controller {
 				$allprobs[] = $prob;
 			}
 		}
-		$qb_submissions = $em->createQueryBuilder();
-		$qb_submissions->select('s')
-				->from('AppBundle\Entity\Submission', 's')
-				->where('s.problem IN (?1)')
-				->orderBy('s.timestamp', 'DESC')
-				->setParameter(1, $allprobs)
-				->setMaxResults(30);
-
-		$submission_query = $qb_submissions->getQuery();
-		$submissions = $submission_query->getResult();
-
+		
 		$grader = new Grader($em);
+		
+		if($grader->isTeaching($user, $section_entity)){
+			
+			$qb_submissions = $em->createQueryBuilder();
+			$qb_submissions->select('s')
+					->from('AppBundle\Entity\Submission', 's')
+					->where('s.problem IN (?1)')
+					->orderBy('s.timestamp', 'DESC')
+					->setParameter(1, $allprobs)
+					->setMaxResults(30);
+
+			$submission_query = $qb_submissions->getQuery();
+			$submissions = $submission_query->getResult();			
+			
+		} else {
+			$teams = [];
+			
+			foreach($section_entity->assignments as $asgn){
+				$teams[] = $grader->getTeam($user, $asgn);
+			}
+			
+			$qb_submissions = $em->createQueryBuilder();
+			$qb_submissions->select('s')
+					->from('AppBundle\Entity\Submission', 's')
+					->where('s.problem IN (?1)')
+					->andWhere('s.team IN (?2)')
+					->orderBy('s.timestamp', 'DESC')
+					->setParameter(1, $allprobs)
+					->setParameter(2, $teams)
+					->setMaxResults(30);
+
+			$submission_query = $qb_submissions->getQuery();
+			$submissions = $submission_query->getResult();
+			
+		}
 		
 		$grades = [];
 		foreach($section_takers as $section_taker){			

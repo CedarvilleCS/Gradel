@@ -92,11 +92,45 @@ class HomeController extends Controller {
 			->where('u != ?1')
 			->setParameter(1, $user);
 			
-		$users_query = $qb_users->getQuery();		
-
+		$users_query = $qb_users->getQuery();
 		$users = $users_query->getResult();	
 		
 		$grader = new Grader($em);
+		
+		$student_grades = [];
+		/*
+		foreach($sections_teaching as $sect){
+			
+			$takes_role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));
+			
+			$qb_usr = $em->createQueryBuilder();
+			$qb_usr->select('usr')
+				->from('AppBundle\Entity\UserSectionRole', 'usr')
+				->where('usr.user = ?1')
+				->andWhere('usr.section = ?2')
+				->andWhere('usr.role = ?3')
+				->setParameter(1, $user)
+				->setParameter(2, $sect)
+				->setParameter(3, $takes_role);
+
+			$usr_query = $qb_usr->getQuery();
+			$section_takers = $usr_query->getResult();
+			
+			$tot_grd = 0;
+			foreach($section_takers as $taker){
+				$grd = $grader->getSectionGrade($user, $sect);
+				$grd = $grd['percentage_adj'];
+				
+				$tot_grd += $grd;
+			}
+			
+			if(count($section_takers) > 0){
+				$tot_grd = $tot_grd/count($section_takers);
+			}
+			
+			$student_grades[$sect->id] = $tot_grd;
+		}
+		*/
 		
 		$grades = $grader->getAllSectionGrades($user);
 		
@@ -109,7 +143,9 @@ class HomeController extends Controller {
 			'sections_teaching' => $sections_teaching,
 			
 			'grades' => $grades,
-			'user_impersonators' => $users
+			'user_impersonators' => $users,
+			
+			'student_grades' => $student_grades,
 		]);
 
     }
