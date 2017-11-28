@@ -106,9 +106,32 @@ class AssignmentController extends Controller {
 			->andWhere('s.is_accepted = true')
 			->setParameter(1, $grader->getTeam($user, $assignment_entity))
 			->setParameter(2, $problem_entity);
+		
 			
 		$sub_query = $qb_accsub->getQuery();
 		$best_submission = $sub_query->getOneOrNullResult();
+
+		# get the code from the last submission
+		$qb_lastsub = $em->createQueryBuilder();
+		$qb_lastsub->select('last')
+			->from('AppBundle\Entity\Submission', 'last')
+			->where('last.team = ?1')
+			->andWhere('last.problem = ?2')
+			->setMaxResults(1)
+		    	->orderBy('last.id', 'DESC')
+			->setParameter(1, $grader->getTeam($user, $assignment_entity))
+			->setParameter(2, $problem_entity);
+		$lastsub_query = $qb_lastsub->getQuery();
+		$last_submission = $lastsub_query->getOneOrNullResult();
+
+		# check if there is anything in the last submission query
+		# if so, pass the contents of the blob to the view, create a function there to fill ACE
+
+		// if($last_submission != null) {
+		// 	echo("last submission not null");
+		// 	echo($last_submission);
+		// 	die(stream_get_contents($last_submission));
+		// }
 
 		return $this->render('assignment/index.html.twig', [
 			'user' => $user,
@@ -123,6 +146,8 @@ class AssignmentController extends Controller {
 			
 			'attempts_remaining' => $attempts_remaining,
 			'best_submission' => $best_submission,
+
+			'last_submission' => $last_submission,
 
 			'default_code' => $default_code,
 			'ace_modes' => $ace_modes,

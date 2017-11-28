@@ -37,48 +37,46 @@
 				<div id="courseInfo" class="card-contents">
 					<p>{{problemDescription|nl2br}}</p>
 
-						{# the editor text area #}
-						<div id="editor"></div>
+					{# the ACE editor text area #}
+					<div id="editor">{% if last_submission != null %}{{ last_submission.deblobinateSubmittedFile()|nl2br }}{% endif %}</div>
+					<br/>
 
-						<br/>
+					{# display the form or not #}
+					{% set open = (problem.assignment.start_time|date('U') < "now"|date('U') and problem.assignment.cutoff_time|date('U') > "now"|date('U')) %}
 
-						{# display the form or not #}
-						{% set open = (problem.assignment.start_time|date('U') < "now"|date('U') and problem.assignment.cutoff_time|date('U') > "now"|date('U')) %}
+					{% if usersectionrole.role.role_name == 'Takes' and open and attempts_remaining != 0%}
 
-						{% if usersectionrole.role.role_name == 'Takes' and open and attempts_remaining != 0%}
+						{# file upload#}
+						<form id="submissionUploadForm" action="{{path('get_contents')}}" method="post">
+							<input type="file" name="file" id="file" value="Upload File">
+						</form>
 
-							{# ACE editor and file upload#}
-							<form id="submissionUploadForm" action="{{path('get_contents')}}" method="post">
-								<input type="file" name="file" id="file" value="Upload File">
-							</form>
+						{# Language selection and hidden field to submit ACE contents #}
+						<div id="submissionForm">
 
-							{# Language selection and hidden field to submit ACE contents #}
-							<div id="submissionForm">
+							Language:
+							<select id="languageSelect" name="language">
+								{% for lang in languages %}
+									{% if lang.name != "No Language Restriction" %}
+										<option value={{lang.id}}>{{lang.name}}</option>
+									{% endif %}
+								{% endfor %}
+							</select>
+							<br>
+							<div id="mainClassInput" style="display:none"><label for="main_class">Main Class: </label><input type="text" name="main_class" id="main_class_input"></div>
+							<div id="packgNameInput" style="display:none"><label for="package_name">Package Name: </label><input type="text" name="package_name" id="package_name_input"></div>
+							<br/>
+							<input type="hidden" name="ACE" id="ACE">
+							<div class="btn" id="submissionButton"> Submit </div>
+						</div>
 
-								Language:
-								<select id="languageSelect" name="language">
-									{% for lang in languages %}
-										{% if lang.name != "No Language Restriction" %}
-											<option value={{lang.id}}>{{lang.name}}</option>
-										{% endif %}
-									{% endfor %}
-								</select>
-								<br>
-								<div id="mainClassInput" style="display:none"><label for="main_class">Main Class: </label><input type="text" name="main_class" id="main_class_input"></div>
-								<div id="packgNameInput" style="display:none"><label for="package_name">Package Name: </label><input type="text" name="package_name" id="package_name_input"></div>
-								<br/>
-								<input type="hidden" name="ACE" id="ACE">
-								<div class="btn" id="submissionButton"> Submit </div>
-							</div>
-
-						{% elseif attempts_remaining == 0 %}
-							You are out of attempts for this problem.
-						{% elseif open %}
-							You are not "Taking" this class, so you cannot submit a problem.
-						{% else %}
-							This problem is not currently open.
-						{% endif %}
-
+					{% elseif attempts_remaining == 0 %}
+						You are out of attempts for this problem.
+					{% elseif open %}
+						You are not "Taking" this class, so you cannot submit a problem.
+					{% else %}
+						This problem is not currently open.
+					{% endif %}
 				</div>
         </div>
 
@@ -106,6 +104,20 @@
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 	<script src="{{ asset('src-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>
+	<script src="{{ asset('js/validation.js') }}"></script>
+	<script>
+		element = $("#main_class_input");
+		$('#submissionButton').on('click', function(){          
+			if ($.trim(element.val())  === '') {	
+			setInvalid(element);
+			}
+		});
+		
+		/* Mark fields as valid once the user changes them */
+		element.on('input',function(e){
+			setValid(element);
+		});
+</script>
 
 	{# asynchronous file upload #}
 	<script src="http://malsup.github.com/jquery.form.js"></script>
@@ -215,6 +227,9 @@
 	<script>
 		$(document).ready(function() {
 
+				var editor = ace.edit("editor");
+				editor.$blockScrolling = Infinity;
+
 			// make the language dropdown change affect the code
 			$('#languageSelect').change( function(data) {
 
@@ -250,8 +265,7 @@
 				var main_class = $('#main_class_input').val();
 				var package_name = $('#package_name_input').val();
 
-				if(languageText == 'Java' && main_class == ''){
-
+				if(languageText == 'Java' && main_class == '') {
 					return false;
 				} else if(languageText != 'Java'){
 
