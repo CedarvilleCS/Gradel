@@ -96,7 +96,6 @@
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('styles.css') }}" />
-    <link rel="stylesheet" href="{{ asset('home.css') }}" />
 {% endblock %}
 
 
@@ -112,9 +111,10 @@
 			testCases++;
 			div_name ="testcases"+testCases;
 			formalName="Test Case "+testCases;
-			newTestCard = `<div class="card">
-				<div class="btn-close" onclick="collapseCard(&quot;`+div_name+`&quot;)">
+			newTestCard = `<div class="card" id=`+div_name+`>
+				<div class="btn-close" display="inline-block">
 					<h2 style="margin: 0px">`+formalName+`<span style="float: right"><i class="fa fa-angle-down"></i></span></h2>
+					<div id="closeButton" width="50px" onclick="deleteTestCase(&quot;`+div_name+`&quot;)" class="btn btn-center">Delete</div>
 				</div>
 				<div id=`+div_name+` class="test-case">
 					<table>
@@ -150,11 +150,12 @@
 			testCases++;
 			div_name ="testcases"+testCases;
 			formalName="Test Case "+testCases;
-			newTestCard = `<div class="card">
-				<div class="btn-close" onclick="collapseCard(&quot;`+div_name+`&quot;,)">
+			newTestCard = `<div class="card" id=`+div_name+`>
+				<div class="btn-close">
 					<h2 style="margin: 0px">`+formalName+`<span style="float: right"><i class="fa fa-angle-down"></i></span></h2>
+					<div id="closeButton" onclick="deleteTestCase(`+formalName+`)" class="btn btn-center">Delete</div>
 				</div>
-				<div id=`+div_name+`x class="test-case">
+				<div id=`+div_name+` class="test-case">
 					<table>
 						<tr>
 							<th colspan="1">
@@ -177,6 +178,12 @@
 			newTestCard = newTestCard.replace(new RegExp('\r?\n','g'), "");
 			$("#main").append(newTestCard);
 		});
+	
+	function deleteTestCase(testcase){
+		testCases--;
+		document.getElementById(testcase).remove();
+		
+	};
 
     function languageSelect() {
       const language = document.getElementById('languages');
@@ -251,5 +258,7 @@
       }
     }
       // insertTestCase("testcases1");
+	  
+	 
 	</script>
 {% endblock %}

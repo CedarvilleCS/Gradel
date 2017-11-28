@@ -10,7 +10,7 @@
 	{% endif %}
 	
 	{% if is_granted("ROLE_ADMIN") or is_granted("ROLE_SUPER") %}
-		<a href="{{path('section_edit')}}" class="btn">
+		<a href="{{path('section_modify')}}" class="btn">
 			<div class="btn btn-center">+ Section</div>
 		</a>
 	{% endif %}
@@ -48,13 +48,13 @@
 						</span>	
 					
 					{% if app.user in section_teachers or is_granted("ROLE_SUPER") %}
-					<object>
-						<a title="Edit Section" href="{{path('section_edit', {'sectionId': section.id})}}">
-							<img class="small-icon" src="{{ asset('edit.png') }}">
-						</a>
-						
-					</object>
-				{% endif %}	
+						<object>
+							<a title="Edit Section" href="{{path('section_edit', {'sectionId': section.id})}}">
+								<img class="small-icon" id="right-icon" src="{{ asset('edit.png') }}">
+							</a>
+							
+						</object>
+					{% endif %}	
 					
 					</li>
 				</a>	

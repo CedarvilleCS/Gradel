@@ -41,10 +41,10 @@ strong, b{
  	height: 93%;
  	padding: 2px 3px;
  }
-
+ 
  .topnav #logo:hover {
  	background-color: inherit;
- 	color: black;
+ 	color: black;	
  }
 
 .btn {
@@ -55,11 +55,19 @@ strong, b{
     border: none;
     text-align: center;
 	padding-top: 12px;
-	cursor: pointer;
 }
 
 .btn-delete {
     background-color: #FF3232;
+}
+
+#closeButton {
+	position: absolute;
+    top: 0;
+    right: 0;
+	background-color: black;
+	height: 20;
+	width: 20;
 }
 
 .small-icon {
@@ -68,7 +76,7 @@ strong, b{
 	bottom: 7;
     right: 23;
     cursor: pointer;
-	height: 15;
+	height: 15; 
 	width: 15;
 	position: absolute;
 }
@@ -83,7 +91,7 @@ strong, b{
 
 
 a#edit-icon:hover {
-
+	
 }
 
 .sidebar{
@@ -152,10 +160,10 @@ a.preview {
  	height: 93%;
  	padding: 2px 3px;
 }
-
+ 
 .topnav #logo:hover {
  	background-color: inherit;
- 	color: black;
+ 	color: black;	
 }
 
 nav.nav-left {
@@ -218,7 +226,7 @@ nav.nav-left > ol > a > li:hover {
 }
 
 .pathnav a {
-	text-decoration: none;
+	text-decoration: none;	
 }
 
 #past_sections_button:hover {
@@ -256,22 +264,22 @@ nav.nav-left > ol > a > li:hover {
 	width: 90%;
 	text-decoration: none;
 	color: white;
-
+	
 	margin:auto;
     margin-top: 10px;
     height: 30px;
     background-color: #ff8b7f;
     border: none;
     text-align: center;
-
-	padding-top: 12px;
+	
+	padding-top: 12px;	
 }
 */
 .btn-delete:hover{
 	background-color: #FF5A49;
 }
 
-/* i {
+/* i { 
     position: absolute;
     right: 20px;
     top: 14px;
@@ -322,7 +330,7 @@ atable {
 }
 
 a {
-	color: inherit;
+	color: inherit;	
 }
 
 td, th {
@@ -338,10 +346,6 @@ td, th {
 
 .dyLabel {
   display: inline-block;
-}
-
-label {
-	font-weight: bold;
 }
 /*tr:nth-child(even) {
     background-color: #dddddd;
@@ -374,7 +378,7 @@ table {
 textarea {
   resize: none;
   width: 100%;
-  height: 100px;
+  height: 200px;
 }
 
 textarea.problem_creation{
