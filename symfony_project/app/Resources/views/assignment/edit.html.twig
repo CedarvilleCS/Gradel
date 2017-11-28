@@ -1,5 +1,5 @@
 {% block head %}
-<title>Gradel</title>
+<title>Gradel | Edit Assignment</title>
 <link rel="icon" type="image/x-icon" href="{{ asset('logo1.png') }}" />
 {% endblock %}
 
@@ -145,14 +145,8 @@
 	<script src="//cdn.jsdelivr.net/npm/jquery-ui-timepicker-addon@1.6.3/dist/jquery-ui-sliderAccess.js"></script>
 	<script src="//cdn.jsdelivr.net/npm/jquery-ui-timepicker-addon@1.6.3/dist/jquery-ui-timepicker-addon.js"></script>
 	
-	<script src="{{ asset('js/cards.js') }}"></script>	
-	
+	<script src="{{ asset('js/cards.js') }}"></script>		
 	<script src="{{ asset('js/validation.js') }}"></script>
-	<script>
-	  validate($("#name"));
-	  validate($('#opendatepicker'));
-	  validate($('#closedatepicker'));
-	</script>
 	
     <script>	
 		$(document).ready(function() {
@@ -238,7 +232,7 @@
 				if($(this).prop('disabled')){
 					return false;
 				} else {
-					//$(this).prop('disabled', true);
+					$(this).prop('disabled', true);
 				}
 				
 				// get JSON structure for the teams
@@ -273,16 +267,6 @@
 				});				
 			});
 		});
-		
-		function setInvalid(div) {
-			div.css('border', '3px solid red');
-			div.css('background-color', '#FD8177');
-		}
-		
-		function setValid(div) {
-			div.css('border', '');
-			div.css('background-color', '');
-		}
 
 	</script>
 	

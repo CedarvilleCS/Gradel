@@ -56,13 +56,12 @@ class TestCaseController extends Controller {
       $feedback->long_response = $long_feedback;
 
       $em->persist($feedback);
-      $em->flush();
 
       $testcase = new Testcase();
 
       $testcase->problem = $problem;
       $testcase->feedback = $feedback;
-  	  $testcase->seq_num = 0; // Not yet being used
+  	  $testcase->seq_num = 0; // Needs to be used
   	  $testcase->input = $input;
   	  $testcase->correct_output = $output;
   	  $testcase->weight = $weight;

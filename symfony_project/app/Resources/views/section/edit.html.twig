@@ -1,5 +1,5 @@
 {% block head %}
-<title>Gradel</title>
+<title>Gradel | Edit Section</title>
 <link rel="icon" type="image/x-icon" href="{{ asset('logo1.png') }}" />
 {% endblock %}
 
@@ -133,14 +133,10 @@
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 	<script src="{{ asset('js/cards.js') }}"></script>
 	<script src="{{ asset('js/validation.js') }}"></script>
-	<script>
-	  validate($("#name"));
-	</script>
 	
 	<script>
 	
-		$(document).ready(function() {
-		
+		$(document).ready(function() {		
 			
 			$('#year').val("{{'now'|date('Y')}}");
 		
@@ -165,6 +161,33 @@
 			{% endif %}
 			
 			$('#save-btn').on('click', function(){
+			
+				/* Client-Side Validation */
+				// section name
+				if ($.trim($('#name').val())  === '') {						
+					setInvalid($('#name'));
+					return false;
+				} else {
+					setValid($('#name'));
+				}
+				
+				// make sure that if one date is provided, the other one is too
+				if ($('#enddatepicker').val() == '' && $('#startdatepicker').val() != '' || $('#enddatepicker').val() != '' && $('#startdatepicker').val() == ''){
+					setInvalid($('#startdatepicker'));
+					setInvalid($('#enddatepicker'));
+					return false;
+				} else {
+					setValid($('#startdatepicker'));
+					setValid($('#enddatepicker'));
+				}
+				
+				// make sure that the dates make sense if they provided them
+				if ($('#enddatepicker').datepicker('getDate') < $('#startdatepicker').datepicker('getDate')){
+					setInvalid($('#enddatepicker'));
+					return false;
+				} else {
+					setValid($('#enddatepicker'));
+				}
 								
 				/* Array of Students */
 				var students = document.getElementById('student-csv').value.split(",");
@@ -208,16 +231,6 @@
 			});
 		});
 		
-		function setInvalid(div) {
-			div.css('border', '3px solid red');
-			div.css('background-color', '#FD8177');
-		}
-		
-		function setValid(div) {
-			div.css('border', '');
-			div.css('background-color', '');
-		}
-
 		function updateStudentCSV() {
 			
 			// get the value of the new student
