@@ -48,6 +48,10 @@
 						{% if usersectionrole.role.role_name == 'Takes' and open and attempts_remaining != 0%}
 
 							{# ACE editor and file upload#}
+							{% if last_submission != null %}
+								<p>Last Submission ID: {{ last_submission.submitted_file }}</p>
+							{% endif %}
+
 							<form id="submissionUploadForm" action="{{path('get_contents')}}" method="post">
 								<input type="file" name="file" id="file" value="Upload File">
 							</form>
