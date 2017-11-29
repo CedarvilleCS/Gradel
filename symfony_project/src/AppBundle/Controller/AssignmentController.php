@@ -123,7 +123,8 @@ class AssignmentController extends Controller {
 			->setParameter(2, $problem_entity);
 		$lastsub_query = $qb_lastsub->getQuery();
 		$last_submission = $lastsub_query->getOneOrNullResult();
-
+		
+		/*
 		# check if there is anything in the last submission query
 		# if so, pass the contents of the blob to the view, create a function there to fill ACE
 
@@ -131,7 +132,7 @@ class AssignmentController extends Controller {
 		// 	echo("last submission not null");
 		// 	echo($last_submission);
 		// 	die(stream_get_contents($last_submission));
-		// }
+		// }*/
 
 		return $this->render('assignment/index.html.twig', [
 			'user' => $user,

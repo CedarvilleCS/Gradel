@@ -76,7 +76,7 @@ class Testcase {
 
 	/**
      * Multiple FB per TC
-     * @ORM\ManyToOne(targetEntity="Feedback")
+     * @ORM\ManyToOne(targetEntity="Feedback", cascade={"persist"})
      * @ORM\JoinColumn(name="feedback_id", referencedColumnName="id")
      */
 	public $feedback;
