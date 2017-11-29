@@ -52,8 +52,7 @@
 
 			{% if prob.id != problem.id or result_page %}
 			
-				
-					{% if prob.assignment.cutoff_time|date('U') < "now"|date('U') and not is_granted("ROLE_ADMIN") %}
+					{% if prob.assignment.start_time|date('U') > "now"|date('U') and not is_granted("ROLE_ADMIN") %}
 						<li class="sidebar" id="unopened">
 					{% else %}
 						<li class="sidebar">

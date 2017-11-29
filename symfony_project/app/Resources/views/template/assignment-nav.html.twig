@@ -22,12 +22,9 @@
 
 			{% if assig.start_time|date('U') < "now"|date('U')  %}
 
-					{% if assig.cutoff_time|date('U') < "now"|date('U') and not is_granted("ROLE_ADMIN") %}
-						<li class="sidebar" id="unopened">
-					{% else %}
 						<li class="sidebar">
 						<a href={{path('assignment', {'sectionId': assig.section.id, "assignmentId": assig.id})}}>
-					{% endif %}
+					
 						<span class="preview">
 							{{ assig.name }}
 							<br>
@@ -81,11 +78,14 @@
 
 		{% endfor %}
 
-		<li></li>
 		{% for assig in assignments %}
 
 			{% if assig.start_time|date('U') > "now"|date("U") %}
-				<li class="sidebar">
+				{% if not is_granted("ROLE_ADMIN") %}
+					<li class="sidebar" id="unopened">
+				{% else %}
+					<a href={{path('assignment', {'sectionId': assig.section.id, "assignmentId": assig.id})}}>
+				{% endif %}
 					<span class="preview">
 						{{ assig.name }}
 						<br>
