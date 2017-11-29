@@ -52,8 +52,13 @@
 
 			{% if prob.id != problem.id or result_page %}
 			
-				<a href="{{path("assignment", {'sectionId': prob.assignment.section.id, 'assignmentId': prob.assignment.id, 'problemId': prob.id})}}">
-				<li class="sidebar" >
+				
+					{% if prob.assignment.cutoff_time|date('U') < "now"|date('U') %}
+						<li class="sidebar" id="unopened">
+					{% else %}
+						<li class="sidebar">
+						<a href="{{path("assignment", {'sectionId': prob.assignment.section.id, 'assignmentId': prob.assignment.id, 'problemId': prob.id})}}">
+					{% endif %}
 					{{ prob.name }}&nbsp;
 					{% if usersectionrole.role.role_name == 'Takes' %}
 						<br/><small>{{grades[prob.id]['passed_testcases']+grades[prob.id]['passed_extra_testcases']}}/{{grades[prob.id]['total_testcases']}} - {{(grades[prob.id]['percentage_adj']*100)|number_format(1,'.')}}%</small>
