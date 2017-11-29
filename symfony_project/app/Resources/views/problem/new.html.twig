@@ -103,14 +103,14 @@
 			newTestCard = `<div class="card" id=`+div_name+`>
 				<div class="btn-close">
 					<h2 style="margin: 0px">`+formalName+`<span style="float: right"><i class="fa fa-angle-down"></i></span></h2>
-					<!-- <div id="closeButton" width="50px" onclick="deleteTestCase(&quot;`+div_name+`&quot;)" class="btn btn-center">Delete</div> -->
 					<object>
 							<a title="Delete assignment" id="closeButton" onclick="deleteTestCase(&quot;`+div_name+`&quot;)")}}">
 								<img class="test_case_delete" id="right-icon" src="{{ asset('trash.png') }}">
 							</a>
 					</object>
 				</div>
-				<div id=`+div_name+` class="test-case">
+				<div class="test-case">
+
 					<table>
 						<tr>
 							<th colspan="1">
@@ -162,7 +162,7 @@
 							</a>
 					</object>
 				</div>
-				<div id=`+div_name+` class="test-case">
+				<div class="test-case">
 					<table>
 						<tr>
 							<th colspan="1">
@@ -187,9 +187,29 @@
 		});
 	
 	function deleteTestCase(testcase){
-		testCases--;
-		document.getElementById(testcase).remove();
-		
+
+    thisTestCase = testcase.match(/\d+/);
+
+    document.getElementById(testcase).remove();
+
+    // FIXME:
+    // loop through the existing test cases greater than this one
+    //    rename them to one less than they are
+    //    reset their id's to one less than they are
+
+    for (i = thisTestCase; i <= testCases; i++) {
+      $("#testcases" + i).find("h2").html("Test Case " + (i - 1));
+      $("#testcases" + i).find("#closeButton").attr("onclick", "deleteTestCase('testcases" + (i-1) + "')");
+    //  $("#testcases" + i).attr("id", "testcases" + (i-1));
+      $("#testcases" + i).attr("id", "testcases" + (i-1));
+    }
+
+    console.log("removing " + testcase);
+    console.log("test cases is " + testCases);
+    testCases--;
+    console.log("test cases is now " + testCases);
+
+    console.log("removed");
 	};
 
     function languageSelect() {
