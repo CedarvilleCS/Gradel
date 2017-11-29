@@ -53,12 +53,13 @@
 			{% if prob.id != problem.id or result_page %}
 			
 				
-					{% if prob.assignment.cutoff_time|date('U') < "now"|date('U') %}
+					{% if prob.assignment.cutoff_time|date('U') < "now"|date('U') and not is_granted("ROLE_ADMIN") %}
 						<li class="sidebar" id="unopened">
 					{% else %}
 						<li class="sidebar">
 						<a href="{{path("assignment", {'sectionId': prob.assignment.section.id, 'assignmentId': prob.assignment.id, 'problemId': prob.id})}}">
 					{% endif %}
+					
 					{{ prob.name }}&nbsp;
 					{% if usersectionrole.role.role_name == 'Takes' %}
 						<br/><small>{{grades[prob.id]['passed_testcases']+grades[prob.id]['passed_extra_testcases']}}/{{grades[prob.id]['total_testcases']}} - {{(grades[prob.id]['percentage_adj']*100)|number_format(1,'.')}}%</small>
@@ -83,7 +84,7 @@
 				{% if app.user in section_teachers or is_granted("ROLE_SUPER") %}
 					<object>
 						<a title="Delete Problem" href="{{path('problem_delete', {'sectionId': prob.assignment.section.id, 'assignmentId': prob.assignment.id, 'problemId': prob.id})}}">
-							<img class="small-icon" id="right-icon" src="{{ asset('trash.png') }}">
+							<img class="small-icon" id="right-icon" src="{{ asset('whitetrash.png') }}">
 						</a>
 					</object>
 					<object>
