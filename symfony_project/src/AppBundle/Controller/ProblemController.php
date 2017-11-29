@@ -56,7 +56,7 @@ class ProblemController extends Controller {
       if (sizeof($languageArr) == 0) {
         array_push($errors, "You must provide at least one language");
       }
-      
+
 	  $assignment = $em->find("AppBundle\Entity\Assignment", $post_data['assignmentId']);
 	  if (!$assignment) {
 		  array_push($errors, "Assignment provided does not exist");
@@ -71,22 +71,22 @@ class ProblemController extends Controller {
       if ($description == "") {
         array_push($errors, "Description must be set");
       }
-      
+
 	  $weight = $post_data['weight'];
       if (!is_numeric($weight) || ((int)$weight < 1)) {
         array_push($errors, "You must provide an integer weight greater than 0. You provided: " . $weight);
       }
-	  
+
       $is_extra_credit = $post_data['is_extra_credit'];
       if ($is_extra_credit !== "true" && $is_extra_credit !== "false") {
         array_push($errors, "You are trying to be malicious! Stop it! Extra Credit must be a boolean");
       }
-	  
+
       $time_limit = $post_data['time_limit'];
       if ($time_limit <= 0) {
         array_push($errors, "Time limit must be greater than 0!");
       }
-	  
+
 
       if (sizeof($errors) == 0) {
 
@@ -98,11 +98,11 @@ class ProblemController extends Controller {
         $problem->weight = $weight;
         $problem->is_extra_credit = ($is_extra_credit == "true") ? 1 : 0;
         $problem->time_limit = $time_limit;
-		
+
 		$problem->total_attempts = 0; // change this Chris
 		$problem->attempts_before_penalty = 0; // change this Chris
 		$problem->penalty_per_attempt = 0.00; // change this Chris
-		
+
 		$problem->stop_on_first_fail = false; // change this Chris
 		$problem->response_level = "Long"; // change this Chris
 		$problem->display_testcaseresults = true; // change this Chris
@@ -144,22 +144,17 @@ class ProblemController extends Controller {
       $languages = $qb->getQuery()->getResult();
 
       $qb = $em->createQueryBuilder();
-      $qb->select('gm')
-        ->from('AppBundle\Entity\ProblemGradingMethod', 'gm')
-        ->where('1 = 1');
-
-      $gradingMethods = $qb->getQuery()->getResult();
 
       return $this->render('problem/edit.html.twig', [
         "problem" => $problem,
         "assignmentId" => $assignmentId,
-        "gradingMethods" => $gradingMethods,
+        // "gradingMethods" => $gradingMethods,
         "problemDescription" => stream_get_contents($problem->description),
         "languages" => $languages,
         "problemLanguages" => $problemLanguages,
       ]);
     }
-	
+
 	public function deleteAction($sectionId, $assignmentId, $problemId){
 
 		$em = $this->getDoctrine()->getManager();

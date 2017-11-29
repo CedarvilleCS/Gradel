@@ -50,16 +50,6 @@
                       {% endfor %}
                     </div>
                 </th>
-                <th colspan="1">
-                    <label for="gm">Grading Method</label>
-                    <select id="gm" onchange="" name="gm" type="text" value="2">
-                      {% for gm in gradingMethods %}
-                        <option value="{{gm.id}}">Total Attempts: {{gm.total_attempts}} Attempts Before Penalty: {{gm.attempts_before_penalty}}</option>
-                      {% endfor %}
-                    </select>
-                    <div id="language-list">
-                    </div>
-                </th>
                 <tr>
                         <th colspan="1">
                             <label for="weight">Weight</label>
@@ -141,38 +131,6 @@
 							<th colspan="3">
 								<label>Long Feedback</label>
 								<textarea rows="2" class="problem_creation" id="long_feedback" type="text" value=""></textarea></th>
-						</tr>
-					</table>
-				</div>
-			</div>`;
-			newTestCard = newTestCard.replace(new RegExp('\r?\n','g'), "");
-			$("#main").append(newTestCard);
-		});
-
-		$("#add-test-file").click(function () {
-			testCases++;
-			div_name ="testcases"+testCases;
-			formalName="Test Case "+testCases;
-			newTestCard = `<div class="card">
-				<div class="btn-close" onclick="collapseCard(&quot;`+div_name+`&quot;,)">
-					<h2 style="margin: 0px">`+formalName+`<span style="float: right"><i class="fa fa-angle-down"></i></span></h2>
-				</div>
-				<div id=`+div_name+`x class="test-case">
-					<table>
-						<tr>
-							<th colspan="1">
-								<label for="input">Input</label>
-								<input id="input" type="file" value=""></th>
-							<th colspan="1">
-								<label for="output">Output</label>
-								<input id="output" type="file" value=""></th>
-							<th colspan="2">
-								<label for="weight">Weight</label>
-								<input id="weight" name="weight" type="text"></th>
-						</tr>
-						<tr>
-							<th colspan="1">
-								<label>Feedback</label><textarea rows="2" id="feedback" class="problem_creation" type="text" value=""></textarea></th>
 						</tr>
 					</table>
 				</div>

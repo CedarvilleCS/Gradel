@@ -50,16 +50,6 @@
                     <div id="language-list">
                     </div>
                 </th>
-                <th colspan="1.5">
-                    <label for="gm">Grading Method</label>
-                    <select id="gm" onchange="" name="gm" type="text">
-                      {% for gm in gradingMethods %}
-                        <option value="{{gm.id}}">Total Attempts: {{gm.total_attempts}} Attempts Before Penalty: {{gm.attempts_before_penalty}}</option>
-                      {% endfor %}
-                    </select>
-                    <div id="language-list">
-                    </div>
-                </th>
                 <tr>
                         <th colspan="1">
                             <label for="weight">Weight</label>
@@ -99,8 +89,8 @@
   <!-- JQuery -->
   <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
   <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <script src="http://malsup.github.com/jquery.form.js"></script>
   <script src="{{ asset('js/cards.js') }}"></script>
-  <script src="{{ asset('js/newSection.js') }}"></script>
 
   <script src="{{ asset('js/validation.js') }}"></script>
   <script>
@@ -112,7 +102,16 @@
   <script>
     var languages = [];
 		testCases = 0;
+    currentNum = 0;
+    currentFieldId = "";
+    uploadFormId = "";
+
+    $(document).ready(() => {
+      console.log("HEY");
+    });
+
 		$("#add-test").click(async function () {
+      currentNum++;
 			testCases++;
 			div_name ="testcases"+testCases;
 			formalName="Test Case "+testCases;
@@ -124,32 +123,39 @@
 					<table>
 						<tr>
 							<th colspan="1">
-                <form id="submissionUploadForm" method="post" action="{{path("get_contents")}}">
+                <form id="inputUpload`+ currentNum + `" method="post" action="{{path("get_contents")}}">
 
   								<label for="input">Input</label>
-                    <input id="file" name="file" type="file" value="">
+                  <input class="file" id="file" name="file" type="file" value="">
 
-  								<textarea rows="2" id="input" class="problem_creation" type="text" value=""></textarea>
+  								<textarea rows="2" id="input` + currentNum +`" class="problem_creation" type="text" value=""></textarea>
                 </form>
 							<th colspan="1">
-								<label for="output">Output</label>
-                <input id="input" type="file" value="">
-								<textarea rows="2" id="output" class="output problem_creation" type="text" value=""></textarea>
+                <form id="outputUpload` + currentNum + `"  method="post" action="{{path("get_contents")}}">
+  								<label for="output">Output</label>
+                  <input class="file" id="file" name="file" type="file" value="">
+  								<textarea rows="2" id="output` + currentNum + `" class="output problem_creation" type="text" value=""></textarea>
+                </form>
 							<th colspan="2">
 								<label for="weight">Weight</label>
 								<input id="weight" name="weight" type="text" value="1"></th>
 						</tr>
 						<tr>
 							<th colspan="3">
-								<label>Short Feedback</label>
-                <input id="input" type="file" value="">
-								<textarea rows="2" class="problem_creation" id="short_feedback" type="text" value=""></textarea></th>
+                <form id="shortFeedbackUpload` + currentNum + `"  method="post" action="{{path("get_contents")}}">
+  								<label for="shortFeedback">Short Feedback</label>
+                  <input class="file" id="file" name="file" type="file" value="">
+  								<textarea rows="2" id="shortFeedback` + currentNum + `" class="output problem_creation" type="text" value=""></textarea>
+                </form>
 						</tr>
             <tr>
 							<th colspan="3">
-								<label>Long Feedback</label>
-                <input id="input" type="file" value="">
-								<textarea rows="2" class="problem_creation" id="long_feedback" type="text" value=""></textarea></th>
+                <form id="longFeedbackUpload` + currentNum + `"  method="post" action="{{path("get_contents")}}">
+                  <label for="longFeedback">Long Feedback</label>
+                  <input class="file" id="file" name="file" type="file" value="">
+                  <textarea rows="2" id="longFeedback` + currentNum + `" class="output problem_creation" type="text" value=""></textarea>
+                </form>
+              </th>
 						</tr>
 					</table>
 				</div>
@@ -157,22 +163,27 @@
 			newTestCard = newTestCard.replace(new RegExp('\r?\n','g'), "");
 			await $("#main").append(newTestCard);
 
-      $('#submissionUploadForm #file').change(async function(data) {
-        // console.log($(this));
-        await $('#submissionUploadForm').submit();
-        console.log(changeVar);
-      });
+      $('.file').change(function(data) {
+        currentFieldId = $(this).siblings("textarea")[0].id;
+        uploadFormId = "#" + currentFieldId.substring(0, currentFieldId.length - 1) + "Upload" + currentNum;
+        console.log("Parent ID:", $(this).parent()[0]);
+        console.log($(uploadFormId));
+        $(uploadFormId).ajaxForm(function(data) {
+          changeVar = "";
+          changeVar = atob(data.contents);
+          console.log(changeVar);
+          element = document.getElementById(currentFieldId);
+          element.value = changeVar;
+        });
 
-      // overwrite the normal submit to call the ajaxsubmit
-      $('#submissionUploadForm').submit(async function() {
-        console.log($(this));
-        await $(this).ajaxSubmit();
-      });
-
-      // asynchronous script to handle the submission form upload
-      $('#submissionUploadForm').ajaxForm(function(data) {
-        // console.log($(this));
-        changeVar = atob(data.contents);
+        $(uploadFormId).submit(function(e) {
+          e.preventDefault();
+          console.log("Doing stuff");
+          console.log($(this));
+          $(this).ajaxSubmit();
+          console.log("I am done now");
+        });
+        $(uploadFormId).submit();
       });
 		});
 
