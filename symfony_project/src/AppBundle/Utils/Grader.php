@@ -463,10 +463,20 @@ class Grader  {
 				continue;
 			}
 			
-			if(!$tcr->is_correct && $response_level == "Short"){
-				$feedback['response'][$tcr->testcase->seq_num] = $tcr->testcase->feedback->deblobinateShortResponse();
-			} else if(!$tcr->is_correct && $response_level == "Long"){
-				$feedback['response'][$tcr->testcase->seq_num] = $tcr->testcase->feedback->deblobinateLongResponse();
+			if($tcr->testcase->feedback != null && !$tcr->is_correct && $response_level == "Short"){
+				
+				$resp = trim($tcr->testcase->feedback->deblobinateShortResponse());
+				
+				if($resp != ""){
+					$feedback['response'][$tcr->testcase->seq_num] = $resp;
+				}
+			} else if($tcr->testcase->feedback != null && !$tcr->is_correct && $response_level == "Long"){
+				
+				$resp = trim($tcr->testcase->feedback->deblobinateLongResponse());
+				
+				if($resp != ""){
+					$feedback['response'][$tcr->testcase->seq_num] = $resp;
+				}
 			}
 			
 			if($testcase_output_level == "Output"){
