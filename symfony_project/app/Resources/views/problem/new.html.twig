@@ -85,7 +85,7 @@
   <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
   <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
   <script src="{{ asset('js/cards.js') }}"></script>  
-  <script src="{{ asset('js/validation.js') }}"></script>
+ <script src="{{ asset('js/validation.js') }}"></script>
   
   <script>
     validate($("#name"));
@@ -104,7 +104,7 @@
 				<div class="btn-close">
 					<h2 style="margin: 0px">`+formalName+`<span style="float: right"><i class="fa fa-angle-down"></i></span></h2>
 					<object>
-							<a title="Delete assignment" id="closeButton" onclick="deleteTestCase(&quot;`+div_name+`&quot;)")}}">
+							<a title="Delete assignment" id="closeButton" onclick="deleteTestCase(&quot;`+div_name+`&quot;)">
 								<img class="test_case_delete" id="right-icon" src="{{ asset('trash.png') }}">
 							</a>
 					</object>
@@ -153,11 +153,11 @@
 			testCases++;
 			div_name ="testcases"+testCases;
 			formalName="Test Case "+testCases;
-			newTestCard = `<div class="card" id=`+div_name+`>
+			newTestCard = `<div class="card" id="`+div_name+`">
 				<div class="btn-close">
 					<h2 style="margin: 0px">`+formalName+`<span style="float: right"><i class="fa fa-angle-down"></i></span></h2>
 					<object>
-							<a title="Delete assignment" id="closeButton" onclick="deleteTestCase(&quot;`+div_name+`&quot;)")}}">
+							<a title="Delete assignment" id="closeButton" onclick="deleteTestCase(&quot;`+div_name+`&quot;)">
 								<img class="test_case_delete" id="right-icon" src="{{ asset('trash.png') }}">
 							</a>
 					</object>
@@ -186,30 +186,22 @@
 			$("#main").append(newTestCard);
 		});
 	
-	function deleteTestCase(testcase){
-
+	function deleteTestCase(testcase) {
+		// Figure out what the number of the div we are deleting is
     thisTestCase = testcase.match(/\d+/);
 
+		// delete this test case
     document.getElementById(testcase).remove();
 
-    // FIXME:
-    // loop through the existing test cases greater than this one
-    //    rename them to one less than they are
-    //    reset their id's to one less than they are
-
+		// decrement the titles and ID's of of the following divs
     for (i = thisTestCase; i <= testCases; i++) {
       $("#testcases" + i).find("h2").html("Test Case " + (i - 1));
       $("#testcases" + i).find("#closeButton").attr("onclick", "deleteTestCase('testcases" + (i-1) + "')");
-    //  $("#testcases" + i).attr("id", "testcases" + (i-1));
       $("#testcases" + i).attr("id", "testcases" + (i-1));
     }
 
-    console.log("removing " + testcase);
-    console.log("test cases is " + testCases);
+		// decrement the number of test cases
     testCases--;
-    console.log("test cases is now " + testCases);
-
-    console.log("removed");
 	};
 
     function languageSelect() {
@@ -225,6 +217,9 @@
     }
 
 		async function insertTestCase(divname, problemId) {
+
+			validate($("#"+divname).find("#"+"input"));
+			validate($("#"+divname).find("#"+"output"));
 
 				const input = $("#"+divname).find("#"+"input").val();
 				const output = $("#"+divname).find("#" + "output").val();
