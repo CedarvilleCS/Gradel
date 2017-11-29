@@ -101,9 +101,14 @@
 			div_name ="testcases"+testCases;
 			formalName="Test Case "+testCases;
 			newTestCard = `<div class="card" id=`+div_name+`>
-				<div class="btn-close" display="inline-block">
+				<div class="btn-close">
 					<h2 style="margin: 0px">`+formalName+`<span style="float: right"><i class="fa fa-angle-down"></i></span></h2>
-					<div id="closeButton" width="50px" onclick="deleteTestCase(&quot;`+div_name+`&quot;)" class="btn btn-center">Delete</div>
+					<!-- <div id="closeButton" width="50px" onclick="deleteTestCase(&quot;`+div_name+`&quot;)" class="btn btn-center">Delete</div> -->
+					<object>
+							<a title="Delete assignment" id="closeButton" onclick="deleteTestCase(&quot;`+div_name+`&quot;)")}}">
+								<img class="test_case_delete" id="right-icon" src="{{ asset('trash.png') }}">
+							</a>
+					</object>
 				</div>
 				<div id=`+div_name+` class="test-case">
 					<table>
@@ -151,7 +156,11 @@
 			newTestCard = `<div class="card" id=`+div_name+`>
 				<div class="btn-close">
 					<h2 style="margin: 0px">`+formalName+`<span style="float: right"><i class="fa fa-angle-down"></i></span></h2>
-					<div id="closeButton" onclick="deleteTestCase(`+formalName+`)" class="btn btn-center">Delete</div>
+					<object>
+							<a title="Delete assignment" id="closeButton" onclick="deleteTestCase(&quot;`+div_name+`&quot;)")}}">
+								<img class="test_case_delete" id="right-icon" src="{{ asset('trash.png') }}">
+							</a>
+					</object>
 				</div>
 				<div id=`+div_name+` class="test-case">
 					<table>

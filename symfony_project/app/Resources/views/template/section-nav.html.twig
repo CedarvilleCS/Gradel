@@ -70,7 +70,7 @@
 			
 				<a href="{{path('section', {'sectionId':section.id})}}">
 				
-				{% if section.start_time|date('U') > "now"|date('U') %}
+				{% if section.start_time|date('U') < "now"|date('U') %}
 					<li class="sidebar" id="unopened">
 				{% else %}
 					<li class="sidebar">
