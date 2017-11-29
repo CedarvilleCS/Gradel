@@ -22,11 +22,12 @@
 
 			{% if assig.start_time|date('U') < "now"|date('U') %}
 
-				{% if assig.cutoff_time|date('U') > "now"|date('U') or app.user in section_teachers or is_granted("ROLE_SUPER") %}
-					<a href={{path('assignment', {'sectionId': assig.section.id, "assignmentId": assig.id})}}>
-				{% endif %}
-
-					<li class="sidebar">
+					{% if assig.cutoff_time|date('U') < "now"|date('U') %}
+						<li class="sidebar" id="unopened">
+					{% else %}
+						<li class="sidebar">
+						<a href={{path('assignment', {'sectionId': assig.section.id, "assignmentId": assig.id})}}>
+					{% endif %}
 						<span class="preview">
 							{{ assig.name }}
 							<br>
