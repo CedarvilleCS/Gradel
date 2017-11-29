@@ -30,15 +30,20 @@ class ProblemLanguage{
 		$this->compilation_options = $comp;
 	}
 	
-	/**
+	/** 
+	* @ORM\Column(type="integer")
 	* @ORM\Id
+	* @ORM\GeneratedValue(strategy="AUTO")
+	*/
+	public $id;
+	
+	/**
 	* @ORM\ManyToOne(targetEntity="Language")
 	* @ORM\JoinColumn(name="language_id", referencedColumnName="id", onDelete="CASCADE")
 	*/
 	public $language;
 
 	/**
-	* @ORM\Id
 	* @ORM\ManyToOne(targetEntity="Problem", inversedBy="problem_languages")
 	* @ORM\JoinColumn(name="problem_id", referencedColumnName="id", onDelete="CASCADE")
 	*/
