@@ -389,7 +389,7 @@ class SectionController extends Controller {
 		# redirect to the section page
 		$url = $this->generateUrl('section', ['sectionId' => $section->id]);		
 		
-		$response = new Response(json_encode(array('redirect_url' => $url, 'students' => $students)));
+		$response = new Response(json_encode(array('redirect_url' => $url)));
 		$response->headers->set('Content-Type', 'application/json');
 		$response->setStatusCode(Response::HTTP_OK);
 		
