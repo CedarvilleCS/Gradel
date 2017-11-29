@@ -3,14 +3,14 @@
 {# Left Nav For the Section List (On the homepage) #}
 <nav class="nav-left">
 	
-	{% if is_granted("ROLE_SUPER") %}
+	<!-- {% if is_granted("ROLE_SUPER") %}
 		<a class="btn">
 			<div class="btn btn-center">+ Course</div>
 		</a>
-	{% endif %}
+	{% endif %} -->
 	
 	{% if is_granted("ROLE_ADMIN") or is_granted("ROLE_SUPER") %}
-		<a href="{{path('section_modify')}}" class="btn">
+		<a href="{{path('section_edit')}}" class="btn">
 			<div class="btn btn-center">+ Section</div>
 		</a>
 	{% endif %}
@@ -35,7 +35,6 @@
 				<a href="{{path('section', {'sectionId':section.id})}}">
 					<li class="sidebar">
 						<span class="preview">{{section.course.name}}
-						
 							<small>
 							<br/>{{section.name}}
 							
@@ -70,14 +69,19 @@
 			{% for section in sections_teaching %}	
 			
 				<a href="{{path('section', {'sectionId':section.id})}}">
-					<li>
+				
+				{% if section.start_time|date('U') > "now"|date('U') %}
+					<li class="sidebar" id="unopened">
+				{% else %}
+					<li class="sidebar">
+				{% endif %}
+				
 						<span class="preview">{{section.course.name}}
-						
+							
 							<small>
-							<br/>{{section.name}}
+							<br/>{{section.name}} 
 							</small>
 						</span>	
-					
 						<object>
 							<a title="Edit Section" href="{{path('section_edit', {'sectionId': section.id})}}">
 								<img class="small-icon" id="right-icon" src="{{ asset('edit.png') }}">
@@ -85,6 +89,7 @@
 						</object>	
 						
 					</li>
+					
 				</a>	
 			{% endfor %}
 		</ol>
