@@ -34,7 +34,7 @@
 						Edit Section
 					{% else %}
 						New Section
-					{% endif %}					
+					{% endif %}
 					</h2>
 				</div>
 				
@@ -70,6 +70,18 @@
 								{% for yr in ("now"|date("Y"))-1..("now"|date("Y"))+3 %}
 									<option>{{yr}}</option>
 								{% endfor %}
+								</select>
+							</th> </tr>
+
+							<tr> <th>
+								<label>Instructor</label>
+								<select id="instructor-picker">
+									<option value="-1"></option>
+									{% for i in instructors %}
+										<option value="{{i.email}}">
+										{{i.getLastName() ~ ", " ~ i.getFirstName()}}
+										</option>
+									{% endfor %}
 								</select>
 							</th> </tr>
 

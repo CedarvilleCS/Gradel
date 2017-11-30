@@ -183,6 +183,20 @@ class SectionController extends Controller {
 		}
 					
 		$users = $em->getRepository("AppBundle\Entity\User")->findAll();
+
+		$instructors;
+
+		foreach ($users as $u) {
+			if($u->hasRole(ROLE_ADMIN) or $u->hasRole(ROLE_SUPER)) {
+				$instructors[] = $u;
+				// echo($u);
+				// die(sizeof($instructors));
+			}
+		}
+
+		// die($instructors);
+
+		// die($instructors);
 		
 		if($sectionId != 0){
 			$section = $em->find('AppBundle\Entity\Section', $sectionId);
@@ -206,6 +220,7 @@ class SectionController extends Controller {
 		return $this->render('section/edit.html.twig', [
 			'courses' => $courses,
 			'users' => $users,
+			'instructors' => $instructors,
 			'section' => $section,
 			'section_taker_roles' => $section_taker_roles
 		]);
