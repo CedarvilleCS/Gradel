@@ -329,6 +329,7 @@ class ProblemController extends Controller {
 		$usersectionrole = $usr_query->getOneOrNullResult();
 
 		return $this->render('problem/result.html.twig', [
+			'section' => $submission->problem->assignment->section,
 			'assignment' => $submission->problem->assignment,
 			'problem' => $submission->problem,
 			'submission' => $submission,

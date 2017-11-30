@@ -275,6 +275,18 @@ nav.nav-left > ol li.unopened:hover{
     border-bottom: 1px dotted #8DC26F;
 }
 
+.back-button{
+	
+	height: 30px; 
+	top:60px; 
+	left:208px; 
+	position: absolute;
+}
+
+.back-img{
+	height: 30px;
+}
+
 /*.btn-delete{
 	position: absolute;
 	bottom: 30px;
