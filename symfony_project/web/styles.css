@@ -236,7 +236,7 @@ nav.nav-left > ol li.unopened:hover{
 	color: white;
 	box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
 	z-index: 100;
-	padding-left: 40px;
+	padding-left: 65px;
 	display: flex;
 	flex-direction: row;
 	justify-content: flex-start;
@@ -278,8 +278,8 @@ nav.nav-left > ol li.unopened:hover{
 .back-button{
 	
 	height: 30px; 
-	top:60px; 
-	left:208px; 
+	top:59px; 
+	left:220px; 
 	position: absolute;
 }
 

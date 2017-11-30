@@ -161,11 +161,22 @@ class AssignmentController extends Controller {
 
 	$em = $this->getDoctrine()->getManager();
 
-	$section = $em->find('AppBundle\Entity\Section', $sectionId);
-	
+	$section = $em->find('AppBundle\Entity\Section', $sectionId);	
 	if(!$section){
 		die("SECTION DOES NOT EXIST");
 	}
+	
+	$user = $this->get('security.token_storage')->getToken()->getUser();  	  
+	if(!get_class($user)){
+		die("USER DOES NOT EXIST!");		  
+	}
+	
+	# validate the user
+	$grader = new Grader($em);
+	if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN") && !$grader->isTeaching($user, $section)){
+		die("YOU ARE NOT ALLOWED TO DELETE THIS ASSIGNMENT");			
+	}
+	
 	
 	if($assignmentId != 0){
 		$assignment = $em->find('AppBundle\Entity\Assignment', $assignmentId);
