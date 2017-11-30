@@ -34,11 +34,11 @@ class HomeController extends Controller {
 		$builder = $em->createQueryBuilder();
 		$builder->select('s')
 			->from('AppBundle\Entity\Section', 's')
-			->where('s.is_deleted = false');
-			//->andWhere('s.start_time < ?1')
-			//->andWhere('s.end_time > ?2')
-			//->setParameter(1, new DateTime())
-			//->setParameter(2, new DateTime());
+			->where('s.is_deleted = false')
+			->andWhere('s.start_time < ?1')
+			->andWhere('s.end_time > ?2')
+			->setParameter(1, new DateTime())
+			->setParameter(2, new DateTime());
 		
 		$section_query = $builder->getQuery();
 		$sections_active = $section_query->getResult();

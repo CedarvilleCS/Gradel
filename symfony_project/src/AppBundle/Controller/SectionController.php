@@ -50,7 +50,7 @@ class SectionController extends Controller {
 		$qb->select('a')
 			->from('AppBundle\Entity\Assignment', 'a')
 			->where('a.section = ?1')
-			->orderBy('a.end_time', 'ASC')
+			->orderBy('a.start_time', 'ASC')
 			->setParameter(1, $section_entity);
 
 		$query = $qb->getQuery();
@@ -172,10 +172,9 @@ class SectionController extends Controller {
 
 		$builder->select('c')
 				->from('AppBundle\Entity\Course', 'c')
-				->where('1 = 1');
+				->where('c.is_deleted = false');
 		$query = $builder->getQuery();
 		$courses = $query->getResult();
-
 
 		$user = $this->get('security.token_storage')->getToken()->getUser();
 		if(!$user){
@@ -192,6 +191,7 @@ class SectionController extends Controller {
 			}
 		}
 		
+				
 		if($sectionId != 0){
 			$section = $em->find('AppBundle\Entity\Section', $sectionId);
 			
@@ -265,7 +265,7 @@ class SectionController extends Controller {
 		$postData = $request->request->all();
 		
 		# check mandatory fields
-		if(!$postData['name'] || !$postData['course'] || !$postData['semester'] || !$postData['year']){
+		if(!isset($postData['name']) || trim($postData['name']) == "" || !isset($postData['course']) || !isset($postData['semester']) || !isset($postData['year'])){
 			return $this->returnForbiddenResponse("Not every required field is provided.");
 		} else {
 			
@@ -305,7 +305,7 @@ class SectionController extends Controller {
 		
 		# see if the dates were provided or if we will do them automatically
 		$dates = $this->getDateTime($postData['semester'], $postData['year']);
-		if($postData['start_time'] && $postData['start_time'] != ''){
+		if(isset($postData['start_time']) && $postData['start_time'] != ''){
 			$customStartTime = DateTime::createFromFormat("m/d/Y H:i:s", $postData['start_time']." 00:00:00");
 			
 			if(!$customStartTime || $customStartTime->format("m/d/Y") != $postData['start_time']){
@@ -318,7 +318,7 @@ class SectionController extends Controller {
 			$section->start_time = $dates[0];
 		}
 		
-		if($postData['end_time'] && $postData['end_time'] != ''){
+		if(isset($postData['end_time']) && $postData['end_time'] != ''){
 			$customEndTime = DateTime::createFromFormat("m/d/Y H:i:s", $postData['end_time']." 23:59:59");
 			
 			if(!$customEndTime || $customEndTime->format("m/d/Y") != $postData['end_time']){
@@ -376,22 +376,45 @@ class SectionController extends Controller {
 		
 		# add the students from the students array
 		$students = array_unique(json_decode($postData['students']));
-
 		
-		$role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));
+		$takes_role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));
 		foreach ($students as $student) {
-
-			if ($student != "") {
-				$stud_user = $em->getRepository('AppBundle\Entity\User')->findOneBy(array('email' => $student));
-
-				if(!$stud_user){
-					continue;
-				}
-				
-				$usr = new UserSectionRole($stud_user, $section, $role);
-				$em->persist($usr);
+	
+			if (!filter_var($student, FILTER_VALIDATE_EMAIL)) {
+				continue;
 			}
+			
+			$stud_user = $em->getRepository('AppBundle\Entity\User')->findOneBy(array('email' => $student));
+
+			if(!$stud_user){
+				$stud_user = new User($student, $student);
+				$em->persist($stud_user);
+			}
+			
+			$usr = new UserSectionRole($stud_user, $section, $takes_role);
+			$em->persist($usr);
 		}
+		
+		# add the teachers from the teachers array
+		$teachers = array_unique(json_decode($postData['teachers']));
+		
+		$teaches_role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Teaches'));
+		foreach ($teachers as $teacher){
+			
+			if(!filter_var($teacher, FILTER_VALIDATE_EMAIL)) {
+				continue;
+			}
+			
+			$teach_user = $em->getRepository('AppBundle\Entity\User')->findOneBy(array('email'=>$teacher));
+			
+			if(!$teach_user){
+				return $this->returnForbiddenResponse("Teacher with email ".$teacher." does not exist!");
+			}
+			
+			$usr = new UserSectionRole($teach_user, $section, $teaches_role);
+			$em->persist($usr);			
+		}
+		
 		
 		$em->flush();
 		
