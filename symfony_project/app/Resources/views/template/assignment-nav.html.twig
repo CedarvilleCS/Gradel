@@ -1,16 +1,7 @@
 
-<nav class="nav-left">
-	{% if is_granted("ROLE_ADMIN") or is_granted("ROLE_SUPER") %}
-		<a href="{{path('assignment_edit', {'sectionId': section.id})}}" class="btn">
-			<div class="btn btn-center">+ Assignment</div>
-		</a>
-	{% endif %}
+{% set elevatedUser = grader.isTeaching(app.user, section) or is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") %}
 
-	{% if is_granted("ROLE_SUPER") %}
-		<a href="{{path('section_delete', {'sectionId': section.id})}}" class="btn">
-			<div class="btn btn-delete btn-center">Delete Section</div>
-		</a>
-	{% endif %}
+<nav class="nav-left">
 
 	{% if edit %}
 		<a id="insert" class="btn"><div class="btn btn-center" href="">Save</div></a>
@@ -18,39 +9,50 @@
 
 	{# assignments list #}
 	<ol style="padding-bottom: 10px">
+		
+		<li style="text-align:left"><strong> {{section.name}} 
+			
+			<div><small>{{section.course.name}}</small></div>
+		</strong></li>
+		
+		<li style="text-align:left">
+			<strong>Assignments</strong>
+		</li>
+		
+		{# past and present assignments #}
 		{% for assig in assignments %}
 
 			{% if assig.start_time|date('U') < "now"|date('U')  %}
 
-						<li class="sidebar">
-						<a href={{path('assignment', {'sectionId': assig.section.id, "assignmentId": assig.id})}}>
+					<a href={{path('assignment', {'sectionId': assig.section.id, "assignmentId": assig.id})}}>
 					
-						<span class="preview">
-							{{ assig.name }}
-							<br>
-							<small>
-								{% if assig.end_time|date('U') > "now"|date('U') %}
+					<li class="sidebar" style="padding-left: 15px">					
+				
+					<span class="preview">
+						<div class="{% if elevatedUser %}sidebar-text{% endif %}">{{ assig.name }}</div>
+						<small>
+							{% if assig.end_time|date('U') > "now"|date('U') %}
 
-									{{assig.end_time|date('F d - h:i A')}}
+								{{assig.end_time|date('M. d - h:i A')}}
 
-								{% elseif assig.cutoff_time|date('U') > "now"|date('U') %}
+							{% elseif assig.cutoff_time|date('U') > "now"|date('U') %}
 
-									<i>{{assig.cutoff_time|date('F d - h:i A')}}</i>
+								<i style="color: pink">{{assig.cutoff_time|date('M. d - h:i A')}}</i>
 
-								{% else %}
+							{% else %}
 
-									<i> Closed </i>
+								<i style="color: pink"> {{assig.cutoff_time|date('M. d - h:i A')}}</i>
 
-								{% endif %}
+							{% endif %}
 
-								{% if app.user in section_takers %}
-									<br/>{{grades[app.user.id][assig.id]['num_correct_problems']}}/{{grades[app.user.id][assig.id]['num_problems']}} - {{(grades[app.user.id][assig.id]['percentage_adj']*100)|number_format(1,'.')}}%
-								{% endif %}
-							</small>
-						</span>
+							{% if app.user in section_takers and (grades[prob.id]['percentage_adj'] > 0  or assig.end_time|date('U') < "now"|date('U')) %}
+								<br/>{{grades[app.user.id][assig.id]['num_correct_problems']}}/{{grades[app.user.id][assig.id]['num_problems']}} - {{(grades[app.user.id][assig.id]['percentage_adj']*100)|number_format(1,'.')}}%
+							{% endif %}
+						</small>
+					</span>
 
 					{# display edit icon #}
-					{% if app.user in section_teachers or is_granted("ROLE_SUPER") %}
+					{% if elevatedUser %}
 						<object>
 							<a title="Delete assignment" href="{{path('assignment_delete', {'sectionId': assig.section.id, 'assignmentId': assig.id})}}">
 								<img class="small-icon" id="right-icon" src="{{ asset('whitetrash.png') }}">
@@ -63,12 +65,12 @@
 
 						</object>
 					{% endif %}
-
+					
 					</li>
-
-				{% if assig.cutoff_time|date('U') > "now"|date('U') %}
+					
+				{#{% if assig.cutoff_time|date('U') > "now"|date('U') %}#}
 					</a>
-				{% endif %}
+				{#{% endif %}#}
 
 			{% endif %}
 
@@ -77,28 +79,62 @@
 			<li> No Assignments Found </li>
 
 		{% endfor %}
-
+		</ol>
+		
+		{# future assignments - not open yet #}
+		<ol>
 		{% for assig in assignments %}
 
 			{% if assig.start_time|date('U') > "now"|date("U") %}
-				{% if not is_granted("ROLE_ADMIN") %}
-					<li class="sidebar" id="unopened">
-				{% else %}
-					<a href={{path('assignment', {'sectionId': assig.section.id, "assignmentId": assig.id})}}>
+				{% if elevatedUser %}
+				<a href={{path('assignment', {'sectionId': assig.section.id, "assignmentId": assig.id})}}>					
 				{% endif %}
+				
+				<li class="sidebar unopened" style="padding-left: 15px">					
 					<span class="preview">
-						{{ assig.name }}
-						<br>
-						<small>
-							<i>{{assig.start_time|date('F d - h:i A')}}</i>
+						<div class="{% if elevatedUser %}sidebar-text{% endif %}">{{ assig.name }}</div>
+						<small style="width: 100%">
+							<i>{{assig.start_time|date('M. d - h:i A')}}</i>
 						</small>
+						
+						{% if elevatedUser %}
+						<object>
+							<a title="Delete assignment" href="{{path('assignment_delete', {'sectionId': assig.section.id, 'assignmentId': assig.id})}}">
+								<img class="small-icon" id="right-icon" src="{{ asset('whitetrash.png') }}">
+							</a>
+						</object>
+						<object>
+							<a title="Edit assignment" href="{{path('assignment_edit', {'sectionId': assig.section.id, 'assignmentId': assig.id})}}">
+								<img class="small-icon" src="{{ asset('edit.png') }}">
+							</a>
+
+						</object>
+						{% endif %}
+						
 					</span>
 				</li>
+				
+				{% if elevatedUser %}
+				</a>					
+				{% endif %}
+				
 			{% endif %}
 
 		{% endfor %}
+		</ol>
+
+		{% if elevatedUser %}
+			<a href="{{path('assignment_edit', {'sectionId': section.id})}}" class="btn">
+				<div class="btn btn-center" style="margin-top:10px">+ Assignment</div>
+			</a>
+		{% endif %}
+
+		{% if is_granted("ROLE_SUPER") %}
+			<a href="{{path('section_delete', {'sectionId': section.id})}}" class="btn">
+				<div class="btn btn-delete btn-center">Delete Section</div>
+			</a>
+		{% endif %}
 
 
-
-	</ol>
+		
 </nav>
