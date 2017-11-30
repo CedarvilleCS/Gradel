@@ -182,7 +182,7 @@ class SectionController extends Controller {
 		}
 					
 		$users = $em->getRepository("AppBundle\Entity\User")->findAll();
-		
+				
 		if($sectionId != 0){
 			$section = $em->find('AppBundle\Entity\Section', $sectionId);
 			
@@ -366,28 +366,45 @@ class SectionController extends Controller {
 		
 		# add the students from the students array
 		$students = array_unique(json_decode($postData['students']));
-
 		
-		$role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));
+		$takes_role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));
 		foreach ($students as $student) {
-
-			if ($student != "") {
-					
-				if (!filter_var($student, FILTER_VALIDATE_EMAIL)) {
-					continue;
-				}
-				
-				$stud_user = $em->getRepository('AppBundle\Entity\User')->findOneBy(array('email' => $student));
-
-				if(!$stud_user){
-					$stud_user = new User($student, $student);
-					$em->persist($stud_user);
-				}
-				
-				$usr = new UserSectionRole($stud_user, $section, $role);
-				$em->persist($usr);
+	
+			if (!filter_var($student, FILTER_VALIDATE_EMAIL)) {
+				continue;
 			}
+			
+			$stud_user = $em->getRepository('AppBundle\Entity\User')->findOneBy(array('email' => $student));
+
+			if(!$stud_user){
+				$stud_user = new User($student, $student);
+				$em->persist($stud_user);
+			}
+			
+			$usr = new UserSectionRole($stud_user, $section, $takes_role);
+			$em->persist($usr);
 		}
+		
+		# add the teachers from the teachers array
+		$teachers = array_unique(json_decode($postData['teachers']));
+		
+		$teaches_role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Teaches'));
+		foreach ($teachers as $teacher){
+			
+			if(!filter_var($teacher, FILTER_VALIDATE_EMAIL)) {
+				continue;
+			}
+			
+			$teach_user = $em->getRepository('AppBundle\Entity\User')->findOneBy(array('email'=>$teacher));
+			
+			if(!$teach_user){
+				return $this->returnForbiddenResponse("Teacher with email ".$teacher." does not exist!");
+			}
+			
+			$usr = new UserSectionRole($teach_user, $section, $teaches_role);
+			$em->persist($usr);			
+		}
+		
 		
 		$em->flush();
 		
