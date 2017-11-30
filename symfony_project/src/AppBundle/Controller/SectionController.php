@@ -344,14 +344,14 @@ class SectionController extends Controller {
 		
 		if($postData['section'] == 0){
 			# set the teacher to the person who made the section TODO
-			if($course->is_contest){
-				$role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Judges'));
-			} else {
-				$role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Teaches'));
-			}
+			// if($course->is_contest){
+			// 	$role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Judges'));
+			// } else {
+			// 	$role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Teaches'));
+			// }
 					
-			$usr = new UserSectionRole($user, $section, $role);
-			$em->persist($usr);			
+			// $usr = new UserSectionRole($user, $section, $role);
+			// $em->persist($usr);			
 		
 		} else {
 			# remove all the previous students before the "edit" if there was one
