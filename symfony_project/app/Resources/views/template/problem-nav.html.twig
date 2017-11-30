@@ -5,14 +5,9 @@
 
 <nav class="nav-left">
 
-	{% if edit %}
-		<a id="insert" class="btn"><div class="btn btn-center" href="">Save</div></a>
-	{% endif %}
-	
-	
-	<ol style="padding-bottom: 10px">
+	<ol style="padding-top: 0px; padding-bottom: 10px">
 		{# overview of when the assignment is due #}		
-		<li style="text-align: left"><strong> {{problem.assignment.name}} 
+		<li><strong> {{problem.assignment.name}} 
 			
 			<div><small>
 			{% if problem.assignment.start_time|date('U') > "now"|date('U') %}
@@ -108,8 +103,8 @@
 		<a href="{{path('problem_new', {"sectionId": section.id, 'assignmentId': assignment.id})}}" class="btn">
 			<div class="btn btn-center" style="margin-top: 10px">+ Problem</div>
 		</a>
-		<a href="{{path('assignment_delete', {'sectionId': section.id, 'assignmentId': assignment.id})}}" class="btn">
-			<div class="btn btn-delete btn-center">Delete Assignment</div>
+		<a href="{{path('assignment_edit', {'sectionId': section.id, 'assignmentId': assignment.id})}}" class="btn">
+			<div class="btn btn-center">Edit Assignment</div>
 		</a>
 	{% endif %}
 	

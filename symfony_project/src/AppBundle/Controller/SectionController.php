@@ -172,7 +172,7 @@ class SectionController extends Controller {
 
 		$builder->select('c')
 				->from('AppBundle\Entity\Course', 'c')
-				->where('1 = 1');
+				->where('c.is_deleted = false');
 		$query = $builder->getQuery();
 		$courses = $query->getResult();
 

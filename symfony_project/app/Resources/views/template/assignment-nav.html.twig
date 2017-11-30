@@ -3,19 +3,15 @@
 
 <nav class="nav-left">
 
-	{% if edit %}
-		<a id="insert" class="btn"><div class="btn btn-center" href="">Save</div></a>
-	{% endif %}
-
 	{# assignments list #}
-	<ol style="padding-bottom: 10px">
+	<ol style="padding-top: 0px; padding-bottom: 10px">
 		
-		<li style="text-align:left"><strong> {{section.name}} 
+		<li><strong> {{section.name}} 
 			
 			<div><small>{{section.course.name}}</small></div>
 		</strong></li>
 		
-		<li style="text-align:left">
+		<li>
 			<strong>Assignments</strong>
 		</li>
 		
@@ -125,16 +121,14 @@
 
 		{% if elevatedUser %}
 			<a href="{{path('assignment_edit', {'sectionId': section.id})}}" class="btn">
-				<div class="btn btn-center" style="margin-top:10px">+ Assignment</div>
+				<div class="btn btn-center">+ Assignment</div>
+			</a>
+			
+			<a href="{{path('section_edit', {'sectionId': section.id})}}" class="btn">
+				<div class="btn btn-center">Edit Section</div>
 			</a>
 		{% endif %}
-
-		{% if is_granted("ROLE_SUPER") %}
-			<a href="{{path('section_delete', {'sectionId': section.id})}}" class="btn">
-				<div class="btn btn-delete btn-center">Delete Section</div>
-			</a>
-		{% endif %}
-
+		
 
 		
 </nav>
