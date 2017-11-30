@@ -209,6 +209,18 @@ class SectionController extends Controller {
 				  ->setParameter(2, $takes_role);
 			$query = $builder->getQuery();
 			$section_taker_roles = $query->getResult();
+
+
+			$teaches_role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Teaches'));
+			$builder = $em->createQueryBuilder();
+			$builder->select('u')
+				  ->from('AppBundle\Entity\UserSectionRole', 'u')
+				  ->where('u.section = ?1')
+				  ->andWhere('u.role = ?2')
+				  ->setParameter(1, $section)
+				  ->setParameter(2, $teaches_role);
+			$query = $builder->getQuery();
+			$section_teacher_roles = $query->getResult();
 		}
 
 		return $this->render('section/edit.html.twig', [
@@ -216,7 +228,8 @@ class SectionController extends Controller {
 			'users' => $users,
 			'instructors' => $instructors,
 			'section' => $section,
-			'section_taker_roles' => $section_taker_roles
+			'section_taker_roles' => $section_taker_roles,
+			'section_teacher_roles' => $section_teacher_roles
 		]);
     }
 	

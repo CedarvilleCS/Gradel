@@ -339,7 +339,13 @@
 		
 		// set the year
 		$('#year').val("{{section.year}}");
-		
+
+		// set the teachers csv
+		{% for std in section_teacher_roles %}
+		$('#teacher-picker').val("{{std.user.email}}");
+		updateTeacherCSV();
+		{% endfor %}
+				
 		// set the students csv
 		{% for std in section_taker_roles %}
 		$('#student-picker').val("{{std.user.email}}");
