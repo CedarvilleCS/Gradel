@@ -13,6 +13,7 @@ use AppBundle\Entity\Language;
 use AppBundle\Entity\UserSectionRole;
 
 use AppBundle\Utils\Grader;
+use AppBundle\Utils\TestCaseCreator;
 
 use Psr\Log\LoggerInterface;
 
@@ -22,138 +23,28 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 
 use Doctrine\Common\Collections\ArrayCollection;
 
-define("MULTIPLIER", '10000000000');
-
-
-
 class ProblemController extends Controller {
 
     public function newAction($sectionId, $assignmentId) {
-      $em = $this->getDoctrine()->getManager();
-      $qb = $em->createQueryBuilder();
+		$em = $this->getDoctrine()->getManager();
+		$qb = $em->createQueryBuilder();
 
-      $qb->select('l')
-        ->from('AppBundle\Entity\Language', 'l')
-        ->where('1 = 1');
+		$qb->select('l')
+			->from('AppBundle\Entity\Language', 'l')
+			->where('1 = 1');
 
-      $languages = $qb->getQuery()->getResult();
+		$languages = $qb->getQuery()->getResult();
 
-      return $this->render('problem/new.html.twig', [
-        'languages' => $languages,
-        'sectionId' => $sectionId,
-        'assignmentId' => $assignmentId,
-      ]);
+		return $this->render('problem/new.html.twig', [
+			'languages' => $languages,
+			'sectionId' => $sectionId,
+			'assignmentId' => $assignmentId,
+		]);
     }
 
-	public function insertAction(Request $request) {
-      $em = $this->getDoctrine()->getManager();
-      $user = $this->get('security.token_storage')->getToken()->getUser();
-      $post_data = $request->request->all();
-      $errors = array();
-
-
-      $languageArr = $post_data['languages'];
-      if (sizeof($languageArr) == 0) {
-        array_push($errors, "You must provide at least one language");
-      }
-
-	  $assignment = $em->find("AppBundle\Entity\Assignment", $post_data['assignmentId']);
-	  if (!$assignment) {
-		  array_push($errors, "Assignment provided does not exist");
-	  }
-
-      $name = $post_data['name'];
-      if ($name == "") {
-        array_push($errors, "Name must be set");
-      }
-
-      $description = $post_data['description'];
-      if ($description == "") {
-        array_push($errors, "Description must be set");
-      }
-
-	  $weight = $post_data['weight'];
-      if (!is_numeric($weight) || ((int)$weight < 1)) {
-        array_push($errors, "You must provide an integer weight greater than 0. You provided: " . $weight);
-      }
-
-      $is_extra_credit = $post_data['is_extra_credit'];
-      if ($is_extra_credit !== "true" && $is_extra_credit !== "false") {
-        array_push($errors, "You are trying to be malicious! Stop it! Extra Credit must be a boolean");
-      }
-
-      $time_limit = $post_data['time_limit'];
-      if ($time_limit <= 0) {
-        array_push($errors, "Time limit must be greater than 0!");
-      }
-
-
-      if (sizeof($errors) == 0) {
-
-        $problem = new Problem();
-
-        $problem->assignment = $assignment;
-        $problem->name = $name;
-        $problem->description = $description;
-        $problem->weight = $weight;
-        $problem->is_extra_credit = ($is_extra_credit == "true") ? 1 : 0;
-        $problem->time_limit = $time_limit;
-
-		$problem->total_attempts = 0; // change this Chris
-		$problem->attempts_before_penalty = 0; // change this Chris
-		$problem->penalty_per_attempt = 0.00; // change this Chris
-
-		$problem->stop_on_first_fail = false; // change this Chris
-		$problem->response_level = "Long"; // change this Chris
-		$problem->display_testcaseresults = true; // change this Chris
-		$problem->testcase_output_level = "Both"; // change this Chris
-		$problem->extra_testcases_display = true; // change this Chris
-
-        $em->persist($problem);
-
-        foreach ($languageArr as $language) {
-          $l = $em->find("AppBundle\Entity\Language", $language);
-          $problemLanguage = new ProblemLanguage();
-
-          $problemLanguage->language = $l;
-          $problemLanguage->problem = $problem;
-          $em->persist($problemLanguage);
-        }
-      }
-      $em->flush();
-
-      return new JsonResponse(array("errors"=> $errors, "problemId"=> $problem->id));
-    }
-
-    public function editAction($problemId, $assignmentId) {
-      $em = $this->getDoctrine()->getManager();
-      $problem = $em->find("AppBundle\Entity\Problem", $problemId);
-      $problemLanguages = [];
-
-
-      foreach ($problem->problem_languages as $pl) {
-        array_push($problemLanguages, $pl->language->name);
-      }
-
-      $qb = $em->createQueryBuilder();
-
-      $qb->select('l')
-        ->from('AppBundle\Entity\Language', 'l')
-        ->where('1 = 1');
-
-      $languages = $qb->getQuery()->getResult();
-
-      $qb = $em->createQueryBuilder();
-
-      return $this->render('problem/edit.html.twig', [
-        "problem" => $problem,
-        "assignmentId" => $assignmentId,
-        // "gradingMethods" => $gradingMethods,
-        "problemDescription" => stream_get_contents($problem->description),
-        "languages" => $languages,
-        "problemLanguages" => $problemLanguages,
-      ]);
-    }
+	public function editAction() {
+		return $this->render('problem/edit.html.twig', []);
+  }
 
 	public function deleteAction($sectionId, $assignmentId, $problemId){
 
@@ -180,6 +71,202 @@ class ProblemController extends Controller {
 		return $this->redirectToRoute('assignment', ['sectionId' => $problem->assignment->section->id, 'assignmentId' => $problem->assignment->id]);
 	}
 
+	public function modifyPostAction(Request $request) {
+
+		$em = $this->getDoctrine()->getManager();
+
+		# validate the current user
+		$user = $this->get('security.token_storage')->getToken()->getUser();
+		if(!$user){
+			return $this->returnForbiddenResponse("You are not a user.");
+		}
+
+		# see which fields were included
+		$postData = $request->request->all();
+
+		# get the current assignment
+		$assignment = $em->find('AppBundle\Entity\Assignment', $postData['assignmentId']);
+		if(!$assignment){
+			return $this->returnForbiddenResponse("Assignment ".$postData['assignmentId']." does not exist");
+		}
+
+		# only super users/admins/teacher can make/edit an assignment
+		$grader = new Grader($em);
+		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN") && !$grader->isTeaching($user, $assignment->section)){
+			return $this->returnForbiddenResponse("You do not have permission to make a problem.");
+		}
+
+
+
+		# get the problem or create a new one
+		if($postData['problem'] == 0){
+
+			$problem = new Problem();
+			$problem->assignment = $assignment;
+			$em->persist($problem);
+
+		} else {
+
+			$problem = $em->find('AppBundle\Entity\Problem', $postData['problem']);
+
+			if(!$problem || $assignment != $problem->assignment){
+				return $this->returnForbiddenResponse("Problem ".$postData['problem']." does not exist for the given assignment.");
+			}
+		}
+
+
+		# check mandatory fields
+		if(!isset($postData['name']) || trim($postData['name']) == "" || !isset($postData['description']) || trim($postData['description']) == "" || !isset($postData['weight']) || !isset($postData['time_limit'])){
+
+			return $this->returnForbiddenResponse("Not every necessary field was provided");
+
+		} else {
+
+			if(!is_numeric(trim($postData['weight'])) || (int)trim($postData['weight']) < 1){
+				return $this->returnForbiddenResponse("Weight provided is not valid - it must be greater than 0");
+			}
+
+			if(!is_numeric(trim($postData['time_limit'])) || (int)trim($postData['time_limit']) < 1){
+				return $this->returnForbiddenResponse("Time limit provided is not valid - it must be greater than 0. You gave us: ". $postData['time_limit']);
+			}
+
+		}
+
+		$problem->name = trim($postData['name']);
+		$problem->description = trim($postData['description']);
+		$problem->weight = trim($postData['weight']);
+		$problem->is_extra_credit = ($postData['is_extra_credit'] == "true");
+		$problem->time_limit = trim($postData['time_limit']);
+
+		if(!isset($postData['languages']) || !isset($postData['testcases'])){
+
+			return $this->returnForbiddenResponse("Not every necessary field was provided");
+
+		} else {
+
+			if(count($postData['languages']) < 1){
+				return $this->returnForbiddenResponse("You must specify at least one language");
+			}
+
+			if(count($postData['testcases']) < 1){
+				return $this->returnForbiddenResponse("You must specify at least one test case");
+			}
+
+		}
+
+		# check the optional fields
+		# attempt penalties
+		$total_attempts = $postData['total_attempts'];
+		$attempts_before_penalty = $postData['attempts_before_penalty'];
+		$penalty_per_attempt = $postData['penalty_per_attempt'];
+
+		if(!isset($total_attempts) || !is_numeric($total_attempts) || !isset($attempts_before_penalty) || !is_numeric($attempts_before_penalty) || !isset($penalty_per_attempt) || !is_numeric($penalty_per_attempt)){
+			return $this->returnForbiddenResponse("Not every necessary grading method flag was set properly");
+		}
+
+		if($total_attempts < $attempts_before_penalty){
+			return $this->returnForbiddenResponse("Attempts before penalty must be greater than the total attempts");
+		}
+
+		if($penalty_per_attempt < 0.00 || $penalty_per_attempt > 1.00){
+			return $this->returnForbiddenResponse("Penalty per attempts must be between 0 and 1");
+		} else{
+			$total_attempts = 0;
+			$attempts_before_penalty = 0;
+			$penalty_per_attempt = 0.00;
+		}
+
+		$problem->total_attempts = $total_attempts;
+		$problem->attempts_before_penalty = $attempts_before_penalty;
+		$problem->penalty_per_attempt = $penalty_per_attempt;
+
+
+		# feedback flags
+		$stop_on_first_fail = $postData['stop_on_first_fail'];
+		$response_level = $postData['response_level'];
+		$display_testcaseresults = $postData['display_testcaseresults'];
+		$testcase_output_level = $postData['testcase_output_level'];
+		$extra_testcases_display = $postData['extra_testcases_display'];
+
+		if($stop_on_first_fail != null || $response_level != null || $display_testcaseresults != null || $testcase_output_level != null || $extra_testcases_display != null){
+
+			if($stop_on_first_fail == null || $response_level == null || $display_testcaseresults == null || $testcase_output_level == null || $extra_testcases_display == null){
+				return $this->returnForbiddenResponse("Not every necessary feedback flag was set");
+			}
+
+			if($response_level != "Long" && $response_level != "Short" && $response_level != "None"){
+				return $this->returnForbiddenResponse("Response level is not a valid string value");
+			}
+
+			if($testcase_output_level != "Both" && $testcase_output_level != "Output" && $testcase_output_level != "None"){
+				return $this->returnForbiddenResponse("Testcase output level is not a valid string value. You gave: " . $testcase_output_level);
+			}
+
+		} else {
+			$stop_on_first_fail = false;
+			$response_level = "Long";
+			$display_testcaseresults = true;
+			$testcase_output_level = "Both";
+			$extra_testcases_display = true;
+		}
+
+		$problem->stop_on_first_fail = ($stop_on_first_fail == "true");
+		$problem->response_level = $response_level;
+		$problem->display_testcaseresults = ($display_testcaseresults == "true");
+		$problem->testcase_output_level = $testcase_output_level;
+		$problem->extra_testcases_display = ($extra_testcases_display == "true");
+
+		# go through the problemlanguages
+		foreach($problem->problem_languages as $pl){
+			$em->remove($pl);
+		}
+
+
+		foreach(array_unique($postData['languages']) as $l) {
+
+			$language = $em->find("AppBundle\Entity\Language", $l);
+
+			if(!$language){
+				return $this->returnForbiddenResponse("Provided language with id ".$l." does not exist");
+			}
+
+			$problemLanguage = new ProblemLanguage();
+
+			$problemLanguage->language = $language;
+			$problemLanguage->problem = $problem;
+			$em->persist($problemLanguage);
+		}
+
+		# go through the testcases array provided if this was a new problem
+		if($postData['problem'] == 0){
+
+			$count = 1;
+			foreach($postData['testcases'] as $tc){
+
+				if(!is_array($tc)){
+					return $this->returnForbiddenResponse("Testcase data is not formatted properly");
+				}
+
+				# build the testcase
+				$response = TestCaseCreator::makeTestCase($em, $problem, $tc, $count);
+				$count++;
+
+				# check what the makeTestCase returns
+				if(!$response->problem){
+					return $response;
+				} else{
+					$testcase = $response;
+				}
+
+				$em->persist($testcase);
+			}
+		}
+
+		$em->flush();
+
+		return new JsonResponse(array("problemId"=> $problem->id));
+	}
+
 	public function resultAction($submission_id) {
 
 		$em = $this->getDoctrine()->getManager();
@@ -188,8 +275,7 @@ class ProblemController extends Controller {
 		$submission = $em->find("AppBundle\Entity\Submission", $submission_id);
 
 		if(!$submission){
-			echo "SUBMISSION DOES NOT EXIST";
-			die();
+			die("SUBMISSION DOES NOT EXIST");
 		}
 
 		# get the user
@@ -207,23 +293,19 @@ class ProblemController extends Controller {
 		$grader = new Grader($em);
 		$feedback = $grader->getFeedback($submission);
 
-        return $this->render('problem/result.html.twig', [
+		return $this->render('problem/result.html.twig', [
 			'submission' => $submission,
 			'grader' => new Grader($em),
 			'result_page' => true,
 			'feedback' => $feedback,
-        ]);
+		]);
 	}
 
-
-  // Then reduce any list of integer
-  // private function gcdArr($arr) {
-  //   return array_reduce($arr, array($this, 'gcd'));
-  // }
-  //
-  // private function gcd ($a, $b) {
-  //   return $b ? $this->gcd($b, $a % $b) : $a;
-  // }
+	private function returnForbiddenResponse($message){
+		$response = new Response($message);
+		$response->setStatusCode(Response::HTTP_FORBIDDEN);
+		return $response;
+	}
 }
 
 

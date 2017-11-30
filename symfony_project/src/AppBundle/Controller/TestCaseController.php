@@ -14,12 +14,13 @@ use AppBundle\Entity\Feedback;
 use AppBundle\Entity\Testcase;
 
 use AppBundle\Utils\Grader;
+use AppBundle\Utils\TestCaseCreator;
+
 
 use Psr\Log\LoggerInterface;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\JsonResponse;
 
 
 class TestCaseController extends Controller {
@@ -35,42 +36,42 @@ class TestCaseController extends Controller {
 
 	public function insertAction(Request $request) {
    
-      $em = $this->getDoctrine()->getManager();
-      $user = $this->get('security.token_storage')->getToken()->getUser();
-      $post_data = $request->request->all();
+		$em = $this->getDoctrine()->getManager();
+		$user = $this->get('security.token_storage')->getToken()->getUser();
+		
+		$postData = $request->request->all();
 
-      $problem = $em->find("AppBundle\Entity\Problem", $post_data['problemId']);
+		# get the problem from the post
+		$problem = $em->find("AppBundle\Entity\Problem", $postData['problemId']);
 	  
-	  if(!$problem){
-		  die("PROBLEM GIVEN DOES NOT EXIST");
-	  }
+		if(!$problem){
+			return $this->returnForbiddenResponse("The problem with provided id does not exist!");
+		}
+		
+		# make sure this user can make a testcase
+		$grader = new Grader($em);
+		if(!$user->hasRole("ROLE_SUPER") && !$grader->isTeaching($user, $problem->assignment->section)){
+			return $this->returnForbiddenResponse("You are not allowed to create testcases for this problem");
+		}
 
-      $input = $post_data['input'];
-      $output = $post_data['output'];
-      $weight = $post_data['weight'];
-      $short_feedback = $post_data['short_response'];
-      $long_feedback = $post_data['long_response'];
+		# build the testcase 
+		$response = TestCaseCreator::makeTestCase($em, $problem, $postData);
+		
+		# check what the makeTestCase returns
+		if(!$response->problem){
+			return $response;
+		} else{
+			$testcase = $response;
+		}
 
-      $feedback = new Feedback();
-      $feedback->short_response = $short_feedback;
-      $feedback->long_response = $long_feedback;
+		$em->persist($testcase);
+		$em->flush();
 
-      $em->persist($feedback);
+		$response = new Response(json_encode(array('testcase_id'=>$testcase->id)));
+		$response->headers->set('Content-Type', 'application/json');
+		$response->setStatusCode(Response::HTTP_OK);
 
-      $testcase = new Testcase();
-
-      $testcase->problem = $problem;
-      $testcase->feedback = $feedback;
-  	  $testcase->seq_num = 0; // Needs to be used
-  	  $testcase->input = $input;
-  	  $testcase->correct_output = $output;
-  	  $testcase->weight = $weight;
-      $testcase->is_extra_credit = false;
-      //
-      $em->persist($testcase);
-      $em->flush();
-
-      return new JsonResponse(array("input" => $input));
+		return $response;
     }
 
     public function editAction() {
@@ -79,7 +80,12 @@ class TestCaseController extends Controller {
 
       ]);
     }
-
+	
+	private function returnForbiddenResponse($message){		
+		$response = new Response($message);
+		$response->setStatusCode(Response::HTTP_FORBIDDEN);
+		return $response;
+	}
 
 }
 

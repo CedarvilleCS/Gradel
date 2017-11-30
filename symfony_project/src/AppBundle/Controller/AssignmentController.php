@@ -123,7 +123,8 @@ class AssignmentController extends Controller {
 			->setParameter(2, $problem_entity);
 		$lastsub_query = $qb_lastsub->getQuery();
 		$last_submission = $lastsub_query->getOneOrNullResult();
-
+		
+		/*
 		# check if there is anything in the last submission query
 		# if so, pass the contents of the blob to the view, create a function there to fill ACE
 
@@ -131,7 +132,7 @@ class AssignmentController extends Controller {
 		// 	echo("last submission not null");
 		// 	echo($last_submission);
 		// 	die(stream_get_contents($last_submission));
-		// }
+		// }*/
 
 		return $this->render('assignment/index.html.twig', [
 			'user' => $user,
@@ -254,7 +255,7 @@ class AssignmentController extends Controller {
 		}		
 		
 		# check mandatory fields
-		if(!$postData['name'] || !$postData['open_time'] || !$postData['close_time'] || !$postData['teams'] || !$postData['teamnames']){
+		if(!isset($postData['name']) || !isset($postData['open_time']) || !isset($postData['close_time']) || !isset($postData['teams']) || !isset($postData['teamnames'])){
 			return $this->returnForbiddenResponse("Not every required field is provided.");			
 		} else {
 			
@@ -285,21 +286,21 @@ class AssignmentController extends Controller {
 		$openTime = DateTime::createFromFormat("m/d/Y H:i:s", $postData['open_time'].":00");
 		$closeTime = DateTime::createFromFormat("m/d/Y H:i:s", $postData['close_time'].":00");
 		
-		if(!$openTime || $openTime->format("m/d/Y H:i") != $postData['open_time']){
+		if(!isset($openTime) || $openTime->format("m/d/Y H:i") != $postData['open_time']){
 			return $this->returnForbiddenResponse("Provided opening time ".$postData['open_time']." is not valid.");
 		}
 		
-		if(!$closeTime || $closeTime->format("m/d/Y H:i") != $postData['close_time']){
+		if(!isset($closeTime) || $closeTime->format("m/d/Y H:i") != $postData['close_time']){
 			return $this->returnForbiddenResponse("Provided closing time ".$postData['close_time']." is not valid.");
 		}
 		
-		if($postData['cutoff_time']){
+		if(isset($postData['cutoff_time']) && $postData['cutoff_time'] != ""){
 			
 			$cutoffTime = DateTime::createFromFormat("m/d/Y H:i:s", $postData['cutoff_time'].":00");
 			
-			if(!$cutoffTime || $cutoffTime->format("m/d/Y H:i") != $postData['cutoff_time']){
-			return $this->returnForbiddenResponse("Provided cutoff time. ".$postData['cutoff_time']." is not valid.");
-		}
+			if(!isset($cutoffTime) || $cutoffTime->format("m/d/Y H:i") != $postData['cutoff_time']){
+				return $this->returnForbiddenResponse("Provided cutoff time ".$postData['cutoff_time']." is not valid.");
+			}
 			
 		} else {
 			$cutoffTime = $closeTime;
@@ -315,14 +316,14 @@ class AssignmentController extends Controller {
 		$assignment->cutoff_time = $cutoffTime;
 		
 		# set the weight
-		if($postData['weight']){
+		if(isset($postData['weight'])){
 			$assignment->weight = intval($postData['weight']);
 		} else {
 			$assignment->weight = 1;
 		}				
 				
 		# set extra credit
-		if($postData["is_extra_credit"] && $postData["is_extra_credit"] == "true"){
+		if(isset($postData["is_extra_credit"]) && $postData["is_extra_credit"] == "true"){
 			$assignment->is_extra_credit = true;
 		} else {			
 			$assignment->is_extra_credit = false;
@@ -338,7 +339,7 @@ class AssignmentController extends Controller {
 		$assignment->gradingmethod = $gradingmethod;
 		
 		# create teams	
-		# transfer over the submissions to the new teams
+		# transfer over the submissions to the new teams?
 		foreach($assignment->teams as $del_team){
 			$em->remove($del_team);
 			//$em->flush();

@@ -3,7 +3,13 @@
 {# Left Nav For the Section List (On the homepage) #}
 <nav class="nav-left">
 	
-	{% if is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") %}
+	<!-- {% if is_granted("ROLE_SUPER") %}
+		<a class="btn">
+			<div class="btn btn-center">+ Course</div>
+		</a>
+	{% endif %} -->
+	
+	{% if is_granted("ROLE_ADMIN") or is_granted("ROLE_SUPER") %}
 		<a href="{{path('section_edit')}}" class="btn">
 			<div class="btn btn-center">+ Section</div>
 		</a>
@@ -29,7 +35,6 @@
 				<a href="{{path('section', {'sectionId':section.id})}}">
 					<li class="sidebar">
 						<span class="preview">{{section.course.name}}
-						
 							<small>
 							<br/>{{section.name}}
 							
@@ -43,13 +48,13 @@
 						</span>	
 					
 					{% if app.user in section_teachers or is_granted("ROLE_SUPER") %}
-					<object>
-						<a title="Edit Section" href="{{path('section_edit', {'sectionId': section.id})}}">
-							<img class="small-icon" src="{{ asset('edit.png') }}">
-						</a>
-						
-					</object>
-				{% endif %}	
+						<object>
+							<a title="Edit Section" href="{{path('section_edit', {'sectionId': section.id})}}">
+								<img class="small-icon" id="right-icon" src="{{ asset('edit.png') }}">
+							</a>
+							
+						</object>
+					{% endif %}	
 					
 					</li>
 				</a>	
@@ -64,23 +69,27 @@
 			{% for section in sections_teaching %}	
 			
 				<a href="{{path('section', {'sectionId':section.id})}}">
-					<li>
+				
+				{% if section.start_time|date('U') < "now"|date('U') %}
+					<li class="sidebar" id="unopened">
+				{% else %}
+					<li class="sidebar">
+				{% endif %}
+				
 						<span class="preview">{{section.course.name}}
-						
+							
 							<small>
-							<br/>{{section.name}}
+							<br/>{{section.name}} 
 							</small>
 						</span>	
-					
 						<object>
-							<a title="Edit {{section.name}}" id="edit-icon" href="{{path('section_edit', {'sectionId': section.id})}}">
-								<svg xmlns="http://www.w3.org/2000/svg" fill="#ffffff" height="15" viewBox="0 0 24 24" width="15">
-									<path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
-									<path d="M0 0h24v24H0z"  fill="none"/>
-								</svg>
-							</a>							
-						</object>					
+							<a title="Edit Section" href="{{path('section_edit', {'sectionId': section.id})}}">
+								<img class="small-icon" id="right-icon" src="{{ asset('edit.png') }}">
+							</a>
+						</object>	
+						
 					</li>
+					
 				</a>	
 			{% endfor %}
 		</ol>

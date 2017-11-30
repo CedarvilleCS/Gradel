@@ -20,13 +20,11 @@
 	<ol style="padding-bottom: 10px">
 		{% for assig in assignments %}
 
-			{% if assig.start_time|date('U') < "now"|date('U') %}
+			{% if assig.start_time|date('U') < "now"|date('U')  %}
 
-				{% if assig.cutoff_time|date('U') > "now"|date('U') or app.user in section_teachers or is_granted("ROLE_SUPER") %}
-					<a href={{path('assignment', {'sectionId': assig.section.id, "assignmentId": assig.id})}}>
-				{% endif %}
-
-					<li class="sidebar">
+						<li class="sidebar">
+						<a href={{path('assignment', {'sectionId': assig.section.id, "assignmentId": assig.id})}}>
+					
 						<span class="preview">
 							{{ assig.name }}
 							<br>
@@ -55,7 +53,7 @@
 					{% if app.user in section_teachers or is_granted("ROLE_SUPER") %}
 						<object>
 							<a title="Delete assignment" href="{{path('assignment_delete', {'sectionId': assig.section.id, 'assignmentId': assig.id})}}">
-								<img class="small-icon" id="right-icon" src="{{ asset('trash.png') }}">
+								<img class="small-icon" id="right-icon" src="{{ asset('whitetrash.png') }}">
 							</a>
 						</object>
 						<object>
@@ -80,11 +78,14 @@
 
 		{% endfor %}
 
-		<li></li>
 		{% for assig in assignments %}
 
 			{% if assig.start_time|date('U') > "now"|date("U") %}
-				<li class="sidebar">
+				{% if not is_granted("ROLE_ADMIN") %}
+					<li class="sidebar" id="unopened">
+				{% else %}
+					<a href={{path('assignment', {'sectionId': assig.section.id, "assignmentId": assig.id})}}>
+				{% endif %}
 					<span class="preview">
 						{{ assig.name }}
 						<br>

@@ -105,18 +105,43 @@ class SectionController extends Controller {
 				$allprobs[] = $prob;
 			}
 		}
-		$qb_submissions = $em->createQueryBuilder();
-		$qb_submissions->select('s')
-				->from('AppBundle\Entity\Submission', 's')
-				->where('s.problem IN (?1)')
-				->orderBy('s.timestamp', 'DESC')
-				->setParameter(1, $allprobs)
-				->setMaxResults(30);
-
-		$submission_query = $qb_submissions->getQuery();
-		$submissions = $submission_query->getResult();
-
+		
 		$grader = new Grader($em);
+		
+		if($grader->isTeaching($user, $section_entity)){
+			
+			$qb_submissions = $em->createQueryBuilder();
+			$qb_submissions->select('s')
+					->from('AppBundle\Entity\Submission', 's')
+					->where('s.problem IN (?1)')
+					->orderBy('s.timestamp', 'DESC')
+					->setParameter(1, $allprobs)
+					->setMaxResults(30);
+
+			$submission_query = $qb_submissions->getQuery();
+			$submissions = $submission_query->getResult();			
+			
+		} else {
+			$teams = [];
+			
+			foreach($section_entity->assignments as $asgn){
+				$teams[] = $grader->getTeam($user, $asgn);
+			}
+			
+			$qb_submissions = $em->createQueryBuilder();
+			$qb_submissions->select('s')
+					->from('AppBundle\Entity\Submission', 's')
+					->where('s.problem IN (?1)')
+					->andWhere('s.team IN (?2)')
+					->orderBy('s.timestamp', 'DESC')
+					->setParameter(1, $allprobs)
+					->setParameter(2, $teams)
+					->setMaxResults(30);
+
+			$submission_query = $qb_submissions->getQuery();
+			$submissions = $submission_query->getResult();
+			
+		}
 		
 		$grades = [];
 		foreach($section_takers as $section_taker){			
@@ -150,7 +175,6 @@ class SectionController extends Controller {
 				->where('1 = 1');
 		$query = $builder->getQuery();
 		$courses = $query->getResult();
-
 
 		$user = $this->get('security.token_storage')->getToken()->getUser();
 		if(!$user){
@@ -231,7 +255,7 @@ class SectionController extends Controller {
 		$postData = $request->request->all();
 		
 		# check mandatory fields
-		if(!$postData['name'] || !$postData['course'] || !$postData['semester'] || !$postData['year']){
+		if(!isset($postData['name']) || trim($postData['name']) == "" || !isset($postData['course']) || !isset($postData['semester']) || !isset($postData['year'])){
 			return $this->returnForbiddenResponse("Not every required field is provided.");
 		} else {
 			
@@ -271,7 +295,7 @@ class SectionController extends Controller {
 		
 		# see if the dates were provided or if we will do them automatically
 		$dates = $this->getDateTime($postData['semester'], $postData['year']);
-		if($postData['start_time'] && $postData['start_time'] != ''){
+		if(isset($postData['start_time']) && $postData['start_time'] != ''){
 			$customStartTime = DateTime::createFromFormat("m/d/Y H:i:s", $postData['start_time']." 00:00:00");
 			
 			if(!$customStartTime || $customStartTime->format("m/d/Y") != $postData['start_time']){
@@ -284,7 +308,7 @@ class SectionController extends Controller {
 			$section->start_time = $dates[0];
 		}
 		
-		if($postData['end_time'] && $postData['end_time'] != ''){
+		if(isset($postData['end_time']) && $postData['end_time'] != ''){
 			$customEndTime = DateTime::createFromFormat("m/d/Y H:i:s", $postData['end_time']." 23:59:59");
 			
 			if(!$customEndTime || $customEndTime->format("m/d/Y") != $postData['end_time']){
@@ -364,7 +388,7 @@ class SectionController extends Controller {
 		# redirect to the section page
 		$url = $this->generateUrl('section', ['sectionId' => $section->id]);		
 		
-		$response = new Response(json_encode(array('redirect_url' => $url, 'students' => $students)));
+		$response = new Response(json_encode(array('redirect_url' => $url)));
 		$response->headers->set('Content-Type', 'application/json');
 		$response->setStatusCode(Response::HTTP_OK);
 		

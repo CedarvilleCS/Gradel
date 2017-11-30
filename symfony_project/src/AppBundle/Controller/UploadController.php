@@ -112,15 +112,13 @@ class UploadController extends Controller {
 			die("UNABLE TO MOVE THE ACE EDITOR CONTENTS");
 		}
 
-		return $this->generateUrl('submit', [
-
+		return [
 			'problem_id' => $problem_entity->id,
 			'submitted_filename' => $filename,
 			'language_id' => $language_id,
 			'main_class' => $main_class,
 			'package_name' => $package_name
-
-		]);
+		];
 	}
 
 	public function fileUpload($problem_id, $postData, $file){
@@ -172,15 +170,13 @@ class UploadController extends Controller {
 				$package_name = '';
 			}
 
-			return $this->generateUrl('submit', [
-
+			return [
 				'problem_id' => $problem_entity->id,
 				'submitted_filename' => basename($file["name"]),
 				'language_id' => $language_id,
 				'main_class' => $main_class,
 				'package_name' => $package_name,
-
-			]);
+			];
 		}
 	}
 
@@ -188,11 +184,11 @@ class UploadController extends Controller {
 
 		if($_FILES["file"]){
 
-			$url = $this->fileUpload($problem_id, $_POST, $_FILES["file"]);
+			$data = $this->fileUpload($problem_id, $_POST, $_FILES["file"]);
 
 		} else if($_POST["ACE"] && $_POST["ACE"] != ""){
 
-			$url = $this->aceUpload($problem_id, $_POST);
+			$data = $this->aceUpload($problem_id, $_POST);
 
 		} else {
 
@@ -210,12 +206,15 @@ class UploadController extends Controller {
 				'problemId' => $problem_entity->id,
 
 			]);
+
+			$data = null;
 		}
 
 
 		$response = new Response(json_encode([
 
 			'redirect_url' => $url,
+			'data' => $data,
 
 		]));
 

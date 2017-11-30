@@ -88,28 +88,13 @@ class Fixtures extends Fixture {
 
 			$course2 = new Course("CS-1220", "Object-Oriented Design", "A class where you learn how to do the OOD", false, false, false);
 			$manager->persist($course2);
-			
-			$contest = new Course("", "Cedarville University Programming Contest", "The annual programming contest open to all majors and walks of life", true, true, false);
-			$manager->persist($contest);
-			
-			$oldcourse = new Course("OLD-1234", "Old Course", "A pretend course that takes place in previous semesters", false, false, false);
-			$manager->persist($oldcourse);
 		}
 		
 		# SECTION Testing
 		{
 			$CS1210_01 = new Section($course1, "CS-1210-01", "Fall", 2017, \DateTime::createFromFormat($date_format, "00:00:00 08/21/2017"), \DateTime::createFromFormat($date_format, "23:59:59 12/16/2017"), false, false);
 			
-			
-			$oldsection = new Section($oldcourse, "OLD-1234-01", "Spring", 2017, \DateTime::createFromFormat($date_format, "00:00:00 01/10/2017"), \DateTime::createFromFormat($date_format, "23:59:59 05/04/2017"), false, false);
-			
-			$contest_2017 = new Section($contest, "Local Contest Fall 2017", "Fall", 2017, 
-									\DateTime::createFromFormat($date_format, "00:00:00 11/01/2017"), 
-									\DateTime::createFromFormat($date_format, "23:59:59 11/01/2017"), false, false);
-
 			$manager->persist($CS1210_01);
-			$manager->persist($oldsection);
-			$manager->persist($contest_2017);
 		}
 		
 		# USERSECTIONROLE Testing
@@ -119,18 +104,6 @@ class Fixtures extends Fixture {
 			$manager->persist(new UserSectionRole($prof_gallagher, $CS1210_01, $takes_role));
 			$manager->persist(new UserSectionRole($brauns_user, $CS1210_01, $takes_role));
 			$manager->persist(new UserSectionRole($smith_user, $CS1210_01, $teach_role));
-			
-			$manager->persist(new UserSectionRole($wolf_user, $oldsection, $takes_role));
-			$manager->persist(new UserSectionRole($budd_user, $oldsection, $takes_role));
-			$manager->persist(new UserSectionRole($prof_gallagher, $oldsection, $takes_role));
-			$manager->persist(new UserSectionRole($brauns_user, $oldsection, $takes_role));
-			$manager->persist(new UserSectionRole($smith_user, $oldsection, $teach_role));
-			
-			$manager->persist(new UserSectionRole($wolf_user, $contest_2017, $takes_role));
-			$manager->persist(new UserSectionRole($budd_user, $contest_2017, $takes_role));
-			$manager->persist(new UserSectionRole($smith_user, $contest_2017, $takes_role));
-			$manager->persist(new UserSectionRole($prof_gallagher, $contest_2017, $teach_role));
-			$manager->persist(new UserSectionRole($brauns_user, $contest_2017, $teach_role));
 		}
 		
 		# ASSIGNMENTGRADINGMETHOD Testing
@@ -145,29 +118,7 @@ class Fixtures extends Fixture {
 		}
 		
 		# ASSIGNMENT Testing
-		{
-			
-			$assignment_04 = new Assignment($CS1210_01, 
-									"Homework #2", "This is the second homework assignment", 
-									\DateTime::createFromFormat($date_format, "00:00:00 10/30/2017"), 
-									\DateTime::createFromFormat($date_format, "23:59:59 11/30/2017"), 
-									\DateTime::createFromFormat($date_format, "23:59:59 12/15/2017"), 1, $assignment_grdmethod0, false);
-			$manager->persist($assignment_04);
-			
-			
-			$assignment_02 = new Assignment($contest_2017, 
-									"Practice Contest", "The is the practice contest before the actual contest", 
-									\DateTime::createFromFormat($date_format, "13:00:00 10/30/2017"), 
-									\DateTime::createFromFormat($date_format, "17:00:00 11/30/2017"), 
-									\DateTime::createFromFormat($date_format, "17:00:00 12/15/2017"), 1, $assignment_grdmethod1, false);
-			$manager->persist($assignment_02);
-			
-			$assignment_03 = new Assignment($contest_2017, 
-									"Actual Contest", "The is the contest", 
-									\DateTime::createFromFormat($date_format, "13:00:00 10/30/2017"), 
-									\DateTime::createFromFormat($date_format, "17:00:00 11/30/2017"), 
-									\DateTime::createFromFormat($date_format, "17:00:00 12/15/2017"), 1, $assignment_grdmethod2, false);
-			$manager->persist($assignment_03);
+		{		
 			
 			$assignment_01 = new Assignment($CS1210_01, 
 									"Homework #1", "This is the first homework assignment", 
@@ -176,12 +127,12 @@ class Fixtures extends Fixture {
 									\DateTime::createFromFormat($date_format, "23:59:59 12/15/2017"), 1, $assignment_grdmethod0, false);
 			$manager->persist($assignment_01);
 			
-			$old_assignment_01 = new Assignment($oldsection, 
-									"Old #1", "This is the old homework assignment", 
-									\DateTime::createFromFormat($date_format, "00:00:00 01/11/2017"), 
-									\DateTime::createFromFormat($date_format, "23:59:59 01/30/2017"), 
-									\DateTime::createFromFormat($date_format, "23:59:59 05/04/2017"), 1, $assignment_grdmethod0, false);
-			$manager->persist($old_assignment_01);
+			$assignment_02 = new Assignment($CS1210_01, 
+									"Homework #2", "This is the second homework assignment", 
+									\DateTime::createFromFormat($date_format, "00:00:00 10/30/2017"), 
+									\DateTime::createFromFormat($date_format, "23:59:59 11/30/2017"), 
+									\DateTime::createFromFormat($date_format, "23:59:59 12/15/2017"), 1, $assignment_grdmethod0, false);
+			$manager->persist($assignment_02);
 		}
 		
 		# TEAM Testing
@@ -196,58 +147,22 @@ class Fixtures extends Fixture {
 			$manager->persist($team_01_1);			
 			
 			# ASSIGNMENT 4
-			$team_04_1 = new Team("Wolf_01", $assignment_04);
-			$team_04_1->users[] = $wolf_user;
+			$team_02_1 = new Team("Wolf_01", $assignment_02);
+			$team_02_1->users[] = $wolf_user;
 			
-			$team_04_2 = new Team("Budd_01", $assignment_04);	
-			$team_04_2->users[] = $budd_user;
+			$team_02_2 = new Team("Budd_01", $assignment_02);	
+			$team_02_2->users[] = $budd_user;
 			
-			$team_04_3 = new Team("Gallagher_01", $assignment_04);
-			$team_04_3->users[] = $prof_gallagher;
+			$team_02_3 = new Team("Gallagher_01", $assignment_02);
+			$team_02_3->users[] = $prof_gallagher;
 			
-			$team_04_4 = new Team("Brauns_01", $assignment_04);
-			$team_04_4->users[] = $brauns_user;
-			
-			$manager->persist($team_04_1);
-			$manager->persist($team_04_2);
-			$manager->persist($team_04_3);
-			$manager->persist($team_04_4);
-			
-			# ASSIGNMENT 2
-			$team_02_1 = new Team("Smith_01", $assignment_02);
-			$team_02_1->users[] = $smith_user;
-			
-			$team_02_2 = new Team("Wolf_01", $assignment_02);
-			$team_02_2->users[] = $wolf_user;
-			
-			$team_02_3 = new Team("Budd_01", $assignment_02);
-			$team_02_3->users[] = $budd_user;
+			$team_02_4 = new Team("Brauns_01", $assignment_02);
+			$team_02_4->users[] = $brauns_user;
 			
 			$manager->persist($team_02_1);
 			$manager->persist($team_02_2);
 			$manager->persist($team_02_3);
-			
-			# ASSIGNMENT 3
-			$team_03_1 = new Team("Smith_01", $assignment_03);
-			$team_03_1->users[] = $smith_user;
-			
-			$team_03_2 = new Team("Wolf_01", $assignment_03);
-			$team_03_2->users[] = $wolf_user;
-			
-			$team_03_3 = new Team("Budd_01", $assignment_03);
-			$team_03_3->users[] = $budd_user;
-			
-			$manager->persist($team_03_1);
-			$manager->persist($team_03_2);
-			$manager->persist($team_03_3);
-			
-			# OLD ASSIGNMENT 1
-			$team_50 = new Team("Everyone", $old_assignment_01);					
-			$team_50->users[] = $wolf_user;
-			$team_50->users[] = $budd_user;
-			$team_50->users[] = $prof_gallagher;
-			$team_50->users[] = $brauns_user;
-			$manager->persist($team_50);
+			$manager->persist($team_02_4);
 		}
 		
 		# LANGUAGE Testing
@@ -275,22 +190,22 @@ class Fixtures extends Fixture {
 			
 			# HOMEWORK 1 For CS-1210-01
 			$desc_file_01 = fopen($folder_path."sum/description.txt", "r") or die("Unable to open 1.desc");
-			$problem_01 = new Problem($assignment_04, "Calculate the Sum", $desc_file_01, 1, 1000, false, 0, 0, 0, false, "Long", true, "Both", true);
+			$problem_01 = new Problem($assignment_02, "Calculate the Sum", $desc_file_01, 1, 1000, false, 0, 0, 0, false, "Long", true, "Both", true);
 			$problems[] = $problem_01;
 			$prob_folds[$problem_01->name] = "sum";
 			
 			$desc_file_02 = fopen($folder_path."diff/description.txt", "r") or die("Unable to open 2.desc");
-			$problem_02 = new Problem($assignment_04, "Calculate the Difference", $desc_file_02, 1, 1000, false, 0, 0, 0, false, "Long", true, "Both", true);
+			$problem_02 = new Problem($assignment_02, "Calculate the Difference", $desc_file_02, 1, 1000, false, 0, 0, 0, false, "Long", true, "Both", true);
 			$problems[] = $problem_02;
 			$prob_folds[$problem_02->name] = "diff";
 			
 			$desc_file_03 = fopen($folder_path."prod/description.txt", "r") or die("Unable to open 3.desc");
-			$problem_03 = new Problem($assignment_04, "Calculate the Product", $desc_file_03, 1, 1000, false, 0, 0, 0, false, "Long", true, "Both", true);
+			$problem_03 = new Problem($assignment_02, "Calculate the Product", $desc_file_03, 1, 1000, false, 0, 0, 0, false, "Long", true, "Both", true);
 			$problems[] = $problem_03;
 			$prob_folds[$problem_03->name] = "prod";
 			
 			$desc_file_04 = fopen($folder_path."quot/description.txt", "r") or die("Unable to open 4.desc");
-			$problem_04 = new Problem($assignment_04, "Calculate the Quotient", $desc_file_04, 1, 1000, false, 0, 0, 0, false, "Long", true, "Both", true);
+			$problem_04 = new Problem($assignment_02, "Calculate the Quotient", $desc_file_04, 1, 1000, false, 0, 0, 0, false, "Long", true, "Both", true);
 			$problems[] = $problem_04;
 			$prob_folds[$problem_04->name] = "quot";
 			

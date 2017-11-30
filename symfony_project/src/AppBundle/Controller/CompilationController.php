@@ -32,7 +32,7 @@ use Psr\Log\LoggerInterface;
 class CompilationController extends Controller {	
 	
 	/* name=submit */
-	public function submitAction($problem_id, $language_id, $submitted_filename, $main_class, $package_name) {
+	public function submitAction(Request $request) {
 	
 		# entity manager
 		$em = $this->getDoctrine()->getManager();						
@@ -44,15 +44,29 @@ class CompilationController extends Controller {
 		if(!$user_entity){
 			die("USER DOES NOT EXIST");
 		} else{
-			echo($user_entity->getFirstName()." ".$user_entity->getLastName()."<br/>");
+			#echo($user_entity->getFirstName()." ".$user_entity->getLastName()."<br/>");
 		}
+		
+		$postData = $request->request->all();
+		
+		$problem_id = $postData['problemId'];
+		$language_id = $postData['languageId'];
+		$submitted_filename = $postData['filename'];
+		$main_class = $postData['mainclass'];
+		$package_name = $postData['packagename'];
+		
+		# make sure all the required post params were passed
+		if(!isset($problem_id) || !isset($language_id) || !isset($submitted_filename) || !isset($main_class) || !isset($package_name)){
+			die("NOT EVERY NECESSARY FIELD WAS PROVIDED");
+		}
+		
 		
 		# get the current problem
 		$problem_entity = $em->find("AppBundle\Entity\Problem", $problem_id);
 		if(!$problem_entity){
 			die("PROBLEM DOES NOT EXIST");
 		} else {
-			echo($problem_entity->id."<br/>");
+			#echo($problem_entity->id."<br/>");
 		}
 		
 		# make sure that the assignment is still open for submission
@@ -69,7 +83,7 @@ class CompilationController extends Controller {
 		if(!$team_entity){
 			die("TEAM DOES NOT EXIST");
 		} else{			
-			echo($team_entity->name."<br/>");		
+			#echo($team_entity->name."<br/>");		
 		}		
 		
 		# make sure that you haven't submitted too many times yet
@@ -132,7 +146,7 @@ class CompilationController extends Controller {
 			// write the input file to the temp directory
 			$input = stream_get_contents($tc->input);			
 			
-			echo $input;
+			#echo $input;
 			
 			$input_file = fopen($temp_input_folder.$tc->seq_num.".in", "w") or die("Unable to open file for writing!");
 			fwrite($input_file, $input);
@@ -141,7 +155,7 @@ class CompilationController extends Controller {
 			// write the output file to the temp directory
 			$correct_output = stream_get_contents($tc->correct_output);
 			
-			echo $correct_output;
+			#echo $correct_output;
 			
 			$output_file = fopen($temp_output_folder.$tc->seq_num.".out", "w") or die("Unable to open file for writing!");
 			fwrite($output_file, $correct_output);
@@ -441,8 +455,18 @@ class CompilationController extends Controller {
 		$em->persist($submission_entity);
 		$em->flush();			
 		
-        return $this->redirectToRoute('problem_result', array('submission_id' => $submission_entity->id));
-		//return new Response();
+        $url = $this->generateUrl('problem_result', array('submission_id' => $submission_entity->id));
+		
+		$response = new Response(json_encode([
+		
+			'redirect_url' => $url,
+			
+		]));
+		
+		$response->headers->set('Content-Type', 'application/json');
+		$response->setStatusCode(Response::HTTP_OK);
+		
+		return $response;
 	}
 }
 
