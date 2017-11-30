@@ -33,16 +33,40 @@ class ProblemController extends Controller {
 			->where('1 = 1');
 
 		$languages = $qb->getQuery()->getResult();
+		
+		$section = $em->find('AppBundle\Entity\Section', $sectionId);
+		$assignment = $em->find('AppBundle\Entity\Assignment', $assignmentId);
+		
+		
 
 		return $this->render('problem/new.html.twig', [
 			'languages' => $languages,
-			'sectionId' => $sectionId,
-			'assignmentId' => $assignmentId,
+			'section' => $section,
+			'assignment' => $assignment,
 		]);
     }
 
-	public function editAction() {
-		return $this->render('problem/edit.html.twig', []);
+	public function editAction($sectionId, $assignmentId, $problemId) {
+		$em = $this->getDoctrine()->getManager();
+		$qb = $em->createQueryBuilder();
+
+		$qb->select('l')
+			->from('AppBundle\Entity\Language', 'l')
+			->where('1 = 1');
+
+		$languages = $qb->getQuery()->getResult();
+		
+		$section = $em->find('AppBundle\Entity\Section', $sectionId);
+		$assignment = $em->find('AppBundle\Entity\Assignment', $assignmentId);
+		$problem = $em->find('AppBundle\Entity\Problem', $problemId);
+		
+
+		return $this->render('problem/new.html.twig', [
+			'languages' => $languages,
+			'section' => $section,
+			'assignment' => $assignment,
+			'problem' => $problem,
+		]);
     }
 	
 	public function deleteAction($sectionId, $assignmentId, $problemId){
@@ -291,12 +315,28 @@ class ProblemController extends Controller {
 
 		$grader = new Grader($em);
 		$feedback = $grader->getFeedback($submission);
+		
+		# get the usersectionrole
+		$qb_usr = $em->createQueryBuilder();
+		$qb_usr->select('usr')
+			->from('AppBundle\Entity\UserSectionRole', 'usr')
+			->where('usr.user = ?1')
+			->andWhere('usr.section = ?2')
+			->setParameter(1, $user)
+			->setParameter(2, $submission->problem->assignment->section);
+			
+		$usr_query = $qb_usr->getQuery();
+		$usersectionrole = $usr_query->getOneOrNullResult();
 
 		return $this->render('problem/result.html.twig', [
+			'section' => $submission->problem->assignment->section,
+			'assignment' => $submission->problem->assignment,
+			'problem' => $submission->problem,
 			'submission' => $submission,
 			'grader' => new Grader($em),
 			'result_page' => true,
 			'feedback' => $feedback,
+			'usersectionrole' => $usersectionrole,
 		]);
 	}
 	

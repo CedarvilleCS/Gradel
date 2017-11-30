@@ -1,30 +1,30 @@
 {# make sure that the grader entity is defined before doing all of this stuff #}
-{% set grades = grader.getAllProblemGrades(app.user, problem.assignment) %}
+{% set grades = grader.getAllProblemGrades(app.user, assignment) %}
 
-{% set elevatedUser = grader.isTeaching(app.user, problem.assignment.section) or is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") %}
+{% set elevatedUser = grader.isTeaching(app.user, assignment.section) or is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") %}
 
 <nav class="nav-left">
 
 	<ol style="padding-top: 0px; padding-bottom: 10px">
 		{# overview of when the assignment is due #}		
-		<li><strong> {{problem.assignment.name}} 
+		<li><strong> {{assignment.name}} 
 			
 			<div><small>
-			{% if problem.assignment.start_time|date('U') > "now"|date('U') %}
+			{% if assignment.start_time|date('U') > "now"|date('U') %}
 			
-				Opens: {{problem.assignment.start_time|date('M. d \\a\\t  h:i A')}}
+				Opens: {{assignment.start_time|date('M. d \\a\\t  h:i A')}}
 			
-			{% elseif problem.assignment.end_time|date('U') > "now"|date('U') %}
+			{% elseif assignment.end_time|date('U') > "now"|date('U') %}
 			
-				Due: {{problem.assignment.end_time|date('M. d \\a\\t  h:i A')}}
+				Due: {{assignment.end_time|date('M. d \\a\\t  h:i A')}}
 			
-			{% elseif problem.assignment.cutoff_time|date('U') > "now"|date('U') %}
-				Due: {{problem.assignment.end_time|date('M. d \\a\\t  h:i A')}} </br>
-				<i style="color: pink">Closes: {{problem.assignment.cutoff_time|date('M. d \\a\\t  h:i A')}}</i>
+			{% elseif assignment.cutoff_time|date('U') > "now"|date('U') %}
+				Due: {{assignment.end_time|date('M. d \\a\\t  h:i A')}} </br>
+				<i style="color: pink">Closes: {{assignment.cutoff_time|date('M. d \\a\\t  h:i A')}}</i>
 							
 			{% else %}
 			
-				<i style="color: pink">Closed: {{problem.assignment.cutoff_time|date('M. d \\a\\t  h:i A')}}</i>
+				<i style="color: pink">Closed: {{assignment.cutoff_time|date('M. d \\a\\t  h:i A')}}</i>
 			
 			{% endif %}
 			</small></div>
@@ -36,14 +36,14 @@
 		{# problem list #}
 		{% for prob in problem.assignment.problems %}
 
-			{% if prob.id != problem.id or result_page %}
+			{% if prob.id != problem.id or result_page%}
 			
 				<a href="{{path("assignment", {'sectionId': prob.assignment.section.id, 'assignmentId': prob.assignment.id, 'problemId': prob.id})}}">
 			
-				<li class="sidebar" style="padding-left: 15px">			
+				<li class="sidebar" style="{%if prob.id == problem.id %}background: #5a5a5a; {%endif%} padding-left: 15px">			
 					<div class="{% if elevatedUser %}sidebar-text{% endif %}">{{ prob.name }}&nbsp;</div>
 					
-					{% if usersectionrole.role.role_name == 'Takes' and (grades[prob.id]['percentage_adj'] > 0  or prob.assignment.end_time|date('U') < "now"|date('U'))%}
+					{% if usersectionrole.role.role_name == 'Takes'%}
 						<small>
 							{{grades[prob.id]['passed_testcases']+grades[prob.id]['passed_extra_testcases']}}/{{grades[prob.id]['total_testcases']}}
 							- 
@@ -52,14 +52,14 @@
 					{% endif %}
 					
 					{% if prob.id == problem.id %}
-						<div class="selectbar" style="margin: 0px; padding: 0px; position: absolute; right:0; top:0; height:100%; width:5px; background-color: #78ba62;" ></div>
+						<div class="selectbar" style="margin: 0px; padding: 0px; position: absolute; right:5; top:0; height:100%; width:5px; background-color: #78ba62;" ></div>
 					{% endif %}
 				
 			{% else %}
 			
 				<li class="sidebar" style="background: #5a5a5a; padding-left: 15px">
 					<div class="{% if elevatedUser %}sidebar-text{% endif %}">{{ prob.name }}&nbsp;</div>
-						{% if usersectionrole.role.role_name == 'Takes' and (grades[prob.id]['percentage_adj'] > 0  or prob.assignment.end_time|date('U') < "now"|date('U'))%}
+						{% if usersectionrole.role.role_name == 'Takes'%}
 							<small>
 								{{grades[prob.id]['passed_testcases']+grades[prob.id]['passed_extra_testcases']}}/{{grades[prob.id]['total_testcases']}}
 								-
@@ -67,8 +67,8 @@
 							</small>
 						{% endif %}
 				
-					<div class="selectbar" style="margin: 0px; padding: 0px; position: absolute; right:0; top:0; height:100%; width:5px; background-color: #78ba62;" ></div>
-
+					<div class="selectbar" style="margin: 0px; padding: 0px; position: absolute; right:5; top:0; height:100%; width:5px; background-color: #78ba62;" ></div>
+				
 			{% endif %}
 
 			{# display edit icon #}
@@ -93,7 +93,7 @@
 			{% endif %}
 			
 		{% else %}
-			<li> There are no problems for this assignment </li>
+			<li class="sidebar" style="padding-left: 15px"> There are no problems for this assignment </li>
 		{% endfor %}
 	  
 	</ol>
