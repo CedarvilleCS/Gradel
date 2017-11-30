@@ -39,10 +39,10 @@
 			{% for section in sections_taking %}	
 			
 				<a href="{{path('section', {'sectionId':section.id})}}">
-					<li class="sidebar">
+					<li class="sidebar" style="padding-left: 15px">
 						<span class="preview">{{section.course.name}}
-							<small>
-							<br/><div class="sidebar-text">{{section.name}}</div>
+							<br/><small>
+							{{section.name}}
 							
 							{% if grades[section.id]['percentage_adj'] > 0 %}
 							
@@ -76,25 +76,18 @@
 			
 				<a href="{{path('section', {'sectionId':section.id})}}">
 				
-				{% if section.start_time|date('U') > "now"|date('U') and not is_granted("ROLE_ADMIN")%}
-					<li class="sidebar" id="unopened">
-				{% else %}
-					<li class="sidebar">
-				{% endif %}
-				
-						<span class="preview">{{section.course.name}}
-							
-							<small>
-							<br/><div class="sidebar-text">{{section.name}}</div>
-							</small>
-						</span>	
-						<object>
-							<a title="Edit Section" href="{{path('section_edit', {'sectionId': section.id})}}">
-								<img class="small-icon" id="right-icon" src="{{ asset('edit.png') }}">
-							</a>
-						</object>	
-						
-					</li>
+				<li class="sidebar" style="padding-left: 15px">
+			
+					<span class="preview">{{section.course.name}}						
+						<br/><small>{{section.name}}</small>
+					</span>	
+					<object>
+						<a title="Edit Section" href="{{path('section_edit', {'sectionId': section.id})}}">
+							<img class="small-icon" id="right-icon" src="{{ asset('edit.png') }}">
+						</a>
+					</object>	
+					
+				</li>
 					
 				</a>	
 			{% endfor %}

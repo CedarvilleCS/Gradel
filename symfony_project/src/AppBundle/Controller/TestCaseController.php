@@ -21,7 +21,6 @@ use Psr\Log\LoggerInterface;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\JsonResponse;
 
 
 class TestCaseController extends Controller {

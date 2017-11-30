@@ -67,7 +67,8 @@
 							<div id="packgNameInput" style="display:none"><label for="package_name">Package Name: </label><input type="text" name="package_name" id="package_name_input"></div>
 							<br/>
 							<input type="hidden" name="ACE" id="ACE">
-							<div class="btn" id="submissionButton"> Submit </div>
+							<div class="btn" style="width: 100px" id="submissionButton"> Submit </div>
+							<img id="loadingGif" style="display: none" src="{{asset('beoload.gif')}}" alt="Loading..."/>
 						</div>
 
 					{% elseif attempts_remaining == 0 %}
@@ -95,7 +96,6 @@
 		#submissionButton:hover {
 			cursor:pointer;
 		}
-
 	</style>
 {% endblock %}
 
@@ -136,16 +136,14 @@
 		function getExtension(filename){
 
 			var ext = filename.substr(filename.lastIndexOf('.') + 1);
-
 			return ext;
 		}
 
 		function getName(filename){
 
 			var ext = getExtension(filename);
-
 			var cls = filename.substr(filename.lastIndexOf('\\') + 1).replace("."+ext,"");
-
+			
 			return cls;
 		}
 
@@ -299,6 +297,9 @@
 					}
 				}
 
+				$('#loadingGif').show();
+				$('#submissionButton').hide();
+				
 				$.ajax({
 					type: "POST",
 					url: "{{path('submission_upload', {'problem_id': problem.id}) }}",
@@ -308,7 +309,15 @@
 					success: function(data){
 
 						console.log(data);
-						window.location = data["redirect_url"];
+						
+						if(data['data'] != null){
+							submitSolution(data['data']);
+						} else {
+							window.location = data["redirect_url"]
+						}
+					},
+					error: function(data){
+						alert(data['responseText']);
 					}
 				});
 
@@ -325,6 +334,36 @@
 			$('#languageSelect').change();			
 			{% endif %}
 		});
+		
+		
+		function submitSolution(params){
+			
+			var submitData = {};
+			
+			submitData["problemId"] = params['problem_id'];
+			submitData["languageId"] = params['language_id'];
+			submitData["filename"] = params['submitted_filename'];
+			submitData["mainclass"] = params['main_class'];
+			submitData["packagename"] = params['package_name'];
+				
+			$.ajax({
+				type: 'POST',
+				url: "{{path('submit')}}",
+				data: submitData,
+				success: function(data) {				
+					console.log(data);				
+					window.location = data["redirect_url"];				
+				},
+				error: function(data) {
+					alert(data['responseText']);
+					
+					$('#loadingGif').hide();
+					$('#submissionButton').show();
+				},
+				async: true
+			});
+			
+		}
 	</script>
 
 {% endblock %}

@@ -64,6 +64,7 @@ class AssignmentController extends Controller {
 				
 			$usr_query = $qb_usr->getQuery();
 			$usersectionrole = $usr_query->getOneOrNullResult();
+			
 			$currentProblemDescription = stream_get_contents($problem_entity->description);
 			$problem_languages = $problem_entity->problem_languages;
 
@@ -160,11 +161,22 @@ class AssignmentController extends Controller {
 
 	$em = $this->getDoctrine()->getManager();
 
-	$section = $em->find('AppBundle\Entity\Section', $sectionId);
-	
+	$section = $em->find('AppBundle\Entity\Section', $sectionId);	
 	if(!$section){
 		die("SECTION DOES NOT EXIST");
 	}
+	
+	$user = $this->get('security.token_storage')->getToken()->getUser();  	  
+	if(!get_class($user)){
+		die("USER DOES NOT EXIST!");		  
+	}
+	
+	# validate the user
+	$grader = new Grader($em);
+	if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN") && !$grader->isTeaching($user, $section)){
+		die("YOU ARE NOT ALLOWED TO DELETE THIS ASSIGNMENT");			
+	}
+	
 	
 	if($assignmentId != 0){
 		$assignment = $em->find('AppBundle\Entity\Assignment', $assignmentId);
@@ -255,7 +267,7 @@ class AssignmentController extends Controller {
 		}		
 		
 		# check mandatory fields
-		if(!$postData['name'] || !$postData['open_time'] || !$postData['close_time'] || !$postData['teams'] || !$postData['teamnames']){
+		if(!isset($postData['name']) || !isset($postData['open_time']) || !isset($postData['close_time']) || !isset($postData['teams']) || !isset($postData['teamnames'])){
 			return $this->returnForbiddenResponse("Not every required field is provided.");			
 		} else {
 			
@@ -286,21 +298,21 @@ class AssignmentController extends Controller {
 		$openTime = DateTime::createFromFormat("m/d/Y H:i:s", $postData['open_time'].":00");
 		$closeTime = DateTime::createFromFormat("m/d/Y H:i:s", $postData['close_time'].":00");
 		
-		if(!$openTime || $openTime->format("m/d/Y H:i") != $postData['open_time']){
+		if(!isset($openTime) || $openTime->format("m/d/Y H:i") != $postData['open_time']){
 			return $this->returnForbiddenResponse("Provided opening time ".$postData['open_time']." is not valid.");
 		}
 		
-		if(!$closeTime || $closeTime->format("m/d/Y H:i") != $postData['close_time']){
+		if(!isset($closeTime) || $closeTime->format("m/d/Y H:i") != $postData['close_time']){
 			return $this->returnForbiddenResponse("Provided closing time ".$postData['close_time']." is not valid.");
 		}
 		
-		if($postData['cutoff_time']){
+		if(isset($postData['cutoff_time']) && $postData['cutoff_time'] != ""){
 			
 			$cutoffTime = DateTime::createFromFormat("m/d/Y H:i:s", $postData['cutoff_time'].":00");
 			
-			if(!$cutoffTime || $cutoffTime->format("m/d/Y H:i") != $postData['cutoff_time']){
-			return $this->returnForbiddenResponse("Provided cutoff time. ".$postData['cutoff_time']." is not valid.");
-		}
+			if(!isset($cutoffTime) || $cutoffTime->format("m/d/Y H:i") != $postData['cutoff_time']){
+				return $this->returnForbiddenResponse("Provided cutoff time ".$postData['cutoff_time']." is not valid.");
+			}
 			
 		} else {
 			$cutoffTime = $closeTime;
@@ -316,14 +328,14 @@ class AssignmentController extends Controller {
 		$assignment->cutoff_time = $cutoffTime;
 		
 		# set the weight
-		if($postData['weight']){
+		if(isset($postData['weight'])){
 			$assignment->weight = intval($postData['weight']);
 		} else {
 			$assignment->weight = 1;
 		}				
 				
 		# set extra credit
-		if($postData["is_extra_credit"] && $postData["is_extra_credit"] == "true"){
+		if(isset($postData["is_extra_credit"]) && $postData["is_extra_credit"] == "true"){
 			$assignment->is_extra_credit = true;
 		} else {			
 			$assignment->is_extra_credit = false;
@@ -339,7 +351,7 @@ class AssignmentController extends Controller {
 		$assignment->gradingmethod = $gradingmethod;
 		
 		# create teams	
-		# transfer over the submissions to the new teams
+		# transfer over the submissions to the new teams?
 		foreach($assignment->teams as $del_team){
 			$em->remove($del_team);
 			//$em->flush();

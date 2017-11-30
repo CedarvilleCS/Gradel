@@ -107,7 +107,7 @@ ol {
 #right-icon {
 	padding: 2 2 2 2;
 	float: right;
-    right: 5;
+    right: 7;
 	position: absolute;
 }
 
@@ -240,7 +240,7 @@ nav.nav-left > ol > a > li:hover {
 	color: white;
 	box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
 	z-index: 100;
-	padding-left: 40px;
+	padding-left: 65px;
 	display: flex;
 	flex-direction: row;
 	justify-content: flex-start;
@@ -277,6 +277,18 @@ nav.nav-left > ol > a > li:hover {
     /* float: right; */
     padding-bottom: 10px;
     border-bottom: 1px dotted #8DC26F;
+}
+
+.back-button{
+	
+	height: 30px; 
+	top:59px; 
+	left:220px; 
+	position: absolute;
+}
+
+.back-img{
+	height: 30px;
 }
 
 /*.btn-delete{
@@ -379,6 +391,10 @@ td, th {
 /*tr:nth-child(even) {
     background-color: #dddddd;
 }*/
+
+a{
+	cursor: pointer;
+}
 
 input[type=text] {
     width: 100%;
