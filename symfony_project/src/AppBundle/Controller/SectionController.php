@@ -50,7 +50,7 @@ class SectionController extends Controller {
 		$qb->select('a')
 			->from('AppBundle\Entity\Assignment', 'a')
 			->where('a.section = ?1')
-			->orderBy('a.end_time', 'ASC')
+			->orderBy('a.start_time', 'ASC')
 			->setParameter(1, $section_entity);
 
 		$query = $qb->getQuery();

@@ -102,16 +102,6 @@ a#edit-icon:hover {
 	
 }
 
-.sidebar{
-	display: inline-block;
-	width: 90%;
-	position: relative;
-}
-
-#unopened{
-	background-color: lightgrey;
-}
-
 .btn-center {
     margin: auto;
     width: 90%;
@@ -213,14 +203,30 @@ nav.nav-left > ol > a {
 
 nav.nav-left > ol  li {
     color: white;
-    padding: 10px;
+    padding-right: 10px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+	padding-left: 10px;
     border-bottom: 1px dotted rgb(90, 90, 90);
 }
 
 nav.nav-left > ol > a > li:hover {
-    /* color: red; */
     background-color: rgb(90, 90, 90);
 }
+
+.problem-link{
+	padding-left: 15px;
+}
+
+
+nav.nav-left > ol li.unopened{
+    background-color: rgb(160, 160, 160);
+}
+
+nav.nav-left > ol li.unopened:hover{
+	background-color: rgb(110, 110, 110);
+}
+
 
 /*style="color: white; text-decoration: none; width: 90%; margin: auto; margin-top:15px"*/
 .pathnav{
@@ -352,6 +358,16 @@ td, th {
     padding: 8px;
 }
 
+.sidebar-text{
+	max-width: 155px;
+}
+
+.sidebar{
+	display: inline-block;
+	width: 90%;
+	position: relative;
+}
+
 .dynamicVal {
   color: #8DC26F;
   display: inline;
@@ -364,7 +380,7 @@ td, th {
     background-color: #dddddd;
 }*/
 
-input[type=text], textarea {
+input[type=text] {
     width: 100%;
     padding: 4px 10px;
     margin: 8px 0;
