@@ -372,10 +372,16 @@ class SectionController extends Controller {
 		foreach ($students as $student) {
 
 			if ($student != "") {
+					
+				if (!filter_var($student, FILTER_VALIDATE_EMAIL)) {
+					continue;
+				}
+				
 				$stud_user = $em->getRepository('AppBundle\Entity\User')->findOneBy(array('email' => $student));
 
 				if(!$stud_user){
-					continue;
+					$stud_user = new User($student, $student);
+					$em->persist($stud_user);
 				}
 				
 				$usr = new UserSectionRole($stud_user, $section, $role);

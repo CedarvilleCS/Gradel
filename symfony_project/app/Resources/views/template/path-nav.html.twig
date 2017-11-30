@@ -1,13 +1,64 @@
 <div class="pathnav" id="myPathNav">
 	
-	<a href="{{path('homepage')}}"> {{app.user.getFirstName() ~ '\''}}s Overview&nbsp;</a>
+	{% set current_path = app.request.get('_route') %}
 	
-	{% if section is defined %}
-		>&nbsp;<a href="{{path('section', {'userId': app.user.id, 'sectionId': section.id})}}" >&nbsp;{{section.name}}&nbsp;</a>
-	{% endif %}
+	{% if 'homepage' in current_path %}		
+		<a href="{{path('homepage')}}"> {{app.user.getFirstName() ~ '\''}}s Overview&nbsp;</a>
 	
-	{% if assignment is defined %}
-		>&nbsp;<a href="{{path('assignment', {'userId': app.user.id, 'sectionId': section.id, 'assignmentId': assignment.id})}}" >&nbsp;{{assignment.name}}&nbsp;</a>
+	
+	{% elseif 'course' in current_path %}
+		<a href="{{path('homepage')}}"> {{app.user.getFirstName() ~ '\''}}s Overview&nbsp;</a>
+		>&nbsp;
+		<a href="{{path('courses')}}"> Courses&nbsp;</a>
+	
+	
+	{% elseif 'section' in current_path %}
+		<a href="{{path('homepage')}}"> {{app.user.getFirstName() ~ '\''}}s Overview&nbsp;</a>		
+		
+		>
+		
+		{% if section is null %} {% set section = {'id': 0, 'name': 'New Section'} %} {% endif %}
+		
+		{% if 'edit' in current_path and section.id != 0 %}
+			<a href="{{path('section', {'sectionId':section.id})}}">&nbsp;{{section.name}}&nbsp;</a>
+			>
+			Edit 		
+		{% else %}
+			{{section.name}}&nbsp;
+		{% endif %}
+	
+	
+	{% elseif 'assignment' in current_path %}
+		<a href="{{path('homepage')}}"> {{app.user.getFirstName() ~ '\''}}s Overview&nbsp;</a>
+		>&nbsp;
+		<a href="{{path('section', {'sectionId':section.id})}}"> {{section.name}}&nbsp;</a>
+		>
+		{% if assignment is null %} {% set assignment = {'id': 0, 'name': 'New Assignment'} %} {% endif %}
+		
+		{% if 'edit' in current_path and assignment.id != 0 %}
+			<a href="{{path('assignment', {'sectionId':section.id, 'assignmentId':assignment.id})}}">&nbsp;{{assignment.name}}&nbsp;</a>
+			>
+			Edit 		
+		{% else %}
+			{{assignment.name}}&nbsp;
+		{% endif %}
+	
+	{% elseif 'problem' in current_path %}
+		<a href="{{path('homepage')}}"> {{app.user.getFirstName() ~ '\''}}s Overview&nbsp;</a>
+		>&nbsp;
+		<a href="{{path('section', {'sectionId':section.id})}}"> {{section.name}}&nbsp;</a>
+		>&nbsp;
+		<a href="{{path('assignment', {'sectionId':assignment.section.id, 'assignmentId': assignment.id})}}"> {{assignment.name}}&nbsp;</a>
+		>
+		{% if problem is null %} {% set problem = {'id': 0, 'name': 'New Problem'} %} {% endif %}
+		
+		{% if 'edit' in current_path and problem.id != 0 %}
+			<a href="{{path('assignment', {'sectionId':section.id, 'assignmentId':assignment.id, 'problemId':problem.id})}}">&nbsp;{{problem.name}}&nbsp;</a>
+			>
+			Edit 		
+		{% else %}
+			{{problem.name}}&nbsp;
+		{% endif %}
 	{% endif %}
 	
 </div>

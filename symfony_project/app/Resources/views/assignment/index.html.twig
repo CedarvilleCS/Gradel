@@ -315,6 +315,9 @@
 						} else {
 							window.location = data["redirect_url"]
 						}
+					},
+					error: function(data){
+						alert(data['responseText']);
 					}
 				});
 
@@ -351,8 +354,8 @@
 					console.log(data);				
 					window.location = data["redirect_url"];				
 				},
-				fail: function(data) {
-					alert(data);
+				error: function(data) {
+					alert(data['responseText']);
 					
 					$('#loadingGif').hide();
 					$('#submissionButton').show();
