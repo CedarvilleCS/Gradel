@@ -10,9 +10,16 @@
 			
 			<div><small>{{section.course.name}}</small></div>
 		</strong></li>
-		
-		<li>
+
+		<li class="sidebar" style="text-align:left">
 			<strong>Assignments</strong>
+			{% if elevatedUser %}
+				<object>
+					<a title="Create assignment" href={{path('assignment_edit', {'sectionId': section.id})}}>
+						<img class="small-icon" id="add-icon" src="{{ asset('add_circle.png') }}">
+					</a>
+				</object>
+			{% endif %}
 		</li>
 		
 		{# past and present assignments #}
@@ -119,10 +126,9 @@
 		{% endfor %}
 		</ol>
 
-		{% if elevatedUser %}
-			<a href="{{path('assignment_edit', {'sectionId': section.id})}}" class="btn">
-				<div class="btn btn-center">+ Assignment</div>
-			</a>
+		{% if is_granted("ROLE_SUPER") %}
+			<a href="{{path('section_delete', {'sectionId': section.id})}}" class="btn">
+				<div class="btn btn-delete btn-center">Delete Section</div>
 			
 			<a href="{{path('section_edit', {'sectionId': section.id})}}" class="btn">
 				<div class="btn btn-center">Edit Section</div>
