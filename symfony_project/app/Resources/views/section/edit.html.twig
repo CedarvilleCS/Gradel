@@ -75,7 +75,7 @@
 
 							<tr> <th>
 								<label>Instructor</label>
-								<select id="instructor-picker">
+								<select id="teacher-picker">
 									<option value="-1"></option>
 									{% for i in instructors %}
 										<option value="{{i.email}}">
@@ -83,6 +83,10 @@
 										</option>
 									{% endfor %}
 								</select>
+							</th> </tr>
+
+							<tr> <th colspan="3">
+								<textarea id="teacher-csv"></textarea>
 							</th> </tr>
 
 							<tr> <th>
@@ -200,6 +204,14 @@
 				} else {
 					setValid($('#enddatepicker'));
 				}
+
+				/* Array of Teachers */
+				var teachers = document.getElementById('teacher-csv').value.split(",");
+				for(var i=0; i<teachers.length; i++){
+					teachers[i] = teachers[i].replace(/\n/g, '');
+					teachers[i] = teachers[i].replace(/ /g, '');
+				}				
+				teachers.pop(); // remove the blank last element
 								
 				/* Array of Students */
 				var students = document.getElementById('student-csv').value.split(",");
@@ -222,6 +234,7 @@
 					course: $('#course').val(),
 					semester: $('#semester').val(),
 					year: $('#year').val(),
+					teachers: JSON.stringify(teachers),
 					students: JSON.stringify(students),
 					start_time: $('#startdatepicker').val(),
 					end_time: $('#enddatepicker').val(),
@@ -241,6 +254,10 @@
 			$('#student-picker').on('change', function(){
 				updateStudentCSV();
 			});
+
+			$('#teacher-picker').on('change', function(){
+				updateTeacherCSV();
+			});
 		});
 		
 		function updateStudentCSV() {
@@ -259,6 +276,24 @@
 			// reset the dropdown to black			
 			$('option:selected', studentPicker).remove();
 			studentPicker.val(0);
+		}
+
+		function updateTeacherCSV() {
+			
+			// get the value of the new teacher
+			var teacherPicker = $('#teacher-picker');
+			
+			if(teacherPicker.val() == -1){
+				return;
+			}
+			
+			// update the text area
+			var teacherCSV = $('#teacher-csv');
+			teacherCSV.val(teacherCSV.val() + teacherPicker.val() + ", \n");
+			
+			// reset the dropdown to black			
+			$('option:selected', teacherPicker).remove();
+			teacherPicker.val(0);
 		}
 		
 	</script>
