@@ -9,16 +9,19 @@
 
 	<ol style="padding-top: 0px">
 		
-		<li style="margin: 0px; padding-bottom: 5px"> EDIT COURSE </li>
+		<li><strong> Courses </strong></li>
 		
 		{% for course in courses %}	
 		
 			<a href="{{path('course_edit', {'courseId':course.id})}}">
 				<li class="sidebar">
-					<span class="preview">{{course.name}}</span>	
+					<span class="preview">
+						<div class="sidebar-text"> {{course.name}} </div>
+					</span>	
+					
 					<object>
 						<a title="Delete Course" href="{{path('course_delete', {'courseId': course.id})}}">
-							<img class="small-icon" style="right: -1" id="right-icon" src="{{ asset('trash.png') }}">
+							<img class="small-icon" id="right-icon" src="{{ asset('whitetrash.png') }}">
 						</a>
 					</object>
 				</li>
@@ -39,7 +42,7 @@
 					<span class="preview">{{course.name}}</span>	
 					<object>
 						<a title="Open Course" href="{{path('course_delete', {'courseId': course.id})}}">
-							<img class="small-icon" style="right: -1" id="right-icon" src="{{ asset('trash.png') }}">
+							<img class="small-icon" style="right: -1" id="right-icon" src="{{ asset('whitetrash.png') }}">
 						</a>
 					</object>
 				</li>
