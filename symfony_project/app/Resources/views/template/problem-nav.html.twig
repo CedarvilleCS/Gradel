@@ -32,7 +32,7 @@
 			<strong>Problems</strong>
 			{% if elevatedUser %}
 				<object>
-					<a title="Create problem" href={{path('problem_new', {"sectionId": section.id, 'assignmentId': assignment.id})}}>
+					<a title="Create problem" href={{path('problem_edit', {"sectionId": section.id, 'assignmentId': assignment.id})}}>
 						<img class="small-icon" id="add-icon" src="{{ asset('add_circle.png') }}">
 					</a>
 				</object>

@@ -47,7 +47,7 @@
             </select>
             <div id="language-list">
               {% for l in problem.problem_languages %}
-                <div id="{{l.language.name}}" value="{{l.language.id}}" class="language">{{l.language.name}}</div>
+                <div id="{{l.language.name}}" name="{{l.language.id}}" class="language">{{l.language.name}}</div>
               {% endfor %}
             </div>
           </th>
@@ -143,12 +143,12 @@
       {% if (problem.testcases) %}
         {% for tc in problem.testcases %}
           addTestCase(
-            "{{tc.deblobinateInput|replace({"\n": "\\n"})}}",
-            "{{tc.deblobinateCorrectOutput|replace({"\n": "\\n"})}}",
+            "{{tc.deblobinateInput|replace({'\n': '\\n'})}}",
+            "{{tc.deblobinateCorrectOutput|replace({'\n': '\\n'})}}",
             "{{tc.weight}}",
             "{{tc.is_extra_credit}}",
-            "{{tc.feedback.deblobinateShortResponse|replace({"\n": "\\n"})}}",
-            "{{tc.feedback.deblobinateLongResponse|replace({"\n": "\\n"})}}",
+            "{{tc.feedback.deblobinateShortResponse|replace({'\n': '\\n'})}}",
+            "{{tc.feedback.deblobinateLongResponse|replace({'\n': '\\n'})}}",
           );
         {% endfor %}
       {% endif %}
@@ -215,7 +215,6 @@
 					</table>
 				</div>
 			</div>`;
-			newTestCard = newTestCard.replace(new RegExp('\r?\n','g'), "");
 			$("#main").append(newTestCard);
 
       $('.file').change(function(data) {
@@ -250,12 +249,11 @@
       const language = document.getElementById('languages');
 
       // languages.push(language.value);
-      $('#language-list').append(
-        "<div>" + language.options[language.selectedIndex].label + "</div>"
-      );
+      $('#language-list').append("<div class='language' name=" + language.value + ">" + language.options[language.selectedIndex].label + "</div>");
       language.selectedIndex = 0;
     }
-		function newProb(){
+	
+	function newProb(){
       const name = document.getElementById('name').value;
       const description = document.getElementById('description').value;
       const weight = document.getElementById('weight').value;
@@ -270,20 +268,22 @@
       const displayTestcase = document.getElementById('display-testcase').checked;
       const extraDisplay = document.getElementById('display-extra').checked;
 
-      const children = $("#language-list").find(".language");
+      const children = $("#language-list .language");
+	  languages = [];
       for (var i = 0; i < children.length; i++) {
-        languages.push($(children[i]).attr('value'))
+		
+        languages.push(children.eq(i).attr('name'));
       }
 
-			var path = "{{path('problem_modify')}}";
-      var problemId = -1;
+      var path = "{{path('problem_modify')}}";
+
 
       var testcases = document.getElementsByClassName("test-case");
       tcs = [];
       for (testcase of testcases) {
         const input = $("#"+testcase.id).find("."+"input").val();
-				const output = $("#"+testcase.id).find("." + "output").val();
-				const short_fb = $("#"+testcase.id).find("."+"shortFeedback").val();
+		const output = $("#"+testcase.id).find("." + "output").val();
+		const short_fb = $("#"+testcase.id).find("."+"shortFeedback").val();
         const long_fb = $('#'+testcase.id).find("." + "longFeedback").val();
         const weight = $('#' + testcase.id).find("." + "weight").val();
         const extra_credit = $('#' + testcase.id).find("." + "extra-credit").prop("checked");
@@ -293,8 +293,8 @@
 
       console.log(tcs);
       $.post(path, {
-        "assignmentId": '{{(problem ? problem.assignment.id : assignmentId)}}',
-        "problem": '{{(problem ? problem.id : 0)}}',
+        "assignmentId": {{(problem ? problem.assignment.id : assignment.id)}},
+        "problem": {{(problem ? problem.id : 0)}},
         "name": name,
         "description": description,
         "time_limit": timeLimit,
@@ -318,10 +318,12 @@
 
       }, (data) => {
         console.log(data);
-        problemId = data.problemId;
+		
+		window.location = data['redirect_url'];
+		
       }, "json")
       .fail(function(data) {
-        console.log(data);
+        alert(data['responseText']);
       });
 
     }

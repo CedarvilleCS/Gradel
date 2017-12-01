@@ -25,31 +25,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 
 class ProblemController extends Controller {
 
-    public function newAction($sectionId, $assignmentId, $problemId = -1) {
-      $em = $this->getDoctrine()->getManager();
-      $problem = null;
-      if ($problemId != -1) {
-        $problem = $em->find("AppBundle\Entity\Problem", $problemId);
-      }
-
-    	$em = $this->getDoctrine()->getManager();
-    	$qb = $em->createQueryBuilder();
-    	$qb->select('l')
-    		->from('AppBundle\Entity\Language', 'l')
-    		->where('1 = 1');
-    	$languages = $qb->getQuery()->getResult();
-
-		$section = $em->find('AppBundle\Entity\Section', $sectionId);
-		$assignment = $em->find('AppBundle\Entity\Assignment', $assignmentId);
-		
-		return $this->render('problem/new.html.twig', [
-			'languages' => $languages,
-			'section' => $section,
-			'assignment' => $assignment,
-		]);
-    }
-
-	public function editAction($sectionId, $assignmentId, $problemId) {
+ 	public function editAction($sectionId, $assignmentId, $problemId) {
 		$em = $this->getDoctrine()->getManager();
 		$qb = $em->createQueryBuilder();
 
@@ -59,10 +35,24 @@ class ProblemController extends Controller {
 		$languages = $qb->getQuery()->getResult();
 		
 		$section = $em->find('AppBundle\Entity\Section', $sectionId);
-		$assignment = $em->find('AppBundle\Entity\Assignment', $assignmentId);
-		$problem = $em->find('AppBundle\Entity\Problem', $problemId);
+		if(!$section){
+			die("SECTION DOES NOT EXIST");
+		}
 		
-		return $this->render('problem/new.html.twig', [
+		$assignment = $em->find('AppBundle\Entity\Assignment', $assignmentId);
+		if(!$assignment){
+			die("SECTION DOES NOT EXIST");
+		}
+		
+		if($problemId != 0){
+			$problem = $em->find('AppBundle\Entity\Problem', $problemId);
+			
+			if(!$problem){
+				die("PROBLEM DOES NOT EXIST");
+			}
+		}
+		
+		return $this->render('problem/edit.html.twig', [
 			'languages' => $languages,
 			'section' => $section,
 			'assignment' => $assignment,
@@ -162,7 +152,7 @@ class ProblemController extends Controller {
 		
 		if(!isset($postData['languages']) || !isset($postData['testcases'])){
 
-			return $this->returnForbiddenResponse("Not every necessary field was provided");
+			return $this->returnForbiddenResponse("Languages or testcases were not provided");
 
 		} else {
 
@@ -286,7 +276,9 @@ class ProblemController extends Controller {
 
 		$em->flush();
 
-		return new JsonResponse(array("problemId"=> $problem->id));
+		$url = $this->generateUrl('assignment', ['sectionId' => $problem->assignment->section->id, 'assignmentId' => $problem->assignment->id, 'problemId' => $problem->id]);
+		
+		return new JsonResponse(array("problemId"=> $problem->id, "redirect_url" => $url));
 	}
 
 	public function resultAction($submission_id) {
