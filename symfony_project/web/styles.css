@@ -36,6 +36,18 @@ strong, b{
 ol {
 	padding: 0 0 0 0;
 }
+
+.selectbar{
+	margin: 0px;
+	padding: 0px;
+	position: absolute;
+	right:0;
+	top:0;
+	height:100%;
+	width:5px;
+	background-color: #78ba62;
+}
+
 .topnav .navbuttons {
      float: right;
  	height: 100%;
@@ -419,6 +431,13 @@ table {
   width: 100%;
 }
 
+#teacher-csv{
+	height: 50px;
+}
+
+#student-csv{
+	height: 100px;
+}
 
 
 textarea {
