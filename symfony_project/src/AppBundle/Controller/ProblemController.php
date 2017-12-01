@@ -37,8 +37,6 @@ class ProblemController extends Controller {
 		$section = $em->find('AppBundle\Entity\Section', $sectionId);
 		$assignment = $em->find('AppBundle\Entity\Assignment', $assignmentId);
 		
-		
-
 		return $this->render('problem/new.html.twig', [
 			'languages' => $languages,
 			'section' => $section,
@@ -60,7 +58,6 @@ class ProblemController extends Controller {
 		$assignment = $em->find('AppBundle\Entity\Assignment', $assignmentId);
 		$problem = $em->find('AppBundle\Entity\Problem', $problemId);
 		
-
 		return $this->render('problem/new.html.twig', [
 			'languages' => $languages,
 			'section' => $section,
@@ -118,8 +115,6 @@ class ProblemController extends Controller {
 		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN") && !$grader->isTeaching($user, $assignment->section)){			
 			return $this->returnForbiddenResponse("You do not have permission to make a problem.");
 		}		
-			
-		
 		
 		# get the problem or create a new one
 		if($postData['problem'] == 0){
@@ -145,11 +140,11 @@ class ProblemController extends Controller {
 			
 		} else {
 			
-			if(!is_numeric($postData['weight']) || (int)$postData['weight'] < 1){
+			if(!is_numeric(trim($postData['weight'])) || (int)$postData['weight'] < 1){
 				return $this->returnForbiddenResponse("Weight provided is not valid - it must be greater than 0");
 			}
 			
-			if(!is_numeric($postData['time_limit']) || (int)$postData['time_limit'] < 1){
+			if(!is_numeric(trim($postData['time_limit'])) || (int)$postData['time_limit'] < 1){
 				return $this->returnForbiddenResponse("Time limit provided is not valid - it must be greater than 0");
 			}
 			
@@ -157,9 +152,9 @@ class ProblemController extends Controller {
 		
 		$problem->name = trim($postData['name']);
 		$problem->description = trim($postData['description']);
-		$problem->weight = $postData['weight'];
+		$problem->weight = (int)trim($postData['weight']);
 		$problem->is_extra_credit = ($postData['is_extra_credit'] == "true");		
-		$problem->time_limit = $postData['time_limit'];
+		$problem->time_limit = (int)trim($postData['time_limit']);
 		
 		if(!isset($postData['languages']) || !isset($postData['testcases'])){
 			
@@ -206,9 +201,9 @@ class ProblemController extends Controller {
 		
 		# feedback flags
 		$stop_on_first_fail = $postData['stop_on_first_fail'];
-		$response_level = $postData['response_level'];
+		$response_level = trim($postData['response_level']);
 		$display_testcaseresults = $postData['display_testcaseresults'];
-		$testcase_output_level = $postData['testcase_output_level'];
+		$testcase_output_level = trim($postData['testcase_output_level']);
 		$extra_testcases_display = $postData['extra_testcases_display'];
 		
 		if($stop_on_first_fail != null || $response_level != null || $display_testcaseresults != null || $testcase_output_level != null || $extra_testcases_display != null){

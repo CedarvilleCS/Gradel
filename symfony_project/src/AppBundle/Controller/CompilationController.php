@@ -50,9 +50,9 @@ class CompilationController extends Controller {
 		
 		$problem_id = $postData['problemId'];
 		$language_id = $postData['languageId'];
-		$submitted_filename = $postData['filename'];
-		$main_class = $postData['mainclass'];
-		$package_name = $postData['packagename'];
+		$submitted_filename = trim($postData['filename']);
+		$main_class = trim($postData['mainclass']);
+		$package_name = trim($postData['packagename']);
 		
 		# make sure all the required post params were passed
 		if(!isset($problem_id) || !isset($language_id) || !isset($submitted_filename) || !isset($main_class) || !isset($package_name)){
@@ -418,7 +418,11 @@ class CompilationController extends Controller {
 		$prev_accepted_sol = $acc_query->getOneOrNullResult();
 	
 		// take the new solution if it is 100% no matter what
-		if($prev_accepted_sol && $submission_entity->percentage == 1){
+		
+		$total_correct = $correct_extra_testcase_count + $correct_testcase_count;
+		$total_testcases = count($problem_entity->testcases);
+		
+		if($prev_accepted_sol && $total_correct == $total_testcases){
 			$submission_entity->is_accepted = true;
 			$prev_accepted_sol->is_accepted = false;
 		}

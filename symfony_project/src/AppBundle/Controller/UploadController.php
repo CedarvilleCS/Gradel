@@ -182,11 +182,11 @@ class UploadController extends Controller {
 	
     public function submitProblemUploadAction($problem_id) {		
 		
-		if($_FILES["file"]){
+		if(isset($_FILES["file"])){
 			
 			$data = $this->fileUpload($problem_id, $_POST, $_FILES["file"]);
 			
-		} else if($_POST["ACE"] && $_POST["ACE"] != ""){
+		} else if(isset($_POST["ACE"]) && $_POST["ACE"] != ""){
 			
 			$data = $this->aceUpload($problem_id, $_POST);
 			
