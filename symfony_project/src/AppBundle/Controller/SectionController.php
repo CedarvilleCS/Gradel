@@ -355,18 +355,13 @@ class SectionController extends Controller {
 		
 		$em->persist($section);
 		
-		if($postData['section'] == 0){
-			# set the teacher to the person who made the section TODO
-			// if($course->is_contest){
-			// 	$role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Judges'));
-			// } else {
-			// 	$role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Teaches'));
-			// }
-					
-			// $usr = new UserSectionRole($user, $section, $role);
-			// $em->persist($usr);			
+		if($postData['section'] == 0 && count(json_decode($postData['teachers'])) == 0){
+			
+			$role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Teaches'));
+			$usr = new UserSectionRole($user, $section, $role);
+			$em->persist($usr);			
 		
-		} else {
+		} else if($postData['section'] != 0){
 			# remove all the previous students before the "edit" if there was one
 			$role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));
 			
@@ -394,7 +389,7 @@ class SectionController extends Controller {
 		foreach ($students as $student) {
 	
 			if (!filter_var($student, FILTER_VALIDATE_EMAIL)) {
-				continue;
+				return $this->returnForbiddenResponse("Provided student email address ".$student." is not valid");
 			}
 			
 			$stud_user = $em->getRepository('AppBundle\Entity\User')->findOneBy(array('email' => $student));
@@ -415,7 +410,7 @@ class SectionController extends Controller {
 		foreach ($teachers as $teacher){
 			
 			if(!filter_var($teacher, FILTER_VALIDATE_EMAIL)) {
-				continue;
+				return $this->returnForbiddenResponse("Provided teacher email address ".$teacher." is not valid");
 			}
 			
 			$teach_user = $em->getRepository('AppBundle\Entity\User')->findOneBy(array('email'=>$teacher));
