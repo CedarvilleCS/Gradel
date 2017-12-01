@@ -5,7 +5,7 @@ homepage:
 
 alt_homepage:
     path:   '/'
-    defaults: { _controller: AppBundle:Home:home} 
+    defaults: { _controller: AppBundle:Home:home}
 
 # course routes
 courses:
@@ -15,11 +15,11 @@ courses:
 
 course_edit:
   path: '/course/edit/{courseId}'
-  defaults: 
+  defaults:
     _controller: AppBundle:Course:editCourse
     courseId: 0
   methods: [GET]
-  
+
 course_delete:
   path: '/course/delete/{courseId}'
   defaults: {_controller: AppBundle:Course:deleteCourse}
@@ -28,16 +28,16 @@ course_delete:
 course_modify:
   path: '/modify/course'
   defaults: {_controller: AppBundle:Course:modifyPost}
-  methods: [POST]     
- 
+  methods: [POST]
+
 # section routes
 section_edit:
   path: '/section/edit/{sectionId}'
-  defaults: 
+  defaults:
     _controller: AppBundle:Section:editSection
     sectionId: 0
   methods: [GET]
-  
+
 section_delete:
   path: '/section/delete/{sectionId}'
   defaults: {_controller: AppBundle:Section:deleteSection}
@@ -47,7 +47,7 @@ section:
   path: '/section/{sectionId}'
   defaults: {_controller: AppBundle:Section:section}
   methods: [GET]
-  
+
 section_modify:
   path: '/modify/section'
   defaults: {_controller: AppBundle:Section:modifyPost}
@@ -57,23 +57,23 @@ section_modify:
 # assignment routes
 assignment_edit:
   path: '/section/{sectionId}/assignment/edit/{assignmentId}'
-  defaults: 
+  defaults:
     _controller: AppBundle:Assignment:edit
     assignmentId: 0
   methods: [GET]
-  
+
 assignment_delete:
   path: '/section/{sectionId}/assignment/delete/{assignmentId}'
   defaults: {_controller: AppBundle:Assignment:delete}
   methods: [GET]
-  
+
 assignment:
   path: '/section/{sectionId}/assignment/{assignmentId}/problem/{problemId}'
   defaults:
     _controller: AppBundle:Assignment:assignment
     problemId: 0
   methods: [GET]
-  
+
 assignment_modify:
   path: '/modify/assignment'
   defaults:
@@ -84,7 +84,7 @@ assignment_modify:
 # problem routes
 problem_edit:
   path: '/section/{sectionId}/assignment/{assignmentId}/problem/{problemId}/edit'
-  defaults: {_controller: AppBundle:Problem:edit}
+  defaults: {_controller: AppBundle:Problem:new}
 
 problem_delete:
   path: '/section/{sectionId}/assignment/{assignmentId}/problem/delete/{problemId}'
@@ -103,8 +103,8 @@ problem_result:
     path: '/result/{submission_id}'
     defaults: {_controller: AppBundle:Problem:result}
     requirements:
-        submission_id: '\d+'   
-        
+        submission_id: '\d+'
+
 problem_modify:
     path: 'modify/problem'
     defaults:
@@ -124,7 +124,7 @@ submission_upload:
   methods: [POST]
   requirements:
     problem_id:     '\d+'
-    
+
 
 # temporary route for GUI development
 professorsection:

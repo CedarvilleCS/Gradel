@@ -1,6 +1,8 @@
 {% block head %}
 <title>Gradel</title>
 <link rel="icon" type="image/x-icon" href="{{ asset('logo1.png') }}" />
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 {% endblock %}
 
 {% block body %}
@@ -10,8 +12,7 @@
 
   {# Left Nav #}
   <nav class="nav-left">
-      <div class="btn btn-center" id="add-test">Add Test Case Manually</div>
-      <div class="btn btn-center" id="add-test-file">Add Test Case By File</div>
+      <div class="btn btn-center" id="add-test">Add Test Case</div>
       <div onclick="newProb()" class="btn btn-center" id="save-btn">Save</div>
   </nav>
 
@@ -24,51 +25,89 @@
     <div class="card">
     <table>
         <tr>
-          <th colspan="3">
+          <th colspan="4">
             <label for="name">Name</label>
-            <input id="name" name="name" type="text" value="">
+            <input id="name" name="name" type="text" value="{{problem.name}}">
           </th>
         </tr>
         <tr>
-          <th colspan="3">
+          <th colspan="4">
             <label for="description">Description</label>
-            <input id="description" name="description" type="text">
+            <input id="description" name="description" type="text" value="{{problem.deblobinateDescription}}">
           </th>
         </tr>
-        <th colspan="1.5">
-          <label for="languages" id="languagesLabel">Languages</label>
-          <select id="languages" onchange="languageSelect()" name="languages" type="text">
-            <option></option>
-            {% for language in languages %}
-              <option value="{{language.id}}">{{language.name}}</option>
-            {% endfor %}
-          </select>
-          <div id="language-list">
-          </div>
-        </th>
-        <th colspan="1.5">
-          <label for="gm">Grading Method</label>
-          <select id="gm" onchange="" name="gm" type="text">
-            {% for gm in gradingMethods %}
-              <option value="{{gm.id}}">Total Attempts: {{gm.total_attempts}} Attempts Before Penalty: {{gm.attempts_before_penalty}}</option>
-            {% endfor %}
-          </select>
-          <div id="language-list">
-          </div>
-        </th>
+        <tr>
+          <th colspan="1">
+            <label for="languages" id="languagesLabel">Languages</label>
+            <select id="languages" onchange="languageSelect()" name="languages" type="text">
+              <option></option>
+              {% for language in languages %}
+                <option value="{{language.id}}">{{language.name}}</option>
+              {% endfor %}
+            </select>
+            <div id="language-list">
+              {% for l in problem.problem_languages %}
+                <div id="{{l.language.name}}" value="{{l.language.id}}" class="language">{{l.language.name}}</div>
+              {% endfor %}
+            </div>
+          </th>
+          <th>
+            <label for="total_attempts">Total Attempts</label>
+            <input id="total_attempts" name="total_attempts" type="text" value="{{problem.total_attempts}}">
+          </th>
+          <th>
+            <label for="pen_attempts">Attempts Before Penalty</label>
+            <input id="pen_attempts" name="pen_attempts" type="text" value="{{problem.attempts_before_penalty}}">
+          </th>
+          <th>
+            <label for="penalty">Penalty Per Attempt</label>
+            <input id="penalty" name="penalty" type="text" value="{{problem.penalty_per_attempt}}">
+          </th>
+        </tr>
         <tr>
           <th colspan="1">
               <label for="weight">Weight</label>
-              <input id="weight" name="weight" type="text" value="1">
+              <input id="weight" name="weight" type="text" value="1" value="{{problem.weight}}">
           </th>
 
           <th colspan="1">
               <label for="time_limit">Time Limit</label>
-              <input type="text" id="time_limit" value="1000 ">
+              <input type="text" id="time_limit" value="1000" value="{{problem.time_limit}}">
           </th>
           <th colspan="1">
               <label for="extra-credit">Is Extra Credit</label>
-              <input id="extra-credit" type="checkbox" name="extra-credit" value="extra-credit">
+              <input id="extra-credit" type="checkbox" name="extra-credit" value="extra-credit" {{(problem.is_extra_credit) ? "checked" : ""}}>
+          </th>
+          <th colspan="1">
+              <label for="stop-fail">Stop After First Fail</label>
+              <input id="stop-fail" type="checkbox" name="stop-fail" value="extra-credit" {{(problem.stop_on_first_fail) ? "checked" : ""}}>
+          </th>
+        </tr>
+        <tr>
+          <th colspan="1">
+              <label for="display-testcase">Display Testcase Results</label>
+              <input id="display-testcase" name="display-testcase" type="checkbox" value="1" {{(problem.display_testcaseresults) ? "checked" : ""}}>
+          </th>
+
+          <th colspan="1">
+              <label for="">Response Level</label>
+              <select id="response-level">
+                <option {{(problem.response_level == "None") ? "selected" : ""}} value="None">None</option>
+                <option {{(problem.response_level == "Short") ? "selected" : ""}} value="Short">Short</option>
+                <option {{(problem.response_level == "Long") ? "selected" : ""}} value="Long">Long</option>
+              </select>
+          </th>
+          <th colspan="1">
+              <label for="output-level">Testcase Output Level</label>
+              <select id="output-level">
+                <option {{(problem.testcase_output_level == "None") ? "selected" : ""}} value="None">None</option>
+                <option {{(problem.testcase_output_level == "Output") ? "selected" : ""}} value="Output">Output</option>
+                <option {{(problem.testcase_output_level == "Both") ? "selected" : ""}} value="Both">Both</option>
+              </select>
+          </th>
+          <th colspan="1">
+              <label for="display-extra">Display Extra Credit Testcases </label>
+              <input id="display-extra" type="checkbox" name="display-extra" {{(problem.extra_testcases_display) ? "checked" : ""}}>
           </th>
         </tr>
       </table>
@@ -83,9 +122,208 @@
 
 {% block scripts %}
   <!-- JQuery -->
-  <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
-  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-  <script src="{{ asset('js/cards.js') }}"></script>  
- <script src="{{ asset('js/validation.js') }}"></script>
-  
+  <script src="http://malsup.github.com/jquery.form.js"></script>
+  <script src="{{ asset('js/cards.js') }}"></script>
+  <script src="{{ asset('js/validation.js') }}"></script>
+
+  <script>
+    validate($("#name"));
+    validate($("#description"));
+    //validateMessage($("#languages"), $("#languagesLabel"), " (you must select at least one language)");
+  </script>
+
+  <script>
+    var languages = [];
+		testCases = 0;
+    currentNum = 0;
+    currentFieldId = "";
+    uploadFormId = "";
+
+    $(document).ready(() => {
+      {% if (problem.testcases) %}
+        {% for tc in problem.testcases %}
+          addTestCase(
+            "{{tc.deblobinateInput|replace({"\n": "\\n"})}}",
+            "{{tc.deblobinateCorrectOutput|replace({"\n": "\\n"})}}",
+            "{{tc.weight}}",
+            "{{tc.is_extra_credit}}",
+            "{{tc.feedback.deblobinateShortResponse|replace({"\n": "\\n"})}}",
+            "{{tc.feedback.deblobinateLongResponse|replace({"\n": "\\n"})}}",
+          );
+        {% endfor %}
+      {% endif %}
+    });
+
+
+    function addTestCase(input, output, weight, extraCredit, short, long) {
+      currentNum++;
+			testCases++;
+			div_name ="testcases"+testCases;
+			formalName="Test Case "+testCases;
+			newTestCard = `<div class="card" id=`+div_name+`>
+				<div class="btn-close">
+					<h2 style="margin: 0px">`+formalName+`<span style="float: right"><i class="fa fa-angle-down"></i></span></h2>
+					<!-- <div id="closeButton" width="50px" onclick="deleteTestCase(&quot;`+div_name+`&quot;)" class="btn btn-center">Delete</div> -->
+					<object>
+							<a title="Delete assignment" id="closeButton" onclick="deleteTestCase(&quot;`+div_name+`&quot;)")}}">
+								<img class="test_case_delete" id="right-icon" src="{{ asset('trash.png') }}">
+							</a>
+					</object>
+				</div>
+				<div id=`+div_name+` class="test-case">
+					<table>
+						<tr>
+							<th colspan="1">
+                <form id="inputUpload`+ currentNum + `" method="post" action="{{path("get_contents")}}">
+
+  								<label for="input">Input</label>
+                  <input class="file" id="file" name="file" type="file" value="">
+
+  								<textarea rows="2" id="input` + currentNum +`" class="input problem_creation" type="text" value="">` + (input ? input : "") + `</textarea>
+                </form>
+							<th colspan="1">
+                <form id="outputUpload` + currentNum + `"  method="post" action="{{path("get_contents")}}">
+  								<label for="output">Output</label>
+                  <input class="file" id="file" name="file" type="file" value="">
+  								<textarea rows="2" id="output` + currentNum + `" class="output problem_creation" type="text" value="">` + (output ? output : "") + `</textarea>
+                </form>
+							<th colspan="2">
+								<label for="weight">Weight</label>
+								<input id="weight" name="weight" class="weight" type="text" value="` + (weight ? weight : "") + `"></th>
+              <th colspan="1">
+                  <label for="extra-credit">Is Extra Credit</label>
+                  <input id="extra-credit`+ currentNum +`" class="extra-credit" type="checkbox" name="extra-credit" value="extra-credit">
+              </th>
+						</tr>
+						<tr>
+							<th colspan="4">
+                <form id="shortFeedbackUpload` + currentNum + `"  method="post" action="{{path("get_contents")}}">
+  								<label for="shortFeedback">Short Feedback</label>
+                  <input class="file" id="file" name="file" type="file" value="">
+  								<textarea rows="2" id="shortFeedback` + currentNum + `" class="shortFeedback problem_creation" type="text" value="">` + (short ? short : "") + `</textarea>
+                </form>
+						</tr>
+            <tr>
+							<th colspan="4">
+                <form id="longFeedbackUpload` + currentNum + `"  method="post" action="{{path("get_contents")}}">
+                  <label for="longFeedback">Long Feedback</label>
+                  <input class="file" id="file" name="file" type="file" value="">
+                  <textarea rows="2" id="longFeedback` + currentNum + `" class="longFeedback problem_creation" type="text" value="">` + (long ? long : "") + `</textarea>
+                </form>
+              </th>
+						</tr>
+					</table>
+				</div>
+			</div>`;
+			newTestCard = newTestCard.replace(new RegExp('\r?\n','g'), "");
+			$("#main").append(newTestCard);
+
+      $('.file').change(function(data) {
+        currentFieldId = $(this).siblings("textarea")[0].id;
+        uploadFormId = "#" + currentFieldId.substring(0, currentFieldId.length - 1) + "Upload" + currentNum;
+        $(uploadFormId).ajaxForm(function(data) {
+          changeVar = "";
+          changeVar = atob(data.contents);
+          element = document.getElementById(currentFieldId);
+          element.value = changeVar;
+        });
+
+        $(uploadFormId).submit(function(e) {
+          e.preventDefault();
+          $(this).ajaxSubmit();
+        });
+        $(uploadFormId).submit();
+      });
+    }
+
+		$("#add-test").click(function(input, output, weight, extraCredit, short, long) {
+      addTestCase();
+		});
+
+	function deleteTestCase(testcase){
+		testCases--;
+		document.getElementById(testcase).remove();
+
+	};
+
+    function languageSelect() {
+      const language = document.getElementById('languages');
+
+      // languages.push(language.value);
+      $('#language-list').append(
+        "<div>" + language.options[language.selectedIndex].label + "</div>"
+      );
+      language.selectedIndex = 0;
+    }
+		function newProb(){
+      const name = document.getElementById('name').value;
+      const description = document.getElementById('description').value;
+      const weight = document.getElementById('weight').value;
+      const timeLimit = document.getElementById('time_limit').value;
+      const extraCredit = document.getElementById('extra-credit').checked;
+      const totalAttempts = document.getElementById('total_attempts').value;
+      const attemptsBeforePen = document.getElementById('pen_attempts').value;
+      const penPerAttempt = document.getElementById('penalty').value;
+      const stopFail = document.getElementById('stop-fail').checked;
+      const responseLevel = document.getElementById('response-level').value;
+      const outputLevel = document.getElementById('output-level').value;
+      const displayTestcase = document.getElementById('display-testcase').checked;
+      const extraDisplay = document.getElementById('display-extra').checked;
+
+      const children = $("#language-list").find(".language");
+      for (var i = 0; i < children.length; i++) {
+        languages.push($(children[i]).attr('value'))
+      }
+
+			var path = "{{path('problem_modify')}}";
+      var problemId = -1;
+
+      var testcases = document.getElementsByClassName("test-case");
+      tcs = [];
+      for (testcase of testcases) {
+        const input = $("#"+testcase.id).find("."+"input").val();
+				const output = $("#"+testcase.id).find("." + "output").val();
+				const short_fb = $("#"+testcase.id).find("."+"shortFeedback").val();
+        const long_fb = $('#'+testcase.id).find("." + "longFeedback").val();
+        const weight = $('#' + testcase.id).find("." + "weight").val();
+        const extra_credit = $('#' + testcase.id).find("." + "extra-credit").prop("checked");
+        const tc = {"input": input, "output": output, "weight": weight, "short_response": short_fb, "long_response": long_fb, "extra_credit": extra_credit ? "true" : "false"};
+        tcs.push(tc);
+      }
+
+      console.log(tcs);
+      $.post(path, {
+        "assignmentId": '{{(problem ? problem.assignment.id : assignmentId)}}',
+        "problem": '{{(problem ? problem.id : 0)}}',
+        "name": name,
+        "description": description,
+        "time_limit": timeLimit,
+        "weight": weight,
+        "languages": languages,
+        // "grading_method": gm,
+        "is_extra_credit": extraCredit,
+
+        "total_attempts": totalAttempts, // must be a non-negative integer - 0 means unlimited
+      	"attempts_before_penalty": attemptsBeforePen, // must be less than totalAttempts
+      	"penalty_per_attempt": penPerAttempt, // decimal between 0.00 and 1.00
+
+
+      	"stop_on_first_fail": stopFail ? "true" : "false", // checkbox
+      	"response_level": responseLevel, // dropdown with [None, Short, Long]
+        "display_testcaseresults": displayTestcase ? "true" : "false", // checkbox
+      	"testcase_output_level": outputLevel, // dropdown with [None, Output, Both]
+      	"extra_testcases_display": extraDisplay ? "true" : "false", // checkbox
+
+      	"testcases": tcs, // array of objects - see tcs for the fields
+
+      }, (data) => {
+        console.log(data);
+        problemId = data.problemId;
+      }, "json")
+      .fail(function(data) {
+        console.log(data);
+      });
+
+    }
+	</script>
 {% endblock %}
