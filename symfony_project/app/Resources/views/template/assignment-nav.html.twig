@@ -6,10 +6,10 @@
 	{# assignments list #}
 	<ol style="padding-top: 0px; padding-bottom: 10px">
 		
-		<li><strong> {{section.name}} 
+		<li style="text-align:center"> {{section.name}} 
 			
 			<div><small>{{section.course.name}}</small></div>
-		</strong></li>
+		</li>
 
 		<li class="sidebar" style="text-align:left">
 			<strong>Assignments</strong>
@@ -40,11 +40,11 @@
 
 							{% elseif assig.cutoff_time|date('U') > "now"|date('U') %}
 
-								<i style="color: pink">{{assig.cutoff_time|date('M. d - h:i A')}}</i>
+								<i style="color: #FF3232">{{assig.cutoff_time|date('M. d - h:i A')}}</i>
 
 							{% else %}
 
-								<i style="color: pink"> {{assig.cutoff_time|date('M. d - h:i A')}}</i>
+								<i style="color: #FF3232"> {{assig.cutoff_time|date('M. d - h:i A')}}</i>
 
 							{% endif %}
 
@@ -127,9 +127,6 @@
 		</ol>
 
 		{% if is_granted("ROLE_SUPER") %}
-			<a href="{{path('section_delete', {'sectionId': section.id})}}" class="btn">
-				<div class="btn btn-delete btn-center">Delete Section</div>
-			
 			<a href="{{path('section_edit', {'sectionId': section.id})}}" class="btn">
 				<div class="btn btn-center">Edit Section</div>
 			</a>

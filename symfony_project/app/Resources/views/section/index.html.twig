@@ -1,7 +1,6 @@
 {% block head %}
-<title>Gradel</title>
+<title>Gradel{% if section != null %} | {{section.name}} {% endif %}</title>
 <link rel="icon" type="image/x-icon" href="{{ asset('logo1.png') }}" />
-<title>{{section.course.name}}</title>
 {% endblock %}
 
 

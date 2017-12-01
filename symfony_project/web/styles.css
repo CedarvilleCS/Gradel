@@ -379,7 +379,7 @@ td, th {
 
 .sidebar-text{
 	max-width: 140px;
-	word-break: break-all;
+	word-wrap: word-break;
 	hyphens: auto;
 }
 
