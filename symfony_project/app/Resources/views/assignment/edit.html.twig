@@ -21,113 +21,109 @@
 		</ol>
 		{% endif %}
     </nav>
-    
-    {# Main section #}
-    <div class="scrollbar-macosx">
-        <section id="main">
-            {# Cards #}
-
-			{{ include('template/path-nav.html.twig') }}
 	
-			<div class="card">
-				
-				<div class="btn-close">
-					<h2 style="margin: 0px">
-					{% if assignment is not null %}
-						Edit Assignment
-					{% else %}
-						New Assignment
-					{% endif %}					
-					</h2>
-				</div>
-			
-				<div id="requiredFields" class="card-contents">
-					<div>
-						<table>
-							<tr> <th colspan="1">
-									<label for="name">Name</label>
-									<input id="name" name="name" type="text" value="{{assignment.name}}" style="width: 200px">
-								</th>
-							</tr>
-							
-							<tr>
-								<th colspan="2">
-									<label for="startdatepicker">Open Date</label>
-									<input type="text" id="opendatepicker" style="width:150px; margin-right:20px">
+	{{ include('template/path-nav.html.twig') }}
 
-									<label for="enddatepicker">Close Date</label>
-									<input type="text" id="closedatepicker" style="width:150px; margin-right:20px">
-									
-									<label for="cutoffdatepicker">Cutoff Date</label>
-									<input type="text" id="cutoffdatepicker" style="width: 150px">
-								</th>
-							</tr>
-							
-							<tr> <th>
-								<div style="display:flex; justify-content:space-between; align-items: center">
-									<span><label for="weight">Weight </label> <input id="weight" name="weight" type="text" style="width: 50px"></span>
-									<div id="other-assignments" style="font-weight: normal">				
-								</div>
-							</th> </tr>
-							
-						</table>
-					</div>
+    {# Main section #}
+	<section id="main">
+		{# Cards #}
+
+		<div class="card">
+			
+			<div class="btn-close">
+				<h2 style="margin: 0px">
+				{% if assignment is not null %}
+					Edit Assignment
+				{% else %}
+					New Assignment
+				{% endif %}					
+				</h2>
+			</div>
+		
+			<div id="requiredFields" class="card-contents">
+				<div>
+					<table>
+						<tr> <th colspan="1">
+								<label for="name">Name</label>
+								<input id="name" name="name" type="text" value="{{assignment.name}}" style="width: 200px">
+							</th>
+						</tr>
+						
+						<tr>
+							<th colspan="2">
+								<label for="startdatepicker">Open Date</label>
+								<input type="text" id="opendatepicker" style="width:150px; margin-right:20px">
+
+								<label for="enddatepicker">Close Date</label>
+								<input type="text" id="closedatepicker" style="width:150px; margin-right:20px">
+								
+								<label for="cutoffdatepicker">Cutoff Date</label>
+								<input type="text" id="cutoffdatepicker" style="width: 150px">
+							</th>
+						</tr>
+						
+						<tr> <th>
+							<div style="display:flex; justify-content:space-between; align-items: center">
+								<span><label for="weight">Weight </label> <input id="weight" name="weight" type="text" style="width: 50px"></span>
+								<div id="other-assignments" style="font-weight: normal">				
+							</div>
+						</th> </tr>
+						
+					</table>
 				</div>
 			</div>
+		</div>
+		
+		<div class="card">
 			
-			<div class="card">
-				
-				<div class="btn-close" onclick="collapseCard('createTeams')">
-					<h2 style="margin: 0px">Team Creation
-						<span style="float: right"><i class="fa fa-angle-down"></i></span>
-					</h2>
-				</div>
-			
-				<div id="createTeams" class="card-contents" style="margin-top: 0px">
-					<div>
-						<div id="team-pool"></div>						
-						<div id="team-picker"></div>
-												
-						<div id="team-name-container" class="toggle-container">
-							<label for="teamnames"> Team Names </label>
-							<label class="switch">
-							  <input type="checkbox" id="team-name-checkbox" name="team-name-checkbox" checked>
-							  <span class="slider round"></span>
-							</label>
-						</div>
-						
-						<div class="btn" id="gen-team-button" style="margin-top: 10px; width: 150px"> Distribute Teams </div>
-						
-					</div>
-				</div>
+			<div class="btn-close" onclick="collapseCard('createTeams')">
+				<h2 style="margin: 0px">Team Creation
+					<span style="float: right"><i class="fa fa-angle-down"></i></span>
+				</h2>
 			</div>
-			
-			<div class="card">
-				
-				<div class="btn-close" onclick="collapseCard('additionalOptions')">
-					<h2 style="margin: 0px">Additional Options
-						<span style="float: right"><i class="fa fa-angle-down"></i></span>
-					</h2>
-				</div>
-			
-				<div id="additionalOptions" class="card-contents" style="margin-top:10px">
-					<div class="toggle-container">
-						<label for="extracredit"> Extra Credit </label>
+		
+			<div id="createTeams" class="card-contents" style="margin-top: 0px">
+				<div>
+					<div id="team-pool"></div>						
+					<div id="team-picker"></div>
+											
+					<div id="team-name-container" class="toggle-container">
+						<label for="teamnames"> Team Names </label>
 						<label class="switch">
-						  <input type="checkbox" id="extracredit" name="extracredit">
-						  <span class="slider round"></span>
+							<input type="checkbox" id="team-name-checkbox" name="team-name-checkbox" checked>
+							<span class="slider round"></span>
 						</label>
 					</div>
 					
-					<label for="description">Description</label> <input id="description" name="description" type="text">
+					<div class="btn" id="gen-team-button" style="margin-top: 10px; width: 150px"> Distribute Teams </div>
 					
 				</div>
 			</div>
+		</div>
+		
+		<div class="card">
 			
-        </section>
-    </div>
-
-
+			<div class="btn-close" onclick="collapseCard('additionalOptions')">
+				<h2 style="margin: 0px">Additional Options
+					<span style="float: right"><i class="fa fa-angle-down"></i></span>
+				</h2>
+			</div>
+		
+			<div id="additionalOptions" class="card-contents" style="margin-top:10px">
+				<div class="toggle-container">
+					<label for="extracredit"> Extra Credit </label>
+					<label class="switch">
+						<input type="checkbox" id="extracredit" name="extracredit">
+						<span class="slider round"></span>
+					</label>
+				</div>
+				
+				<label for="description">Description</label> <input id="description" name="description" type="text">
+				
+			</div>
+		</div>
+		
+	</section>
 </body>
 
 {% endblock %}

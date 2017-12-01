@@ -11,8 +11,9 @@
 	{# left panel with the problem links #}
 	{{ include('template/problem-nav.html.twig') }}
 
+	{{ include('template/path-nav.html.twig') }}
+	
     <section id="main">
-		{{ include('template/path-nav.html.twig') }}
 
 		{% if problem.assignment.problems|length == 0 %}
 

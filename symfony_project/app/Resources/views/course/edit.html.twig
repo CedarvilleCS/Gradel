@@ -22,48 +22,45 @@
 		{% endif %}
     </nav>
 	
+	{{ include('template/path-nav.html.twig') }}
+
     {# Main section with the necessary variable#}
-    <div class="scrollbar-macosx">
-        <section id="main">
-			
-			{{ include('template/path-nav.html.twig') }}
+	<section id="main">
 		
-            {# Cards #}
-            <div class="card">
-				<div class="btn-close">
-					<h2 style="margin: 0px">
-					{% if course is not null %}
-						Edit {{course.name}}
-					{% else %}
-						New Course
-					{% endif %}					
-					</h2>
-				</div>
-				
-				<div id="requiredFields" class="card-contents">				
-					<div>
-						<label for="name">Name</label> <br/>
-						<input id="name" name="name" type="text" style="width: 350px"> <br/>
-						
-						<label for="code">Code</label> <br/>
-						<input id="code" name="code" type="text" style="width: 200px"> <br/>
-						
-						<label for="description">Description</label>
-						<textarea style="margin-top: 8px; margin-bottom: 8px; border: 2px solid #6C6E71; background-color: transparent; border-radius: 4px" id="description"></textarea>
-									
-						<div class="toggle-container">
-							<label for="contest"> Contest </label>
-							<label class="switch">
-							  <input type="checkbox" id="contest" name="contest">
-							  <span class="slider round"></span>
-							</label>
-						</div>
+		{# Cards #}
+		<div class="card">
+			<div class="btn-close">
+				<h2 style="margin: 0px">
+				{% if course is not null %}
+					Edit {{course.name}}
+				{% else %}
+					New Course
+				{% endif %}					
+				</h2>
+			</div>
+			
+			<div id="requiredFields" class="card-contents">				
+				<div>
+					<label for="name">Name</label> <br/>
+					<input id="name" name="name" type="text" style="width: 350px"> <br/>
+					
+					<label for="code">Code</label> <br/>
+					<input id="code" name="code" type="text" style="width: 200px"> <br/>
+					
+					<label for="description">Description</label>
+					<textarea style="margin-top: 8px; margin-bottom: 8px; border: 2px solid #6C6E71; background-color: transparent; border-radius: 4px" id="description"></textarea>
+								
+					<div class="toggle-container">
+						<label for="contest"> Contest </label>
+						<label class="switch">
+							<input type="checkbox" id="contest" name="contest">
+							<span class="slider round"></span>
+						</label>
 					</div>
 				</div>
-            </div>
-
-        </section>
-    </div>
+			</div>
+		</div>
+	</section>
 
 	
 	

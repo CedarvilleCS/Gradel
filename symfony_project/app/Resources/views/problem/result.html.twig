@@ -20,9 +20,9 @@ The grader was not passed from the controller.
 	{# left panel with the problem links #}
 	{{ include('template/problem-nav.html.twig') }}
 	
-	<section id="main">
+	{{ include('template/path-nav.html.twig') }}
 
-		{{ include('template/path-nav.html.twig') }}
+	<section id="main">
 	
 		<div class="card">
 			<h2 style="margin: 0px">{{submission.problem.name}}</h2>
