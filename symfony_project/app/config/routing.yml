@@ -53,6 +53,32 @@ section_modify:
   defaults: {_controller: AppBundle:Section:modifyPost}
   methods: [POST]
 
+  
+# problem routes
+problem_edit:
+  path: '/section/{sectionId}/assignment/{assignmentId}/problem/edit/{problemId}'
+  defaults: 
+    _controller: AppBundle:Problem:edit
+    problemId: 0
+  methods: [GET]
+
+problem_delete:
+  path: '/section/{sectionId}/assignment/{assignmentId}/problem/delete/{problemId}'
+  defaults: {_controller: AppBundle:Problem:delete}
+  methods: [GET]
+
+problem_result:
+    path: '/result/{submission_id}'
+    defaults: {_controller: AppBundle:Problem:result}
+    requirements:
+        submission_id: '\d+'
+
+problem_modify:
+    path: 'modify/problem'
+    defaults:
+        _controller: AppBundle:Problem:modifyPost
+    methods: [POST]
+
 
 # assignment routes
 assignment_edit:
@@ -80,36 +106,6 @@ assignment_modify:
     _controller: AppBundle:Assignment:modifyPost
   methods: [POST]
 
-
-# problem routes
-problem_edit:
-  path: '/section/{sectionId}/assignment/{assignmentId}/problem/{problemId}/edit'
-  defaults: {_controller: AppBundle:Problem:new}
-
-problem_delete:
-  path: '/section/{sectionId}/assignment/{assignmentId}/problem/delete/{problemId}'
-  defaults: {_controller: AppBundle:Problem:delete}
-  methods: [GET]
-
-problem_new:
-  path: '/section/{sectionId}/assignment/{assignmentId}/new_problem'
-  defaults: {_controller: AppBundle:Problem:new}
-
-problem_insert:
-  path: '/problem/insert'
-  defaults: {_controller: AppBundle:Problem:insert}
-
-problem_result:
-    path: '/result/{submission_id}'
-    defaults: {_controller: AppBundle:Problem:result}
-    requirements:
-        submission_id: '\d+'
-
-problem_modify:
-    path: 'modify/problem'
-    defaults:
-        _controller: AppBundle:Problem:modifyPost
-    methods: [POST]
 
 # UPLOAD ROUTES
 get_contents:

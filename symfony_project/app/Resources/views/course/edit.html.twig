@@ -175,10 +175,10 @@
 	<script>
 		function populateForm(){			
 			// set the name field
-			$('#name').val("{{course.name}}");
+			$('#name').val("{{course.name|raw}}");
 			
 			// set the code field
-			$('#code').val("{{course.code}}");
+			$('#code').val("{{course.code|raw}}");
 			
 			// set the description field
 			$('#description').val("{{course.description|replace({'\n':'\\n'})|raw}}");
