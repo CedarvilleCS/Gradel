@@ -7,7 +7,7 @@
 
 	<ol style="padding-top: 0px; padding-bottom: 10px">
 		{# overview of when the assignment is due #}		
-		<li><strong> {{assignment.name}} 
+		<li style="text-align:center">{{assignment.name}} 
 			
 			<div><small>
 			{% if assignment.start_time|date('U') > "now"|date('U') %}
@@ -27,8 +27,7 @@
 				<i style="color: pink">Closed: {{assignment.cutoff_time|date('M. d \\a\\t  h:i A')}}</i>
 			
 			{% endif %}
-			</small></div>
-		</strong></li>
+			</small></div></li>
 		<li class="sidebar" style="text-align:left">
 			<strong>Problems</strong>
 			{% if elevatedUser %}
@@ -107,9 +106,6 @@
 	
 	
 	{% if elevatedUser %}
-		<a href="{{path('assignment_delete', {'sectionId': section.id, 'assignmentId': assignment.id})}}" class="btn">
-			<div class="btn btn-delete btn-center">Delete Assignment</div>
-		</a>
     
 		<a href="{{path('assignment_edit', {'sectionId': section.id, 'assignmentId': assignment.id})}}" class="btn">
 			<div class="btn btn-center">Edit Assignment</div>
