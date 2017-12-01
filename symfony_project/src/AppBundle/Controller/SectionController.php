@@ -50,7 +50,7 @@ class SectionController extends Controller {
 		$qb->select('a')
 			->from('AppBundle\Entity\Assignment', 'a')
 			->where('a.section = ?1')
-			->orderBy('a.end_time', 'ASC')
+			->orderBy('a.start_time', 'ASC')
 			->setParameter(1, $section_entity);
 
 		$query = $qb->getQuery();
@@ -172,7 +172,7 @@ class SectionController extends Controller {
 
 		$builder->select('c')
 				->from('AppBundle\Entity\Course', 'c')
-				->where('1 = 1');
+				->where('c.is_deleted = false');
 		$query = $builder->getQuery();
 		$courses = $query->getResult();
 
@@ -182,7 +182,16 @@ class SectionController extends Controller {
 		}
 					
 		$users = $em->getRepository("AppBundle\Entity\User")->findAll();
+
+		$instructors;
+
+		foreach ($users as $u) {
+			if($u->hasRole(ROLE_ADMIN) or $u->hasRole(ROLE_SUPER)) {
+				$instructors[] = $u;
+			}
+		}
 		
+				
 		if($sectionId != 0){
 			$section = $em->find('AppBundle\Entity\Section', $sectionId);
 			
@@ -200,13 +209,27 @@ class SectionController extends Controller {
 				  ->setParameter(2, $takes_role);
 			$query = $builder->getQuery();
 			$section_taker_roles = $query->getResult();
+
+
+			$teaches_role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Teaches'));
+			$builder = $em->createQueryBuilder();
+			$builder->select('u')
+				  ->from('AppBundle\Entity\UserSectionRole', 'u')
+				  ->where('u.section = ?1')
+				  ->andWhere('u.role = ?2')
+				  ->setParameter(1, $section)
+				  ->setParameter(2, $teaches_role);
+			$query = $builder->getQuery();
+			$section_teacher_roles = $query->getResult();
 		}
 
 		return $this->render('section/edit.html.twig', [
 			'courses' => $courses,
 			'users' => $users,
+			'instructors' => $instructors,
 			'section' => $section,
-			'section_taker_roles' => $section_taker_roles
+			'section_taker_roles' => $section_taker_roles,
+			'section_teacher_roles' => $section_teacher_roles
 		]);
     }
 	
@@ -260,17 +283,17 @@ class SectionController extends Controller {
 		} else {
 			
 			# validate the year
-			if(!is_numeric($postData['year'])){
+			if(!is_numeric(trim($postData['year']))){
 				return $this->returnForbiddenResponse($postData['year']." is not a valid year");
 			}
 
 			# validate the semester
-			if($postData['semester'] != 'Fall' && $postData['semester'] != 'Spring' && $postData['semester'] != 'Summer'){
+			if(trim($postData['semester']) != 'Fall' && trim($postData['semester']) != 'Spring' && trim($postData['semester']) != 'Summer'){
 				return $this->returnForbiddenResponse($postData['semester']." is not a valid semester");
 			}
 		}
 		
-		# create new section		
+		# create new section
 		if($postData['section'] == 0){
 			$section = new Section();
 		} else {
@@ -288,10 +311,10 @@ class SectionController extends Controller {
 		}
 		
 		# set the necessary fields
-		$section->name = $postData['name'];
+		$section->name = trim($postData['name']);
 		$section->course = $course;
 		$section->semester = $postData['semester'];
-		$section->year = $postData['year'];
+		$section->year = (int)trim($postData['year']);
 		
 		# see if the dates were provided or if we will do them automatically
 		$dates = $this->getDateTime($postData['semester'], $postData['year']);
@@ -334,14 +357,14 @@ class SectionController extends Controller {
 		
 		if($postData['section'] == 0){
 			# set the teacher to the person who made the section TODO
-			if($course->is_contest){
-				$role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Judges'));
-			} else {
-				$role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Teaches'));
-			}
+			// if($course->is_contest){
+			// 	$role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Judges'));
+			// } else {
+			// 	$role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Teaches'));
+			// }
 					
-			$usr = new UserSectionRole($user, $section, $role);
-			$em->persist($usr);			
+			// $usr = new UserSectionRole($user, $section, $role);
+			// $em->persist($usr);			
 		
 		} else {
 			# remove all the previous students before the "edit" if there was one
@@ -366,22 +389,45 @@ class SectionController extends Controller {
 		
 		# add the students from the students array
 		$students = array_unique(json_decode($postData['students']));
-
 		
-		$role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));
+		$takes_role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));
 		foreach ($students as $student) {
-
-			if ($student != "") {
-				$stud_user = $em->getRepository('AppBundle\Entity\User')->findOneBy(array('email' => $student));
-
-				if(!$stud_user){
-					continue;
-				}
-				
-				$usr = new UserSectionRole($stud_user, $section, $role);
-				$em->persist($usr);
+	
+			if (!filter_var($student, FILTER_VALIDATE_EMAIL)) {
+				continue;
 			}
+			
+			$stud_user = $em->getRepository('AppBundle\Entity\User')->findOneBy(array('email' => $student));
+
+			if(!$stud_user){
+				$stud_user = new User($student, $student);
+				$em->persist($stud_user);
+			}
+			
+			$usr = new UserSectionRole($stud_user, $section, $takes_role);
+			$em->persist($usr);
 		}
+		
+		# add the teachers from the teachers array
+		$teachers = array_unique(json_decode($postData['teachers']));
+		
+		$teaches_role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Teaches'));
+		foreach ($teachers as $teacher){
+			
+			if(!filter_var($teacher, FILTER_VALIDATE_EMAIL)) {
+				continue;
+			}
+			
+			$teach_user = $em->getRepository('AppBundle\Entity\User')->findOneBy(array('email'=>$teacher));
+			
+			if(!$teach_user){
+				return $this->returnForbiddenResponse("Teacher with email ".$teacher." does not exist!");
+			}
+			
+			$usr = new UserSectionRole($teach_user, $section, $teaches_role);
+			$em->persist($usr);			
+		}
+		
 		
 		$em->flush();
 		

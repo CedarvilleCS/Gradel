@@ -21,8 +21,7 @@ use Symfony\Component\HttpFoundation\Request;
 class HomeController extends Controller {
 	
     public function homeAction() {
-		
-	
+			
 		$em = $this->getDoctrine()->getManager();
 	  
 		$user = $this->get('security.token_storage')->getToken()->getUser();
@@ -34,11 +33,11 @@ class HomeController extends Controller {
 		$builder = $em->createQueryBuilder();
 		$builder->select('s')
 			->from('AppBundle\Entity\Section', 's')
-			->where('s.is_deleted = false');
-			//->andWhere('s.start_time < ?1')
-			//->andWhere('s.end_time > ?2')
-			//->setParameter(1, new DateTime())
-			//->setParameter(2, new DateTime());
+			->where('s.is_deleted = false')
+			->andWhere('s.start_time < ?1')
+			->andWhere('s.end_time > ?2')
+			->setParameter(1, new DateTime())
+			->setParameter(2, new DateTime());
 		
 		$section_query = $builder->getQuery();
 		$sections_active = $section_query->getResult();
@@ -95,43 +94,7 @@ class HomeController extends Controller {
 		$users_query = $qb_users->getQuery();
 		$users = $users_query->getResult();	
 		
-		$grader = new Grader($em);
-		
-		$student_grades = [];
-		/*
-		foreach($sections_teaching as $sect){
-			
-			$takes_role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));
-			
-			$qb_usr = $em->createQueryBuilder();
-			$qb_usr->select('usr')
-				->from('AppBundle\Entity\UserSectionRole', 'usr')
-				->where('usr.user = ?1')
-				->andWhere('usr.section = ?2')
-				->andWhere('usr.role = ?3')
-				->setParameter(1, $user)
-				->setParameter(2, $sect)
-				->setParameter(3, $takes_role);
-
-			$usr_query = $qb_usr->getQuery();
-			$section_takers = $usr_query->getResult();
-			
-			$tot_grd = 0;
-			foreach($section_takers as $taker){
-				$grd = $grader->getSectionGrade($user, $sect);
-				$grd = $grd['percentage_adj'];
-				
-				$tot_grd += $grd;
-			}
-			
-			if(count($section_takers) > 0){
-				$tot_grd = $tot_grd/count($section_takers);
-			}
-			
-			$student_grades[$sect->id] = $tot_grd;
-		}
-		*/
-		
+		$grader = new Grader($em);		
 		$grades = $grader->getAllSectionGrades($user);
 		
 		return $this->render('home/index.html.twig', [
@@ -144,8 +107,6 @@ class HomeController extends Controller {
 			
 			'grades' => $grades,
 			'user_impersonators' => $users,
-			
-			'student_grades' => $student_grades,
 		]);
 
     }

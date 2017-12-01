@@ -9,54 +9,58 @@
 <body>
 	{{ include('template/top-nav.html.twig') }}
 
-    {# left panel with the problem links #}
-	{#{{ include('template/course-nav.html.twig') }}#}
+    {# Left Nav for Course Edit #}
 	<nav class="nav-left">
 		<a id="save-btn" class="btn"><div class="btn btn-center">Save</div></a>
+		
+		{% if course is not null %}
+		<a id="delete-btn" class="btn"><div class="btn btn-center btn-delete">{% if course.is_deleted %} Reinstate {% else %} Delete {% endif %}</div></a>
+		
+		<ol style="padding-top: 0px">
+			<li id="delete-warning" style="padding-top: 0px"></li>
+		</ol>
+		{% endif %}
     </nav>
 	
+	{{ include('template/path-nav.html.twig') }}
+
     {# Main section with the necessary variable#}
-    <div class="scrollbar-macosx">
-        <section id="main">
-			
-			{{ include('template/path-nav.html.twig') }}
+	<section id="main">
 		
-            {# Cards #}
-            <div class="card">
-				<div class="btn-close">
-					<h2 style="margin: 0px">
-					{% if course is not null %}
-						Edit {{course.name}}
-					{% else %}
-						New Course
-					{% endif %}					
-					</h2>
-				</div>
-				
-				<div id="requiredFields" class="card-contents">				
-					<div>
-						<label for="name">Name</label> <br/>
-						<input id="name" name="name" type="text" style="width: 350px"> <br/>
-						
-						<label for="code">Code</label> <br/>
-						<input id="code" name="code" type="text" style="width: 200px"> <br/>
-						
-						<label for="description">Description</label>
-						<textarea style="margin-top: 8px; margin-bottom: 8px; border: 2px solid #6C6E71; background-color: transparent; border-radius: 4px" id="description"></textarea>
-									
-						<div class="toggle-container">
-							<label for="contest"> Contest </label>
-							<label class="switch">
-							  <input type="checkbox" id="contest" name="contest">
-							  <span class="slider round"></span>
-							</label>
-						</div>
+		{# Cards #}
+		<div class="card">
+			<div class="btn-close">
+				<h2 style="margin: 0px">
+				{% if course is not null %}
+					Edit {{course.name}}
+				{% else %}
+					New Course
+				{% endif %}					
+				</h2>
+			</div>
+			
+			<div id="requiredFields" class="card-contents">				
+				<div>
+					<label for="name">Name</label> <br/>
+					<input id="name" name="name" type="text" style="width: 350px"> <br/>
+					
+					<label for="code">Code</label> <br/>
+					<input id="code" name="code" type="text" style="width: 200px"> <br/>
+					
+					<label for="description">Description</label>
+					<textarea style="margin-top: 8px; margin-bottom: 8px; border: 2px solid #6C6E71; background-color: transparent; border-radius: 4px" id="description"></textarea>
+								
+					<div class="toggle-container">
+						<label for="contest"> Contest </label>
+						<label class="switch">
+							<input type="checkbox" id="contest" name="contest">
+							<span class="slider round"></span>
+						</label>
 					</div>
 				</div>
-            </div>
-
-        </section>
-    </div>
+			</div>
+		</div>
+	</section>
 
 	
 	
@@ -89,6 +93,22 @@
 				populateForm();
 			{% endif %}
 			
+			{% if course is not null %}
+			var warned = 0;
+			$('#delete-btn').on('click', function(){
+			
+				if(warned == 2){					
+					window.location = "{{path('course_delete', {'courseId': course.id})}}";
+					
+				} else if(warned == 1) {
+					$('#delete-warning').html("Are you REALLY sure?<br/>Click again to {% if course.is_deleted %} reinstate {% else %} delete {% endif %}.");
+				} else {
+					$('#delete-warning').html("Are you sure?<br/>Click again to {% if course.is_deleted %} reinstate {% else %} delete {% endif %}.");
+				}
+			
+				warned++;
+			});
+			{% endif %}
 			
 			$('#save-btn').on('click', function(){
 			

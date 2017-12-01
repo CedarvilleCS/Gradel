@@ -1,6 +1,6 @@
 {% block head %}
-<title>Gradel</title>
-<link rel="icon" type="image/x-icon" href="{{ asset('logo1.png') }}" />
+<title>Gradel Home</title>
+<link rel="icon" type="image/x-icon" href="{{ asset('logo1.png') }}" title="Gradel: when you're here, you're coding."/>
 {% endblock %}
 
 {% block stylesheets %}
@@ -12,12 +12,11 @@
 <body>    
     {{ include('template/top-nav.html.twig') }}
 	{{ include('template/section-nav.html.twig') }}
+	{{ include('template/path-nav.html.twig') }}
 	
     {# Main section #}
     <section id="main">
         {# Cards #}
-		
-		{{ include('template/path-nav.html.twig') }}
 		
         <div class="card">
             <div class="btn-close" onclick="collapseCard('courseInfo')">

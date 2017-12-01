@@ -1,13 +1,104 @@
 <div class="pathnav" id="myPathNav">
+		
+	{% set current_path = app.request.get('_route') %}
 	
-	<a href="{{path('homepage')}}"> {{app.user.getFirstName() ~ '\''}}s Overview&nbsp;</a>
+	{% if 'homepage' in current_path %}		
+		<a href="{{path('homepage')}}"> {{app.user.getFirstName() ~ '\''}}s Overview&nbsp;</a>
+		
+	{% elseif 'course' in current_path %}
+		<a href="{{path('homepage')}}"> {{app.user.getFirstName() ~ '\''}}s Overview&nbsp;</a>
+		>&nbsp;
+		
+		<a href="{{path('courses')}}"> Courses&nbsp;</a>
+		
+		{% if 'edit' in current_path and course.id != 0 %}
+			> <a href="{{path('course_edit', {'courseId': course.id})}}">&nbsp;{{course.name}}&nbsp;</a>
+			>
+			Edit
+			
+			<a href="{{path('courses')}}" class="back-button">
+				<img class="back-img" src="{{asset('back_arrow.png')}}"/>
+			</a>
+		{% else %}
+			<a href="{{path('homepage')}}" class="back-button">
+				<img class="back-img" src="{{asset('back_arrow.png')}}"/>
+			</a>
+		{% endif %}
+		
+		
+		
+	{% elseif 'section' in current_path %}
+		<a href="{{path('homepage')}}"> {{app.user.getFirstName() ~ '\''}}s Overview&nbsp;</a>		
+		
+		>
+		
+		{% if section is null %} {% set section = {'id': 0, 'name': 'New Section'} %} {% endif %}
+		
+		{% if 'edit' in current_path and section.id != 0 %}
+			<a href="{{path('section', {'sectionId':section.id})}}">&nbsp;{{section.name}}&nbsp;</a>
+			>
+			Edit 
+
+			<a href="{{path('section', {'sectionId': section.id})}}" class="back-button">
+				<img class="back-img" src="{{asset('back_arrow.png')}}"/>
+			</a>
+			
+		{% else %}
+			{{section.name}}&nbsp; 
+
+			<a href="{{path('homepage')}}" class="back-button">
+				<img class="back-img" src="{{asset('back_arrow.png')}}"/>
+			</a>
+		{% endif %}
 	
-	{% if section is defined %}
-		>&nbsp;<a href="{{path('section', {'userId': app.user.id, 'sectionId': section.id})}}" >&nbsp;{{section.name}}&nbsp;</a>
-	{% endif %}
 	
-	{% if assignment is defined %}
-		>&nbsp;<a href="{{path('assignment', {'userId': app.user.id, 'sectionId': section.id, 'assignmentId': assignment.id})}}" >&nbsp;{{assignment.name}}&nbsp;</a>
+	{% elseif 'assignment' in current_path %}
+		<a href="{{path('homepage')}}"> {{app.user.getFirstName() ~ '\''}}s Overview&nbsp;</a>
+		>&nbsp;
+		<a href="{{path('section', {'sectionId':section.id})}}"> {{section.name}}&nbsp;</a>
+		>
+		{% if assignment is null %} {% set assignment = {'id': 0, 'name': 'New Assignment'} %} {% endif %}
+		
+		{% if 'edit' in current_path and assignment.id != 0 %}
+			<a href="{{path('assignment', {'sectionId':section.id, 'assignmentId':assignment.id})}}">&nbsp;{{assignment.name}}&nbsp;</a>
+			>
+			Edit 	
+			
+			<a href="{{path('assignment', {'sectionId': section.id, 'assignmentId': assignment.id})}}" class="back-button">
+				<img class="back-img" src="{{asset('back_arrow.png')}}"/>
+			</a>			
+		{% else %}
+			{{assignment.name}}&nbsp; 	
+			
+			<a href="{{path('section', {'sectionId': section.id})}}" class="back-button">
+				<img class="back-img" src="{{asset('back_arrow.png')}}"/>
+			</a>
+		{% endif %}
+	
+	{% elseif 'problem' in current_path %}
+		<a href="{{path('homepage')}}"> {{app.user.getFirstName() ~ '\''}}s Overview&nbsp;</a>
+		>&nbsp;
+		<a href="{{path('section', {'sectionId':section.id})}}"> {{section.name}}&nbsp;</a>
+		>&nbsp;
+		<a href="{{path('assignment', {'sectionId':assignment.section.id, 'assignmentId': assignment.id})}}"> {{assignment.name}}&nbsp;</a>
+		>
+		{% if problem is null %} {% set problem = {'id': 0, 'name': 'New Problem'} %} {% endif %}
+		
+		{% if 'edit' in current_path and problem.id != 0 %}
+			<a href="{{path('assignment', {'sectionId':section.id, 'assignmentId':assignment.id, 'problemId':problem.id})}}">&nbsp;{{problem.name}}&nbsp;</a>
+			>
+			Edit  	
+			
+			<a href="{{path('assignment', {'sectionId': section.id, 'assignmentId': assignment.id, 'problemId': problem.id})}}" class="back-button">
+				<img class="back-img" src="{{asset('back_arrow.png')}}"/>
+			</a>		
+		{% else %}
+			{{problem.name}}&nbsp;
+			
+			<a href="{{path('assignment', {'sectionId': section.id, 'assignmentId': assignment.id, 'problemId': problem.id})}}" class="back-button">
+				<img class="back-img" src="{{asset('back_arrow.png')}}"/>
+			</a>
+		{% endif %}
 	{% endif %}
 	
 </div>

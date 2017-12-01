@@ -1,7 +1,6 @@
 {% block head %}
-<title>Gradel</title>
+<title>Gradel{% if section != null %} | {{section.name}} {% endif %}</title>
 <link rel="icon" type="image/x-icon" href="{{ asset('logo1.png') }}" />
-<title>{{section.course.name}}</title>
 {% endblock %}
 
 
@@ -12,11 +11,11 @@
     
 	{{ include('template/assignment-nav.html.twig') }}
 
+	{{ include('template/path-nav.html.twig') }}
+
     {# Main section #}
 	<section id="main">
 		{# Cards #}
-		
-		{{ include('template/path-nav.html.twig') }}
 		
 		<div class="card">
 			<div class="btn-close" onclick="collapseCard('courseInfo')"><h2 style="margin: 0px">Due Soon<span style="float: right"><i class="fa fa-angle-down"></i></span></h2></div>

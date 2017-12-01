@@ -34,19 +34,40 @@ class ProblemController extends Controller {
 
     	$em = $this->getDoctrine()->getManager();
     	$qb = $em->createQueryBuilder();
-
     	$qb->select('l')
     		->from('AppBundle\Entity\Language', 'l')
     		->where('1 = 1');
-
     	$languages = $qb->getQuery()->getResult();
 
-    	return $this->render('problem/new.html.twig', [
-    		'languages' => $languages,
-    		'sectionId' => $sectionId,
-    		'assignmentId' => $assignmentId,
-        'problem' => $problem,
-    	]);
+		$section = $em->find('AppBundle\Entity\Section', $sectionId);
+		$assignment = $em->find('AppBundle\Entity\Assignment', $assignmentId);
+		
+		return $this->render('problem/new.html.twig', [
+			'languages' => $languages,
+			'section' => $section,
+			'assignment' => $assignment,
+		]);
+    }
+
+	public function editAction($sectionId, $assignmentId, $problemId) {
+		$em = $this->getDoctrine()->getManager();
+		$qb = $em->createQueryBuilder();
+
+		$qb->select('l')
+			->from('AppBundle\Entity\Language', 'l')
+			->where('1 = 1');
+		$languages = $qb->getQuery()->getResult();
+		
+		$section = $em->find('AppBundle\Entity\Section', $sectionId);
+		$assignment = $em->find('AppBundle\Entity\Assignment', $assignmentId);
+		$problem = $em->find('AppBundle\Entity\Problem', $problemId);
+		
+		return $this->render('problem/new.html.twig', [
+			'languages' => $languages,
+			'section' => $section,
+			'assignment' => $assignment,
+			'problem' => $problem,
+		]);
     }
 
 	public function deleteAction($sectionId, $assignmentId, $problemId){
@@ -98,9 +119,7 @@ class ProblemController extends Controller {
 		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN") && !$grader->isTeaching($user, $assignment->section)){
 			return $this->returnForbiddenResponse("You do not have permission to make a problem.");
 		}
-
-
-
+		
 		# get the problem or create a new one
 		if($postData['problem'] == 0){
 
@@ -137,10 +156,10 @@ class ProblemController extends Controller {
 
 		$problem->name = trim($postData['name']);
 		$problem->description = trim($postData['description']);
-		$problem->weight = trim($postData['weight']);
-		$problem->is_extra_credit = ($postData['is_extra_credit'] == "true");
-		$problem->time_limit = trim($postData['time_limit']);
-
+		$problem->weight = (int)trim($postData['weight']);
+		$problem->is_extra_credit = ($postData['is_extra_credit'] == "true");		
+		$problem->time_limit = (int)trim($postData['time_limit']);
+		
 		if(!isset($postData['languages']) || !isset($postData['testcases'])){
 
 			return $this->returnForbiddenResponse("Not every necessary field was provided");
@@ -186,9 +205,9 @@ class ProblemController extends Controller {
 
 		# feedback flags
 		$stop_on_first_fail = $postData['stop_on_first_fail'];
-		$response_level = $postData['response_level'];
+		$response_level = trim($postData['response_level']);
 		$display_testcaseresults = $postData['display_testcaseresults'];
-		$testcase_output_level = $postData['testcase_output_level'];
+		$testcase_output_level = trim($postData['testcase_output_level']);
 		$extra_testcases_display = $postData['extra_testcases_display'];
 
 		if($stop_on_first_fail != null || $response_level != null || $display_testcaseresults != null || $testcase_output_level != null || $extra_testcases_display != null){
@@ -295,12 +314,28 @@ class ProblemController extends Controller {
 
 		$grader = new Grader($em);
 		$feedback = $grader->getFeedback($submission);
+		
+		# get the usersectionrole
+		$qb_usr = $em->createQueryBuilder();
+		$qb_usr->select('usr')
+			->from('AppBundle\Entity\UserSectionRole', 'usr')
+			->where('usr.user = ?1')
+			->andWhere('usr.section = ?2')
+			->setParameter(1, $user)
+			->setParameter(2, $submission->problem->assignment->section);
+			
+		$usr_query = $qb_usr->getQuery();
+		$usersectionrole = $usr_query->getOneOrNullResult();
 
 		return $this->render('problem/result.html.twig', [
+			'section' => $submission->problem->assignment->section,
+			'assignment' => $submission->problem->assignment,
+			'problem' => $submission->problem,
 			'submission' => $submission,
 			'grader' => new Grader($em),
 			'result_page' => true,
 			'feedback' => $feedback,
+			'usersectionrole' => $usersectionrole,
 		]);
 	}
 

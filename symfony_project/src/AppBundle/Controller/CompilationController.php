@@ -24,6 +24,7 @@ use \DateTime;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -42,54 +43,48 @@ class CompilationController extends Controller {
 		$user_entity= $this->get('security.token_storage')->getToken()->getUser();
 		
 		if(!$user_entity){
-			die("USER DOES NOT EXIST");
-		} else{
-			#echo($user_entity->getFirstName()." ".$user_entity->getLastName()."<br/>");
+			return $this->returnForbiddenResponse("USER DOES NOT EXIST");
 		}
 		
 		$postData = $request->request->all();
 		
 		$problem_id = $postData['problemId'];
 		$language_id = $postData['languageId'];
-		$submitted_filename = $postData['filename'];
-		$main_class = $postData['mainclass'];
-		$package_name = $postData['packagename'];
+		$submitted_filename = trim($postData['filename']);
+		$main_class = trim($postData['mainclass']);
+		$package_name = trim($postData['packagename']);
 		
 		# make sure all the required post params were passed
 		if(!isset($problem_id) || !isset($language_id) || !isset($submitted_filename) || !isset($main_class) || !isset($package_name)){
-			die("NOT EVERY NECESSARY FIELD WAS PROVIDED");
+			return $this->returnForbiddenResponse("NOT EVERY NECESSARY FIELD WAS PROVIDED");
 		}
 		
 		
 		# get the current problem
 		$problem_entity = $em->find("AppBundle\Entity\Problem", $problem_id);
 		if(!$problem_entity){
-			die("PROBLEM DOES NOT EXIST");
-		} else {
-			#echo($problem_entity->id."<br/>");
+			return $this->returnForbiddenResponse("PROBLEM DOES NOT EXIST");
 		}
 		
 		# make sure that the assignment is still open for submission
 		if($problem_entity->assignment->cutoff_time < new \DateTime("now")){
-			die("TOO LATE TO SUBMIT FOR THIS PROBLEM");
+			return $this->returnForbiddenResponse("TOO LATE TO SUBMIT FOR THIS PROBLEM");
 		}
 		
 		if($problem_entity->assignment->start_time > new \DateTime("now")){
-			die("TOO EARLY TO SUBMIT FOR THIS PROBLEM");
+			return $this->returnForbiddenResponse("TOO EARLY TO SUBMIT FOR THIS PROBLEM");
 		}
 		
 		# get the current team
 		$team_entity = $grader->getTeam($user_entity, $problem_entity->assignment);		
 		if(!$team_entity){
-			die("TEAM DOES NOT EXIST");
-		} else{			
-			#echo($team_entity->name."<br/>");		
-		}		
+			return $this->returnForbiddenResponse("YOU ARE NOT ON A TEAM FOR THIS ASSIGNMENT");
+		}
 		
 		# make sure that you haven't submitted too many times yet
 		$curr_attempts = $grader->getNumTotalAttempts($user_entity, $problem_entity);		
 		if($problem_entity->total_attempts > 0 && $curr_attempts >= $problem_entity->total_attempts){
-			die("ALREADY REACHED MAX ATTEMPTS FOR PROBLEM AT ".$curr_attempts);
+			return $this->returnForbiddenResponse("ALREADY REACHED MAX ATTEMPTS FOR PROBLEM AT ".$curr_attempts);
 		}
 		
 		# create an entity for the current submission
@@ -148,7 +143,11 @@ class CompilationController extends Controller {
 			
 			#echo $input;
 			
-			$input_file = fopen($temp_input_folder.$tc->seq_num.".in", "w") or die("Unable to open file for writing!");
+			$input_file = fopen($temp_input_folder.$tc->seq_num.".in", "w");			
+			if(!$input_file){
+				return $this->returnForbiddenResponse("Unable to open input file for writing - contact a system admin");
+			}
+			
 			fwrite($input_file, $input);
 			fclose($input_file);
 			
@@ -157,7 +156,10 @@ class CompilationController extends Controller {
 			
 			#echo $correct_output;
 			
-			$output_file = fopen($temp_output_folder.$tc->seq_num.".out", "w") or die("Unable to open file for writing!");
+			$output_file = fopen($temp_output_folder.$tc->seq_num.".out", "w");
+			if(!$output_file){
+				 return $this->returnForbiddenResponse("Unable to open output file for writing - contact a system admin");
+			}
 			fwrite($output_file, $correct_output);
 			fclose($output_file);
 		}
@@ -165,7 +167,10 @@ class CompilationController extends Controller {
 		# SUBMISSION CREATION AND COMPILATION
 		# open the submitted file and prep for compilation
 		# open the submitted file and prep for compilation
-		$submitted_file = fopen($submitted_file_path, "r") or die ("Unable to open submitted file: ".$submitted_file_path);
+		$submitted_file = fopen($submitted_file_path, "r");
+		if(!$submitted_file){
+			return $this->returnForbiddenResponse("Unable to open submitted file: ".$submitted_file_path." - contact a system admin");
+		}
 		$submission_entity->submitted_file = $submitted_file;
 		$submission_entity->filename = $submitted_filename;
 		
@@ -197,7 +202,7 @@ class CompilationController extends Controller {
 		$prob_lang_entity = $pl_query->getOneOrNullResult();	
 		
 		if(!$prob_lang_entity){
-			die("CANNOT SUBMIT A SOLUTION FOR THIS LANGUAGE!");
+			return $this->returnForbiddenResponse("CANNOT SUBMIT A SOLUTION FOR THIS LANGUAGE!");
 		} else {
 			$compilation_options = trim($prob_lang_entity->compilation_options);
 		}
@@ -214,7 +219,10 @@ class CompilationController extends Controller {
 		
 		$docker_output = shell_exec($docker_script);	
 		
-		$docker_log_file = fopen($submission_directory."docker_script.log", "w") or die("Cannot open docker_script.log");
+		$docker_log_file = fopen($submission_directory."docker_script.log", "w");
+		if(!$docker_log_file){
+			return $this->returnForbiddenResponse("Cannot open docker_script.log - contact a system admin");
+		}
 		fwrite($docker_log_file, $docker_output);
 		fclose($docker_log_file);
 		
@@ -237,7 +245,10 @@ class CompilationController extends Controller {
 		if(file_exists($submission_directory."compileerror") && file_exists($submission_directory."compiler.log")){
 			# echo "compile error</br>";
 			
-			$compile_log = fopen($submission_directory."compiler.log", "r") or die("Cannot open compiler.log file");
+			$compile_log = fopen($submission_directory."compiler.log", "r");
+			if(!$compile_log){
+				return $this->returnForbiddenResponse("Cannot open compiler.log file - contact a system admin");
+			}
 			$submission_is_compileerror = true;
 		} 
 		# check for overall time limit error
@@ -293,8 +304,10 @@ class CompilationController extends Controller {
 				# check for runtime error
 				if(file_exists($runtime_log_path) && filesize($runtime_log_path) > 0){
 					
-					$runtime_log = fopen($runtime_log_path, "r") or die("Cannot open ".$runtime_log_path);
-					
+					$runtime_log = fopen($runtime_log_path, "r");
+					if(!$runtime_log){
+						return $this->returnForbiddenResponse("Cannot open ".$runtime_log_path);
+					}
 					# echo $tc->seq_num.") runtime error</br>";					
 					
 					$testcase_is_runtimeerror = true;
@@ -303,9 +316,18 @@ class CompilationController extends Controller {
 				# the solution was normal
 				else if(file_exists($runtime_log_path) && file_exists($output_log_path) && file_exists($exectime_log_path) && file_exists($diff_log_path)){
 					
-					$output_log = fopen($output_log_path, "r") or die("Cannot open ".$output_log_path);
-					$exectime_log = fopen($exectime_log_path, "r") or die("Cannot open ".$exectime_log_path);
-					$diff_log = fopen($diff_log_path, "r") or die("Cannot open ".$diff_log_path);
+					$output_log = fopen($output_log_path, "r");
+					if(!$output_log){
+						return $this->returnForbiddenResponse("Cannot open ".$output_log_path." - contact a system admin");
+					}
+					$exectime_log = fopen($exectime_log_path, "r");
+					if(!$exectime_log){
+						return $this->returnForbiddenResponse("Cannot open ".$exectime_log_path." - contact a system admin");
+					}
+					$diff_log = fopen($diff_log_path, "r");
+					if(!$diff_log){
+						return $this->returnForbiddenResponse("Cannot open ".$diff_log_path." - contact a system admin");
+					}
 					
 					# echo $tc->seq_num.") normal testcase</br>";
 					
@@ -315,7 +337,7 @@ class CompilationController extends Controller {
 					if(sscanf($time_string, "user %dm%d.%ds", $minutes, $seconds, $milliseconds) == 3){
 						$testcase_exectime = $seconds*1000+$milliseconds;
 					} else{
-						die("error parsing time_limit string");
+						return $this->returnForbiddenResponse("error parsing time_limit string"." - contact a system admin");
 					}
 					
 					if($testcase_exectime < 0 || $testcase_exectime > $problem_entity->time_limit){
@@ -396,7 +418,11 @@ class CompilationController extends Controller {
 		$prev_accepted_sol = $acc_query->getOneOrNullResult();
 	
 		// take the new solution if it is 100% no matter what
-		if($prev_accepted_sol && $submission_entity->percentage == 1){
+		
+		$total_correct = $correct_extra_testcase_count + $correct_testcase_count;
+		$total_testcases = count($problem_entity->testcases);
+		
+		if($prev_accepted_sol && $total_correct == $total_testcases){
 			$submission_entity->is_accepted = true;
 			$prev_accepted_sol->is_accepted = false;
 		}
@@ -433,16 +459,19 @@ class CompilationController extends Controller {
 		
 		# zip the submission directory for saving to the database
 		if(!chdir($submission_directory)){
-			die("Cannot switch directories!");
+			return $this->returnForbiddenResponse("Cannot switch directories - contact a system admin");
 		}
 		
 		shell_exec("zip -r ".$submission_directory."log.zip *");
 		
 		if(!chdir($web_dir)){
-			die("Cannot switch directories!");
+			return $this->returnForbiddenResponse("Cannot switch directories - contact a system admin");
 		}
 		
-		$zip_file = fopen($submission_directory."log.zip", "r") or die("Cannot open log zip file for reading!");
+		$zip_file = fopen($submission_directory."log.zip", "r");
+		if(!$zip_file){
+			return $this->returnForbiddenResponse("Cannot open log zip file for reading - contact a system admin");
+		}
 		$submission_entity->log_directory = $zip_file;
 				
 		# remove the temp folder
@@ -457,15 +486,19 @@ class CompilationController extends Controller {
 		
         $url = $this->generateUrl('problem_result', array('submission_id' => $submission_entity->id));
 		
-		$response = new Response(json_encode([
-		
-			'redirect_url' => $url,
-			
+		$response = new Response(json_encode([		
+			'redirect_url' => $url,			
 		]));
 		
 		$response->headers->set('Content-Type', 'application/json');
 		$response->setStatusCode(Response::HTTP_OK);
 		
+		return $response;
+	}
+	
+	private function returnForbiddenResponse($message){		
+		$response = new Response($message);
+		$response->setStatusCode(Response::HTTP_FORBIDDEN);
 		return $response;
 	}
 }

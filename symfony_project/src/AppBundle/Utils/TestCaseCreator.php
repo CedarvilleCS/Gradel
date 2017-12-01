@@ -31,13 +31,13 @@ class TestCaseCreator  {
 	public static function makeTestCase($em, $problem, $data, $sequenceNumber){
 		
 		# check the required fields
-		if(!$data['input'] || !$data['output'] || !$data['weight']){		  
+		if(!isset($data['input']) || !isset($data['output']) || !isset($data['weight'])){		  
 			
 			return self::returnForbiddenResponse("Not every required testcase field was provided!");		  
 			
 		} else {
 		  
-			if(!is_numeric($data['weight']) || $data['weight'] < 1){
+			if(!is_numeric(trim($data['weight'])) || (int)trim($data['weight']) < 1){
 				return self::returnForbiddenResponse("The provided testcase weight is not greater than 0");
 			}
 		  
@@ -57,7 +57,7 @@ class TestCaseCreator  {
 		
 		$extra_credit = ($data['extra_credit'] == "true");
 		
-		if($short_feedback != null || $long_feedback != null){
+		if(isset($short_feedback) || isset($long_feedback)){
 			
 			if($short_feedback == null){
 				$short_feedback = "";

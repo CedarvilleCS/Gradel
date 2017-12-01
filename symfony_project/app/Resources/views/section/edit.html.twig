@@ -13,107 +13,123 @@
 
     </section>
 
-    {# Left Nav #}
+    {# Left Nav for Section Edit#}
     <nav class="nav-left">
 		<a id="save-btn" class="btn"><div class="btn btn-center">Save</div></a>
+		
+		{% if section is not null %}
+		<a id="delete-btn" class="btn"><div class="btn btn-center btn-delete">{% if section.is_deleted %} Reinstate {% else %} Delete {% endif %}</div></a>
+		
+		<ol style="padding-top: 0px">
+			<li id="delete-warning" style="padding-top: 0px"></li>
+		</ol>
+		{% endif %}
     </nav>
 	
+	{{ include('template/path-nav.html.twig') }}
 
     {# Main section with the necessary variable#}
-    <div class="scrollbar-macosx">
-        <section id="main">
-		
-		
-			{{ include('template/path-nav.html.twig') }}
-		
-            {# Cards #}
-            <div class="card">
-				<div class="btn-close">
-					<h2 style="margin: 0px">
-					{% if section is not null %}
-						Edit Section
-					{% else %}
-						New Section
-					{% endif %}					
-					</h2>
-				</div>
-				
-				<div id="requiredFields" class="card-contents">				
-					<div>
-						<table>
-							<tr> <th colspan="3">
-								<label for="course">Course</label>
-								<select name="course" id="course">
-								{% for course in courses %}
-									<option value="{{course.id}}">{{course.name}}</option>
-								{% endfor %}
-								</select>
-							</th> </tr>
-							
-							<tr> <th colspan="3">
-								<label for="name">Section Name</label>
-								<input id="name" name="name" type="text" value="">
-							</th> </tr>
-							
-							<tr> <th colspan="3">
-								<label>Semester</label>
-								<select id="semester">
-									<option>Fall</option>
-									<option>Spring</option>
-									<option>Summer</option>
-								</select>
-							</th> </tr>
-							
-							<tr> <th colspan="3">
-								<label>Year</label>
-								<select id="year">
-								{% for yr in ("now"|date("Y"))-1..("now"|date("Y"))+3 %}
-									<option>{{yr}}</option>
-								{% endfor %}
-								</select>
-							</th> </tr>
-
-							<tr> <th>
-								<label>Add Student</label>
-								<select id="student-picker">
-									<option value="-1"></option>
-									{% for u in users %}
-										<option value="{{u.email}}">
-										{{u.getLastName() ~ ", " ~ u.getFirstName()}}
-										</option>
-									{% endfor %}
-								</select>
-							</th> </tr>
-							
-							<tr> <th colspan="3">
-								<textarea id="student-csv"></textarea>
-							</th> </tr>
-
-						</table>
-					</div>
-				</div>
-            </div>
-
-			<div class=card>
-				<div class="btn-close" onclick="collapseCard('additionalOptions')">
-					<h2 style="margin: 0px">Additional Options
-						<span style="float: right"><i class="fa fa-angle-down"></i></span>
-					</h2>
-				</div>
-				
-				<div id="additionalOptions" class="card-contents">				
-					<div>						
-						<label for="startdatepicker">Starting Date </label><input type="text" id="startdatepicker" style="width: 100px; margin-right: 20px">
-						<label for="enddatepicker">Ending Date </label><input type="text" id="enddatepicker" style="width: 100px">
-					</div>
-				</div>
-        	</div>
-        </section>
-    </div>
-
+	<section id="main">
 	
-	
+		{# Cards #}
+		<div class="card">
+			<div class="btn-close">
+				<h2 style="margin: 0px">
+				{% if section is not null %}
+					Edit {{section.name}}
+				{% else %}
+					New Section
+				{% endif %}
+				</h2>
+			</div>
+			
+			<div id="requiredFields" class="card-contents">				
+				<div>
+					<table>
+						<tr> <th colspan="3">
+							<label for="course">Course</label>
+							<select name="course" id="course">
+							{% for course in courses %}
+								<option value="{{course.id}}">{{course.name}}</option>
+							{% endfor %}
+							</select>
+						</th> </tr>
+						
+						<tr> <th colspan="3">
+							<label for="name">Section Name</label>
+							<input id="name" name="name" type="text" value="">
+						</th> </tr>
+						
+						<tr> <th colspan="3">
+							<label>Semester</label>
+							<select id="semester">
+								<option>Fall</option>
+								<option>Spring</option>
+								<option>Summer</option>
+							</select>
+						</th> </tr>
+						
+						<tr> <th colspan="3">
+							<label>Year</label>
+							<select id="year">
+							{% for yr in ("now"|date("Y"))-1..("now"|date("Y"))+3 %}
+								<option>{{yr}}</option>
+							{% endfor %}
+							</select>
+						</th> </tr>
 
+						<tr> <th>
+							<label>Instructor</label>
+							<select id="teacher-picker">
+								<option value="-1"></option>
+								{% for i in instructors %}
+									<option value="{{i.email}}">
+									{{i.getLastName() ~ ", " ~ i.getFirstName()}}
+									</option>
+								{% endfor %}
+							</select>
+						</th> </tr>
+
+						<tr> <th colspan="3">
+							<textarea id="teacher-csv"></textarea>
+						</th> </tr>
+
+						<tr> <th>
+							<label>Add Student</label>
+							<select id="student-picker">
+								<option value="-1"></option>
+								{% for u in users %}
+									<option value="{{u.email}}">
+									{{u.getLastName() ~ ", " ~ u.getFirstName()}}
+									</option>
+								{% endfor %}
+							</select>
+						</th> </tr>
+						
+						<tr> <th colspan="3">
+							<textarea id="student-csv"></textarea>
+						</th> </tr>
+
+					</table>
+				</div>
+			</div>
+		</div>
+
+		<div class=card>
+			<div class="btn-close" onclick="collapseCard('additionalOptions')">
+				<h2 style="margin: 0px">Additional Options
+					<span style="float: right"><i class="fa fa-angle-down"></i></span>
+				</h2>
+			</div>
+			
+			<div id="additionalOptions" class="card-contents">				
+				<div>						
+					<label for="startdatepicker">Starting Date </label><input type="text" id="startdatepicker" style="width: 100px; margin-right: 20px">
+					<label for="enddatepicker">Ending Date </label><input type="text" id="enddatepicker" style="width: 100px">
+				</div>
+			</div>
+		</div>
+	</section>
 </body>
 
 {% endblock %}
@@ -157,7 +173,24 @@
 			{% if section is not null %}
 			populateForm();
 			{% else %}			
-			collapseCard('additionalOptions');
+			//collapseCard('additionalOptions');
+			{% endif %}
+			
+			{% if section is not null %}
+			var warned = 0;
+			$('#delete-btn').on('click', function(){
+			
+				if(warned == 2){					
+					window.location = "{{path('section_delete', {'sectionId': section.id})}}";
+					
+				} else if(warned == 1) {
+					$('#delete-warning').html("Are you REALLY sure?<br/>Click again to {% if section.is_deleted %} reinstate {% else %} delete {% endif %}.");
+				} else {
+					$('#delete-warning').html("Are you sure?<br/>Click again to {% if section.is_deleted %} reinstate {% else %} delete {% endif %}.");
+				}
+			
+				warned++;
+			});
 			{% endif %}
 			
 			$('#save-btn').on('click', function(){
@@ -188,6 +221,14 @@
 				} else {
 					setValid($('#enddatepicker'));
 				}
+
+				/* Array of Teachers */
+				var teachers = document.getElementById('teacher-csv').value.split(",");
+				for(var i=0; i<teachers.length; i++){
+					teachers[i] = teachers[i].replace(/\n/g, '');
+					teachers[i] = teachers[i].replace(/ /g, '');
+				}				
+				teachers.pop(); // remove the blank last element
 								
 				/* Array of Students */
 				var students = document.getElementById('student-csv').value.split(",");
@@ -210,6 +251,7 @@
 					course: $('#course').val(),
 					semester: $('#semester').val(),
 					year: $('#year').val(),
+					teachers: JSON.stringify(teachers),
 					students: JSON.stringify(students),
 					start_time: $('#startdatepicker').val(),
 					end_time: $('#enddatepicker').val(),
@@ -228,6 +270,10 @@
 			
 			$('#student-picker').on('change', function(){
 				updateStudentCSV();
+			});
+
+			$('#teacher-picker').on('change', function(){
+				updateTeacherCSV();
 			});
 		});
 		
@@ -248,6 +294,24 @@
 			$('option:selected', studentPicker).remove();
 			studentPicker.val(0);
 		}
+
+		function updateTeacherCSV() {
+			
+			// get the value of the new teacher
+			var teacherPicker = $('#teacher-picker');
+			
+			if(teacherPicker.val() == -1){
+				return;
+			}
+			
+			// update the text area
+			var teacherCSV = $('#teacher-csv');
+			teacherCSV.val(teacherCSV.val() + teacherPicker.val() + ", \n");
+			
+			// reset the dropdown to black			
+			$('option:selected', teacherPicker).remove();
+			teacherPicker.val(0);
+		}
 		
 	</script>
 	
@@ -267,7 +331,13 @@
 		
 		// set the year
 		$('#year').val("{{section.year}}");
-		
+
+		// set the teachers csv
+		{% for std in section_teacher_roles %}
+		$('#teacher-picker').val("{{std.user.email}}");
+		updateTeacherCSV();
+		{% endfor %}
+				
 		// set the students csv
 		{% for std in section_taker_roles %}
 		$('#student-picker').val("{{std.user.email}}");

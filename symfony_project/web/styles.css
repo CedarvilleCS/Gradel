@@ -10,10 +10,10 @@ html, body {
     background-color: #71BA62;
     width: calc(100% - 200px);
     float: right;
-    height: calc(100% - 50px);
+    height: calc(100% - 100px);
     overflow-y: scroll;
 	overflow-x: hidden;
-    margin-top: 50px;
+    margin-top: 100px;
 }
 
 .nav-path {
@@ -32,17 +32,32 @@ html, body {
 strong, b{
 	text-decoration: none;
 }
+
+ol {
+	padding: 0 0 0 0;
+}
 .topnav .navbuttons {
      float: right;
  	height: 100%;
 }
- .topnav #logo {
-     float: left;
- 	height: 93%;
+.topnav #logo {
+    float: left;
+ 	height: 90%;
  	padding: 2px 3px;
  }
  
- .topnav #logo:hover {
+ .topnav #logoword {
+    float: left;
+ 	height: 85%;
+ 	padding: 2px 3px;
+ }
+ 
+.topnav #logo:hover {
+ 	background-color: inherit;
+ 	color: black;	
+ }
+ 
+.topnav #logoword:hover {
  	background-color: inherit;
  	color: black;	
  }
@@ -92,10 +107,17 @@ strong, b{
 #right-icon {
 	padding: 2 2 2 2;
 	float: right;
-    right: 5;
+    right: 7;
 	position: absolute;
 }
 
+#add-icon {
+	float: right;
+	padding: 2 2 2 2;
+	right: 0;
+	position: absolute;
+	top: 4;
+}
 
 
 a#edit-icon:hover {
@@ -167,17 +189,6 @@ a.preview {
  	height: 100%;
 }
 
-.topnav #logo {
-    float: left;
- 	height: 93%;
- 	padding: 2px 3px;
-}
- 
-.topnav #logo:hover {
- 	background-color: inherit;
- 	color: black;	
-}
-
 nav.nav-left {
     float: left;
     position: fixed;
@@ -198,12 +209,11 @@ nav.nav-left {
 nav.nav-left > ol {
     margin: 0px;
     padding: 0px;
-    padding-top: 10px;
 }
 
 nav.nav-left > ol > li {
-    margin: none;
-    padding: none;
+    margin: 0px;
+    padding: 0px;
     list-style: none;
 }
 
@@ -213,7 +223,7 @@ nav.nav-left > ol > a {
 
 nav.nav-left > ol  li {
     color: white;
-    padding: 10px;
+    padding: 5px;
     border-bottom: 1px dotted rgb(90, 90, 90);
 }
 
@@ -224,17 +234,20 @@ nav.nav-left > ol > a > li:hover {
 
 /*style="color: white; text-decoration: none; width: 90%; margin: auto; margin-top:15px"*/
 .pathnav{
-	width: 100%;
+    margin-top: 50px;
+    margin-left: 200px;
+    width: calc(100% - 200px);
 	height:50px;
 	background-color: #888888;
 	color: white;
 	box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
 	z-index: 100;
-	padding-left: 40px;
+	padding-left: 65px;
 	display: flex;
 	flex-direction: row;
 	justify-content: flex-start;
-	align-items: center;
+    align-items: center;
+    position: fixed;
 }
 
 .pathnav a {
@@ -267,6 +280,18 @@ nav.nav-left > ol > a > li:hover {
     /* float: right; */
     padding-bottom: 10px;
     border-bottom: 1px dotted #8DC26F;
+}
+
+.back-button{
+	
+	height: 30px; 
+    position: absolute;
+    top: 9;
+    left: 20;
+}
+
+.back-img{
+	height: 30px;
 }
 
 /*.btn-delete{
@@ -352,6 +377,12 @@ td, th {
     padding: 8px;
 }
 
+.sidebar-text{
+	max-width: 140px;
+	word-wrap: word-break;
+	hyphens: auto;
+}
+
 .dynamicVal {
   color: #8DC26F;
   display: inline;
@@ -364,7 +395,11 @@ td, th {
     background-color: #dddddd;
 }*/
 
-input[type=text], textarea {
+a{
+	cursor: pointer;
+}
+
+input[type=text] {
     width: 100%;
     padding: 4px 10px;
     margin: 8px 0;
