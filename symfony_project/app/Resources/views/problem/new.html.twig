@@ -1,6 +1,8 @@
 {% block head %}
 <title>Gradel</title>
 <link rel="icon" type="image/x-icon" href="{{ asset('logo1.png') }}" />
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 {% endblock %}
 
 {% block body %}
@@ -24,13 +26,13 @@
         <tr>
           <th colspan="4">
             <label for="name">Name</label>
-            <input id="name" name="name" type="text" value="">
+            <input id="name" name="name" type="text" value="{{problem.name}}">
           </th>
         </tr>
         <tr>
           <th colspan="4">
             <label for="description">Description</label>
-            <input id="description" name="description" type="text">
+            <input id="description" name="description" type="text" value="{{problem.deblobinateDescription}}">
           </th>
         </tr>
         <tr>
@@ -43,65 +45,68 @@
               {% endfor %}
             </select>
             <div id="language-list">
+              {% for l in problem.problem_languages %}
+                <div id="{{l.language.name}}" value="{{l.language.id}}" class="language">{{l.language.name}}</div>
+              {% endfor %}
             </div>
           </th>
           <th>
             <label for="total_attempts">Total Attempts</label>
-            <input id="total_attempts" name="total_attempts" type="text">
+            <input id="total_attempts" name="total_attempts" type="text" value="{{problem.total_attempts}}">
           </th>
           <th>
             <label for="pen_attempts">Attempts Before Penalty</label>
-            <input id="pen_attempts" name="pen_attempts" type="text">
+            <input id="pen_attempts" name="pen_attempts" type="text" value="{{problem.attempts_before_penalty}}">
           </th>
           <th>
             <label for="penalty">Penalty Per Attempt</label>
-            <input id="penalty" name="penalty" type="text">
+            <input id="penalty" name="penalty" type="text" value="{{problem.penalty_per_attempt}}">
           </th>
         </tr>
         <tr>
           <th colspan="1">
               <label for="weight">Weight</label>
-              <input id="weight" name="weight" type="text" value="1">
+              <input id="weight" name="weight" type="text" value="1" value="{{problem.weight}}">
           </th>
 
           <th colspan="1">
               <label for="time_limit">Time Limit</label>
-              <input type="text" id="time_limit" value="1000 ">
+              <input type="text" id="time_limit" value="1000" value="{{problem.time_limit}}">
           </th>
           <th colspan="1">
               <label for="extra-credit">Is Extra Credit</label>
-              <input id="extra-credit" type="checkbox" name="extra-credit" value="extra-credit">
+              <input id="extra-credit" type="checkbox" name="extra-credit" value="extra-credit" {{(problem.is_extra_credit) ? "checked" : ""}}>
           </th>
           <th colspan="1">
               <label for="stop-fail">Stop After First Fail</label>
-              <input id="stop-fail" type="checkbox" name="stop-fail" value="extra-credit">
+              <input id="stop-fail" type="checkbox" name="stop-fail" value="extra-credit" {{(problem.stop_on_first_fail) ? "checked" : ""}}>
           </th>
         </tr>
         <tr>
           <th colspan="1">
               <label for="display-testcase">Display Testcase Results</label>
-              <input id="display-testcase" name="display-testcase" type="checkbox" value="1">
+              <input id="display-testcase" name="display-testcase" type="checkbox" value="1" {{(problem.display_testcaseresults) ? "checked" : ""}}>
           </th>
 
           <th colspan="1">
               <label for="">Response Level</label>
               <select id="response-level">
-                <option value="None">None</option>
-                <option value="Short">Short</option>
-                <option value="Long">Long</option>
+                <option {{(problem.response_level == "None") ? "selected" : ""}} value="None">None</option>
+                <option {{(problem.response_level == "Short") ? "selected" : ""}} value="Short">Short</option>
+                <option {{(problem.response_level == "Long") ? "selected" : ""}} value="Long">Long</option>
               </select>
           </th>
           <th colspan="1">
               <label for="output-level">Testcase Output Level</label>
               <select id="output-level">
-                <option value="None">None</option>
-                <option value="Output">Output</option>
-                <option value="Both">Both</option>
+                <option {{(problem.testcase_output_level == "None") ? "selected" : ""}} value="None">None</option>
+                <option {{(problem.testcase_output_level == "Output") ? "selected" : ""}} value="Output">Output</option>
+                <option {{(problem.testcase_output_level == "Both") ? "selected" : ""}} value="Both">Both</option>
               </select>
           </th>
           <th colspan="1">
               <label for="display-extra">Display Extra Credit Testcases </label>
-              <input id="display-extra" type="checkbox" name="display-extra" value="extra-credit">
+              <input id="display-extra" type="checkbox" name="display-extra" {{(problem.extra_testcases_display) ? "checked" : ""}}>
           </th>
         </tr>
       </table>
@@ -116,8 +121,6 @@
 
 {% block scripts %}
   <!-- JQuery -->
-  <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
-  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
   <script src="http://malsup.github.com/jquery.form.js"></script>
   <script src="{{ asset('js/cards.js') }}"></script>
   <script src="{{ asset('js/validation.js') }}"></script>
@@ -136,10 +139,22 @@
     uploadFormId = "";
 
     $(document).ready(() => {
-      console.log("HEY");
+      {% if (problem.testcases) %}
+        {% for tc in problem.testcases %}
+          addTestCase(
+            "{{tc.deblobinateInput|replace({"\n": "\\n"})}}",
+            "{{tc.deblobinateCorrectOutput|replace({"\n": "\\n"})}}",
+            "{{tc.weight}}",
+            "{{tc.is_extra_credit}}",
+            "{{tc.feedback.deblobinateShortResponse|replace({"\n": "\\n"})}}",
+            "{{tc.feedback.deblobinateLongResponse|replace({"\n": "\\n"})}}",
+          );
+        {% endfor %}
+      {% endif %}
     });
 
-		$("#add-test").click(async function () {
+
+    function addTestCase(input, output, weight, extraCredit, short, long) {
       currentNum++;
 			testCases++;
 			div_name ="testcases"+testCases;
@@ -163,17 +178,17 @@
   								<label for="input">Input</label>
                   <input class="file" id="file" name="file" type="file" value="">
 
-  								<textarea rows="2" id="input` + currentNum +`" class="input problem_creation" type="text" value=""></textarea>
+  								<textarea rows="2" id="input` + currentNum +`" class="input problem_creation" type="text" value="">` + (input ? input : "") + `</textarea>
                 </form>
 							<th colspan="1">
                 <form id="outputUpload` + currentNum + `"  method="post" action="{{path("get_contents")}}">
   								<label for="output">Output</label>
                   <input class="file" id="file" name="file" type="file" value="">
-  								<textarea rows="2" id="output` + currentNum + `" class="output problem_creation" type="text" value=""></textarea>
+  								<textarea rows="2" id="output` + currentNum + `" class="output problem_creation" type="text" value="">` + (output ? output : "") + `</textarea>
                 </form>
 							<th colspan="2">
 								<label for="weight">Weight</label>
-								<input id="weight" name="weight" class="weight" type="text" value="1"></th>
+								<input id="weight" name="weight" class="weight" type="text" value="` + (weight ? weight : "") + `"></th>
               <th colspan="1">
                   <label for="extra-credit">Is Extra Credit</label>
                   <input id="extra-credit`+ currentNum +`" class="extra-credit" type="checkbox" name="extra-credit" value="extra-credit">
@@ -184,7 +199,7 @@
                 <form id="shortFeedbackUpload` + currentNum + `"  method="post" action="{{path("get_contents")}}">
   								<label for="shortFeedback">Short Feedback</label>
                   <input class="file" id="file" name="file" type="file" value="">
-  								<textarea rows="2" id="shortFeedback` + currentNum + `" class="shortFeedback problem_creation" type="text" value=""></textarea>
+  								<textarea rows="2" id="shortFeedback` + currentNum + `" class="shortFeedback problem_creation" type="text" value="">` + (short ? short : "") + `</textarea>
                 </form>
 						</tr>
             <tr>
@@ -192,7 +207,7 @@
                 <form id="longFeedbackUpload` + currentNum + `"  method="post" action="{{path("get_contents")}}">
                   <label for="longFeedback">Long Feedback</label>
                   <input class="file" id="file" name="file" type="file" value="">
-                  <textarea rows="2" id="longFeedback` + currentNum + `" class="longFeedback problem_creation" type="text" value=""></textarea>
+                  <textarea rows="2" id="longFeedback` + currentNum + `" class="longFeedback problem_creation" type="text" value="">` + (long ? long : "") + `</textarea>
                 </form>
               </th>
 						</tr>
@@ -200,30 +215,28 @@
 				</div>
 			</div>`;
 			newTestCard = newTestCard.replace(new RegExp('\r?\n','g'), "");
-			await $("#main").append(newTestCard);
+			$("#main").append(newTestCard);
 
       $('.file').change(function(data) {
         currentFieldId = $(this).siblings("textarea")[0].id;
         uploadFormId = "#" + currentFieldId.substring(0, currentFieldId.length - 1) + "Upload" + currentNum;
-        console.log("Parent ID:", $(this).parent()[0]);
-        console.log($(uploadFormId));
         $(uploadFormId).ajaxForm(function(data) {
           changeVar = "";
           changeVar = atob(data.contents);
-          console.log(changeVar);
           element = document.getElementById(currentFieldId);
           element.value = changeVar;
         });
 
         $(uploadFormId).submit(function(e) {
           e.preventDefault();
-          console.log("Doing stuff");
-          console.log($(this));
           $(this).ajaxSubmit();
-          console.log("I am done now");
         });
         $(uploadFormId).submit();
       });
+    }
+
+		$("#add-test").click(function(input, output, weight, extraCredit, short, long) {
+      addTestCase();
 		});
 
 	function deleteTestCase(testcase){
@@ -235,49 +248,17 @@
     function languageSelect() {
       const language = document.getElementById('languages');
 
-      languages.push(language.value);
+      // languages.push(language.value);
       $('#language-list').append(
         "<div>" + language.options[language.selectedIndex].label + "</div>"
       );
       language.selectedIndex = 0;
-      console.log(language.value);
-      console.log(language.options[language.selectedIndex].label);
     }
-
-		async function insertTestCase(divname, problemId) {
-        console.log("TIMM");
-        console.log($("#"+divname));
-        console.log($("#"+divname).find("."+"input"));
-
-				const input = $("#"+divname).find("."+"input").val();
-				const output = $("#"+divname).find("." + "output").val();
-				const short_fb = $("#"+divname).find("."+"short_feedback").val();
-        const long_fb = $('#'+divname).find("." + "long_feedback").val();
-        const weight = $('#' + divname).find("." + "weight").val();
-				var path = "{{path('testcase_insert')}}";
-        console.log("problemID", problemId);
-
-        $.post(path, {
-          "problemId": problemId,
-          "short_response": short_fb,
-          "long_response": long_fb,
-          "output": output,
-          "input": input,
-          "weight": weight,
-        }, (data) => {
-          console.log("done!!");
-          console.log(data);
-        }, "json");
-			}
-
 		function newProb(){
-      console.log("Creating new prob");
       const name = document.getElementById('name').value;
       const description = document.getElementById('description').value;
       const weight = document.getElementById('weight').value;
-      // const gm = document.getElementById('gm').value;
       const timeLimit = document.getElementById('time_limit').value;
-      console.log(timeLimit);
       const extraCredit = document.getElementById('extra-credit').checked;
       const totalAttempts = document.getElementById('total_attempts').value;
       const attemptsBeforePen = document.getElementById('pen_attempts').value;
@@ -288,7 +269,11 @@
       const displayTestcase = document.getElementById('display-testcase').checked;
       const extraDisplay = document.getElementById('display-extra').checked;
 
-      console.log(extraCredit);
+      const children = $("#language-list").find(".language");
+      for (var i = 0; i < children.length; i++) {
+        languages.push($(children[i]).attr('value'))
+      }
+
 			var path = "{{path('problem_modify')}}";
       var problemId = -1;
 
@@ -307,7 +292,8 @@
 
       console.log(tcs);
       $.post(path, {
-        "assignmentId": '{{assignmentId}}',
+        "assignmentId": '{{(problem ? problem.assignment.id : assignmentId)}}',
+        "problem": '{{(problem ? problem.id : 0)}}',
         "name": name,
         "description": description,
         "time_limit": timeLimit,

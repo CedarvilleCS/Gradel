@@ -25,26 +25,29 @@ use Doctrine\Common\Collections\ArrayCollection;
 
 class ProblemController extends Controller {
 
-    public function newAction($sectionId, $assignmentId) {
-		$em = $this->getDoctrine()->getManager();
-		$qb = $em->createQueryBuilder();
+    public function newAction($sectionId, $assignmentId, $problemId = -1) {
+      $em = $this->getDoctrine()->getManager();
+      $problem = null;
+      if ($problemId != -1) {
+        $problem = $em->find("AppBundle\Entity\Problem", $problemId);
+      }
 
-		$qb->select('l')
-			->from('AppBundle\Entity\Language', 'l')
-			->where('1 = 1');
+    	$em = $this->getDoctrine()->getManager();
+    	$qb = $em->createQueryBuilder();
 
-		$languages = $qb->getQuery()->getResult();
+    	$qb->select('l')
+    		->from('AppBundle\Entity\Language', 'l')
+    		->where('1 = 1');
 
-		return $this->render('problem/new.html.twig', [
-			'languages' => $languages,
-			'sectionId' => $sectionId,
-			'assignmentId' => $assignmentId,
-		]);
+    	$languages = $qb->getQuery()->getResult();
+
+    	return $this->render('problem/new.html.twig', [
+    		'languages' => $languages,
+    		'sectionId' => $sectionId,
+    		'assignmentId' => $assignmentId,
+        'problem' => $problem,
+    	]);
     }
-
-	public function editAction() {
-		return $this->render('problem/edit.html.twig', []);
-  }
 
 	public function deleteAction($sectionId, $assignmentId, $problemId){
 
