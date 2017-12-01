@@ -8,15 +8,18 @@
 			<div class="btn btn-center">+ Section</div>
 		</a>
 	{% endif %} -->
+	<ol>
+	<li class="sidebar" style="text-align:center">Welcome, {{app.user.getFirstName()}}!  <br>
+	<small>Today is {{"now"|date('F d, Y')}}.</small>
+		</li>
 	
 	{% if usersectionroles|length == 0 %}
-		<ol>
+		
 			<li> You aren't part of any sections! </li>
 		</ol>			
 	
 	{% else %}
 		
-		<ol>
 			<li class="sidebar" style="text-align:left">
 				<strong>Sections</strong>
 				{% if is_granted("ROLE_ADMIN") or is_granted("ROLE_SUPER") %}
