@@ -20,11 +20,11 @@
 			
 			{% elseif assignment.cutoff_time|date('U') > "now"|date('U') %}
 				Due: {{assignment.end_time|date('M. d \\a\\t  h:i A')}} </br>
-				<i style="color: pink">Closes: {{assignment.cutoff_time|date('M. d \\a\\t  h:i A')}}</i>
+				<i style="color: #FF6969"><strong>Closes: {{assignment.cutoff_time|date('M. d \\a\\t  h:i A')}}</strong></i>
 							
 			{% else %}
 			
-				<i style="color: pink">Closed: {{assignment.cutoff_time|date('M. d \\a\\t  h:i A')}}</i>
+				<i style="color: #FF6969"><strong>Closed: {{assignment.cutoff_time|date('M. d \\a\\t  h:i A')}}</strong></i>
 			
 			{% endif %}
 			</small></div></li>
