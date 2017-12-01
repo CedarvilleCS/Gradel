@@ -260,17 +260,17 @@ class SectionController extends Controller {
 		} else {
 			
 			# validate the year
-			if(!is_numeric($postData['year'])){
+			if(!is_numeric(trim($postData['year']))){
 				return $this->returnForbiddenResponse($postData['year']." is not a valid year");
 			}
 
 			# validate the semester
-			if($postData['semester'] != 'Fall' && $postData['semester'] != 'Spring' && $postData['semester'] != 'Summer'){
+			if(trim($postData['semester']) != 'Fall' && trim($postData['semester']) != 'Spring' && trim($postData['semester']) != 'Summer'){
 				return $this->returnForbiddenResponse($postData['semester']." is not a valid semester");
 			}
 		}
 		
-		# create new section		
+		# create new section
 		if($postData['section'] == 0){
 			$section = new Section();
 		} else {
@@ -288,10 +288,10 @@ class SectionController extends Controller {
 		}
 		
 		# set the necessary fields
-		$section->name = $postData['name'];
+		$section->name = trim($postData['name']);
 		$section->course = $course;
 		$section->semester = $postData['semester'];
-		$section->year = $postData['year'];
+		$section->year = (int)trim($postData['year']);
 		
 		# see if the dates were provided or if we will do them automatically
 		$dates = $this->getDateTime($postData['semester'], $postData['year']);

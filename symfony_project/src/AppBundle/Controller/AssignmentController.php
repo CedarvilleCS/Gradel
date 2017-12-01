@@ -272,7 +272,7 @@ class AssignmentController extends Controller {
 		} else {
 			
 			# validate the weight if there is one
-			if($postData['weight'] != null && (intval($postData['weight']) < 1 || $postData['weight'] % 1 != 0)){
+			if(is_numeric(trim($postData['weight'])) && (int)trim($postData['weight']) < 1 || $postData['weight'] % 1 != 0)){
 				return $this->returnForbiddenResponse("The provided weight ".$postData['weight']." is not permitted.");
 			}	
 		}		
@@ -290,8 +290,8 @@ class AssignmentController extends Controller {
 		}
 		
 		# set the necessary fields
-		$assignment->name = $postData['name'];
-		$assignment->description = $postData['description'];
+		$assignment->name = trim($postData['name']);
+		$assignment->description = trim($postData['description']);
 		$assignment->section = $section;
 		
 		# set the times		
@@ -329,7 +329,7 @@ class AssignmentController extends Controller {
 		
 		# set the weight
 		if(isset($postData['weight'])){
-			$assignment->weight = intval($postData['weight']);
+			$assignment->weight = intval(trim($postData['weight']));
 		} else {
 			$assignment->weight = 1;
 		}				
@@ -354,7 +354,6 @@ class AssignmentController extends Controller {
 		# transfer over the submissions to the new teams?
 		foreach($assignment->teams as $del_team){
 			$em->remove($del_team);
-			//$em->flush();
 		}
 		
 		# get all the users taking the course and put them in an array

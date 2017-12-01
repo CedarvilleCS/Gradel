@@ -91,7 +91,6 @@ class CourseController extends Controller {
 		]);
     }
 	
-	
 	public function deleteCourseAction($courseId){
 		
 		$em = $this->getDoctrine()->getManager();
@@ -115,8 +114,10 @@ class CourseController extends Controller {
 		
 		$course->is_deleted = !$course->is_deleted;
 		
-		foreach($course->sections as $section){
-			$section->is_deleted = $course->is_deleted;;
+		if($course->is_deleted){
+			foreach($course->sections as $section){
+				$section->is_deleted = $course->is_deleted;;
+			}
 		}
 		
 		$em->flush();
@@ -143,7 +144,7 @@ class CourseController extends Controller {
 		$postData = $request->request->all();
 		
 		# check mandatory fields
-		if(!$postData['name'] && !$postData['code'] && !$postData['description']){
+		if(!isset($postData['name']) && !isset($postData['code']) && !isset($postData['description'])){
 			return $this->returnForbiddenResponse("Not every required field is provided.");
 		}
 		
@@ -160,12 +161,12 @@ class CourseController extends Controller {
 		}
 		
 		# set necessary fields
-		$course->name = $postData['name'];
-		$course->code = $postData['code'];
-		$course->description = $postData['description'];
+		$course->name = trim($postData['name']);
+		$course->code = trim($postData['code']);
+		$course->description = trim($postData['description']);
 		
 		# set contest
-		if($postData["is_contest"] && $postData["is_contest"] == "true"){
+		if(isset($postData["is_contest"]) && $postData["is_contest"] == "true"){
 			$course->is_contest = true;
 		} else {			
 			$course->is_contest = false;
