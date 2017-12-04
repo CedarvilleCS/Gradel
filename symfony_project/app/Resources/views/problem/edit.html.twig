@@ -110,7 +110,7 @@
 		</div>
 		
 		
-		<div class="serial-cards" style="width: 30%">
+		<div class="serial-cards">
 			<div class="card">
 				<div class="btn-close">
 					<h2 style="margin: 0px">
@@ -221,6 +221,8 @@
 	<style type="text/css">
 		.testCardAdder:hover {
 			background: url("{{asset('testcase-blur-grbg.png')}}") no-repeat;
+			background-size: 100% 100%;
+			background-position: center center;
 		}
 	</style>
 {% endblock %}
@@ -309,8 +311,17 @@
 			</div>
 			<div id=`+div_name+` class="test-case">
 			<table>
+				<colgroup>
+					<col style="width: 25%;" />
+					<col style="width: 25%;" />
+					<col style="width: 25%;" />
+					<col style="width: 25%;" />
+				</colgroup>
+				
+				<tbody>
 				<tr>
-				<th colspan="1">
+				
+				<th colspan="2">
 					<form id="inputUpload`+ currentNum + `" method="post" action="{{path("get_contents")}}">
 						<label for="input">Input</label>
 						<input class="file" id="file" name="file" type="file" value="">
@@ -318,7 +329,7 @@
 					</form>
 					</th>
 					
-				<th colspan="1">
+				<th colspan="2">
 					<form id="outputUpload` + currentNum + `"  method="post" action="{{path("get_contents")}}">
 						<label for="output">Output</label>
 						<input class="file" id="file" name="file" type="file" value="">
@@ -328,7 +339,7 @@
 				
 				</tr>
 				
-				<tr> <th colspan="2">
+				<tr> <th colspan="4">
 				
 				<div style="display: flex; flex-direction: row; justify-content: space-between; margin-bottom: 10px">
 					
@@ -364,8 +375,8 @@
 					</div>
 				</div>			
 				
-				</th>
-				</tr>
+				</th> </tr>
+				</tbody>
 			</table>
 			</div>
 		</div>`;
