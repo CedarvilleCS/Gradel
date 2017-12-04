@@ -2,14 +2,19 @@
 
 {# Left Nav For the Course List (On the Courses Page) #}
 <nav class="nav-left">
-	
-	<a href="{{path('course_edit')}}" class="btn">
-		<div class="btn btn-center">+ Course</div>
-	</a>
 
 	<ol style="padding-top: 0px">
-		
-		<li><strong> Courses </strong></li>
+	
+		<li class="sidebar" style="text-align:left">
+			<strong>Courses</strong>
+			{% if is_granted("ROLE_ADMIN") or is_granted("ROLE_SUPER") %}
+				<object>
+					<a title="Create Course" href={{path('course_edit')}}>
+						<img class="small-icon" id="add-icon" src="{{ asset('add_circle.png') }}">
+					</a>
+				</object>
+			{% endif %}
+		</li>
 		
 		{% for course in courses %}	
 		

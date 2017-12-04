@@ -21,6 +21,13 @@
 
 			<div class="card">
 				<h2 style="margin: 0px">{{problem.name}}</h2>
+				{% set grade = grader.getProblemGrade(app.user, problem) %}
+					
+				{% if grade['total_testcases'] + grade['total_extra_testcases'] == grade['passed_testcases'] + grade['passed_extra_testcases'] %}
+					<h3 style="color: green"> You have completed this problem! </h3>
+				{% elseif grade['total_testcases'] == grade['passed_testcases'] %}
+					<h3> Your solution has solved the normal testcases, but not the extra credit ones </h3>
+				{% endif %}
 				<h3>
 					{% if attempts_remaining < 0 %}
 						Unlimited attempts allowed
@@ -90,7 +97,11 @@
 
 
 {% block stylesheets %}
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
+	
     <link rel="stylesheet" href="{{ asset('styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('card.css') }}" />
+	
     <link rel="stylesheet" href="{{ asset('submit.css') }}" />
 
 	<style>

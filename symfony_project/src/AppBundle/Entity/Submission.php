@@ -69,13 +69,40 @@ class Submission {
 	}
 	
 	public function isCorrect(){
-		$tcs = count($this->problem->testcases);
 		
-		$tcrs = count($this->testcaseresults);
+		$tcs = 0;
+		$extra_tcs = 0;
 		
-		$tcr_correct = $this->getNumTestCasesCorrect(); 
+		$passed_tcs = 0;
+		$passed_extra_tcs = 0;
 		
-		return $tcs > 0 && $tcs == $tcrs && $tcrs == $tcr_correct;
+		foreach($this->problem->testcases as $tc){
+			if($tc->is_extra_credit){
+				$extra_tcs++;
+			} else {
+				$tcs++;
+			}
+		}
+		
+		foreach($this->testcaseresults as $tcr){
+			
+			if(!$tcr->is_correct){
+				continue;
+			}
+			
+			if($tcr->testcase->is_extra_credit){
+				$passed_extra_tcs++;
+			} else {
+				$passed_tcs++;
+			}
+		}	
+
+		if(!$this->problem->extra_testcases_display){
+			$passed_extra_tcs = 0;
+			$extra_tcs = 0;
+		}
+		
+		return $passed_tcs == $tcs && $passed_extra_tcs == $extra_tcs;
 	}
 
 	/**

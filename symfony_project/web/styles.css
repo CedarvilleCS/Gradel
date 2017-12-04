@@ -14,6 +14,7 @@ html, body {
     overflow-y: scroll;
 	overflow-x: hidden;
     margin-top: 100px;
+	
 }
 
 .nav-path {
@@ -268,29 +269,6 @@ nav.nav-left > ol > a > li:hover {
 	cursor: pointer;
 }
 
-.card {
-    background-color: white;
-    width: 90%;
-    margin: auto;
-    margin-top: 30px;
-    margin-bottom: 30px;
-    padding: 20px;
-    position: relative;
-    /* Shadow */
-    -webkit-box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
-    -moz-box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
-    box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
-}
-
-.card-contents {
-    margin-top: 20px;
-}
-
-.btn-close {
-    /* float: right; */
-    padding-bottom: 10px;
-    border-bottom: 1px dotted #8DC26F;
-}
 
 .back-button{
 	
@@ -355,18 +333,6 @@ i {
     display: none;
 }
 
-.card-table {
-  background-color: white;
-  width: 90%;
-  margin: auto;
-  margin-top: 30px;
-  margin-bottom: 30px;
-
-  /* Shadow */
-  -webkit-box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
-  -moz-box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
-  box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
-}
 
 atable {
     font-family: arial, sans-serif;
@@ -448,4 +414,8 @@ textarea {
 
 textarea.problem_creation{
 	height: auto;
+}
+
+form{
+	margin-bottom: 0px;
 }
