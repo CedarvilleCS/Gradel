@@ -6,7 +6,7 @@ html, body {
 }
 
 .main {
-    background-color: #71BA62;
+    background-color: #333;
 	height: 100%;
 	width: 100%;
 }
@@ -25,38 +25,49 @@ strong#name{
 
 .card {
 	font-family: "Roboto", sans-serif;
-    background-color: white;
+    background-color:white;
 	position: relative;
 	top: 20%;
 	margin: auto;
-    width: 30%;
-	height: 450px;
+    width: 25%;
     padding: 20px;
     /* Shadow */
     -webkit-box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
     -moz-box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
     box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
 	text-align: center;
-	min-height: 300px;
-	min-width: 500px;
 }
 
 .card-contents {
     margin-top: 20px;
+	margin-bottom: 20px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-around;
+}
+
+#logo-container{
+	margin-left: 28px;
+	height: 15%;
 }
 
 #logo {
-	position: relative;
-	height: 200px;
+	height: 100%;
 	width: auto;
-	margin-left: auto;
 }
+
+#logo-name {
+	width: 60%;
+	margin-top: 10px;
+	margin-bottom: 40px;
+}
+
 .btn {
     font-family: "Roboto", sans-serif;
     text-transform: uppercase;
     outline: 0;
     background: #4CAF50;
-    width: 100%;
+    width: 40%;
     border: 0;
     padding: 15px;
     color: #FFFFFF;

@@ -147,6 +147,8 @@
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('card.css') }}" />
+	
 	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
 
@@ -197,9 +199,9 @@
 					window.location = "{{path('section_delete', {'sectionId': section.id})}}";
 					
 				} else if(warned == 1) {
-					$('#delete-warning').html("Are you REALLY sure?<br/>Click again to {% if section.is_deleted %} reinstate {% else %} delete {% endif %}.");
+					$('#delete-warning').html("Are you REALLY sure?<br/>Click again to {% if section.is_deleted %} reinstate {% else %} delete {% endif %}");
 				} else {
-					$('#delete-warning').html("Are you sure?<br/>Click again to {% if section.is_deleted %} reinstate {% else %} delete {% endif %}.");
+					$('#delete-warning').html("Are you sure?<br/>Click again to {% if section.is_deleted %} reinstate {% else %} delete {% endif %}");
 				}
 			
 				warned++;

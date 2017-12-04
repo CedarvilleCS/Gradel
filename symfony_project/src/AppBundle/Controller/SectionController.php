@@ -183,7 +183,7 @@ class SectionController extends Controller {
 					
 		$users = $em->getRepository("AppBundle\Entity\User")->findAll();
 
-		$instructors;
+		$instructors = [];
 
 		foreach ($users as $u) {
 			if($u->hasRole(ROLE_ADMIN) or $u->hasRole(ROLE_SUPER)) {

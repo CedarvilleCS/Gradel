@@ -81,3 +81,7 @@ textarea {
     font-family: monospace;
     font-size: 10pt;
 }
+
+#submissionForm{
+	margin-top: 10px;
+}

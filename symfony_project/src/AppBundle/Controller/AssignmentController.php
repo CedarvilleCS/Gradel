@@ -272,7 +272,9 @@ class AssignmentController extends Controller {
 		} else {
 			
 			# validate the weight if there is one
-			if(is_numeric(trim($postData['weight'])) && ((int)trim($postData['weight']) < 1 || $postData['weight'] % 1 != 0)){
+			if(	is_numeric(trim($postData['weight'])) && 
+				((int)trim($postData['weight']) < 1 || $postData['weight'] % 1 != 0)){
+					
 				return $this->returnForbiddenResponse("The provided weight ".$postData['weight']." is not permitted.");
 			}	
 		}		
