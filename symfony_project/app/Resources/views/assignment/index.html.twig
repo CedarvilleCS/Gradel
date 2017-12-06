@@ -76,7 +76,10 @@
 							<br/>
 							<input type="hidden" name="ACE" id="ACE">
 							<div class="btn" style="width: 100px" id="submissionButton"> Submit </div>
-							<img id="loadingGif" style="display: none" src="{{asset('beoload.gif')}}" alt="Loading..."/>
+							<div id="loading-container" style="display: none">
+								<img id="loadingGif" style="height: 60px" src="{{asset('beoload.gif')}}" alt="Loading..."/>
+								<h3 style="margin: 0px"> Submitting Code... </h3>
+							</div>
 						</div>
 
 					{% elseif attempts_remaining == 0 %}
@@ -309,7 +312,7 @@
 					}
 				}
 
-				$('#loadingGif').show();
+				$('#loading-container').show();
 				$('#submissionButton').hide();
 				
 				$.ajax({
@@ -369,7 +372,7 @@
 				error: function(data) {
 					alert(data['responseText']);
 					
-					$('#loadingGif').hide();
+					$('#loading-container').hide();
 					$('#submissionButton').show();
 				},
 				async: true
