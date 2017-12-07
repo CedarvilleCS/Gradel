@@ -30,12 +30,14 @@ class Uploader  {
 		
 		if(!$web_directory){
 			throw new Exception('The constructor requires the web directory to be provided.');
-		}
-		
+		}		
 		$this->web_directory = $web_directory;		
 	}
 	
-	# returns the contents of the file base64-encoded and the name of the file
+	/*
+		This function returns the contents of the file as
+		base64-encoded string and the name of the file
+	*/
 	public function getFileContents($file){
 
 		# Get the file contents and name
@@ -46,6 +48,10 @@ class Uploader  {
 		return ["contents" => $fileContents, "name" => $fileName];
 	}
 	
+	/* 
+		This function will take a user and problem, generate the 
+		appropriate folders for it, and return the directory
+	*/
 	public function getUploadDirectory($user, $problem){
 		
 		$target_directory = $this->web_directory."compilation/uploads/".$user->id."/".$problem->id."/";
@@ -57,6 +63,12 @@ class Uploader  {
 		return $target_directory;
 	}
 	
+	/*
+		This function will take a file, a user, and a problem and
+		put the file in the appropriate directory by using the 
+		getUploadDirectory method
+	*/
+		
 	public function uploadSubmissionFile($file, $user, $problem){
 		
 		# file paths

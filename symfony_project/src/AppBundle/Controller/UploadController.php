@@ -30,7 +30,9 @@ use Symfony\Component\HttpFoundation\Response;
 
 class UploadController extends Controller {
 
-	# returns a json array of the file contents
+	/*
+		Returns a json array of the file contents using the Uploader utility
+	*/
 	public function getContentsAction(Request $request){
 
 		if(!$_FILES["file"]){
@@ -57,7 +59,10 @@ class UploadController extends Controller {
 		return $response;
 	}
 
-
+	/*
+		Handles uploading code from the ACE editor on the assignment page
+		It is called from the submitProblemUploadAction method
+	*/
 	public function aceUpload($problem_id){
 
 		# entity manager
@@ -75,21 +80,12 @@ class UploadController extends Controller {
             die("USER DOES NOT EXIST");
         }
 
-        // web_dir is /var/www/gradel_dev/user/gradel/symfony_project
-        // save uploaded file to $web_dir.compilation/uploads/user_id/
-        $web_dir = $this->get('kernel')->getProjectDir()."/";
-
-        $uploader = new Uploader($web_dir);
-
+		# check the language
 		$language_id = $_POST["language"];
-
 		$language_entity = $em->find("AppBundle\Entity\Language", $language_id);
 		if(!$language_entity){
 			die("LANGUAGE DOES NOT EXIST!");
 		}
-
-		$uploads_directory = $uploader->getUploadDirectory($user, $problem_entity);
-
 		if($language_entity->name == "Java"){
 
 			if(!$_POST["main_class"] || $_POST["main_class"] == ""){
@@ -102,11 +98,18 @@ class UploadController extends Controller {
 			$filename = $main_class.".java";
 
 		} else {
-			$main_class = '';
-			$package_name = '';
+			$main_class = "";
+			$package_name = "";
 
 			$filename = "problem". $problem_entity->id . $language_entity->filetype;
 		}
+		
+		# save uploaded file to $web_dir.compilation/uploads/user_id/
+        $web_dir = $this->get('kernel')->getProjectDir()."/";
+        $uploader = new Uploader($web_dir);
+
+
+		$uploads_directory = $uploader->getUploadDirectory($user, $problem_entity);
 
 		if(!file_put_contents($uploads_directory . $filename, $_POST["ACE"], FILE_USE_INCLUDE_PATH)){
 			die("UNABLE TO MOVE THE ACE EDITOR CONTENTS");
@@ -121,6 +124,10 @@ class UploadController extends Controller {
 		];
 	}
 
+	/*
+		Handles uploading code from the file input/selector on the assignment page
+		It is called from the submitProblemUploadAction method
+	*/
 	public function fileUpload($problem_id, $postData, $file){
 
 		# entity manager
@@ -138,15 +145,14 @@ class UploadController extends Controller {
             die("USER DOES NOT EXIST");
         }
 
-        // web_dir is /var/www/gradel_dev/user/gradel/symfony_project
-        // save uploaded file to $web_dir.compilation/uploads/user_id/
+        
+
+		# save uploaded file to $web_dir.compilation/uploads/user_id/
         $web_dir = $this->get('kernel')->getProjectDir()."/";
 
         $uploader = new Uploader($web_dir);
 		$target_file = $uploader->uploadSubmissionFile($file, $user, $problem_entity);
-
-		#echo $target_file;
-		#die();
+		
 		if($target_file){
 
 			$language_id = $postData["language"];
@@ -166,8 +172,8 @@ class UploadController extends Controller {
 				$package_name = $postData["package_name"];
 
 			} else {
-				$main_class = '';
-				$package_name = '';
+				$main_class = "";
+				$package_name = "";
 			}
 
 			return [
@@ -180,6 +186,9 @@ class UploadController extends Controller {
 		}
 	}
 
+	/*
+		Controller action to handle the submission of code on the assignment page
+	*/
     public function submitProblemUploadAction($problem_id) {		
 		
 		if(isset($_FILES["file"])){
