@@ -46,6 +46,8 @@ class CompilationController extends Controller {
 			return $this->returnForbiddenResponse("USER DOES NOT EXIST");
 		}
 		
+		# VALIDATION
+		
 		$postData = $request->request->all();
 		
 		$problem_id = $postData['problemId'];
@@ -86,6 +88,9 @@ class CompilationController extends Controller {
 		if($problem_entity->total_attempts > 0 && $curr_attempts >= $problem_entity->total_attempts){
 			return $this->returnForbiddenResponse("ALREADY REACHED MAX ATTEMPTS FOR PROBLEM AT ".$curr_attempts);
 		}
+		
+		
+		# PREP WORK
 		
 		# create an entity for the current submission
 		$submission_entity = new Submission($problem_entity, $team_entity, $user_entity);	
