@@ -46,14 +46,8 @@ strong#name{
 	justify-content: space-around;
 }
 
-#logo-container{
-	margin-left: 28px;
-	height: 15%;
-}
-
 #logo {
-	height: 100%;
-	width: auto;
+	width: 100%;
 }
 
 #logo-name {
