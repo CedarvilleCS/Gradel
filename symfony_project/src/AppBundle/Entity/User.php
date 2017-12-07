@@ -25,7 +25,9 @@ class User extends BaseUser implements JsonSerializable{
 		} else if($i != 0){
 			throw new Exception('ERROR: '.get_class($this).' constructor does not accept '.$i.' arguments');
 		}
-
+		
+		$this->teams = new ArrayCollection();
+		$this->section_roles = new ArrayCollection();
 	}
 
 	public function __construct2($username, $email){
@@ -145,6 +147,11 @@ class User extends BaseUser implements JsonSerializable{
 	* @ORM\ManyToMany(targetEntity="Team", mappedBy="users")
 	*/
 	public $teams;
+	
+	/**
+     * @ORM\OneToMany(targetEntity="UserSectionRole", mappedBy="user")
+     */
+    public $section_roles;
 	
 	public function jsonSerialize(){
 		return [

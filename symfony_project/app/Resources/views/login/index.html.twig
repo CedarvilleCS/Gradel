@@ -1,6 +1,6 @@
 {% block head %}
 <title>Gradel</title>
-<link rel="icon" type="image/x-icon" href="{{ asset('logo1.png') }}" />
+<link rel="icon" type="image/x-icon" href="{{ asset('logo.png') }}" />
 {% endblock %}
 
 {% block body %}
@@ -18,7 +18,7 @@
 	<div class="card">
 	<a href="{{ path('hwi_oauth_service_redirect', {'service': 'google' }) }}">
 		<div id="logo-container"> 
-			<img id="logo" title="You aren't logged in, and we want you to be." src="{{ asset('logo2.png') }}">
+			<img id="logo" title="You aren't logged in, and we want you to be." src="{{ asset('logo.png') }}">
 		</div>
 		
 		<img id="logo-name" title="Gradel" src="{{asset('gradel.png')}}">

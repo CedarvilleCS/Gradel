@@ -191,6 +191,8 @@ class SectionController extends Controller {
 			}
 		}
 		
+		
+		
 				
 		if($sectionId != 0){
 			$section = $em->find('AppBundle\Entity\Section', $sectionId);
@@ -199,28 +201,22 @@ class SectionController extends Controller {
 				die("SECTION DOES NOT EXIST");
 			}
 			
-			$takes_role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));
-			$builder = $em->createQueryBuilder();
-			$builder->select('u')
-				  ->from('AppBundle\Entity\UserSectionRole', 'u')
-				  ->where('u.section = ?1')
-				  ->andWhere('u.role = ?2')
-				  ->setParameter(1, $section)
-				  ->setParameter(2, $takes_role);
-			$query = $builder->getQuery();
-			$section_taker_roles = $query->getResult();
-
-
+			$section_taker_roles = [];
+			$section_teacher_roles = [];
+			
+			
 			$teaches_role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Teaches'));
-			$builder = $em->createQueryBuilder();
-			$builder->select('u')
-				  ->from('AppBundle\Entity\UserSectionRole', 'u')
-				  ->where('u.section = ?1')
-				  ->andWhere('u.role = ?2')
-				  ->setParameter(1, $section)
-				  ->setParameter(2, $teaches_role);
-			$query = $builder->getQuery();
-			$section_teacher_roles = $query->getResult();
+			$takes_role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));
+			
+			foreach($section->user_roles as $ur){
+				
+				if($ur->role == $takes_role){
+					$section_taker_roles[] = $ur;
+				} else if($ur->role == $teaches_role){
+					$section_teacher_roles[] = $ur;					
+				}
+				
+			}
 		}
 
 		return $this->render('section/edit.html.twig', [
@@ -356,30 +352,19 @@ class SectionController extends Controller {
 		$em->persist($section);
 		
 		if($postData['section'] == 0 && count(json_decode($postData['teachers'])) == 0){
-			
+		
+			# add the current user as a role
 			$role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Teaches'));
 			$usr = new UserSectionRole($user, $section, $role);
 			$em->persist($usr);			
 		
 		} else if($postData['section'] != 0){
-			# remove all the previous students before the "edit" if there was one
-			$role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));
 			
-			$builder = $em->createQueryBuilder();
-			$builder->select('u')
-				  ->from('AppBundle\Entity\UserSectionRole', 'u')
-				  ->where('u.section = ?1')
-				  ->andWhere('u.role = ?2')
-				  ->setParameter(1, $section)
-				  ->setParameter(2, $role);
-			$query = $builder->getQuery();
-			$current_student_roles = $query->getResult();
-			
-			foreach($current_student_roles as $student_role){
-				$em->remove($student_role);
+			foreach($section->user_roles as $ur){
+				$em->remove($ur);
 			}
-			
-			$em->flush();
+
+			$em->flush();			
 		}
 		
 		# add the students from the students array

@@ -48,6 +48,11 @@ class Section{
 	* @ORM\OneToMany(targetEntity="Assignment", mappedBy="section")
 	*/
 	public $assignments;
+	
+	/**
+     * @ORM\OneToMany(targetEntity="UserSectionRole", mappedBy="section")
+     */
+    public $user_roles;
 
 	/**
 	* @ORM\ManyToOne(targetEntity="Course", inversedBy="sections")
