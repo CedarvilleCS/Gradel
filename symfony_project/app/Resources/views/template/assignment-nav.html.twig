@@ -40,11 +40,11 @@
 
 							{% elseif assig.cutoff_time|date('U') > "now"|date('U') %}
 
-								<i style="color: #FF6969"><strong>{{assig.cutoff_time|date('M. d - h:i A')}}</strong></i>
+								<i style="color: #610000"><strong>{{assig.cutoff_time|date('M. d - h:i A')}}</strong></i>
 
 							{% else %}
 
-								<i style="color: #FF6969"><strong>{{assig.cutoff_time|date('M. d - h:i A')}}</strong></i>
+								<i style="color: #610000"><strong>{{assig.cutoff_time|date('M. d - h:i A')}}</strong></i>
 
 							{% endif %}
 
