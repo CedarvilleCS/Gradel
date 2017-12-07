@@ -83,6 +83,8 @@ The grader was not passed from the controller.
 				</div>
 					
 				<!--span style="word-wrap: break-word"> {{feedback|json_encode}} </span-->
+				
+				{% if not submission.compiler_error %}
 				<div id="feedback-holder">
 					{% if feedback.display_markers %}
 					<div id="testcase-markers-container">
@@ -195,6 +197,8 @@ The grader was not passed from the controller.
 						</ul>
 					</div>
 				</div>
+				
+				{% endif %}
 				
 				<h2 style="">SUBMITTED CODE</h2>
 				<a href="{{path('assignment', {'sectionId': submission.problem.assignment.section.id, 'assignmentId': submission.problem.assignment.id, 'problemId': submission.problem.id} )}}">

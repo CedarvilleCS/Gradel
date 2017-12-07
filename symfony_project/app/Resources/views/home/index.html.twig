@@ -40,7 +40,13 @@
 							</a>								
 						</div>
 					{% else %}
-						You have no upcoming assignments to be completed!
+					{% if sections_teaching|length > 0 %}
+						You have no upcoming assignments for your students to complete!
+					{% else %}
+						You have no upcoming assignments to complete!
+					{% endif %}
+					
+						
 					{% endfor %}
 				</div>
             </div>

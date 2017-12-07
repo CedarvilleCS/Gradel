@@ -44,7 +44,7 @@
 }
 
 #language-container{
-	justify-content: space-between;
+	justify-content: flex-start;
 }
 
 #language-list{

@@ -56,6 +56,8 @@
 					  <th colspan="1">
 						 
 						<div id="language-container">
+							
+							<div style="margin-right: 30px">
 							<label> Used </label>
 							<div id="language-list">
 							{% if problem is not null %}						
@@ -68,7 +70,9 @@
 								{% endfor %}
 							{% endif %}
 							</div>
+							</div>
 							
+							<div>
 							<label> Unused </label>
 							<div id="language-pool">
 								{# add all the languages not currently used by the problem to this pool #}
@@ -90,6 +94,7 @@
 										{% endfor %}
 									{% endfor %}
 								{% endif %}
+							</div>
 							</div>
 						</div>
 					  </th>					 
@@ -128,13 +133,13 @@
 							<input id="pen_attempts" name="pen_attempts" type="text" value="{{ (problem) ? problem.attempts_before_penalty : 0}}">
 						  
 							<label for="penalty">Penalty Per Attempt</label>
-							<input id="penalty" name="penalty" type="text" value="{{ (problem) ? problem.penalty_per_attempt : 0.00}}">
+							<input id="penalty" name="penalty" type="text" value="{{ (problem) ? problem.penalty_per_attempt : '0.00'}}">
 							
 							
 							<div id="extra-credit-container" class="toggle-container">
 								<label for="extra-credit">Extra Credit</label>
 								<label class="switch">
-									<input id="extra-credit" type="checkbox" name="extra-credit" {{(problem) ? (problem.is_extra_credit) ? "checked" : "" : "checked" }}>
+									<input id="extra-credit" type="checkbox" name="extra-credit" {{(problem) ? (problem.is_extra_credit) ? "checked" : "" : "" }}>
 									<span class="slider round"></span>
 								</label>
 							</div>

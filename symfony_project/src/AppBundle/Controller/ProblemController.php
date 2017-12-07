@@ -182,10 +182,6 @@ class ProblemController extends Controller {
 
 		if($penalty_per_attempt < 0.00 || $penalty_per_attempt > 1.00){
 			return $this->returnForbiddenResponse("Penalty per attempts must be between 0 and 1");
-		} else{
-			$total_attempts = 0;
-			$attempts_before_penalty = 0;
-			$penalty_per_attempt = 0.00;
 		}
 
 		$problem->total_attempts = $total_attempts;
