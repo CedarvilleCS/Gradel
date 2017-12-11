@@ -83,7 +83,7 @@ int compile_java(string compiler_flags, string main_class, string package_name){
 		total_path = package_name+"/"+main_class;
 	}
 	
-	string compile_cmd = "javac " + compiler_flags + "-d . " + codefolder + total_path + ".java" + " 2> " + compilerlogfile;
+	string compile_cmd = "javac " + compiler_flags + " -d . " + codefolder + total_path + ".java" + " 2> " + compilerlogfile;
 	cout << compile_cmd << endl;
 	compile_res = system(compile_cmd.c_str());
 	
