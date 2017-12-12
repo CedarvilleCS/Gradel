@@ -86,7 +86,7 @@ run_info run_code(string language, string program_name, int testcase_num){
 	
 	/************* NORMAL USER **************/
 	// set the current user to be a normal one
-	passwd* asdf = getpwnam("tgsmith");
+	passwd* asdf = getpwnam("student");
 	seteuid(asdf->pw_uid);
 		
 	// run the cmd and get the output stored in student_output

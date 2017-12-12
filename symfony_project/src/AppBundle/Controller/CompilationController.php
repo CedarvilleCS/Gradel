@@ -102,43 +102,44 @@ class CompilationController extends Controller {
 		# gets the gradel/symfony_project directory
 		$web_dir = $this->get('kernel')->getProjectDir()."/";
 		
-		# all of the folder variables
-		$submission_directory = $web_dir."compilation/submissions/".$submission_entity->id."/";
-		$runtime_logs_directory = $submission_directory."runtime_logs/";
-		$exectime_logs_directory = $submission_directory."time_logs/";
-		$output_logs_directory = $submission_directory."output/";
-		$diff_logs_directory = $submission_directory."diff_logs/";
-		$code_directory = $submission_directory."code/";
+		# NEW COMPILATION
+		$sub_dir = $web_dir."compilation/submissions/".$submission_entity->id."/";
 		
-		$code_to_submit_directory = $web_dir."/compilation/code_to_submit/".$submission_entity->id."/";
+		$student_code_dir = $sub_dir."student_code/";
+		$compiled_code_dir = $sub_dir."compiled_code/";
 		
-		$temp_folder = $web_dir."/compilation/temp/".$submission_entity->id."/";
-		$temp_input_folder = $temp_folder."input/";
-		$temp_output_folder = $temp_folder."output/";
+		$flags_dir = $sub_dir."flags/";
+		$custom_validator_dir = $sub_dir."custom_validator/";
 		
-		$uploads_directory = $web_dir."/compilation/uploads/".$user_entity->id."/".$problem_entity->id."/";
+		$run_log_dir = $sub_dir."run_logs/";
+		$time_log_dir = $sub_dir."time_logs/";
+		$diff_log_dir = $sub_dir."diff_logs/";
+		
+		$input_file_dir = $sub_dir."input_files/";
+		$output_file_dir = $sub_dir."output_files/";
+		$arg_file_dir = $sub_dir."arg_files/";
+		
+		$user_output_dir = $sub_dir."user_output/";		
+		
+		# create all of the folders
+		# make the directory for the submission output
+		shell_exec("mkdir -p ".$sub_dir);
+		shell_exec("mkdir -p ".$student_code_dir);	
+		shell_exec("mkdir -p ".$compiled_code_dir);	
+		shell_exec("mkdir -p ".$flags_dir);	
+		shell_exec("mkdir -p ".$custom_validator_dir);	
+		shell_exec("mkdir -p ".$run_log_dir);	
+		shell_exec("mkdir -p ".$time_log_dir);	
+		shell_exec("mkdir -p ".$diff_log_dir);	
+		shell_exec("mkdir -p ".$input_file_dir);	
+		shell_exec("mkdir -p ".$output_file_dir);	
+		shell_exec("mkdir -p ".$arg_file_dir);	
+		shell_exec("mkdir -p ".$user_output_dir);
 		
 		# uploads directory 
 		# get the submitted file path
-		$submitted_file_path = $uploads_directory.$submitted_filename;
-				
-		# create all of the folders
-		# make the directory for the submission output
-		shell_exec("mkdir -p ".$submission_directory);		
-		shell_exec("mkdir -p ".$runtime_logs_directory);
-		shell_exec("mkdir -p ".$exectime_logs_directory);
-		shell_exec("mkdir -p ".$output_logs_directory);
-		shell_exec("mkdir -p ".$diff_logs_directory);
-		shell_exec("mkdir -p ".$diff_logs_directory);
-		shell_exec("mkdir -p ".$code_directory);
-		
-		# make the directory for the submitted code
-		shell_exec("mkdir -p ".$code_to_submit_directory);
-		
-		# make the directory for the temporary stuff		
-		shell_exec("mkdir -p ".$temp_folder);
-		shell_exec("mkdir -p ".$temp_input_folder);
-		shell_exec("mkdir -p ".$temp_output_folder);		
+		$uploads_dir = $web_dir."/compilation/uploads/".$user_entity->id."/".$problem_entity->id."/";
+		$submitted_file_path = $uploads_dir.$submitted_filename;
 		
 		# SETTING UP		
 		# save the input/output files to a temp folder by deblobinating them
@@ -148,7 +149,7 @@ class CompilationController extends Controller {
 			
 			#echo $input;
 			
-			$input_file = fopen($temp_input_folder.$tc->seq_num.".in", "w");			
+			$input_file = fopen($input_file_dir.$tc->seq_num.".in", "w");			
 			if(!$input_file){
 				return $this->returnForbiddenResponse("Unable to open input file for writing - contact a system admin");
 			}
@@ -161,7 +162,7 @@ class CompilationController extends Controller {
 			
 			#echo $correct_output;
 			
-			$output_file = fopen($temp_output_folder.$tc->seq_num.".out", "w");
+			$output_file = fopen($output_file_dir.$tc->seq_num.".out", "w");
 			if(!$output_file){
 				 return $this->returnForbiddenResponse("Unable to open output file for writing - contact a system admin");
 			}
@@ -171,7 +172,6 @@ class CompilationController extends Controller {
 				
 		# SUBMISSION CREATION AND COMPILATION
 		# open the submitted file and prep for compilation
-		# open the submitted file and prep for compilation
 		$submitted_file = fopen($submitted_file_path, "r");
 		if(!$submitted_file){
 			return $this->returnForbiddenResponse("Unable to open submitted file: ".$submitted_file_path." - contact a system admin");
@@ -179,9 +179,13 @@ class CompilationController extends Controller {
 		$submission_entity->submitted_file = $submitted_file;
 		$submission_entity->filename = $submitted_filename;
 		
+		fclose($submitted_file);
+		
+		# move the file into the proper directory
+		shell_exec("mv ".$submitted_file_path." ".$student_code_dir."/");
+		
 		# query for the current filetype		
 		$extension = pathinfo($submitted_file_path, PATHINFO_EXTENSION);
-
 		
 		$is_zipped = "false";
 		if($extension == "zip"){
@@ -190,6 +194,10 @@ class CompilationController extends Controller {
 				
 		# get the current language
 		$language_entity = $em->find("AppBundle\Entity\Language", $language_id);
+		
+		if(!$language_entity){
+			return $this->returnForbiddenResponse("Language with id ".$language_id." does not exist");
+		}
 		
 		# get the problem language entity from the problem and language
 		# store the compilation options from the problem language
@@ -215,12 +223,40 @@ class CompilationController extends Controller {
 		# set the main class and package name
 		$submission_entity->main_class_name = $main_class;
 		$submission_entity->package_name = $package_name;
+		
+		// required fields
+		$docker_options = "-l ".$language_entity->name." -f ".$submitted_filename." -n ".count($problem_entity->testcases);
+
+		// optional Java fields
+		if($language_entity->name == "Java"){
+			$docker_options = $docker_options." -M ".$main_class." -P ".$package_name;
+		}
+		
+		// optional other fields
+		if($is_zipped){
+			$docker_options = $docker_options." -z";
+		}
+		
+		if(strlen($compilation_options) > 0){
+			$docker_options = $docker_options." -c ".$compilation_options; 
+		};
+		
+		// TODO IMPLEMENT THESE
+		// graded
+		
+		// quit on first fail
 			
+		
+		
+		
 		# RUN THE DOCKER COMPILATION
 		$docker_time_limit = intval(count($problem_entity->testcases) * ceil(floatval($problem_entity->time_limit)/1000.0)) + 8 + rand(1,4);
 
-		$docker_script = $web_dir."/compilation/dockercompiler.sh ".$problem_entity->id." ".$team_entity->id." ".dirname($submitted_file_path)." ".basename($submitted_file_path)." ".$language_entity->name." ".$is_zipped." ".$docker_time_limit." \"".$compilation_options."\" ".$submission_entity->id." ".$submission_entity->main_class_name." ".$submission_entity->package_name;
-		#die("<br/>".$docker_script);
+		#$docker_script = $web_dir."/compilation/dockercompiler.sh ".$problem_entity->id." ".$team_entity->id." ".dirname($submitted_file_path)." ".basename($submitted_file_path)." ".$language_entity->name." ".$is_zipped." ".$docker_time_limit." \"".$compilation_options."\" ".$submission_entity->id." ".$submission_entity->main_class_name." ".$submission_entity->package_name;
+		$docker_script = $web_dir."/compilation/dockercompiler.sh \"".$docker_options."\" ".$submission_entity->id;
+		# create the docker container
+		
+		die("<br/>".$docker_script);
 		
 		$docker_output = shell_exec($docker_script);	
 		
@@ -483,7 +519,7 @@ class CompilationController extends Controller {
 		shell_exec("rm -rf ".$temp_folder);
 		shell_exec("rm -rf ".$code_to_submit_directory);
 		shell_exec("rm -rf ".$submission_directory);
-		shell_exec("rm -rf ".$uploads_directory);
+		shell_exec("rm -rf ".$uploads_dir);
 		
 		# update the submission entity
 		$em->persist($submission_entity);

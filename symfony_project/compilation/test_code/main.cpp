@@ -107,14 +107,22 @@ int main(int argc, char** argv){
 	if(language == "Java" && main_class.length() < 1){
 		fprintf( stderr, "ERROR: language was Java but no main class (-M) was set\n");
 		return 1;
+	} else if(language != "Java" && (main_class.length() > 1 || package_name.length() > 1)){
+		fprintf( stderr, "ERROR: language was not Java, but some Java fields were provided\n");
+		return 1;
 	}
 	
+	// default everything in the directory to be 700
+	system("chown -R root ./");
+	system("chmod -R 700 ./");
+	
+	cout << "Checking if zipped..." << endl;
 	/* UNZIP IF NECESSARY */		
 	// if zipped, we need to unzip to the directory first
 	if(is_zipped){
 		
 		// unzip the file
-		string unzip_cmd = "unzip " + filename + " -d student_code/";
+		string unzip_cmd = "unzip student_code/" + filename + " -d student_code/";
 		int unzip_val = system(unzip_cmd.c_str());
 		
 		if(unzip_val != 0){
@@ -123,23 +131,36 @@ int main(int argc, char** argv){
 		}
 		
 		// remove the unzipped file
-		string rm_filename = "rm -f " + filename;
+		string rm_filename = "rm -f student_code/" + filename;
 		int rm_val = system(rm_filename.c_str());
 		
 		if(rm_val != 0){
 			fprintf( stderr, "ERROR: could not remove the zip file\n");
 			return 1;
 		}
+		
+		
+	}
+	
+	if(language == "Java"){
+		filename = (package_name.length() > 0) ? package_name + "/" + main_class : main_class;		
 	}
 		
+	// set a reverse flag for timeout
+	system("touch flags/time_limit");
+		
+	cout << "Let's compile the student's code..." << endl;	
 	/* STUDENT CODE COMPILATION */
 	//string compiler_options = "-pedantic -Wall -Wextra -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wlogical-op -Wmissing-declarations -Wmissing-include-dirs -Wnoexcept -Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wshadow -Wsign-conversion -Wsign-promo -Wstrict-null-sentinel -Wstrict-overflow=5 -Wswitch-default -Wundef -Wno-unused";
-	compile_info comp_info = compile_code(language, compiler_options, main_class, package_name);
+	compile_info comp_info = compile_code(language, compiler_options, filename);
 	
 	// check for compilation error
 	if(comp_info.is_error){
 		fprintf( stderr, "ERROR: could not compile the student code\n");
 		fprintf( stderr, "COMPILER OUTPUT: %s\n", comp_info.errors.c_str());
+		
+		system("touch flags/compile_error");
+		
 		return 0;
 	}	
 	
@@ -152,22 +173,34 @@ int main(int argc, char** argv){
 	string compiled_program = comp_info.program_name;
 
 	// compile the validator
+	cout << "Let's compile the validator..." << endl;	
+	system("chmod 755 -R custom_validator/");
 	if(system("g++ -std=c++11 custom_validator/*.cpp -o custom_validator/validator") != 0){
 		fprintf(stderr, "ERROR: Could not compile the custom_validator\n");
 		return 1;
 	}	
-	system("chmod 700 custom_validator/validator");
-		
+	system("chmod 700 -R custom_validator");
+	
 	/* STUDENT CODE EXECUTION */
 	// loop over testcases
 	for(int i=1; i<=num_testcases; i++){
+		
+		cout << "Let's run the student's code against testcase " + to_string(i) << endl;
 	
+		system("chmod 775 run_logs");
+		system("chmod 775 input_files");
+		cout << "Actually running..." << endl;
 		run_info run_info = run_code(language, compiled_program, i);
-
+		system("chmod 700 run_logs");
+		system("chmod 700 input_files");
+		
 		cout << "Testcase #" << i << ") "; 
 		// check for runtime error
 		if(run_info.return_val != 0) {
 			cout << "Runtime Error!" << endl;
+			
+			system("touch flags/runtime_error");
+			
 			continue;
 		}
 					
@@ -194,19 +227,30 @@ int main(int argc, char** argv){
 			continue;
 		}
 		
-		// save the validator output as either yes or no
-		string diff_output = (testcase_output == "true") ? "YES" : "NO";
-		
-		string difffile = "diff_logs/" + to_string(i) + ".log";
-		ofstream diff_testcase_file(difffile);
-		diff_testcase_file << diff_output;
-		diff_testcase_file.close();
-				
-		string chmod_diff_cmd = "chmod 700 " + difffile;
-		system(chmod_diff_cmd.c_str());
-		
-		cout << testcase_output << endl;
+		if(is_graded){
+			
+			// save the validator output as either yes or no
+			string diff_output = (testcase_output == "true") ? "YES" : "NO";
+			
+			string difffile = "diff_logs/" + to_string(i) + ".log";
+			ofstream diff_testcase_file(difffile);
+			diff_testcase_file << diff_output << endl;
+			diff_testcase_file.close();
+					
+			string chmod_diff_cmd = "chmod 700 " + difffile;
+			system(chmod_diff_cmd.c_str());
+			
+			cout << testcase_output << endl;
+			
+			if(fail_on_first && testcase_output != "true"){
+				break;
+			}
+		}
 	}
+	
+	
+	// remove the reverse flag for timeout
+	system("rm flags/time_limit");
 	
 	return 0;
 }

@@ -1,0 +1,14 @@
+docker run --name=test -it \
+-v /var/www/dev/tgsmith/gradel/symfony_project/compilation/test_code/arg_files:/compilation/arg_files \
+-v /var/www/dev/tgsmith/gradel/symfony_project/compilation/test_code/compiled_code:/compilation/compiled_code \
+-v /var/www/dev/tgsmith/gradel/symfony_project/compilation/test_code/custom_validator:/compilation/custom_validator \
+-v /var/www/dev/tgsmith/gradel/symfony_project/compilation/test_code/diff_logs:/compilation/diff_logs \
+-v /var/www/dev/tgsmith/gradel/symfony_project/compilation/test_code/flags:/compilation/flags \
+-v /var/www/dev/tgsmith/gradel/symfony_project/compilation/test_code/input_files:/compilation/input_files \
+-v /var/www/dev/tgsmith/gradel/symfony_project/compilation/test_code/run_logs:/compilation/run_logs \
+-v /var/www/dev/tgsmith/gradel/symfony_project/compilation/test_code/student_code:/compilation/student_code \
+-v /var/www/dev/tgsmith/gradel/symfony_project/compilation/test_code/time_logs:/compilation/time_logs \
+-v /var/www/dev/tgsmith/gradel/symfony_project/compilation/test_code/user_output:/compilation/user_output \
+-v /var/www/dev/tgsmith/gradel/symfony_project/compilation/test_code/output_files:/compilation/output_files \
+compilation \
+/compilation/compiler [options]

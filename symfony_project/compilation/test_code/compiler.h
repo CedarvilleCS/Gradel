@@ -17,6 +17,6 @@ struct compile_info {
 };
 
 
-compile_info compile_code(string language, string compiler_options, string main_class, string package_name);
+compile_info compile_code(string language, string compiler_options, string filename);
 
 #endif
