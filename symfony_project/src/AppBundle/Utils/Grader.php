@@ -442,7 +442,6 @@ class Grader  {
 		
 		$problem = $submission->problem;
 		
-		$stop_on_first_fail = $problem->stop_on_first_fail;
 		$response_level = $problem->response_level;
 		$display_testcaseresults = $problem->display_testcaseresults;
 		$testcase_output_level = $problem->testcase_output_level;
@@ -450,7 +449,6 @@ class Grader  {
 		
 		$feedback = [];	
 		
-		$feedback['stop_on_first_fail'] = $stop_on_first_fail;
 		$feedback['display_markers'] = $display_testcaseresults;
 		$feedback['extra_testcases_display'] = $extra_testcases_display;
 		$feedback['response'] = [];
@@ -485,10 +483,7 @@ class Grader  {
 				$feedback['output'][$tcr->testcase->seq_num] = $tcr->testcase->deblobinateCorrectOutput();
 				$feedback['input'][$tcr->testcase->seq_num] = $tcr->testcase->deblobinateInput();
 			}
-			
-			if(!$tcr->is_correct && $stop_on_first_fail){
-				break;
-			}
+
 		}
 			
 		$feedback['response'] = array_unique($feedback['response']);

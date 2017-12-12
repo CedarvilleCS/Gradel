@@ -62,13 +62,12 @@ class Uploader  {
 		
 		return $target_directory;
 	}
-	
+
 	/*
 		This function will take a file, a user, and a problem and
 		put the file in the appropriate directory by using the 
 		getUploadDirectory method
-	*/
-		
+	*/		
 	public function uploadSubmissionFile($file, $user, $problem){
 		
 		# file paths

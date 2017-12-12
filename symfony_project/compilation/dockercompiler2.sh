@@ -56,7 +56,7 @@ echo "docker run --name=$container_name -d \
 	gradel \
 	/compilation/compiler $script_options"
 	
-echo $(docker run --name=$container_name -d \
+echo $(docker run --name=$container_name -it \
 	$mount_all \
 	gradel \
 	/compilation/compiler $script_options)

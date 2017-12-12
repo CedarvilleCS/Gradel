@@ -84,7 +84,7 @@ The grader was not passed from the controller.
 					
 				<!--span style="word-wrap: break-word"> {{feedback|json_encode}} </span-->
 				
-				{% if not submission.compiler_error %}
+				{% if not submission.compiler_error and not submission.questionable_behavior and not submission.runtime_error %}
 				<div id="feedback-holder">
 					{% if feedback.display_markers %}
 					<div id="testcase-markers-container">

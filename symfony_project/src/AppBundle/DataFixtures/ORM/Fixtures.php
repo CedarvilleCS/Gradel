@@ -319,10 +319,10 @@ class Fixtures extends Fixture {
 				$out_file_03 = fopen($folder_path.$prob_name."/3.out", "r") or die("Unable to open 3.out!");
 				$out_file_04 = fopen($folder_path.$prob_name."/4.out", "r") or die("Unable to open 4.out!");
 							
-				$testcase_01 = new Testcase($prob, 1, $in_file_01, $out_file_01, $feedback_general, 1, false);
-				$testcase_02 = new Testcase($prob, 2, $in_file_02, $out_file_02, $feedback_general, 2, false);
-				$testcase_03 = new Testcase($prob, 3, $in_file_03, $out_file_03, $feedback_negatives, 3, false);
-				$testcase_04 = new Testcase($prob, 4, $in_file_04, $out_file_04, $feedback_negatives, 6, false);
+				$testcase_01 = new Testcase($prob, 1, $in_file_01, "", $out_file_01, $feedback_general, 1, false);
+				$testcase_02 = new Testcase($prob, 2, $in_file_02, "", $out_file_02, $feedback_general, 2, false);
+				$testcase_03 = new Testcase($prob, 3, $in_file_03, "", $out_file_03, $feedback_negatives, 3, false);
+				$testcase_04 = new Testcase($prob, 4, $in_file_04, "", $out_file_04, $feedback_negatives, 6, false);
 			
 				$manager->persist($testcase_01);
 				$manager->persist($testcase_02);	

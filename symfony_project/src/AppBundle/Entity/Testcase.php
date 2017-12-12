@@ -22,10 +22,11 @@ class Testcase {
 		}
 	}
 
-	public function __construct7($prob, $seq, $in, $out, $feed, $wght, $extra){
+	public function __construct8($prob, $seq, $in, $cmd, $out, $feed, $wght, $extra){
 		$this->problem = $prob;
 		$this->seq_num = $seq;
 		$this->input = $in;
+		$this->command_line_input = $cmd;
 		$this->correct_output = $out;
 		$this->feedback = $feed;
 		$this->weight = $wght;
@@ -59,6 +60,17 @@ class Testcase {
 	public function deblobinateInput(){
 		$val = stream_get_contents($this->input);
 		rewind($this->input);
+		return $val;
+	}
+	
+	/**
+	*@ORM\Column(type="blob")
+	*/
+	public $command_line_input;
+	
+	public function deblobinateCommandLine(){
+		$val = stream_get_contents($this->command_line_input);
+		rewind($this->command_line_input);
 		return $val;
 	}
 

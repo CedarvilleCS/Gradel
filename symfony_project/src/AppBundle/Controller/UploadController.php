@@ -67,7 +67,7 @@ class UploadController extends Controller {
 
 		# entity manager
         $em = $this->getDoctrine()->getManager();
-
+		
         # get the current problem
         $problem_entity = $em->find("AppBundle\Entity\Problem", $problem_id);
 		if(!$problem_entity){
@@ -104,7 +104,7 @@ class UploadController extends Controller {
 			$filename = "problem". $problem_entity->id . $language_entity->filetype;
 		}
 		
-		# save uploaded file to $web_dir.compilation/uploads/user_id/
+		# save uploaded file to $web_dir.compilation/uploads/user_id/problem
         $web_dir = $this->get('kernel')->getProjectDir()."/";
         $uploader = new Uploader($web_dir);
 

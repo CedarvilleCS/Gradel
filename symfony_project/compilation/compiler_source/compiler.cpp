@@ -76,9 +76,6 @@ compile_info compile_code(string language, string compiler_options, string filen
 		return info;
 	}
 	
-	// make file compilable
-	system("chmod -R 755 student_code");
-	
 	string compile_result = "";
 	char c = 0;
 	FILE *code_compilation;

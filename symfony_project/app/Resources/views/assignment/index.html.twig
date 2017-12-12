@@ -370,7 +370,8 @@
 					window.location = data["redirect_url"];				
 				},
 				error: function(data) {
-					alert(data['responseText']);
+					//alert(data['responseText']);
+					console.log(data['responseText']);
 					
 					$('#loading-container').hide();
 					$('#submissionButton').show();
