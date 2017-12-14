@@ -23,6 +23,10 @@ use \DateTime;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\Config\Definition\Exception\Exception;
 
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+
 class Grader  {
 	
 	public $em;
@@ -453,7 +457,8 @@ class Grader  {
 		$feedback['extra_testcases_display'] = $extra_testcases_display;
 		$feedback['response'] = [];
 		$feedback['input'] = [];
-		$feedback['output'] = [];		
+		$feedback['output'] = [];
+		$feedback['runtime'] = [];
 		
 		foreach($submission->testcaseresults as $tcr){
 
@@ -477,6 +482,12 @@ class Grader  {
 				}
 			}
 			
+			if($tcr->runtime_error){
+				$feedback['runtime'][$tcr->testcase->seq_num] = $tcr->deblobinateRuntimeOutput();
+			}
+			
+			$feedback['time'][$tcr->testcase->seq_num] = $tcr->execution_time;
+			
 			if($testcase_output_level == "Output"){
 				$feedback['output'][$tcr->testcase->seq_num] = $tcr->testcase->deblobinateCorrectOutput();
 			} else if($testcase_output_level == "Both"){
@@ -490,6 +501,29 @@ class Grader  {
 		
 		return $feedback;		
 	}
+	
+	
+	public function isAcceptedSubmission($submission, $previous, $total_correct){
+		
+		// take the new solution if it is 100% no matter wha
+		$total_testcases = count($submission->problem->testcases);
+		
+		if($total_correct == $total_testcases){
+			#echo "This new testcase solves all of the testcases!";
+			return true;
+		}
+		// choose higher percentage if they both have percentages
+		else if($previous && $submission->percentage > $previous->percentage){
+			#echo "This new one has a higher percentage!";
+			return true;
+		}
+		else {
+			#echo "Only change if the old one isn't set";
+			return $previous == null;
+		}
+		
+	}
+	
 }
 
 

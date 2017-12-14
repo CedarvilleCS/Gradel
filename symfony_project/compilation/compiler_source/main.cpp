@@ -11,6 +11,12 @@ using namespace std;
 // the main program
 int main(int argc, char** argv){
 	
+		
+	// switch cout to print to a log file
+	ofstream out("flags/compiler_logs");
+    streambuf *coutbuf = cout.rdbuf(); //save old buf
+    cout.rdbuf(out.rdbuf()); //redirect std::cout to cout_logs!
+	
 	/* COMMAND-LINE ARGS PARSING */	
 	// language 
 	// -l "language name"
@@ -84,6 +90,7 @@ int main(int argc, char** argv){
 		}
 		else {
 			cout << "ERROR: unknown or invalid flag \"" + flag + "\"\n";
+			system("touch flags/internal_error");
 			return 20;
 		}
 	}
@@ -92,24 +99,29 @@ int main(int argc, char** argv){
 	// make sure that the necessary files were set
 	if(language.length() < 1){
 		cout << "ERROR: language (-l) must be set\n";
+		system("touch flags/internal_error");
 		return 19;
 	}
 	
 	if(filename.length() < 1){
 		cout << "ERROR: filename (-f) must be set\n";
+		system("touch flags/internal_error");
 		return 18;
 	}
 	
 	if(num_testcases < 1){
 		cout << "ERROR: num_testcases (-n) must be set to be greater than 0\n";
+		system("touch flags/internal_error");
 		return 17;
 	}
 	
 	if(language == "Java" && main_class.length() < 1){
 		cout << "ERROR: language was Java but no main class (-M) was set\n";
+		system("touch flags/internal_error");
 		return 16;
 	} else if(language != "Java" && (main_class.length() > 1 || package_name.length() > 1)){
 		cout << "ERROR: language was not Java, but some Java fields were provided\n";
+		system("touch flags/internal_error");
 		return 15;
 	}
 	
@@ -117,11 +129,6 @@ int main(int argc, char** argv){
 	system("chown -R root:root ./");
 	system("chmod 755 ./");
 	system("chmod -R 700 ./*");
-	
-	// switch cout to print to a log file
-	ofstream out("flags/compiler_logs");
-    streambuf *coutbuf = cout.rdbuf(); //save old buf
-    cout.rdbuf(out.rdbuf()); //redirect std::cout to cout_logs!
 	
 	cout << "Checking if zipped..." << endl;
 	/* UNZIP IF NECESSARY */		
@@ -134,6 +141,7 @@ int main(int argc, char** argv){
 		
 		if(unzip_val != 0){
 			cout << "ERROR: file could not be unzipped\n";
+			system("touch flags/internal_error");
 			return 14;
 		}
 		
@@ -143,6 +151,7 @@ int main(int argc, char** argv){
 		
 		if(rm_val != 0){
 			cout << "ERROR: could not remove the zip file\n";
+			system("touch flags/internal_error");
 			return 13;
 		}
 	}
@@ -176,8 +185,11 @@ int main(int argc, char** argv){
 		string compile_error_cmd = "echo \"" + comp_info.errors + "\" > flags/compile_error";
 		system(compile_error_cmd.c_str());
 		system("rm flags/time_limit");
+			
+		system("chmod -R 777 /compilation");
+		system("chown -R www-data:www-data /compilation");
 		
-		return 100;
+		return 0;
 	}	
 	
 	// debug output	
@@ -188,14 +200,17 @@ int main(int argc, char** argv){
 	// program to run
 	string compiled_program = comp_info.program_name;
 
-	// compile the validator
-	cout << "Let's compile the validator..." << endl;	
-	system("chmod 755 -R custom_validator/");
-	if(system("g++ -std=c++11 custom_validator/*.cpp -o custom_validator/validator") != 0){
-		cout << "ERROR: Could not compile the custom_validator\n";
-		return 12;
-	}	
-	system("chmod 700 -R custom_validator");
+	if(is_graded){
+		// compile the validator
+		cout << "Let's compile the validator..." << endl;	
+		system("chmod 755 -R custom_validator/");
+		if(system("g++ -std=c++11 custom_validator/*.cpp -o custom_validator/validator") != 0){
+			cout << "ERROR: Could not compile the custom_validator\n";
+			system("touch flags/internal_error");
+			return 12;
+		}	
+		system("chmod 700 -R custom_validator");
+	}
 	
 	/* STUDENT CODE EXECUTION */
 	// loop over testcases
@@ -210,48 +225,58 @@ int main(int argc, char** argv){
 		system("chmod 700 run_logs");
 		system("chmod 700 input_files");
 		
-		cout << "Testcase #" << i << ") "; 
+		cout << "Testcase #" << i << ") "; 		
+		
+		string runlogfile = "run_logs/" + to_string(i) + ".log";			
+		string outputfile = "output_files/" + to_string(i) + ".out";
+		string userfile = "user_output/" + to_string(i) + ".out";
+		
+		// check runtime log for information
+		ifstream run_log(runlogfile);
+		string run_output = "";
+		char cc = 0;
+		while (run_log.get(cc)){
+			run_output += cc;
+		}
+		run_log.close();  
+		
 		// check for runtime error
-		if(run_info.return_val != 0) {
+		if(run_info.return_val != 0 &&  run_output.length() > 0) {
 			cout << "Runtime Error!" << endl;
 			
 			system("touch flags/runtime_error");
 			
 			continue;
-		}
-					
-		string runlogfile = "run_logs/" + to_string(i) + ".log";
-		if(!exists(runlogfile)){
-			cout << "Malicious Code!" << endl;
-			
-			system("touch flags/malicious");
-			
-			break;
-		}
-		// expected output
-		string outputfile = "output_files/" + to_string(i) + ".out";
-		string userfile = "user_output/" + to_string(i) + ".out";
-				
-		// run the validator
-		string validate_cmd = "custom_validator/validator " + outputfile + " " + userfile;
-		
-		FILE *validate_file;
-		validate_file = (FILE*)popen(validate_cmd.c_str(), "r");
-		char c = 0;
-		string testcase_output = "";
-		
-		// loop through the validator output
-		while(fread(&c, sizeof c, 1, validate_file)){
-			testcase_output += c;
 		}		
-		int ret_val = pclose(validate_file);
+			
+		if(is_graded){	
 		
-		if(ret_val != 0){
-			cout << "Internal Error!" << endl;
-			continue;
-		}
-		
-		if(is_graded){
+			if(!exists(runlogfile) || !exists(outputfile) || !exists(userfile)){
+				cout << "Malicious Code!" << endl;
+				
+				system("touch flags/malicious");
+				
+				break;
+			}		
+			
+			// run the validator
+			string validate_cmd = "custom_validator/validator " + outputfile + " " + userfile;
+			
+			FILE *validate_file;
+			validate_file = (FILE*)popen(validate_cmd.c_str(), "r");
+			char c = 0;
+			string testcase_output = "";
+			
+			// loop through the validator output
+			while(fread(&c, sizeof c, 1, validate_file)){
+				testcase_output += c;
+			}		
+			int ret_val = pclose(validate_file);
+			
+			if(ret_val != 0){
+				cout << "Internal Error!" << endl;
+				continue;
+			}		
 			
 			// save the validator output as either yes or no
 			string diff_output = (testcase_output == "true") ? "YES" : "NO";

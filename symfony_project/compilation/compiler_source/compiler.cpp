@@ -44,7 +44,7 @@ compile_info compile_code(string language, string compiler_options, string filen
 		// move into the directory for java to handle packages
 		compile_cmd = "cd student_code/ && javac " + compiler_options + " -d ../compiled_code/ " + java_file_path + " 2>&1 && cd ../";
 		
-	} else if(language == "Python 2"){
+	} else if(language == "Python2"){
 
 		// Python does not get compiled
 		// Just move the files into compiled code directory for the "compilation" step
@@ -54,7 +54,7 @@ compile_info compile_code(string language, string compiler_options, string filen
 		
 		compile_cmd = "cp -r student_code/*.* compiled_code/";
 	
-	} else if(language == "Python 3"){
+	} else if(language == "Python3"){
 		
 		// Python does not get compiled
 		// Just move the files into compiled code directory for the "compilation" step

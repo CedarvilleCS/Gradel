@@ -53,7 +53,7 @@ class Testcase {
 	public $seq_num;
 
 	/**
-	*@ORM\Column(type="blob")
+	*@ORM\Column(type="blob", nullable=true)
 	*/
 	public $input;
 
@@ -64,7 +64,7 @@ class Testcase {
 	}
 	
 	/**
-	*@ORM\Column(type="blob")
+	*@ORM\Column(type="blob", nullable=true)
 	*/
 	public $command_line_input;
 	

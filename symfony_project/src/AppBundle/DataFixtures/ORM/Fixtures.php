@@ -171,13 +171,23 @@ class Fixtures extends Fixture {
 			$def_cpp = fopen($folder_path."default_code/default.cpp", "r") or die("Unable to open default.cpp");
 			$def_java = fopen($folder_path."default_code/default.java", "r") or die("Unable to open default.java");
 			
+			$def_py = fopen($folder_path."default_code/default.py", "r") or die("Unable to open default.py");
+			$def_py2 = fopen($folder_path."default_code/default.py", "r") or die("Unable to open default.py");
+			$def_php = fopen($folder_path."default_code/default.phpp", "r") or die("Unable to open default.php");
+			
 			$language_C = new Language("C", ".c", "c_cpp", $def_c);	
 			$language_CPP = new Language("C++", ".cpp", "c_cpp", $def_cpp);
 			$language_JAVA = new Language("Java", ".java", "java", $def_java);
+			$language_PHP = new Language("PHP", ".php", "php", $def_php);
+			$language_PY2 = new Language("Python 2", ".py", "python", $def_py);
+			$language_PY3 = new Language("Python 3", ".py", "python", $def_py2);
 			
 			$manager->persist($language_C);
 			$manager->persist($language_CPP);
-			$manager->persist($language_JAVA);			
+			$manager->persist($language_JAVA);
+			$manager->persist($language_PHP);
+			$manager->persist($language_PY2);
+			$manager->persist($language_PY3);			
 		}
 		
 		# PROBLEM Testing
@@ -279,10 +289,16 @@ class Fixtures extends Fixture {
 				$problang_01 = new ProblemLanguage($language_CPP, $prob, NULL, NULL);			
 				$problang_02 = new ProblemLanguage($language_C, $prob, NULL, NULL);
 				$problang_03 = new ProblemLanguage($language_JAVA, $prob, NULL, NULL);
+				$problang_04 = new ProblemLanguage($language_PHP, $prob, NULL, NULL);			
+				$problang_05 = new ProblemLanguage($language_PY2, $prob, NULL, NULL);
+				$problang_06 = new ProblemLanguage($language_PY3, $prob, NULL, NULL);
 				
 				$manager->persist($problang_01);
 				$manager->persist($problang_02);
-				$manager->persist($problang_03);				
+				$manager->persist($problang_03);	
+				$manager->persist($problang_04);
+				$manager->persist($problang_05);
+				$manager->persist($problang_06);				
 			}
 			
 		}

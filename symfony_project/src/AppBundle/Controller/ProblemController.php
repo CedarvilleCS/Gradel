@@ -229,22 +229,39 @@ class ProblemController extends Controller {
 			$em->remove($pl);
 		}
 
+		foreach($postData['languages'] as $l){
 
-		foreach(array_unique($postData['languages']) as $l) {
+			if(!is_array($l)){
+				return $this->returnForbiddenResponse("Language data is not formatted properly");
+			}
+			
+			if(!isset($l['id']) || $l['id'] == ""){				
+				return $this->returnForbiddenResponse("You did not specify a language id");
+			}
 
-			$language = $em->find("AppBundle\Entity\Language", $l);
+			$language = $em->find("AppBundle\Entity\Language", $l['id']);
 
 			if(!$language){
-				return $this->returnForbiddenResponse("Provided language with id ".$l." does not exist");
+				return $this->returnForbiddenResponse("Provided language with id ".$l['id']." does not exist");
 			}
 
 			$problemLanguage = new ProblemLanguage();
 
 			$problemLanguage->language = $language;
 			$problemLanguage->problem = $problem;
+			
+			// set compiler options and default code
+			if(isset($l['compiler_options']) && strlen($l['compiler_options']) > 0){
+				$problemLanguage->compilation_options = $l['compiler_options'];
+			}
+			
+			if(isset($l['default_code']) && strlen($l['default_code']) > 0){
+				$problemLanguage->default_code = $l['default_code'];
+			}
+			
 			$em->persist($problemLanguage);
 		}
-
+		
 		# go through the testcases array provided if this was a new problem
 		if($postData['problem'] == 0){
 

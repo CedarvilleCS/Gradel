@@ -133,6 +133,11 @@ submit:
         _controller:    AppBundle:Compilation:submit
     methods: [POST]
 
+generate:
+    path: '/generate'
+    defaults:
+        _controller:    AppBundle:Compilation:generate
+    methods: [POST]
 
 # AUTHENTICATION ROUTES
 hwi_oauth_redirect:

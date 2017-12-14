@@ -52,7 +52,7 @@
 					{# display the form or not #}
 					{% set open = (problem.assignment.start_time|date('U') < "now"|date('U') and problem.assignment.cutoff_time|date('U') > "now"|date('U')) %}
 
-					{% if usersectionrole.role.role_name == 'Takes' and open and attempts_remaining != 0%}
+					{% if (grader.isTeaching(app.user, problem.assignment.section)) or (usersectionrole.role.role_name == 'Takes' and open and attempts_remaining != 0)%}
 
 						{# file upload#}
 						<form id="submissionUploadForm" action="{{path('get_contents')}}" method="post">
@@ -370,8 +370,8 @@
 					window.location = data["redirect_url"];				
 				},
 				error: function(data) {
-					//alert(data['responseText']);
-					console.log(data['responseText']);
+					alert(data['responseText']);
+					//console.log(data['responseText']);
 					
 					$('#loading-container').hide();
 					$('#submissionButton').show();

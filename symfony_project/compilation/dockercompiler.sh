@@ -9,21 +9,21 @@ script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 sub_dir="$script_dir/submissions/$submission_id"
 
-student_code_dir="$sub_dir/student_code/";
-compiled_code_dir="$sub_dir/compiled_code/";
+student_code_dir="$sub_dir/student_code/"
+compiled_code_dir="$sub_dir/compiled_code/"
 
-flags_dir="$sub_dir/flags/";
-custom_validator_dir="$sub_dir/custom_validator/";
+flags_dir="$sub_dir/flags/"
+custom_validator_dir="$sub_dir/custom_validator/"
 
-run_log_dir="$sub_dir/run_logs/";
-time_log_dir="$sub_dir/time_logs/";
-diff_log_dir="$sub_dir/diff_logs/";
+run_log_dir="$sub_dir/run_logs/"
+time_log_dir="$sub_dir/time_logs/"
+diff_log_dir="$sub_dir/diff_logs/"
 
-input_file_dir="$sub_dir/input_files/";
-output_file_dir="$sub_dir/output_files/";
-arg_file_dir="$sub_dir/arg_files/";
+input_file_dir="$sub_dir/input_files/"
+output_file_dir="$sub_dir/output_files/"
+arg_file_dir="$sub_dir/arg_files/"
 
-user_output_dir="$sub_dir/user_output/";	
+user_output_dir="$sub_dir/user_output/"	
 
 echo "SCRIPT DIR: $script_dir"
 echo "STUDENT CODE DIR: $student_code_dir"

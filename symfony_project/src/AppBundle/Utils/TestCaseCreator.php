@@ -31,7 +31,7 @@ class TestCaseCreator  {
 	public static function makeTestCase($em, $problem, $data, $sequenceNumber){
 		
 		# check the required fields
-		if(!isset($data['input']) || !isset($data['output']) || !isset($data['weight'])){		  
+		if((!isset($data['input']) && !isset($data['args'])) || !isset($data['output']) || !isset($data['weight'])){		  
 			
 			return self::returnForbiddenResponse("Not every required testcase field was provided!");		  
 			
@@ -42,10 +42,17 @@ class TestCaseCreator  {
 			}
 		  
 			$input = $data['input'];
+			$args = $data['args'];
 			$output = $data['output'];
 			
+			// add a newline to the output
 			if(substr($output,-1) != "\n"){
 				$output = $output."\n";
+			}
+			
+			// make sure one of these was provided
+			if($input == "" && $args == ""){
+				return self::returnForbiddenResponse("Neither input or output was provided for testcase ".$sequenceNumber);
 			}
 			
 			$weight = $data['weight'];		  
@@ -92,7 +99,7 @@ class TestCaseCreator  {
 		} else {
 			
 			if(!($sequenceNumber > 0)){
-				return self::returnForbiddenResponse("Sequence number not provided...contact an admin");
+				return self::returnForbiddenResponse("Sequence number not provided...please contact an admin");
 			}
 			
 			$seq_num = $sequenceNumber;
@@ -103,7 +110,15 @@ class TestCaseCreator  {
 		$testcase->problem = $problem;
 		$testcase->feedback = $feedback;
 		$testcase->seq_num = $seq_num;
-		$testcase->input = $input;
+		
+		if($input != null && $input != ""){
+			$testcase->input = $input;
+		}
+		
+		if($args != null && $args != ""){
+			$testcase->command_line_input = $args;
+		}
+		
 		$testcase->correct_output = $output;
 		$testcase->weight = $weight;
 		$testcase->is_extra_credit = $extra_credit;

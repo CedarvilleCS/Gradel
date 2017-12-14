@@ -91,7 +91,7 @@ class AssignmentController extends Controller {
 		
 		# figure out how many attempts they have left
 		$total_attempts = $problem_entity->total_attempts;
-		if($total_attempts == 0){
+		if($total_attempts == 0 || $grader->isTeaching($user, $assignment_entity->section)){
 			$attempts_remaining = -1;
 		} else {
 			$attempts_remaining = max($total_attempts - $grader->getNumTotalAttempts($user, $problem_entity), 0);

@@ -71,20 +71,13 @@ The grader was not passed from the controller.
 					<hr>
 					{{submission.deblobinateCompilerOutput()}}			
 					<hr>
-				{% elseif submission.runtime_error %}
-					<h2> RUNTIME OUTPUT </h2>
-					<hr>
-					{% for tcr in submission.testcaseresults %}
-						{{tcr.deblobinateRuntimeOutput()}}<br/>			
-						<hr>			
-					{% endfor %}
 				{% endif %}
 				
 				</div>
 					
 				<!--span style="word-wrap: break-word"> {{feedback|json_encode}} </span-->
 				
-				{% if not submission.compiler_error and not submission.questionable_behavior and not submission.runtime_error %}
+				{% if not submission.compiler_error and not submission.questionable_behavior%}
 				<div id="feedback-holder">
 					{% if feedback.display_markers %}
 					<div id="testcase-markers-container">
@@ -120,41 +113,47 @@ The grader was not passed from the controller.
 									{% endfor %}
 								</ul>
 								
-								{% set failed = false %}									
 								{% for tcr in submission.testcaseresults %}
 								
-									{% if not failed or not feedback.stop_on_first_fail %}
-									{% if not tcr.testcase.is_extra_credit or feedback.extra_testcases_display %}
-									
-									
-									<div id="testcase-tab-{{tcr.id}}">
-										<div class="testcase-data">
-											{% if feedback.input[tcr.testcase.seq_num] != '' %}
-											<div id="testcase-input">
-												<div class="testcase-data-heading">Input:</div>
-												<textarea disabled>{{feedback.input[tcr.testcase.seq_num]}}</textarea>
-											</div>	
-											{% endif %}
-											
-											
-											
-											<div id="testcase-outputexp">
-												<div class="testcase-data-heading">Expected Output:</div>
-												<textarea disabled>{{feedback.output[tcr.testcase.seq_num]}}</textarea>
-											</div>
-											
-											<div id="testcase-outputyrs">
-												<div class="testcase-data-heading">Your Output:</div>
-												<textarea disabled>{{submission.testcaseresults[loop.index0].deblobinateStdOutput()}}</textarea>
+									{% if not tcr.runtime_error %}
+										{% if not tcr.testcase.is_extra_credit or feedback.extra_testcases_display %}
+										
+										<div id="testcase-tab-{{tcr.id}}">
+											<div class="testcase-data">
+												{% if feedback.input[tcr.testcase.seq_num] != '' %}
+												<div id="testcase-input">
+													<div class="testcase-data-heading">Input:</div>
+													<textarea disabled>{{feedback.input[tcr.testcase.seq_num]}}</textarea>
+												</div>	
+												{% endif %}
+												
+												
+												
+												<div id="testcase-outputexp">
+													<div class="testcase-data-heading">Expected Output:</div>
+													<textarea disabled>{{feedback.output[tcr.testcase.seq_num]}}</textarea>
+												</div>
+												
+												<div id="testcase-outputyrs">
+													<div class="testcase-data-heading">Your Output:</div>
+													<textarea disabled>{{submission.testcaseresults[loop.index0].deblobinateStdOutput()}}</textarea>
+												</div>
 											</div>
 										</div>
-									</div>
+										
+										{% endif %}
+									{% else %}
 									
-									{% if not tcr.is_correct %}
-										{% set failed = true %}
-									{% endif %}
+										<div id="testcase-tab-{{tcr.id}}">
+											<div class="testcase-data">
+												<div id="testcase-outputexp" style="width: 100%">
+													<div class="testcase-data-heading">Runtime Output:</div>
+													<textarea disabled>{{feedback.runtime[tcr.testcase.seq_num]}}</textarea>
+												</div>
+											
+											</div>
+										</div>								
 									
-									{% endif %}
 									{% endif %}
 								
 								{% endfor %}
@@ -162,20 +161,16 @@ The grader was not passed from the controller.
 							</div>	
 							{% else %}
 							<div id="testcase-markers-no-out">
-								{% set failed = false %}
 								{% for tcr in submission.testcaseresults %}						
 									
-									{% if not failed or not feedback.stop_on_first_fail %}
 									{% if not tcr.testcase.is_extra_credit or feedback.extra_testcases_display %}
 									
 									{% if tcr.is_correct %}
 										<span style="color:green; font-size: 20px;"> &#x2713;</span> 				
 									{% else %}
-										{% set failed = true %}
 										<span style="color:red; font-size: 20px;"> &#x2718;</span>
 									{% endif %}
 									
-									{% endif %}
 									{% endif %}
 								
 								{% endfor %}						

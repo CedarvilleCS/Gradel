@@ -22,6 +22,10 @@ use \DateTime;
 
 use Symfony\Component\Config\Definition\Exception\Exception;
 
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+
 class Uploader  {
 	
 	public $web_directory;
