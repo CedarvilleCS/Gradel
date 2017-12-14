@@ -33,7 +33,8 @@
 			<div class="btn-close">
 				<h2 style="margin: 0px">
 				{% if assignment is not null %}
-					Edit Assignment
+					Edit {{assignment.name}}<br>
+					<h4 style="margin: 0px; color: red"><i> Note: Team changes will not be saved </i></h4>					
 				{% else %}
 					New Assignment
 				{% endif %}					
@@ -184,7 +185,7 @@
 					window.location = "{{path('assignment_delete', {'sectionId': assignment.section.id, 'assignmentId': assignment.id})}}";
 					
 				} else {
-					$('#delete-warning').html("Are you sure?<br/>Click again to {% if section.is_deleted %} reinstate {% else %} delete {% endif %}.");
+					$('#delete-warning').html("Are you sure?<br/>Click again to delete.");
 				}
 			
 				warned++;
@@ -234,7 +235,7 @@
 				
 				// weight
 				var wght = new Number($('#weight').val());
-				if($('#weight').val() != '' && (wght < 1 || wght % 1 != 0)){						
+				if($('#weight').val() === '' || ($('#weight').val() != '' && (wght < 1 || wght % 1 != 0))){						
 					setInvalid($('#weight'));
 					return false;
 				} else {

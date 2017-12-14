@@ -256,6 +256,7 @@ class ProblemController extends Controller {
 			}
 			
 			if(isset($l['default_code']) && strlen($l['default_code']) > 0){
+				
 				$problemLanguage->default_code = $l['default_code'];
 			}
 			

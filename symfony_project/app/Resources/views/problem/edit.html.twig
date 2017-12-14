@@ -12,7 +12,15 @@
 
   {# Left Nav #}
   <nav class="nav-left">
-      <div class="btn btn-center" id="save-btn">Save</div>
+		<div class="btn btn-center" id="save-btn">Save</div>
+	  
+		{% if problem is not null %}
+			<a id="delete-btn" class="btn"><div class="btn btn-center btn-delete">Delete</div></a>
+			
+			<ol style="padding-top: 0px">
+				<li id="delete-warning" style="padding-top: 0px"></li>
+			</ol>
+		{% endif %}
   </nav>
 
   {{ include('template/path-nav.html.twig') }}
@@ -27,7 +35,8 @@
 			<div class="btn-close">
 				<h2 style="margin: 0px">
 				{% if problem is not null %}
-					Edit {{problem.name}}
+					Edit {{problem.name}}<br>
+					<h4 style="margin: 0px; color: red"><i> Note: Testcase edits will not be saved </i></h4>
 				{% else %}
 					New Problem
 				{% endif %}
@@ -173,7 +182,6 @@
 					</table>
 				</div>
 			</div>
-
 		</div>
 	</div>
 	
@@ -210,8 +218,11 @@
   <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
   <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
   <script src="http://malsup.github.com/jquery.form.js"></script>
+  
   <script src="{{ asset('src-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>	
-  <script src="{{ asset('js/cards.js') }}"></script>
+  
+  <script src="{{ asset('js/cards.js') }}"></script>	
+  <script src="{{ asset('js/validation.js') }}"></script>
 
   <script>
     var languages = [];
@@ -229,7 +240,112 @@
 		$('#save-btn').click( function() {
 		
 			/* Client-Side Validation */
-		
+        
+			// problem name
+			if ($.trim($('#requiredFields #name').val())  === '') {						
+				setInvalid($('#requiredFields #name'));
+				return false;
+			} else {
+				setValid($('#requiredFields #name'));
+			}
+			
+			// description
+			if ($.trim($('#requiredFields #description').val())  === '') {						
+				setInvalid($('#requiredFields #description'));
+				return false;
+			} else {
+				setValid($('#requiredFields #description'));
+			}
+			
+			// weight
+			var wght = new Number($('#requiredFields #weight').val());
+			if($('#requiredFields #weight').val() === '' || ($('#requiredFields #weight').val() != '' && (wght < 1 || wght % 1 != 0))){						
+				setInvalid($('#requiredFields #weight'));
+				return false;
+			} else {
+				setValid($('#requiredFields #weight'));				
+			}
+			
+			// time limit
+			var tml = new Number($('#requiredFields #time_limit').val());
+			if($('#requiredFields #time_limit').val() === '' || ($('#requiredFields #time_limit').val() != '' && (tml < 1 || tml % 1 != 0))){						
+				setInvalid($('#requiredFields #time_limit'));
+				return false;
+			} else {
+				setValid($('#requiredFields #time_limit'));				
+			}
+			
+			// total attempts
+			var att = new Number($('#optional-grading #total_attempts').val());
+			if($('#optional-grading #total_attempts').val() === '' || ($('#optional-grading #total_attempts').val() != '' && (att < 0 || att % 1 != 0))){						
+				setInvalid($('#optional-grading #total_attempts'));
+				return false;
+			} else {
+				setValid($('#optional-grading #total_attempts'));				
+			}
+			
+			// attempts before penalty
+			var pen = new Number($('#optional-grading #pen_attempts').val());
+			if($('#optional-grading #pen_attempts').val() === '' || ($('#optional-grading #pen_attempts').val() != '' && (pen < 0 || pen % 1 != 0)) || att < pen){						
+				setInvalid($('#optional-grading #pen_attempts'));
+				return false;
+			} else {
+				setValid($('#optional-grading #pen_attempts'));				
+			}
+			
+			// pen per attempt
+			var ppa = new Number($('#optional-grading #penalty').val());
+			if($('#optional-grading #penalty').val() === '' || ppa < 0 || ppa > 1){						
+				setInvalid($('#optional-grading #penalty'));
+				return false;
+			} else {
+				setValid($('#optional-grading #penalty'));				
+			}
+			
+			var testcases_valid = true;
+			// testcases
+			$(".test-case").each(function() {
+				
+				const input = $(this).find('.input').val();
+				const args = $(this).find('.args').val();
+				const output = $(this).find('.output').val();
+				
+				const weight = $(this).find('.weight').val();
+				
+				if(input === '' && args === ''){
+					setInvalid($(this).find('.input'));
+					setInvalid($(this).find('.args'));
+					testcases_valid = false;
+				} else {
+					setValid($(this).find('.input'));
+					setValid($(this).find('.args'));
+				}
+				
+				if(output === ''){
+					setInvalid($(this).find('.output'));
+					testcases_valid = false;
+				} else {
+					setValid($(this).find('.output'));
+				}
+				
+				if(weight < 1 || weight % 1 != 0){
+					setInvalid($(this).find('.weight'));
+					testcases_valid = false;
+				} else {
+					setValid($(this).find('.weight'));
+				}				
+			});
+			
+			if(!testcases_valid){
+				return false;
+			}				
+			
+			// check to see if this button is allowed to be pressed
+			if($(this).prop('disabled')){
+				return false;
+			} else {
+				$(this).prop('disabled', true);
+			}
 		
 			/* Post the Problem */
 			newProb();		
@@ -260,7 +376,13 @@
 				
 					+ "<div class='language-data' id='" + $(this)[0].id + "'>"
 					
-						+ "<h1 style='margin-top: 5px'> " + $(this).attr('name') + "</h1>"
+						+ "<div style='display: flex; flex-direction: row; justify-content: space-between'>"
+							+ "<h1 style='margin-top: 5px'> " + $(this).attr('name') + "</h1>"
+						
+							+ "<div class='remove-language' name='" + $(this).attr('name') + "' id='" + $(this)[0].id + "'>"
+								+ "Remove " + $(this).attr('name') 
+							+ " </div>"
+						+ " </div>"
 					
 						+ "<label for='compile-options'> Compiler Options </label>"
 						+ "<input type='text' id='compile-options' name='compile-options'>"
@@ -268,11 +390,6 @@
 						+ "<label for='default-code'> Default Code </label>"
 						+ "<textarea rows=20 id='default-code'></textarea>"
 						
-						+ "<br/><br/>"
-						+ "<div class='remove-language' name='" + $(this).attr('name') + "' id='" + $(this)[0].id + "'>"
-							+ "REMOVE " + $(this).attr('name') 
-						+ " </div>"
-					
 					+ "</div>"
 					
 				+ "</div>"				
@@ -313,7 +430,8 @@
 				$('.language#{{found_l.id}}').click();
 				
 				$('#language-container #language-tab-{{found_l.id}} #default-code').val("{{(found_pl.deblobinateDefaultCode) ? found_pl.deblobinateDefaultCode|e('js') : found_l.deblobinateDefaultCode|e('js')}}");				
-				$('#language-container #language-tab-{{found_l.id}} #compile-options').val("{{found_pl.compiler_options}}");
+				$('#language-container #language-tab-{{found_l.id}} #compile-options').val("{{found_pl.compilation_options}}");
+				
 			{% endif %}
 			
 		{% endfor %}
@@ -327,6 +445,7 @@
 			{% for tc in problem.testcases %}
 				addTestCase(
 					"{{tc.deblobinateInput|e('js')}}",
+					"{{tc.deblobinateCommandLine|e('js')}}",
 					"{{tc.deblobinateCorrectOutput|e('js')}}",
 					"{{tc.weight}}",
 					"{{tc.is_extra_credit}}",
@@ -338,6 +457,22 @@
 			/* default to at least one testcase */
 			addTestCase();	  
 		{% endif %}
+		
+		/* delete button javascript */
+		{% if problem is not null %}
+			var warned = 0;
+			$('#delete-btn').on('click', function(){
+			
+				if(warned == 1){					
+					window.location = "{{path('problem_delete', {'sectionId': problem.assignment.section.id, 'assignmentId': problem.assignment.id, 'problemId': problem.id})}}";
+					
+				} else {
+					$('#delete-warning').html("Are you sure?<br/>Click again to delete.");
+				}
+			
+				warned++;
+			});
+		{% endif %}	
 		
 		$("textarea").keydown(function(e) {
 			if(e.keyCode === 9) { // tab was pressed
@@ -371,7 +506,7 @@
 		formalName="Test Case "+testCases;
 		newTestCard = `<div class="card testcase-card" id=`+div_name+`>
 			<div class="btn-close">
-				<h2 style="margin: 0px">`+formalName+`<span style="float: right"><i class="fa fa-angle-down"></i></span></h2>
+				<h2 style="margin: 0px">`+formalName+`</h2>
 				<object>
 						<a title="Delete assignment" id="closeButton" onclick="deleteTestCase(&quot;`+div_name+`&quot;)")}}">
 							<img class="test_case_delete" id="right-icon" src="{{ asset('trash.png') }}">
@@ -625,7 +760,8 @@
 		
 		}, "json")
 		.fail(function(data) {
-			alert(data['responseText']);
+			alert(data['responseText']);					
+			$('#save-btn').prop('disabled', false);	
 		});
     }
 	</script>

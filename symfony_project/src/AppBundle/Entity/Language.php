@@ -57,7 +57,10 @@ class Language {
 	public $default_code;
 	
 	public function deblobinateDefaultCode(){			
-		return stream_get_contents($this->default_code);
+		$val = stream_get_contents($this->default_code);
+		rewind($this->default_code);
+		
+		return $val;
 	}
 }
 ?>
