@@ -29,7 +29,7 @@
 
 					<a href={{path('assignment', {'sectionId': assig.section.id, "assignmentId": assig.id})}}>
 					
-					<li class="sidebar" style="padding-left: 15px">					
+					<li class="sidebar list-item">					
 				
 					<span class="preview">
 						<div class="{% if elevatedUser %}sidebar-text{% endif %}">{{ assig.name }}</div>
@@ -79,7 +79,7 @@
 
 		{% else %}
 
-			<li> No Assignments Found </li>
+			<li class="sidebar list-item"> No Assignments Found </li>
 
 		{% endfor %}
 		</ol>
@@ -93,7 +93,7 @@
 				<a href={{path('assignment', {'sectionId': assig.section.id, "assignmentId": assig.id})}}>					
 				{% endif %}
 				
-				<li class="sidebar unopened" style="padding-left: 15px">					
+				<li class="sidebar unopened list-item">					
 					<span class="preview">
 						<div class="{% if elevatedUser %}sidebar-text{% endif %}">{{ assig.name }}</div>
 						<small style="width: 100%">

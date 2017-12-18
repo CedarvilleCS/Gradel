@@ -29,7 +29,7 @@
 	
 	{% if usersectionroles|length == 0 %}
 		
-			<li> You aren't part of any sections! </li>
+			<li class="sidebar list-item"> You aren't part of any sections </li>
 		</ol>			
 	
 	{% else %}
@@ -46,7 +46,7 @@
 			{% for section in sections_taking %}	
 			
 				<a href="{{path('section', {'sectionId':section.id})}}">
-					<li class="sidebar" style="padding-left: 15px">
+					<li class="sidebar list-item">
 						<span class="preview">{{section.course.name}}
 							<br/><small>
 							{{section.name}}
@@ -83,7 +83,7 @@
 			
 				<a href="{{path('section', {'sectionId':section.id})}}">
 				
-				<li class="sidebar" style="padding-left: 15px">
+				<li class="sidebar list-item">
 			
 					<span class="preview">{{section.course.name}}						
 						<br/><small>{{section.name}}</small>
