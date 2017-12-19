@@ -225,6 +225,7 @@ class ProblemController extends Controller {
 		$problem->extra_testcases_display = ($extra_testcases_display == "true");
 
 		# go through the problemlanguages
+		# remove the old ones
 		foreach($problem->problem_languages as $pl){
 			$em->remove($pl);
 		}
@@ -252,6 +253,12 @@ class ProblemController extends Controller {
 			
 			// set compiler options and default code
 			if(isset($l['compiler_options']) && strlen($l['compiler_options']) > 0){
+				
+				# check the compiler options for invalid characters
+				if(preg_match("/^[ A-Za-z0-9+=\-]+$/", $l['compiler_options']) != 1){
+					return $this->returnForbiddenResponse("The compiler options provided has invalid characters");
+				}
+								
 				$problemLanguage->compilation_options = $l['compiler_options'];
 			}
 			

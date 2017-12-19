@@ -333,6 +333,10 @@
 					},
 					error: function(data){
 						alert(data['responseText']);
+						//console.log(data['responseText']);
+						
+						$('#loading-container').hide();
+						$('#submissionButton').show();
 					}
 				});
 

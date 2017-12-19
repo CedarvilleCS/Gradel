@@ -191,11 +191,19 @@ class UploadController extends Controller {
 	*/
     public function submitProblemUploadAction($problem_id) {		
 		
-		if(isset($_FILES["file"])){
+		if(isset($_FILES["file"])){			
+			
+			if($_FILES["file"]["size"] > 1048576){
+				return $this->returnForbiddenResponse("FILE GIVEN IS TOO LARGE");
+			}			
 			
 			$data = $this->fileUpload($problem_id, $_POST, $_FILES["file"]);
 			
 		} else if(isset($_POST["ACE"]) && $_POST["ACE"] != ""){
+			
+			if(strlen($_POST["ACE"]) > 1048576){
+				return $this->returnForbiddenResponse("UPLOADED CODE IS TOO LONG");
+			}	
 			
 			$data = $this->aceUpload($problem_id, $_POST);
 
@@ -205,26 +213,17 @@ class UploadController extends Controller {
 			$em = $this->getDoctrine()->getManager();
 			$problem_entity = $em->find("AppBundle\Entity\Problem", $problem_id);
 			if(!$problem_entity){
-				die("PROBLEM DOES NOT EXIST");
+				return $this->returnForbiddenResponse("PROBLEM PROVIDED DOES NOT EXIST!");
 			}
-			// if they didn't send a file or ace, render upload page
-			$url = $this->generateUrl('assignment', [
-
-				'sectionId' => $problem_entity->assignment->section->id,
-				'assignmentId' => $problem_entity->assignment->id,
-				'problemId' => $problem_entity->id,
-
-			]);
-
-			$data = null;
+			
+			
+			return $this->returnForbiddenResponse("NOTHING PROVIDED TO UPLOAD");
 		}
 
 
 		$response = new Response(json_encode([
-
 			'redirect_url' => $url,
 			'data' => $data,
-
 		]));
 
 		$response->headers->set('Content-Type', 'application/json');
@@ -232,6 +231,13 @@ class UploadController extends Controller {
 
 		return $response;
     }
+	
+	private function returnForbiddenResponse($message){		
+		$response = new Response($message);
+		$response->setStatusCode(Response::HTTP_FORBIDDEN);
+		return $response;
+	}
+	
 }
 
 ?>

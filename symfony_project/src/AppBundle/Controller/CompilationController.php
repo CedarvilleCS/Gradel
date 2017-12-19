@@ -68,6 +68,19 @@ class CompilationController extends Controller {
 			return $this->returnForbiddenResponse("NOT EVERY NECESSARY FIELD WAS PROVIDED");
 		}		
 		
+		# check main class and package name for validity
+		if(strlen($main_class) > 0 && preg_match("/^[a-zA-Z0-9_]+$/", $main_class) != 1){
+			return $this->returnForbiddenResponse("MAIN CLASS MUST BE ONLY LETTERS, NUMBERS, OR UNDERSCORES");
+		}
+		
+		if(strlen($package_name) > 0 && preg_match("/^[a-zA-Z0-9_]+$/", $package_name) != 1){
+			return $this->returnForbiddenResponse("PACKAGE NAME MUST BE ONLY LETTERS, NUMBERS, OR UNDERSCORES");
+		}
+		
+		# check filename for validity
+		if(preg_match("/^[a-zA-Z0-9_\-]+\.[a-zA-Z0-9]+$/", $submitted_filename) != 1){
+			return $this->returnForbiddenResponse("SUBMITTED FILENAME IS NOT VALID");
+		}
 		
 		# get the current problem
 		$problem = $em->find("AppBundle\Entity\Problem", $problem_id);
@@ -161,6 +174,7 @@ class CompilationController extends Controller {
 		$testcaseGen = $generator->generateTestcaseFiles($problem, $input_file_dir, $arg_file_dir, $output_file_dir);
 
 		if($testcaseGen){
+			$this->em->remove($submission);	
 			return $testcaseGen;
 		}		
 		
@@ -175,7 +189,8 @@ class CompilationController extends Controller {
 			// overwrite the custom_validate.cpp file
 			$custom_validator_file = fopen($custom_validator_dir."custom_validate.cpp", "w");
 			if(!$custom_validator_file){
-				 return $this->returnForbiddenResponse("Unable to open custom validator file for writing - contact a system admin");
+				$this->em->remove($submission);	
+				return $this->returnForbiddenResponse("Unable to open custom validator file for writing - contact a system admin");
 			}
 			fwrite($custom_validator_file, $validate_file);
 			fclose($custom_validator_file);
@@ -186,7 +201,8 @@ class CompilationController extends Controller {
 		# open the submitted file and prep for compilation
 		$submitted_file = fopen($submitted_file_path, "r");
 		if(!$submitted_file){
-			return $this->returnForbiddenResponse("Unable to open submitted file: ".$submitted_file_path." - contact a system admin");
+			$this->em->remove($submission);	
+			return $this->returnForbiddenResponse("Unable to open submitted file - if you weren't fooling around in the javascript, contact a system admin");
 		}
 		$submission->submitted_file = $submitted_file;
 		$submission->filename = $submitted_filename;
@@ -215,9 +231,19 @@ class CompilationController extends Controller {
 		/* CREATE THE DOCKER CONTAINER */
 		// required fields
 		$docker_options = "";
-		$dockerOptGen = $generator->generateDockerOptions($docker_options, $language, $submitted_filename, $problem, $main_class, $package_name, $is_zipped, true);
+		$dockerOptGen = $generator->generateDockerOptions($docker_options, 
+															$language, 
+															$submitted_filename, 
+															$problem, 
+															$main_class, 
+															$package_name, 
+															$is_zipped, 
+															true);
+		
+		#return $this->returnForbiddenResponse($docker_options);
 		
 		if($dockerOptGen){
+			$this->em->remove($submission);	
 			return $dockerOptGen;
 		}
 		
@@ -232,6 +258,7 @@ class CompilationController extends Controller {
 		
 		$docker_log_file = fopen($flags_dir."docker_log", "w");
 		if(!$docker_log_file){
+			$this->em->remove($submission);	
 			return $this->returnForbiddenResponse("Cannot open docker_script.log - contact a system admin");
 		}
 		fwrite($docker_log_file, $docker_output);
@@ -245,7 +272,31 @@ class CompilationController extends Controller {
 		if($submissionGen){
 			return $submissionGen;
 		}
-				
+		
+		# ZIP DIRECTORY FOR DATABASE		
+		if(!chdir($sub_dir)){
+			$this->em->remove($submission);	
+			return $this->returnForbiddenResponse("Cannot switch directories - contact a system admin");
+		}
+		
+		shell_exec("zip -r ".$sub_dir."log.zip *");
+		
+		if(!chdir($web_dir)){
+			$this->em->remove($submission);	
+			return $this->returnForbiddenResponse("Cannot switch directories - contact a system admin");
+		}
+		
+		$zip_file = fopen($sub_dir."log.zip", "r");
+		if(!$zip_file){
+			$this->em->remove($submission);	
+			return $this->returnForbiddenResponse("Cannot open log zip file for reading - contact a system admin");
+		}
+		$submission->log_directory = $zip_file;
+		
+		# REMOVE TEMPORARY FOLDERS
+		shell_exec("rm -rf ".$sub_dir);
+		shell_exec("rm -rf ".$uploads_dir);
+						
 		# see if this new submission should be the accepted one
 		$qb_accepted = $em->createQueryBuilder();
 		$qb_accepted->select('s')
@@ -271,27 +322,6 @@ class CompilationController extends Controller {
 		if($prev_accepted_sol){
 			$em->persist($prev_accepted_sol);
 		}
-		
-		# ZIP DIRECTORY FOR DATABASE		
-		if(!chdir($sub_dir)){
-			return $this->returnForbiddenResponse("Cannot switch directories - contact a system admin");
-		}
-		
-		shell_exec("zip -r ".$sub_dir."log.zip *");
-		
-		if(!chdir($web_dir)){
-			return $this->returnForbiddenResponse("Cannot switch directories - contact a system admin");
-		}
-		
-		$zip_file = fopen($sub_dir."log.zip", "r");
-		if(!$zip_file){
-			return $this->returnForbiddenResponse("Cannot open log zip file for reading - contact a system admin");
-		}
-		$submission->log_directory = $zip_file;
-		
-		# REMOVE TEMPORARY FOLDERS
-		shell_exec("rm -rf ".$sub_dir);
-		shell_exec("rm -rf ".$uploads_dir);
 		
 		# update the submission entity
 		$em->persist($submission);

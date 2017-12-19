@@ -92,7 +92,7 @@ class Fixtures extends Fixture {
 		
 		# SECTION Testing
 		{
-			$CS1210_01 = new Section($course1, "CS-1210-01", "Fall", 2017, \DateTime::createFromFormat($date_format, "00:00:00 08/21/2017"), \DateTime::createFromFormat($date_format, "23:59:59 12/16/2017"), false, false);
+			$CS1210_01 = new Section($course1, "CS-1210-01", "Spring", 2018, \DateTime::createFromFormat($date_format, "00:00:00 11/21/2017"), \DateTime::createFromFormat($date_format, "23:59:59 05/31/2018"), false, false);
 			
 			$manager->persist($CS1210_01);
 		}
@@ -122,16 +122,16 @@ class Fixtures extends Fixture {
 			
 			$assignment_01 = new Assignment($CS1210_01, 
 									"Homework #1", "This is the first homework assignment", 
-									\DateTime::createFromFormat($date_format, "00:00:00 10/30/2017"), 
-									\DateTime::createFromFormat($date_format, "23:59:59 11/01/2017"), 
-									\DateTime::createFromFormat($date_format, "23:59:59 12/15/2017"), 1, $assignment_grdmethod0, false);
+									\DateTime::createFromFormat($date_format, "00:00:00 11/30/2017"), 
+									\DateTime::createFromFormat($date_format, "23:59:59 05/30/2018"), 
+									\DateTime::createFromFormat($date_format, "23:59:59 05/30/2018"), 1, $assignment_grdmethod0, false);
 			$manager->persist($assignment_01);
 			
 			$assignment_02 = new Assignment($CS1210_01, 
 									"Homework #2", "This is the second homework assignment", 
-									\DateTime::createFromFormat($date_format, "00:00:00 10/30/2017"), 
-									\DateTime::createFromFormat($date_format, "23:59:59 11/30/2017"), 
-									\DateTime::createFromFormat($date_format, "23:59:59 12/15/2017"), 1, $assignment_grdmethod0, false);
+									\DateTime::createFromFormat($date_format, "00:00:00 11/30/2017"), 
+									\DateTime::createFromFormat($date_format, "23:59:59 05/30/2018"), 
+									\DateTime::createFromFormat($date_format, "23:59:59 05/30/2018"), 1, $assignment_grdmethod0, false);
 			$manager->persist($assignment_02);
 		}
 		
