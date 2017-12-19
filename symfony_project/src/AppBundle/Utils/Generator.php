@@ -113,6 +113,12 @@ class Generator  {
 		# loop through each testcase which ran
 		else {
 			
+			$compile_log = fopen($flags_dir."compile_warning", "r");
+			
+			if(!$compile_log){
+				$compile_log = null;
+			}
+					
 			# used to keep track of the total number of testcases passed
 			$correct_testcase_count = 0;
 			$correct_extra_testcase_count = 0;

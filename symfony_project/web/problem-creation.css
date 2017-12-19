@@ -89,3 +89,13 @@
 	font-size: 14px;
 	height: auto;
 }
+
+
+.default-code { 
+    width: calc(100% - 50px);
+    height: 300px;
+    border: 2px solid grey;
+    padding: 10px;
+    font-family: monospace;
+    font-size: 10pt;
+}

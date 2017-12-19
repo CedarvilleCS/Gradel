@@ -384,23 +384,24 @@
 							+ " </div>"
 						+ " </div>"
 					
-						+ "<label for='compile-options'> Compiler Options </label>"
-						+ "<input type='text' id='compile-options' name='compile-options'>"
+						+ "<label for='compile-options-" + $(this)[0].id + "'> Compiler Options </label>"
+						+ "<input type='text' class='compile-options' id='compile-options-" + $(this)[0].id + "' name='compile-options'>"
 
-						+ "<label for='default-code'> Default Code </label>"
-						+ "<textarea rows=20 id='default-code'></textarea>"
+						+ "<label for='default-code" + $(this)[0].id + "'> Default Code </label>"
+						+ "<textarea class='default-code' id='default-code-" + $(this)[0].id + "'></textarea>"
 						
 					+ "</div>"
 					
 				+ "</div>"				
 			);
-									
+												
 			$(this).remove();
 						
 			$("#language-container").tabs("refresh");
 			$("#language-container").tabs("option", "active", num_tabs-1);
 		});
 		
+		/* on language removal click, add a button back */
 		$('#language-container').on("click", ".remove-language", function() {
 			
 			$("#language-pool").append(
@@ -413,6 +414,7 @@
 			$("#language-container").tabs("refresh");
 		});
 		
+		/* add the languages if they exist in the problem */
 		{% for l in languages %}
 			{% set found_l = null %}
 			{% set found_pl = null %}
@@ -429,8 +431,11 @@
 			{% if found_l is not null %}
 				$('.language#{{found_l.id}}').click();
 				
-				$('#language-container #language-tab-{{found_l.id}} #default-code').val("{{(found_pl.deblobinateDefaultCode) ? found_pl.deblobinateDefaultCode|e('js') : found_l.deblobinateDefaultCode|e('js')}}");				
-				$('#language-container #language-tab-{{found_l.id}} #compile-options').val("{{found_pl.compilation_options}}");
+				//var editor1 = ace.edit("default-code-{{found_l.id}}");
+				//editor1.setValue("{{(found_pl.deblobinateDefaultCode) ? found_pl.deblobinateDefaultCode|e('js') : found_l.deblobinateDefaultCode|e('js')}}");
+				//editor1.resize();
+				$('#default-code-{{found_l.id}}').html("{{(found_pl.deblobinateDefaultCode) ? found_pl.deblobinateDefaultCode|e('js') : found_l.deblobinateDefaultCode|e('js')}}");
+				$('#language-container #language-tab-{{found_l.id}} .compile-options').val("{{found_pl.compilation_options}}");
 				
 			{% endif %}
 			
@@ -702,8 +707,8 @@
 			const elem = children.eq(i);
 			
 			const id = elem.find('.language-data')[0].id;
-			const comp_options = elem.find('#compile-options').val();
-			const def_code = elem.find('#default-code').val();
+			const comp_options = elem.find('.compile-options').val();
+			const def_code = elem.find('.default-code').val();
 			
 			const lang = {"id": id, "compiler_options": comp_options, "default_code": def_code};
 			languages.push(lang);

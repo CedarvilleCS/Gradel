@@ -66,11 +66,9 @@ The grader was not passed from the controller.
 					POSSIBLE MALICIOUS BEHAVIOR DETECTED
 				{% endif %}
 				
-				{% if submission.compiler_error %}
+				{% if submission.compiler_output %}
 					<h2> COMPILER OUTPUT </h2>
-					<hr>
-					{{submission.deblobinateCompilerOutput()}}			
-					<hr>
+					<textarea disabled id='compiler-output'>{{submission.deblobinateCompilerOutput()}}</textarea>
 				{% endif %}
 				
 				</div>
@@ -221,7 +219,6 @@ The grader was not passed from the controller.
 	<link rel="stylesheet" href="{{ asset('styles.css') }}" />
 	<link rel="stylesheet" href="{{ asset('card.css') }}" />
 	
-    <link rel="stylesheet" href="{{ asset('submit.css') }}" />	
 	<link rel="stylesheet" href="{{ asset('submission-results.css') }}">
 
 {% endblock %}
@@ -238,8 +235,16 @@ The grader was not passed from the controller.
 	
 		$('#testcase-markers').tabs();
 
+		{% if submission.compiler_output %}
+		
+		var a = $('#compiler-output').html();
+		document.getElementById("compiler-output").rows = a.split(/\r\n|\r|\n/).length;
+		
+		{% endif %}
+		
 		var editor = ace.edit("editor");
 		editor.setTheme("ace/theme/xcode");	
+		editor.setReadOnly(true);
 	});
 	
 	
