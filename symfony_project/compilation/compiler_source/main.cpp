@@ -13,7 +13,7 @@ int main(int argc, char** argv){
 	
 		
 	// switch cout to print to a log file
-	ofstream out("flags/compiler_logs");
+	ofstream out("flags/main_logs");
     streambuf *coutbuf = cout.rdbuf(); //save old buf
     cout.rdbuf(out.rdbuf()); //redirect std::cout to cout_logs!
 	
@@ -80,7 +80,11 @@ int main(int argc, char** argv){
 			fail_on_first = false;
 		}
 		else if(flag == "-c" && count < argc){
-			compiler_options = argv[count++];
+			if(compiler_options != ""){
+				compiler_options += " ";
+			}
+			
+			compiler_options += argv[count++];
 		}
 		else if(flag == "-g"){
 			is_graded = true;
@@ -172,8 +176,9 @@ int main(int argc, char** argv){
 	
 	system("chmod -R 755 student_code/");
 	system("chmod -R 755 compiled_code/");
-	//string compiler_options = "-pedantic -Wall -Wextra -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wlogical-op -Wmissing-declarations -Wmissing-include-dirs -Wnoexcept -Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wshadow -Wsign-conversion -Wsign-promo -Wstrict-null-sentinel -Wstrict-overflow=5 -Wswitch-default -Wundef -Wno-unused";
+	
 	compile_info comp_info = compile_code(language, compiler_options, filename);
+	
 	system("chmod 700 student_code/");
 	system("chmod 755 compiled_code/");
 	
@@ -195,6 +200,9 @@ int main(int argc, char** argv){
 	// debug output	
 	if(comp_info.warnings.length() > 0){
 		cout << "COMPILER WARNINGS: " << comp_info.warnings;
+		
+		string compile_warning_cmd = "echo \"" + comp_info.warnings + "\" > flags/compile_warning";
+		system(compile_warning_cmd.c_str());
 	}
 	 
 	// program to run

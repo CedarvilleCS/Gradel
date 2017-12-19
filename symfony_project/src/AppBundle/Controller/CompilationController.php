@@ -174,7 +174,7 @@ class CompilationController extends Controller {
 		$testcaseGen = $generator->generateTestcaseFiles($problem, $input_file_dir, $arg_file_dir, $output_file_dir);
 
 		if($testcaseGen){
-			$this->em->remove($submission);	
+			$em->remove($submission);	
 			return $testcaseGen;
 		}		
 		
@@ -189,7 +189,7 @@ class CompilationController extends Controller {
 			// overwrite the custom_validate.cpp file
 			$custom_validator_file = fopen($custom_validator_dir."custom_validate.cpp", "w");
 			if(!$custom_validator_file){
-				$this->em->remove($submission);	
+				$em->remove($submission);	
 				return $this->returnForbiddenResponse("Unable to open custom validator file for writing - contact a system admin");
 			}
 			fwrite($custom_validator_file, $validate_file);
@@ -201,7 +201,7 @@ class CompilationController extends Controller {
 		# open the submitted file and prep for compilation
 		$submitted_file = fopen($submitted_file_path, "r");
 		if(!$submitted_file){
-			$this->em->remove($submission);	
+			$em->remove($submission);	
 			return $this->returnForbiddenResponse("Unable to open submitted file - if you weren't fooling around in the javascript, contact a system admin");
 		}
 		$submission->submitted_file = $submitted_file;
@@ -243,7 +243,7 @@ class CompilationController extends Controller {
 		#return $this->returnForbiddenResponse($docker_options);
 		
 		if($dockerOptGen){
-			$this->em->remove($submission);	
+			$em->remove($submission);	
 			return $dockerOptGen;
 		}
 		
@@ -258,7 +258,7 @@ class CompilationController extends Controller {
 		
 		$docker_log_file = fopen($flags_dir."docker_log", "w");
 		if(!$docker_log_file){
-			$this->em->remove($submission);	
+			$em->remove($submission);	
 			return $this->returnForbiddenResponse("Cannot open docker_script.log - contact a system admin");
 		}
 		fwrite($docker_log_file, $docker_output);
@@ -275,20 +275,20 @@ class CompilationController extends Controller {
 		
 		# ZIP DIRECTORY FOR DATABASE		
 		if(!chdir($sub_dir)){
-			$this->em->remove($submission);	
+			$em->remove($submission);	
 			return $this->returnForbiddenResponse("Cannot switch directories - contact a system admin");
 		}
 		
 		shell_exec("zip -r ".$sub_dir."log.zip *");
 		
 		if(!chdir($web_dir)){
-			$this->em->remove($submission);	
+			$em->remove($submission);	
 			return $this->returnForbiddenResponse("Cannot switch directories - contact a system admin");
 		}
 		
 		$zip_file = fopen($sub_dir."log.zip", "r");
 		if(!$zip_file){
-			$this->em->remove($submission);	
+			$em->remove($submission);	
 			return $this->returnForbiddenResponse("Cannot open log zip file for reading - contact a system admin");
 		}
 		$submission->log_directory = $zip_file;

@@ -353,7 +353,12 @@ class Generator  {
 		}
 		
 		if(strlen($compilation_options) > 0){
-			$docker_options = $docker_options." -c ".$compilation_options; 
+			
+			$options = explode(" ", $compilation_options);
+			
+			foreach($options as $opt){
+				$docker_options = $docker_options." -c ".$opt;
+			}
 		}
 		
 		// quit on first fail
