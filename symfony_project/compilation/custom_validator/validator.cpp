@@ -56,7 +56,11 @@ int main(int argc, char** argv){
 	user_output_file.close();
 	
 	// call the custom function
-	validate_info info = validate(exp_output, user_output);
+	validate_info info;
+
+	bool is_correct = validate(exp_output, user_output);
+	
+	info.is_correct = is_correct;
 	
 	cout << ((info.is_correct) ? "true" : "false");
 	

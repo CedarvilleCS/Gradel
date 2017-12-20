@@ -76,10 +76,12 @@ class Uploader  {
 		
 		# file paths
 		$target_directory = $this->getUploadDirectory($user, $problem);
-		$target_file = $target_directory.$file["name"];		
+		$target_file = $target_directory.$file->getClientOriginalName();		
+		
+		$moved_file = $file->move($target_directory, $file->getClientOriginalName());
 		
 		# check to see if the file was uploaded
-		if(move_uploaded_file($file["tmp_name"], $target_file)){
+		if($moved_file){
 			return $target_file;
 			
 		} else {

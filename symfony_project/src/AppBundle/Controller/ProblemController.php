@@ -52,11 +52,27 @@ class ProblemController extends Controller {
 			}
 		}
 		
+		$default_code = [];
+		$ace_modes = [];
+		$filetypes = [];
+		foreach($languages as $l){
+			
+			$ace_modes[$l->name] = $l->ace_mode;
+			$filetypes[str_replace(".", "", $l->filetype)] = $l->name;
+			
+			// either get the default code from the problem or from the overall default
+			$default_code[$l->name] = $l->deblobinateDefaultCode();
+		}
+	
 		return $this->render('problem/edit.html.twig', [
 			'languages' => $languages,
 			'section' => $section,
 			'assignment' => $assignment,
 			'problem' => $problem,
+			
+			'default_code' => $default_code,
+			'ace_modes' => $ace_modes,
+			'filetypes' => $filetypes,
 		]);
     }
 
@@ -224,6 +240,16 @@ class ProblemController extends Controller {
 		$problem->testcase_output_level = $testcase_output_level;
 		$problem->extra_testcases_display = ($extra_testcases_display == "true");
 
+		
+		# custom validator
+		$custom_validator = trim($postData['custom_validator']);
+		if(isset($custom_validator) && $custom_validator != ""){
+			$problem->custom_validator = $custom_validator;			
+			//return $this->returnForbiddenResponse($custom_validator."");
+		} else {
+			$problem->custom_validator = null;
+		}
+		
 		# go through the problemlanguages
 		# remove the old ones
 		foreach($problem->problem_languages as $pl){

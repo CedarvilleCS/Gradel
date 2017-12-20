@@ -81,19 +81,33 @@ class UploadController extends Controller {
         }
 
 		# check the language
-		$language_id = $_POST["language"];
+		if($_POST["language"]){
+			$language_id = $_POST["language"];
+		} else {
+			$language_id = $_POST["languageId"];
+		}
+		
 		$language_entity = $em->find("AppBundle\Entity\Language", $language_id);
 		if(!$language_entity){
 			die("LANGUAGE DOES NOT EXIST!");
 		}
 		if($language_entity->name == "Java"){
 
-			if(!$_POST["main_class"] || $_POST["main_class"] == ""){
+			if((!$_POST["main_class"] || $_POST["main_class"] == "") && (!$_POST["mainclass"] || $_POST["mainclass"] == "")){
 				die("MAIN CLASS IS NEEDED");
 			}
+			
+			$main_class = null;
+			if(!$_POST["main_class"]){
+				$main_class = $_POST["mainclass"];
+				$package_name = $_POST["packagename"];
+			} else {
+				$main_class = $_POST["main_class"];
+				$package_name = $_POST["package_name"];
+			}
 
-			$main_class = $_POST["main_class"];
-			$package_name = $_POST["package_name"];
+			$main_class = $main_class;
+			$package_name = $package_name;
 
 			$filename = $main_class.".java";
 
@@ -178,7 +192,7 @@ class UploadController extends Controller {
 
 			return [
 				'problem_id' => $problem_entity->id,
-				'submitted_filename' => basename($file["name"]),
+				'submitted_filename' => basename($file->getClientOriginalName()),
 				'language_id' => $language_id,
 				'main_class' => $main_class,
 				'package_name' => $package_name,
@@ -189,23 +203,29 @@ class UploadController extends Controller {
 	/*
 		Controller action to handle the submission of code on the assignment page
 	*/
-    public function submitProblemUploadAction($problem_id) {		
+    public function submitProblemUploadAction($problem_id, Request $request) {		
+
+		$postData = $request->request->all();
+		$files = $request->files;		
 		
-		if(isset($_FILES["file"])){			
-			
-			if($_FILES["file"]["size"] > 1048576){
+		
+		if($files->get('file')){		
+
+			$file = $files->get('file');
+
+			if($file->getClientSize() > 1048576){
 				return $this->returnForbiddenResponse("FILE GIVEN IS TOO LARGE");
 			}			
 			
-			$data = $this->fileUpload($problem_id, $_POST, $_FILES["file"]);
+			$data = $this->fileUpload($problem_id, $postData, $file);
 			
-		} else if(isset($_POST["ACE"]) && $_POST["ACE"] != ""){
+		} else if(isset($postData["ACE"]) && trim($postData["ACE"]) != ""){
 			
 			if(strlen($_POST["ACE"]) > 1048576){
 				return $this->returnForbiddenResponse("UPLOADED CODE IS TOO LONG");
 			}	
 			
-			$data = $this->aceUpload($problem_id, $_POST);
+			$data = $this->aceUpload($problem_id, $postData);
 
 		} else {
 

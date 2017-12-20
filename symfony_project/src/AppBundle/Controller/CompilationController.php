@@ -21,6 +21,7 @@ use AppBundle\Entity\TestcaseResult;
 use AppBundle\Utils\Grader;
 use AppBundle\Utils\Uploader;
 use AppBundle\Utils\Generator;
+use AppBundle\Utils\TestCaseCreator;
 
 use \DateTime;
 
@@ -36,6 +37,7 @@ class CompilationController extends Controller {
 	
 	/* name=submit */
 	public function submitAction(Request $request) {
+
 	
 		# entity manager
 		$em = $this->getDoctrine()->getManager();		
@@ -361,33 +363,117 @@ class CompilationController extends Controller {
 		# VALIDATION		
 		$postData = $request->request->all();
 		
-		$problem_id = $postData['problemId'];
 		$language_id = $postData['languageId'];
-		$submitted_filename = trim($postData['filename']);
 		$main_class = trim($postData['mainclass']);
 		$package_name = trim($postData['packagename']);
-		
+				
 		# make sure all the required post params were passed
-		if(!isset($problem_id) || !isset($language_id) || !isset($submitted_filename) || !isset($main_class) || !isset($package_name)){
-			return $this->returnForbiddenResponse("NOT EVERY NECESSARY FIELD WAS PROVIDED");
-		}		
+			
 				
-		# get the current problem
-		$problem = $em->find("AppBundle\Entity\Problem", $problem_id);
-		if(!$problem){
-			return $this->returnForbiddenResponse("PROBLEM DOES NOT EXIST");
+		# PROBLEM CREATION
+		$problem = new Problem();
+		
+		$problem->name = "";
+		$problem->weight = 1;
+		$problem->time_limit = 1;
+		
+		$problem->is_extra_credit = true;
+		
+		$problem->total_attempts = 0;
+		$problem->attempts_before_penalty = 0;
+		$problem->penalty_per_attempt = 0;
+		
+		$problem->stop_on_first_fail = false;
+		$problem->response_level = "";
+		$problem->display_testcaseresults = true;
+		$problem->testcase_output_level = "";
+		$problem->extra_testcases_display = true;
+		
+		$em->persist($problem);
+		
+		# instantiate the languages
+		$qb = $em->createQueryBuilder();
+		$qb->select('l')
+			->from('AppBundle\Entity\Language', 'l')
+			->where('1 = 1');
+		$languages = $qb->getQuery()->getResult();
+		
+		foreach($languages as $language){
+
+			$problemLanguage = new ProblemLanguage();
+
+			$problemLanguage->language = $language;
+			$problemLanguage->problem = $problem;
+			$em->persist($problemLanguage);
 		}		
-				
+		
+		# instantiate the testcases
+		$count = 1;
+		
+		$postTestcases = (array) json_decode($postData['testcases']);
+		
+		if(count($postTestcases) < 1){
+			return $this->returnForbiddenResponse("No testcases given!");
+		}
+		
+		//return $this->returnForbiddenResponse(var_dump($postTestcases));
+		
+		foreach($postTestcases as $tc){
+			
+			//return $this->returnForbiddenResponse(var_dump($tc));
+			$tc = (array) $tc;
+			
+			if(!is_array($tc)){
+				return $this->returnForbiddenResponse("Testcase data is not formatted properly");
+			}
+
+			# build the testcase
+			$response = TestCaseCreator::makeTestCase($em, $problem, $tc, $count);
+			
+			
+			
+			$count++;
+
+			# check what the makeTestCase returns
+			if(!$response->problem){
+				return $response;
+			} else{
+				$testcase = $response;
+			}
+			
+			$em->persist($testcase);
+			$problem->testcases[] = $testcase;			
+		}		
+		
+		$em->persist($problem);		
+		$em->flush();
+			
+		# FILE UPLOAD
+		# upload the file via the UploadController
+		$response = $this->forward('AppBundle\Controller\UploadController::submitProblemUploadAction', array(
+			'problem_id'  => $problem->id,
+			'request' => $request,
+		));
+		
+		
+		$content = (array) json_decode($response->getContent())->data;
+		
+		$submitted_filename = $content['submitted_filename'];
+		
+		//return $this->returnForbiddenResponse(var_dump($content));
+		
+		//return $this->returnForbiddenResponse(var_dump($language_id));
+		
 		# get the current language
 		$language = $em->find("AppBundle\Entity\Language", $language_id);
-		
+		//return null;
 		if(!$language){
 			return $this->returnForbiddenResponse("Language with id ".$language_id." does not exist");
 		}		
 		
 		# INITIALIZE A SUBMISSION
 		# create an entity for the current submission
-		$submission = new Submission($problem, $team, $user);	
+		$submission = new Submission($problem, null, null);	
 
 		# persist to the database to get the id
 		$em->persist($submission);
@@ -492,25 +578,30 @@ class CompilationController extends Controller {
 		#return $this->returnForbiddenResponse($docker_output);
 		
 		# PARSE FOR SUBMISSION		
-		$submissionGen = $generator->generateOutput($problem);
+		$submissionGen = $generator->generateOutput($submission, $problem);
 		
 		if($submissionGen){
 			return $submissionGen;
 		}
 				
 		# REMOVE TEMPORARY FOLDERS
-		shell_exec("rm -rf ".$sub_dir);
-		shell_exec("rm -rf ".$uploads_dir);
+		#shell_exec("rm -rf ".$sub_dir);
+		#shell_exec("rm -rf ".$uploads_dir);		
 		
-		# RETURN THE URL OF THE RESULT
-		$url = $this->generateUrl('problem_edit', [
-			'problemId' => $problem->id,
-			'assignmentId' => $problem->assignment->id,
-			'sectionId' => $problem->assignment->section->id,
-		]);
+		$testcases = [];
+		# make testcase output array
+		foreach($problem->testcases as $tc){
+			$testcases[] = $tc->deblobinateCorrectOutput();
+		}
 		
+		$em->remove($submission);
+		$em->remove($problem);
+		
+		$em->flush();
+		
+		# RETURN THE TESTCASES OF THE RESULT
 		$response = new Response(json_encode([		
-			'redirect_url' => $url,			
+			'testcases' => $testcases,			
 		]));
 		
 		$response->headers->set('Content-Type', 'application/json');

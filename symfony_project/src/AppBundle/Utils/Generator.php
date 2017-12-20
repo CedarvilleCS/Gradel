@@ -271,7 +271,7 @@ class Generator  {
 	}
 	
 	// this is used by professors to create the appropriate output for a problem
-	public function generateOutput($problem){
+	public function generateOutput($submission, $problem){
 		
 		# necessary directories
 		$sub_dir = $this->web_dir."compilation/submissions/".$submission->id."/";
@@ -305,12 +305,13 @@ class Generator  {
 		else {
 			
 			foreach($problem->testcases as &$tc){
-				//return $this->returnForbiddenResponse("The code you entered took too long to run!");
-			
+				
 				$output_log_path = $user_output_dir.$tc->seq_num.".out";
 				$user_output_log = fopen($output_log_path, "r");
+				//return $this->returnForbiddenResponse(stream_get_contents($user_output_log));
+				$tc->correct_output = stream_get_contents($user_output_log);	
 				
-				$tc->correct_output = $user_output_log;	
+				$this->em->persist($tc);
 			}
 			
 			$this->em->persist($problem);

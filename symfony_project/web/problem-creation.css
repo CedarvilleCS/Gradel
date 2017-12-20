@@ -87,15 +87,24 @@
 #language-container input, textarea{
 	font-family: monospace !important;
 	font-size: 14px;
-	height: auto;
 }
 
-
-.default-code { 
+.ace-container { 
     width: calc(100% - 50px);
     height: 300px;
     border: 2px solid grey;
     padding: 10px;
     font-family: monospace;
     font-size: 10pt;
+}
+
+.disabled-line {
+	position:absolute;
+	background: #CCCCCC;
+	color: grey;
+	z-index:20
+}
+
+textarea{
+	border-width: 1.2px;
 }

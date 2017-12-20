@@ -12,6 +12,6 @@ struct validate_info {
 	bool is_correct;
 };
 
-validate_info validate(string expected, string user);
+bool validate(string expected, string user);
 
 #endif
