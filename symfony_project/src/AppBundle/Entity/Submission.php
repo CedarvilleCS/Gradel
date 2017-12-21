@@ -173,12 +173,6 @@ class Submission {
 	*/
 	public $log_directory;
 	
-	public function deblobinateLogDirectory(){			
-		$val = stream_get_contents($this->log_directory);
-		rewind($this->log_directory);
-		return $val;
-	}
-	
 	/**
 	* @ORM\Column(type="string", nullable=true)
 	*/
@@ -196,15 +190,9 @@ class Submission {
 	public $package_name;
 	
 	/**
-	* @ORM\Column(type="blob", nullable=true)
+	* @ORM\Column(type="text", nullable=true)
 	*/
 	public $compiler_output;
-	
-	public function deblobinateCompilerOutput(){			
-		$val = stream_get_contents($this->compiler_output);
-		rewind($this->compiler_output);
-		return $val;
-	}
 	
 	/**
 	* @ORM\Column(type="boolean")

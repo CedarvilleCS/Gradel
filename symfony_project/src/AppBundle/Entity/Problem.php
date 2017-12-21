@@ -75,16 +75,10 @@ class Problem{
 	public $name;
 
 	/**
-	* @ORM\Column(type="blob", nullable=true)
+	* @ORM\Column(type="text", nullable=false)
 	*/
 	public $description;
-	
-	public function deblobinateDescription(){			
-		$val = stream_get_contents($this->description);
-		rewind($this->description);
-		
-		return $val;
-	}
+
 	
 	/**
 	* @ORM\Column(type="blob", nullable=true)

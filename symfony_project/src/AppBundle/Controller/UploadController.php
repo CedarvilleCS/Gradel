@@ -71,6 +71,7 @@ class UploadController extends Controller {
         # get the current problem
         $problem_entity = $em->find("AppBundle\Entity\Problem", $problem_id);
 		if(!$problem_entity){
+			
             die("PROBLEM DOES NOT EXIST");
         }
 

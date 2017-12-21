@@ -35,26 +35,15 @@ class Feedback {
 	public $id;
 
 	/**
-	*@ORM\Column(type="blob")
+	*@ORM\Column(type="text")
 	*/
 	public $short_response;
-	
-	public function deblobinateShortResponse(){			
-		$val = stream_get_contents($this->short_response);
-		rewind($this->short_response);
-		return $val;
-	}
 
 	/**
-	*@ORM\Column(type="blob")
+	*@ORM\Column(type="text")
 	*/
 	public $long_response;
-	
-	public function deblobinateLongResponse(){			
-		$val = stream_get_contents($this->long_response);
-		rewind($this->long_response);
-		return $val;
-	}
+
 	
 }
 ?>

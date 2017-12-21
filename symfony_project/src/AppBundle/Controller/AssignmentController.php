@@ -65,7 +65,6 @@ class AssignmentController extends Controller {
 			$usr_query = $qb_usr->getQuery();
 			$usersectionrole = $usr_query->getOneOrNullResult();
 			
-			$currentProblemDescription = stream_get_contents($problem_entity->description);
 			$problem_languages = $problem_entity->problem_languages;
 
 			$languages = [];
@@ -141,7 +140,6 @@ class AssignmentController extends Controller {
 			'assignment' => $assignment_entity,
 			'problem' => $problem_entity,
 
-			'problemDescription' => $currentProblemDescription,
 			'languages' => $languages,
 			'usersectionrole' => $usersectionrole,
 			'grader' => new Grader($em),

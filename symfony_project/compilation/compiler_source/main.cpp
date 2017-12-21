@@ -130,7 +130,7 @@ int main(int argc, char** argv){
 	}
 	
 	// default everything in this directory to be 700
-	system("chown -R root:root ./");
+	system("chown -R www-data:www-data ./");
 	system("chmod 755 ./");
 	system("chmod -R 700 ./*");
 	
@@ -251,8 +251,8 @@ int main(int argc, char** argv){
 		// check for runtime error
 		if(run_info.return_val != 0 &&  run_output.length() > 0) {
 			cout << "Runtime Error!" << endl;
-			
-			system("touch flags/runtime_error");
+			string runtime_flag_cmd = "echo \"" + to_string(i) + "\" > flags/runtime_error";
+			system(runtime_flag_cmd.c_str());
 			
 			continue;
 		}		

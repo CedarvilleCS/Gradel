@@ -468,14 +468,14 @@ class Grader  {
 			
 			if($tcr->testcase->feedback != null && !$tcr->is_correct && $response_level == "Short"){
 				
-				$resp = trim($tcr->testcase->feedback->deblobinateShortResponse());
+				$resp = trim($tcr->testcase->feedback->short_response);
 				
 				if($resp != ""){
 					$feedback['response'][$tcr->testcase->seq_num] = $resp;
 				}
 			} else if($tcr->testcase->feedback != null && !$tcr->is_correct && $response_level == "Long"){
 				
-				$resp = trim($tcr->testcase->feedback->deblobinateLongResponse());
+				$resp = trim($tcr->testcase->feedback->long_response);
 				
 				if($resp != ""){
 					$feedback['response'][$tcr->testcase->seq_num] = $resp;
@@ -483,16 +483,16 @@ class Grader  {
 			}
 			
 			if($tcr->runtime_error){
-				$feedback['runtime'][$tcr->testcase->seq_num] = $tcr->deblobinateRuntimeOutput();
+				$feedback['runtime'][$tcr->testcase->seq_num] = $tcr->runtime_output;
 			}
 			
 			$feedback['time'][$tcr->testcase->seq_num] = $tcr->execution_time;
 			
 			if($testcase_output_level == "Output"){
-				$feedback['output'][$tcr->testcase->seq_num] = $tcr->testcase->deblobinateCorrectOutput();
+				$feedback['output'][$tcr->testcase->seq_num] = $tcr->testcase->correct_output;
 			} else if($testcase_output_level == "Both"){
-				$feedback['output'][$tcr->testcase->seq_num] = $tcr->testcase->deblobinateCorrectOutput();
-				$feedback['input'][$tcr->testcase->seq_num] = $tcr->testcase->deblobinateInput();
+				$feedback['output'][$tcr->testcase->seq_num] = $tcr->testcase->correct_output;
+				$feedback['input'][$tcr->testcase->seq_num] = $tcr->testcase->input;
 			}
 
 		}

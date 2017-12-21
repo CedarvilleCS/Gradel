@@ -307,14 +307,13 @@ class ProblemController extends Controller {
 				}
 
 				# build the testcase
-				$response = TestCaseCreator::makeTestCase($em, $problem, $tc, $count);
+				$testcase = null;
+				$response = TestCaseCreator::makeTestCase($testcase, $em, $problem, $tc, $count);
 				$count++;
 
 				# check what the makeTestCase returns
-				if(!$response->problem){
-					return $response;
-				} else{
-					$testcase = $response;
+				if($response != 1){
+					return $this->returnForbiddenResponse($response."");
 				}
 
 				$em->persist($testcase);

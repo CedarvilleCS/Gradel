@@ -65,13 +65,9 @@ class Assignment implements JsonSerializable{
 	public $name;
 
 	/**
-	* @ORM\Column(type="blob")
+	* @ORM\Column(type="text")
 	*/
 	public $description;
-	
-	public function deblobinateDescription(){			
-		return stream_get_contents($this->description);
-	}
 
 	/**
 	* @ORM\Column(type="datetime")

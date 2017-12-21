@@ -53,38 +53,19 @@ class Testcase {
 	public $seq_num;
 
 	/**
-	*@ORM\Column(type="blob", nullable=true)
+	*@ORM\Column(type="text", nullable=true)
 	*/
 	public $input;
-
-	public function deblobinateInput(){
-		$val = stream_get_contents($this->input);
-		rewind($this->input);
-		return $val;
-	}
 	
 	/**
-	*@ORM\Column(type="blob", nullable=true)
+	*@ORM\Column(type="text", nullable=true)
 	*/
 	public $command_line_input;
-	
-	public function deblobinateCommandLine(){
-		$val = stream_get_contents($this->command_line_input);
-		rewind($this->command_line_input);
-		return $val;
-	}
 
 	/**
-	*@ORM\Column(type="blob")
+	*@ORM\Column(type="text")
 	*/
 	public $correct_output;
-
-	public function deblobinateCorrectOutput(){
-		$val = stream_get_contents($this->correct_output);
-		rewind($this->correct_output);
-		return $val;
-		
-	}
 
 	/**
      * Multiple FB per TC

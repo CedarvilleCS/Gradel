@@ -54,28 +54,14 @@ class TestcaseResult {
 	public $testcase;
 
 	/**
-	 * @ORM\Column(type="blob", nullable=true)
+	 * @ORM\Column(type="text", nullable=true)
 	 */
 	public $std_output;
 
-	public function deblobinateStdOutput(){
-		$val = stream_get_contents($this->std_output);
-		rewind($this->std_output);
-		
-		return $val;
-	}
-
 	/**
-	* @ORM\Column(type="blob", nullable=true)
+	* @ORM\Column(type="text", nullable=true)
 	*/
 	public $runtime_output;
-
-	public function deblobinateRuntimeOutput(){
-		$val = stream_get_contents($this->runtime_output);
-		rewind($this->runtime_output);
-		
-		return $val;
-	}
 
 	/**
 	* @ORM\Column(type="boolean")

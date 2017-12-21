@@ -43,7 +43,7 @@
 					{% endif %}
 				</h3>
 				<div id="courseInfo" class="card-contents">
-					<p>{{problemDescription|nl2br}}</p>
+					<p>{{problem.description|nl2br}}</p>
 
 					{# the ACE editor text area #}
 					<div id="editor">{% if last_submission != null %}{{ last_submission.deblobinateSubmittedFile()|nl2br }}{% endif %}</div>
@@ -333,7 +333,7 @@
 					},
 					error: function(data){
 						alert(data['responseText']);
-						//console.log(data['responseText']);
+						console.log(data['responseText']);
 						
 						$('#loading-container').hide();
 						$('#submissionButton').show();
@@ -375,7 +375,7 @@
 				},
 				error: function(data) {
 					alert(data['responseText']);
-					//console.log(data['responseText']);
+					console.log(data['responseText']);
 					
 					$('#loading-container').hide();
 					$('#submissionButton').show();

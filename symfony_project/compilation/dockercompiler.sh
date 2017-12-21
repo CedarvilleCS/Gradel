@@ -69,7 +69,8 @@ echo $(docker rm $container_name 2>&1)
 
 echo -n 'status: '
 if [ -z "$code" ]; then
-	echo TIMEOUT
+	echo TIMEOUT	
 else
     echo exited with $code
-fi
+fi	
+

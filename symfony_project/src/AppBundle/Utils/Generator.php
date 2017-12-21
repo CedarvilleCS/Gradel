@@ -46,7 +46,8 @@ class Generator  {
 		$this->web_dir = $web_dir;
 	}
 	
-	// this is used to parse through the log files and build a submission
+	/* function to get the set the values for a submission*/
+	/* returns a HTTP_FORBIDDEN response on failure and 1 on success */
 	public function generateSubmission(&$submission, $problem){
 		
 		# necessary directories
@@ -80,14 +81,11 @@ class Generator  {
 		
 		$compile_log = null;
 		
-		# check for compilation error
+		# check for errors
 		if(file_exists($flags_dir."internal_error")){
 			
 			# echo "internal error! abort!";
-			$this->em->remove($submission);		
-			$this->em->flush();
-			
-			return $this->returnForbiddenResponse("There was an internal server error. If this happens again, please contact a system admin.");
+			return "There was an internal server error. If this happens again, please contact a system admin.";
 						
 		} else if(file_exists($flags_dir."malicious")){
 			
@@ -100,7 +98,7 @@ class Generator  {
 			
 			$compile_log = fopen($flags_dir."compile_error", "r");
 			if(!$compile_log){
-				return $this->returnForbiddenResponse("Cannot open compile_error file - contact a system admin");
+				return "Cannot open compile_error file - contact a system admin";
 			}
 			$submission_is_compileerror = true;
 		} 
@@ -168,7 +166,7 @@ class Generator  {
 					
 					$runtime_log = fopen($runtime_log_path, "r");
 					if(!$runtime_log){
-						return $this->returnForbiddenResponse("Cannot open ".$runtime_log_path);
+						return "Cannot open ".$runtime_log_path;
 					}
 					# echo $tc->seq_num.") runtime error</br>";					
 					
@@ -184,15 +182,15 @@ class Generator  {
 					
 					$user_output_log = fopen($output_log_path, "r");
 					if(!$user_output_log){
-						return $this->returnForbiddenResponse("Cannot open ".$output_log_path." - contact a system admin");
+						return "Cannot open ".$output_log_path." - contact a system admin";
 					}
 					$exectime_log = fopen($exectime_log_path, "r");
 					if(!$exectime_log){
-						return $this->returnForbiddenResponse("Cannot open ".$exectime_log_path." - contact a system admin");
+						return "Cannot open ".$exectime_log_path." - contact a system admin";
 					}
 					$diff_log = fopen($diff_log_path, "r");
 					if(!$diff_log){
-						return $this->returnForbiddenResponse("Cannot open ".$diff_log_path." - contact a system admin");
+						return "Cannot open ".$diff_log_path." - contact a system admin";
 					}
 					
 					# echo $tc->seq_num.") normal testcase</br>";
@@ -202,7 +200,7 @@ class Generator  {
 					$milliseconds = trim(fgets($exectime_log));		
 
 					if(!is_numeric($milliseconds)){
-						return $this->returnForbiddenResponse("error parsing the time file - contact a system admin");
+						return "Error parsing the time file - contact a system admin";
 					}
 					
 					$testcase_exectime = $milliseconds;
@@ -246,11 +244,11 @@ class Generator  {
 				$testcaseresult->submission = $submission;
 				$testcaseresult->testcase = $tc;
 				$testcaseresult->is_correct = $testcase_is_correct;
-				$testcaseresult->runtime_output = $runtime_log;
+				$testcaseresult->runtime_output = stream_get_contents($runtime_log);
 				$testcaseresult->runtime_error = $testcase_is_runtimeerror;
 				$testcaseresult->execution_time = $testcase_exectime;
 				$testcaseresult->exceeded_time_limit = $testcase_is_timelimit;
-				$testcaseresult->std_output = $user_output_log;
+				$testcaseresult->std_output = stream_get_contents($user_output_log);
 				
 				$this->em->persist($testcaseresult);
 				$this->em->flush();
@@ -260,67 +258,80 @@ class Generator  {
 		
 		# update the submission entity to the values decided aboce
 		$submission->compiler_error = $submission_is_compileerror;
-		$submission->compiler_output = $compile_log;
+		$submission->compiler_output = stream_get_contents($compile_log);
 		$submission->runtime_error = $submission_is_runtimeerror;
 		$submission->questionable_behavior = $submission_is_malicious;
 		$submission->exceeded_time_limit = $submission_is_timelimit; 
 		$submission->max_runtime = $submission_max_runtime;
 		$submission->percentage = $submission_percentage;
 
-		return null;		
+		/* return 1 on success */
+		return 1;		
 	}
 	
-	// this is used by professors to create the appropriate output for a problem
-	public function generateOutput($submission, $problem){
+	/* function to get the output from a submission as an array */
+	/* this is used for generating correct output from a teacher submission */
+	/* returns a HTTP_FORBIDDEN response on failure and 1 on success */
+	public function generateOutput(&$testcases, $submission, $numTestcases){
 		
 		# necessary directories
 		$sub_dir = $this->web_dir."compilation/submissions/".$submission->id."/";
 		$flags_dir = $sub_dir."flags/";		
 		$user_output_dir = $sub_dir."user_output/";	
 		
+		# check for an internal compilation again
 		if(file_exists($flags_dir."internal_error")){
 			
-			return $this->returnForbiddenResponse("There was an internal server error. If this happens again, please contact a system admin.");
+			return "There was an internal server error. You should probably look into this.";
 						
-		} else if(file_exists($flags_dir."malicious")){
+		}
+		# check for a malicious submission
+		else if(file_exists($flags_dir."malicious")){
 			
-			return $this->returnForbiddenResponse("The code you entered was malicious!");				
+			return "The code you entered was malicious.";				
 			
-		} else if(file_exists($flags_dir."compile_error")){
+		}
+		# check for a compilation error
+		else if(file_exists($flags_dir."compile_error")){
 			
-			return $this->returnForbiddenResponse("The code you entered could not be compiled!");
+			return "The code you entered could not be compiled.";
 			
-		} else if(file_exists($flags_dir."runtime_error")){
+		}
+		# check for a runtime error on a testcase
+		else if(file_exists($flags_dir."runtime_error")){
 			
-			return $this->returnForbiddenResponse("The code you entered encountered a runtime error against a testcase!");
+			$runtime_error_log = fopen($flags_dir."runtime_error", "r");
+			$testcase = stream_get_contents($runtime_error_log);
+			
+			return "The code you entered encountered a runtime error against testcase ".$testcase;
 			
 		}
 		# check for overall time limit error
 		else if(file_exists($flags_dir."time_limit")){
-			# echo "wall clock timeout</br>";
 			
-			return $this->returnForbiddenResponse("The code you entered took too long to run!");
+			return "The code you entered took too long to run.";
 		} 
 		# loop through each testcase which ran
 		else {
 			
-			foreach($problem->testcases as &$tc){
+			$testcases = [];			
 				
-				$output_log_path = $user_output_dir.$tc->seq_num.".out";
+			for ($i = 1; $i <= $numTestcases; $i++) {
+				
+				$output_log_path = $user_output_dir.$i.".out";
 				$user_output_log = fopen($output_log_path, "r");
-				//return $this->returnForbiddenResponse(stream_get_contents($user_output_log));
-				$tc->correct_output = stream_get_contents($user_output_log);	
 				
-				$this->em->persist($tc);
+				
+				$testcases[] = stream_get_contents($user_output_log);
 			}
-			
-			$this->em->persist($problem);
-			$this->em->flush();
 		}
 
-		return null;
+		// return 1 on success
+		return 1;
 	}
 
+	/* Function to create the string that contains the command-line arguments for the compiler script in the Docker container */
+	/* returns a HTTP_FORBIDDEN response on failure and 1 on success */
 	public function generateDockerOptions(&$docker_options, $language, $submitted_filename, $problem, $main_class, $package_name, $is_zipped, $is_graded){
 		
 		$docker_options = "-l ". str_replace(' ','',$language->name)." -f ".$submitted_filename." -n ".count($problem->testcases);
@@ -341,7 +352,7 @@ class Generator  {
 		
 		// compilation options
 		$compilation_options = null;
-		
+				
 		$pb_problang = $this->em->createQueryBuilder();
 		$pb_problang->select('pl')
 				->from('AppBundle\Entity\ProblemLanguage', 'pl')
@@ -354,11 +365,12 @@ class Generator  {
 		$prob_lang = $pl_query->getOneOrNullResult();	
 		
 		if(!$prob_lang){
-			return $this->returnForbiddenResponse("YOU CANNOT SUBMIT A SOLUTION FOR THE GIVEN LANGUAGE");
+			return "YOU CANNOT SUBMIT A SOLUTION FOR THE GIVEN LANGUAGE";
 		} else {
 			$compilation_options = trim($prob_lang->compilation_options);
 		}
 		
+		// loop through the command line options and add them to -c options (since spaces are annoying in BASH)
 		if(strlen($compilation_options) > 0){
 			
 			$options = explode(" ", $compilation_options);
@@ -375,29 +387,34 @@ class Generator  {
 			$docker_options = $docker_options." -nq";			
 		}
 		
+		// run the custom validator
 		if($is_graded){
 			$docker_options = $docker_options." -g";			
 		} else {
 			$docker_options = $docker_options." -ng";
 		}
 		
-		return null;
+		// return 1 on success
+		return 1;
 	}
 	
+	/* Function to write the testcase input/args/output to files to be used in the docker container */
+	/* returns a HTTP_FORBIDDEN response on failure and 1 on success */
 	public function generateTestcaseFiles($problem, $input_file_dir, $arg_file_dir, $output_file_dir){
-		
+				
 		foreach($problem->testcases as $tc){
 			
 			#INPUT FILE
 			if($tc->input){
-				// write the input file to the temp directory
-				$input = $tc->deblobinateInput();			
 				
+				// write the input file to the temp directory
+				$input = $tc->input;			
+				//return $input;
 				#echo $input;
 				
 				$input_file = fopen($input_file_dir.$tc->seq_num.".in", "w");			
 				if(!$input_file){
-					return $this->returnForbiddenResponse("Unable to open input file for writing - contact a system admin");
+					return "Unable to open input file for writing - contact a system admin";
 				}
 				
 				fwrite($input_file, $input);
@@ -407,13 +424,13 @@ class Generator  {
 			#ARG FILE
 			if($tc->command_line_input){
 				// write the input file to the temp directory
-				$args = $tc->deblobinateCommandLine();			
+				$args = $tc->command_line_input;			
 				
-				#echo $input;
+				#echo $args;
 				
 				$arg_file = fopen($arg_file_dir.$tc->seq_num.".args", "w");			
 				if(!$arg_file){
-					return $this->returnForbiddenResponse("Unable to open command-line arg file for writing - contact a system admin");
+					return "Unable to open command-line arg file for writing - contact a system admin";
 				}
 				
 				fwrite($arg_file, $args);
@@ -423,26 +440,22 @@ class Generator  {
 			#OUTPUT FILE
 			if($tc->correct_output){
 				// write the output file to the temp directory
-				$correct_output = $tc->deblobinateCorrectOutput();
+				$correct_output = $tc->correct_output;
 				
 				#echo $correct_output;
 				
 				$output_file = fopen($output_file_dir.$tc->seq_num.".out", "w");
 				if(!$output_file){
-					 return $this->returnForbiddenResponse("Unable to open output file for writing - contact a system admin");
+					 return "Unable to open output file for writing - contact a system admin";
 				}
 				fwrite($output_file, $correct_output);
 				fclose($output_file);
 			}
 		}
+		
+		// return 1 on success
+		return 1;
 	}
-	
-	private function returnForbiddenResponse($message){		
-		$response = new Response($message);
-		$response->setStatusCode(Response::HTTP_FORBIDDEN);
-		return $response;
-	}
-	
 
 }
 

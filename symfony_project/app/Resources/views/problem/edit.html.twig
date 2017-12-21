@@ -55,7 +55,7 @@
 					<tr>
 					  <th colspan="4">
 						<label for="description">Description</label>
-						<textarea rows=20 id="description" name="description" class="problem_creation" type="text">{{problem.deblobinateDescription}}</textarea>
+						<textarea rows=20 id="description" name="description" class="problem_creation" type="text">{{problem.description}}</textarea>
 						
 						
 					  </th>
@@ -251,7 +251,10 @@
 					<div id="packgNameInput" style="display:none"><label for="package_name">Package Name: </label><input type="text" name="package_name" id="package_name_input"></div>
 					<br/>
 					<div class="btn" style="width: 300px" id="generationButton"> Generate </div>
-					
+					<div id="generator-loading-container" style="display: none">
+						<img id="generator-loading-gif" style="height: 60px" src="{{asset('beoload.gif')}}" alt="Loading..."/>
+						<h3 style="margin: 0px"> Generating Output... </h3>
+					</div>
 				</div>
 				
 			</div>
@@ -583,13 +586,13 @@
 		{% if (problem.testcases) %}
 			{% for tc in problem.testcases %}
 				addTestCase(
-					"{{tc.deblobinateInput|e('js')}}",
-					"{{tc.deblobinateCommandLine|e('js')}}",
-					"{{tc.deblobinateCorrectOutput|e('js')}}",
+					"{{tc.input|e('js')}}",
+					"{{tc.command_line_input|e('js')}}",
+					"{{tc.correct_output|e('js')}}",
 					"{{tc.weight}}",
 					"{{tc.is_extra_credit}}",
-					"{{tc.feedback.deblobinateShortResponse|e('js')}}",
-					"{{tc.feedback.deblobinateLongResponse|e('js')}}",
+					"{{tc.feedback.short_response|e('js')}}",
+					"{{tc.feedback.long_response|e('js')}}",
 				);
 			{% endfor %}
 		{% else %}	  
@@ -986,17 +989,15 @@
 		for (testcase of testcases) {
 			const input = $("#"+testcase.id).find("."+"input").val();
 			const args = $("#"+testcase.id).find("."+"args").val();
-			const output = $("#"+testcase.id).find("." + "output").val();
-			const short_fb = $("#"+testcase.id).find("."+"shortFeedback").val();
-			const long_fb = $('#'+testcase.id).find("." + "longFeedback").val();
-			const weight = $('#' + testcase.id).find("." + "weight").val();
-			const extra_credit = $('#' + testcase.id).find("." + "extra-credit").prop("checked");
-			const tc = {"input": input, "args": args, "output": output, "weight": weight, "short_response": short_fb, "long_response": long_fb, "extra_credit": extra_credit ? "true" : "false"};
+			const tc = {"input": input, "args": args, "output": "", "weight": 1, "short_response": "", "long_response": "", "extra_credit": "false"};
 			tcs.push(tc);
 		}
 		
 		console.log(JSON.stringify(tcs));		
 		submitData.append('testcases', JSON.stringify(tcs));
+		
+		$('#generator-loading-container').show();
+		$('#generationButton').hide();
 		
 		$.ajax({
 			type: "POST",
@@ -1015,10 +1016,16 @@
 					count++;		
 				});
 				
+				$('#generator-loading-container').hide();
+				$('#generationButton').show();
 				
 			},
 			error: function(data){
 				alert(data['responseText']);
+				console.log(data['responseText']);
+				
+				$('#generator-loading-container').hide();
+				$('#generationButton').show();
 			}
 		});
 	}

@@ -68,7 +68,7 @@ The grader was not passed from the controller.
 				
 				{% if submission.compiler_output %}
 					<h2> COMPILER OUTPUT </h2>
-					<textarea disabled id='compiler-output'>{{submission.deblobinateCompilerOutput()}}</textarea>
+					<textarea disabled id='compiler-output'>{{submission.compiler_output}}</textarea>
 				{% endif %}
 				
 				</div>
@@ -134,7 +134,7 @@ The grader was not passed from the controller.
 												
 												<div id="testcase-outputyrs">
 													<div class="testcase-data-heading">Your Output:</div>
-													<textarea disabled>{{submission.testcaseresults[loop.index0].deblobinateStdOutput()}}</textarea>
+													<textarea disabled>{{submission.testcaseresults[loop.index0].std_output}}</textarea>
 												</div>
 											</div>
 										</div>
