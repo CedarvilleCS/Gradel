@@ -10,7 +10,7 @@
   {{ include('template/top-nav.html.twig') }}
 
 
-  {# Left Nav #}
+  {# Left Nav Bar #}
   <nav class="nav-left">
 		<div class="btn btn-center" id="save-btn">Save</div>
 	  
@@ -25,7 +25,7 @@
 
   {{ include('template/path-nav.html.twig') }}
 
-  {# Main section #}
+  {# Main Section #}
   <section id="main">
 
     {# Cards #}
@@ -187,8 +187,8 @@
 	
 	<div class="parallel-cards">
 	
-		<div id="validator-card" class="card" style="flex-grow: 2">
-			<div class="btn-close" onclick="collapseCard('validator-options')">
+		<div id="validator-card" class="card" style="flex-grow: 10">
+			<div class="btn-close" onclick="collapseCardValidator()">
 				<h2 style="margin: 0px">Validation Options
 					<span style="float: right"><i class="fa fa-angle-down"></i></span>
 				</h2>
@@ -207,7 +207,7 @@
 							</label>
 						</div>
 						
-						<div id="custom-validator-editor" class="ace-container">{% if problem.custom_validator %}{{ problem.deblobinateCustomValidator()|nl2br }}{% endif %}</div>
+						<div id="custom-validator-editor" style="height:490px" class="ace-container">{% if problem.custom_validator %}{{ problem.deblobinateCustomValidator()|nl2br }}{% endif %}</div>
 					</div>
 
 				</div>
@@ -215,9 +215,9 @@
 		</div>
 		
 		{% if problem is null %}
-		<div id="generator-card" class="card" style="flex-grow: 2">
+		<div id="generator-card" class="card" style="flex-grow: 8.33">
 		
-			<div class="btn-close" onclick="collapseCard('generator-options')">
+			<div class="btn-close" onclick="collapseCardGenerator()">
 				<h2 style="margin: 0px">Generate Output
 					<span style="float: right"><i class="fa fa-angle-down"></i></span>
 				</h2>
@@ -238,7 +238,7 @@
 
 				<div id="submissionForm">
 
-					Language:
+					<br/>Language: 
 					<select id="languageSelect" name="language">
 						{% for lang in languages %}
 							{% if lang.name != "No Language Restriction" %}
@@ -250,7 +250,7 @@
 					<div id="mainClassInput" style="display:none"><label for="main_class">Main Class: </label><input type="text" name="main_class" id="main_class_input"></div>
 					<div id="packgNameInput" style="display:none"><label for="package_name">Package Name: </label><input type="text" name="package_name" id="package_name_input"></div>
 					<br/>
-					<div class="btn" style="width: 300px" id="generationButton"> Generate </div>
+					<div class="btn" style="width: 300px" id="generator-button"> Generate </div>
 					<div id="generator-loading-container" style="display: none">
 						<img id="generator-loading-gif" style="height: 60px" src="{{asset('beoload.gif')}}" alt="Loading..."/>
 						<h3 style="margin: 0px"> Generating Output... </h3>
@@ -277,8 +277,8 @@
 	
     <link rel="stylesheet" href="{{ asset('styles.css') }}" />
     <link rel="stylesheet" href="{{ asset('card.css') }}" />
-    <link rel="stylesheet" href="{{ asset('problem-creation.css') }}" />
     <link rel="stylesheet" href="{{ asset('custom-toggle.css') }}" />
+    <link rel="stylesheet" href="{{ asset('problem-creation.css') }}" />
 	
 	<style type="text/css">
 		.testCardAdder:hover {
@@ -416,7 +416,9 @@
 		validatorEditor.$blockScrolling = Infinity;
 		validatorEditor.setTheme("ace/theme/xcode");
 		validatorEditor.session.setMode({ path: "ace/mode/c_cpp", inline: true } );
+		validatorEditor.resize();
 		
+		{# set the validator editor to be this code if the custom validator wasn't set #}
 		{% if problem.custom_validator is null %}
 		validatorEditor.setValue(  "#include <string>\n"
 						+ "#include \"custom_validate.h\"\n"
@@ -431,31 +433,34 @@
 						+ "}", 1);
 		{% endif %}
 		
+		/* grey out the custom validator ACE editor on toggle changer */
 		$('#use-custom').change( function() {
 			
 			if($(this).is(':checked') ){
-				$('#custom-validator-editor').show();
-				validatorEditor.resize(true);
-			} else{
-				$('#custom-validator-editor').hide();
+				validatorEditor.$blockScrolling = Infinity;
+				validatorEditor.setTheme("ace/theme/xcode");
+			} else{				
+				validatorEditor.$blockScrolling = Infinity;
+				validatorEditor.setTheme("ace/theme/solarized_dark");
 			}
-		});
-		
+		});		
 		$('#use-custom').change();
 		
-		
-		{% if problem is null %}
 		/* OUTPUT GENERATOR ACE EDITOR */
+		{# show the generator options if the problem does not exist yet #}
+		{% if problem is null %}
 		var generatorEditor = ace.edit("output-generator-editor");
 		generatorEditor.$blockScrolling = Infinity;
 		generatorEditor.setTheme("ace/theme/xcode");
+		generatorEditor.resize();
 				
 		// make the language dropdown change affect the code
 		$('#languageSelect').change( function(data) {
 			var language = $('#languageSelect option:selected').text();
 			setLanguage(language);
 		});
-
+		$('#languageSelect').change();
+		
 		/* handle uploading a correct solution and putting it in the editor */
 		$('#output-generator-form .file').change(function(data) {
 					
@@ -478,13 +483,10 @@
 			$('#output-generator-form').submit();
 		});
 				
-		$('#languageSelect').change();	
-		
-		collapseCard('generator-options');
 		
 		{% endif %}
 		
-		/* DISPLAY TESTCASES CHECKBOX */
+		/* On the Display Testcases checkbox toggle, you should display/hide the Output Level dropdown */
 		$('#display-testcase').change( function() {
 			
 			if($(this).is(':checked') ){
@@ -493,13 +495,15 @@
 				$('#output-level-container').hide();
 			}
 			
-		});
+		});		
+		$('#display-testcase').change();
 		
 		/* move languages to the tabs and vice-versa */			
 		$('#language-container').tabs({
 			collapsible: true
 		});
 		
+		/* on clicking a language, add it to the language-container tab div */
 		$('#language-pool').on("click", ".language", function() {
 				
 			var num_tabs = $("#language-container ul li").length + 1;
@@ -538,7 +542,7 @@
 			$("#language-container").tabs("option", "active", num_tabs-1);
 		});
 		
-		/* on language removal click, add a button back */
+		/* on language removal click, add a language back to the pool */
 		$('#language-container').on("click", ".remove-language", function() {
 			
 			$("#language-pool").append(
@@ -551,7 +555,7 @@
 			$("#language-container").tabs("refresh");
 		});
 		
-		/* add the languages if they exist in the problem */
+		/* add the languages if they existed in the problem */
 		{% for l in languages %}
 			{% set found_l = null %}
 			{% set found_pl = null %}
@@ -568,18 +572,15 @@
 			{% if found_l is not null %}
 				$('.language#{{found_l.id}}').click();
 				
-				//var editor1 = ace.edit("default-code-{{found_l.id}}");
-				//editor1.setValue("{{(found_pl.deblobinateDefaultCode) ? found_pl.deblobinateDefaultCode|e('js') : found_l.deblobinateDefaultCode|e('js')}}");
-				//editor1.resize();
 				$('#default-code-{{found_l.id}}').html("{{(found_pl.deblobinateDefaultCode) ? found_pl.deblobinateDefaultCode|e('js') : found_l.deblobinateDefaultCode|e('js')}}");
 				$('#language-container #language-tab-{{found_l.id}} .compile-options').val("{{found_pl.compilation_options}}");
-				
 			{% endif %}
 			
 		{% endfor %}
 			
-		$('#display-testcase').change();
 		
+		
+		/* start the language container collapsed */
 		$("#language-container").tabs("option", "active", false);
 		
 		{# add in the testcases #}
@@ -600,7 +601,7 @@
 			addTestCase();	  
 		{% endif %}
 		
-		/* delete button javascript */
+		/* delete button javascript if there is a problem (edit page) */
 		{% if problem is not null %}
 			var warned = 0;
 			$('#delete-btn').on('click', function(){
@@ -616,10 +617,12 @@
 			});
 		{% endif %}	
 		
-		$('#generationButton').click( function() {
+		/* on clicking the generate button, validate the fields and call the post function */
+		$('#generator-button').click( function() {
 			genOutput();
 		});
 		
+		/* on clicking the save button, validate fields and call the post function */
 		$('#save-btn').click( function() {
 		
 			/* Client-Side Validation */
@@ -735,7 +738,8 @@
 		
 		});
 		
-		/*$("textarea").keydown(function(e) {
+		/* allow tabs in textareas */
+		$("textarea").keydown(function(e) {
 			if(e.keyCode === 9) { // tab was pressed
 				// get caret position/selection
 				var start = this.selectionStart;
@@ -755,8 +759,9 @@
 				// prevent the focus lose
 				e.preventDefault();
 			}
-		});*/
-    });
+		});
+
+	});
 
 
     function addTestCase(input, args, output, weight, extraCredit, short, long) {
@@ -766,7 +771,7 @@
 		div_name ="testcases"+testCases;
 		formalName="Test Case "+testCases;
 		
-		$('#generationButton').html("Generate Output for " + testCases + " Testcases");
+		$('#generator-button').html("Generate Output for " + testCases + " Testcases");
 		
 		newTestCard = `<div class="card testcase-card" id=`+div_name+`>
 			<div class="btn-close">
@@ -938,7 +943,7 @@
 		
 		if(testCases > 1){
 			testCases--;
-			$('#generationButton').html("Generate Output for " + testCases + " Testcases");
+			$('#generator-button').html("Generate Output for " + testCases + " Testcases");
 			document.getElementById(testcase).remove();
 		} else {
 			alert("You must have at least one testcase!");
@@ -946,6 +951,8 @@
 
 	};
 	
+	/* function to make the data and send a post with all of the stuff 
+	necessary to generate the output for the current testcases */
 	function genOutput(){
 		
 		// Create a FormData object
@@ -958,22 +965,24 @@
 		var package_name = $('#package_name_input').val();
 
 		if(languageText == 'Java' && main_class == '') {
+			setInvalid($('#main_class_input'));
 			return false;
 		} else if(languageText != 'Java'){
 
 			main_class = "";
 			package_name = "";
 		}
+		setValid($('#main_class_input'));
 
 		var editor = ace.edit("output-generator-editor");
 		editor.$blockScrolling = Infinity;				
 		
-		var ACE = editor.getValue();
+		var generatorText = editor.getValue();
 
 		submitData.append('languageId', language);
 		submitData.append('mainclass', main_class);
 		submitData.append('packagename', package_name);
-		submitData.append('ACE', ACE);
+		submitData.append('ACE', generatorText);
 
 		if(getExtension($('#output-generator-form #file').val()) == "zip"){
 
@@ -997,7 +1006,7 @@
 		submitData.append('testcases', JSON.stringify(tcs));
 		
 		$('#generator-loading-container').show();
-		$('#generationButton').hide();
+		$('#generator-button').hide();
 		
 		$.ajax({
 			type: "POST",
@@ -1009,6 +1018,7 @@
 
 				console.log(data);
 				
+				// save the testcase data to the output textboxes
 				count = 0;
 				$(".test-case").each(function() {
 					
@@ -1017,19 +1027,20 @@
 				});
 				
 				$('#generator-loading-container').hide();
-				$('#generationButton').show();
-				
+				$('#generator-button').show();				
+				alert("Output generated for " + data['testcases'].length + " testcases");
 			},
 			error: function(data){
 				alert(data['responseText']);
 				console.log(data['responseText']);
 				
 				$('#generator-loading-container').hide();
-				$('#generationButton').show();
+				$('#generator-button').show();
 			}
 		});
 	}
 	
+	/* function to send a post request with all of the info needed to create a new problem */
 	function newProb(){
 		const name = document.getElementById('name').value;
 		const description = document.getElementById('description').value;
@@ -1123,60 +1134,76 @@
 		});
     }
 	
-	/*
-		var Range = ace.require('ace/range').Range;
+	</script>
+	
+	<script>
+	
+	/* used to decide if both the validator and 
+	generator card should be closed at one */
+	function collapseCardValidator(){
 		
-		var range1 = new Range(0, 0, 0, 1);
-		var range2 = new Range(1, 0, 1, 1);
+		var w = $('#validator-card').css('width');
+		w = parseInt(w.substring(0, w.length-2));
+		var ml = $('#validator-card').css('margin-left');
+		ml = parseInt(ml.substring(0, ml.length-2));
+		var mr = $('#validator-card').css('margin-right');
+		mr = parseInt(mr.substring(0, mr.length-2));
+		var pl = $('#validator-card').css('padding-left');
+		pl = parseInt(pl.substring(0, pl.length-2));
+		var pr = $('#validator-card').css('padding-right');
+		pr = parseInt(pr.substring(0, pr.length-2));
 		
-		var m1 = editor.session.addMarker(range1, "disabled-line", "fullLine");
-		var m2 = editor.session.addMarker(range2, "disabled-line", "fullLine");
+		var pw = $('#validator-card').parent().css('width');
+		pw = parseInt(pw.substring(0, pw.length-2));
 		
-		var range3 = new Range(editor.session.getLength()-1, 0, editor.session.getLength()-1, 1);
-		var m3 = editor.session.addMarker(range3, "disabled-line", "fullLine");
+		var width = (w+ml+mr+pl+pr);
 		
-		var range4 = new Range(5, 0, 5, 1);
-		var m4 = editor.session.addMarker(range4, "disabled-line", "fullLine");
-				
-		// Prevent editing first and last line of editor
-		editor.commands.on("exec", function(e) { 
-			var rowCol = editor.selection.getCursor();
-			var numRows = editor.session.getLength();
-		  	var lineText = editor.session.getLine(rowCol.row);
-			
-			var staticLines = ['bool validate(string expected, string user){'];
-			
-			if ((rowCol.row == 0) || (rowCol.row == 1) || (rowCol.row == numRows-1) || staticLines.includes(lineText)) {
-				e.preventDefault();
-				e.stopPropagation();				
-			}
-		});
+		console.log(width);
+		console.log(pw);
 		
-		editor.session.on('change', function(e) {
-			
-			if(e.lines.length != 1){
-				
-				var numRows = editor.session.getLength();				
-				
-				editor.session.removeMarker(m3);			
-				var rangeNew = new Range(numRows-1, 0, numRows-1, 1);			
-				m3 = editor.session.addMarker(rangeNew, "disabled-line", "fullLine");				
-				
-				editor.session.removeMarker(m4);
-				
-				for(var i = 0; i<numRows; i++){
-					var lineText = editor.session.getLine(i);
-					
-					if(lineText == "bool validate(string expected, string user){"){
-						console.log("YEEHOW");
-						range4 = new Range(i, 0, i, 1);
-					}
-					
-				}			
-				m4 = editor.session.addMarker(range4, "disabled-line", "fullLine");				
-			}			
-		});
-		*/
+		if(width < pw-10 || width > pw+10){
+			collapseCard('generator-options');
+		}		
+		
+		if(collapseCard('validator-options')){		
+			$('#generator-card').css("flex-grow", 8.33);
+		} else {
+			$('#generator-card').css("flex-grow", 12);
+		}
+	}
+	
+	function collapseCardGenerator(){
+		
+		var w = $('#generator-card').css('width');
+		w = parseInt(w.substring(0, w.length-2));
+		var ml = $('#generator-card').css('margin-left');
+		ml = parseInt(ml.substring(0, ml.length-2));
+		var mr = $('#generator-card').css('margin-right');
+		mr = parseInt(mr.substring(0, mr.length-2));
+		var pl = $('#generator-card').css('padding-left');
+		pl = parseInt(pl.substring(0, pl.length-2));
+		var pr = $('#generator-card').css('padding-right');
+		pr = parseInt(pr.substring(0, pr.length-2));
+		
+		var pw = $('#generator-card').parent().css('width');
+		pw = parseInt(pw.substring(0, pw.length-2));
+		
+		var width = (w+ml+mr+pl+pr);
+		
+		console.log(width);
+		console.log(pw);
+		
+		if(width < pw-10 || width > pw+10){
+			collapseCard('validator-options');
+		}
+		
+		if(collapseCard('generator-options')){		
+			$('#generator-card').css("flex-grow", 8.33);
+		} else {
+			$('#generator-card').css("flex-grow", 12);
+		}
+	}
+	
 	</script>
 	
 			

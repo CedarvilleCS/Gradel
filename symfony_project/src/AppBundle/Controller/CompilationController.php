@@ -53,34 +53,13 @@ class CompilationController extends Controller {
 		if(!$user){
 			return $this->returnForbiddenResponse("USER DOES NOT EXIST");
 		}
+				
+		# POST DATA
+		$postData = $request->request->all();		
+		$problem_id = $postData['problem_id'];
 		
-		# VALIDATION
-		
-		$postData = $request->request->all();
-		
-		$problem_id = $postData['problemId'];
-		$language_id = $postData['languageId'];
-		$submitted_filename = trim($postData['filename']);
-		$main_class = trim($postData['mainclass']);
-		$package_name = trim($postData['packagename']);
-		
-		# make sure all the required post params were passed
-		if(!isset($problem_id) || !isset($language_id) || !isset($submitted_filename) || !isset($main_class) || !isset($package_name)){
-			return $this->returnForbiddenResponse("NOT EVERY NECESSARY FIELD WAS PROVIDED");
-		}		
-		
-		# check main class and package name for validity
-		if(strlen($main_class) > 0 && preg_match("/^[a-zA-Z0-9_]+$/", $main_class) != 1){
-			return $this->returnForbiddenResponse("MAIN CLASS MUST BE ONLY LETTERS, NUMBERS, OR UNDERSCORES");
-		}
-		
-		if(strlen($package_name) > 0 && preg_match("/^[a-zA-Z0-9_]+$/", $package_name) != 1){
-			return $this->returnForbiddenResponse("PACKAGE NAME MUST BE ONLY LETTERS, NUMBERS, OR UNDERSCORES");
-		}
-		
-		# check filename for validity
-		if(preg_match("/^[a-zA-Z0-9_\-]+\.[a-zA-Z0-9]+$/", $submitted_filename) != 1){
-			return $this->returnForbiddenResponse("SUBMITTED FILENAME IS NOT VALID");
+		if(!isset($problem_id) || trim($problem_id) == ""){
+			return $this->returnForbiddenResponse("Problem id was not provided.");
 		}
 		
 		# get the current problem
@@ -88,15 +67,7 @@ class CompilationController extends Controller {
 		if(!$problem){
 			return $this->returnForbiddenResponse("PROBLEM DOES NOT EXIST");
 		}
-		
 				
-		# get the current language
-		$language = $em->find("AppBundle\Entity\Language", $language_id);
-		
-		if(!$language){
-			return $this->returnForbiddenResponse("Language with id ".$language_id." does not exist");
-		}		
-		
 		# get the type of submission		
 		$is_teaching = $grader->isTeaching($user, $problem->assignment->section);
 		
@@ -123,6 +94,55 @@ class CompilationController extends Controller {
 				return $this->returnForbiddenResponse("ALREADY REACHED MAX ATTEMPTS FOR PROBLEM AT ".$curr_attempts);
 			}
 		}
+		
+		
+		# FILE UPLOAD
+		# upload the file via the UploadController
+		$response = $this->forward('AppBundle\Controller\UploadController::submitProblemUploadAction', array(
+			'problem_id'  => $problem->id,
+			'request' => $request,
+		));		
+		
+		$content = (array) json_decode($response->getContent())->data;
+		
+		if(!(count($content) > 0)){
+			return $response;
+		}
+				
+		$submitted_filename = $content['submitted_filename'];
+		$language_id = $content['language_id'];
+		$main_class = $content['main_class'];
+		$package_name = $content['package_name'];
+		
+		if(!isset($submitted_filename) || trim($submitted_filename) == ""){
+			return $this->returnForbiddenResponse("Filename was not provided. Contact a systems administrator");
+		}
+			
+		# make sure all the required post params were passed
+		if(!isset($language_id) || !isset($main_class) || !isset($package_name)){
+			return $this->returnForbiddenResponse("NOT EVERY NECESSARY FIELD WAS PROVIDED");
+		}		
+		
+		# check main class and package name for validity
+		if(strlen($main_class) > 0 && preg_match("/^[a-zA-Z0-9_]+$/", $main_class) != 1){
+			return $this->returnForbiddenResponse("MAIN CLASS MUST BE ONLY LETTERS, NUMBERS, OR UNDERSCORES");
+		}
+		
+		if(strlen($package_name) > 0 && preg_match("/^[a-zA-Z0-9_]+$/", $package_name) != 1){
+			return $this->returnForbiddenResponse("PACKAGE NAME MUST BE ONLY LETTERS, NUMBERS, OR UNDERSCORES");
+		}
+		
+		# check filename for validity
+		if(preg_match("/^[a-zA-Z0-9_\-]+\.[a-zA-Z0-9]+$/", $submitted_filename) != 1){
+			return $this->returnForbiddenResponse("SUBMITTED FILENAME IS NOT VALID");
+		}
+			
+		# get the current language
+		$language = $em->find("AppBundle\Entity\Language", $language_id);
+		
+		if(!$language){
+			return $this->returnForbiddenResponse("Language with id ".$language_id." does not exist");
+		}		
 		
 		# INITIALIZE THE SUBMISSION
 		# create an entity for the current submission
@@ -364,17 +384,7 @@ class CompilationController extends Controller {
 		if(!$user){
 			return $this->returnForbiddenResponse("USER DOES NOT EXIST");
 		}
-		
-		# VALIDATION		
-		$postData = $request->request->all();
-		
-		$language_id = $postData['languageId'];
-		$main_class = trim($postData['mainclass']);
-		$package_name = trim($postData['packagename']);
-				
-		# make sure all the required post params were passed
-			
-				
+
 		# PROBLEM CREATION
 		$problem = new Problem();
 		
@@ -413,18 +423,17 @@ class CompilationController extends Controller {
 			$em->persist($problemLanguage);
 		}		
 		
-		# instantiate the testcases		
+		# TESTCASES
+		$postData = $request->request->all();
 		$postTestcases = (array) json_decode($postData['testcases']);
 		
-		if(count($postTestcases) < 1){
+		if(!(count($postTestcases) >= 1)){
 			return $this->returnForbiddenResponse("No testcases given!");
 		}
 		
-		//return $this->returnForbiddenResponse(var_dump($postTestcases));
 		$count = 1;
 		foreach($postTestcases as $tc){
 			
-			//return $this->returnForbiddenResponse(var_dump($tc));
 			$tc = (array) $tc;
 			
 			if(!is_array($tc)){
@@ -433,8 +442,7 @@ class CompilationController extends Controller {
 
 			# build the testcase
 			$testcase = null;
-			$response = TestCaseCreator::makeTestCase($testcase, $em, $problem, $tc, $count);			
-			//return $this->returnForbiddenResponse($testcase->input);
+			$response = TestCaseCreator::makeTestCase($testcase, $em, $problem, $tc, $count);
 			$count++;
 
 			# check what the makeTestCase returns
@@ -456,8 +464,20 @@ class CompilationController extends Controller {
 			'request' => $request,
 		));		
 		
-		$content = (array) json_decode($response->getContent())->data;		
+		$content = (array) json_decode($response->getContent())->data;	
+		
+		if(!isset($content)){
+			return $response;
+		}		
+		
 		$submitted_filename = $content['submitted_filename'];
+		$language_id = $content['language_id'];
+		$main_class = $content['main_class'];
+		$package_name = $content['package_name'];
+		
+		if(!isset($submitted_filename) || trim($submitted_filename) == ""){
+			return $this->returnForbiddenResponse("Filename was not provided. Contact a systems administrator");
+		}
 
 		# INITIALIZE A SUBMISSION
 		# create an entity for the current submission
@@ -618,11 +638,11 @@ class CompilationController extends Controller {
 		}
 		
 		if(isset($sub_dir)){
-			shell_exec("rm -rf ".$sub_dir);
+			#shell_exec("rm -rf ".$sub_dir);
 		}
 		
 		if(isset($uploads_dir)){
-			shell_exec("rm -rf ".$uploads_dir);			
+			#shell_exec("rm -rf ".$uploads_dir);			
 		}
 		
 		$em->flush();

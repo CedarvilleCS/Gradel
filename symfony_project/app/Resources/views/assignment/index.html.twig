@@ -120,19 +120,6 @@
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 	<script src="{{ asset('src-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>
 	<script src="{{ asset('js/validation.js') }}"></script>
-	<script>
-		element = $("#main_class_input");
-		$('#submissionButton').on('click', function(){          
-			if ($.trim(element.val())  === '') {	
-			setInvalid(element);
-			}
-		});
-		
-		/* Mark fields as valid once the user changes them */
-		element.on('input',function(e){
-			setValid(element);
-		});
-</script>
 
 	{# asynchronous file upload #}
 	<script src="http://malsup.github.com/jquery.form.js"></script>
@@ -284,19 +271,24 @@
 				var package_name = $('#package_name_input').val();
 
 				if(languageText == 'Java' && main_class == '') {
+				
+					setInvalid($('#main_class_input'));				
 					return false;
+					
 				} else if(languageText != 'Java'){
 
 					main_class = "";
 					package_name = "";
 				}
+				setValid($('#main_class_input'));
 
 				var editor = ace.edit("editor");
 				editor.$blockScrolling = Infinity;				
 				$("#ACE").val(editor.getValue());
 
-				var ACE = $('#ACE').val();
-
+				var ACE = $('#ACE').val();				
+				
+				formData.append('problem_id', {{problem.id}});
 				formData.append('language', language);
 				formData.append('main_class', main_class);
 				formData.append('package_name', package_name);
@@ -317,7 +309,7 @@
 				
 				$.ajax({
 					type: "POST",
-					url: "{{path('submission_upload', {'problem_id': problem.id}) }}",
+					url: "{{path('submit')}}",
 					data: formData,
 					processData: false,
 					contentType: false,
@@ -353,37 +345,6 @@
 			$('#languageSelect').change();			
 			{% endif %}
 		});
-		
-		
-		function submitSolution(params){
-			
-			var submitData = {};
-			
-			submitData["problemId"] = params['problem_id'];
-			submitData["languageId"] = params['language_id'];
-			submitData["filename"] = params['submitted_filename'];
-			submitData["mainclass"] = params['main_class'];
-			submitData["packagename"] = params['package_name'];
-				
-			$.ajax({
-				type: 'POST',
-				url: "{{path('submit')}}",
-				data: submitData,
-				success: function(data) {				
-					console.log(data);				
-					window.location = data["redirect_url"];				
-				},
-				error: function(data) {
-					alert(data['responseText']);
-					console.log(data['responseText']);
-					
-					$('#loading-container').hide();
-					$('#submissionButton').show();
-				},
-				async: true
-			});
-			
-		}
 	</script>
 
 {% endblock %}

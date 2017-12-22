@@ -187,8 +187,11 @@ int main(int argc, char** argv){
 		cout << "ERROR: could not compile the student code\n";
 		cout << "COMPILER OUTPUT: " + comp_info.errors + "\n";
 		
-		string compile_error_cmd = "echo \"" + comp_info.errors + "\" > flags/compile_error";
-		system(compile_error_cmd.c_str());
+		ofstream compilefile;
+		compilefile.open("flags/compile_error");
+		compilefile << comp_info.errors << endl;
+		compilefile.close();
+
 		system("rm flags/time_limit");
 			
 		system("chmod -R 777 /compilation");
@@ -201,8 +204,10 @@ int main(int argc, char** argv){
 	if(comp_info.warnings.length() > 0){
 		cout << "COMPILER WARNINGS: " << comp_info.warnings;
 		
-		string compile_warning_cmd = "echo \"" + comp_info.warnings + "\" > flags/compile_warning";
-		system(compile_warning_cmd.c_str());
+		ofstream compilefile;
+		compilefile.open("flags/compile_warning");
+		compilefile << comp_info.warnings << endl;
+		compilefile.close();
 	}
 	 
 	// program to run
