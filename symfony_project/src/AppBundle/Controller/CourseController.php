@@ -28,7 +28,7 @@ class CourseController extends Controller {
 			die("USER DOES NOT EXIST");
 		}
 
-		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_USER")){
+		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN")){
 			
 			die("YOU DO NOT HAVE PERMISSION TO SEE THIS PAGE!");
 		}
