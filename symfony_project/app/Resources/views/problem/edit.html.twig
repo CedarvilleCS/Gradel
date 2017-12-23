@@ -978,6 +978,8 @@
 		editor.$blockScrolling = Infinity;				
 		
 		var generatorText = editor.getValue();
+		
+		submitData.append('assignmentId', {{(problem ? problem.assignment.id : assignment.id)}}),
 
 		submitData.append('languageId', language);
 		submitData.append('mainclass', main_class);

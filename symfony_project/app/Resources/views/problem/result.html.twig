@@ -75,9 +75,8 @@ The grader was not passed from the controller.
 					
 				<!--span style="word-wrap: break-word"> {{feedback|json_encode}} </span-->
 				
-				{% if not submission.compiler_error and not submission.questionable_behavior%}
+				{% if feedback.display_markers and not submission.compiler_error and not submission.questionable_behavior and submission.testcaseresults|length > 0%}
 				<div id="feedback-holder">
-					{% if feedback.display_markers %}
 					<div id="testcase-markers-container">
 						<h3>TESTCASES:</h3>				
 						
@@ -173,10 +172,9 @@ The grader was not passed from the controller.
 								
 								{% endfor %}						
 							
-							</div>						
+							</div>		
 							{% endif %}
 					</div>
-					{% endif %}
 					
 					{% if feedback.response|length > 0 %}
 					<div id="feedback"> 
@@ -185,8 +183,8 @@ The grader was not passed from the controller.
 						{% for response in feedback.response %}
 							<li>{{response}}</li>
 						{% endfor %}
-						
-						{% endif %}
+					
+					{% endif %}
 						</ul>
 					</div>
 				</div>

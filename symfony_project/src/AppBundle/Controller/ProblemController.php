@@ -34,9 +34,17 @@ class ProblemController extends Controller {
 			->where('1 = 1');
 		$languages = $qb->getQuery()->getResult();
 		
+		if(!isset($sectionId) || !($sectionId > 0)){
+			die("SECTION ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
+		}
+		
 		$section = $em->find('AppBundle\Entity\Section', $sectionId);
 		if(!$section){
 			die("SECTION DOES NOT EXIST");
+		}
+		
+		if(!isset($assignmentId) || !($assignmentId > 0)){
+			die("ASSIGNMENT ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
 		}
 		
 		$assignment = $em->find('AppBundle\Entity\Assignment', $assignmentId);
@@ -45,6 +53,11 @@ class ProblemController extends Controller {
 		}
 		
 		if($problemId != 0){
+			
+			if(!isset($problemId) || !($problemId > 0)){
+				die("PROBLEM ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
+			}		
+			
 			$problem = $em->find('AppBundle\Entity\Problem', $problemId);
 			
 			if(!$problem){
@@ -79,6 +92,10 @@ class ProblemController extends Controller {
 	public function deleteAction($sectionId, $assignmentId, $problemId){
 
 		$em = $this->getDoctrine()->getManager();
+		
+		if(!isset($problemId) || !($problemId > 0)){
+			die("PROBLEM ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
+		}
 
 		$problem = $em->find('AppBundle\Entity\Problem', $problemId);
 		if(!$problem){
@@ -115,6 +132,10 @@ class ProblemController extends Controller {
 		$postData = $request->request->all();
 
 		# get the current assignment
+		if(!isset($postData['assignmentId']) || !($postData['assignmentId'] > 0)){
+			die("ASSIGNMENT ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
+		}
+		
 		$assignment = $em->find('AppBundle\Entity\Assignment', $postData['assignmentId']);
 		if(!$assignment){
 			return $this->returnForbiddenResponse("Assignment ".$postData['assignmentId']." does not exist");
@@ -134,6 +155,10 @@ class ProblemController extends Controller {
 			$em->persist($problem);
 
 		} else {
+			
+			if(!isset($postData['problem']) || !($postData['problem'] > 0)){
+				die("PROBLEM ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
+			}
 
 			$problem = $em->find('AppBundle\Entity\Problem', $postData['problem']);
 
@@ -262,7 +287,7 @@ class ProblemController extends Controller {
 				return $this->returnForbiddenResponse("Language data is not formatted properly");
 			}
 			
-			if(!isset($l['id']) || $l['id'] == ""){				
+			if(!isset($l['id']) || !($l['id'] > 0)){				
 				return $this->returnForbiddenResponse("You did not specify a language id");
 			}
 
@@ -331,6 +356,10 @@ class ProblemController extends Controller {
 
 		$em = $this->getDoctrine()->getManager();
 		$grader = new Grader($em);
+		
+		if(!isset($submission_id) || !($submission_id > 0)){
+			die("SUBMISSION ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
+		}
 
 		$submission = $em->find("AppBundle\Entity\Submission", $submission_id);
 
@@ -345,7 +374,7 @@ class ProblemController extends Controller {
 		}
 
 		# make sure the user has permissions to view the submission result
-		if($user->hasRole("ROLE_SUPER") && !$grader->isTeaching($user, $submission->problem->assignment->section) && !$grader->isOnTeam($user, $submission->problem->assignment, $submission->team)){
+		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN") && !$grader->isTeaching($user, $submission->problem->assignment->section) && !$grader->isOnTeam($user, $submission->problem->assignment, $submission->team)){
 			echo "YOU ARE NOT ALLOWED TO VIEW THIS SUBMISSION";
 			die();
 		}

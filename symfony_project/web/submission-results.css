@@ -7,7 +7,8 @@
 }
 
 #testcase-markers-container{
-	 width: 60%;
+	width: 60%;
+	margin-right: 20px;
 }
 
 #testcase-markers{
@@ -30,6 +31,7 @@
 	border: none;
 	padding: 4px;
 	margin: 0px;
+	width: 33%;
 }
 
 #testcase-tab{

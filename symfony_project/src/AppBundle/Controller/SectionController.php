@@ -38,6 +38,10 @@ class SectionController extends Controller {
 		if(!$user){
 			die("USER DOES NOT EXIST");
 		}
+		
+		if(!isset($sectionId) || !($sectionId > 0)){
+			die("SECTION ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
+		}
 
 		$section_entity = $em->find('AppBundle\Entity\Section', $sectionId);
 
@@ -195,6 +199,11 @@ class SectionController extends Controller {
 		
 				
 		if($sectionId != 0){
+			
+			if(!isset($sectionId) || !($sectionId > 0)){
+				die("SECTION ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
+			}
+			
 			$section = $em->find('AppBundle\Entity\Section', $sectionId);
 			
 			if(!$section){
@@ -232,8 +241,13 @@ class SectionController extends Controller {
 	public function deleteSectionAction($sectionId){
 		
 		$em = $this->getDoctrine()->getManager();
-
+		
+		# get the section
+		if(!isset($sectionId) || !($sectionId > 0)){
+			die("SECTION ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
+		}
 		$section = $em->find('AppBundle\Entity\Section', $sectionId);	  
+		
 		if(!$section){
 			die("SECTION DOES NOT EXIST");
 		}
@@ -293,6 +307,10 @@ class SectionController extends Controller {
 		if($postData['section'] == 0){
 			$section = new Section();
 		} else {
+			
+			if(!isset($postData['section']) || !($postData['section'] > 0)){
+				die("SECTION ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
+			}
 			$section = $em->find('AppBundle\Entity\Section', $postData['section']);
 			
 			if(!$section){
@@ -301,6 +319,10 @@ class SectionController extends Controller {
 		}
 		
 		# get the course
+		if(!isset($postData['course']) || !($postData['course'] > 0)){
+			die("COURSE ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
+		}
+		
 		$course = $em->find('AppBundle\Entity\Course', $postData['course']);
 		if(!$course){
 			return $this->returnForbiddenResponse("Course provided does not exist.");

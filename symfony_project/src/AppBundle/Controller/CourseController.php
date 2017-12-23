@@ -66,8 +66,8 @@ class CourseController extends Controller {
 		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN")){
 			die("YOU DO NOT HAVE PERMISSION TO SEE THIS PAGE!"); 
 		}
-
-		if($courseId != 0){
+		
+		if(isset($courseId) && $courseId > 0){
 			$course = $em->find('AppBundle\Entity\Course', $courseId);
 		}
 		
@@ -104,6 +104,11 @@ class CourseController extends Controller {
 		# only super users and admins can make/edit a course
 		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN")){			
 			die("YOU DO NOT HAVE PERMISSION TO DELETE A COURSE");
+		}
+		
+		
+		if(!isset($courseId) || !($courseId > 0)){
+			die("COURSE ID WAS NOT PROVIDED PROPERLY");
 		}
 		
 		$course = $em->find('AppBundle\Entity\Course', $courseId);
@@ -153,6 +158,11 @@ class CourseController extends Controller {
 			$course = new Course();		
 			$em->persist($course);
 		} else {
+			
+			if(!isset($postData['course']) || !($postData['course'] > 0)){
+				return $this->returnForbiddenResponse("Course id was not formatted properly");
+			}
+			
 			$course = $em->find('AppBundle\Entity\Course', $postData['course']);
 			
 			if(!$course){

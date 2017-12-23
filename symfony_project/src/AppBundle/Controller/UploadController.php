@@ -68,12 +68,13 @@ class UploadController extends Controller {
 
 		# entity manager
         $em = $this->getDoctrine()->getManager();
+				
+        # get the current problem
 		
-		if(!isset($problem_id)){
-			return "PROBLEM ID WAS NOT PROVIDED";
+		if(!isset($problem_id) || !($problem_id > 0)){
+			return "PROBLEM ID WAS NOT PROVIDED OR FORMATTED PROPERLY";
 		}
 		
-        # get the current problem
         $problem_entity = $em->find("AppBundle\Entity\Problem", $problem_id);
 		if(!$problem_entity){
 			
@@ -93,8 +94,8 @@ class UploadController extends Controller {
 			$language_id = $postData["languageId"];
 		}
 		
-		if(!isset($language_id) || trim($language_id) == ""){
-			return "LANGUAGE WAS NOT PROVIDED";
+		if(!isset($language_id) || !($language_id > 0)){
+			return "LANGUAGE WAS NOT PROVIDED OR FORMATTED PROPERLY";
 		}
 		
 		$language_entity = $em->find("AppBundle\Entity\Language", $language_id);
@@ -160,8 +161,8 @@ class UploadController extends Controller {
         $em = $this->getDoctrine()->getManager();
 
         # get the current problem
-		if(!isset($problem_id)){
-			return "PROBLEM ID WAS NOT PROVIDED";
+		if(!isset($problem_id) || !($problem_id > 0)){
+			return "PROBLEM ID WAS NOT PROVIDED OR FORMATTED PROPERLY";
 		}
 		
         $problem_entity = $em->find("AppBundle\Entity\Problem", $problem_id);
@@ -187,8 +188,8 @@ class UploadController extends Controller {
 
 			$language_id = $postData["language"];
 			
-			if(!isset($language_id) || trim($language_id) == ""){
-				return "LANGUAGE WAS NOT PROVIDED";
+			if(!isset($language_id) || !($language_id > 0)){
+				return "LANGUAGE WAS NOT PROVIDED OR FORMATTED PROPERLY";
 			}			
 
 			$language_entity = $em->find("AppBundle\Entity\Language", $language_id);

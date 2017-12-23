@@ -30,6 +30,11 @@ class TestCaseCreator  {
 			$args = $data['args'];			
 			$output = $data['output'];
 			
+			// add a newline to the input
+			if(substr($input,-1) != "\n"){
+				$input = $input."\n";
+			}
+			
 			// add a newline to the output
 			if(substr($output,-1) != "\n"){
 				$output = $output."\n";

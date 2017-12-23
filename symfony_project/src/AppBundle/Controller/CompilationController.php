@@ -58,11 +58,11 @@ class CompilationController extends Controller {
 		$postData = $request->request->all();		
 		$problem_id = $postData['problem_id'];
 		
-		if(!isset($problem_id) || trim($problem_id) == ""){
-			return $this->returnForbiddenResponse("Problem id was not provided.");
+		# get the current problem
+		if(!isset($problem_id) || !($problem_id > 0)){
+			return $this->returnForbiddenResponse("PROBLEM ID WAS NOT PROVIDED PROPERLY");
 		}
 		
-		# get the current problem
 		$problem = $em->find("AppBundle\Entity\Problem", $problem_id);
 		if(!$problem){
 			return $this->returnForbiddenResponse("PROBLEM DOES NOT EXIST");
@@ -84,7 +84,7 @@ class CompilationController extends Controller {
 			
 			# get the current team
 			$team = $grader->getTeam($user, $problem->assignment);		
-			if(!$team && !$is_teaching){
+			if(!$team && !$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN")){
 				return $this->returnForbiddenResponse("YOU ARE NOT ON A TEAM OR TEACHING FOR THIS ASSIGNMENT");
 			}
 			
@@ -95,6 +95,7 @@ class CompilationController extends Controller {
 			}
 		}
 		
+		$is_teaching =  $is_teaching || $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN");
 		
 		# FILE UPLOAD
 		# upload the file via the UploadController
@@ -138,6 +139,10 @@ class CompilationController extends Controller {
 		}
 			
 		# get the current language
+		if(!($language_id > 0)){
+			return $this->returnForbiddenResponse("LANGUAGE ID WAS NOT FORMATTED PROPERLY");
+		}
+		
 		$language = $em->find("AppBundle\Entity\Language", $language_id);
 		
 		if(!$language){
@@ -246,6 +251,7 @@ class CompilationController extends Controller {
 		# store the compilation options from the problem language
 						
 		# set the main class and package name
+		$submission->language = $language;
 		$submission->main_class_name = $main_class;
 		$submission->package_name = $package_name;
 		
@@ -324,14 +330,22 @@ class CompilationController extends Controller {
 		$this->cleanUp(null, null, $sub_dir, $uploads_dir);
 						
 		# see if this new submission should be the accepted one
+		if(!isset($team)){
+			$whereClause = 's.user = ?2';
+			$teamOrUser = $user;
+		} else {
+			$whereClause = 's.team = ?2';
+			$teamOrUser = $team;
+		}
+		
 		$qb_accepted = $em->createQueryBuilder();
 		$qb_accepted->select('s')
-				->from('AppBundle\Entity\Submission', 's')
-				->where('s.problem = ?1')
-				->andWhere('s.team = ?2')
-				->andWhere('s.is_accepted = true')
-				->setParameter(1, $problem)
-				->setParameter(2, $team);
+			->from('AppBundle\Entity\Submission', 's')
+			->where('s.problem = ?1')
+			->andWhere($whereClause)
+			->andWhere('s.is_accepted = true')
+			->setParameter(1, $problem)
+			->setParameter(2, $teamOrUser);
 				
 		$acc_query = $qb_accepted->getQuery();
 		$prev_accepted_sol = $acc_query->getOneOrNullResult();
@@ -384,7 +398,25 @@ class CompilationController extends Controller {
 		if(!$user){
 			return $this->returnForbiddenResponse("USER DOES NOT EXIST");
 		}
-
+		
+		$postData = $request->request->all();
+		
+		if(!isset($postData['assignmentId']) || !($postData['assignmentId'] > 0)){
+			return $this->returnForbiddenResponse("Assignment ID was not provided or not formatted properly");
+		}
+		
+		$assignment = $em->find("AppBundle\Entity\Assignment", $postData['assignmentId']);
+		
+		if(!$assignment){
+			return $this->returnForbiddenResponse("Assignment does not exist");
+		}
+		
+		$is_teaching = $grader->isTeaching($user, $assignment->section);		
+		if(!$is_teaching && !$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN")){
+			return $this->returnForbiddenResponse("You are not allowed to generate output for this problem");
+		}
+		
+		
 		# PROBLEM CREATION
 		$problem = new Problem();
 		
@@ -543,6 +575,7 @@ class CompilationController extends Controller {
 			$this->cleanUp($submission, $problem, $sub_dir, $uploads_dir);
 			return $this->returnForbiddenResponse("Unable to open submitted file: ".$submitted_file_path." - contact a system admin");
 		}
+		$submission->language = $language;
 		$submission->submitted_file = $submitted_file;
 		$submission->filename = $submitted_filename;
 		
@@ -562,6 +595,10 @@ class CompilationController extends Controller {
 		$submission->package_name = $package_name;
 				
 		# get the current language
+		if(!isset($language_id) || !($language_id > 0)){
+			return $this->returnForbiddenResponse("PROBLEM ID WAS NOT PROVIDED PROPERLY");
+		}
+		
 		$language = $em->find("AppBundle\Entity\Language", $language_id);
 		//return null;
 		if(!$language){
@@ -638,11 +675,11 @@ class CompilationController extends Controller {
 		}
 		
 		if(isset($sub_dir)){
-			#shell_exec("rm -rf ".$sub_dir);
+			shell_exec("rm -rf ".$sub_dir);
 		}
 		
 		if(isset($uploads_dir)){
-			#shell_exec("rm -rf ".$uploads_dir);			
+			shell_exec("rm -rf ".$uploads_dir);			
 		}
 		
 		$em->flush();
