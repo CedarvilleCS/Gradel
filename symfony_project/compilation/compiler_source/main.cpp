@@ -229,7 +229,7 @@ int main(int argc, char** argv){
 	// loop over testcases
 	for(int i=1; i<=num_testcases; i++){
 		
-		cout << "Let's run the student's code against testcase " + to_string(i) << endl;
+		cout << "\n\nLet's run the student's code against testcase " + to_string(i) << endl;
 	
 		system("chmod 755 run_logs");
 		system("chmod 755 input_files");
@@ -237,6 +237,8 @@ int main(int argc, char** argv){
 		run_info run_info = run_code(language, compiled_program, i);
 		system("chmod 700 run_logs");
 		system("chmod 700 input_files");
+		
+		cout << run_info.log_output << endl;
 		
 		cout << "Testcase #" << i << ") "; 		
 		

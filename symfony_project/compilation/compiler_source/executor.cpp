@@ -19,16 +19,21 @@ using namespace std;
 
 run_info run_code(string language, string program_name, int testcase_num){
 	
+	string log_output = "";
+	
 	// run_info stores the information necessary to grade the run
 	run_info info;
 	
 	/*************** ROOT USER **************/
+	log_output += "Becoming root user....\n";
 	// nmake sure that youre a root user
 	if(seteuid(0) != 0){
 		fprintf( stderr, "Could not become a root user!\n");
 		return info;
 	}
+	log_output += "Became a root user.\n";
 		
+	log_output += "Creating the runtime log.\n";
 	// runtime log file
 	// randomly generate the name so the user cannot guess it
 	srand(time(NULL));
@@ -49,6 +54,8 @@ run_info run_code(string language, string program_name, int testcase_num){
 	system(create_log_file_cmd.c_str());
 	system(chmod_log_file_cmd.c_str());			
 	
+	
+	log_output += "Getting the input and arg files...\n";
 	// input and arg files
 	string input_file = "input_files/" + to_string(testcase_num) + ".in";
 	string arg_file = "arg_files/" + to_string(testcase_num) + ".args";
@@ -57,15 +64,16 @@ run_info run_code(string language, string program_name, int testcase_num){
 	bool has_inputfile = exists(input_file);
 	// set the chmod for the input file
 	if(has_inputfile){
+		log_output += "This problem has an input file.\n";
 		string chmod_input = "chmod 755 " + input_file;
 		system(chmod_input.c_str());
 	}
 	
 	bool has_commandline = exists(arg_file);
-
 	// command line arguments (only the first line)	
 	string command_line_args = "";
 	if(has_commandline){
+		log_output += "This problem has an arg file.\n";
 		ifstream argfile(arg_file, ifstream::in);
 		getline(argfile, command_line_args, '\n');
 		argfile.close();
@@ -84,11 +92,16 @@ run_info run_code(string language, string program_name, int testcase_num){
 		return info;
 	}
 	
+	log_output += cmd;
+	log_output += "\n";
+	
 	/************* NORMAL USER **************/
+	log_output += "Becoming a normal user...\n";
 	// set the current user to be a normal one
 	passwd* asdf = getpwnam("student");
 	seteuid(asdf->pw_uid);
-		
+	log_output += "Became a normal user.\n";
+	
 	// run the cmd and get the output stored in student_output
 	char c = 0;		
 	string student_output = "";
@@ -98,6 +111,7 @@ run_info run_code(string language, string program_name, int testcase_num){
 	times(&beg_struct);	
 	long int beg_time = beg_struct.tms_cutime*10;
 	
+	log_output += "Running program...\n";
 	FILE *program_file;
 	program_file = (FILE*)popen(cmd.c_str(), "r");
 	
@@ -107,12 +121,12 @@ run_info run_code(string language, string program_name, int testcase_num){
 		student_output += c;
 	}
 	int ret_val = pclose(program_file);
-		
+	log_output += "Program running...\n";
 		
 	/************* ROOT USER **************/
 	// go back to being a root user
 	seteuid(0);
-	
+	log_output += "Switching back to root user...\n";
 	// unset the chmod for the input file
 	if(has_inputfile){
 		string chmod_input = "chmod 700 " + input_file;
@@ -125,7 +139,7 @@ run_info run_code(string language, string program_name, int testcase_num){
 	
 	string mv_log_file_cmd = "mv " + run_output_file + " run_logs/" + to_string(testcase_num) + ".log";
 	system(mv_log_file_cmd.c_str());
-		
+	
 	// get the time the program ran
 	struct tms end_struct;	
 	times(&end_struct);	
@@ -141,7 +155,9 @@ run_info run_code(string language, string program_name, int testcase_num){
 	
 	string chmod_time_cmd = "chmod 700 " + timefile;
 	system(chmod_time_cmd.c_str());	
-			
+
+	log_output += ("The program ran in " + to_string(runtime) + "ms.\n");
+	
 	// save user output
 	string userfile = "user_output/" + to_string(testcase_num) + ".out";
 	ofstream user_output_file(userfile);
@@ -156,6 +172,7 @@ run_info run_code(string language, string program_name, int testcase_num){
 	info.return_val = ret_val;
 	info.time = runtime;
 	info.run_log_num = rand_num;
+	info.log_output = log_output;
    
 	return info;
 }

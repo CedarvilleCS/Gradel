@@ -897,18 +897,25 @@
 			outId = "#output" + id.substring(id.length-1);
 			
 			if($(this).val() == 'Command-Line'){
+							
+				$(inptId + " .input").val("");
 				$(inptId).hide();
+				
 				$(argsId).show();
 				
 				$(outId).attr('rows', 5);
 				
 			} else if($(this).val() == 'Input'){
+				
 				$(inptId).show();
-				$(argsId).hide();
+				
+				$(argsId + " .args").val("");
+				$(argsId).hide();				
 				
 				$(outId).attr('rows', 5);
 				
 			} else {
+				
 				$(inptId).show();
 				$(argsId).show();
 

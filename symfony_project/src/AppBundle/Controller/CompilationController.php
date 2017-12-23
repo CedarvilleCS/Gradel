@@ -675,11 +675,11 @@ class CompilationController extends Controller {
 		}
 		
 		if(isset($sub_dir)){
-			shell_exec("rm -rf ".$sub_dir);
+			#shell_exec("rm -rf ".$sub_dir);
 		}
 		
 		if(isset($uploads_dir)){
-			shell_exec("rm -rf ".$uploads_dir);			
+			#shell_exec("rm -rf ".$uploads_dir);			
 		}
 		
 		$em->flush();
