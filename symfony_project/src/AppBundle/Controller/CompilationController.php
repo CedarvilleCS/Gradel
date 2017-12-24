@@ -96,7 +96,7 @@ class CompilationController extends Controller {
 		}
 		
 		$is_teaching =  $is_teaching || $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN");
-		
+				
 		# FILE UPLOAD
 		# upload the file via the UploadController
 		$response = $this->forward('AppBundle\Controller\UploadController::submitProblemUploadAction', array(
@@ -497,7 +497,7 @@ class CompilationController extends Controller {
 		));		
 		
 		$content = (array) json_decode($response->getContent())->data;	
-		
+
 		if(!isset($content)){
 			return $response;
 		}		

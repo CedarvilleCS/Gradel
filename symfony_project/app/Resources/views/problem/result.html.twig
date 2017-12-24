@@ -195,7 +195,10 @@ The grader was not passed from the controller.
 				<a href="{{path('assignment', {'sectionId': submission.problem.assignment.section.id, 'assignmentId': submission.problem.assignment.id, 'problemId': submission.problem.id} )}}">
 					Edit and resubmit
 				</a>
-				<div id="editor">{{submission.deblobinateSubmittedFile()|nl2br}}</div>
+				
+<div id="editor">{% if submission.filename|split('.')|last != 'zip' %}
+{{ submission.deblobinateSubmittedFile()|nl2br }}{% else %}
+Submission was a ZIP file{% endif %}</div>
 				
 				<h3 style="margin-top: 10px; margin-bottom: 0px">Submission ID: {{submission.id}}</h3>
 			</div>

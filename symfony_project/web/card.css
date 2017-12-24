@@ -60,9 +60,7 @@
 	
 	flex-wrap: wrap;
 
-	position: relative;	
-	left: 50%;
-	transform: translateX(-50%);
+	position: relative;
 	
 	background: none;
 }

@@ -35,22 +35,24 @@ class UploadController extends Controller {
 		Returns 1 on success
 	*/
 	public function getContentsAction(Request $request){
-
+	
 		if(!$_FILES["file"]){
-			$response = new Response("You should have provided a file, silly!");
-			$response->setStatusCode(Response::HTTP_FORBIDDEN);
-			return $response;
+			return $this->returnForbiddenResponse("A file from the input with name='file' was not provided.");
 		}
-
+		
+		$file = $_FILES["file"];
+		
 		$web_dir = $this->get('kernel')->getProjectDir()."/";
         $uploader = new Uploader($web_dir);
 
-		$fileInfo = $uploader->getFileContents($_FILES["file"]);
+		$fileInfo = $uploader->getFileContents($file);
 
+		$responseData = [];		
+		$responseData[] = $fileInfo;
+		
 		$response = new Response(json_encode([
-
-			'contents' => $fileInfo['contents'],
-			'file' => $fileInfo['name'],
+			
+			'files' => $responseData,
 
 		]));
 
@@ -231,8 +233,7 @@ class UploadController extends Controller {
 		$postData = $request->request->all();
 		$files = $request->files;		
 		
-		
-		if($files->get('file')){		
+		if($files->get('file')){	
 
 			$file = $files->get('file');
 

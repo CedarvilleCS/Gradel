@@ -52,8 +52,14 @@
 			<div id="courseInfo" class="card-contents">
 				<p>{{problem.description|nl2br}}</p>
 
-				{# the ACE editor text area #}
-				<div id="editor">{% if last_submission != null %}{{ last_submission.deblobinateSubmittedFile()|nl2br }}{% endif %}</div>
+{# the ACE editor text area #}
+				
+<div id="editor">{% if last_submission != null and last_submission.filename|split('.')|last != 'zip' %}
+{{ last_submission.deblobinateSubmittedFile()|nl2br }}
+{% elseif last_submission != null %}
+Uploaded file was a ZIP file
+{% endif %}
+</div>
 				<br/>
 
 				{# display the form or not #}
@@ -301,19 +307,36 @@
 
 			// overwrite the normal submit to call the ajaxsubmit
 			$('#submissionUploadForm').submit(function() {
-				$(this).ajaxSubmit();
-			});
-
-			// asynchronous script to handle the submission form upload
-			$('#submissionUploadForm').ajaxForm(function(data) {
-				//console.log(data);
-				setLanguageFromFilename(data["file"]);
 				
-				var editor = ace.edit("editor");
-				editor.$blockScrolling = Infinity;
-				editor.setValue(atob(data["contents"]));
+				$(this).ajaxSubmit({
 				
-				updateAceCode();
+					beforeSubmit: 	function(formData, jqForm, options){
+						
+						/* CLIENT-SIDE VALIDATION */
+						return true;
+						
+					},
+					success:		function(responseText, statusText, xhr, $form) {
+						
+						var file = responseText['files'][0];
+				
+						console.log(responseText);
+						setLanguageFromFilename(file['name']);
+						
+						var editor = ace.edit("editor");
+						editor.$blockScrolling = Infinity;
+						editor.setValue(atob(file['contents']));
+						
+						updateAceCode();		
+										
+					},
+					error:			function(xhr, textStatus, errorThrown) {
+						console.log(xhr);						
+						alert(xhr['responseText']);
+					}
+				});
+				
+				return false;
 			});
 
 			$('#submissionButton').click( function() {

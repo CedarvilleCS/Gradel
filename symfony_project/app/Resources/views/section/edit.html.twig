@@ -218,18 +218,28 @@
 			// asynchronous script to handle the submission form upload
 			$('#studentCSVForm').submit(function() {
 				$(this).ajaxSubmit({
-			
-					success: function(data, textStatus, xhr, form) {
-						console.log(atob(data["contents"]));
-						$('#student-csv').val(atob(data["contents"]));
-						$('#studentCSVForm').hide();
+				
+					beforeSubmit: 	function(formData, jqForm, options){
+						
+						/* CLIENT-SIDE VALIDATION */
+						return true;
 						
 					},
-					error: function(data) {
-						alert(data["responseText"]);						
+					success:		function(responseText, statusText, xhr, $form) {
+						
+						var file = responseText['files'][0];
+						console.log(responseText);
+						
+						$('#student-csv').val(atob(file["contents"]));
+						$('#studentCSVForm').hide();
+										
+					},
+					error:			function(xhr, textStatus, errorThrown) {
+						console.log(xhr);						
+						alert(xhr['responseText']);
 					}
 				});
-					
+				
 				return false;
 			});
 			
@@ -243,18 +253,28 @@
 			// asynchronous script to handle the submission form upload
 			$('#teacherCSVForm').submit(function() {
 				$(this).ajaxSubmit({
-			
-					success: function(data, textStatus, xhr, form) {
-						console.log(atob(data["contents"]));
-						$('#teacher-csv').val(atob(data["contents"]));
-						$('#teacherCSVForm').hide();
+				
+					beforeSubmit: 	function(formData, jqForm, options){
+						
+						/* CLIENT-SIDE VALIDATION */
+						return true;
 						
 					},
-					error: function(data) {
-						alert(data["responseText"]);						
+					success:		function(responseText, statusText, xhr, $form) {
+						
+						var file = responseText['files'][0];
+						console.log(responseText);
+						
+						$('#teacher-csv').val(atob(file["contents"]));
+						$('#teacherCSVForm').hide();
+										
+					},
+					error:			function(xhr, textStatus, errorThrown) {
+						console.log(xhr);						
+						alert(xhr['responseText']);
 					}
 				});
-					
+				
 				return false;
 			});
 			

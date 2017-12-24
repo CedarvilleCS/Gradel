@@ -47,6 +47,11 @@ class Uploader  {
 		# Get the file contents and name
 		$fileContents = base64_encode(file_get_contents($file["tmp_name"]));
 		$fileName = basename($file["name"]);
+		
+				
+		if(pathinfo($file['name'], PATHINFO_EXTENSION) == 'zip'){
+			$fileContents = base64_encode("Zip file contents is meaningless");
+		}
 
 		# return an array of the contents and name
 		return ["contents" => $fileContents, "name" => $fileName];
