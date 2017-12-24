@@ -22,10 +22,8 @@
 
 		{% else %}
 
-		<div class="card">
-			<h2 style="margin: 0px">{{problem.name}}</h2>
+		<div class="card" style="padding-top: 2px">
 			{% set grade = grader.getProblemGrade(app.user, problem) %}
-
 			{% if not teaching %}
 			
 				{% if grade['total_testcases'] + grade['total_extra_testcases'] == grade['passed_testcases'] + grade['passed_extra_testcases'] %}
@@ -50,7 +48,10 @@
 			{% endif %}
 			
 			<div id="courseInfo" class="card-contents">
-				<p>{{problem.description|nl2br}}</p>
+			
+				<div id="markdown">{{problem.description|raw}}</div>
+			
+				<!--<p>{{problem.description|e('js')|nl2br}}</p>-->
 
 {# the ACE editor text area #}
 				
@@ -169,6 +170,8 @@ Uploaded file was a ZIP file
     <link rel="stylesheet" href="{{ asset('card.css') }}" />
 	
     <link rel="stylesheet" href="{{ asset('submit.css') }}" />
+	
+    <link rel="stylesheet" href="{{ asset('markdown-styles.css') }}" />
 
 	<style>
 		#submissionButton:hover {
@@ -183,9 +186,13 @@ Uploaded file was a ZIP file
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 	<script src="{{ asset('src-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>
 	<script src="{{ asset('js/validation.js') }}"></script>
-
+	
+	{# markdown #}
+	<script src="http://cdn.rawgit.com/showdownjs/showdown/1.8.6/dist/showdown.min.js"></script>
+	
 	{# asynchronous file upload #}
 	<script src="http://malsup.github.com/jquery.form.js"></script>
+	{# markdown #}
 
 	<script>
 		var saved_code = "";
@@ -289,7 +296,16 @@ Uploaded file was a ZIP file
 
 	<script>
 		$(document).ready(function() {
-
+			
+			// markdown stuff
+			var converter = new showdown.Converter();
+			converter.setOption('tasklists', true);
+			converter.setOption('backslashEscapesHTMLTags', true);
+			converter.setOption('emoji', true);
+			
+			converter.setFlavor('github');
+			$('#markdown').html(converter.makeHtml($('#markdown').html()));
+			
 			var editor = ace.edit("editor");
 			editor.$blockScrolling = Infinity;
 
