@@ -1,0 +1,11 @@
+SCRIPT DIR: /var/www/gradel_dev/tgsmith/gradel/symfony_project/compilation
+STUDENT CODE DIR: /var/www/gradel_dev/tgsmith/gradel/symfony_project/compilation/submissions/57/student_code/
+COMPILED CODE DIR: /var/www/gradel_dev/tgsmith/gradel/symfony_project/compilation/submissions/57/compiled_code/
+
+Creating the docker sandbox to run student code...
+docker run --name=gd57 -d 	-v /var/www/gradel_dev/tgsmith/gradel/symfony_project/compilation/submissions/57/arg_files/:/compilation/arg_files -v /var/www/gradel_dev/tgsmith/gradel/symfony_project/compilation/submissions/57/compiled_code/:/compilation/compiled_code -v /var/www/gradel_dev/tgsmith/gradel/symfony_project/compilation/submissions/57/custom_validator/:/compilation/custom_validator -v /var/www/gradel_dev/tgsmith/gradel/symfony_project/compilation/submissions/57/diff_logs/:/compilation/diff_logs -v /var/www/gradel_dev/tgsmith/gradel/symfony_project/compilation/submissions/57/flags/:/compilation/flags -v /var/www/gradel_dev/tgsmith/gradel/symfony_project/compilation/submissions/57/input_files/:/compilation/input_files -v /var/www/gradel_dev/tgsmith/gradel/symfony_project/compilation/submissions/57/run_logs/:/compilation/run_logs -v /var/www/gradel_dev/tgsmith/gradel/symfony_project/compilation/submissions/57/student_code/:/compilation/student_code -v /var/www/gradel_dev/tgsmith/gradel/symfony_project/compilation/submissions/57/time_logs/:/compilation/time_logs -v /var/www/gradel_dev/tgsmith/gradel/symfony_project/compilation/submissions/57/user_output/:/compilation/user_output -v /var/www/gradel_dev/tgsmith/gradel/symfony_project/compilation/submissions/57/output_files/:/compilation/output_files 	gradel 	/compilation/compiler -l Java -f java.zip -n 4 -M Sum -P mainpackage -z
+023445cdb4f320bdffe48c96c897cc503d9ef93f4aba5bf0dd0dd8f743d9fdd8
+timeout 13 docker wait gd57
+gd57
+gd57
+status: exited with 0

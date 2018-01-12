@@ -66,27 +66,17 @@ The grader was not passed from the controller.
 					POSSIBLE MALICIOUS BEHAVIOR DETECTED
 				{% endif %}
 				
-				{% if submission.compiler_error %}
+				{% if submission.compiler_output %}
 					<h2> COMPILER OUTPUT </h2>
-					<hr>
-					{{submission.deblobinateCompilerOutput()}}			
-					<hr>
-				{% elseif submission.runtime_error %}
-					<h2> RUNTIME OUTPUT </h2>
-					<hr>
-					{% for tcr in submission.testcaseresults %}
-						{{tcr.deblobinateRuntimeOutput()}}<br/>			
-						<hr>			
-					{% endfor %}
+					<textarea disabled id='compiler-output'>{{submission.compiler_output}}</textarea>
 				{% endif %}
 				
 				</div>
 					
 				<!--span style="word-wrap: break-word"> {{feedback|json_encode}} </span-->
 				
-				{% if not submission.compiler_error %}
+				{% if feedback.display_markers and not submission.compiler_error and not submission.questionable_behavior and submission.testcaseresults|length > 0%}
 				<div id="feedback-holder">
-					{% if feedback.display_markers %}
 					<div id="testcase-markers-container">
 						<h3>TESTCASES:</h3>				
 						
@@ -120,41 +110,47 @@ The grader was not passed from the controller.
 									{% endfor %}
 								</ul>
 								
-								{% set failed = false %}									
 								{% for tcr in submission.testcaseresults %}
 								
-									{% if not failed or not feedback.stop_on_first_fail %}
-									{% if not tcr.testcase.is_extra_credit or feedback.extra_testcases_display %}
-									
-									
-									<div id="testcase-tab-{{tcr.id}}">
-										<div class="testcase-data">
-											{% if feedback.input[tcr.testcase.seq_num] != '' %}
-											<div id="testcase-input">
-												<div class="testcase-data-heading">Input:</div>
-												<textarea disabled>{{feedback.input[tcr.testcase.seq_num]}}</textarea>
-											</div>	
-											{% endif %}
-											
-											
-											
-											<div id="testcase-outputexp">
-												<div class="testcase-data-heading">Expected Output:</div>
-												<textarea disabled>{{feedback.output[tcr.testcase.seq_num]}}</textarea>
-											</div>
-											
-											<div id="testcase-outputyrs">
-												<div class="testcase-data-heading">Your Output:</div>
-												<textarea disabled>{{submission.testcaseresults[loop.index0].deblobinateStdOutput()}}</textarea>
+									{% if not tcr.runtime_error %}
+										{% if not tcr.testcase.is_extra_credit or feedback.extra_testcases_display %}
+										
+										<div id="testcase-tab-{{tcr.id}}">
+											<div class="testcase-data">
+												{% if feedback.input[tcr.testcase.seq_num] != '' %}
+												<div id="testcase-input">
+													<div class="testcase-data-heading">Input:</div>
+													<textarea disabled>{{feedback.input[tcr.testcase.seq_num]}}</textarea>
+												</div>	
+												{% endif %}
+												
+												
+												
+												<div id="testcase-outputexp">
+													<div class="testcase-data-heading">Expected Output:</div>
+													<textarea disabled>{{feedback.output[tcr.testcase.seq_num]}}</textarea>
+												</div>
+												
+												<div id="testcase-outputyrs">
+													<div class="testcase-data-heading">Your Output:</div>
+													<textarea disabled>{{submission.testcaseresults[loop.index0].std_output}}</textarea>
+												</div>
 											</div>
 										</div>
-									</div>
+										
+										{% endif %}
+									{% else %}
 									
-									{% if not tcr.is_correct %}
-										{% set failed = true %}
-									{% endif %}
+										<div id="testcase-tab-{{tcr.id}}">
+											<div class="testcase-data">
+												<div id="testcase-outputexp" style="width: 100%">
+													<div class="testcase-data-heading">Runtime Output:</div>
+													<textarea disabled>{{feedback.runtime[tcr.testcase.seq_num]}}</textarea>
+												</div>
+											
+											</div>
+										</div>								
 									
-									{% endif %}
 									{% endif %}
 								
 								{% endfor %}
@@ -162,28 +158,23 @@ The grader was not passed from the controller.
 							</div>	
 							{% else %}
 							<div id="testcase-markers-no-out">
-								{% set failed = false %}
 								{% for tcr in submission.testcaseresults %}						
 									
-									{% if not failed or not feedback.stop_on_first_fail %}
 									{% if not tcr.testcase.is_extra_credit or feedback.extra_testcases_display %}
 									
 									{% if tcr.is_correct %}
 										<span style="color:green; font-size: 20px;"> &#x2713;</span> 				
 									{% else %}
-										{% set failed = true %}
 										<span style="color:red; font-size: 20px;"> &#x2718;</span>
 									{% endif %}
 									
 									{% endif %}
-									{% endif %}
 								
 								{% endfor %}						
 							
-							</div>						
+							</div>		
 							{% endif %}
 					</div>
-					{% endif %}
 					
 					{% if feedback.response|length > 0 %}
 					<div id="feedback"> 
@@ -192,8 +183,8 @@ The grader was not passed from the controller.
 						{% for response in feedback.response %}
 							<li>{{response}}</li>
 						{% endfor %}
-						
-						{% endif %}
+					
+					{% endif %}
 						</ul>
 					</div>
 				</div>
@@ -204,7 +195,10 @@ The grader was not passed from the controller.
 				<a href="{{path('assignment', {'sectionId': submission.problem.assignment.section.id, 'assignmentId': submission.problem.assignment.id, 'problemId': submission.problem.id} )}}">
 					Edit and resubmit
 				</a>
-				<div id="editor">{{submission.deblobinateSubmittedFile()|nl2br}}</div>
+				
+<div id="editor">{% if submission.filename|split('.')|last != 'zip' %}
+{{ submission.deblobinateSubmittedFile()|nl2br }}{% else %}
+Submission was a ZIP file{% endif %}</div>
 				
 				<h3 style="margin-top: 10px; margin-bottom: 0px">Submission ID: {{submission.id}}</h3>
 			</div>
@@ -226,7 +220,6 @@ The grader was not passed from the controller.
 	<link rel="stylesheet" href="{{ asset('styles.css') }}" />
 	<link rel="stylesheet" href="{{ asset('card.css') }}" />
 	
-    <link rel="stylesheet" href="{{ asset('submit.css') }}" />	
 	<link rel="stylesheet" href="{{ asset('submission-results.css') }}">
 
 {% endblock %}
@@ -243,8 +236,16 @@ The grader was not passed from the controller.
 	
 		$('#testcase-markers').tabs();
 
+		{% if submission.compiler_output %}
+		
+		var a = $('#compiler-output').html();
+		document.getElementById("compiler-output").rows = a.split(/\r\n|\r|\n/).length;
+		
+		{% endif %}
+		
 		var editor = ace.edit("editor");
 		editor.setTheme("ace/theme/xcode");	
+		editor.setReadOnly(true);
 	});
 	
 	

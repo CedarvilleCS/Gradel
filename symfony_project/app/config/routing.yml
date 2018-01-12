@@ -113,15 +113,6 @@ get_contents:
     defaults: { _controller: AppBundle:Upload:getContents}
     methods: [POST]
 
-# SUBMISSION ROUTES
-submission_upload:
-  path: "/upload/{problem_id}"
-  defaults: {_controller: AppBundle:Upload:submitProblemUpload}
-  methods: [POST]
-  requirements:
-    problem_id:     '\d+'
-
-
 # temporary route for GUI development
 professorsection:
     path: "/professor/section/{userId}/{sectionId}"
@@ -133,6 +124,11 @@ submit:
         _controller:    AppBundle:Compilation:submit
     methods: [POST]
 
+generate:
+    path: '/generate'
+    defaults:
+        _controller:    AppBundle:Compilation:generate
+    methods: [POST]
 
 # AUTHENTICATION ROUTES
 hwi_oauth_redirect:

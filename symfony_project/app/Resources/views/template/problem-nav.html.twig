@@ -28,6 +28,7 @@
 			
 			{% endif %}
 			</small></div></li>
+		
 		<li class="sidebar" style="text-align:left">
 			<strong>Problems</strong>
 			{% if elevatedUser %}
@@ -46,7 +47,7 @@
 			
 				<a href="{{path("assignment", {'sectionId': prob.assignment.section.id, 'assignmentId': prob.assignment.id, 'problemId': prob.id})}}">
 			
-				<li class="sidebar" style="{%if prob.id == problem.id %}background: #5a5a5a; {%endif%} padding-left: 15px">			
+				<li class="sidebar list-item" style="{%if prob.id == problem.id %}background: #5a5a5a; {%endif%}">			
 					<div class="{% if elevatedUser %}sidebar-text{% endif %}">{{ prob.name }}&nbsp;</div>
 					
 					{% if usersectionrole.role.role_name == 'Takes'%}
@@ -63,7 +64,7 @@
 				
 			{% else %}
 			
-				<li class="sidebar" style="background: #5a5a5a; padding-left: 15px">
+				<li class="sidebar list-item" style="background: #5a5a5a">
 					<div class="{% if elevatedUser %}sidebar-text{% endif %}">{{ prob.name }}&nbsp;</div>
 						{% if usersectionrole.role.role_name == 'Takes'%}
 							<small>
@@ -99,7 +100,7 @@
 			{% endif %}
 			
 		{% else %}
-			<li class="sidebar" style="padding-left: 15px"> There are no problems for this assignment </li>
+			<li class="sidebar list-item"> There are no problems for this assignment </li>
 		{% endfor %}
 	  
 	</ol>

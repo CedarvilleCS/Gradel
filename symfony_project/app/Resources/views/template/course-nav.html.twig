@@ -19,7 +19,7 @@
 		{% for course in courses %}	
 		
 			<a href="{{path('course_edit', {'courseId':course.id})}}">
-				<li class="sidebar" style="padding-left: 15px">
+				<li class="sidebar list-item">
 					<span class="preview">
 						<div class="sidebar-text"> {{course.name}} </div>
 					</span>	
@@ -43,7 +43,7 @@
 	<ol id="past_list" style="padding-bottom: 10px; display: none">
 		{% for course in deleted_courses %}
 			<a href="{{path('course_edit', {'courseId':course.id})}}">
-				<li class="sidebar" style="padding-left: 15px">
+				<li class="sidebar list-item">
 					<span class="preview">{{course.name}}</span>	
 					<object>
 						<a title="Open Course" href="{{path('course_delete', {'courseId': course.id})}}">
@@ -53,7 +53,7 @@
 				</li>
 			</a>
 		{% else %}
-			<li style="padding-left: 15px"> No deleted courses </li>
+			<li class="sidebar list-item"> No deleted courses </li>
 		{% endfor %}
 	</ol>
 	

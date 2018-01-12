@@ -23,6 +23,10 @@ use \DateTime;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\Config\Definition\Exception\Exception;
 
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+
 class Grader  {
 	
 	public $em;
@@ -442,7 +446,6 @@ class Grader  {
 		
 		$problem = $submission->problem;
 		
-		$stop_on_first_fail = $problem->stop_on_first_fail;
 		$response_level = $problem->response_level;
 		$display_testcaseresults = $problem->display_testcaseresults;
 		$testcase_output_level = $problem->testcase_output_level;
@@ -450,12 +453,12 @@ class Grader  {
 		
 		$feedback = [];	
 		
-		$feedback['stop_on_first_fail'] = $stop_on_first_fail;
 		$feedback['display_markers'] = $display_testcaseresults;
 		$feedback['extra_testcases_display'] = $extra_testcases_display;
 		$feedback['response'] = [];
 		$feedback['input'] = [];
-		$feedback['output'] = [];		
+		$feedback['output'] = [];
+		$feedback['runtime'] = [];
 		
 		foreach($submission->testcaseresults as $tcr){
 
@@ -465,36 +468,62 @@ class Grader  {
 			
 			if($tcr->testcase->feedback != null && !$tcr->is_correct && $response_level == "Short"){
 				
-				$resp = trim($tcr->testcase->feedback->deblobinateShortResponse());
+				$resp = trim($tcr->testcase->feedback->short_response);
 				
 				if($resp != ""){
 					$feedback['response'][$tcr->testcase->seq_num] = $resp;
 				}
 			} else if($tcr->testcase->feedback != null && !$tcr->is_correct && $response_level == "Long"){
 				
-				$resp = trim($tcr->testcase->feedback->deblobinateLongResponse());
+				$resp = trim($tcr->testcase->feedback->long_response);
 				
 				if($resp != ""){
 					$feedback['response'][$tcr->testcase->seq_num] = $resp;
 				}
 			}
 			
-			if($testcase_output_level == "Output"){
-				$feedback['output'][$tcr->testcase->seq_num] = $tcr->testcase->deblobinateCorrectOutput();
-			} else if($testcase_output_level == "Both"){
-				$feedback['output'][$tcr->testcase->seq_num] = $tcr->testcase->deblobinateCorrectOutput();
-				$feedback['input'][$tcr->testcase->seq_num] = $tcr->testcase->deblobinateInput();
+			if($tcr->runtime_error){
+				$feedback['runtime'][$tcr->testcase->seq_num] = $tcr->runtime_output;
 			}
 			
-			if(!$tcr->is_correct && $stop_on_first_fail){
-				break;
+			$feedback['time'][$tcr->testcase->seq_num] = $tcr->execution_time;
+			
+			if($testcase_output_level == "Output"){
+				$feedback['output'][$tcr->testcase->seq_num] = $tcr->testcase->correct_output;
+			} else if($testcase_output_level == "Both"){
+				$feedback['output'][$tcr->testcase->seq_num] = $tcr->testcase->correct_output;
+				$feedback['input'][$tcr->testcase->seq_num] = $tcr->testcase->input;
 			}
+
 		}
 			
 		$feedback['response'] = array_unique($feedback['response']);
 		
 		return $feedback;		
 	}
+	
+	
+	public function isAcceptedSubmission($submission, $previous, $total_correct){
+		
+		// take the new solution if it is 100% no matter wha
+		$total_testcases = count($submission->problem->testcases);
+		
+		if($total_correct == $total_testcases){
+			#echo "This new testcase solves all of the testcases!";
+			return true;
+		}
+		// choose higher percentage if they both have percentages
+		else if($previous && $submission->percentage > $previous->percentage){
+			#echo "This new one has a higher percentage!";
+			return true;
+		}
+		else {
+			#echo "Only change if the old one isn't set";
+			return $previous == null;
+		}
+		
+	}
+	
 }
 
 

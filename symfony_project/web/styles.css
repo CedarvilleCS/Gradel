@@ -359,6 +359,10 @@ td, th {
 	hyphens: auto;
 }
 
+.list-item{
+	padding-left: 15px !important;
+}
+
 .dynamicVal {
   color: #8DC26F;
   display: inline;

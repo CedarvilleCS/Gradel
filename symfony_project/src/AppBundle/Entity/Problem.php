@@ -65,7 +65,7 @@ class Problem{
 
 	/**
 	* @ORM\ManyToOne(targetEntity="Assignment", inversedBy="problems")
-	* @ORM\JoinColumn(name="assignment_id", referencedColumnName="id", nullable = false, onDelete="CASCADE")
+	* @ORM\JoinColumn(name="assignment_id", referencedColumnName="id", nullable = true, onDelete="CASCADE")
 	*/
 	public $assignment;
 
@@ -75,13 +75,19 @@ class Problem{
 	public $name;
 
 	/**
-	* @ORM\Column(type="blob", nullable=true)
+	* @ORM\Column(type="text", nullable=false)
 	*/
 	public $description;
+
 	
-	public function deblobinateDescription(){			
-		$val = stream_get_contents($this->description);
-		rewind($this->description);
+	/**
+	* @ORM\Column(type="blob", nullable=true)
+	*/
+	public $custom_validator;
+	
+	public function deblobinateCustomValidator(){			
+		$val = stream_get_contents($this->custom_validator);
+		rewind($this->custom_validator);
 		
 		return $val;
 	}

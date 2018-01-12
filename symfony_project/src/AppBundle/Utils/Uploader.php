@@ -22,6 +22,10 @@ use \DateTime;
 
 use Symfony\Component\Config\Definition\Exception\Exception;
 
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+
 class Uploader  {
 	
 	public $web_directory;
@@ -43,6 +47,11 @@ class Uploader  {
 		# Get the file contents and name
 		$fileContents = base64_encode(file_get_contents($file["tmp_name"]));
 		$fileName = basename($file["name"]);
+		
+				
+		if(pathinfo($file['name'], PATHINFO_EXTENSION) == 'zip'){
+			$fileContents = base64_encode("Zip file contents is meaningless");
+		}
 
 		# return an array of the contents and name
 		return ["contents" => $fileContents, "name" => $fileName];
@@ -62,21 +71,22 @@ class Uploader  {
 		
 		return $target_directory;
 	}
-	
+
 	/*
 		This function will take a file, a user, and a problem and
 		put the file in the appropriate directory by using the 
 		getUploadDirectory method
-	*/
-		
+	*/		
 	public function uploadSubmissionFile($file, $user, $problem){
 		
 		# file paths
 		$target_directory = $this->getUploadDirectory($user, $problem);
-		$target_file = $target_directory.$file["name"];		
+		$target_file = $target_directory.$file->getClientOriginalName();		
+		
+		$moved_file = $file->move($target_directory, $file->getClientOriginalName());
 		
 		# check to see if the file was uploaded
-		if(move_uploaded_file($file["tmp_name"], $target_file)){
+		if($moved_file){
 			return $target_file;
 			
 		} else {

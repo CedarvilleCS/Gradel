@@ -31,25 +31,28 @@ use Symfony\Component\HttpFoundation\Response;
 class UploadController extends Controller {
 
 	/*
-		Returns a json array of the file contents using the Uploader utility
+		Saves a PHP array of the file contents using the Uploader utility in $data
+		Returns 1 on success
 	*/
 	public function getContentsAction(Request $request){
-
+	
 		if(!$_FILES["file"]){
-			$response = new Response("You should have provided a file, silly!");
-			$response->setStatusCode(Response::HTTP_FORBIDDEN);
-			return $response;
+			return $this->returnForbiddenResponse("A file from the input with name='file' was not provided.");
 		}
-
+		
+		$file = $_FILES["file"];
+		
 		$web_dir = $this->get('kernel')->getProjectDir()."/";
         $uploader = new Uploader($web_dir);
 
-		$fileInfo = $uploader->getFileContents($_FILES["file"]);
+		$fileInfo = $uploader->getFileContents($file);
 
+		$responseData = [];		
+		$responseData[] = $fileInfo;
+		
 		$response = new Response(json_encode([
-
-			'contents' => $fileInfo['contents'],
-			'file' => $fileInfo['name'],
+			
+			'files' => $responseData,
 
 		]));
 
@@ -63,37 +66,61 @@ class UploadController extends Controller {
 		Handles uploading code from the ACE editor on the assignment page
 		It is called from the submitProblemUploadAction method
 	*/
-	public function aceUpload($problem_id){
+	public function aceUpload(&$data, $problem_id, $postData){
 
 		# entity manager
         $em = $this->getDoctrine()->getManager();
-
+				
         # get the current problem
+		
+		if(!isset($problem_id) || !($problem_id > 0)){
+			return "PROBLEM ID WAS NOT PROVIDED OR FORMATTED PROPERLY";
+		}
+		
         $problem_entity = $em->find("AppBundle\Entity\Problem", $problem_id);
 		if(!$problem_entity){
-            die("PROBLEM DOES NOT EXIST");
+			
+            return "PROBLEM DOES NOT EXIST";
         }
 
         # get the current user
         $user= $this->get('security.token_storage')->getToken()->getUser();
         if(!$user){
-            die("USER DOES NOT EXIST");
+             return "USER DOES NOT EXIST";
         }
 
 		# check the language
-		$language_id = $_POST["language"];
+		if($postData["language"]){
+			$language_id = $postData["language"];
+		} else {
+			$language_id = $postData["languageId"];
+		}
+		
+		if(!isset($language_id) || !($language_id > 0)){
+			return "LANGUAGE WAS NOT PROVIDED OR FORMATTED PROPERLY";
+		}
+		
 		$language_entity = $em->find("AppBundle\Entity\Language", $language_id);
 		if(!$language_entity){
-			die("LANGUAGE DOES NOT EXIST!");
+			 return "LANGUAGE DOES NOT EXIST!";
 		}
 		if($language_entity->name == "Java"){
 
-			if(!$_POST["main_class"] || $_POST["main_class"] == ""){
-				die("MAIN CLASS IS NEEDED");
+			if((!isset($postData["main_class"]) || trim($postData["main_class"]) == "") && (!isset($postData["mainclass"]) || trim($postData["mainclass"]) == "")){
+				 return "MAIN CLASS IS NEEDED";
+			}
+			
+			$main_class = null;
+			if(!$postData["main_class"]){
+				$main_class = $postData["mainclass"];
+				$package_name = $postData["packagename"];
+			} else {
+				$main_class = $postData["main_class"];
+				$package_name = $postData["package_name"];
 			}
 
-			$main_class = $_POST["main_class"];
-			$package_name = $_POST["package_name"];
+			$main_class = $main_class;
+			$package_name = $package_name;
 
 			$filename = $main_class.".java";
 
@@ -104,45 +131,51 @@ class UploadController extends Controller {
 			$filename = "problem". $problem_entity->id . $language_entity->filetype;
 		}
 		
-		# save uploaded file to $web_dir.compilation/uploads/user_id/
+		# save uploaded file to $web_dir.compilation/uploads/user_id/problem
         $web_dir = $this->get('kernel')->getProjectDir()."/";
         $uploader = new Uploader($web_dir);
 
 
 		$uploads_directory = $uploader->getUploadDirectory($user, $problem_entity);
 
-		if(!file_put_contents($uploads_directory . $filename, $_POST["ACE"], FILE_USE_INCLUDE_PATH)){
-			die("UNABLE TO MOVE THE ACE EDITOR CONTENTS");
+		if(!file_put_contents($uploads_directory . $filename, $postData["ACE"], FILE_USE_INCLUDE_PATH)){
+			 return "UNABLE TO MOVE THE ACE EDITOR CONTENTS";
 		}
 
-		return [
+		$data = [
 			'problem_id' => $problem_entity->id,
 			'submitted_filename' => $filename,
 			'language_id' => $language_id,
 			'main_class' => $main_class,
 			'package_name' => $package_name
 		];
+		
+		return 1;
 	}
 
 	/*
 		Handles uploading code from the file input/selector on the assignment page
 		It is called from the submitProblemUploadAction method
 	*/
-	public function fileUpload($problem_id, $postData, $file){
+	public function fileUpload(&$data, $problem_id, $postData, $file){
 
 		# entity manager
         $em = $this->getDoctrine()->getManager();
 
         # get the current problem
+		if(!isset($problem_id) || !($problem_id > 0)){
+			return "PROBLEM ID WAS NOT PROVIDED OR FORMATTED PROPERLY";
+		}
+		
         $problem_entity = $em->find("AppBundle\Entity\Problem", $problem_id);
 		if(!$problem_entity){
-            die("PROBLEM DOES NOT EXIST");
+            return "PROBLEM DOES NOT EXIST";
         }
 
         # get the current user
         $user= $this->get('security.token_storage')->getToken()->getUser();
         if(!$user){
-            die("USER DOES NOT EXIST");
+           return "USER DOES NOT EXIST";
         }
 
         
@@ -156,16 +189,20 @@ class UploadController extends Controller {
 		if($target_file){
 
 			$language_id = $postData["language"];
+			
+			if(!isset($language_id) || !($language_id > 0)){
+				return "LANGUAGE WAS NOT PROVIDED OR FORMATTED PROPERLY";
+			}			
 
 			$language_entity = $em->find("AppBundle\Entity\Language", $language_id);
 			if(!$language_entity){
-				die("LANGUAGE DOES NOT EXIST!");
+				return "LANGUAGE DOES NOT EXIST!";
 			}
 
 			if($language_entity->name == "Java"){
 
 				if(strlen($postData["main_class"]) == 0){
-					die("MAIN CLASS IS NEEDED");
+					return "MAIN CLASS IS NEEDED";
 				}
 
 				$main_class = $postData["main_class"];
@@ -176,55 +213,61 @@ class UploadController extends Controller {
 				$package_name = "";
 			}
 
-			return [
+			$data = [
 				'problem_id' => $problem_entity->id,
-				'submitted_filename' => basename($file["name"]),
+				'submitted_filename' => basename($file->getClientOriginalName()),
 				'language_id' => $language_id,
 				'main_class' => $main_class,
 				'package_name' => $package_name,
 			];
+			
+			return 1;
 		}
 	}
 
 	/*
 		Controller action to handle the submission of code on the assignment page
 	*/
-    public function submitProblemUploadAction($problem_id) {		
+    public function submitProblemUploadAction($problem_id, Request $request) {		
+
+		$postData = $request->request->all();
+		$files = $request->files;		
 		
-		if(isset($_FILES["file"])){
+		if($files->get('file')){	
+
+			$file = $files->get('file');
+
+			if($file->getClientSize() > 1048576){
+				return $this->returnForbiddenResponse("FILE GIVEN IS TOO LARGE");
+			}			
 			
-			$data = $this->fileUpload($problem_id, $_POST, $_FILES["file"]);
+			$data = null;
+			$uploadResp = $this->fileUpload($data, $problem_id, $postData, $file);
 			
-		} else if(isset($_POST["ACE"]) && $_POST["ACE"] != ""){
+			if($uploadResp != 1){
+				return $this->returnForbiddenResponse($uploadResp."");
+			}
 			
-			$data = $this->aceUpload($problem_id, $_POST);
+		} else if(isset($postData["ACE"]) && trim($postData["ACE"]) != ""){
+			
+			if(strlen($postData["ACE"]) > 1048576){
+				return $this->returnForbiddenResponse("UPLOADED CODE IS TOO LONG");
+			}	
+			
+			$data = null;
+			$uploadResp = $this->aceUpload($data, $problem_id, $postData);
+			
+			if($uploadResp != 1){
+				return $this->returnForbiddenResponse($uploadResp."");
+			}
 
 		} else {
-
-			# get the current problem
-			$em = $this->getDoctrine()->getManager();
-			$problem_entity = $em->find("AppBundle\Entity\Problem", $problem_id);
-			if(!$problem_entity){
-				die("PROBLEM DOES NOT EXIST");
-			}
-			// if they didn't send a file or ace, render upload page
-			$url = $this->generateUrl('assignment', [
-
-				'sectionId' => $problem_entity->assignment->section->id,
-				'assignmentId' => $problem_entity->assignment->id,
-				'problemId' => $problem_entity->id,
-
-			]);
-
-			$data = null;
+			
+			return $this->returnForbiddenResponse("NOTHING PROVIDED TO UPLOAD");
 		}
 
-
 		$response = new Response(json_encode([
-
-			'redirect_url' => $url,
 			'data' => $data,
-
 		]));
 
 		$response->headers->set('Content-Type', 'application/json');
@@ -232,6 +275,13 @@ class UploadController extends Controller {
 
 		return $response;
     }
+	
+	private function returnForbiddenResponse($message){		
+		$response = new Response($message);
+		$response->setStatusCode(Response::HTTP_FORBIDDEN);
+		return $response;
+	}
+	
 }
 
 ?>

@@ -22,10 +22,11 @@ class Testcase {
 		}
 	}
 
-	public function __construct7($prob, $seq, $in, $out, $feed, $wght, $extra){
+	public function __construct8($prob, $seq, $in, $cmd, $out, $feed, $wght, $extra){
 		$this->problem = $prob;
 		$this->seq_num = $seq;
 		$this->input = $in;
+		$this->command_line_input = $cmd;
 		$this->correct_output = $out;
 		$this->feedback = $feed;
 		$this->weight = $wght;
@@ -52,27 +53,19 @@ class Testcase {
 	public $seq_num;
 
 	/**
-	*@ORM\Column(type="blob")
+	*@ORM\Column(type="text", nullable=true)
 	*/
 	public $input;
-
-	public function deblobinateInput(){
-		$val = stream_get_contents($this->input);
-		rewind($this->input);
-		return $val;
-	}
+	
+	/**
+	*@ORM\Column(type="text", nullable=true)
+	*/
+	public $command_line_input;
 
 	/**
-	*@ORM\Column(type="blob")
+	*@ORM\Column(type="text")
 	*/
 	public $correct_output;
-
-	public function deblobinateCorrectOutput(){
-		$val = stream_get_contents($this->correct_output);
-		rewind($this->correct_output);
-		return $val;
-		
-	}
 
 	/**
      * Multiple FB per TC

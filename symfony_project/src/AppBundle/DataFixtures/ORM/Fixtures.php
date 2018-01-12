@@ -92,7 +92,7 @@ class Fixtures extends Fixture {
 		
 		# SECTION Testing
 		{
-			$CS1210_01 = new Section($course1, "CS-1210-01", "Fall", 2017, \DateTime::createFromFormat($date_format, "00:00:00 08/21/2017"), \DateTime::createFromFormat($date_format, "23:59:59 12/16/2017"), false, false);
+			$CS1210_01 = new Section($course1, "CS-1210-01", "Spring", 2018, \DateTime::createFromFormat($date_format, "00:00:00 11/21/2017"), \DateTime::createFromFormat($date_format, "23:59:59 05/31/2018"), false, false);
 			
 			$manager->persist($CS1210_01);
 		}
@@ -122,16 +122,16 @@ class Fixtures extends Fixture {
 			
 			$assignment_01 = new Assignment($CS1210_01, 
 									"Homework #1", "This is the first homework assignment", 
-									\DateTime::createFromFormat($date_format, "00:00:00 10/30/2017"), 
-									\DateTime::createFromFormat($date_format, "23:59:59 11/01/2017"), 
-									\DateTime::createFromFormat($date_format, "23:59:59 12/15/2017"), 1, $assignment_grdmethod0, false);
+									\DateTime::createFromFormat($date_format, "00:00:00 11/30/2017"), 
+									\DateTime::createFromFormat($date_format, "23:59:59 05/30/2018"), 
+									\DateTime::createFromFormat($date_format, "23:59:59 05/30/2018"), 1, $assignment_grdmethod0, false);
 			$manager->persist($assignment_01);
 			
 			$assignment_02 = new Assignment($CS1210_01, 
 									"Homework #2", "This is the second homework assignment", 
-									\DateTime::createFromFormat($date_format, "00:00:00 10/30/2017"), 
-									\DateTime::createFromFormat($date_format, "23:59:59 11/30/2017"), 
-									\DateTime::createFromFormat($date_format, "23:59:59 12/15/2017"), 1, $assignment_grdmethod0, false);
+									\DateTime::createFromFormat($date_format, "00:00:00 11/30/2017"), 
+									\DateTime::createFromFormat($date_format, "23:59:59 05/30/2018"), 
+									\DateTime::createFromFormat($date_format, "23:59:59 05/30/2018"), 1, $assignment_grdmethod0, false);
 			$manager->persist($assignment_02);
 		}
 		
@@ -171,13 +171,23 @@ class Fixtures extends Fixture {
 			$def_cpp = fopen($folder_path."default_code/default.cpp", "r") or die("Unable to open default.cpp");
 			$def_java = fopen($folder_path."default_code/default.java", "r") or die("Unable to open default.java");
 			
+			$def_py = fopen($folder_path."default_code/default.py", "r") or die("Unable to open default.py");
+			$def_py2 = fopen($folder_path."default_code/default.py", "r") or die("Unable to open default.py");
+			$def_php = fopen($folder_path."default_code/default.phpp", "r") or die("Unable to open default.php");
+			
 			$language_C = new Language("C", ".c", "c_cpp", $def_c);	
 			$language_CPP = new Language("C++", ".cpp", "c_cpp", $def_cpp);
 			$language_JAVA = new Language("Java", ".java", "java", $def_java);
+			$language_PHP = new Language("PHP", ".php", "php", $def_php);
+			$language_PY2 = new Language("Python 2", ".py", "python", $def_py);
+			$language_PY3 = new Language("Python 3", ".py", "python", $def_py2);
 			
 			$manager->persist($language_C);
 			$manager->persist($language_CPP);
-			$manager->persist($language_JAVA);			
+			$manager->persist($language_JAVA);
+			$manager->persist($language_PHP);
+			$manager->persist($language_PY2);
+			$manager->persist($language_PY3);			
 		}
 		
 		# PROBLEM Testing
@@ -190,67 +200,67 @@ class Fixtures extends Fixture {
 			
 			# HOMEWORK 1 For CS-1210-01
 			$desc_file_01 = fopen($folder_path."sum/description.txt", "r") or die("Unable to open 1.desc");
-			$problem_01 = new Problem($assignment_02, "Calculate the Sum", $desc_file_01, 1, 1000, false, 0, 0, 0, false, "Long", true, "Both", true);
+			$problem_01 = new Problem($assignment_02, "Calculate the Sum", stream_get_contents($desc_file_01), 1, 1000, false, 0, 0, 0, false, "Long", true, "Both", true);
 			$problems[] = $problem_01;
 			$prob_folds[$problem_01->name] = "sum";
 			
 			$desc_file_02 = fopen($folder_path."diff/description.txt", "r") or die("Unable to open 2.desc");
-			$problem_02 = new Problem($assignment_02, "Calculate the Difference", $desc_file_02, 1, 1000, false, 0, 0, 0, false, "Long", true, "Both", true);
+			$problem_02 = new Problem($assignment_02, "Calculate the Difference", stream_get_contents($desc_file_02), 1, 1000, false, 0, 0, 0, false, "Long", true, "Both", true);
 			$problems[] = $problem_02;
 			$prob_folds[$problem_02->name] = "diff";
 			
 			$desc_file_03 = fopen($folder_path."prod/description.txt", "r") or die("Unable to open 3.desc");
-			$problem_03 = new Problem($assignment_02, "Calculate the Product", $desc_file_03, 1, 1000, false, 0, 0, 0, false, "Long", true, "Both", true);
+			$problem_03 = new Problem($assignment_02, "Calculate the Product", stream_get_contents($desc_file_03), 1, 1000, false, 0, 0, 0, false, "Long", true, "Both", true);
 			$problems[] = $problem_03;
 			$prob_folds[$problem_03->name] = "prod";
 			
 			$desc_file_04 = fopen($folder_path."quot/description.txt", "r") or die("Unable to open 4.desc");
-			$problem_04 = new Problem($assignment_02, "Calculate the Quotient", $desc_file_04, 1, 1000, false, 0, 0, 0, false, "Long", true, "Both", true);
+			$problem_04 = new Problem($assignment_02, "Calculate the Quotient", stream_get_contents($desc_file_04), 1, 1000, false, 0, 0, 0, false, "Long", true, "Both", true);
 			$problems[] = $problem_04;
 			$prob_folds[$problem_04->name] = "quot";
 			
 			
 			# HOMEWORK 2 For CS-1210-01
 			$desc_file_11 = fopen($folder_path."sum/description.txt", "r") or die("Unable to open 1.desc");
-			$problem_11 = new Problem($assignment_01, "Get the Sum", $desc_file_11, 2, 1000, false, 0, 0, 0, false, "Long", true, "Both", true);
+			$problem_11 = new Problem($assignment_01, "Get the Sum", stream_get_contents($desc_file_11), 2, 1000, false, 0, 0, 0, false, "Long", true, "Both", true);
 			$problems[] = $problem_11;
 			$prob_folds[$problem_11->name] = "sum";
 			
 			$desc_file_12 = fopen($folder_path."diff/description.txt", "r") or die("Unable to open 2.desc");
-			$problem_12 = new Problem($assignment_01, "Get the Difference", $desc_file_12, 2, 1000, false, 0, 0, 0, false, "Long", true, "Both", true);
+			$problem_12 = new Problem($assignment_01, "Get the Difference", stream_get_contents($desc_file_12), 2, 1000, false, 0, 0, 0, false, "Long", true, "Both", true);
 			$problems[] = $problem_12;
 			$prob_folds[$problem_12->name] = "diff";
 			
 			$desc_file_13 = fopen($folder_path."prod/description.txt", "r") or die("Unable to open 3.desc");
-			$problem_13 = new Problem($assignment_01, "Get the Product", $desc_file_13, 2, 1000, false, 0, 0, 0, false, "Long", true, "Both", true);
+			$problem_13 = new Problem($assignment_01, "Get the Product", stream_get_contents($desc_file_13), 2, 1000, false, 0, 0, 0, false, "Long", true, "Both", true);
 			$problems[] = $problem_13;
 			$prob_folds[$problem_13->name] = "prod";
 			
 			$desc_file_14 = fopen($folder_path."quot/description.txt", "r") or die("Unable to open 4.desc");
-			$problem_14 = new Problem($assignment_01, "Get the Quotient", $desc_file_14, 2, 1000, false, 0, 0, 0, false, "Long", true, "Both", true);
+			$problem_14 = new Problem($assignment_01, "Get the Quotient", stream_get_contents($desc_file_14), 2, 1000, false, 0, 0, 0, false, "Long", true, "Both", true);
 			$problems[] = $problem_14;
 			$prob_folds[$problem_14->name] = "quot";
 			
 			/*
 			# PRACTICE CONTEST
 			$desc_file_05 = fopen($folder_path."Z/description.txt", "r") or die("Unable to open 5.desc");
-			$problem_05 = new Problem($assignment_02, "Z - Happy Trails", $desc_file_05, 1, 1000, false, 10, 5, .10, true, "Short", false, "None", true);
+			$problem_05 = new Problem($assignment_02, "Z - Happy Trails", stream_get_contents($desc_file_05), 1, 1000, false, 10, 5, .10, true, "Short", false, "None", true);
 			$problems[] = $problem_05;
 			$prob_folds[$problem_05->name] = "Z";
 			
 			# ACTUAL CONTEST
 			$desc_file_06 = fopen($folder_path."A/description.txt", "r") or die("Unable to open 6.desc");
-			$problem_06 = new Problem($assignment_03, "A - The Key to Cryptography", $desc_file_06, 1, 1000, false, 10, 5, .10, $fblevel01);
+			$problem_06 = new Problem($assignment_03, "A - The Key to Cryptography", stream_get_contents($desc_file_06), 1, 1000, false, 10, 5, .10, $fblevel01);
 			$problems[] = $problem_06;
 			$prob_folds[$problem_06->name] = "A";
 			
 			$desc_file_07 = fopen($folder_path."B/description.txt", "r") or die("Unable to open 7.desc");
-			$problem_07 = new Problem($assignment_03, "B - Red Rover", $desc_file_07, 2, 1000, false, 10, 5, .10, $fblevel01);
+			$problem_07 = new Problem($assignment_03, "B - Red Rover", stream_get_contents($desc_file_07), 2, 1000, false, 10, 5, .10, $fblevel01);
 			$problems[] = $problem_07;
 			$prob_folds[$problem_07->name] = "B";
 			
 			$desc_file_08 = fopen($folder_path."C/description.txt", "r") or die("Unable to open 8.desc");
-			$problem_08 = new Problem($assignment_03, "C - Lost In Translation", $desc_file_08, 3, 1000, false, 10, 5, .10, $fblevel01);
+			$problem_08 = new Problem($assignment_03, "C - Lost In Translation", stream_get_contents($desc_file_08), 3, 1000, false, 10, 5, .10, $fblevel01);
 			$problems[] = $problem_08;
 			$prob_folds[$problem_08->name] = "C";
 			*/
@@ -279,10 +289,16 @@ class Fixtures extends Fixture {
 				$problang_01 = new ProblemLanguage($language_CPP, $prob, NULL, NULL);			
 				$problang_02 = new ProblemLanguage($language_C, $prob, NULL, NULL);
 				$problang_03 = new ProblemLanguage($language_JAVA, $prob, NULL, NULL);
+				$problang_04 = new ProblemLanguage($language_PHP, $prob, NULL, NULL);			
+				$problang_05 = new ProblemLanguage($language_PY2, $prob, NULL, NULL);
+				$problang_06 = new ProblemLanguage($language_PY3, $prob, NULL, NULL);
 				
 				$manager->persist($problang_01);
 				$manager->persist($problang_02);
-				$manager->persist($problang_03);				
+				$manager->persist($problang_03);	
+				$manager->persist($problang_04);
+				$manager->persist($problang_05);
+				$manager->persist($problang_06);				
 			}
 			
 		}
@@ -296,8 +312,8 @@ class Fixtures extends Fixture {
 			$short_file_02 = fopen($folder_path."2.short", "r") or die("Unable to open 2.short!");			
 			$long_file_02 = fopen($folder_path."2.long", "r") or die("Unable to open 2.long!");
 			
-			$feedback_general = new Feedback($short_file_01, $long_file_01);
-			$feedback_negatives = new Feedback($short_file_02, $long_file_02);
+			$feedback_general = new Feedback(stream_get_contents($short_file_01), stream_get_contents($long_file_01));
+			$feedback_negatives = new Feedback(stream_get_contents($short_file_02), stream_get_contents($long_file_02));
 			
 			$manager->persist($feedback_general);		
 			$manager->persist($feedback_negatives);		
@@ -319,10 +335,10 @@ class Fixtures extends Fixture {
 				$out_file_03 = fopen($folder_path.$prob_name."/3.out", "r") or die("Unable to open 3.out!");
 				$out_file_04 = fopen($folder_path.$prob_name."/4.out", "r") or die("Unable to open 4.out!");
 							
-				$testcase_01 = new Testcase($prob, 1, $in_file_01, $out_file_01, $feedback_general, 1, false);
-				$testcase_02 = new Testcase($prob, 2, $in_file_02, $out_file_02, $feedback_general, 2, false);
-				$testcase_03 = new Testcase($prob, 3, $in_file_03, $out_file_03, $feedback_negatives, 3, false);
-				$testcase_04 = new Testcase($prob, 4, $in_file_04, $out_file_04, $feedback_negatives, 6, false);
+				$testcase_01 = new Testcase($prob, 1, stream_get_contents($in_file_01), NULL, stream_get_contents($out_file_01), $feedback_general, 1, false);
+				$testcase_02 = new Testcase($prob, 2, stream_get_contents($in_file_02), NULL, stream_get_contents($out_file_02), $feedback_general, 2, false);
+				$testcase_03 = new Testcase($prob, 3, stream_get_contents($in_file_03), NULL, stream_get_contents($out_file_03), $feedback_negatives, 3, false);
+				$testcase_04 = new Testcase($prob, 4, stream_get_contents($in_file_04), NULL, stream_get_contents($out_file_04), $feedback_negatives, 6, false);
 			
 				$manager->persist($testcase_01);
 				$manager->persist($testcase_02);	

@@ -34,9 +34,17 @@ class ProblemController extends Controller {
 			->where('1 = 1');
 		$languages = $qb->getQuery()->getResult();
 		
+		if(!isset($sectionId) || !($sectionId > 0)){
+			die("SECTION ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
+		}
+		
 		$section = $em->find('AppBundle\Entity\Section', $sectionId);
 		if(!$section){
 			die("SECTION DOES NOT EXIST");
+		}
+		
+		if(!isset($assignmentId) || !($assignmentId > 0)){
+			die("ASSIGNMENT ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
 		}
 		
 		$assignment = $em->find('AppBundle\Entity\Assignment', $assignmentId);
@@ -45,6 +53,11 @@ class ProblemController extends Controller {
 		}
 		
 		if($problemId != 0){
+			
+			if(!isset($problemId) || !($problemId > 0)){
+				die("PROBLEM ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
+			}		
+			
 			$problem = $em->find('AppBundle\Entity\Problem', $problemId);
 			
 			if(!$problem){
@@ -52,17 +65,37 @@ class ProblemController extends Controller {
 			}
 		}
 		
+		$default_code = [];
+		$ace_modes = [];
+		$filetypes = [];
+		foreach($languages as $l){
+			
+			$ace_modes[$l->name] = $l->ace_mode;
+			$filetypes[str_replace(".", "", $l->filetype)] = $l->name;
+			
+			// either get the default code from the problem or from the overall default
+			$default_code[$l->name] = $l->deblobinateDefaultCode();
+		}
+	
 		return $this->render('problem/edit.html.twig', [
 			'languages' => $languages,
 			'section' => $section,
 			'assignment' => $assignment,
 			'problem' => $problem,
+			
+			'default_code' => $default_code,
+			'ace_modes' => $ace_modes,
+			'filetypes' => $filetypes,
 		]);
     }
 
 	public function deleteAction($sectionId, $assignmentId, $problemId){
 
 		$em = $this->getDoctrine()->getManager();
+		
+		if(!isset($problemId) || !($problemId > 0)){
+			die("PROBLEM ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
+		}
 
 		$problem = $em->find('AppBundle\Entity\Problem', $problemId);
 		if(!$problem){
@@ -99,6 +132,10 @@ class ProblemController extends Controller {
 		$postData = $request->request->all();
 
 		# get the current assignment
+		if(!isset($postData['assignmentId']) || !($postData['assignmentId'] > 0)){
+			die("ASSIGNMENT ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
+		}
+		
 		$assignment = $em->find('AppBundle\Entity\Assignment', $postData['assignmentId']);
 		if(!$assignment){
 			return $this->returnForbiddenResponse("Assignment ".$postData['assignmentId']." does not exist");
@@ -118,6 +155,10 @@ class ProblemController extends Controller {
 			$em->persist($problem);
 
 		} else {
+			
+			if(!isset($postData['problem']) || !($postData['problem'] > 0)){
+				die("PROBLEM ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
+			}
 
 			$problem = $em->find('AppBundle\Entity\Problem', $postData['problem']);
 
@@ -224,27 +265,62 @@ class ProblemController extends Controller {
 		$problem->testcase_output_level = $testcase_output_level;
 		$problem->extra_testcases_display = ($extra_testcases_display == "true");
 
+		
+		# custom validator
+		$custom_validator = trim($postData['custom_validator']);
+		if(isset($custom_validator) && $custom_validator != ""){
+			$problem->custom_validator = $custom_validator;			
+			//return $this->returnForbiddenResponse($custom_validator."");
+		} else {
+			$problem->custom_validator = null;
+		}
+		
 		# go through the problemlanguages
+		# remove the old ones
 		foreach($problem->problem_languages as $pl){
 			$em->remove($pl);
 		}
 
+		foreach($postData['languages'] as $l){
 
-		foreach(array_unique($postData['languages']) as $l) {
+			if(!is_array($l)){
+				return $this->returnForbiddenResponse("Language data is not formatted properly");
+			}
+			
+			if(!isset($l['id']) || !($l['id'] > 0)){				
+				return $this->returnForbiddenResponse("You did not specify a language id");
+			}
 
-			$language = $em->find("AppBundle\Entity\Language", $l);
+			$language = $em->find("AppBundle\Entity\Language", $l['id']);
 
 			if(!$language){
-				return $this->returnForbiddenResponse("Provided language with id ".$l." does not exist");
+				return $this->returnForbiddenResponse("Provided language with id ".$l['id']." does not exist");
 			}
 
 			$problemLanguage = new ProblemLanguage();
 
 			$problemLanguage->language = $language;
 			$problemLanguage->problem = $problem;
+			
+			// set compiler options and default code
+			if(isset($l['compiler_options']) && strlen($l['compiler_options']) > 0){
+				
+				# check the compiler options for invalid characters
+				if(preg_match("/^[ A-Za-z0-9+=\-]+$/", $l['compiler_options']) != 1){
+					return $this->returnForbiddenResponse("The compiler options provided has invalid characters");
+				}
+								
+				$problemLanguage->compilation_options = $l['compiler_options'];
+			}
+			
+			if(isset($l['default_code']) && strlen($l['default_code']) > 0){
+				
+				$problemLanguage->default_code = $l['default_code'];
+			}
+			
 			$em->persist($problemLanguage);
 		}
-
+		
 		# go through the testcases array provided if this was a new problem
 		if($postData['problem'] == 0){
 
@@ -256,14 +332,13 @@ class ProblemController extends Controller {
 				}
 
 				# build the testcase
-				$response = TestCaseCreator::makeTestCase($em, $problem, $tc, $count);
+				$testcase = null;
+				$response = TestCaseCreator::makeTestCase($testcase, $em, $problem, $tc, $count);
 				$count++;
 
 				# check what the makeTestCase returns
-				if(!$response->problem){
-					return $response;
-				} else{
-					$testcase = $response;
+				if($response != 1){
+					return $this->returnForbiddenResponse($response."");
 				}
 
 				$em->persist($testcase);
@@ -281,6 +356,10 @@ class ProblemController extends Controller {
 
 		$em = $this->getDoctrine()->getManager();
 		$grader = new Grader($em);
+		
+		if(!isset($submission_id) || !($submission_id > 0)){
+			die("SUBMISSION ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
+		}
 
 		$submission = $em->find("AppBundle\Entity\Submission", $submission_id);
 
@@ -295,7 +374,7 @@ class ProblemController extends Controller {
 		}
 
 		# make sure the user has permissions to view the submission result
-		if($user->hasRole("ROLE_SUPER") && !$grader->isTeaching($user, $submission->problem->assignment->section) && !$grader->isOnTeam($user, $submission->problem->assignment, $submission->team)){
+		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN") && !$grader->isTeaching($user, $submission->problem->assignment->section) && !$grader->isOnTeam($user, $submission->problem->assignment, $submission->team)){
 			echo "YOU ARE NOT ALLOWED TO VIEW THIS SUBMISSION";
 			die();
 		}

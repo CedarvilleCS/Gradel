@@ -7,6 +7,7 @@ use JsonSerializable;
 use FOS\UserBundle\Model\User as BaseUser;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Config\Definition\Exception\Exception;
+use Doctrine\Common\Collections\ArrayCollection;
 
 
 /**

@@ -136,7 +136,7 @@
 							
 							<li><a href="{{path('problem_result', {'submission_id': sub.id})}}">
 								[{{sub.problem.name}}] 
-									{% if sub.team.users|length == 1 %}
+									{% if sub.team.users|length <= 1 %}
 										{{sub.user.getFirstName}} {{sub.user.getLastName}} 
 									{% else %}
 										{
@@ -149,7 +149,7 @@
 										{% endfor %}
 										}
 									{% endif %}
-									- {{sub.timestamp|date('F d, Y  \\a\\t  h:i:s')}} ({{sub.filename}})
+									- {{sub.timestamp|date('F d, Y  \\a\\t  h:i:s')}} ({{sub.language.name}})
 							</a> </li>
 						
 							</div>
