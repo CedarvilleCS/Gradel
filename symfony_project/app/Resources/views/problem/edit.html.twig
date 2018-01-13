@@ -786,8 +786,8 @@
 		
 		currentNum++;
 		testCases++;
-		div_name ="testcases"+testCases;
-		formalName="Test Case "+testCases;
+		div_name ="testcases"+currentNum;
+		formalName="Test Case "+currentNum;
 		
 		$('#generator-button').html("Generate Output for " + testCases + " Testcases");
 		
@@ -898,7 +898,13 @@
 		
 		addTestCardButton.click(function() {
 			addTestCase();
+			
+			console.log($('#input-type' + (currentNum-1)).val());
+			
 			$('#input-type' + currentNum).val($('#input-type' + (currentNum-1)).val());
+			
+			console.log($('#input-type' + currentNum).val());
+			
 			$('#input-type' + currentNum).change();
 		});
 		
@@ -908,9 +914,9 @@
 		
 			id = $(this)[0].id;
 				
-			argsId = "#argsUpload" + id.substring(id.length-1);
-			inptId = "#inputUpload" + id.substring(id.length-1);
-			outId = "#output" + id.substring(id.length-1);
+			argsId = "#argsUpload" + id.substring(10);
+			inptId = "#inputUpload" + id.substring(10);
+			outId = "#output" + id.substring(10);
 			
 			if($(this).val() == 'Command-Line'){
 							
