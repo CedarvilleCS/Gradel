@@ -31,17 +31,17 @@ class TestCaseCreator  {
 			$output = $data['output'];
 			
 			// add a newline to the input
-			if(substr($input,-1) != "\n"){
+			if(isset($input) && substr($input,-1) != "\n"){
 				$input = $input."\n";
 			}
 			
 			// add a newline to the output
-			if(substr($output,-1) != "\n"){
+			if(isset($output) && substr($output,-1) != "\n"){
 				$output = $output."\n";
 			}
 			
 			// make sure one of these was provided
-			if($input == "" && $args == ""){
+			if(!isset($input) && !isset($args)){
 				return "Neither input or output was provided for testcase ".$sequenceNumber;
 			}
 			
