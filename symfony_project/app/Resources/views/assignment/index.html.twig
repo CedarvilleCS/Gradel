@@ -65,9 +65,12 @@ var markdownText = converter.makeHtml("{{problem.description|e('js')}}");
 			
 			<div id="courseInfo" class="card-contents">
 			
-				<div id="markdown"></div>
-			
-				<!--<p>{{problem.description|e('js')|nl2br}}</p>-->
+				<div class="markdown-container">
+					<div id="markdown-header"></div>
+					<div id="markdown"></div>
+					<div id="markdown-collapser">Hide Description</div>
+				</div>
+				
 
 {# the ACE editor text area #}
 				
@@ -308,6 +311,28 @@ Uploaded file was a ZIP file
 	</script>
 
 	<script>
+	
+		$("#markdown-collapser").click(function () {
+			
+			$header = $("#markdown-header");
+			$collapser = $(this);
+			$content = $header.next();
+			
+			
+			$header.html(function() {
+				return $content.is(":visible") ? "<h1>{{problem.name|e('js')}}</h1>" : "";					
+			});
+			
+			$collapser.text(function() {
+				return $content.is(":visible") ? "Show Description" : "Hide Description";
+			});
+			
+			$content.slideToggle(0, function() {
+								
+			});
+			
+		});
+	
 		$(document).ready(function() {
 			
 			$('#markdown').html(markdownText);

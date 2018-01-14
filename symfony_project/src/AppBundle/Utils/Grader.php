@@ -495,8 +495,10 @@ class Grader  {
 				
 				if(isset($tcr->testcase->input)){
 					$feedback['input'][$tcr->testcase->seq_num] = $tcr->testcase->input;
-				} else {
-					$feedback['input'][$tcr->testcase->seq_num] = $tcr->testcase->command_line_input;
+				}
+				
+				if(isset($tcr->testcase->command_line_input)){
+					$feedback['command_line'][$tcr->testcase->seq_num] = $tcr->testcase->command_line_input;
 				}
 			}
 

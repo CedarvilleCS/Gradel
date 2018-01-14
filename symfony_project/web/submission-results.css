@@ -34,6 +34,12 @@
 	width: 33%;
 }
 
+#testcase-input{
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
 #testcase-tab{
 	padding: 0px;
 	margin: 0px;
@@ -120,6 +126,14 @@ ul{
 }
 
 textarea{
+	height: auto;
+}
+
+#input-textarea{
+	height: auto;
+}
+
+#command-line-textarea{
 	height: auto;
 }
 

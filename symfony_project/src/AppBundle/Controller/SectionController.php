@@ -112,7 +112,7 @@ class SectionController extends Controller {
 		
 		$grader = new Grader($em);
 		
-		if($grader->isTeaching($user, $section_entity)){
+		if($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isTeaching($user, $section_entity)){
 			
 			$qb_submissions = $em->createQueryBuilder();
 			$qb_submissions->select('s')
