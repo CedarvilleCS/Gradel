@@ -33,7 +33,7 @@ class TestCaseCreator  {
 			// add a newline to the input
 			if($input != null && $input != "" && substr($input,-1) != "\n"){
 				$input = $input."\n";
-			}  else if($input != null && $input != "") {
+			} else if($input == null || $input == "") {
 				$input = null;
 			}
 			
