@@ -31,18 +31,15 @@ class TestCaseCreator  {
 			$output = $data['output'];
 			
 			// add a newline to the input
-			if(isset($input) && substr($input,-1) != "\n"){
+			if($input != null && $input != "" && substr($input,-1) != "\n"){
 				$input = $input."\n";
+			}  else if($input != null && $input != "") {
+				$input = null;
 			}
 			
 			// add a newline to the output
 			if(isset($output) && substr($output,-1) != "\n"){
 				$output = $output."\n";
-			}
-			
-			// make sure one of these was provided
-			if(!isset($input) && !isset($args)){
-				return "Neither input or output was provided for testcase ".$sequenceNumber;
 			}
 			
 			$weight = $data['weight'];		  

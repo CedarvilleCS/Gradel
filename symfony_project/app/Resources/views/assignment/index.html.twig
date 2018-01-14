@@ -8,6 +8,22 @@
 
 {% block body %}
 
+{# markdown #}
+<script src="http://cdn.rawgit.com/showdownjs/showdown/1.8.6/dist/showdown.min.js"></script>
+
+<script>
+
+// markdown stuff
+var converter = new showdown.Converter();
+converter.setOption('tasklists', true);
+converter.setOption('backslashEscapesHTMLTags', true);
+converter.setOption('emoji', true);
+
+converter.setFlavor('github');
+var markdownText = converter.makeHtml("{{problem.description|e('js')}}");
+
+</script>
+
 <body>
     {{ include('template/top-nav.html.twig') }}
 
@@ -49,7 +65,7 @@
 			
 			<div id="courseInfo" class="card-contents">
 			
-				<div id="markdown">{{problem.description|raw}}</div>
+				<div id="markdown"></div>
 			
 				<!--<p>{{problem.description|e('js')|nl2br}}</p>-->
 
@@ -186,10 +202,7 @@ Uploaded file was a ZIP file
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 	<script src="{{ asset('src-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>
 	<script src="{{ asset('js/validation.js') }}"></script>
-	
-	{# markdown #}
-	<script src="http://cdn.rawgit.com/showdownjs/showdown/1.8.6/dist/showdown.min.js"></script>
-	
+		
 	{# asynchronous file upload #}
 	<script src="http://malsup.github.com/jquery.form.js"></script>
 	{# markdown #}
@@ -297,14 +310,7 @@ Uploaded file was a ZIP file
 	<script>
 		$(document).ready(function() {
 			
-			// markdown stuff
-			var converter = new showdown.Converter();
-			converter.setOption('tasklists', true);
-			converter.setOption('backslashEscapesHTMLTags', true);
-			converter.setOption('emoji', true);
-			
-			converter.setFlavor('github');
-			$('#markdown').html(converter.makeHtml($('#markdown').html()));
+			$('#markdown').html(markdownText);
 			
 			var editor = ace.edit("editor");
 			editor.$blockScrolling = Infinity;

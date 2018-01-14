@@ -945,7 +945,14 @@
 			}		
 		});
 		
-		$('#input-type' + currentNum).val('Input');
+		if((input != null && input != "") && ((args != null && args != ""))){
+			$('#input-type' + currentNum).val('Both');			
+		} else if(args != null && args != ""){
+			$('#input-type' + currentNum).val('Command-Line');
+		} else {
+			$('#input-type' + currentNum).val('Input');
+		}
+		
 		$('#input-type' + currentNum).change();
 		
 		
@@ -992,11 +999,54 @@
 			testCases--;
 			$('#generator-button').html("Generate Output for " + testCases + " Testcases");
 			document.getElementById(testcase).remove();
+			
+			
+			renumberTestCases();
 		} else {
 			alert("You must have at least one testcase!");
 		}
 
 	};
+	
+	function renumberTestCases(){
+		
+		var testcases = document.getElementsByClassName("test-case");
+		tcs = [];
+		for (testcase of testcases) {
+			const input = $("#"+testcase.id).find("."+"input").val();
+			const args = $("#"+testcase.id).find("."+"args").val();
+			const output = $("#"+testcase.id).find("." + "output").val();
+			const short_fb = $("#"+testcase.id).find("."+"shortFeedback").val();
+			const long_fb = $('#'+testcase.id).find("." + "longFeedback").val();
+			const weight = $('#' + testcase.id).find("." + "weight").val();
+			const extra_credit = $('#' + testcase.id).find("." + "extra-credit").prop("checked");
+			const tc = {"input": input, "args": args, "output": output, "weight": weight, "short_response": short_fb, "long_response": long_fb, "extra_credit": extra_credit ? "true" : "false"};
+			tcs.push(tc);
+		}
+		
+		currentNum = 0;
+		testCases = 0;	
+		
+		$('#testcase-cards .testcase-card').each( function() {
+			
+			if(!$(this).hasClass('testCardAdder')){
+				$(this).remove();
+			}		
+		});
+		
+		for(tc of tcs){
+			
+			addTestCase(
+				tc.input,
+				tc.args,
+				tc.output,
+				tc.weight,
+				tc.extra_credit,
+				tc.short_response,
+				tc.long_response,
+			);
+		}
+	}
 	
 	/* function to make the data and send a post with all of the stuff 
 	necessary to generate the output for the current testcases */
