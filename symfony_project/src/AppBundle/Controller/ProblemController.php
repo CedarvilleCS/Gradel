@@ -343,6 +343,72 @@ class ProblemController extends Controller {
 
 				$em->persist($testcase);
 			}
+		} else {
+			
+			$count = 0;
+			
+			foreach($problem->testcases as &$testcase){
+				
+				if($count < count($postData['testcases'])){
+					
+					$tc = $postData['testcases'][$count];
+					$count++;
+					
+					if(!is_array($tc)){
+						return $this->returnForbiddenResponse("Testcase data is not formatted properly");
+					}
+
+					# build the testcase
+					$newTestCase = null;
+					$response = TestCaseCreator::makeTestCase($newTestCase, $em, $problem, $tc, $count);
+
+					# check what the makeTestCase returns
+					if($response != 1){
+						return $this->returnForbiddenResponse($response."");
+					}
+					
+					$testcase->input = $newTestCase->input;
+					$testcase->command_line_input = $newTestCase->command_line_input;
+					$testcase->correct_output = $newTestCase->correct_output;
+					$testcase->feedback = $newTestCase->feedback;
+					$testcase->weight = $newTestCase->weight;
+					$testcase->is_extra_credit = $newTestCase->is_extra_credit;
+					
+					//return $this->returnForbiddenResponse(json_encode($newTestCase->input));
+					$em->persist($testcase);
+					
+				} else {
+					
+					$em->remove($testcase);
+					
+				}
+			}
+			
+			foreach($postData['testcases'] as $tc){
+				
+				if($count < count($postData['testcases'])){
+					
+					$tc = $postData['testcases'][$count];
+					$count++;
+					
+					if(!is_array($tc)){
+						return $this->returnForbiddenResponse("Testcase data is not formatted properly");
+					}
+
+					# build the testcase
+					$newTestCase = null;
+					$response = TestCaseCreator::makeTestCase($newTestCase, $em, $problem, $tc, $count);
+
+					# check what the makeTestCase returns
+					if($response != 1){
+						return $this->returnForbiddenResponse($response."");
+					}
+
+					$em->persist($newTestCase);
+					
+				} 
+				
+			}
 		}
 
 		$em->flush();
