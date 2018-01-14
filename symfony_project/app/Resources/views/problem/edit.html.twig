@@ -606,7 +606,7 @@
 			{% for tc in problem.testcases %}
 				addTestCase(
 					"{{tc.input|e('js')}}",
-					"{{tc.command_line_input|e('js')}}",
+					"{{tc.command_line_input|e}}",
 					"{{tc.correct_output|e('js')}}",
 					"{{tc.weight}}",
 					"{{tc.is_extra_credit}}",
