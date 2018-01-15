@@ -112,7 +112,7 @@ class SectionController extends Controller {
 		
 		$grader = new Grader($em);
 		
-		if($grader->isTeaching($user, $section_entity)){
+		if($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isTeaching($user, $section_entity)){
 			
 			$qb_submissions = $em->createQueryBuilder();
 			$qb_submissions->select('s')
@@ -171,7 +171,8 @@ class SectionController extends Controller {
     }
 
     public function editSectionAction($sectionId) {
-      $em = $this->getDoctrine()->getManager();
+		
+		$em = $this->getDoctrine()->getManager();
 		$builder = $em->createQueryBuilder();
 
 		$builder->select('c')
@@ -190,13 +191,10 @@ class SectionController extends Controller {
 		$instructors = [];
 
 		foreach ($users as $u) {
-			if($u->hasRole(ROLE_ADMIN) or $u->hasRole(ROLE_SUPER)) {
+			if($u->hasRole("ROLE_ADMIN") or $u->hasRole("ROLE_SUPER")) {
 				$instructors[] = $u;
 			}
 		}
-		
-		
-		
 				
 		if($sectionId != 0){
 			
@@ -234,9 +232,32 @@ class SectionController extends Controller {
 			'instructors' => $instructors,
 			'section' => $section,
 			'section_taker_roles' => $section_taker_roles,
-			'section_teacher_roles' => $section_teacher_roles
+			'section_teacher_roles' => $section_teacher_roles,
 		]);
     }
+	
+	public function cloneSectionAction($sectionId){
+
+		$em = $this->getDoctrine()->getManager();
+
+		$user = $this->get('security.token_storage')->getToken()->getUser();
+		if(!$user){
+			die("USER DOES NOT EXIST");
+		}
+		
+		$section = $em->find('AppBundle\Entity\Section', $sectionId);
+		
+		if(!$section){
+			die("SECTION DOES NOT EXIST");
+		}
+		
+		$newSection = clone $section;
+		$em->persist($newSection);
+
+		$em->flush();
+		
+		return $this->redirectToRoute('section_edit', ['sectionId' => $newSection->id]);
+	}	
 	
 	public function deleteSectionAction($sectionId){
 		

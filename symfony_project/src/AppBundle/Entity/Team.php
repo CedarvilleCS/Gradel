@@ -35,6 +35,14 @@ class Team implements JsonSerializable{
 		$this->assignment = $assign;		
 	}
 	
+	# clone method override
+	public function __clone(){
+		
+		if($this->id){
+			$this->id = null;			
+		}		
+	}
+	
 	/** 
 	* @ORM\Column(type="integer")
 	* @ORM\Id

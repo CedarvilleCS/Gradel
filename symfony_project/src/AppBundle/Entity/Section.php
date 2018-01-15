@@ -36,6 +36,44 @@ class Section{
 		$this->is_public = $public;
 		$this->is_deleted = $deleted;
 	}
+	
+	# clone method override
+	public function __clone() {
+		
+		if($this->id){
+			$this->id = null;
+			
+			$this->name = $this->name." CLONE";
+			
+			# clone assignments
+			$assignmentsClone = new ArrayCollection();
+			
+			foreach($this->assignments as $assignment){
+				$assignmentClone = clone $assignment;
+				$assignmentClone->section = $this;
+				
+				$assignmentsClone->add($assignmentClone);
+			}
+			$this->assignments = $assignmentsClone;
+			
+			
+			# clone user roles
+			$usrsClone = new ArrayCollection();
+			
+			foreach($this->user_roles as $usr){
+				
+				if($usr->role->role_name == "Teaches"){
+				
+					$usrClone = clone $usr;
+					$usrClone->section = $this;
+					
+					$usrsClone->add($usrClone);
+				}
+			}
+			$this->user_roles = $usrsClone;			
+		}		
+	}
+	
 
 	/**
 	* @ORM\Column(type="integer")
@@ -45,12 +83,12 @@ class Section{
 	public $id;
 
 	/**
-	* @ORM\OneToMany(targetEntity="Assignment", mappedBy="section")
+	* @ORM\OneToMany(targetEntity="Assignment", mappedBy="section", cascade={"persist"})
 	*/
 	public $assignments;
 	
 	/**
-     * @ORM\OneToMany(targetEntity="UserSectionRole", mappedBy="section")
+     * @ORM\OneToMany(targetEntity="UserSectionRole", mappedBy="section", cascade={"persist"})
      */
     public $user_roles;
 

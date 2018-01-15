@@ -46,6 +46,38 @@ class Problem{
 		$this->extra_testcases_display = $disp_ext;
 	}
 	
+	# clone method override
+	public function __clone(){
+		
+		if($this->id){
+			$this->id = null;
+			
+			# clone the testcases
+			$testcasesClone = new ArrayCollection();
+			
+			foreach($this->testcases as $testcase){
+				$testcaseClone = clone $testcase;
+				$testcaseClone->problem = $this;
+				
+				$testcasesClone->add($testcaseClone);
+			}
+			$this->testcases = $testcasesClone;
+			
+			
+			# clone the problem_languages
+			$plsClone = new ArrayCollection();
+			
+			foreach($this->problem_languages as $pl){
+				$plClone = clone $pl;
+				$plClone->problem = $this;
+				
+				$plsClone->add($plClone);
+			}
+			$this->problem_languages = $plsClone;
+		}
+		
+	}
+	
 	/** 
 	* @ORM\Column(type="integer")
 	* @ORM\Id
@@ -54,12 +86,12 @@ class Problem{
 	public $id;
 
 	/**
-	* @ORM\OneToMany(targetEntity="Testcase", mappedBy="problem")
+	* @ORM\OneToMany(targetEntity="Testcase", mappedBy="problem", cascade={"persist"})
 	*/
 	public $testcases;
 		
 	/**
-	* @ORM\OneToMany(targetEntity="ProblemLanguage", mappedBy="problem")
+	* @ORM\OneToMany(targetEntity="ProblemLanguage", mappedBy="problem", cascade={"persist"})
 	*/
 	public $problem_languages;
 

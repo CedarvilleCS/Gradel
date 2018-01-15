@@ -8,6 +8,7 @@ use AppBundle\Entity\UserSectionRole;
 use AppBundle\Entity\Section;
 use AppBundle\Entity\Assignment;
 use AppBundle\Entity\Team;
+use AppBundle\Entity\AssignmentGradingMethod;
 
 use AppBundle\Utils\Grader;
 use AppBundle\Utils\Uploader;
@@ -300,7 +301,7 @@ class AssignmentController extends Controller {
 		}		
 		
 		# check mandatory fields
-		if(!isset($postData['name']) || !isset($postData['open_time']) || !isset($postData['close_time']) || !isset($postData['teams']) || !isset($postData['teamnames'])){
+		if(!isset($postData['name']) || !isset($postData['open_time']) || !isset($postData['close_time']) || !isset($postData['teams']) || !isset($postData['teamnames']) || !isset($postData['penalty'])){
 			return $this->returnForbiddenResponse("Not every required field is provided.");			
 		} else {
 			
@@ -309,7 +310,14 @@ class AssignmentController extends Controller {
 				((int)trim($postData['weight']) < 1 || $postData['weight'] % 1 != 0)){
 					
 				return $this->returnForbiddenResponse("The provided weight ".$postData['weight']." is not permitted.");
-			}	
+			}
+
+			# validate the penalty if there is one
+			if(	is_numeric(trim($postData['penalty'])) && 
+				((float)trim($postData['penalty']) > 1.0 || (float)trim($postData['penalty']) < 0.0)){
+					
+				return $this->returnForbiddenResponse("The provided penalty ".$postData['penalty']." is not permitted.");
+			}			
 		}		
 		
 		# create new assignment
@@ -383,13 +391,15 @@ class AssignmentController extends Controller {
 		}
 		
 		# set grading method
-		$gradingmethod = $em->find('AppBundle\Entity\AssignmentGradingmethod', 1);
+		$penalty = (float)trim($postData['penalty']);	
 		
-		if(!$gradingmethod){
-			return $this->returnForbiddenResponse("Provided assignmentGradingmethod does not exist");
-		}
-		
-		$assignment->gradingmethod = $gradingmethod;
+		if($assignment->gradingmethod->penalty_per_day != $penalty){
+			$gradingMethod = new AssignmentGradingMethod($penalty);	
+			
+			$em->persist($gradingMethod);
+			
+			$assignment->gradingmethod = $gradingMethod;
+		}		
 		
 		/*
 		# create teams	

@@ -2,7 +2,12 @@
     font-weight: bold;
 }
 
-#markdown h1 {
+#markdown-header h1,#markdown-header h2,#markdown-header h3,#markdown-header h4,#markdown-header h5,#markdown-header h6 {
+    font-weight: bold;
+}
+
+
+#markdown h1, #markdown-header h1 {
 	font-size: 28px;	
 }
 

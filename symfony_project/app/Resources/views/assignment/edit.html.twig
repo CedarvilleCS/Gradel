@@ -28,51 +28,81 @@
 	<section id="main">
 		{# Cards #}
 
-		<div class="card">
+		<div class="parallel-cards">
+			<div class="card" style="flex-grow:3">
+				
+				<div class="btn-close">
+					<h2 style="margin: 0px">
+					{% if assignment is not null %}
+						Edit {{assignment.name}}<br>
+						<h4 style="margin: 0px; color: red"><i> Note: Team changes will not be saved </i></h4>					
+					{% else %}
+						New Assignment
+					{% endif %}					
+					</h2>
+				</div>
 			
-			<div class="btn-close">
-				<h2 style="margin: 0px">
-				{% if assignment is not null %}
-					Edit {{assignment.name}}<br>
-					<h4 style="margin: 0px; color: red"><i> Note: Team changes will not be saved </i></h4>					
-				{% else %}
-					New Assignment
-				{% endif %}					
-				</h2>
-			</div>
-		
-			<div id="requiredFields" class="card-contents">
-				<div>
-					<table>
-						<tr> <th colspan="1">
-								<label for="name">Name</label>
-								<input id="name" name="name" type="text" value="{{assignment.name}}" style="width: 200px">
-							</th>
-						</tr>
-						
-						<tr>
-							<th colspan="2">
-								<label for="startdatepicker">Open Date</label>
-								<input type="text" id="opendatepicker" style="width:150px; margin-right:20px">
+				<div id="requiredFields" class="card-contents">
+					<div>
+						<table>
+							<tr> <th colspan="1">
+									<label for="name">Name</label>
+									<input id="name" name="name" type="text" value="{{assignment.name}}" style="width: 200px">
+								</th>
+							</tr>
+							
+							<tr>
+								<th colspan="2">
+									<label for="startdatepicker">Open Date</label>
+									<input type="text" id="opendatepicker" style="width:150px; margin-right:20px">
 
-								<label for="enddatepicker">Close Date</label>
-								<input type="text" id="closedatepicker" style="width:150px; margin-right:20px">
-								
-								<label for="cutoffdatepicker">Cutoff Date</label>
-								<input type="text" id="cutoffdatepicker" style="width: 150px">
-							</th>
-						</tr>
-						
-						<tr> <th>
-							<div style="display:flex; justify-content:space-between; align-items: center">
-								<span><label for="weight">Weight </label> <input id="weight" name="weight" type="text" style="width: 50px"></span>
-								<div id="other-assignments" style="font-weight: normal"> </div>				
+									<label for="enddatepicker">Close Date</label>
+									<input type="text" id="closedatepicker" style="width:150px; margin-right:20px">
+									
+									<label for="cutoffdatepicker">Cutoff Date</label>
+									<input type="text" id="cutoffdatepicker" style="width: 150px">
+								</th>
+							</tr>
+							
+							<tr> <th>
+								<div style="display:flex; justify-content:space-between; align-items: center">
+									<span><label for="weight">Weight </label> <input id="weight" name="weight" type="text" style="width: 50px"></span>
+									<div id="other-assignments" style="font-weight: normal"> </div>				
+								</div>
+							</th> </tr>
+							
+						</table>
+					</div>
+				</div>
+			</div>
+			
+			<div class="card">
+			
+				<div class="btn-close" onclick="collapseCard('additionalOptions')">
+					<h2 style="margin: 0px">Grading Options
+						<span style="float: right"><i class="fa fa-angle-down"></i></span>
+					</h2>
+				</div>
+			
+				<div id="additionalOptions" class="card-contents" style="margin-top:10px">
+					<table>
+						<tr> <th>						  
+							<label for="penalty">Penalty Per Day Late</label>
+							<input id="penalty" name="penalty" type="text" value="0.00">
+							
+							
+							<div id="extra-credit-container" class="toggle-container">
+								<label for="extracredit">Extra Credit</label>
+								<label class="switch">
+									<input id="extracredit" type="checkbox" name="extracredit">
+									<span class="slider round"></span>
+								</label>
 							</div>
 						</th> </tr>
-						
 					</table>
 				</div>
 			</div>
+			
 		</div>
 		
 		<div class="card">
@@ -102,27 +132,7 @@
 			</div>
 		</div>
 		
-		<div class="card">
-			
-			<div class="btn-close" onclick="collapseCard('additionalOptions')">
-				<h2 style="margin: 0px">Additional Options
-					<span style="float: right"><i class="fa fa-angle-down"></i></span>
-				</h2>
-			</div>
 		
-			<div id="additionalOptions" class="card-contents" style="margin-top:10px">
-				<div class="toggle-container">
-					<label for="extracredit"> Extra Credit </label>
-					<label class="switch">
-						<input type="checkbox" id="extracredit" name="extracredit">
-						<span class="slider round"></span>
-					</label>
-				</div>
-				
-				<label for="description">Description</label> <input id="description" name="description" type="text">
-				
-			</div>
-		</div>
 		
 	</section>
 </body>
@@ -242,6 +252,15 @@
 					setValid($('#weight'));				
 				}
 				
+				// penalty per day
+				var pen = new Number($('#penalty').val());
+				if($('#penalty').val() === '' || !(pen >= 0.0 && pen <= 1.0)){						
+					setInvalid($('#penalty'));
+					return false;
+				} else {
+					setValid($('#penalty'));				
+				}
+				
 				// teams
 				if(!validateTeams()){
 					setInvalid($('#team-picker'));		
@@ -264,11 +283,13 @@
 				$.post( "{{path('assignment_modify')}}", {				
 					
 					name: $.trim($('#name').val()),
-					description: $.trim($('#description').val()),
+					description: "",
 					
 					open_time: $('#opendatepicker').val(),
 					close_time: $('#closedatepicker').val(),
 					cutoff_time: $('#cutoffdatepicker').val(),
+					
+					penalty: $('#penalty').val(),
 					
 					is_extra_credit: $('#extracredit').is(':checked'),
 					weight: $('#weight').val(),
@@ -512,6 +533,9 @@
 		
 		// set the weight
 		$('#weight').val({{assignment.weight}});
+		
+		// set the checkbox
+		$('#penalty').val({{assignment.gradingmethod.penalty_per_day}});
 		
 		// set the checkbox
 		$('#extracredit').attr('checked', {% if assignment.is_extra_credit %} true {% else %} false {% endif %});

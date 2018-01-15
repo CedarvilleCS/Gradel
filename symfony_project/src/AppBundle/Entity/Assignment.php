@@ -41,6 +41,37 @@ class Assignment implements JsonSerializable{
 		$this->gradingmethod = $grade;
 	}
 	
+	# clone method override
+	public function __clone(){
+		
+		if($this->id){
+			$this->id = null;
+			
+			# clone the problems
+			$problemsClone = new ArrayCollection();
+			
+			foreach($this->problems as $problem){
+				$problemClone = clone $problem;
+				$problemClone->assignment = $this;
+				
+				$problemsClone->add($problemClone);
+			}
+			$this->problems = $problemsClone;
+			
+			
+			# clone the teams
+			$teamsClone = new ArrayCollection();
+			
+			foreach($this->teams as $team){
+				$teamClone = clone $team;
+				$teamClone->assignment = $this;
+				
+				$teamsClone->add($teamClone);
+			}
+			$this->teams = $teamsClone;
+		}
+	}
+	
 	/** 
 	* @ORM\Column(type="integer")
 	* @ORM\Id
@@ -49,7 +80,7 @@ class Assignment implements JsonSerializable{
 	public $id;
 
 	/**
-	* @ORM\OneToMany(targetEntity="Problem", mappedBy="assignment")
+	* @ORM\OneToMany(targetEntity="Problem", mappedBy="assignment", cascade={"persist"})
 	*/
 	public $problems;
 
@@ -101,7 +132,7 @@ class Assignment implements JsonSerializable{
 	public $is_extra_credit;
 	
 	/**
-	* @ORM\OneToMany(targetEntity="Team", mappedBy="assignment")
+	* @ORM\OneToMany(targetEntity="Team", mappedBy="assignment", cascade={"persist"})
 	*/
 	public $teams;
 	
