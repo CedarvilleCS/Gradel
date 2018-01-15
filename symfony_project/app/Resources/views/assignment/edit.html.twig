@@ -34,8 +34,7 @@
 				<div class="btn-close">
 					<h2 style="margin: 0px">
 					{% if assignment is not null %}
-						Edit {{assignment.name}}<br>
-						<h4 style="margin: 0px; color: red"><i> Note: Team changes will not be saved </i></h4>					
+						Edit {{assignment.name}}
 					{% else %}
 						New Assignment
 					{% endif %}					
@@ -165,7 +164,10 @@
 	<script src="{{ asset('js/cards.js') }}"></script>		
 	<script src="{{ asset('js/validation.js') }}"></script>
 	
-    <script>	
+    <script>
+	
+		var team_warning = false;
+	
 		$(document).ready(function() {
 			$('#insert').on('click', function(){insertSection();});
 			$('#student-picker').on('change', function(){addStudent();});
@@ -210,6 +212,7 @@
 				// assignment name
 				if ($.trim($('#name').val())  === '') {						
 					setInvalid($('#name'));
+					$('#delete-warning').html("This assignment must have a name");
 					return false;
 				} else {
 					setValid($('#name'));
@@ -218,6 +221,7 @@
 				// assignment open time
 				if ($('#opendatepicker').val()  === '') {						
 					setInvalid($('#opendatepicker'));
+					$('#delete-warning').html("You must assign a start date");
 					return false;
 				} else {
 					setValid($('#opendatepicker'));
@@ -226,6 +230,7 @@
 				// assignment close time
 				if ($('#closedatepicker').val()  === '') {						
 					setInvalid($('#closedatepicker'));
+					$('#delete-warning').html("You must assign a close date");
 					return false;
 				} else {
 					setValid($('#closedatepicker'));
@@ -235,11 +240,13 @@
 				if ($('#closedatepicker').datepicker('getDate') < $('#opendatepicker').datepicker('getDate')){
 					setInvalid($('#closedatepicker'));
 					setInvalid($('#opendatepicker'));
+					$('#delete-warning').html("Close date must be after open date");
 					return false;
 				}
 				
 				if ($('#cutoffdatepicker').val() != '' && $('#cutoffdatepicker').datepicker('getDate') < $('#closedatepicker').datepicker('getDate')){
 					setInvalid($('#cutoffdatepicker'));
+					$('#delete-warning').html("Cutoff date must be after close date");
 					return false;
 				}
 				
@@ -247,6 +254,7 @@
 				var wght = new Number($('#weight').val());
 				if($('#weight').val() === '' || ($('#weight').val() != '' && (wght < 1 || wght % 1 != 0))){						
 					setInvalid($('#weight'));
+					$('#delete-warning').html("Weight must be a positive integer");
 					return false;
 				} else {
 					setValid($('#weight'));				
@@ -256,14 +264,21 @@
 				var pen = new Number($('#penalty').val());
 				if($('#penalty').val() === '' || !(pen >= 0.0 && pen <= 1.0)){						
 					setInvalid($('#penalty'));
+					
+					$('#delete-warning').html("Penalty per day late must be a value between 0 and 1");
+					
 					return false;
 				} else {
 					setValid($('#penalty'));				
 				}
 				
 				// teams
-				if(!validateTeams()){
-					setInvalid($('#team-picker'));		
+				if(!validateTeams() && !team_warning){
+					setInvalid($('#team-picker'));	
+					team_warning = true;
+					
+					$('#delete-warning').html("Not everyone is assigned to a team - Press save again to override");
+					
 					return false;
 				} else {
 					setValid($('#team-picker'));
@@ -277,7 +292,8 @@
 				}
 				
 				// get JSON structure for the teams
-				var teamarray = getTeams();				
+				var teamarray = getTeams();		
+				console.log(teamarray);
 				
 				/* Post to the Symfony Route */
 				$.post( "{{path('assignment_modify')}}", {				
@@ -298,7 +314,8 @@
 					assignment: {% if assignment is not null %} {{assignment.id}} {% else %} 0 {% endif %},
 					
 					teams: JSON.stringify(teamarray[0]),
-					teamnames: JSON.stringify(teamarray[1])
+					teamnames: JSON.stringify(teamarray[1]),
+					teamids: JSON.stringify(teamarray[2])
 					
 				}, function(data) {			
 					console.log(data);					
@@ -459,13 +476,16 @@
 	
 		var teams = [];
 		var teamnames = [];
+		var ids = [];
 	
 		$('.team').each(function( index ) {
 		
 			var name = $('#team-name', this).val();
+			var id = $(this).attr('id');
 			
 			teamnames[index] = name;
 			teams[index] = [];
+			ids[index] = (id) ? parseInt(id) : 0;
 			
 			$(this).children('.user').each(function(index2) {
 				teams[index][index2] = $(this).prop('id');
@@ -476,6 +496,10 @@
 		var res = [];
 		res[0] = teams;
 		res[1] = teamnames;
+		res[2] = ids;
+		
+		console.log(ids);
+		
 		return res;
 	}
 	
@@ -544,11 +568,15 @@
 		var teams_str = '{{assignment.teams.toArray()|json_encode|raw}}'.replace(/\\/g, "");
 		var teams = JSON.parse(teams_str);
 		
+		console.log(teams);
 		for(var i=0; i<teams.length; i++){
+			for(var j=0; j<teams[i].users.length; j++){
+				$('#team-pool #'+teams[i].users[j].id).remove();
+			}
+		
+			//$('#team-pool .user').remove();
 			
-			$('#team-pool .user').remove();
-			
-			var newTeam = $("<div>", {"class": "team"});
+			var newTeam = $("<div>", {"class": "team", "id": teams[i].id});
 			newTeam.html("<input type='text' id='team-name' value='"+teams[i].name+"'>");
 			
 			newTeam.droppable({

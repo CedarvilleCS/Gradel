@@ -193,8 +193,7 @@ class AssignmentController extends Controller {
 		$grader = new Grader($em);
 		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN") && !$grader->isTeaching($user, $section)){
 			die("YOU ARE NOT ALLOWED TO DELETE THIS ASSIGNMENT");			
-		}
-		
+		}		
 		
 		if($assignmentId != 0){
 			
@@ -400,72 +399,89 @@ class AssignmentController extends Controller {
 			
 			$assignment->gradingmethod = $gradingMethod;
 		}		
-		
-		/*
-		# create teams	
-		# transfer over the submissions to the new teams?
-		$user_submissions = [];
-		foreach($assignment->teams as $del_team){
-			
-			foreach($del_team->submissions as $sub){
 
-				foreach($del_team->users as $tm_user){
-					$user_submissions[$tm_user->id][] = $sub;
-				}		
-			}
-			
-			$em->remove($del_team);
-		}
-		*/
+		# get all the users taking the course
+		$takes_role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));
+		$builder = $em->createQueryBuilder();
+		$builder->select('u')
+			  ->from('AppBundle\Entity\UserSectionRole', 'u')
+			  ->where('u.section = ?1')
+			  ->andWhere('u.role = ?2')
+			  ->setParameter(1, $section)
+			  ->setParameter(2, $takes_role);
+		$query = $builder->getQuery();
+		$section_taker_roles = $query->getResult();
 		
-		if($postData['assignment'] == 0){
-			# get all the users taking the course and put them in an array
-			$takes_role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));
-			$builder = $em->createQueryBuilder();
-			$builder->select('u')
-				  ->from('AppBundle\Entity\UserSectionRole', 'u')
-				  ->where('u.section = ?1')
-				  ->andWhere('u.role = ?2')
-				  ->setParameter(1, $section)
-				  ->setParameter(2, $takes_role);
-			$query = $builder->getQuery();
-			$section_taker_roles = $query->getResult();
-			$section_takers = [];
-			
-			foreach($section_taker_roles as $str){
-				$section_takers[] = $str->user;
-			}
-					
-			$teams_json = json_decode($postData['teams']);
-			$teamnames_json = json_decode($postData['teamnames']);
-			
-			if(count($teams_json) != count($teamnames_json)){
-				return $this->returnForbiddenResponse("The number of teamnames does not equal the number of teams");
-			}
-			$count = 0;
-			foreach($teams_json as $team_json){
+		$section_takers = [];
+		foreach($section_taker_roles as $str){
+			$section_takers[] = $str->user;
+		}
+
+
+		# build teams
+		$teams_json = json_decode($postData['teams']);
+		$teamnames_json = json_decode($postData['teamnames']);
+		$teamids_json = json_decode($postData['teamids']);
+		
+		if(count($teams_json) != count($teamnames_json)){
+			return $this->returnForbiddenResponse("The number of teamnames does not equal the number of teams");
+		}
+
+		$old_teams = $assignment->teams;
+		$mod_teams = new ArrayCollection();
+		
+		$count = 0;
 				
-				$team = new Team($teamnames_json[$count] , $assignment);
+		foreach($teams_json as $team_json){
+			
+			
+			$team_id = $teamids_json[$count];
+
+			// editing a current team
+			if($team_id != 0){
+				
+				$team = $em->find('AppBundle\Entity\Team', $team_id);
+
+				if(!$team || $team->assignment != $assignment){
+					return $this->returnForbiddenResponse("Team with id ".$team." does not exist for this assignment");
+				}
+				
+				$team->name = $teamnames_json[$count];				
+				$team->users = new ArrayCollection();
 				
 				foreach($team_json as $user_id){
 					
-					if($user_id == null){
-						return $this->returnForbiddenResponse("User ID was not created properly");
-					}
-					
 					$temp_user = $em->find('AppBundle\Entity\User', $user_id);
 
-					if(!$temp_user){
-						return $this->returnForbiddenResponse("User with id ".$user_id." does not exist");
+					if(!$temp_user || !in_array($temp_user, $section_takers)){
+						return $this->returnForbiddenResponse("User with id ".$user_id." does not take this class");
 					}
-					
-					$index= array_search($temp_user, $section_takers);
-					if($index !== false){
-						unset($section_takers[$index]);
-					} else {
-						return $this->returnForbiddenResponse($temp_user->getFirstName()." ".$temp_user->getLastName()." is not in this section or is already in a team");
+
+					$team->users[] = $temp_user;										
+				}
+				
+				if(count($team->users) == 0){
+					return $this->returnForbiddenResponse($team->name." did not have any users provided");
+				}
+				
+				//return $this->returnForbiddenResponse("OLD TEAM: ".$team->name);
+				$em->persist($team);		
+				
+				$mod_teams->add($team->id);
+			} 
+			// new team
+			else {
+								
+				$team = new Team($teamnames_json[$count] , $assignment);
+			
+				foreach($team_json as $user_id){
+										
+					$temp_user = $em->find('AppBundle\Entity\User', $user_id);
+
+					if(!$temp_user || !in_array($temp_user, $section_takers)){
+						return $this->returnForbiddenResponse("User with id ".$user_id." does not take this class");
 					}
-					
+
 					$team->users[] = $temp_user;				
 				}
 				
@@ -473,16 +489,22 @@ class AssignmentController extends Controller {
 					return $this->returnForbiddenResponse($team->name." did not have any users provided");
 				}
 				
-				$em->persist($team);
-				
-				$count++;
+				$em->persist($team);			
 			}
 			
-			if(count($section_takers) != 0){
-				return $this->returnForbiddenResponse("Not every user was put in a team.");
-			}
+			$count++;
 		}
 		
+		# remove the old teams that no longer exist
+		foreach($old_teams as $old){			
+			
+			if(!$mod_teams->contains($old->id)){				
+
+				$em->remove($old);	
+				$em->flush();
+			}
+		}
+			
 		$em->persist($assignment);	
 		$em->flush();
 		
