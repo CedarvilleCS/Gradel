@@ -32,6 +32,14 @@ class Testcase {
 		$this->weight = $wght;
 		$this->is_extra_credit = $extra;
 	}
+	
+	# clone method override
+	public function __clone(){
+		
+		if($this->id){
+			$this->id = null;	
+		}
+	}
 
 	/**
 	*@ORM\Column(type="integer")

@@ -30,6 +30,14 @@ class ProblemLanguage{
 		$this->compilation_options = $comp;
 	}
 	
+	# clone method override
+	public function __clone(){
+		
+		if($this->id){
+			$this->id = null;			
+		}		
+	}
+	
 	/** 
 	* @ORM\Column(type="integer")
 	* @ORM\Id

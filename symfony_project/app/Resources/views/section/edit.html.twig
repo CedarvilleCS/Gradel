@@ -23,6 +23,11 @@
 		<ol style="padding-top: 0px">
 			<li id="delete-warning" style="padding-top: 0px"></li>
 		</ol>
+		
+		{% if section is not null %}
+		<a id="clone-btn" class="btn" href="{{ path('section_clone', {'sectionId': section.id}) }}"><div class="btn btn-center" style="margin-top: 10px;">Clone</div></a>
+		{% endif %}
+		
 		{% endif %}
     </nav>
 	

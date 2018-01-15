@@ -214,7 +214,6 @@
 			</div>
 		</div>
 		
-		{% if problem is null %}
 		<div id="generator-card" class="card" style="flex-grow: 8.33">
 		
 			<div class="btn-close" onclick="collapseCardGenerator()">
@@ -259,7 +258,6 @@
 				
 			</div>
 		</div>
-		{% endif %}
 		
 	</div>
 	
@@ -448,8 +446,7 @@
 		$('#use-custom').change();
 		
 		/* OUTPUT GENERATOR ACE EDITOR */
-		{# show the generator options if the problem does not exist yet #}
-		{% if problem is null %}
+		
 		var generatorEditor = ace.edit("output-generator-editor");
 		generatorEditor.$blockScrolling = Infinity;
 		generatorEditor.setTheme("ace/theme/xcode");
@@ -500,9 +497,7 @@
 			
 			$('#output-generator-form').submit();
 		});
-				
 		
-		{% endif %}
 		
 		/* On the Display Testcases checkbox toggle, you should display/hide the Output Level dropdown */
 		$('#display-testcase').change( function() {
