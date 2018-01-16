@@ -57,18 +57,6 @@ class Assignment implements JsonSerializable{
 				$problemsClone->add($problemClone);
 			}
 			$this->problems = $problemsClone;
-			
-			
-			# clone the teams
-			$teamsClone = new ArrayCollection();
-			
-			foreach($this->teams as $team){
-				$teamClone = clone $team;
-				$teamClone->assignment = $this;
-				
-				$teamsClone->add($teamClone);
-			}
-			$this->teams = $teamsClone;
 		}
 	}
 	
