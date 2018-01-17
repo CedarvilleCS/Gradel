@@ -14,7 +14,7 @@ html, body {
     overflow-y: scroll;
 	overflow-x: hidden;
     margin-top: 100px;
-	
+
 }
 
 .nav-path {
@@ -58,21 +58,21 @@ ol {
  	height: 90%;
  	padding: 2px 3px;
  }
- 
+
  .topnav #logoword {
     float: left;
  	height: 85%;
  	padding: 2px 3px;
  }
- 
+
 .topnav #logo:hover {
  	background-color: inherit;
- 	color: black;	
+ 	color: black;
  }
- 
+
 .topnav #logoword:hover {
  	background-color: inherit;
- 	color: black;	
+ 	color: black;
  }
 
 .btn {
@@ -103,7 +103,7 @@ ol {
 	bottom: 7;
     right: 23;
     cursor: pointer;
-	height: 15; 
+	height: 15;
 	width: 15;
 	position: absolute;
 }
@@ -262,7 +262,7 @@ nav.nav-left > ol > a > li:hover {
 }
 
 .pathnav a {
-	text-decoration: none;	
+	text-decoration: none;
 }
 
 #past_sections_button:hover {
@@ -271,8 +271,8 @@ nav.nav-left > ol > a > li:hover {
 
 
 .back-button{
-	
-	height: 30px; 
+
+	height: 30px;
     position: absolute;
     top: 9;
     left: 220;
@@ -289,22 +289,22 @@ nav.nav-left > ol > a > li:hover {
 	width: 90%;
 	text-decoration: none;
 	color: white;
-	
+
 	margin:auto;
     margin-top: 10px;
     height: 30px;
     background-color: #ff8b7f;
     border: none;
     text-align: center;
-	
-	padding-top: 12px;	
+
+	padding-top: 12px;
 }
 */
 .btn-delete:hover{
 	background-color: #FF5A49;
 }
 
-/* i { 
+/* i {
     position: absolute;
     right: 20px;
     top: 14px;
@@ -370,6 +370,12 @@ td, th {
 
 .dyLabel {
   display: inline-block;
+}
+
+.feedback-note {
+  position: absolute;
+  bottom: 30px;
+  left: 20px;
 }
 /*tr:nth-child(even) {
     background-color: #dddddd;
