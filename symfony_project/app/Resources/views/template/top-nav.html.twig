@@ -3,31 +3,31 @@
 	<a href="{{path('user_logout')}}" class="navbuttons">Logout</a>
 
 	{# admin button #}
-	{% if is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN")%}	
-		<a href="{{path('courses')}}" class="navbuttons">Courses</a>	
+	{% if is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN")%}
+		<a href="{{path('courses')}}" class="navbuttons">Courses</a>
 	{% endif %}
 
-	
+
 	{# development user changer #}
 	{% if not is_granted('ROLE_PREVIOUS_ADMIN') and is_granted('ROLE_SUPER') and user_impersonators|length > 0 %}
-	
+
 		<div class="navbuttons" style="display: flex; flex-direction: row; align-items: center; color: #f2f2f2; font-size:17px; float: right; padding-right:25px">
 			Impersonate:&nbsp;
 			<select id="impersonateSelect" onchange="setImpersonate()" style="padding: 6px 12px">
 				<option value="-">None</option>
-				
+
 				{% for user in user_impersonators %}
 					<option value="{{ path('homepage', {'_switch_user': user.getEmail()}) }}">{{user.getFirstName()}} {{user.getLastName()}}</option>
 				{% endfor %}
 			</select>
 		</div>
-	
+
 	{% endif %}
-	
+
 	{% if is_granted('ROLE_PREVIOUS_ADMIN') %}
 		<a href="{{ path('homepage', {'_switch_user': '_exit'}) }}" class="navbuttons">Exit Impersonation</a>
 	{% endif %}
-	
+
 	{# logo #}
     <a href="{{path('homepage')}}" id="logo"><img src="{{asset('logo.png')}}" title= "Gradel, Gradel, Gradel, we made it out of code!" id="logo" alt="Gradel"></a>
 	<a href="{{path('homepage')}}" id="logoword"><img src="{{asset('gradel.png')}}" title= "Gradel, Gradel, Gradel, we made it out of code!" id="logoword" alt="Gradel"></a>
@@ -35,10 +35,10 @@
 
 
 <script>
-	// Script to redirect to the selected user 
+	// Script to redirect to the selected user
 	function setImpersonate(){
 		var sel = document.getElementById("impersonateSelect");
-		
+
 		if(sel.options[sel.selectedIndex].value != "-"){
 			window.location = sel.options[sel.selectedIndex].value;
 		} else{
