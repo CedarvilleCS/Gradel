@@ -1,0 +1,186 @@
+{% block head %}
+
+<title>Gradel{% if section != null %} | {{section.name}} {% endif %}</title>
+<link rel="icon" type="image/x-icon" href="{{ asset('logo.png') }}" />
+{% endblock %}
+
+
+{% block body %}
+
+<body>        
+    {{ include('template/top-nav.html.twig') }}
+    
+	{{ include('template/assignment-nav.html.twig') }}
+
+	{{ include('template/path-nav.html.twig') }}
+	{# Main section #}
+	<section id="main">
+		{# Cards #}
+		
+		<div class="card">
+			<div class="btn-close" onclick="collapseCard('courseInfo')"><h2 style="margin: 0px">Due Soon<span style="float: right"><i class="fa fa-angle-down"></i></span></h2></div>
+			<div id="courseInfo" class="card-contents">
+			
+			{% if future_assigs|length == 0 %}
+			
+				<h4 style="background: grey; color: white; padding: 5px">  No upcoming assignments </h4>
+			
+			{% else %}
+
+				{% for assig in future_assigs %}
+						
+					{% set newDate = assig.end_time|date('m/d/Y') %}
+							
+					{% if newDate != oldDate %}
+						<h4 style="background: grey; color: white; padding: 5px"> {{assig.end_time|date('l, F d')}} </h4>
+					{% endif %}
+							
+					{% set oldDate = newDate %}
+							
+					<div style="margin-left: 20px"><small>{{asgn.section.name}}</small>
+						<a href="{{path('assignment', {'sectionId':assig.section.id, 'assignmentId':assig.id})}}">
+							<li>{{assig.name}} <small>(Due {{assig.end_time|date('\\a\\t  h:i:s A')}})</small></li>
+						</a>
+					</div>
+						
+				{% endfor %}
+				
+			{% endif %}
+			
+			</div>
+		</div>
+
+		{# Student Info Card #}
+		{% if is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") or grader.isTeaching(user, section) %}
+		<div class="card">
+			<div class="btn-close" onclick="collapseCard('studentInfo')"><h2 style="margin: 0px">Student Info<span style="float: right"><i class="fa fa-angle-down"></i></span></h2></div>
+			<div id="studentInfo" class="card-contents">
+
+				<div>
+				{% if section_takers|length == 0 %}
+				
+					There are no students enrolled in this class
+				
+				{% else %}
+				
+					<table>
+						<tr>
+							<th style="text-align: left; border-bottom: 1px solid black; border-right: 1px solid black;">Student</th>
+							{% for asgn in assignments %}
+							
+								<th style="border-bottom: 1px solid black">{{asgn.name}}</th>
+							
+							{% endfor %}
+						</tr>
+						
+						{% for user in section_takers %}
+														
+							<tr> <th>{{user.getFirstName()}} {{user.getLastName()}}</th>
+			  
+								{% for asgn in assignments %}
+									
+									{% if grades[user.id][asgn.id]['num_correct_problems'] > 0 and grades[user.id][asgn.id]['num_correct_problems'] == grades[user.id][asgn.id]['num_problems'] %}
+									
+										<td style="color:green; font-size: 25px">&#x2713; 
+										
+										{% if grades[user.id][asgn.id]['num_extra_problems'] > 0 and grades[user.id][asgn.id]['num_extra_correct_problems'] == grades[user.id][asgn.id]['num_extra_problems'] %}
+										&#x2713; 										
+										{% endif %}
+										</td>
+										
+									{% elseif grades[user.id][asgn.id]['num_correct_problems'] != 0 %}
+										<td style="color:orange; font-size: 25px"><i> {{grades[user.id][asgn.id]['num_correct_problems']}}/{{grades[user.id][asgn.id]['num_problems']}}</i></td>
+								 {% else %} 
+										<td style="color:red; font-size: 25px"> &#x2718</td>
+								 {% endif %}
+									
+								{% endfor %}
+							
+						{% endfor %}
+						
+					</table>
+					
+				{% endif %}
+				
+				</div>
+			</div>
+		</div>
+		{% endif %}
+		
+		{# Recent Submissions Card #}	
+		<div class="card">
+			<div class="btn-close" onclick="collapseCard('recentSubs')">
+				<h2 style="margin: 0px">
+					
+					{% if not is_granted("ROLE_ADMIN") and not is_granted("ROLE_SUPER") and not grader.isTeaching(user, section) %}	
+					Your 
+					{% endif %}Recent Submissions					
+					<span style="float: right"><i class="fa fa-angle-down"></i></span>
+				</h2>
+			</div>
+			<div id="recentSubs" class="card-contents">
+					
+				<div>   
+					<ul>
+					{% if recent_submissions|length == 0 %}
+						<li> No recent submissions </li>
+					{% else %}
+						
+						{% for sub in recent_submissions %}
+							{% if sub.isCorrect %}
+								<div style="color: green">
+							{% else %}
+								
+								<div style="color: red">
+							{% endif %}
+							
+							<li><a href="{{path('problem_result', {'submission_id': sub.id})}}">
+								[{{sub.problem.name}}] 
+									{% if sub.team.users|length <= 1 %}
+										{{sub.user.getFirstName}} {{sub.user.getLastName}} 
+									{% else %}
+										{
+										{% for user in sub.team.users %}
+											
+											{{user.getLastName}}
+											{% if not loop.last %}
+											, 
+											{% endif%}
+										{% endfor %}
+										}
+									{% endif %}
+									- {{sub.timestamp|date('F d, Y  \\a\\t  h:i:s')}} ({{sub.language.name}})
+							</a> </li>
+						
+							</div>
+						{% endfor %}
+						
+					{% endif %}
+					
+					</ul>
+				</div>
+			</div>
+		</div>
+		
+		
+	</section>
+
+	
+</body>
+
+{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('card.css') }}" />
+	
+	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
+{% endblock %}
+
+
+{% block scripts %}
+    <!-- JQuery -->
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+	<script src="{{ asset('js/cards.js') }}"></script>
+{% endblock %}

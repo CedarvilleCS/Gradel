@@ -281,6 +281,7 @@ class ProblemController extends Controller {
 			$em->remove($pl);
 		}
 
+		$newProblemLanguages = [];
 		foreach($postData['languages'] as $l){
 
 			if(!is_array($l)){
@@ -318,9 +319,11 @@ class ProblemController extends Controller {
 				$problemLanguage->default_code = $l['default_code'];
 			}
 			
+			$newProblemLanguages[] = $problemLanguage;
 			$em->persist($problemLanguage);
 		}
 		
+		$newTestcases = [];
 		# go through the testcases array provided if this was a new problem
 		if($postData['problem'] == 0){
 
@@ -342,6 +345,7 @@ class ProblemController extends Controller {
 				}
 
 				$em->persist($testcase);
+				$newTestcases[] = $testcase;
 			}
 		} else {
 			
@@ -376,6 +380,7 @@ class ProblemController extends Controller {
 					
 					//return $this->returnForbiddenResponse(json_encode($newTestCase->input));
 					$em->persist($testcase);
+					$newTestcases[] = $testcase;
 					
 				} else {
 					
@@ -410,6 +415,70 @@ class ProblemController extends Controller {
 				
 			}
 		}
+		
+		# update all the linked problems
+		foreach($problem->linked_problems as &$linked_problem){
+			
+			# update the name
+			$linked_problem->name = $problem->name;
+			
+			# update the description
+			$linked_problem->description = $problem->description;
+			
+			# update the languages
+			foreach($linked_problem->problem_languages as &$pl){
+				$em->remove($pl);
+				$em->flush();
+			}
+			
+			$plsClone = new ArrayCollection();			
+			foreach($newProblemLanguages as $pl){
+				$plClone = clone $pl;
+				$plClone->problem = $linked_problem;
+				
+				$plsClone->add($plClone);
+			}
+			$linked_problem->problem_languages = $plsClone;
+			
+			# update the weight
+			$linked_problem->weight = $problem->weight;
+			
+			# update the time limit
+			$linked_problem->time_limit = $problem->time_limit;
+			
+			# update the grading options
+			$linked_problem->total_attempts = $problem->total_attempts;
+			$linked_problem->attempts_before_penalty = $problem->attempts_before_penalty;
+			$linked_problem->penalty_per_attempt = $problem->penalty_per_attempt;
+			
+			# update the submission feedback options
+			$linked_problem->stop_on_first_fail = $problem->stop_on_first_fail;
+			$linked_problem->response_level = $problem->response_level;
+			$linked_problem->display_testcaseresults = $problem->display_testcaseresults;
+			$linked_problem->testcase_output_level = $problem->testcase_output_level;
+			$linked_problem->extra_testcases_display = $problem->extra_testcases_display;
+			
+			# update the validator
+			$linked_problem->custom_validator = $problem->custom_validator;
+			
+			# update the test cases
+			foreach($linked_problem->testcases as &$tc){
+				$tc->problem = null;
+				$em->persist($tc);				
+			}
+			
+			$testcaseClone = new ArrayCollection();
+			
+			foreach($newTestcases as $tc){
+				$tcClone = clone $tc;
+				$tcClone->problem = $linked_problem;
+				
+				$testcaseClone->add($tcClone);
+			}
+			$linked_problem->testcases = $testcaseClone;
+
+			$em->persist($linked_problem);
+		}		
 
 		$em->flush();
 
