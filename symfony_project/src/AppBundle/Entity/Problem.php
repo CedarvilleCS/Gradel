@@ -25,6 +25,7 @@ class Problem{
 		
 		$this->testcases = new ArrayCollection();
 		$this->problem_languages = new ArrayCollection();
+		$this->linked_problems = new ArrayCollection();
 	}
 	
 	public function __construct14($assign, $nm, $desc, $wght, $limit, $credit, $tot, $bef, $pen, $stop, $resp, $disp_tcr, $tc_lev, $disp_ext){
@@ -74,6 +75,9 @@ class Problem{
 				$plsClone->add($plClone);
 			}
 			$this->problem_languages = $plsClone;
+			
+			
+			$this->linked_problems = new ArrayCollection();
 		}
 		
 	}
@@ -89,6 +93,15 @@ class Problem{
 	* @ORM\OneToMany(targetEntity="Testcase", mappedBy="problem", cascade={"persist"})
 	*/
 	public $testcases;
+	
+	/**
+     * @ORM\ManyToMany(targetEntity="Problem")
+     * @ORM\JoinTable(name="problemlinks",
+     *      joinColumns={@ORM\JoinColumn(name="problem_id", referencedColumnName="id")},
+     *      inverseJoinColumns={@ORM\JoinColumn(name="linker_id", referencedColumnName="id", unique=true)}
+     *      )
+     */
+	public $linked_problems;
 		
 	/**
 	* @ORM\OneToMany(targetEntity="ProblemLanguage", mappedBy="problem", cascade={"persist"})
