@@ -52,7 +52,6 @@ section_modify:
   path: '/modify/section'
   defaults: {_controller: AppBundle:Section:modifyPost}
   methods: [POST]
-
   
 # problem routes
 problem_edit:

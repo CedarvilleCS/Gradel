@@ -100,6 +100,13 @@
 						
 					</table>
 					
+					<br>
+					{# <a href="{{path('section_grades', {'sectionId': section.id})}}" class="btn"> #}
+					<a onclick="downloadGrades();">
+						<div class="btn">Download Grades</div>
+					</a>
+					{# </a> #}
+				
 				{% endif %}
 				
 				</div>
@@ -183,4 +190,46 @@
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 	<script src="{{ asset('js/cards.js') }}"></script>
+
+	<script>
+		function downloadGrades() {
+			var gradesCSV = "";
+
+			{% for user in section_takers %}
+				//console.log("download grades");
+				// console.log('{{user }}');
+				gradesCSV += '{{user }}' + ', ';
+				// for assignment
+					// add the grade
+			{% endfor %}
+			
+			console.log(gradesCSV);
+		}
+	</script>
+
+	{# 
+														
+	<tr> <th>{{user.getFirstName()}} {{user.getLastName()}}</th>
+
+		{% for asgn in assignments %}
+			
+			{% if grades[user.id][asgn.id]['num_correct_problems'] > 0 and grades[user.id][asgn.id]['num_correct_problems'] == grades[user.id][asgn.id]['num_problems'] %}
+			
+				<td style="color:green; font-size: 25px">&#x2713; 
+				
+				{% if grades[user.id][asgn.id]['num_extra_problems'] > 0 and grades[user.id][asgn.id]['num_extra_correct_problems'] == grades[user.id][asgn.id]['num_extra_problems'] %}
+				&#x2713; 										
+				{% endif %}
+				</td>
+				
+			{% elseif grades[user.id][asgn.id]['num_correct_problems'] != 0 %}
+				<td style="color:orange; font-size: 25px"><i> {{grades[user.id][asgn.id]['num_correct_problems']}}/{{grades[user.id][asgn.id]['num_problems']}}</i></td>
+		   {% else %} 
+				  <td style="color:red; font-size: 25px"> &#x2718</td>
+		   {% endif %}
+			
+		
+	
+{% endfor %} #}
+
 {% endblock %}

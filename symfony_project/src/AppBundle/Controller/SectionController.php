@@ -441,8 +441,8 @@ class SectionController extends Controller {
 		$response->setStatusCode(Response::HTTP_OK);
 		
 		return $response;
-	}	
-	
+	}
+
 	private function getDateTime($semester, $year){
 		
 		if($semester == 'Fall'){
@@ -463,4 +463,5 @@ class SectionController extends Controller {
 		$response->setStatusCode(Response::HTTP_FORBIDDEN);
 		return $response;
 	}
+	
 }
