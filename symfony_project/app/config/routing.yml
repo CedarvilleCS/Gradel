@@ -77,6 +77,12 @@ problem_result:
     defaults: {_controller: AppBundle:Problem:result}
     requirements:
         submission_id: '\d+'
+        
+result_delete:
+    path: '/result_delete/{submission_id}'
+    defaults: {_controller: AppBundle:Problem:resultDelete}
+    requirements:
+        submission_id: '\d+'
 
 problem_modify:
     path: 'modify/problem'

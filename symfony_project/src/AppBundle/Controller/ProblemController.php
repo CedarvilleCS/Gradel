@@ -518,6 +518,41 @@ class ProblemController extends Controller {
 		]);
 	}
 	
+	
+	public function resultDeleteAction($submission_id){
+		
+		$em = $this->getDoctrine()->getManager();
+		$grader = new Grader($em);
+		
+		if(!isset($submission_id) || !($submission_id > 0)){
+			die("SUBMISSION ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
+		}
+
+		$submission = $em->find("AppBundle\Entity\Submission", $submission_id);
+
+		if(!$submission){
+			die("SUBMISSION DOES NOT EXIST");
+		}
+
+		# get the user
+		$user = $this->get('security.token_storage')->getToken()->getUser();
+		if(!$user){
+			die("USER DOES NOT EXIST!");
+		}
+
+		# make sure the user has permissions to view the submission result
+		if(!$user->hasRole("ROLE_SUPER") && !$grader->isTeaching($user, $submission->problem->assignment->section)){
+			echo "YOU ARE NOT ALLOWED TO DELETE THIS SUBMISSION";
+			die();
+		}
+		
+		
+		$em->remove($submission);
+		$em->flush();
+		
+		return $this->redirectToRoute('assignment', ['problemId' => $submission->problem->id, 'assignmentId' => $submission->problem->assignment->id, 'sectionId' => $submission->problem->assignment->section->id]);	
+	}
+	
 	private function returnForbiddenResponse($message){
 		$response = new Response($message);
 		$response->setStatusCode(Response::HTTP_FORBIDDEN);
