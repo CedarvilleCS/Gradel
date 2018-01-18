@@ -25,7 +25,16 @@ The grader was not passed from the controller.
 	<section id="main">
 	
 		<div class="card">
-			<h2 style="margin: 0px">{{submission.problem.name}}</h2>
+			<div style="display: flex; flex-direction: row; justify-content: space-between">
+				<h2 style="margin: 0px">{{submission.problem.name}}</h2>
+				
+				{% if is_granted("ROLE_SUPER") or grader.isTeaching(app.user, submission.problem.assignment.section) %}
+				<a title="Delete Submission" href="{{path('result_delete', {'submission_id': submission.id})}}">
+					<img src="{{ asset('trash.png') }}">
+				</a>
+				{% endif %}
+			</div>
+			
 			<div id="submissionOverview" class="card-contents">
 				<h3 style="margin-top: 2px; margin-bottom: 2px">
 					RESULT: 

@@ -86,6 +86,38 @@
 						  <label for="time_limit">Time Limit (ms)</label>
 						  <input type="text" id="time_limit" style="width: 100px" value="{{(problem) ? problem.time_limit: 1000}}">					  
 					  </th>
+					</tr>
+					<tr>
+					  <th colspan="1">
+						{% if not problem.master %}
+						  
+							<label for="linked_probs">Slave Problems </label>
+							<input type="text" id="linked_probs" style="width: 200px" value="{% for slave in problem.slaves %}{{slave.id}}{{(loop.last)?'':',&nbsp;'}}{% endfor %}">
+							<small> <i> <br>These are the comma-separated ids of the problems that this problem is the "master" of. That means that any changes made to this "{{problem.name}}" will update these problems as well. </i> </small>
+							<small> <i> <br>Going to the edit page of the slave problems will redirect you here. </i> </small>
+					  
+					  
+							<div id="recommended-slaves" style="margin-top:15px">
+								Recommended Slaves
+								<ul>
+									{% set noreco = true %}
+									{% for recommended in recommendedSlaves %}
+									
+									{% if recommended != problem and recommended not in problem.slaves %}
+									{% set noreco = false %}
+									<li> <a href="{{path('assignment', {'problemId': recommended.id, 'assignmentId': recommended.assignment.id, 'sectionId': recommended.assignment.section.id})}}"> {{recommended.id}} - <i>{{recommended.assignment.section.name}}</i> <small>{{recommended.name}}</small> </a> </li>
+									
+									{% endif %}
+									
+									{% endfor %}
+									
+									{{ (noreco) ? '<li>None to recommend</li>' : '' }}
+								</ul>
+							</div>
+						{% endif %}
+					  
+					  </th>
+					</tr>
 					  
 				  </table>
 				</div>
@@ -1189,8 +1221,17 @@
 		}
 		
 		console.log(tcs);
-	  
-	  
+		
+		linked_probs = [];
+		linked_probs_raw = $("#linked_probs").val().split(",");
+		for(var i = 0; i<linked_probs_raw.length; i++){
+		
+			if(linked_probs_raw[i].trim().length > 0){
+				linked_probs.push(linked_probs_raw[i].trim());
+			}
+		}
+		console.log(linked_probs);
+		
 		var path = "{{path('problem_modify')}}";
 		$.post(path, {
 			"assignmentId": {{(problem ? problem.assignment.id : assignment.id)}},
@@ -1207,6 +1248,8 @@
 			"attempts_before_penalty": attemptsBeforePen, // must be less than totalAttempts
 			"penalty_per_attempt": penPerAttempt, // decimal between 0.00 and 1.00
 
+			"linked_probs": linked_probs,
+			
 			"custom_validator": customValidatorText,
 
 			"stop_on_first_fail": stopFail ? "true" : "false", // checkbox
