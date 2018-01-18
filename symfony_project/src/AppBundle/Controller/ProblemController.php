@@ -63,6 +63,14 @@ class ProblemController extends Controller {
 			if(!$problem){
 				die("PROBLEM DOES NOT EXIST");
 			}
+			
+			
+			if($problem->master){
+				$problem = $problem->master;
+				
+				
+				return $this->redirectToRoute('problem_edit', ['sectionId' => $problem->assignment->section->id, 'assignmentId' => $problem->assignment->id, 'problemId' => $problem->id]);
+			}
 		}
 		
 		$default_code = [];
@@ -76,16 +84,23 @@ class ProblemController extends Controller {
 			// either get the default code from the problem or from the overall default
 			$default_code[$l->name] = $l->deblobinateDefaultCode();
 		}
-	
+		
+		
+		$recommendedSlaves = [];
+		
+		$recommendedSlaves = $em->getRepository('AppBundle\Entity\Problem')->findBy(array('name' => $problem->name));
+			
 		return $this->render('problem/edit.html.twig', [
 			'languages' => $languages,
-			'section' => $section,
-			'assignment' => $assignment,
+			'section' => $problem->assignment->section,
+			'assignment' => $problem->assignment,
 			'problem' => $problem,
 			
 			'default_code' => $default_code,
 			'ace_modes' => $ace_modes,
 			'filetypes' => $filetypes,
+			
+			'recommendedSlaves' => $recommendedSlaves,
 		]);
     }
 
@@ -166,7 +181,6 @@ class ProblemController extends Controller {
 				return $this->returnForbiddenResponse("Problem ".$postData['problem']." does not exist for the given assignment.");
 			}
 		}
-
 
 		# check mandatory fields
 		if(!isset($postData['name']) || trim($postData['name']) == "" || !isset($postData['description']) || trim($postData['description']) == "" || !isset($postData['weight']) || !isset($postData['time_limit'])){
@@ -266,6 +280,32 @@ class ProblemController extends Controller {
 		$problem->extra_testcases_display = ($extra_testcases_display == "true");
 
 		
+		
+		# linked problems
+		foreach($problem->slaves as &$slave){
+			$slave->master = null;
+		}
+		
+		foreach($postData['linked_probs'] as $link){
+			
+			$linked = $em->find("AppBundle\Entity\Problem", $link);
+			
+			if(!$linked){
+				return $this->returnForbiddenResponse("Provided problem id ".$link." does not exist");
+			}
+			
+			$problem->slaves->add($linked);
+			$linked->master = $problem;			
+		}
+		
+		$str = "";
+		foreach($problem->slaves->toArray() as $l){
+			$str = $str."-".$l->id;
+		}
+		
+		//return $this->returnForbiddenResponse($str);
+		
+		
 		# custom validator
 		$custom_validator = trim($postData['custom_validator']);
 		if(isset($custom_validator) && $custom_validator != ""){
@@ -323,110 +363,49 @@ class ProblemController extends Controller {
 			$em->persist($problemLanguage);
 		}
 		
-		$newTestcases = [];
-		# go through the testcases array provided if this was a new problem
-		if($postData['problem'] == 0){
-
-			$count = 1;
-			foreach($postData['testcases'] as $tc){
-
-				if(!is_array($tc)){
-					return $this->returnForbiddenResponse("Testcase data is not formatted properly");
-				}
-
-				# build the testcase
-				$testcase = null;
-				$response = TestCaseCreator::makeTestCase($testcase, $em, $problem, $tc, $count);
-				$count++;
-
-				# check what the makeTestCase returns
-				if($response != 1){
-					return $this->returnForbiddenResponse($response."");
-				}
-
-				$em->persist($testcase);
-				$newTestcases[] = $testcase;
-			}
-		} else {
-			
-			$count = 0;
-			
-			foreach($problem->testcases as &$testcase){
-				
-				if($count < count($postData['testcases'])){
-					
-					$tc = $postData['testcases'][$count];
-					$count++;
-					
-					if(!is_array($tc)){
-						return $this->returnForbiddenResponse("Testcase data is not formatted properly");
-					}
-
-					# build the testcase
-					$newTestCase = null;
-					$response = TestCaseCreator::makeTestCase($newTestCase, $em, $problem, $tc, $count);
-
-					# check what the makeTestCase returns
-					if($response != 1){
-						return $this->returnForbiddenResponse($response."");
-					}
-					
-					$testcase->input = $newTestCase->input;
-					$testcase->command_line_input = $newTestCase->command_line_input;
-					$testcase->correct_output = $newTestCase->correct_output;
-					$testcase->feedback = $newTestCase->feedback;
-					$testcase->weight = $newTestCase->weight;
-					$testcase->is_extra_credit = $newTestCase->is_extra_credit;
-					
-					//return $this->returnForbiddenResponse(json_encode($newTestCase->input));
-					$em->persist($testcase);
-					$newTestcases[] = $testcase;
-					
-				} else {
-					
-					$em->remove($testcase);
-					
-				}
-			}
-			
-			foreach($postData['testcases'] as $tc){
-				
-				if($count < count($postData['testcases'])){
-					
-					$tc = $postData['testcases'][$count];
-					$count++;
-					
-					if(!is_array($tc)){
-						return $this->returnForbiddenResponse("Testcase data is not formatted properly");
-					}
-
-					# build the testcase
-					$newTestCase = null;
-					$response = TestCaseCreator::makeTestCase($newTestCase, $em, $problem, $tc, $count);
-
-					# check what the makeTestCase returns
-					if($response != 1){
-						return $this->returnForbiddenResponse($response."");
-					}
-
-					$em->persist($newTestCase);
-					
-				} 
-				
-			}
+		
+		# testcases
+		# set the old testcases to null 
+		# (so they don't go away and can be accessed in the results page)
+		foreach($problem->testcases as &$testcase){
+			$testcase->problem = null;
+			$em->persist($testcase);
 		}
 		
+		$newTestcases = new ArrayCollection();
+		$count = 1;
+		foreach($postData['testcases'] as $tc){
+
+			if(!is_array($tc)){
+				return $this->returnForbiddenResponse("Testcase data is not formatted properly");
+			}
+
+			# build the testcase
+			$testcase = null;
+			$response = TestCaseCreator::makeTestCase($testcase, $em, $problem, $tc, $count);
+			$count++;
+
+			# check what the makeTestCase returns
+			if($response != 1){
+				return $this->returnForbiddenResponse($response."");
+			}
+
+			$em->persist($testcase);
+			$newTestcases->add($testcase);
+		}
+		$problem->testcases = $newTestcases;
+		
 		# update all the linked problems
-		foreach($problem->linked_problems as &$linked_problem){
+		foreach($problem->slaves as &$slave){
 			
 			# update the name
-			$linked_problem->name = $problem->name;
+			$slave->name = $problem->name;
 			
 			# update the description
-			$linked_problem->description = $problem->description;
+			$slave->description = $problem->description;
 			
 			# update the languages
-			foreach($linked_problem->problem_languages as &$pl){
+			foreach($slave->problem_languages as &$pl){
 				$em->remove($pl);
 				$em->flush();
 			}
@@ -434,52 +413,50 @@ class ProblemController extends Controller {
 			$plsClone = new ArrayCollection();			
 			foreach($newProblemLanguages as $pl){
 				$plClone = clone $pl;
-				$plClone->problem = $linked_problem;
+				$plClone->problem = $slave;
 				
 				$plsClone->add($plClone);
 			}
-			$linked_problem->problem_languages = $plsClone;
+			$slave->problem_languages = $plsClone;
 			
 			# update the weight
-			$linked_problem->weight = $problem->weight;
+			$slave->weight = $problem->weight;
 			
 			# update the time limit
-			$linked_problem->time_limit = $problem->time_limit;
+			$slave->time_limit = $problem->time_limit;
 			
 			# update the grading options
-			$linked_problem->total_attempts = $problem->total_attempts;
-			$linked_problem->attempts_before_penalty = $problem->attempts_before_penalty;
-			$linked_problem->penalty_per_attempt = $problem->penalty_per_attempt;
+			$slave->total_attempts = $problem->total_attempts;
+			$slave->attempts_before_penalty = $problem->attempts_before_penalty;
+			$slave->penalty_per_attempt = $problem->penalty_per_attempt;
 			
 			# update the submission feedback options
-			$linked_problem->stop_on_first_fail = $problem->stop_on_first_fail;
-			$linked_problem->response_level = $problem->response_level;
-			$linked_problem->display_testcaseresults = $problem->display_testcaseresults;
-			$linked_problem->testcase_output_level = $problem->testcase_output_level;
-			$linked_problem->extra_testcases_display = $problem->extra_testcases_display;
+			$slave->stop_on_first_fail = $problem->stop_on_first_fail;
+			$slave->response_level = $problem->response_level;
+			$slave->display_testcaseresults = $problem->display_testcaseresults;
+			$slave->testcase_output_level = $problem->testcase_output_level;
+			$slave->extra_testcases_display = $problem->extra_testcases_display;
 			
 			# update the validator
-			$linked_problem->custom_validator = $problem->custom_validator;
+			$slave->custom_validator = $problem->custom_validator;
 			
 			# update the test cases
-			foreach($linked_problem->testcases as &$tc){
+			foreach($slave->testcases as &$tc){
 				$tc->problem = null;
 				$em->persist($tc);				
 			}
 			
-			$testcaseClone = new ArrayCollection();
-			
-			foreach($newTestcases as $tc){
+			$testcaseClone = new ArrayCollection();			
+			foreach($newTestcases->toArray() as $tc){
 				$tcClone = clone $tc;
-				$tcClone->problem = $linked_problem;
+				$tcClone->problem = $slave;
 				
 				$testcaseClone->add($tcClone);
 			}
-			$linked_problem->testcases = $testcaseClone;
+			$slave->testcases = $testcaseClone;
 
-			$em->persist($linked_problem);
-		}		
-
+			$em->persist($slave);
+		}
 		$em->flush();
 
 		$url = $this->generateUrl('assignment', ['sectionId' => $problem->assignment->section->id, 'assignmentId' => $problem->assignment->id, 'problemId' => $problem->id]);
@@ -540,7 +517,7 @@ class ProblemController extends Controller {
 			'usersectionrole' => $usersectionrole,
 		]);
 	}
-
+	
 	private function returnForbiddenResponse($message){
 		$response = new Response($message);
 		$response->setStatusCode(Response::HTTP_FORBIDDEN);
