@@ -11,6 +11,7 @@ use AppBundle\Entity\Problem;
 use AppBundle\Entity\ProblemLanguage;
 use AppBundle\Entity\Language;
 use AppBundle\Entity\UserSectionRole;
+use AppBundle\Entity\Testcase;
 
 use AppBundle\Utils\Grader;
 use AppBundle\Utils\TestCaseCreator;
@@ -22,6 +23,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Config\Definition\Exception\Exception;
 
 class ProblemController extends Controller {
 
@@ -62,12 +64,10 @@ class ProblemController extends Controller {
 			
 			if(!$problem){
 				die("PROBLEM DOES NOT EXIST");
-			}
-			
+			}			
 			
 			if($problem->master){
-				$problem = $problem->master;
-				
+				$problem = $problem->master;				
 				
 				return $this->redirectToRoute('problem_edit', ['sectionId' => $problem->assignment->section->id, 'assignmentId' => $problem->assignment->id, 'problemId' => $problem->id]);
 			}
@@ -92,8 +92,8 @@ class ProblemController extends Controller {
 			
 		return $this->render('problem/edit.html.twig', [
 			'languages' => $languages,
-			'section' => $problem->assignment->section,
-			'assignment' => $problem->assignment,
+			'section' => $section,
+			'assignment' => $assignment,
 			'problem' => $problem,
 			
 			'default_code' => $default_code,
