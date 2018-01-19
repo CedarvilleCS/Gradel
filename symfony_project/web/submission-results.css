@@ -129,14 +129,6 @@ textarea{
 	height: auto;
 }
 
-#input-textarea{
-	height: auto;
-}
-
-#command-line-textarea{
-	height: auto;
-}
-
 #editor { 
     width: calc(100% - 50px);
     height: 300px;

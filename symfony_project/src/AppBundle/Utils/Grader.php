@@ -491,6 +491,7 @@ class Grader  {
 			if($testcase_output_level == "Output"){
 				$feedback['output'][$tcr->testcase->seq_num] = $tcr->testcase->correct_output;
 			} else if($testcase_output_level == "Both"){
+				
 				$feedback['output'][$tcr->testcase->seq_num] = $tcr->testcase->correct_output;
 				
 				if(isset($tcr->testcase->input)){
