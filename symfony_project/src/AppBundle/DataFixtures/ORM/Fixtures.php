@@ -200,44 +200,44 @@ class Fixtures extends Fixture {
 			
 			# HOMEWORK 1 For CS-1210-01
 			$desc_file_01 = fopen($folder_path."sum/description.txt", "r") or die("Unable to open 1.desc");
-			$problem_01 = new Problem($assignment_02, "Calculate the Sum", stream_get_contents($desc_file_01), 1, 1000, false, 0, 0, 0, false, "Long", true, "Both", true);
+			$problem_01 = new Problem($assignment_02, "Calculate the Sum", stream_get_contents($desc_file_01), 1, 1000, false, 0, 0, 0, false, "Long", true, "Both", true, 1, [4]);
 			$problems[] = $problem_01;
 			$prob_folds[$problem_01->name] = "sum";
 			
 			$desc_file_02 = fopen($folder_path."diff/description.txt", "r") or die("Unable to open 2.desc");
-			$problem_02 = new Problem($assignment_02, "Calculate the Difference", stream_get_contents($desc_file_02), 1, 1000, false, 0, 0, 0, false, "Long", true, "Both", true);
+			$problem_02 = new Problem($assignment_02, "Calculate the Difference", stream_get_contents($desc_file_02), 1, 1000, false, 0, 0, 0, false, "Long", true, "Both", true, 1, [4]);
 			$problems[] = $problem_02;
 			$prob_folds[$problem_02->name] = "diff";
 			
 			$desc_file_03 = fopen($folder_path."prod/description.txt", "r") or die("Unable to open 3.desc");
-			$problem_03 = new Problem($assignment_02, "Calculate the Product", stream_get_contents($desc_file_03), 1, 1000, false, 0, 0, 0, false, "Long", true, "Both", true);
+			$problem_03 = new Problem($assignment_02, "Calculate the Product", stream_get_contents($desc_file_03), 1, 1000, false, 0, 0, 0, false, "Long", true, "Both", true, 1, [4]);
 			$problems[] = $problem_03;
 			$prob_folds[$problem_03->name] = "prod";
 			
 			$desc_file_04 = fopen($folder_path."quot/description.txt", "r") or die("Unable to open 4.desc");
-			$problem_04 = new Problem($assignment_02, "Calculate the Quotient", stream_get_contents($desc_file_04), 1, 1000, false, 0, 0, 0, false, "Long", true, "Both", true);
+			$problem_04 = new Problem($assignment_02, "Calculate the Quotient", stream_get_contents($desc_file_04), 1, 1000, false, 0, 0, 0, false, "Long", true, "Both", true, 1, [4]);
 			$problems[] = $problem_04;
 			$prob_folds[$problem_04->name] = "quot";
 			
 			
 			# HOMEWORK 2 For CS-1210-01
 			$desc_file_11 = fopen($folder_path."sum/description.txt", "r") or die("Unable to open 1.desc");
-			$problem_11 = new Problem($assignment_01, "Get the Sum", stream_get_contents($desc_file_11), 2, 1000, false, 0, 0, 0, false, "Long", true, "Both", true);
+			$problem_11 = new Problem($assignment_01, "Get the Sum", stream_get_contents($desc_file_11), 2, 1000, false, 0, 0, 0, false, "Long", true, "Both", true, 1, [4]);
 			$problems[] = $problem_11;
 			$prob_folds[$problem_11->name] = "sum";
 			
 			$desc_file_12 = fopen($folder_path."diff/description.txt", "r") or die("Unable to open 2.desc");
-			$problem_12 = new Problem($assignment_01, "Get the Difference", stream_get_contents($desc_file_12), 2, 1000, false, 0, 0, 0, false, "Long", true, "Both", true);
+			$problem_12 = new Problem($assignment_01, "Get the Difference", stream_get_contents($desc_file_12), 2, 1000, false, 0, 0, 0, false, "Long", true, "Both", true, 1, [4]);
 			$problems[] = $problem_12;
 			$prob_folds[$problem_12->name] = "diff";
 			
 			$desc_file_13 = fopen($folder_path."prod/description.txt", "r") or die("Unable to open 3.desc");
-			$problem_13 = new Problem($assignment_01, "Get the Product", stream_get_contents($desc_file_13), 2, 1000, false, 0, 0, 0, false, "Long", true, "Both", true);
+			$problem_13 = new Problem($assignment_01, "Get the Product", stream_get_contents($desc_file_13), 2, 1000, false, 0, 0, 0, false, "Long", true, "Both", true, 1, [4]);
 			$problems[] = $problem_13;
 			$prob_folds[$problem_13->name] = "prod";
 			
 			$desc_file_14 = fopen($folder_path."quot/description.txt", "r") or die("Unable to open 4.desc");
-			$problem_14 = new Problem($assignment_01, "Get the Quotient", stream_get_contents($desc_file_14), 2, 1000, false, 0, 0, 0, false, "Long", true, "Both", true);
+			$problem_14 = new Problem($assignment_01, "Get the Quotient", stream_get_contents($desc_file_14), 2, 1000, false, 0, 0, 0, false, "Long", true, "Both", true, 1, [4]);
 			$problems[] = $problem_14;
 			$prob_folds[$problem_14->name] = "quot";
 			

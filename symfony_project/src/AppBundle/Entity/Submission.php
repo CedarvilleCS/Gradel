@@ -27,6 +27,7 @@ class Submission {
 	
 	public function __construct3($prob, $tm, $user){
 		$this->problem = $prob;
+		$this->version = $prob->version;
 		$this->team = $tm;
 		$this->user = $user;
 		$this->timestamp = new \DateTime("now");
@@ -47,7 +48,7 @@ class Submission {
 	}
 		
 	
-	public function __construct18($prob, $tm, $user, $time, $acc, $subm, $log, $filename, $mainclass, $package, $compout, $didcomp, $didtime, $didrun, $maxtime, $lang, $perc, $ques){
+	public function __construct19($prob, $tm, $user, $time, $acc, $subm, $log, $filename, $mainclass, $package, $compout, $didcomp, $didtime, $didrun, $maxtime, $lang, $perc, $ques, $vers){
 		$this->problem = $prob;
 		$this->user = $user;
 		$this->team = $tm;
@@ -66,43 +67,26 @@ class Submission {
 		$this->language = $lang;
 		$this->percentage = $perc;
 		$this->questionable_behavior = $ques;
+		$this->version = $vers;
 	}
 	
 	public function isCorrect(){
 		
 		$tcs = 0;
-		$extra_tcs = 0;
-		
 		$passed_tcs = 0;
-		$passed_extra_tcs = 0;
 		
-		foreach($this->problem->testcases as $tc){
-			if($tc->is_extra_credit){
-				$extra_tcs++;
-			} else {
-				$tcs++;
-			}
-		}
+		$tcs = $this->problem->testcase_counts[$this->version-1];
 		
 		foreach($this->testcaseresults as $tcr){
 			
-			if(!$tcr->is_correct){
-				continue;
-			}
-			
-			if($tcr->testcase->is_extra_credit){
-				$passed_extra_tcs++;
-			} else {
+			if($tcr->is_correct){
 				$passed_tcs++;
-			}
-		}	
-
-		if(!$this->problem->extra_testcases_display){
-			$passed_extra_tcs = 0;
-			$extra_tcs = 0;
+			}			
 		}
+	
+		//die("".$tcs);
 		
-		return $passed_tcs == $tcs && $passed_extra_tcs == $extra_tcs;
+		return $passed_tcs == $tcs;
 	}
 
 	/**
@@ -134,6 +118,11 @@ class Submission {
      * @ORM\JoinColumn(name="problem_id", referencedColumnName="id", nullable=false, onDelete="CASCADE")
      */
 	public $problem;
+	
+	/**
+	* @ORM\Column(type="integer")
+	*/
+	public $version;
 	
 	/**
      * @ORM\ManyToOne(targetEntity="Team", inversedBy="submissions")

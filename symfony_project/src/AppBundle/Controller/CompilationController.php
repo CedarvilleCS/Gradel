@@ -38,8 +38,7 @@ class CompilationController extends Controller {
 	
 	/* name=submit */
 	public function submitAction(Request $request) {
-
-	
+				
 		# entity manager
 		$em = $this->getDoctrine()->getManager();		
 		

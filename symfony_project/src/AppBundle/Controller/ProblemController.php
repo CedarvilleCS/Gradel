@@ -64,7 +64,7 @@ class ProblemController extends Controller {
 			if(!$problem){
 				die("PROBLEM DOES NOT EXIST");
 			}			
-			
+						
 			if($problem->master){
 				$problem = $problem->master;				
 				
@@ -198,6 +198,7 @@ class ProblemController extends Controller {
 
 		}
 
+		$problem->version = $problem->version+1;
 		$problem->name = trim($postData['name']);
 		$problem->description = trim($postData['description']);
 		$problem->weight = (int)trim($postData['weight']);
@@ -276,9 +277,7 @@ class ProblemController extends Controller {
 		$problem->response_level = $response_level;
 		$problem->display_testcaseresults = ($display_testcaseresults == "true");
 		$problem->testcase_output_level = $testcase_output_level;
-		$problem->extra_testcases_display = ($extra_testcases_display == "true");
-
-		
+		$problem->extra_testcases_display = ($extra_testcases_display == "true");		
 		
 		# linked problems
 		foreach($problem->slaves as &$slave){
@@ -391,9 +390,13 @@ class ProblemController extends Controller {
 
 		}
 		$problem->testcases = $newTestcases;
+		$problem->testcase_counts[] = count($problem->testcases);
 		
 		# update all the linked problems
 		foreach($problem->slaves as &$slave){
+			
+			# update the version
+			$slave->version = $slave->version+1;
 			
 			# update the name
 			$slave->name = $problem->name;
@@ -451,6 +454,7 @@ class ProblemController extends Controller {
 				$testcaseClone->add($tcClone);
 			}
 			$slave->testcases = $testcaseClone;
+			$slave->testcase_counts[] = count($slave->testcases);
 
 			$em->persist($slave);
 		}
@@ -491,6 +495,40 @@ class ProblemController extends Controller {
 		$grader = new Grader($em);
 		$feedback = $grader->getFeedback($submission);
 		
+		if(!$submission->isCorrect()){
+			
+			$diff_nums = [];
+			
+			foreach($submission->testcaseresults as $tcr){
+				
+				if($tcr->is_correct){
+					
+					$diff_nums[] = -1;
+					
+				} else {
+					
+					$exp = $tcr->testcase->correct_output;
+					$user = $tcr->std_output;
+					$c = strlen($exp);
+					
+					$highlight = -1;
+					for ($e = 0; $e < $c; $e++) {
+						if($user[$e] != $exp[$e]){
+							$highlight_val = $e;
+							break;
+						}
+						
+						if($e == $c-1){
+							$highlight_val = $e+1;
+						}
+					}
+					
+					$diff_nums[] = $highlight_val;
+					
+				}				
+			}		
+		}
+		
 		# get the usersectionrole
 		$qb_usr = $em->createQueryBuilder();
 		$qb_usr->select('usr')
@@ -512,6 +550,8 @@ class ProblemController extends Controller {
 			'result_page' => true,
 			'feedback' => $feedback,
 			'usersectionrole' => $usersectionrole,
+			
+			'diff_nums' => $diff_nums,
 		]);
 	}
 	
