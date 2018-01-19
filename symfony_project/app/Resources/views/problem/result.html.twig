@@ -90,7 +90,6 @@ The grader was not passed from the controller.
 				<div id="feedback-holder">
 					<div id="testcase-markers-container">
 						<h3>TESTCASES:</h3>				
-						
 							{% if feedback.output|length > 0 %}
 							<div id="testcase-markers">
 								<ul>
@@ -179,7 +178,8 @@ The grader was not passed from the controller.
 								
 								{% endfor %}
 						
-							</div>	
+							</div>
+							<i style="color: red"><small>Note that expected output may contain regex patterns that could match an variety of strings.</small></i>							
 							{% else %}
 							<div id="testcase-markers-no-out">
 								{% for tcr in submission.testcaseresults %}						

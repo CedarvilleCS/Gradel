@@ -93,10 +93,6 @@
 						  
 							<label for="linked_probs">Slave Problems </label>
 							<input type="text" id="linked_probs" style="width: 200px" value="{% for slave in problem.slaves %}{{slave.id}}{{(loop.last)?'':',&nbsp;'}}{% endfor %}">
-							<small> <i> <br>These are the comma-separated ids of the problems that this problem is the "master" of. That means that any changes made to this "{{problem.name}}" will update these problems as well. </i> </small>
-							<small> <i> <br>Going to the edit page of the slave problems will redirect you here. </i> </small>
-					  
-					  
 							<div id="recommended-slaves" style="margin-top:15px">
 								Recommended Slaves
 								<ul>
