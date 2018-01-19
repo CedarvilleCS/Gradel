@@ -66,8 +66,7 @@ class ProblemController extends Controller {
 			
 			
 			if($problem->master){
-				$problem = $problem->master;
-				
+				$problem = $problem->master;				
 				
 				return $this->redirectToRoute('problem_edit', ['sectionId' => $problem->assignment->section->id, 'assignmentId' => $problem->assignment->id, 'problemId' => $problem->id]);
 			}
@@ -92,8 +91,8 @@ class ProblemController extends Controller {
 			
 		return $this->render('problem/edit.html.twig', [
 			'languages' => $languages,
-			'section' => $problem->assignment->section,
-			'assignment' => $problem->assignment,
+			'section' => $section,
+			'assignment' => $assignment,
 			'problem' => $problem,
 			
 			'default_code' => $default_code,
