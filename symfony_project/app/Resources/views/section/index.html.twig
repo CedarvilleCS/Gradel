@@ -112,6 +112,66 @@
 			</div>
 		</div>
 		{% endif %}
+
+		{# Student Info Card #}
+		{% if is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") or grader.isTeaching(user, section) %}
+		<div class="card">
+			<div class="btn-close" onclick="collapseCard('studentInfoAssignment')"><h2 style="margin: 0px">Assignment Grades<span style="float: right"><i class="fa fa-angle-down"></i></span></h2></div>
+			<div id="studentInfoAssignment" class="card-contents">
+
+				<div>
+				{% if section_takers|length == 0 %}
+				
+					There are no students enrolled in this class
+				
+				{% else %}
+				
+				{# For each assignment #}
+				{% for asgn in assignments %}
+					<h3>{{asgn.name}}</h3>
+					<table>
+						<tr>
+							<th style="text-align: left; border-bottom: 1px solid black; border-right: 1px solid black;">Student</th>
+						</tr>
+						
+						{% for user in section_takers %}
+													
+							<tr> <th>{{user.getFirstName()}} {{user.getLastName()}}</th>
+								
+							{% if grades[user.id][asgn.id]['num_correct_problems'] > 0 and grades[user.id][asgn.id]['num_correct_problems'] == grades[user.id][asgn.id]['num_problems'] %}
+							
+								<td style="color:green; font-size: 25px">&#x2713; 
+								
+								{% if grades[user.id][asgn.id]['num_extra_problems'] > 0 and grades[user.id][asgn.id]['num_extra_correct_problems'] == grades[user.id][asgn.id]['num_extra_problems'] %}
+								&#x2713; 										
+								{% endif %}
+								</td>
+								
+							{% elseif grades[user.id][asgn.id]['num_correct_problems'] != 0 %}
+								<td style="color:orange; font-size: 25px"><i> {{grades[user.id][asgn.id]['num_correct_problems']}}/{{grades[user.id][asgn.id]['num_problems']}}</i></td>
+							{% else %} 
+									<td style="color:red; font-size: 25px"> &#x2718</td>
+							{% endif %}
+
+						{% endfor %}
+
+						</table>
+						<br><br>
+					{% endfor %}
+						
+					
+					<br>
+					
+					<a id="download" download="grades.csv">
+						<div class="btn">Download Grades</div>
+					</a>
+				
+				{% endif %}
+				
+				</div>
+			</div>
+		</div>
+		{% endif %}
 		
 		{# Recent Submissions Card #}	
 		<div class="card">
@@ -191,7 +251,7 @@
 	<script src="{{ asset('js/cards.js') }}"></script>
 
 	<script>
-
+		{% if is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") or grader.isTeaching(user, section) %}
 		// Download CSV of Grades
 
 		var textFile = null;
@@ -213,7 +273,7 @@
 
 		// Generate a CSV list of the grades
 		function generateGradeCSV() {
-			var gradesCSV = "User, ";
+			var gradesCSV = "Name, User, ";
 			{% for asgn in assignments %}
 				gradesCSV += "Problems Correct, Total Problems, Grade, ";
 			{% endfor %}
@@ -221,11 +281,9 @@
 			gradesCSV += "\n";
 
 			{% for user in section_takers %}
-				//console.log("download grades");
-				// console.log('{{user }}');
-				gradesCSV += '{{user }}' + ', ';
-				// for assignment
-					// add the grade
+				
+				gradesCSV += '{{user.getFirstName()}} {{user.getLastName()}}, ';
+				gradesCSV += '{{user }}, ';
 
 				{% for asgn in assignments %}
 									
@@ -254,7 +312,7 @@
 			link.href = makeTextFile(generateGradeCSV());
 			link.style.display = 'block';
 		}, false);
-		
+		{% endif %}
 	</script>
 
 {% endblock %}
