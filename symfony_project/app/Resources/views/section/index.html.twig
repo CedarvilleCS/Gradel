@@ -192,8 +192,11 @@
 
 	<script>
 
+		// Download CSV of Grades
+
 		var textFile = null;
 
+		// Create a text file from the given text
 		function makeTextFile(text) {
 			var data = new Blob([text], {type: 'text/plain'});
 		
@@ -208,8 +211,14 @@
 			return textFile;
 		};
 
-		function downloadGrades() {
-			var gradesCSV = "";
+		// Generate a CSV list of the grades
+		function generateGradeCSV() {
+			var gradesCSV = "User, ";
+			{% for asgn in assignments %}
+				gradesCSV += "Problems Correct, Total Problems, Grade, ";
+			{% endfor %}
+
+			gradesCSV += "\n";
 
 			{% for user in section_takers %}
 				//console.log("download grades");
@@ -230,6 +239,7 @@
 					// console.log("{{grades[user.id][asgn.id]['num_correct_problems']}}");
 
 				{% endfor %}
+				gradesCSV += "\n";
 			{% endfor %}
 			
 			console.log(gradesCSV);
@@ -237,38 +247,14 @@
 			return gradesCSV;
 		}
 
-		var download = document.getElementById('download');
-				
+		// Download the CSV of grades when the download button is clicked
+		var download = document.getElementById('download');	
 		download.addEventListener('click', function () {
 			var link = document.getElementById('download');
-			link.href = makeTextFile(downloadGrades());
+			link.href = makeTextFile(generateGradeCSV());
 			link.style.display = 'block';
 		}, false);
-	</script>
-
-	{# 
-														
-	<tr> <th>{{user.getFirstName()}} {{user.getLastName()}}</th>
-
-		{% for asgn in assignments %}
-			
-			{% if grades[user.id][asgn.id]['num_correct_problems'] > 0 and grades[user.id][asgn.id]['num_correct_problems'] == grades[user.id][asgn.id]['num_problems'] %}
-			
-				<td style="color:green; font-size: 25px">&#x2713; 
-				
-				{% if grades[user.id][asgn.id]['num_extra_problems'] > 0 and grades[user.id][asgn.id]['num_extra_correct_problems'] == grades[user.id][asgn.id]['num_extra_problems'] %}
-				&#x2713; 										
-				{% endif %}
-				</td>
-				
-			{% elseif grades[user.id][asgn.id]['num_correct_problems'] != 0 %}
-				<td style="color:orange; font-size: 25px"><i> {{grades[user.id][asgn.id]['num_correct_problems']}}/{{grades[user.id][asgn.id]['num_problems']}}</i></td>
-		   {% else %} 
-				  <td style="color:red; font-size: 25px"> &#x2718</td>
-		   {% endif %}
-			
 		
-	
-{% endfor %} #}
+	</script>
 
 {% endblock %}
