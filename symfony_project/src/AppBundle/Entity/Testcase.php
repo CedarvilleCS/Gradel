@@ -98,7 +98,7 @@ class Testcase {
 		
 		$this->correct_output = $output;
 		$this->weight = $weight;
-		$this->is_extra_credit = $extra_credit;		
+		$this->is_extra_credit = $extra_credit;
 	}
 	
 	# clone method override

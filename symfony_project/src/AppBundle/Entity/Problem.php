@@ -21,6 +21,10 @@ class Problem{
 			call_user_func_array(array($this,$f),$a);
 		} else if($i != 0) {
 			throw new Exception('ERROR: '.get_class($this).' constructor does not accept '.$i.' arguments');
+		} else {
+		
+			$this->version = 0;
+			$this->testcase_counts = [null];
 		}
 		
 		$this->testcases = new ArrayCollection();
@@ -30,7 +34,7 @@ class Problem{
 		$this->master = null;
 	}
 	
-	public function __construct14($assign, $nm, $desc, $wght, $limit, $credit, $tot, $bef, $pen, $stop, $resp, $disp_tcr, $tc_lev, $disp_ext){
+	public function __construct16($assign, $nm, $desc, $wght, $limit, $credit, $tot, $bef, $pen, $stop, $resp, $disp_tcr, $tc_lev, $disp_ext, $vers, $counts){
 		$this->assignment = $assign;
 		$this->name = $nm;
 		$this->description = $desc;
@@ -47,6 +51,9 @@ class Problem{
 		$this->display_testcaseresults = $disp_tcr;
 		$this->testcase_output_level = $tc_lev;
 		$this->extra_testcases_display = $disp_ext;
+		
+		$this->version = $vers;
+		$this->testcase_counts = $counts;
 	}
 	
 	# clone method override
@@ -81,6 +88,9 @@ class Problem{
 			
 			$this->slaves = new ArrayCollection();
 			$this->master = null;
+			
+			$this->version = 1;
+			$this->testcase_counts = [count($this->testcases)];
 		}
 		
 	}
@@ -91,7 +101,17 @@ class Problem{
 	* @ORM\GeneratedValue(strategy="AUTO")
 	*/
 	public $id;
-
+	
+	/**
+	* @ORM\Column(type="integer")
+	*/
+	public $version;	
+	
+	/**
+	* @ORM\Column(type="array")
+	*/
+	public $testcase_counts;
+	
 	/**
 	* @ORM\OneToMany(targetEntity="Testcase", mappedBy="problem", cascade={"persist"})
 	*/

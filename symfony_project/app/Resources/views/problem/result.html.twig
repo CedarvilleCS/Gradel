@@ -84,6 +84,8 @@ The grader was not passed from the controller.
 					
 				<!--span style="word-wrap: break-word"> {{feedback|json_encode}} </span-->
 				
+				
+				
 				{% if feedback.display_markers and not submission.compiler_error and not submission.questionable_behavior and submission.testcaseresults|length > 0%}
 				<div id="feedback-holder">
 					<div id="testcase-markers-container">
@@ -126,20 +128,20 @@ The grader was not passed from the controller.
 										
 										<div id="testcase-tab-{{tcr.id}}">
 											<div class="testcase-data">
-												{% if feedback.input[tcr.testcase.seq_num] != '' %}
+												{% if feedback.input[tcr.testcase.seq_num] or feedback.command_line[tcr.testcase.seq_num] %}
 												<div id="testcase-input">
 													
 													{% if feedback.input[tcr.testcase.seq_num] %}
 													<div>
 														<div class="testcase-data-heading">Input:</div>
-														<textarea {% if feedback.command_line[tcr.testcase.seq_num] %} id="input-textarea" {% endif %} disabled>{{feedback.input[tcr.testcase.seq_num]}}</textarea>
+														<textarea {% if feedback.input[tcr.testcase.seq_num] %} id="input-textarea" {% endif %} disabled>{{feedback.input[tcr.testcase.seq_num]}}</textarea>
 													</div>
 													{% endif %}
 													
 													{% if feedback.command_line[tcr.testcase.seq_num] %}
 													<div>
-														<div class="testcase-data-heading">Command-Line:</div>
-														<textarea  {% if feedback.input[tcr.testcase.seq_num] %} id="command-line-textarea" {% endif %} disabled>{{feedback.command_line[tcr.testcase.seq_num]}}</textarea>
+														<div class="testcase-data-heading">Command-Line Arguments:</div>
+														<textarea  {% if feedback.command_line[tcr.testcase.seq_num] %} id="command-line-textarea" {% endif %} disabled>{{feedback.command_line[tcr.testcase.seq_num]}}</textarea>
 													</div>
 													{% endif %}
 													
