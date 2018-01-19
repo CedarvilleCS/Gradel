@@ -102,9 +102,11 @@
 					
 					<br>
 					{# <a href="{{path('section_grades', {'sectionId': section.id})}}" class="btn"> #}
-					<a onclick="downloadGrades();">
+					<a id="download">
 						<div class="btn">Download Grades</div>
 					</a>
+
+					<button id="create">Create file</button> <a download="info.txt" id="downloadlink" style="display: none">Download</a>
 					{# </a> #}
 				
 				{% endif %}
@@ -192,6 +194,23 @@
 	<script src="{{ asset('js/cards.js') }}"></script>
 
 	<script>
+
+		var textFile = null;
+
+		function makeTextFile(text) {
+			var data = new Blob([text], {type: 'text/plain'});
+		
+			// If we are replacing a previously generated file we need to
+			// manually revoke the object URL to avoid memory leaks.
+			if (textFile !== null) {
+				window.URL.revokeObjectURL(textFile);
+			}
+		
+			textFile = window.URL.createObjectURL(data);
+		
+			return textFile;
+		};
+
 		function downloadGrades() {
 			var gradesCSV = "";
 
@@ -201,10 +220,33 @@
 				gradesCSV += '{{user }}' + ', ';
 				// for assignment
 					// add the grade
+
+				{% for asgn in assignments %}
+									
+					{# // {% if grades[user.id][asgn.id]['num_correct_problems'] > 0 and grades[user.id][asgn.id]['num_correct_problems'] == grades[user.id][asgn.id]['num_problems'] %} #}
+
+					var correct = parseFloat("{{grades[user.id][asgn.id]['num_correct_problems']}}");
+					var total = parseFloat("{{grades[user.id][asgn.id]['num_problems']}}");
+					var percent = correct/total;
+
+					gradesCSV += correct + ', ' + total + ', ' + percent + ', '; 
+					// console.log("{{grades[user.id][asgn.id]['num_correct_problems']}}");
+
+				{% endfor %}
 			{% endfor %}
 			
 			console.log(gradesCSV);
+
+			return gradesCSV;
 		}
+
+		var download = document.getElementById('download');
+				
+		download.addEventListener('click', function () {
+			var link = document.getElementById('download');
+			link.href = makeTextFile(downloadGrades());
+			link.style.display = 'block';
+		}, false);
 	</script>
 
 	{# 
