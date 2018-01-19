@@ -13,7 +13,7 @@ class TestCaseCreator  {
 	
 	/* will make a testcase from the $data and return it in the parameters */
 	/* returns 1 on success */
-	public static function makeTestCase(&$testcase, $em, $problem, $data, $sequenceNumber){
+	public static function makeTestCase(&$testcase, $problem, $data, $sequenceNumber){
 		
 		# check the required fields
 		if((!isset($data['input']) && !isset($data['args'])) || !isset($data['output']) || !isset($data['weight'])){		  
@@ -31,17 +31,10 @@ class TestCaseCreator  {
 			$output = $data['output'];
 			
 			// add a newline to the input
-			if($input != null && $input != "" && substr($input,-1) != "\n"){
-				$input = $input."\n";
-			} else if($input == null || $input == "") {
+			if($input == null || $input == "") {
 				$input = null;
 			}
-			
-			// add a newline to the output
-			if(isset($output) && substr($output,-1) != "\n"){
-				$output = $output."\n";
-			}
-			
+
 			$weight = $data['weight'];		  
 		}
 

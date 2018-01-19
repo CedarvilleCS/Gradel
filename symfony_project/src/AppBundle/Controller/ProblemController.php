@@ -374,24 +374,22 @@ class ProblemController extends Controller {
 		
 		$newTestcases = new ArrayCollection();
 		$count = 1;
-		foreach($postData['testcases'] as $tc){
-
-			if(!is_array($tc)){
-				return $this->returnForbiddenResponse("Testcase data is not formatted properly");
-			}
-
+		foreach($postData['testcases'] as &$tc){
+			
+			$tc = (array) $tc;
+			
 			# build the testcase
-			$testcase = null;
-			$response = TestCaseCreator::makeTestCase($testcase, $em, $problem, $tc, $count);
-			$count++;
-
-			# check what the makeTestCase returns
-			if($response != 1){
-				return $this->returnForbiddenResponse($response."");
+			try{				
+				$testcase = new Testcase($problem, $tc, $count);
+				$count++;
+					
+				$em->persist($testcase);
+				$newTestcases->add($testcase);
+				
+			} catch(Exception $e){
+				return $this->returnForbiddenResponse($e->getMessage());
 			}
 
-			$em->persist($testcase);
-			$newTestcases->add($testcase);
 		}
 		$problem->testcases = $newTestcases;
 		
