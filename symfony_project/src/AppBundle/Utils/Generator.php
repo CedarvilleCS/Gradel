@@ -364,7 +364,7 @@ class Generator  {
 		$pl_query = $pb_problang->getQuery();
 		$prob_lang = $pl_query->getOneOrNullResult();	
 		
-		if(!$prob_lang){
+		if(!isset($prob_lang)){
 			return "YOU CANNOT SUBMIT A SOLUTION FOR THE GIVEN LANGUAGE";
 		} else {
 			$compilation_options = trim($prob_lang->compilation_options);
@@ -405,7 +405,7 @@ class Generator  {
 		foreach($problem->testcases as $tc){
 			
 			#INPUT FILE
-			if($tc->input){
+			if(isset($tc->input)){
 				
 				// write the input file to the temp directory
 				$input = $tc->input;			
@@ -422,7 +422,7 @@ class Generator  {
 			}
 			
 			#ARG FILE
-			if($tc->command_line_input){
+			if(isset($tc->command_line_input)){
 				// write the input file to the temp directory
 				$args = $tc->command_line_input;			
 				
@@ -438,7 +438,7 @@ class Generator  {
 			}
 			
 			#OUTPUT FILE
-			if($tc->correct_output){
+			if(isset($tc->correct_output)){
 				// write the output file to the temp directory
 				$correct_output = $tc->correct_output;
 				

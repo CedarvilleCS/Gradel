@@ -11,9 +11,9 @@ use AppBundle\Entity\Problem;
 use AppBundle\Entity\ProblemLanguage;
 use AppBundle\Entity\Language;
 use AppBundle\Entity\UserSectionRole;
+use AppBundle\Entity\Testcase;
 
 use AppBundle\Utils\Grader;
-use AppBundle\Utils\TestCaseCreator;
 
 use Psr\Log\LoggerInterface;
 
@@ -22,6 +22,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Config\Definition\Exception\Exception;
 
 class ProblemController extends Controller {
 
@@ -62,8 +63,7 @@ class ProblemController extends Controller {
 			
 			if(!$problem){
 				die("PROBLEM DOES NOT EXIST");
-			}
-			
+			}			
 			
 			if($problem->master){
 				$problem = $problem->master;				
@@ -373,24 +373,22 @@ class ProblemController extends Controller {
 		
 		$newTestcases = new ArrayCollection();
 		$count = 1;
-		foreach($postData['testcases'] as $tc){
-
-			if(!is_array($tc)){
-				return $this->returnForbiddenResponse("Testcase data is not formatted properly");
-			}
-
+		foreach($postData['testcases'] as &$tc){
+			
+			$tc = (array) $tc;
+			
 			# build the testcase
-			$testcase = null;
-			$response = TestCaseCreator::makeTestCase($testcase, $em, $problem, $tc, $count);
-			$count++;
-
-			# check what the makeTestCase returns
-			if($response != 1){
-				return $this->returnForbiddenResponse($response."");
+			try{				
+				$testcase = new Testcase($problem, $tc, $count);
+				$count++;
+					
+				$em->persist($testcase);
+				$newTestcases->add($testcase);
+				
+			} catch(Exception $e){
+				return $this->returnForbiddenResponse($e->getMessage());
 			}
 
-			$em->persist($testcase);
-			$newTestcases->add($testcase);
 		}
 		$problem->testcases = $newTestcases;
 		
