@@ -14,7 +14,6 @@ use AppBundle\Entity\UserSectionRole;
 use AppBundle\Entity\Testcase;
 
 use AppBundle\Utils\Grader;
-use AppBundle\Utils\TestCaseCreator;
 
 use Psr\Log\LoggerInterface;
 
