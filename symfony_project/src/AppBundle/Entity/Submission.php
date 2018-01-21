@@ -75,7 +75,7 @@ class Submission {
 		$tcs = 0;
 		$passed_tcs = 0;
 		
-		$tcs = $this->problem->testcase_counts[$this->version-1];
+		$tcs = $this->problem->testcase_counts[$this->version];
 		
 		foreach($this->testcaseresults as $tcr){
 			
@@ -83,8 +83,6 @@ class Submission {
 				$passed_tcs++;
 			}			
 		}
-	
-		//die("".$tcs);
 		
 		return $passed_tcs == $tcs;
 	}

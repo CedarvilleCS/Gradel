@@ -8,7 +8,6 @@ use AppBundle\Entity\UserSectionRole;
 use AppBundle\Entity\Section;
 use AppBundle\Entity\Assignment;
 use AppBundle\Entity\Team;
-use AppBundle\Entity\AssignmentGradingMethod;
 
 use AppBundle\Utils\Grader;
 use AppBundle\Utils\Uploader;
@@ -390,15 +389,9 @@ class AssignmentController extends Controller {
 		}
 		
 		# set grading method
-		$penalty = (float)trim($postData['penalty']);	
+		$penalty = (float)trim($postData['penalty']);
 		
-		if($assignment->gradingmethod->penalty_per_day != $penalty){
-			$gradingMethod = new AssignmentGradingMethod($penalty);	
-			
-			$em->persist($gradingMethod);
-			
-			$assignment->gradingmethod = $gradingMethod;
-		}		
+		$assignment->penalty_per_day = $penalty;		
 
 		# get all the users taking the course
 		$takes_role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));

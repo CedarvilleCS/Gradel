@@ -14,7 +14,6 @@ use AppBundle\Entity\UserSectionRole;
 use AppBundle\Entity\Testcase;
 use AppBundle\Entity\Submission;
 use AppBundle\Entity\Language;
-use AppBundle\Entity\AssignmentGradingMethod;
 use AppBundle\Entity\Feedback;
 use AppBundle\Entity\TestcaseResult;
 
@@ -106,17 +105,6 @@ class Fixtures extends Fixture {
 			$manager->persist(new UserSectionRole($smith_user, $CS1210_01, $teach_role));
 		}
 		
-		# ASSIGNMENTGRADINGMETHOD Testing
-		{
-			$assignment_grdmethod0 = new AssignmentGradingMethod(0.00);
-			$assignment_grdmethod1 = new AssignmentGradingMethod(0.10);	
-			$assignment_grdmethod2 = new AssignmentGradingMethod(0.20);		
-
-			$manager->persist($assignment_grdmethod0);
-			$manager->persist($assignment_grdmethod1);
-			$manager->persist($assignment_grdmethod2);
-		}
-		
 		# ASSIGNMENT Testing
 		{		
 			
@@ -124,14 +112,14 @@ class Fixtures extends Fixture {
 									"Homework #1", "This is the first homework assignment", 
 									\DateTime::createFromFormat($date_format, "00:00:00 11/30/2017"), 
 									\DateTime::createFromFormat($date_format, "23:59:59 05/30/2018"), 
-									\DateTime::createFromFormat($date_format, "23:59:59 05/30/2018"), 1, $assignment_grdmethod0, false);
+									\DateTime::createFromFormat($date_format, "23:59:59 05/30/2018"), 1, 0.00, false);
 			$manager->persist($assignment_01);
 			
 			$assignment_02 = new Assignment($CS1210_01, 
 									"Homework #2", "This is the second homework assignment", 
 									\DateTime::createFromFormat($date_format, "00:00:00 11/30/2017"), 
 									\DateTime::createFromFormat($date_format, "23:59:59 05/30/2018"), 
-									\DateTime::createFromFormat($date_format, "23:59:59 05/30/2018"), 1, $assignment_grdmethod0, false);
+									\DateTime::createFromFormat($date_format, "23:59:59 05/30/2018"), 1, 0.00, false);
 			$manager->persist($assignment_02);
 		}
 		

@@ -44,6 +44,7 @@ class Team implements JsonSerializable{
 
 	/**
 	* @ORM\OneToMany(targetEntity="Submission", mappedBy="team")
+	* @ORM\OrderBy({"timestamp" = "ASC"})
 	*/
 	public $submissions;
 	

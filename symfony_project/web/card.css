@@ -74,14 +74,14 @@
 
 
 
-@media (max-width: 1500px) {
+@media (max-width: 1192px) {
 
 	.parallel-cards > .testcase-card {
 		width: 100%;
 	}
 }	
 
-@media (max-width: 1500px) {
+@media (max-width: 1192px) {
 
 	.parallel-cards {
 		flex-grow: 1;

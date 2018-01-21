@@ -1,0 +1,469 @@
+{% set teaching=grader.isTeaching(app.user, problem.assignment.section) or is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") %}
+
+
+{% block head %}
+	<title>Gradel {% if problem != null %} | {{problem.assignment.name}} {% endif %}</title>
+	<link rel="icon" type="image/x-icon" href="{{ asset('logo.png') }}" />
+{% endblock %}
+
+{% block body %}
+
+{# markdown #}
+<script src="http://cdn.rawgit.com/showdownjs/showdown/1.8.6/dist/showdown.min.js"></script>
+
+<script>
+
+// markdown stuff
+var converter = new showdown.Converter();
+converter.setOption('tasklists', true);
+converter.setOption('backslashEscapesHTMLTags', true);
+converter.setOption('emoji', true);
+
+converter.setFlavor('github');
+var markdownText = converter.makeHtml("{{problem.description|e('js')}}");
+
+</script>
+
+<body>
+    {{ include('template/top-nav.html.twig') }}
+
+	{# left panel with the problem links #}
+	{{ include('template/problem-nav.html.twig') }}
+
+	{{ include('template/path-nav.html.twig') }}
+	
+    <section id="main">
+
+		{% if problem.assignment.problems|length == 0 %}
+
+		{% else %}
+
+		<div class="card" style="padding-top: 2px">
+			{% set grade = grader.getProblemGrade(app.user, problem) %}
+			{% if not teaching %}
+			
+				{% if grade['total_testcases'] + grade['total_extra_testcases'] == grade['passed_testcases'] + grade['passed_extra_testcases'] %}
+					<h3 style="color: green"> You have completed this problem! </h3>
+				{% elseif grade['total_testcases'] == grade['passed_testcases'] %}
+					<h3> Your solution has solved the normal testcases, but not the extra credit ones </h3>
+				{% endif %}
+				
+				<h3>
+					{% if attempts_remaining < 0 %}
+						Unlimited attempts allowed
+					{% else %}
+						Attempts left: {{attempts_remaining}}
+					{% endif %}
+
+
+					{% if best_submission != null %}
+						<a href="{{path('problem_result', {'submission_id': best_submission.id})}}"> [Currently accepted submission] </a>
+					{% endif %}
+				</h3>
+			
+			{% endif %}
+			
+			<div id="courseInfo" class="card-contents">
+			
+				<div class="markdown-container">
+					<div id="markdown-header"><h1>{{problem.name}}</h1></div>
+					<div id="markdown"></div>
+					<div id="markdown-collapser">Hide Description</div>
+				</div>
+				
+
+{# the ACE editor text area #}
+				
+<div id="editor">{% if last_submission != null and last_submission.filename|split('.')|last != 'zip' %}
+{{ last_submission.deblobinateSubmittedFile()|nl2br }}
+{% elseif last_submission != null %}
+Uploaded file was a ZIP file
+{% endif %}
+</div>
+				<br/>
+
+				{# display the form or not #}
+				{% set open = (problem.assignment.start_time|date('U') < "now"|date('U') and problem.assignment.cutoff_time|date('U') > "now"|date('U')) %}
+
+				{% if teaching or (usersectionrole.role.role_name == 'Takes' and open and attempts_remaining != 0)%}
+
+					{# file upload#}
+					<form id="submissionUploadForm" action="{{path('get_contents')}}" method="post">
+						<input type="file" name="file" id="file" value="Upload File">
+					</form>
+
+					{# Language selection and hidden field to submit ACE contents #}
+					<div id="submissionForm">
+
+						Language:
+						<select id="languageSelect" name="language">
+							{% for lang in languages %}
+								{% if lang.name != "No Language Restriction" %}
+									<option value={{lang.id}}>{{lang.name}}</option>
+								{% endif %}
+							{% endfor %}
+						</select>
+						<br>
+						<div id="mainClassInput" style="display:none"><label for="main_class">Main Class: </label><input type="text" name="main_class" id="main_class_input"></div>
+						<div id="packgNameInput" style="display:none"><label for="package_name">Package Name: </label><input type="text" name="package_name" id="package_name_input"></div>
+						<br/>
+						<input type="hidden" name="ACE" id="ACE">
+						<div class="btn" style="width: 100px" id="submissionButton"> Submit </div>
+						<div id="loading-container" style="display: none">
+							<img id="loadingGif" style="height: 60px" src="{{asset('beoload.gif')}}" alt="Loading..."/>
+							<h3 style="margin: 0px"> Submitting Code... </h3>
+						</div>
+					</div>
+
+				{% elseif attempts_remaining == 0 %}
+					You are out of attempts for this problem.
+				{% elseif open %}
+					You are not allowed to submit for this problem.
+				{% else %}
+					This problem is not currently open.
+				{% endif %}
+			</div>
+		</div>
+		
+		{% if all_submissions|length > 0 %}
+		<div class="card">
+			<div class="btn-close" onclick="collapseCard('recentSubs')">
+				<h2 style="margin: 0px">Your {% if team.users|length > 1 %} Team's {% endif %} Recent Submissions</h2>
+			</div>
+			
+			<div id="recentSubs" class="card-contents" style="margin-top: 0px">
+				<div>   
+					<ul>
+					{% if all_submissions|length == 0 %}
+						<li> No recent submissions </li>
+					{% else %}
+						
+						{% for sub in all_submissions %}
+							{% if sub.isCorrect %}
+								<div style="color: green">
+							{% else %}
+								
+								<div style="color: red">
+							{% endif %}
+							
+							<li><a href="{{path('problem_result', {'submission_id': sub.id})}}">
+								[{{sub.problem.name}}] 
+									{% if sub.team.users|length > 1 %}
+										{
+										{% for user in sub.team.users %}
+											
+											{{user.getLastName}}
+											{% if not loop.last %}
+											, 
+											{% endif%}
+										{% endfor %}
+										}
+									{% endif %}
+									- {{sub.timestamp|date('F d, Y  \\a\\t  h:i:s')}} ({{sub.language.name}})
+							</a> </li>
+						
+							</div>
+						{% endfor %}
+						
+					{% endif %}
+					
+					</ul>
+				</div>
+			</div>
+		</div>
+		{% endif %}
+
+		{% endif %}
+
+		
+		
+    </section>
+</body>
+{% endblock %}
+
+
+{% block stylesheets %}
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
+	
+    <link rel="stylesheet" href="{{ asset('styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('card.css') }}" />
+	
+    <link rel="stylesheet" href="{{ asset('submit.css') }}" />
+	
+    <link rel="stylesheet" href="{{ asset('markdown-styles.css') }}" />
+
+	<style>
+		#submissionButton:hover {
+			cursor:pointer;
+		}
+	</style>
+{% endblock %}
+
+{% block scripts %}
+    <!-- JQuery -->
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+	<script src="{{ asset('src-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>
+	<script src="{{ asset('js/validation.js') }}"></script>
+		
+	{# asynchronous file upload #}
+	<script src="http://malsup.github.com/jquery.form.js"></script>
+	{# markdown #}
+
+	<script>
+		var saved_code = "";
+
+		function getLanguage(filename){
+
+			var filetypes = JSON.parse('{{ filetypes|json_encode|raw }}');
+			var ext = getExtension(filename);
+
+			return filetypes[ext];
+		}
+
+		function getExtension(filename){
+
+			var ext = filename.substr(filename.lastIndexOf('.') + 1);
+			return ext;
+		}
+
+		function getName(filename){
+
+			var ext = getExtension(filename);
+			var cls = filename.substr(filename.lastIndexOf('\\') + 1).replace("."+ext,"");
+			
+			return cls;
+		}
+
+		function setLanguageFromFilename(filename){
+
+			var classname = getName(filename);
+			var ext = getExtension(filename);
+			var language = getLanguage(filename);
+
+			if(!language){
+				language = $('#languageSelect option:selected').text();
+			}
+
+			setLanguage(language);
+
+			// set the main class
+			document.getElementById('main_class_input').value = classname;
+
+			// toggle the java inputs
+			toggleJavaInputs(language == "Java", ext == "zip");
+		}
+
+		function setLanguage(language){
+
+			// set the language selector
+			var selectObject = document.getElementById('languageSelect');
+			for(var i=0; i<selectObject.length; i++){
+				if(selectObject.options[i].text == language){
+					selectObject.selectedIndex = i;
+					break;
+				}
+			}
+
+			var editor = ace.edit("editor");
+			editor.$blockScrolling = Infinity;
+			updateAceCode();
+
+			// toggle the java inputs
+			var ext = getExtension($('#submissionUploadForm #file').val());
+			toggleJavaInputs(language == "Java", ext == "zip");
+		}
+
+		function toggleJavaInputs(state1, state2){
+
+			if(!state1){
+				document.getElementById('mainClassInput').style.display = 'none';
+				document.getElementById('packgNameInput').style.display = 'none';
+			} else if(state1 && !state2){
+				document.getElementById('mainClassInput').style.display = 'block';
+				document.getElementById('packgNameInput').style.display = 'none';
+			} else{
+				document.getElementById('mainClassInput').style.display = 'block';
+				document.getElementById('packgNameInput').style.display = 'block';
+			}
+		}
+
+		function updateAceCode(){
+
+			var default_code = JSON.parse('{{ default_code|json_encode|replace({'\\':'\\\\'})|raw }}');
+			var ace_modes = JSON.parse('{{ ace_modes|json_encode|raw }}');
+
+			var editor = ace.edit("editor");
+			editor.$blockScrolling = Infinity;
+			
+			language = $('#languageSelect option:selected').text();
+			
+			if(saved_code !== editor.getValue()) {
+				editor.setValue(editor.getValue(), -1);
+			} else {
+				// This sets the default code for the selected language.
+				editor.setValue(default_code[language], -1);
+				saved_code = default_code[language];
+			}
+			editor.getSession().setMode("ace/mode/" + ace_modes[language]);
+		}
+
+	</script>
+
+	<script>
+	
+		$("#markdown-collapser").click(function () {
+			
+			$collapser = $(this);
+			$content = $('#markdown');
+						
+			$collapser.text(function() {
+				return $content.is(":visible") ? "Show Description" : "Hide Description";
+			});
+			
+			$content.slideToggle(20, function() {});
+			
+		});
+	
+		$(document).ready(function() {
+			
+			$('#markdown').html(markdownText);
+			
+			var editor = ace.edit("editor");
+			editor.$blockScrolling = Infinity;
+
+			// make the language dropdown change affect the code
+			$('#languageSelect').change( function(data) {
+
+				var language = $('#languageSelect option:selected').text();
+				setLanguage(language);
+			});
+
+			// submit the form if the file upload is changed
+			$('#submissionUploadForm #file').change( function(data) {
+				$('#submissionUploadForm').submit();
+			});
+
+			// overwrite the normal submit to call the ajaxsubmit
+			$('#submissionUploadForm').submit(function() {
+				
+				$(this).ajaxSubmit({
+				
+					beforeSubmit: 	function(formData, jqForm, options){
+						
+						/* CLIENT-SIDE VALIDATION */
+						return true;
+						
+					},
+					success:		function(responseText, statusText, xhr, $form) {
+						
+						var file = responseText['files'][0];
+				
+						console.log(responseText);
+						setLanguageFromFilename(file['name']);
+						
+						var editor = ace.edit("editor");
+						editor.$blockScrolling = Infinity;
+						editor.setValue(atob(file['contents']));
+						
+						updateAceCode();		
+										
+					},
+					error:			function(xhr, textStatus, errorThrown) {
+						console.log(xhr);						
+						alert(xhr['responseText']);
+					}
+				});
+				
+				return false;
+			});
+
+			$('#submissionButton').click( function() {
+
+				// Create a FormData object
+				var formData = new FormData();
+
+				// validate that fields are filled in
+				var language = $('#languageSelect option:selected').val();
+				var languageText = $('#languageSelect option:selected').text();
+				var main_class = $('#main_class_input').val();
+				var package_name = $('#package_name_input').val();
+
+				if(languageText == 'Java' && main_class == '') {
+				
+					setInvalid($('#main_class_input'));				
+					return false;
+					
+				} else if(languageText != 'Java'){
+
+					main_class = "";
+					package_name = "";
+				}
+				setValid($('#main_class_input'));
+
+				var editor = ace.edit("editor");
+				editor.$blockScrolling = Infinity;				
+				$("#ACE").val(editor.getValue());
+
+				var ACE = $('#ACE').val();				
+				
+				formData.append('problem_id', {{problem.id}});
+				formData.append('language', language);
+				formData.append('main_class', main_class);
+				formData.append('package_name', package_name);
+				formData.append('ACE', ACE);
+
+
+				if(getExtension($('#submissionUploadForm #file').val()) == "zip"){
+
+					var file = $('#submissionUploadForm #file').prop('files')[0];
+
+					if(file){
+						formData.append('file', file);
+					}
+				}
+
+				$('#loading-container').show();
+				$('#submissionButton').hide();
+				
+				$.ajax({
+					type: "POST",
+					url: "{{path('submit')}}",
+					data: formData,
+					processData: false,
+					contentType: false,
+					success: function(data){
+
+						console.log(data);
+						
+						if(data['data'] != null){
+							submitSolution(data['data']);
+						} else {
+							window.location = data["redirect_url"]
+						}
+					},
+					error: function(data){
+						alert(data['responseText']);
+						console.log(data['responseText']);
+						
+						$('#loading-container').hide();
+						$('#submissionButton').show();
+					}
+				});
+
+			});
+
+			// set default stuff for the ace editor
+			var editor = ace.edit("editor");
+			editor.$blockScrolling = Infinity;
+			editor.setTheme("ace/theme/xcode");
+			
+			{% if last_submission != null %}
+			setLanguageFromFilename("{{last_submission.filename}}");
+			{% else %}
+			$('#languageSelect').change();			
+			{% endif %}
+		});
+	</script>
+
+{% endblock %}

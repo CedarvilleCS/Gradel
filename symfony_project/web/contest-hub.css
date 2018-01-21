@@ -1,0 +1,136 @@
+#main{	
+	margin-top: 50px;
+	height: calc(100% - 50px);	
+}
+
+#contest-heading, #name-heading, #time-heading, #leaderboard-heading, #problems-heading {
+	text-align: center;	
+}
+
+#contest-heading h1{
+	font-size: 2.6em;
+	margin: 0px;
+}
+
+
+#name-heading h2, #leaderboard-heading h2, #problems-heading h2 {
+	font-size: 1.3em;
+	margin: 1px;
+}
+
+#time-heading{
+	margin-top: 5px;
+	border-bottom: 1px solid grey;
+}
+
+#time-heading h3{
+	margin: 0px;
+	font-size: 0.9em;
+	font-style: italic;
+}
+
+#progressbar-container .ui-progressbar-value {
+  border: none;
+  color: rgba(255,255,255,1);
+  
+  background: -webkit-linear-gradient(135deg, rgba(255,255,255,0.2) 25%, rgba(0,0,0,0) 25%, rgba(0,0,0,0) 50%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.2) 75%, rgba(0,0,0,0) 75%, rgba(0,0,0,0) 0), #71BA62;
+  background: -moz-linear-gradient(135deg, rgba(255,255,255,0.2) 25%, rgba(0,0,0,0) 25%, rgba(0,0,0,0) 50%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.2) 75%, rgba(0,0,0,0) 75%, rgba(0,0,0,0) 0), #71BA62;
+  background: linear-gradient(135deg, rgba(255,255,255,0.2) 25%, rgba(0,0,0,0) 25%, rgba(0,0,0,0) 50%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.2) 75%, rgba(0,0,0,0) 75%, rgba(0,0,0,0) 0), #71BA62;
+  
+  -webkit-background-size: 10px 10px;
+  background-size: 10px 10px;
+  
+  margin: 0px;
+}
+
+#submissions-container {
+	height: 100px;
+}
+
+#time-container{
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	
+	font-size: 0.9em;
+	font-style: italic;
+	font-weight: bold;
+}
+
+
+#leaderboard th{
+	text-align: center;
+	padding: 8px;
+}
+
+#leaderboard th a{
+	text-decoration: underline;
+	width: 100%;
+	display: inline-block;
+}
+
+#leaderboard th:hover{
+	background: lightgrey;
+}
+
+#leaderboard .no-hover:hover{
+	background: inherit;
+}
+
+#leaderboard td {
+	padding: 0px;
+}
+
+#leaderboard .problem {
+	width: 18px;
+	min-width: 18px;
+	max-width: 18px;
+}
+
+#leaderboard .name {
+	padding-left: 8px;
+	padding-right: 8px;
+}
+
+#leaderboard tr {
+	padding: 0px;
+	line-height: 18px;
+}
+
+#leaderboard .curr-user {
+	background: lightgrey;
+	font-weight: bold;
+}
+
+.accepted, .unattempted, .attempted, .unknown {
+	text-align: center;
+	color: #555555;
+	
+	font-weight: bold;
+}
+
+.attempts-count {
+	font-size: 1.2em;
+	padding-top: 2px;
+}
+
+.penalty-mins {
+	font-size: 0.9em;
+}
+
+#progressbar{
+	background: #F4F4F4;
+	height: 18px;
+	border-radius: 15px;
+}
+
+#problems .checklist-item{
+	display: flex;
+	justify-content: space-between;
+	flex-direction: row;
+	line-height: 100%;
+}
+
+#problems tr:hover{
+	background: lightgrey;
+}

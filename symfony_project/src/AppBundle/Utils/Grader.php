@@ -14,7 +14,6 @@ use AppBundle\Entity\UserSectionRole;
 use AppBundle\Entity\Testcase;
 use AppBundle\Entity\Submission;
 use AppBundle\Entity\Language;
-use AppBundle\Entity\AssignmentGradingMethod;
 use AppBundle\Entity\Feedback;
 use AppBundle\Entity\TestcaseResult;
 
@@ -43,6 +42,26 @@ class Grader  {
 	public function isTeaching($user, $section){
 		
 		$role = $this->em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Teaches'));		
+		
+		$qb = $this->em->createQueryBuilder();
+		$qb->select('usr')
+			->from('AppBundle\Entity\UserSectionRole', 'usr')
+			->where('usr.role = ?1')
+			->andWhere('usr.user = ?2')
+			->andWhere('usr.section = ?3')
+			->setParameter(1, $role)
+			->setParameter(2, $user)
+			->setParameter(3, $section);
+			
+		$query = $qb->getQuery();
+		$usr = $query->getOneOrNullResult();
+		
+		return $usr->section == $section;		
+	}
+	
+	public function isJudging($user, $section){
+		
+		$role = $this->em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Judges'));		
 		
 		$qb = $this->em->createQueryBuilder();
 		$qb->select('usr')
@@ -342,7 +361,7 @@ class Grader  {
 			$num_days_over = 1+(int)$most_recent_sub->diff($assignment->end_time)->format('%a');
 		}
 	
-		$assignment_percentage_adj = max($assignment_percentage - $num_days_over*$assignment->gradingmethod->penalty_per_day, 0);
+		$assignment_percentage_adj = max($assignment_percentage - $num_days_over*$assignment->penalty_per_day, 0);
 		$grade['percentage_adj'] = $assignment_percentage_adj;
 
 		return $grade;
@@ -509,8 +528,7 @@ class Grader  {
 		
 		return $feedback;		
 	}
-	
-	
+		
 	public function isAcceptedSubmission($submission, $previous, $total_correct){
 		
 		// take the new solution if it is 100% no matter wha
@@ -532,6 +550,226 @@ class Grader  {
 		
 	}
 	
+	
+	
+	# Contest Grading Methods
+	
+	
+	public function getProblemScore($team, $problem){
+		
+		// return an array that contains these values:
+		// num_attempts, time (in minutes) of submission
+		// has_solved/not_solved, penalty_points_raw (not counting correct), 
+		// penalty_points (including correct submission time)
+		
+		$score = [];
+		
+		// get submissions
+		$qb_subs = $this->em->createQueryBuilder();
+		$qb_subs->select('s')
+			->from('AppBundle\Entity\Submission', 's')
+			->where('s.problem = ?1')
+			->andWhere('s.team = ?2')
+			->setParameter(1, $problem)
+			->setParameter(2, $team)
+			->orderBy('s.timestamp', 'ASC');
+			
+		$subs_query = $qb_subs->getQuery();
+		$subs = $subs_query->getResult();
+		
+		
+		// get number of attempts
+		// get penalty points raw
+		$num_attempts = 0;
+		$penalty_points_raw = 0;
+		$correct_sub = null;
+		
+		foreach($subs as $sub){
+			
+			
+			$num_attempts++;
+			
+			if($sub->isCorrect()){
+				$correct_sub = $sub;
+				break;
+			}
+			
+			// compile error
+			if($sub->compiler_error){
+				$pen_type_val = $sub->problem->assignment->penalty_per_compile_error;
+			}
+			// runtime error
+			else if($sub->runtime_error){
+				$pen_type_val = $sub->problem->assignment->penalty_per_runtime_error;
+			}
+			// time limit
+			else if($sub->exceeded_time_limit){
+				$pen_type_val = $sub->problem->assignment->penalty_per_time_limit;
+			}
+			// wrong answer
+			else {
+				$pen_type_val = $sub->problem->assignment->penalty_per_wrong_answer;
+			}
+			$penalty_points_raw += $pen_type_val;
+		}
+		
+		$score['num_attempts'] = $num_attempts;
+		
+		
+		// get time of sub
+		// get correctness
+		if(isset($correct_sub)){
+			
+			// time
+			$contest_start = $problem->assignment->start_time;
+			$sub_time = $correct_sub->timestamp;
+			
+			$time_diff = $sub_time->getTimestamp() - $contest_start->getTimestamp();
+
+			$is_correct = true;
+			$time_of_sub = (int) ceil($time_diff / 60);
+					
+			$score['penalty_points_raw'] = $penalty_points_raw;			
+			$score['penalty_points'] = $time_of_sub + $penalty_points_raw;
+			
+		} else {
+			
+			$is_correct = false;
+			$time_of_sub = -1;	
+
+			$score['penalty_points_raw'] = -1;
+			$score['penalty_points'] = -1;
+		}
+		
+		$score['correct'] = $is_correct;
+		$score['time'] = $time_of_sub;
+		
+		
+		
+		return $score;
+	}
+	
+	public function getTeamScore($team){
+		
+		// returns an array of some pertinent information:
+		// num_correct, total_penalty, array of subtimes, array of penalties
+		
+		$problems = $team->assignment->problems->toArray();
+		
+		$scores = [];
+		
+		foreach($problems as $problem){			
+			$scores[] = $this->getProblemScore($team, $problem);			
+		}
+		
+		$num_correct = 0;
+		$total_penalty = 0;
+		$times = [];
+		$penalties = [];
+		$results = [];
+		$attempts = [];
+		
+		foreach($scores as $scr){
+			
+			$results[] = $scr['correct'];
+			
+			if($scr['correct']){
+				
+				$num_correct++;
+				$total_penalty += $scr['penalty_points'];
+			}
+			
+			$penalties[] = $scr['penalty_points'];
+			$times[] = $scr['time'];	
+			$attempts[] = $scr['num_attempts'];
+		}
+		
+		$score = [];
+		
+		$score['team_name'] = $team->name;
+		$score['num_correct'] = $num_correct;
+		$score['total_penalty'] = $total_penalty;
+		$score['results'] = $results;
+		$score['penalties'] = $penalties;
+		$score['times'] = $times;
+		$score['attempts'] = $attempts;
+		
+		return $score;
+	}
+	
+	public function getLeaderboard($user, $assignment){
+		
+		$teams = $assignment->teams->toArray();
+		
+		$user_team = $this->getTeam($user, $assignment);
+		
+		$scores = [];
+		foreach($teams as $team){
+			$scores[] = $this->getTeamScore($team);
+		}
+		
+		// sort the scores into the proper order
+		usort($scores, array($this, 'compareTeamScores'));
+			
+		
+		$count = 0;
+		$user_index = -1;
+		foreach($scores as $scr){
+			
+			if($scr['team_name'] == $user_team->name){
+				$user_index = $count;
+				break;
+			}
+			
+			$count++;			
+		}
+		
+		$leaderboard['scores'] = $scores;
+		$leaderboard['index'] = $user_index;
+		
+		return $leaderboard;
+	}
+	
+	
+	private static function compareTeamScores($a, $b){	
+		
+		// compares two teams with the following tiebreakers:
+		// 1) team with most correct submissions
+		// 2) team with the fewest penalty points
+		// 3) team with the quickest final submission, 2nd-to-last submission, ...
+		// 4) team name
+		
+		if($a['num_correct'] == $b['num_correct']){
+		
+			if($a['total_penalty'] == $b['total_penalty']){
+				
+				$a_times = $a['times'];
+				$b_times = $b['times'];
+				
+				rsort($a_times);
+				rsort($b_times);
+				
+				// go through the times from max to min
+				for($i=0; $i<count($a_times); $i++){
+					
+					if($a_times[$i] != $b_times[$i]){						
+						return ($a_times[$i] > $b_times[$i]) ? -1 : 1;												
+					}
+				}
+				
+				// randomly choose
+				return strcmp($a['team_name'], $b['team_name']);
+				
+			} else {
+				
+				return ($a['total_penalty'] > $b['total_penalty']) ? -1 : 1;				
+			}
+			
+		} else {
+			
+			return ($a['num_correct'] > $b['num_correct']) ? -1 : 1;
+		}
+	}	
 }
 
 
