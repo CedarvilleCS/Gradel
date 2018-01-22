@@ -99,6 +99,14 @@ class Testcase {
 		$this->correct_output = $output;
 		$this->weight = $weight;
 		$this->is_extra_credit = $extra_credit;
+		
+		# CONTEST SETTINGS OVERRIDE
+		if($problem->assignment->section->course->is_contest){
+			$this->weight = 1;	
+			$this->is_extra_credit = false;
+			$this->feedback = null;
+		}
+		
 	}
 	
 	# clone method override

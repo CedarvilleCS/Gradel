@@ -69,7 +69,7 @@ class CompilationController extends Controller {
 		}
 				
 		# get the type of submission		
-		$is_teaching = $grader->isTeaching($user, $problem->assignment->section);
+		$is_teaching = ($grader->isTeaching($user, $problem->assignment->section) || $grader->isJudging($user, $problem->assignment->section) || $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN"));
 		
 		if(!$is_teaching){
 
@@ -84,7 +84,7 @@ class CompilationController extends Controller {
 			
 			# get the current team
 			$team = $grader->getTeam($user, $problem->assignment);		
-			if(!$team && !$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN")){
+			if(!$team){
 				return $this->returnForbiddenResponse("YOU ARE NOT ON A TEAM OR TEACHING FOR THIS ASSIGNMENT");
 			}
 			
@@ -94,9 +94,7 @@ class CompilationController extends Controller {
 				return $this->returnForbiddenResponse("ALREADY REACHED MAX ATTEMPTS FOR PROBLEM AT ".$curr_attempts);
 			}
 		}
-		
-		$is_teaching =  $is_teaching || $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN");
-				
+						
 		# FILE UPLOAD
 		# upload the file via the UploadController
 		$response = $this->forward('AppBundle\Controller\UploadController::submitProblemUploadAction', array(
@@ -411,7 +409,7 @@ class CompilationController extends Controller {
 			return $this->returnForbiddenResponse("Assignment does not exist");
 		}
 		
-		$is_teaching = $grader->isTeaching($user, $assignment->section);		
+		$is_teaching = $grader->isTeaching($user, $assignment->section) || $grader->isJudging($user, $assignment->section);		
 		if(!$is_teaching && !$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN")){
 			return $this->returnForbiddenResponse("You are not allowed to generate output for this problem");
 		}

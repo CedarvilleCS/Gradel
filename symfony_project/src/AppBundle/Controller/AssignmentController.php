@@ -100,7 +100,7 @@ class AssignmentController extends Controller {
 		
 		# figure out how many attempts they have left
 		$total_attempts = $problem_entity->total_attempts;
-		if($total_attempts == 0 || $grader->isTeaching($user, $assignment_entity->section)){
+		if($total_attempts == 0 || $grader->isTeaching($user, $assignment_entity->section) || $grader->isJudging($user, $assignment_entity->section)){
 			$attempts_remaining = -1;
 		} else {
 			$attempts_remaining = max($total_attempts - $grader->getNumTotalAttempts($user, $problem_entity), 0);
@@ -190,8 +190,8 @@ class AssignmentController extends Controller {
 		
 		# validate the user
 		$grader = new Grader($em);
-		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN") && !$grader->isTeaching($user, $section)){
-			die("YOU ARE NOT ALLOWED TO DELETE THIS ASSIGNMENT");			
+		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN") && !$grader->isTeaching($user, $section) && !$grader->isJudging($user, $section)){
+			die("YOU ARE NOT ALLOWED TO EDIT THIS ASSIGNMENT");			
 		}		
 		
 		if($assignmentId != 0){
@@ -229,12 +229,26 @@ class AssignmentController extends Controller {
 			$students[] = $student;
 		}
 		
-		return $this->render('assignment/edit.html.twig', [
-			"assignment" => $assignment,
-			"section" => $section,
-			"edit" => true,
-			"students" => $students,
-		]);
+		
+		if($section->course->is_contest){
+
+			return $this->render('contest/assignment_edit.html.twig', [
+				"assignment" => $assignment,
+				"section" => $section,
+				"edit" => true,
+				"students" => $students,
+			]);
+			
+		} else {
+		
+			return $this->render('assignment/edit.html.twig', [
+				"assignment" => $assignment,
+				"section" => $section,
+				"edit" => true,
+				"students" => $students,
+			]);
+		
+		}
     }
 
     public function deleteAction($sectionId, $assignmentId){
@@ -258,7 +272,7 @@ class AssignmentController extends Controller {
 		
 		# validate the user
 		$grader = new Grader($em);
-		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN") && !$grader->isTeaching($user, $assignment->section)){
+		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN") && !$grader->isTeaching($user, $assignment->section) && !$grader->isJudging($user, $assignment->section)){
 			die("YOU ARE NOT ALLOWED TO DELETE THIS ASSIGNMENT");			
 		}
 		
@@ -294,7 +308,7 @@ class AssignmentController extends Controller {
 		
 		# only super users/admins/teacher can make/edit an assignment
 		$grader = new Grader($em);		
-		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN") && !$grader->isTeaching($user, $section)){			
+		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN") && !$grader->isTeaching($user, $section) && !$grader->isJudging($user, $section)){			
 			return $this->returnForbiddenResponse("You do not have permission to make an assignment.");
 		}		
 		
@@ -311,7 +325,7 @@ class AssignmentController extends Controller {
 			}
 
 			# validate the penalty if there is one
-			if(	is_numeric(trim($postData['penalty'])) && 
+			if(is_numeric(trim($postData['penalty'])) && 
 				((float)trim($postData['penalty']) > 1.0 || (float)trim($postData['penalty']) < 0.0)){
 					
 				return $this->returnForbiddenResponse("The provided penalty ".$postData['penalty']." is not permitted.");
@@ -388,11 +402,10 @@ class AssignmentController extends Controller {
 			$assignment->is_extra_credit = false;
 		}
 		
-		# set grading method
-		$penalty = (float)trim($postData['penalty']);
-		
+		# set grading penalty
+		$penalty = (float)trim($postData['penalty']);		
 		$assignment->penalty_per_day = $penalty;		
-
+	
 		# get all the users taking the course
 		$takes_role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));
 		$builder = $em->createQueryBuilder();
@@ -496,6 +509,50 @@ class AssignmentController extends Controller {
 				$em->remove($old);	
 				$em->flush();
 			}
+		}
+		
+		
+		# CONTEST SETTINGS OVERRIDE
+		if($section->course->is_contest){
+					
+			# set cutoff time to end time
+			$assignment->cutoff_time = $assigment->end_time;
+			$assignment->penalty_per_day = 0;
+			$assignment->weight = 1;
+			$assignment->is_extra_credit = false;
+			
+					
+			# validate everything
+			$penalty_per_wrong_answer = trim($postData['penalty_per_wrong_answer']);
+			if(!is_numeric($penalty_per_wrong_answer) || (int)$penalty_per_wrong_answer >= 0){					
+				return $this->returnForbiddenResponse("The provided penalty_per_wrong_answer ".$postData['penalty_per_wrong_answer']." is not permitted.");
+			}
+
+			$penalty_per_compile_error = trim($postData['penalty_per_compile_error']);
+			if(!is_numeric($penalty_per_compile_error) || (int)$penalty_per_compile_error >= 0){					
+				return $this->returnForbiddenResponse("The provided penalty_per_compile_error ".$postData['penalty_per_compile_error']." is not permitted.");
+			}
+
+			$penalty_per_time_limit = trim($postData['penalty_per_time_limit']);
+			if(!is_numeric($penalty_per_time_limit) || (int)$penalty_per_time_limit >= 0){					
+				return $this->returnForbiddenResponse("The provided penalty_per_time_limit ".$postData['penalty_per_time_limit']." is not permitted.");
+			}
+
+			$penalty_per_runtime_error = trim($postData['penalty_per_runtime_error']);
+			if(!is_numeric($penalty_per_runtime_error) || (int)$penalty_per_runtime_error >= 0){					
+				return $this->returnForbiddenResponse("The provided penalty_per_runtime_error ".$postData['penalty_per_runtime_error']." is not permitted.");
+			}			
+			
+			$freezeTime = DateTime::createFromFormat("H:i:s", $postData['freeze_time'].":00");			
+			if(!isset($freezeTime) || $freezeTime->format("H:i") != $postData['freeze_time']){
+				return $this->returnForbiddenResponse("Provided freeze time ".$postData['freeze_time']." is not valid.");
+			}
+			
+			$assignment->freeze_time = $freezeTime;
+			$assignment->penalty_per_wrong_answer = (int)$penalty_per_wrong_answer;
+			$assignment->penalty_per_compile_error = (int)$penalty_per_compile_error;
+			$assignment->penalty_per_time_limit = (int)$penalty_per_time_limit;
+			$assignment->penalty_per_runtime_error = (int)$penalty_per_runtime_error;
 		}
 			
 		$em->persist($assignment);	
