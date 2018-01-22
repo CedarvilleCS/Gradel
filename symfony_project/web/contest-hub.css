@@ -1,3 +1,9 @@
+#problems-heading h2, #leaderboard-heading h2 {
+	padding-bottom: 3px;
+	border-bottom: 1px solid lightgrey;
+}
+
+
 #main{	
 	margin-top: 50px;
 	height: calc(100% - 50px);	
@@ -73,6 +79,11 @@
 	background: lightgrey;
 }
 
+#leaderboard .no-hover {
+	border-left: none;
+	border-right: none;
+}
+
 #leaderboard .no-hover:hover{
 	background: inherit;
 }
@@ -92,14 +103,36 @@
 	padding-right: 8px;
 }
 
+#leaderboard .rank {
+	text-align: center;
+	font-weight: bold;
+}
+
+#leaderboard .time {
+	text-align: center;
+}
+
 #leaderboard tr {
 	padding: 0px;
 	line-height: 18px;
 }
 
+#leaderboard tr:nth-child(even) {
+	background: #EEEEEE;
+}
+
+#leaderboard tr:nth-child(odd) {
+	background: #FFFFFF;
+}
+
+
 #leaderboard .curr-user {
-	background: lightgrey;
+	background: #CCCCCC !important;
 	font-weight: bold;
+}
+
+#leaderboard .top-row {
+	border-top: none;
 }
 
 .accepted, .unattempted, .attempted, .unknown {
@@ -124,13 +157,70 @@
 	border-radius: 15px;
 }
 
-#problems .checklist-item{
-	display: flex;
-	justify-content: space-between;
-	flex-direction: row;
-	line-height: 100%;
+#problems {
+	border-collapse: collapse;
+	font-size: 1em;
 }
+
+#problems .name {
+	font-size: 1.3em;
+	padding-left: 25px;
+}
+
+#problems .penalties {
+	font-size: 1.2em;
+	text-align: right;
+}
+
+#problems .checkbox {
+	font-size: 1.5em;
+	text-align: right;
+}
+
+
+/* trs */
+#problems .accepted {	
+	background: #bde8be;
+	color: black;
+}
+#problems .accepted:hover {	
+	background: lightgrey;
+}
+
+#problems .unattempted {	
+	background: none;
+	color:	black;
+}
+#problems .unattempted:hover {	
+	background: lightgrey;
+}
+
+#problems .attempted {	
+	background: #f6774c;	
+	color: white;
+}
+#problems .attempted:hover {	
+	background: lightgrey;
+}
+
 
 #problems tr:hover{
 	background: lightgrey;
+	cursor: pointer;
+}
+
+#problems td{
+	border-left: none;
+	border-right: none;
+	border-top: none;
+	border-bottom: 1px solid black;
+	margin: 0px;
+	padding-bottom: 10px;
+	
+	padding-top: 10px;
+}
+
+#problems .last-row{
+	border-bottom: none;
+	margin-bottom: 5px;
 }

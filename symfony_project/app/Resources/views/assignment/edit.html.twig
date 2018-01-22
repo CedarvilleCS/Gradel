@@ -319,7 +319,7 @@
 					
 				}, function(data) {			
 					console.log(data);					
-					window.location = data["redirect_url"];
+					window.location = "{{path('section', {'sectionId': section.id})}}";
 					
 				}).fail(function(data) {				
 					alert(data["responseText"]);					

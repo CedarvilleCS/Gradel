@@ -58,27 +58,7 @@ class Grader  {
 		
 		return $usr->section == $section;		
 	}
-	
-	public function isJudging($user, $section){
 		
-		$role = $this->em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Judges'));		
-		
-		$qb = $this->em->createQueryBuilder();
-		$qb->select('usr')
-			->from('AppBundle\Entity\UserSectionRole', 'usr')
-			->where('usr.role = ?1')
-			->andWhere('usr.user = ?2')
-			->andWhere('usr.section = ?3')
-			->setParameter(1, $role)
-			->setParameter(2, $user)
-			->setParameter(3, $section);
-			
-		$query = $qb->getQuery();
-		$usr = $query->getOneOrNullResult();
-		
-		return $usr->section == $section;		
-	}
-	
 	public function isOnTeam($user, $assignment, $team){
 		return $team == $this->getTeam($user, $assignment);
 	}
@@ -553,7 +533,25 @@ class Grader  {
 	
 	
 	# Contest Grading Methods
-	
+	public function isJudging($user, $section){
+		
+		$role = $this->em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Judges'));		
+		
+		$qb = $this->em->createQueryBuilder();
+		$qb->select('usr')
+			->from('AppBundle\Entity\UserSectionRole', 'usr')
+			->where('usr.role = ?1')
+			->andWhere('usr.user = ?2')
+			->andWhere('usr.section = ?3')
+			->setParameter(1, $role)
+			->setParameter(2, $user)
+			->setParameter(3, $section);
+			
+		$query = $qb->getQuery();
+		$usr = $query->getOneOrNullResult();
+		
+		return $usr->section == $section;		
+	}
 	
 	public function getProblemScore($team, $problem){
 		
@@ -627,7 +625,7 @@ class Grader  {
 			$time_diff = $sub_time->getTimestamp() - $contest_start->getTimestamp();
 
 			$is_correct = true;
-			$time_of_sub = (int) ceil($time_diff / 60);
+			$time_of_sub = max((int) ceil($time_diff / 60), 0);
 					
 			$score['penalty_points_raw'] = $penalty_points_raw;			
 			$score['penalty_points'] = $time_of_sub + $penalty_points_raw;
@@ -666,6 +664,7 @@ class Grader  {
 		$total_penalty = 0;
 		$times = [];
 		$penalties = [];
+		$raw_penalties = [];
 		$results = [];
 		$attempts = [];
 		
@@ -680,6 +679,7 @@ class Grader  {
 			}
 			
 			$penalties[] = $scr['penalty_points'];
+			$raw_penalties[] = $scr['penalty_points_raw'];
 			$times[] = $scr['time'];	
 			$attempts[] = $scr['num_attempts'];
 		}
@@ -691,8 +691,10 @@ class Grader  {
 		$score['total_penalty'] = $total_penalty;
 		$score['results'] = $results;
 		$score['penalties'] = $penalties;
+		$score['raw_penalties'] = $raw_penalties;
 		$score['times'] = $times;
 		$score['attempts'] = $attempts;
+		$score['rank'] = -1;
 		
 		return $score;
 	}
@@ -710,18 +712,29 @@ class Grader  {
 		
 		// sort the scores into the proper order
 		usort($scores, array($this, 'compareTeamScores'));
-			
+		
+		$prevScore = null;
+		$rank = 0;
 		
 		$count = 0;
 		$user_index = -1;
-		foreach($scores as $scr){
+		foreach($scores as &$scr){
 			
 			if($scr['team_name'] == $user_team->name){
 				$user_index = $count;
-				break;
+			}
+			$count++;
+			
+			if($prevScore && $this->compareTeamScores($prevScore, $scr) == 0){
+				$rank = $prevRank;
+			} else {
+				$rank++;
 			}
 			
-			$count++;			
+			$scr['rank'] = $rank;
+			
+			$prevRank = $rank;
+			$prevScore = $scr;
 		}
 		
 		$leaderboard['scores'] = $scores;
@@ -737,7 +750,6 @@ class Grader  {
 		// 1) team with most correct submissions
 		// 2) team with the fewest penalty points
 		// 3) team with the quickest final submission, 2nd-to-last submission, ...
-		// 4) team name
 		
 		if($a['num_correct'] == $b['num_correct']){
 		
@@ -757,8 +769,8 @@ class Grader  {
 					}
 				}
 				
-				// randomly choose
-				return strcmp($a['team_name'], $b['team_name']);
+				// they are equal
+				return 0;
 				
 			} else {
 				

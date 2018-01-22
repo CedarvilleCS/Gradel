@@ -29,16 +29,44 @@ console.log(JSON.parse("{{ leaderboard | json_encode(constant('JSON_PRETTY_PRINT
 			</li>
 
 			<li class="sidebar" style="text-align:left">
-				<strong>Assignments</strong>
-				{% if elevatedUser %}
-					<object>
-						<a title="Create assignment" href={{path('assignment_edit', {'sectionId': section.id})}}>
-							<img class="small-icon" id="add-icon" src="{{ asset('add_circle.png') }}">
-						</a>
-					</object>
-				{% endif %}
+				<strong>Problems</strong>				
+			</li>	
+				
+				
+				
+			{% for problem in contest.problems %}
+
+			<a href={{path('assignment', {'sectionId': problem.assignment.section.id, "assignmentId": problem.assignment.id, "problemId": problem.id})}}>
+			
+			<li class="sidebar list-item">					
+		
+			<span class="preview">
+				<div class="{% if elevatedUser %}sidebar-text{% endif %}">{{ problem.name }}</div>
+				<small>
+				
+				{# put progress here #}
+				
+				</small>
+			</span>
+
+			{# display edit icon #}
+			{% if elevatedUser %}
+				<object>
+					<a title="Edit problem" href="{{path('problem_edit', {'sectionId': problem.assignment.section.id, 'assignmentId': problem.assignment.id, 'problemId': problem.id})}}">
+						<img class="small-icon" id="right-icon" src="{{ asset('edit.png') }}">
+					</a>
+				</object>
+			{% endif %}
+			
 			</li>
+			</a>
+			
+			{% endfor %}
 		</ol>
+		
+		<a href="{{path('assignment_edit', {'sectionId': contest.section.id, 'assignmentId': contest.id})}}" class="btn">
+			<div class="btn btn-center">Edit {{contest.name}}</div>
+		</a>
 	</nav>
 
 	{# {{ include('template/path-nav.html.twig') }} #}
@@ -84,9 +112,11 @@ console.log(JSON.parse("{{ leaderboard | json_encode(constant('JSON_PRETTY_PRINT
 					
 					
 						<tr>
-							<th class="no-hover">Problems</th>
+							<th class="top-row no-hover"></th>
+							<th class="top-row no-hover">Problems</th>
+							<th class="top-row no-hover">Time</th>
 							{% for problem in contest.problems %}
-							<th>
+							<th class="top-row">
 								<a href="{{path('assignment', {'sectionId': problem.assignment.section.id, 'assignmentId': problem.assignment.id, 'problemId': problem.id})}}">
 								{{problem.name|slice(0,1)}}
 								</a>
@@ -98,10 +128,15 @@ console.log(JSON.parse("{{ leaderboard | json_encode(constant('JSON_PRETTY_PRINT
 						{% for team in leaderboard.scores %}
 						
 							<tr {{(loop.index0 == leaderboard.index) ? "class='curr-user'" : ""}}>
-							<td class='name'>{{team.team_name}}</td>
 							
-							{% for result in team.results %}
+							<td class='rank'>{{team.rank}}</td>
+							<td class='name'>{{team.team_name}}</td>
+							<td class='time'>{{team.total_penalty}}</td>
+							
+							{% for problem in contest.problems %}
 
+								{% set result = team.results[loop.index0] %}
+							
 								<td class='{{(result) ? "accepted" : (team.attempts[loop.index0] > 0) ? "attempted" : "unattempted"}}'>
 									
 									<div class="attempts-count">{{(team.attempts[loop.index0] > 0) ? team.attempts[loop.index0] : "-"}}</div>
@@ -114,8 +149,6 @@ console.log(JSON.parse("{{ leaderboard | json_encode(constant('JSON_PRETTY_PRINT
 							</tr>
 						{% endfor %}
 						
-						
-					
 					</table>
 				</div>
 			</div>
@@ -126,14 +159,21 @@ console.log(JSON.parse("{{ leaderboard | json_encode(constant('JSON_PRETTY_PRINT
 				<div id="problems-container" class="card-contents">
 					<table id="problems">
 
+					{% set team = leaderboard.scores[leaderboard.index] %}
+					
 					{% for problem in contest.problems %}
-						<tr>
-							<td>
-								<a href="{{path('assignment', {'sectionId': problem.assignment.section.id, 'assignmentId': problem.assignment.id, 'problemId': problem.id})}}" class="checklist-item">
-									<div> {{problem.name}} </div>
-									<div style="font-size: 1.3em"> &#x2713; </div>
-								</a>
-							</td>
+					
+						{% set className = (loop.last) ? "last-row" : "" %}
+						{% set rowClassName = (team.results[loop.index0]) ? "accepted" : (team.attempts[loop.index0] > 0) ? "attempted" : "unattempted" %}
+						{% set isCorrect = team.results[loop.index0] %}
+						
+					
+						<tr class="{{rowClassName}}" onclick="window.location='{{path('assignment', {'sectionId': problem.assignment.section.id, 'assignmentId': problem.assignment.id, 'problemId': problem.id})}}'">
+							<td class="name {{className}}"><div> {{problem.name}} </div></td>
+							
+							<td class="penalties {{className}}"><div> {{ (isCorrect) ?  team.times[loop.index0] ~ ' + ' ~ team.raw_penalties[loop.index0]  : "" }} </div></td>
+							<td class="checkbox {{className}}" style="text-align: right; padding-right: 25px">
+								{{ (team.results[loop.index0]) ? "<div style='color: green'> &#x2713; </div>" : (team.attempts[loop.index0] > 0) ? "<div style='color: red'> &#x2718; </div>" : "<div style='color: white'> &#x2718; </div>" }}						</td>
 						</tr>
 					{% endfor %}
 					
@@ -219,8 +259,7 @@ console.log(JSON.parse("{{ leaderboard | json_encode(constant('JSON_PRETTY_PRINT
 			var h2 = $('#problems-card').height();
 			
 			if(h1 > h2){
-				$('#leaderboard-card').css('height', 'max-content');				
-				$('#problems-card').height(h1);
+				$('#leaderboard-card').css('height', 'max-content');
 			} else {
 				$('#leaderboard-card').height(h2);				
 				$('#problems-card').css('height', 'max-content');
