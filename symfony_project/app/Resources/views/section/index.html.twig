@@ -13,10 +13,9 @@
 	{{ include('template/assignment-nav.html.twig') }}
 
 	{{ include('template/path-nav.html.twig') }}
+
 	{# Main section #}
 	<section id="main">
-		{# Cards #}
-		
 		<div class="card">
 			<div class="btn-close" onclick="collapseCard('courseInfo')"><h2 style="margin: 0px">Due Soon<span style="float: right"><i class="fa fa-angle-down"></i></span></h2></div>
 			<div id="courseInfo" class="card-contents">
@@ -113,7 +112,7 @@
 		</div>
 		{% endif %}
 
-		{# Student Info Card #}
+		{# Assignment Grades Card #}
 		{% if is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") or grader.isTeaching(user, section) %}
 		<div class="card">
 			<div class="btn-close" onclick="collapseCard('studentInfoAssignment')"><h2 style="margin: 0px">Assignment Grades<span style="float: right"><i class="fa fa-angle-down"></i></span></h2></div>
@@ -132,7 +131,16 @@
 					<table>
 						<tr>
 							<th style="text-align: left; border-bottom: 1px solid black; border-right: 1px solid black;">Student</th>
+							
+							<th colspan="{{ grades[user.id][asgn.id]['num_problems'] }}" style="text-align: left; border-bottom: 1px solid black;">Test Cases Passed / Total</th>
+							
 						</tr>
+						{# <tr>
+							<th></th>
+							{% for problem in asgn.problems %}
+								<th>{{ grades[user.id][asgn.id]['problem_grades'][problem.id] }}</th>
+							{% endfor %}
+						</tr> #}
 						
 						{% for user in section_takers %}
 													
@@ -145,13 +153,21 @@
 								{% if grades[user.id][asgn.id]['num_extra_problems'] > 0 and grades[user.id][asgn.id]['num_extra_correct_problems'] == grades[user.id][asgn.id]['num_extra_problems'] %}
 								&#x2713; 										
 								{% endif %}
+
 								</td>
-								
-							{% elseif grades[user.id][asgn.id]['num_correct_problems'] != 0 %}
+							{% endif %}
+							{# {% elseif grades[user.id][asgn.id]['num_correct_problems'] != 0 %}
 								<td style="color:orange; font-size: 25px"><i> {{grades[user.id][asgn.id]['num_correct_problems']}}/{{grades[user.id][asgn.id]['num_problems']}}</i></td>
 							{% else %} 
 									<td style="color:red; font-size: 25px"> &#x2718</td>
-							{% endif %}
+							{% endif %} #}
+
+							{# Loop through problems #}
+							{% for problem in asgn.problems %}
+								{# number of test cases passed, number of test cases failed #}
+								{# {{ grades|json_encode() }} #}
+								<td>{{ grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] }}  / {{ grades[user.id][asgn.id]['problem_grades'][problem.id]['total_testcases'] }}</td>
+							{% endfor %}
 
 						{% endfor %}
 

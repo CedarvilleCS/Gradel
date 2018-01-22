@@ -93,7 +93,7 @@ class Grader  {
 				->setParameter(1, $assignment);
 				
 		$query_team = $qb_teams->getQuery();
-		$team_entities = $query_team->getResult();				# TODO: 275 - this gets all the teams
+		$team_entities = $query_team->getResult();
 		
 		# loop over all the teams for this assignment and figure out which team the user is a part of
 		$team = null;
@@ -214,9 +214,8 @@ class Grader  {
 		}
 		
 		$grades['total_testcases'] = $total_normal_testcases;	
-		$grades['total_extra_testcases'] = $total_testcases - $total_normal_testcases;
-			
-				
+		$grades['total_extra_testcases'] = $total_testcases - $total_normal_testcases;	
+
 		# array of all submissions
 		$qb_subs = $this->em->createQueryBuilder();
 		$qb_subs->select('s')
@@ -226,7 +225,7 @@ class Grader  {
 			->setParameter(1, $problem)
 			->setParameter(2, $team)
 			->orderBy('s.timestamp', 'ASC');
-			
+		
 		$subs_query = $qb_subs->getQuery();
 		$subs = $subs_query->getResult();
 			
@@ -769,14 +768,5 @@ class Grader  {
 		}
 	}	
 }
-
-
-
-
-
-
-
-
-
 
 ?>
