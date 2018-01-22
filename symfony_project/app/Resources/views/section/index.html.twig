@@ -130,43 +130,33 @@
 					<h3>{{asgn.name}}</h3>
 					<table>
 						<tr>
-							<th style="text-align: left; border-bottom: 1px solid black; border-right: 1px solid black;">Student</th>
-							
-							<th colspan="{{ grades[user.id][asgn.id]['num_problems'] }}" style="text-align: left; border-bottom: 1px solid black;">Test Cases Passed / Total</th>
-							
+							<th>&nbsp;</th>
+							<th colspan="{{ grades[user.id][asgn.id]['num_problems'] }}" style="text-align: center;">Testcases Passed / Total</th>
 						</tr>
-						{# <tr>
-							<th></th>
+						<tr>
+							<th style="text-align: left; border-bottom: 1px solid black; border-right: 1px solid black;">Student</th>
 							{% for problem in asgn.problems %}
-								<th>{{ grades[user.id][asgn.id]['problem_grades'][problem.id] }}</th>
+								<th style="text-align: left; border-bottom: 1px solid black;">{{ problem.name }}</th>
 							{% endfor %}
-						</tr> #}
+						</tr>
 						
 						{% for user in section_takers %}
 													
 							<tr> <th>{{user.getFirstName()}} {{user.getLastName()}}</th>
-								
-							{% if grades[user.id][asgn.id]['num_correct_problems'] > 0 and grades[user.id][asgn.id]['num_correct_problems'] == grades[user.id][asgn.id]['num_problems'] %}
-							
-								<td style="color:green; font-size: 25px">&#x2713; 
-								
-								{% if grades[user.id][asgn.id]['num_extra_problems'] > 0 and grades[user.id][asgn.id]['num_extra_correct_problems'] == grades[user.id][asgn.id]['num_extra_problems'] %}
-								&#x2713; 										
-								{% endif %}
-
-								</td>
-							{% endif %}
-							{# {% elseif grades[user.id][asgn.id]['num_correct_problems'] != 0 %}
-								<td style="color:orange; font-size: 25px"><i> {{grades[user.id][asgn.id]['num_correct_problems']}}/{{grades[user.id][asgn.id]['num_problems']}}</i></td>
-							{% else %} 
-									<td style="color:red; font-size: 25px"> &#x2718</td>
-							{% endif %} #}
 
 							{# Loop through problems #}
 							{% for problem in asgn.problems %}
-								{# number of test cases passed, number of test cases failed #}
+								{# number of testcases passed, number of test cases failed #}
 								{# {{ grades|json_encode() }} #}
-								<td>{{ grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] }}  / {{ grades[user.id][asgn.id]['problem_grades'][problem.id]['total_testcases'] }}</td>
+								{% if grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] == grades[user.id][asgn.id]['problem_grades'][problem.id]['total_testcases'] %}
+									<td style="color:green; font-size: 25px">{{ grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] }}  / {{ grades[user.id][asgn.id]['problem_grades'][problem.id]['total_testcases'] }}</td>
+								{% elseif grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] != 0 %}
+									<td style="color:orange; font-size: 25px">{{ grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] }}  / {{ grades[user.id][asgn.id]['problem_grades'][problem.id]['total_testcases'] }}</td>
+								{% else %}
+									<td style="color:red; font-size: 25px">{{ grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] }}  / {{ grades[user.id][asgn.id]['problem_grades'][problem.id]['total_testcases'] }}</td>
+								{% endif %}
+
+								
 							{% endfor %}
 
 						{% endfor %}
@@ -178,7 +168,7 @@
 					
 					<br>
 					
-					<a id="download" download="grades.csv">
+					<a id="downloadAssignment" download="grades.csv">
 						<div class="btn">Download Grades</div>
 					</a>
 				
@@ -290,7 +280,7 @@
 		};
 
 		// Generate a CSV list of the grades
-		function generateGradeCSV() {
+		function generateGradeCSVSection() {
 			var gradesCSV = "Name, User, ";
 			{% for asgn in assignments %}
 				gradesCSV += "Problems Correct, Total Problems, Grade, ";
@@ -318,18 +308,65 @@
 				gradesCSV += "\n";
 			{% endfor %}
 			
+			// console.log(gradesCSV);
+
+			return gradesCSV;
+		}
+
+
+		// Generate a CSV list of the grades
+		function generateGradeCSVAssignment() {
+			var gradesCSV = "Name, User, ";
+			
+			{% for asgn in assignments %}
+				{% for problem in problems %}
+					gradesCSV += "Testcases Correct, Total Testcases, ";
+				{% endfor %}
+			{% endfor %}
+
+			gradesCSV += "\n";
+
+			{% for user in section_takers %}
+				
+				gradesCSV += '{{user.getFirstName()}} {{user.getLastName()}}, ';
+				gradesCSV += '{{user }}, ';
+
+				{% for asgn in assignments %}
+					{% for problem in problems %}
+
+						var correct = parseFloat("{{ grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] }}");
+						var total = parseFloat("{{ grades[user.id][asgn.id]['problem_grades'][problem.id]['total_testcases'] }}");
+						// var percent = correct/total;
+
+						gradesCSV += correct + ', ' + total + ', ';
+
+					{% endfor %}
+				{% endfor %}
+				gradesCSV += "\n";
+			{% endfor %}
+			
 			console.log(gradesCSV);
 
 			return gradesCSV;
 		}
 
+
 		// Download the CSV of grades when the download button is clicked
 		var download = document.getElementById('download');	
 		download.addEventListener('click', function () {
 			var link = document.getElementById('download');
-			link.href = makeTextFile(generateGradeCSV());
+			link.href = makeTextFile(generateGradeCSVSection());
 			link.style.display = 'block';
 		}, false);
+
+		// Download the CSV of grades when the downloadAssignment button is clicked
+		var downloadAssignment = document.getElementById('downloadAssignment');	
+		downloadAssignment.addEventListener('click', function () {
+			var link = document.getElementById('downloadAssignment');
+			link.href = makeTextFile(generateGradeCSVAssignment());
+			link.style.display = 'block';
+		}, false);
+
 		{% endif %}
 	</script>
 
