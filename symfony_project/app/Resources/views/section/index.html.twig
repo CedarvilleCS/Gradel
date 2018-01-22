@@ -1,4 +1,5 @@
 {% block head %}
+
 <title>Gradel{% if section != null %} | {{section.name}} {% endif %}</title>
 <link rel="icon" type="image/x-icon" href="{{ asset('logo.png') }}" />
 {% endblock %}
@@ -7,13 +8,12 @@
 {% block body %}
 
 <body>        
-    {{ include('template/top-nav.html.twig') }}
-    
+	{{ include('template/top-nav.html.twig') }}
+	
 	{{ include('template/assignment-nav.html.twig') }}
 
 	{{ include('template/path-nav.html.twig') }}
-
-    {# Main section #}
+	{# Main section #}
 	<section id="main">
 		{# Cards #}
 		
@@ -76,7 +76,7 @@
 						{% for user in section_takers %}
 														
 							<tr> <th>{{user.getFirstName()}} {{user.getLastName()}}</th>
-              
+			  
 								{% for asgn in assignments %}
 									
 									{% if grades[user.id][asgn.id]['num_correct_problems'] > 0 and grades[user.id][asgn.id]['num_correct_problems'] == grades[user.id][asgn.id]['num_problems'] %}
@@ -90,9 +90,9 @@
 										
 									{% elseif grades[user.id][asgn.id]['num_correct_problems'] != 0 %}
 										<td style="color:orange; font-size: 25px"><i> {{grades[user.id][asgn.id]['num_correct_problems']}}/{{grades[user.id][asgn.id]['num_problems']}}</i></td>
-  								 {% else %} 
-  										<td style="color:red; font-size: 25px"> &#x2718</td>
-  								 {% endif %}
+								 {% else %} 
+										<td style="color:red; font-size: 25px"> &#x2718</td>
+								 {% endif %}
 									
 								{% endfor %}
 							
@@ -201,8 +201,9 @@
 							{% endif %}
 							
 							<li><a href="{{path('problem_result', {'submission_id': sub.id})}}">
-								[{{sub.problem.name}}] 
-									{% if sub.team.users|length <= 1 %}
+								<i>{{sub.problem.assignment.name}}:</i> {{sub.problem.name}} ({{sub.language.name}})
+								
+									{% if sub.team.users|length <= 1 or (not is_granted("ROLE_ADMIN") and not is_granted("ROLE_SUPER") and not grader.isTeaching(user, section)) %}
 										{{sub.user.getFirstName}} {{sub.user.getLastName}} 
 									{% else %}
 										{
@@ -215,7 +216,8 @@
 										{% endfor %}
 										}
 									{% endif %}
-									- {{sub.timestamp|date('F d, Y  \\a\\t  h:i:s')}} ({{sub.language.name}})
+
+								- {{sub.timestamp|date('M d  \\a\\t  h:i:s A')}}
 							</a> </li>
 						
 							</div>
@@ -231,23 +233,23 @@
 		
 	</section>
 
-
+	
 </body>
 
 {% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('styles.css') }}" />
-    <link rel="stylesheet" href="{{ asset('card.css') }}" />
+	<link rel="stylesheet" href="{{ asset('styles.css') }}" />
+	<link rel="stylesheet" href="{{ asset('card.css') }}" />
 	
 	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
 {% endblock %}
 
 
 {% block scripts %}
-    <!-- JQuery -->
-    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
-    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+	<!-- JQuery -->
+	<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 	<script src="{{ asset('js/cards.js') }}"></script>
 
 	<script>

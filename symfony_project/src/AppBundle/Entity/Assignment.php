@@ -29,7 +29,7 @@ class Assignment implements JsonSerializable{
 		$this->teams = new ArrayCollection();
 	}
 	
-	public function __construct9($sect, $nm, $desc, $start, $end, $cutoff, $wght, $grade, $extra){
+	public function __construct9($sect, $nm, $desc, $start, $end, $cutoff, $wght, $pen, $extra){
 		$this->section = $sect;
 		$this->name = $nm;
 		$this->description = $desc;
@@ -38,7 +38,26 @@ class Assignment implements JsonSerializable{
 		$this->cutoff_time = $cutoff;
 		$this->weight = $wght;
 		$this->is_extra_credit = $extra;
-		$this->gradingmethod = $grade;
+		$this->penalty_per_day = $pen;
+	}
+	
+	# clone method override
+	public function __clone(){
+		
+		if($this->id){
+			$this->id = null;
+			
+			# clone the problems
+			$problemsClone = new ArrayCollection();
+			
+			foreach($this->problems as $problem){
+				$problemClone = clone $problem;
+				$problemClone->assignment = $this;
+				
+				$problemsClone->add($problemClone);
+			}
+			$this->problems = $problemsClone;
+		}
 	}
 	
 	/** 
@@ -49,7 +68,8 @@ class Assignment implements JsonSerializable{
 	public $id;
 
 	/**
-	* @ORM\OneToMany(targetEntity="Problem", mappedBy="assignment")
+	* @ORM\OneToMany(targetEntity="Problem", mappedBy="assignment", cascade={"persist"})
+	* @ORM\OrderBy({"name" = "ASC"});
 	*/
 	public $problems;
 
@@ -85,10 +105,9 @@ class Assignment implements JsonSerializable{
 	public $cutoff_time;
 
 	/**
-	* @ORM\ManyToOne(targetEntity="AssignmentGradingMethod")
-	* @ORM\JoinColumn(name="assignmentgradingmethod_id", referencedColumnName="id", nullable=false)
+	* @ORM\Column(type="decimal", precision=12, scale=8, nullable=true)
 	*/
-	public $gradingmethod;
+	public $penalty_per_day;
 	
 	/**
 	* @ORM\Column(type="integer")
@@ -101,9 +120,36 @@ class Assignment implements JsonSerializable{
 	public $is_extra_credit;
 	
 	/**
-	* @ORM\OneToMany(targetEntity="Team", mappedBy="assignment")
+	* @ORM\OneToMany(targetEntity="Team", mappedBy="assignment", cascade={"persist"})
 	*/
 	public $teams;
+	
+	
+	// Contest-Specific Information
+	/**
+	* @ORM\Column(type="time", nullable=true)
+	*/
+	public $freeze_time;
+	
+	/**
+	* @ORM\Column(type="integer", nullable=true)
+	*/
+	public $penalty_per_wrong_answer;
+	
+	/**
+	* @ORM\Column(type="integer", nullable=true)
+	*/
+	public $penalty_per_compile_error;
+	
+	/**
+	* @ORM\Column(type="integer", nullable=true)
+	*/
+	public $penalty_per_time_limit;
+	
+	/**
+	* @ORM\Column(type="integer", nullable=true)
+	*/
+	public $penalty_per_runtime_error;	
 	
 	public function jsonSerialize(){
 		return [

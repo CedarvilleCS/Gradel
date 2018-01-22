@@ -79,7 +79,7 @@ class FOSUBUserProvider extends BaseClass {
 		
 		else{
 			
-			if($user->getFirstName() == ""){
+			if($user->getFirstName() == $user->getEmail()){
 				
 				$firstplus = split("\ ", $fname);
 				if (strlen($firstplus[1]) > 1){

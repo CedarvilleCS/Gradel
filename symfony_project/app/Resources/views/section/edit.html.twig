@@ -16,21 +16,26 @@
     {# Left Nav for Section Edit#}
     <nav class="nav-left">
 		<a id="save-btn" class="btn"><div class="btn btn-center">Save</div></a>
-		
+
 		{% if section is not null %}
 		<a id="delete-btn" class="btn"><div class="btn btn-center btn-delete">{% if section.is_deleted %} Reinstate {% else %} Delete {% endif %}</div></a>
-		
+
 		<ol style="padding-top: 0px">
 			<li id="delete-warning" style="padding-top: 0px"></li>
 		</ol>
+
+		{% if section is not null %}
+		<a id="clone-btn" class="btn" href="{{ path('section_clone', {'sectionId': section.id}) }}"><div class="btn btn-center" style="margin-top: 10px;">Clone</div></a>
+		{% endif %}
+
 		{% endif %}
     </nav>
-	
+
 	{{ include('template/path-nav.html.twig') }}
 
     {# Main section with the necessary variable#}
 	<section id="main">
-	
+
 		{# Cards #}
 		<div class="card">
 			<div class="btn-close">
@@ -42,8 +47,8 @@
 				{% endif %}
 				</h2>
 			</div>
-			
-			<div id="requiredFields" class="card-contents">				
+
+			<div id="requiredFields" class="card-contents">
 				<div>
 					<table>
 						<tr> <th colspan="3">
@@ -54,12 +59,12 @@
 							{% endfor %}
 							</select>
 						</th> </tr>
-						
+
 						<tr> <th colspan="3">
 							<label for="name">Section Name</label>
 							<input id="name" name="name" type="text" value="">
 						</th> </tr>
-						
+
 						<tr> <th colspan="3">
 							<label>Semester</label>
 							<select id="semester">
@@ -68,7 +73,7 @@
 								<option>Summer</option>
 							</select>
 						</th> </tr>
-						
+
 						<tr> <th colspan="3">
 							<label>Year</label>
 							<select id="year">
@@ -88,12 +93,12 @@
 									</option>
 								{% endfor %}
 							</select>
-							
+
 							{# file upload#}
 							<form id="studentCSVForm" action="{{path('get_contents')}}" method="post">
 								<input type="file" name="file" id="file" value="Upload File">
 							</form>
-							
+
 							<textarea id="student-csv"></textarea>
 						</th> </tr>
 
@@ -108,16 +113,16 @@
 					<span style="float: right"><i class="fa fa-angle-down"></i></span>
 				</h2>
 			</div>
-			
-			<div id="additionalOptions" class="card-contents">				
-				
-				
+
+			<div id="additionalOptions" class="card-contents">
+
+
 				<table>
 					<tr> <th>
 						<label for="startdatepicker">Starting Date </label><input type="text" id="startdatepicker" style="width: 100px; margin-right: 20px">
 						<label for="enddatepicker">Ending Date </label><input type="text" id="enddatepicker" style="width: 100px">
 					</th></tr>
-					
+
 					<tr> <th>
 						<label>Add Instructor</label>
 						<select id="teacher-picker">
@@ -128,12 +133,12 @@
 								</option>
 							{% endfor %}
 						</select>
-						
+
 						{# file upload#}
 						<form id="teacherCSVForm" action="{{path('get_contents')}}" method="post">
 							<input type="file" name="file" id="file" value="Upload File">
 						</form>
-						
+
 						<textarea id="teacher-csv"></textarea>
 					</th> </tr>
 				</table>
@@ -148,7 +153,7 @@
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('styles.css') }}" />
     <link rel="stylesheet" href="{{ asset('card.css') }}" />
-	
+
 	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
 
@@ -161,135 +166,136 @@
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 	<script src="{{ asset('js/cards.js') }}"></script>
 	<script src="{{ asset('js/validation.js') }}"></script>
-		
+
 	{# asynchronous file upload #}
 	<script src="http://malsup.github.com/jquery.form.js"></script>
-	
+
 	<script>
-	
-		$(document).ready(function() {		
-			
+
+		$(document).ready(function() {
+
 			$('#year').val("{{'now'|date('Y')}}");
-		
+
 			$('#startdatepicker').datepicker({
 				showAnim: "slideDown",
 				selectOtherMonths: true,
 				showOtherMonths: true,
 				showButtonPanel: true
 			});
-			
+
 			$('#enddatepicker').datepicker({
 				showAnim: "slideDown",
 				selectOtherMonths: true,
 				showOtherMonths: true,
 				showButtonPanel: true
 			});
-			
+
 			{% if section is not null %}
 			populateForm();
-			{% else %}			
+			{% else %}
 			//collapseCard('additionalOptions');
 			{% endif %}
-			
+
 			{% if section is not null %}
 			var warned = 0;
 			$('#delete-btn').on('click', function(){
-			
-				if(warned == 2){					
+
+				if(warned == 2){
 					window.location = "{{path('section_delete', {'sectionId': section.id})}}";
-					
+
 				} else if(warned == 1) {
 					$('#delete-warning').html("Are you REALLY sure?<br/>Click again to {% if section.is_deleted %} reinstate {% else %} delete {% endif %}");
 				} else {
 					$('#delete-warning').html("Are you sure?<br/>Click again to {% if section.is_deleted %} reinstate {% else %} delete {% endif %}");
 				}
-			
+
 				warned++;
 			});
 			{% endif %}
-			
+
 			{# Student CSV Upload #}
 			// submit the form if the file upload is changed
 			$('#studentCSVForm #file').change( function(data) {
 				$('#studentCSVForm').submit();
 			});
 
-			// overwrite the normal submit to call the ajaxsubmit			
+			// overwrite the normal submit to call the ajaxsubmit
 			// asynchronous script to handle the submission form upload
 			$('#studentCSVForm').submit(function() {
 				$(this).ajaxSubmit({
-				
+
 					beforeSubmit: 	function(formData, jqForm, options){
-						
+
 						/* CLIENT-SIDE VALIDATION */
+						console.log("THIS IS WHERE I AM");
 						return true;
-						
+
 					},
 					success:		function(responseText, statusText, xhr, $form) {
-						
+
 						var file = responseText['files'][0];
 						console.log(responseText);
-						
+
 						$('#student-csv').val(atob(file["contents"]));
 						$('#studentCSVForm').hide();
-										
+
 					},
 					error:			function(xhr, textStatus, errorThrown) {
-						console.log(xhr);						
+						console.log(xhr);
 						alert(xhr['responseText']);
 					}
 				});
-				
+
 				return false;
 			});
-			
+
 			{# Teacher CSV Upload #}
 			// submit the form if the file upload is changed
 			$('#teacherCSVForm #file').change( function(data) {
 				$('#teacherCSVForm').submit();
 			});
 
-			// overwrite the normal submit to call the ajaxsubmit			
+			// overwrite the normal submit to call the ajaxsubmit
 			// asynchronous script to handle the submission form upload
 			$('#teacherCSVForm').submit(function() {
 				$(this).ajaxSubmit({
-				
+
 					beforeSubmit: 	function(formData, jqForm, options){
-						
+
 						/* CLIENT-SIDE VALIDATION */
 						return true;
-						
+
 					},
 					success:		function(responseText, statusText, xhr, $form) {
-						
+
 						var file = responseText['files'][0];
 						console.log(responseText);
-						
+
 						$('#teacher-csv').val(atob(file["contents"]));
 						$('#teacherCSVForm').hide();
-										
+
 					},
 					error:			function(xhr, textStatus, errorThrown) {
-						console.log(xhr);						
+						console.log(xhr);
 						alert(xhr['responseText']);
 					}
 				});
-				
+
 				return false;
 			});
-			
+
 			{# Save Button #}
 			$('#save-btn').on('click', function(){
-			
+
 				/* Client-Side Validation */
 				// section name
-				if ($.trim($('#name').val())  === '') {						
+				if ($.trim($('#name').val())  === '') {
 					setInvalid($('#name'));
 					return false;
 				} else {
 					setValid($('#name'));
 				}
-				
+
 				// make sure that if one date is provided, the other one is too
 				if ($('#enddatepicker').val() == '' && $('#startdatepicker').val() != '' || $('#enddatepicker').val() != '' && $('#startdatepicker').val() == ''){
 					setInvalid($('#startdatepicker'));
@@ -299,7 +305,7 @@
 					setValid($('#startdatepicker'));
 					setValid($('#enddatepicker'));
 				}
-				
+
 				// make sure that the dates make sense if they provided them
 				if ($('#enddatepicker').datepicker('getDate') < $('#startdatepicker').datepicker('getDate')){
 					setInvalid($('#enddatepicker'));
@@ -313,15 +319,15 @@
 				for(var i=0; i<teachers.length; i++){
 					teachers[i] = teachers[i].replace(/\n/g, '');
 					teachers[i] = teachers[i].replace(/ /g, '');
-				}				
+				}
 				teachers.pop(); // remove the blank last element
-								
+
 				/* Array of Students */
 				var students = document.getElementById('student-csv').value.split(",");
 				for(var i=0; i<students.length; i++){
 					students[i] = students[i].replace(/\n/g, '');
 					students[i] = students[i].replace(/ /g, '');
-				}				
+				}
 				students.pop(); // remove the blank last element
 
 				// check to see if this button is allowed to be pressed
@@ -330,9 +336,9 @@
 				} else {
 					$(this).prop('disabled', true);
 				}
-				
+
 				/* Post to the Symfony Route */
-				$.post( "{{path('section_modify')}}", {				
+				$.post( "{{path('section_modify')}}", {
 					name: $.trim($('#name').val()),
 					course: $('#course').val(),
 					semester: $('#semester').val(),
@@ -342,18 +348,18 @@
 					start_time: $('#startdatepicker').val(),
 					end_time: $('#enddatepicker').val(),
 					section: {% if section is not null %} {{section.id}} {% else %} 0 {% endif %}
-					
-				}, function(data) {			
+
+				}, function(data) {
 					console.log(data);
-					
+
 					window.location = data["redirect_url"];
 				}).fail(function(data) {
-				
-					alert(data["responseText"]);					
+
+					alert(data["responseText"]);
 					$(this).prop('disabled', false);
-				});				
+				});
 			});
-			
+
 			$('#student-picker').on('change', function(){
 				updateStudentCSV();
 			});
@@ -362,59 +368,59 @@
 				updateTeacherCSV();
 			});
 		});
-		
+
 		function updateStudentCSV() {
-			
+
 			// get the value of the new student
 			var studentPicker = $('#student-picker');
-			
+
 			if(studentPicker.val() == -1){
 				return;
 			}
-			
+
 			// update the text area
 			var studentCSV = $('#student-csv');
 			studentCSV.val(studentCSV.val() + studentPicker.val() + ", \n");
-			
-			// reset the dropdown to black			
+
+			// reset the dropdown to black
 			$('option:selected', studentPicker).remove();
 			studentPicker.val(0);
 		}
 
 		function updateTeacherCSV() {
-			
+
 			// get the value of the new teacher
 			var teacherPicker = $('#teacher-picker');
-			
+
 			if(teacherPicker.val() == -1){
 				return;
 			}
-			
+
 			// update the text area
 			var teacherCSV = $('#teacher-csv');
 			teacherCSV.val(teacherCSV.val() + teacherPicker.val() + ", \n");
-			
-			// reset the dropdown to black			
+
+			// reset the dropdown to black
 			$('option:selected', teacherPicker).remove();
 			teacherPicker.val(0);
 		}
-		
+
 	</script>
-	
-	
+
+
 	{% if section is not null %}
 	<script>
 	function populateForm(){
-		
+
 		// set the course
 		$('#course').val({{section.course.id}});
-		
+
 		// set the name
 		$('#name').val("{{section.name}}");
-		
+
 		// set the semester
 		$('#semester').val("{{section.semester}}");
-		
+
 		// set the year
 		$('#year').val("{{section.year}}");
 
@@ -423,22 +429,22 @@
 		$('#teacher-picker').val("{{std.user.email}}");
 		updateTeacherCSV();
 		{% endfor %}
-				
+
 		// set the students csv
 		{% for std in section_taker_roles %}
 		$('#student-picker').val("{{std.user.email}}");
 		updateStudentCSV();
 		{% endfor %}
-		
+
 		// set the starting date
-		$('#startdatepicker').val("{{section.start_time|date('m/d/Y')}}");		
-		
+		$('#startdatepicker').val("{{section.start_time|date('m/d/Y')}}");
+
 		// set the ending date
 		$('#enddatepicker').val("{{section.end_time|date('m/d/Y')}}");
-		
+
 	}
-	
+
 	</script>
 	{% endif %}
-	
+
 {% endblock %}

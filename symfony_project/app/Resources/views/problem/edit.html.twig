@@ -35,8 +35,7 @@
 			<div class="btn-close">
 				<h2 style="margin: 0px">
 				{% if problem is not null %}
-					Edit {{problem.name}}<br>
-					<h4 style="margin: 0px; color: red"><i> Note: Testcase edits will not be saved </i></h4>
+					Edit {{problem.name}}
 				{% else %}
 					New Problem
 				{% endif %}
@@ -87,6 +86,34 @@
 						  <label for="time_limit">Time Limit (ms)</label>
 						  <input type="text" id="time_limit" style="width: 100px" value="{{(problem) ? problem.time_limit: 1000}}">					  
 					  </th>
+					</tr>
+					<tr>
+					  <th colspan="1">
+						{% if not problem.master %}
+						  
+							<label for="linked_probs">Slave Problems </label>
+							<input type="text" id="linked_probs" style="width: 200px" value="{% for slave in problem.slaves %}{{slave.id}}{{(loop.last)?'':',&nbsp;'}}{% endfor %}">
+							<div id="recommended-slaves" style="margin-top:15px">
+								Recommended Slaves
+								<ul>
+									{% set noreco = true %}
+									{% for recommended in recommendedSlaves %}
+									
+									{% if recommended != problem and recommended not in problem.slaves %}
+									{% set noreco = false %}
+									<li> <a href="{{path('assignment', {'problemId': recommended.id, 'assignmentId': recommended.assignment.id, 'sectionId': recommended.assignment.section.id})}}"> {{recommended.id}} - <i>{{recommended.assignment.section.name}}</i> <small>{{recommended.name}}</small> </a> </li>
+									
+									{% endif %}
+									
+									{% endfor %}
+									
+									{{ (noreco) ? '<li>None to recommend</li>' : '' }}
+								</ul>
+							</div>
+						{% endif %}
+					  
+					  </th>
+					</tr>
 					  
 				  </table>
 				</div>
@@ -214,7 +241,6 @@
 			</div>
 		</div>
 		
-		{% if problem is null %}
 		<div id="generator-card" class="card" style="flex-grow: 8.33">
 		
 			<div class="btn-close" onclick="collapseCardGenerator()">
@@ -259,7 +285,6 @@
 				
 			</div>
 		</div>
-		{% endif %}
 		
 	</div>
 	
@@ -448,8 +473,7 @@
 		$('#use-custom').change();
 		
 		/* OUTPUT GENERATOR ACE EDITOR */
-		{# show the generator options if the problem does not exist yet #}
-		{% if problem is null %}
+		
 		var generatorEditor = ace.edit("output-generator-editor");
 		generatorEditor.$blockScrolling = Infinity;
 		generatorEditor.setTheme("ace/theme/xcode");
@@ -500,9 +524,7 @@
 			
 			$('#output-generator-form').submit();
 		});
-				
 		
-		{% endif %}
 		
 		/* On the Display Testcases checkbox toggle, you should display/hide the Output Level dropdown */
 		$('#display-testcase').change( function() {
@@ -606,7 +628,7 @@
 			{% for tc in problem.testcases %}
 				addTestCase(
 					"{{tc.input|e('js')}}",
-					"{{tc.command_line_input|e('js')}}",
+					"{{tc.command_line_input|e}}",
 					"{{tc.correct_output|e('js')}}",
 					"{{tc.weight}}",
 					"{{tc.is_extra_credit}}",
@@ -786,8 +808,8 @@
 		
 		currentNum++;
 		testCases++;
-		div_name ="testcases"+testCases;
-		formalName="Test Case "+testCases;
+		div_name ="testcases"+currentNum;
+		formalName="Test Case "+currentNum;
 		
 		$('#generator-button').html("Generate Output for " + testCases + " Testcases");
 		
@@ -898,7 +920,13 @@
 		
 		addTestCardButton.click(function() {
 			addTestCase();
+			
+			console.log($('#input-type' + (currentNum-1)).val());
+			
 			$('#input-type' + currentNum).val($('#input-type' + (currentNum-1)).val());
+			
+			console.log($('#input-type' + currentNum).val());
+			
 			$('#input-type' + currentNum).change();
 		});
 		
@@ -908,9 +936,9 @@
 		
 			id = $(this)[0].id;
 				
-			argsId = "#argsUpload" + id.substring(id.length-1);
-			inptId = "#inputUpload" + id.substring(id.length-1);
-			outId = "#output" + id.substring(id.length-1);
+			argsId = "#argsUpload" + id.substring(10);
+			inptId = "#inputUpload" + id.substring(10);
+			outId = "#output" + id.substring(10);
 			
 			if($(this).val() == 'Command-Line'){
 							
@@ -939,7 +967,14 @@
 			}		
 		});
 		
-		$('#input-type' + currentNum).val('Input');
+		if((input != null && input != "") && ((args != null && args != ""))){
+			$('#input-type' + currentNum).val('Both');			
+		} else if(args != null && args != ""){
+			$('#input-type' + currentNum).val('Command-Line');
+		} else {
+			$('#input-type' + currentNum).val('Input');
+		}
+		
 		$('#input-type' + currentNum).change();
 		
 		
@@ -986,11 +1021,54 @@
 			testCases--;
 			$('#generator-button').html("Generate Output for " + testCases + " Testcases");
 			document.getElementById(testcase).remove();
+			
+			
+			renumberTestCases();
 		} else {
 			alert("You must have at least one testcase!");
 		}
 
 	};
+	
+	function renumberTestCases(){
+		
+		var testcases = document.getElementsByClassName("test-case");
+		tcs = [];
+		for (testcase of testcases) {
+			const input = $("#"+testcase.id).find("."+"input").val();
+			const args = $("#"+testcase.id).find("."+"args").val();
+			const output = $("#"+testcase.id).find("." + "output").val();
+			const short_fb = $("#"+testcase.id).find("."+"shortFeedback").val();
+			const long_fb = $('#'+testcase.id).find("." + "longFeedback").val();
+			const weight = $('#' + testcase.id).find("." + "weight").val();
+			const extra_credit = $('#' + testcase.id).find("." + "extra-credit").prop("checked");
+			const tc = {"input": input, "args": args, "output": output, "weight": weight, "short_response": short_fb, "long_response": long_fb, "extra_credit": extra_credit ? "true" : "false"};
+			tcs.push(tc);
+		}
+		
+		currentNum = 0;
+		testCases = 0;	
+		
+		$('#testcase-cards .testcase-card').each( function() {
+			
+			if(!$(this).hasClass('testCardAdder')){
+				$(this).remove();
+			}		
+		});
+		
+		for(tc of tcs){
+			
+			addTestCase(
+				tc.input,
+				tc.args,
+				tc.output,
+				tc.weight,
+				tc.extra_credit == "true",
+				tc.short_response,
+				tc.long_response,
+			);
+		}
+	}
 	
 	/* function to make the data and send a post with all of the stuff 
 	necessary to generate the output for the current testcases */
@@ -1139,8 +1217,17 @@
 		}
 		
 		console.log(tcs);
-	  
-	  
+		
+		linked_probs = [];
+		linked_probs_raw = $("#linked_probs").val().split(",");
+		for(var i = 0; i<linked_probs_raw.length; i++){
+		
+			if(linked_probs_raw[i].trim().length > 0){
+				linked_probs.push(linked_probs_raw[i].trim());
+			}
+		}
+		console.log(linked_probs);
+		
 		var path = "{{path('problem_modify')}}";
 		$.post(path, {
 			"assignmentId": {{(problem ? problem.assignment.id : assignment.id)}},
@@ -1157,6 +1244,8 @@
 			"attempts_before_penalty": attemptsBeforePen, // must be less than totalAttempts
 			"penalty_per_attempt": penPerAttempt, // decimal between 0.00 and 1.00
 
+			"linked_probs": linked_probs,
+			
 			"custom_validator": customValidatorText,
 
 			"stop_on_first_fail": stopFail ? "true" : "false", // checkbox

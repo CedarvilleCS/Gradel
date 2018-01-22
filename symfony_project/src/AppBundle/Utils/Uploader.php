@@ -14,7 +14,6 @@ use AppBundle\Entity\UserSectionRole;
 use AppBundle\Entity\Testcase;
 use AppBundle\Entity\Submission;
 use AppBundle\Entity\Language;
-use AppBundle\Entity\AssignmentGradingMethod;
 use AppBundle\Entity\Feedback;
 use AppBundle\Entity\TestcaseResult;
 

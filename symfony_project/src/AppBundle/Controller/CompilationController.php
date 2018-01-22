@@ -14,13 +14,14 @@ use AppBundle\Entity\UserSectionRole;
 use AppBundle\Entity\Testcase;
 use AppBundle\Entity\Submission;
 use AppBundle\Entity\Language;
-use AppBundle\Entity\AssignmentGradingMethod;
 use AppBundle\Entity\Feedback;
 use AppBundle\Entity\TestcaseResult;
 
+use Symfony\Component\Config\Definition\Exception\Exception;
+
 use AppBundle\Utils\Grader;
 use AppBundle\Utils\Generator;
-use AppBundle\Utils\TestCaseCreator;
+
 
 use \DateTime;
 
@@ -36,8 +37,7 @@ class CompilationController extends Controller {
 	
 	/* name=submit */
 	public function submitAction(Request $request) {
-
-	
+				
 		# entity manager
 		$em = $this->getDoctrine()->getManager();		
 		
@@ -464,26 +464,20 @@ class CompilationController extends Controller {
 		}
 		
 		$count = 1;
-		foreach($postTestcases as $tc){
+		foreach($postTestcases as &$tc){
 			
 			$tc = (array) $tc;
 			
-			if(!is_array($tc)){
-				return $this->returnForbiddenResponse("Testcase data is not formatted properly");
-			}
-
 			# build the testcase
-			$testcase = null;
-			$response = TestCaseCreator::makeTestCase($testcase, $em, $problem, $tc, $count);
-			$count++;
-
-			# check what the makeTestCase returns
-			if($response != 1){
-				return $this->returnForbiddenResponse($response);
+			try{				
+				$testcase = new Testcase($problem, $tc, $count);
+				$count++;
+					
+				$em->persist($testcase);
+				$problem->testcases[] = $testcase;	
+			} catch(Exception $e){
+				return $this->returnForbiddenResponse($e->getMessage());
 			}
-				
-			$em->persist($testcase);
-			$problem->testcases[] = $testcase;			
 		}		
 		
 		$em->persist($problem);		
@@ -604,9 +598,7 @@ class CompilationController extends Controller {
 		if(!$language){
 			$this->cleanUp($submission, $problem, $sub_dir, $uploads_dir);	
 			return $this->returnForbiddenResponse("Language with id ".$language_id." does not exist");
-		}		
-		
-		
+		}				
 		
 		/* CREATE THE DOCKER CONTAINER */
 		// required fields
@@ -675,11 +667,11 @@ class CompilationController extends Controller {
 		}
 		
 		if(isset($sub_dir)){
-			#shell_exec("rm -rf ".$sub_dir);
+			shell_exec("rm -rf ".$sub_dir);
 		}
 		
 		if(isset($uploads_dir)){
-			#shell_exec("rm -rf ".$uploads_dir);			
+			shell_exec("rm -rf ".$uploads_dir);			
 		}
 		
 		$em->flush();

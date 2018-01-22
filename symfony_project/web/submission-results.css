@@ -34,6 +34,12 @@
 	width: 33%;
 }
 
+#testcase-input{
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
 #testcase-tab{
 	padding: 0px;
 	margin: 0px;
@@ -74,6 +80,9 @@
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+	
+	margin-bottom: -4px;
+    padding-bottom: 1px;
 }
 
 #correct.ui-state-active, .ui-widget-content #correct.ui-state-active, .ui-widget-header #correct.ui-state-active {
@@ -87,6 +96,9 @@
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+	
+	margin-bottom: -4px;
+    padding-bottom: 1px;
 }
 
 

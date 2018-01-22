@@ -559,7 +559,7 @@
 		$('#weight').val({{assignment.weight}});
 		
 		// set the checkbox
-		$('#penalty').val({{assignment.penalty_per_day}});
+		$('#penalty').val({{assignment.gradingmethod.penalty_per_day}});
 		
 		// set the checkbox
 		$('#extracredit').attr('checked', {% if assignment.is_extra_credit %} true {% else %} false {% endif %});

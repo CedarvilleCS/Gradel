@@ -33,14 +33,14 @@ class UserSectionRole{
 
 	/**
 	* @ORM\Id
-	* @ORM\ManyToOne(targetEntity="User")
+	* @ORM\ManyToOne(targetEntity="User", inversedBy="section_roles")
 	* @ORM\JoinColumn(name="user_id", referencedColumnName="id", onDelete="CASCADE")
 	*/
 	public $user;
 
 	/**
 	* @ORM\Id
-	* @ORM\ManyToOne(targetEntity="Section")
+	* @ORM\ManyToOne(targetEntity="Section", inversedBy="user_roles")
 	* @ORM\JoinColumn(name="section_id", referencedColumnName="id", onDelete="CASCADE")
 	*/
 	public $section;

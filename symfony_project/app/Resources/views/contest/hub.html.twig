@@ -1,0 +1,262 @@
+{% set elevatedUser = grader.isJudging(app.user, section) or is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN")%}
+
+{% set contest = section.assignments[0] %}
+{% set leaderboard = grader.getLeaderboard(app.user, contest) %}
+
+<script>
+console.log(JSON.parse("{{ leaderboard | json_encode(constant('JSON_PRETTY_PRINT')) | e('js')}}"));
+</script>
+
+{% block head %}
+
+<title>Contest Hub</title>
+<link rel="icon" type="image/x-icon" href="{{ asset('logo.png') }}" />
+{% endblock %}
+
+
+{% block body %}
+
+<body>        
+    {{ include('template/top-nav.html.twig') }}
+    
+	
+	<nav class="nav-left">	
+		<ol style="padding-top: 0px; padding-bottom: 10px">
+			
+			<li style="text-align:center"> {{section.name}} 
+				
+				<div><small>{{section.course.name}}</small></div>
+			</li>
+
+			<li class="sidebar" style="text-align:left">
+				<strong>Assignments</strong>
+				{% if elevatedUser %}
+					<object>
+						<a title="Create assignment" href={{path('assignment_edit', {'sectionId': section.id})}}>
+							<img class="small-icon" id="add-icon" src="{{ asset('add_circle.png') }}">
+						</a>
+					</object>
+				{% endif %}
+			</li>
+		</ol>
+	</nav>
+
+	{# {{ include('template/path-nav.html.twig') }} #}
+	
+	
+	<section id="main">
+		
+		<div class="card">
+			<div id="contest-heading"><h1>2018 Local Programming Contest</h1></div>
+			<div id="name-heading"><h2>Practice Contest</h2></div>
+			<div id="time-heading"><h3 id="time-left">-</h3></div>
+			
+			
+			<div id="progressbar-container" class="card-contents">
+				<div id="time-container">
+				
+					{% set showDates = contest.start_time|date('n/j') != contest.end_time|date('n/j') %}
+				
+					<div id="start-time">{{(showDates) ? contest.start_time|date('n/j') : ""}} {{contest.start_time|date('g:i:s A')}}</div>
+					<div id="end-time">{{(showDates) ? contest.end_time|date('n/j') : ""}} {{contest.end_time|date('g:i:s A')}}</div>
+				</div>
+				<div id="progressbar"> </div>
+				
+				<div id="submissions-container"></div>
+			</div>
+		</div>
+		
+		
+		<div class="parallel-cards">
+			<div class="card" id="leaderboard-card" style="flex-grow: 12; padding: 5px; padding-top: 10px; height: max-content;">
+				<div id="leaderboard-heading"><h2>Leaderboard</h2></div>
+				
+				<div id="leaderboard-container" class="card-contents">
+					<table id="leaderboard">
+					
+						<colgroup>
+							<col class="name">
+							
+							{% for problem in contest.problems %}
+							<col class="problem">
+							{% endfor %}
+						</colgroup>
+					
+					
+						<tr>
+							<th class="no-hover">Problems</th>
+							{% for problem in contest.problems %}
+							<th>
+								<a href="{{path('assignment', {'sectionId': problem.assignment.section.id, 'assignmentId': problem.assignment.id, 'problemId': problem.id})}}">
+								{{problem.name|slice(0,1)}}
+								</a>
+							</th>
+							{% endfor %}
+						</tr>
+						
+						
+						{% for team in leaderboard.scores %}
+						
+							<tr {{(loop.index0 == leaderboard.index) ? "class='curr-user'" : ""}}>
+							<td class='name'>{{team.team_name}}</td>
+							
+							{% for result in team.results %}
+
+								<td class='{{(result) ? "accepted" : (team.attempts[loop.index0] > 0) ? "attempted" : "unattempted"}}'>
+									
+									<div class="attempts-count">{{(team.attempts[loop.index0] > 0) ? team.attempts[loop.index0] : "-"}}</div>
+									
+									<div class="penalty-mins">{{(result) ? team.penalties[loop.index0] : (team.attempts[loop.index0] > 0) ? "--" : "-"}}</div>
+								</td>
+							
+							{% endfor %}
+						
+							</tr>
+						{% endfor %}
+						
+						
+					
+					</table>
+				</div>
+			</div>
+
+			<div class="card" id="problems-card" style="flex-grow: 6; padding: 5px; padding-top: 10px; height: max-content;">
+				<div id="problems-heading"><h2>Problems</h2></div>
+				
+				<div id="problems-container" class="card-contents">
+					<table id="problems">
+
+					{% for problem in contest.problems %}
+						<tr>
+							<td>
+								<a href="{{path('assignment', {'sectionId': problem.assignment.section.id, 'assignmentId': problem.assignment.id, 'problemId': problem.id})}}" class="checklist-item">
+									<div> {{problem.name}} </div>
+									<div style="font-size: 1.3em"> &#x2713; </div>
+								</a>
+							</td>
+						</tr>
+					{% endfor %}
+					
+					</table>
+				</div>
+			</div>
+		</div>
+			
+	</section>
+
+	
+</body>
+
+{% endblock %}
+
+{% block stylesheets %}
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
+	
+    <link rel="stylesheet" href="{{ asset('styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('card.css') }}" />
+    <link rel="stylesheet" href="{{ asset('contest-hub.css') }}" />
+	
+	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
+	
+	
+	<style>
+	
+	.accepted{
+		background: #AAE2AB no-repeat center url("{{asset('contest/check.svg')}}");
+		font-size: 0.8em;
+	}
+
+	.unattempted{
+		background: none;
+		color: transparent;
+		font-size: 0.8em;
+	}
+
+	.attempted{
+		background: #F67B51 no-repeat center url("{{asset('contest/cross.svg')}}");
+		font-size: 0.8em;
+		color: white;
+	}
+	
+	.unknown{
+		background: #AAAAAA no-repeat center url("{{asset('contest/question.svg')}}");
+		font-size: 0.8em;
+	}
+	
+	
+	</style>
+	
+{% endblock %}
+
+
+{% block scripts %}
+    <!-- JQuery -->
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+	<script src="{{ asset('js/cards.js') }}"></script>
+	
+	<script>
+		
+		var time = {{"now"|date('U')}} - {{contest.start_time|date('U')}}; // current seconds into the contest
+		var total = {{contest.end_time|date('U')}} - {{contest.start_time|date('U')}};
+		$(document).ready( function() {
+					
+			$('#progressbar').progressbar({
+				max: total, // total seconds in the contest
+				value: time	// current seconds into the contest		
+			});
+						
+			setInterval(loopFunction, 1000);
+			loopFunction();
+
+			$(window).resize();
+		
+		});
+		
+		$(window).on('resize', function(){
+			
+			var h1 = $('#leaderboard-card').height();
+			var h2 = $('#problems-card').height();
+			
+			if(h1 > h2){
+				$('#leaderboard-card').css('height', 'max-content');				
+				$('#problems-card').height(h1);
+			} else {
+				$('#leaderboard-card').height(h2);				
+				$('#problems-card').css('height', 'max-content');
+			}			
+		});
+		
+		
+		function loopFunction(){
+			
+			// update the progress bar
+			$( "#progressbar" ).progressbar( "option", "value", time);
+			time++;
+			
+			// update the scoreboard
+			var left = total-time;
+			
+			if(left <= 0){
+				
+				$('#time-left').text("FINISHED");
+				
+			} else {
+				
+				var hours = parseInt(left/3600);
+				var minutes = parseInt((left - hours*3600)/60);
+				var seconds = (left - hours*3600 - minutes*60);
+				
+				hours = (hours < 10) ? "0"+hours : hours;
+				minutes = (minutes < 10) ? "0"+minutes : minutes;
+				seconds = (seconds < 10) ? "0"+seconds : seconds;
+				
+				$('#time-left').text(hours+":"+minutes+":"+seconds+" left");
+			}
+			
+			// check for AJAX information
+		}
+		
+	</script>
+{% endblock %}
+

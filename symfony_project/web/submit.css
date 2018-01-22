@@ -85,3 +85,19 @@ textarea {
 #submissionForm{
 	margin-top: 10px;
 }
+
+#markdown-collapser{
+	width: 100%;
+	background: lightgrey;
+	height: 25px;
+	margin-top: 10px;
+	margin-bottom: 10px;
+	
+	text-align: center;
+	line-height: 25px;
+	font-weight: bold;
+	color: white;
+	font-size: 10pt;
+	
+	cursor: pointer;
+}

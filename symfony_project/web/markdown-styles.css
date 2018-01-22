@@ -1,10 +1,29 @@
-#markdown h1, h2, h3, h4, h5, h6 {
-    font-family: 'Old Standard TT', serif;
+#markdown h1,#markdown h2,#markdown h3,#markdown h4,#markdown h5,#markdown h6 {
     font-weight: bold;
+}
+
+#markdown-header h1,#markdown-header h2,#markdown-header h3,#markdown-header h4,#markdown-header h5,#markdown-header h6 {
+    font-weight: bold;
+}
+
+
+#markdown h1, #markdown-header h1 {
+	font-size: 28px;	
 }
 
 #markdown h3 {
     border-bottom: 1px solid #ddd;
+	-webkit-margin-before: 1.33em;
+    -webkit-margin-after: 0.3em;
+    -webkit-margin-start: 0px;
+    -webkit-margin-end: 0px;
+}
+
+#markdown h4, #markdown h5, #markdown h6{
+	-webkit-margin-before: 1.00em;
+    -webkit-margin-after: 0.3em;
+    -webkit-margin-start: 0px;
+    -webkit-margin-end: 0px;
 }
 
 #markdown .serif {
@@ -129,6 +148,28 @@
     background-color: transparent;
     border: 0;
     padding: 0;
+}
+
+#markdown code{
+	white-space: pre-wrap;       /* css-3 */
+    white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+    white-space: -pre-wrap;      /* Opera 4-6 */
+    white-space: -o-pre-wrap;    /* Opera 7 */
+    word-wrap: break-word;       /* Internet Explorer 5.5+ */
+    background-color: #f8f8f8;
+    border: 1px solid #dfdfdf;
+    margin-top: 1.5em;
+    margin-bottom: 1.5em;
+    padding: 0.125rem 0.3125rem 0.0625rem;
+}
+
+#markdown a {
+	text-decoration: underline;
+	color: green;
+}
+
+#markdown p {
+	line-height: 120%;
 }
 
 

@@ -25,7 +25,16 @@ The grader was not passed from the controller.
 	<section id="main">
 	
 		<div class="card">
-			<h2 style="margin: 0px">{{submission.problem.name}}</h2>
+			<div style="display: flex; flex-direction: row; justify-content: space-between">
+				<h2 style="margin: 0px">{{submission.problem.name}}</h2>
+				
+				{% if is_granted("ROLE_SUPER") or grader.isTeaching(app.user, submission.problem.assignment.section) %}
+				<a title="Delete Submission" href="{{path('result_delete', {'submission_id': submission.id})}}">
+					<img src="{{ asset('trash.png') }}">
+				</a>
+				{% endif %}
+			</div>
+			
 			<div id="submissionOverview" class="card-contents">
 				<h3 style="margin-top: 2px; margin-bottom: 2px">
 					RESULT: 
@@ -75,11 +84,12 @@ The grader was not passed from the controller.
 					
 				<!--span style="word-wrap: break-word"> {{feedback|json_encode}} </span-->
 				
+				
+				
 				{% if feedback.display_markers and not submission.compiler_error and not submission.questionable_behavior and submission.testcaseresults|length > 0%}
 				<div id="feedback-holder">
 					<div id="testcase-markers-container">
 						<h3>TESTCASES:</h3>				
-						
 							{% if feedback.output|length > 0 %}
 							<div id="testcase-markers">
 								<ul>
@@ -117,10 +127,23 @@ The grader was not passed from the controller.
 										
 										<div id="testcase-tab-{{tcr.id}}">
 											<div class="testcase-data">
-												{% if feedback.input[tcr.testcase.seq_num] != '' %}
+												{% if feedback.input[tcr.testcase.seq_num] or feedback.command_line[tcr.testcase.seq_num] %}
 												<div id="testcase-input">
-													<div class="testcase-data-heading">Input:</div>
-													<textarea disabled>{{feedback.input[tcr.testcase.seq_num]}}</textarea>
+													
+													{% if feedback.input[tcr.testcase.seq_num] %}
+													<div>
+														<div class="testcase-data-heading">Input:</div>
+														<textarea {% if feedback.input[tcr.testcase.seq_num] %} id="input-textarea" {% endif %} disabled>{{feedback.input[tcr.testcase.seq_num]}}</textarea>
+													</div>
+													{% endif %}
+													
+													{% if feedback.command_line[tcr.testcase.seq_num] %}
+													<div>
+														<div class="testcase-data-heading">Command-Line Arguments:</div>
+														<textarea  {% if feedback.command_line[tcr.testcase.seq_num] %} id="command-line-textarea" {% endif %} disabled>{{feedback.command_line[tcr.testcase.seq_num]}}</textarea>
+													</div>
+													{% endif %}
+													
 												</div>	
 												{% endif %}
 												
@@ -155,7 +178,8 @@ The grader was not passed from the controller.
 								
 								{% endfor %}
 						
-							</div>	
+							</div>
+							<i style="color: red"><small>Note that expected output may contain regex patterns that could match an variety of strings.</small></i>							
 							{% else %}
 							<div id="testcase-markers-no-out">
 								{% for tcr in submission.testcaseresults %}						
