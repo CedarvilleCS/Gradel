@@ -1,4 +1,4 @@
-{% set teaching=grader.isTeaching(app.user, problem.assignment.section) or is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") %}
+{% set teaching=grader.isTeaching(app.user, problem.assignment.section) or grader.isJudging(app.user, problem.assignment.section) or is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") %}
 
 
 {% block head %}
@@ -28,9 +28,65 @@ var markdownText = converter.makeHtml("{{problem.description|e('js')}}");
     {{ include('template/top-nav.html.twig') }}
 
 	{# left panel with the problem links #}
-	{{ include('template/problem-nav.html.twig') }}
+	<nav class="nav-left">
 
-	{{ include('template/path-nav.html.twig') }}
+		<ol style="padding-top: 0px; padding-bottom: 10px">
+			{# overview of when the assignment is due #}		
+			<li style="text-align:center">{{assignment.name}} </li>
+			
+			<li class="sidebar" style="text-align:left">
+				<strong>Problems</strong>
+				{% if teaching %}
+					<object>
+						<a title="Create problem" href={{path('contest_problem_edit', {'contestId': section.id, 'roundId': assignment.id})}}>
+							<img class="small-icon" id="add-icon" src="{{ asset('add_circle.png') }}">
+						</a>
+					</object>
+				{% endif %}
+			</li>
+			
+			{# problem list #}
+			{% for prob in problem.assignment.problems %}
+
+				{% if prob.id != problem.id%}
+				
+					<a href="{{path('contest_problem', {'contestId': prob.assignment.section.id, 'roundId': prob.assignment.id, 'problemId': prob.id})}}">
+				
+					<li class="sidebar list-item" style="{%if prob.id == problem.id %}background: #5a5a5a; {%endif%}">			
+						<div class="{% if teaching %}sidebar-text{% endif %}">{{ prob.name }}&nbsp;</div>
+				{% else %}
+				
+					<li class="sidebar list-item" style="background: #5a5a5a">
+						<div class="{% if teaching %}sidebar-text{% endif %}">{{ prob.name }}&nbsp;</div>
+						<div class="selectbar"></div>
+					
+				{% endif %}
+
+				{# display edit icon #}
+				{% if teaching %}
+					<object>
+						<a title="Edit{{(prob.master) ? " Master" : "" }} Problem" href="{{path('contest_problem_edit', {'contestId': prob.assignment.section.id, 'roundId': prob.assignment.id, 'problemId': prob.id})}}">
+							<img class="small-icon" id="right-icon" src="{{ asset('edit.png') }}">
+						</a>
+						
+					</object>
+				{% endif %}	
+				
+				</li>
+				
+				{% if prob.id != problem.id %}
+				</a>
+				{% endif %}
+				
+			{% else %}
+				<li class="sidebar list-item"> There are no problems for this assignment </li>
+			{% endfor %}
+		  
+		</ol>
+		
+	</nav>
+
+	{# {{ include('template/path-nav.html.twig') }} #}
 	
     <section id="main">
 
@@ -39,30 +95,7 @@ var markdownText = converter.makeHtml("{{problem.description|e('js')}}");
 		{% else %}
 
 		<div class="card" style="padding-top: 2px">
-			{% set grade = grader.getProblemGrade(app.user, problem) %}
-			{% if not teaching %}
-			
-				{% if grade['total_testcases'] + grade['total_extra_testcases'] == grade['passed_testcases'] + grade['passed_extra_testcases'] %}
-					<h3 style="color: green"> You have completed this problem! </h3>
-				{% elseif grade['total_testcases'] == grade['passed_testcases'] %}
-					<h3> Your solution has solved the normal testcases, but not the extra credit ones </h3>
-				{% endif %}
-				
-				<h3>
-					{% if attempts_remaining < 0 %}
-						Unlimited attempts allowed
-					{% else %}
-						Attempts left: {{attempts_remaining}}
-					{% endif %}
-
-
-					{% if best_submission != null %}
-						<a href="{{path('problem_result', {'submission_id': best_submission.id})}}"> [Currently accepted submission] </a>
-					{% endif %}
-				</h3>
-			
-			{% endif %}
-			
+					
 			<div id="courseInfo" class="card-contents">
 			
 				<div class="markdown-container">

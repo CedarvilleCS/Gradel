@@ -1,8 +1,3 @@
-{% set elevatedUser = grader.isJudging(app.user, section) or is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN")%}
-
-{% set contest = section.assignments[0] %}
-{% set leaderboard = grader.getLeaderboard(app.user, contest) %}
-
 <script>
 console.log(JSON.parse("{{ leaderboard | json_encode(constant('JSON_PRETTY_PRINT')) | e('js')}}"));
 </script>
@@ -29,14 +24,20 @@ console.log(JSON.parse("{{ leaderboard | json_encode(constant('JSON_PRETTY_PRINT
 			</li>
 
 			<li class="sidebar" style="text-align:left">
-				<strong>Problems</strong>				
+				<strong>Problems</strong>		
+
+				<object>
+					<a title="Create problem" href="{{path('contest_problem_edit', {'contestId': contest.section.id, 'roundId': contest.id})}}">
+						<img class="small-icon" id="add-icon" src="/gradel_dev/tgsmith/gradel/symfony_project/web/add_circle.png">
+					</a>
+				</object>				
 			</li>	
 				
 				
 				
 			{% for problem in contest.problems %}
 
-			<a href={{path('assignment', {'sectionId': problem.assignment.section.id, "assignmentId": problem.assignment.id, "problemId": problem.id})}}>
+			<a href={{path('contest_problem', {'contestId': problem.assignment.section.id, 'roundId': problem.assignment.id, 'problemId': problem.id})}}>
 			
 			<li class="sidebar list-item">					
 		
@@ -52,7 +53,7 @@ console.log(JSON.parse("{{ leaderboard | json_encode(constant('JSON_PRETTY_PRINT
 			{# display edit icon #}
 			{% if elevatedUser %}
 				<object>
-					<a title="Edit problem" href="{{path('problem_edit', {'sectionId': problem.assignment.section.id, 'assignmentId': problem.assignment.id, 'problemId': problem.id})}}">
+					<a title="Edit problem" href="{{path('contest_problem_edit', {'contestId': problem.assignment.section.id, 'roundId': problem.assignment.id, 'problemId': problem.id})}}">
 						<img class="small-icon" id="right-icon" src="{{ asset('edit.png') }}">
 					</a>
 				</object>
@@ -64,8 +65,16 @@ console.log(JSON.parse("{{ leaderboard | json_encode(constant('JSON_PRETTY_PRINT
 			{% endfor %}
 		</ol>
 		
-		<a href="{{path('assignment_edit', {'sectionId': contest.section.id, 'assignmentId': contest.id})}}" class="btn">
-			<div class="btn btn-center">Edit {{contest.name}}</div>
+		<a href="{{path('contest_judging', {'contestId': contest.section.id, 'roundId': contest.id})}}">
+			<div class="btn btn-center"> Judging Hub </div>
+		</a>
+		
+		<a href="{{path('contest', {'contestId': practice.section.id, 'roundId': practice.id})}}">
+			<div id="assignment-pool" class="btn btn-center" style="bottom: 65px;"> Switch to Practice Contest </div>
+		</a>
+		
+		<a href="{{path('section_edit', {'sectionId': contest.section.id})}}" class="btn">
+			<div id="assignment-pool" class="btn btn-center" style="font-size: 1em">Edit Contest</div>
 		</a>
 	</nav>
 
@@ -75,8 +84,8 @@ console.log(JSON.parse("{{ leaderboard | json_encode(constant('JSON_PRETTY_PRINT
 	<section id="main">
 		
 		<div class="card">
-			<div id="contest-heading"><h1>2018 Local Programming Contest</h1></div>
-			<div id="name-heading"><h2>Practice Contest</h2></div>
+			<div id="contest-heading"><h1>{{contest.section.name}}</h1></div>
+			<div id="name-heading"><h2>{{contest.name}}</h2></div>
 			<div id="time-heading"><h3 id="time-left">-</h3></div>
 			
 			
@@ -117,7 +126,7 @@ console.log(JSON.parse("{{ leaderboard | json_encode(constant('JSON_PRETTY_PRINT
 							<th class="top-row no-hover">Time</th>
 							{% for problem in contest.problems %}
 							<th class="top-row">
-								<a href="{{path('assignment', {'sectionId': problem.assignment.section.id, 'assignmentId': problem.assignment.id, 'problemId': problem.id})}}">
+								<a href="{{path('contest_problem', {'contestId': problem.assignment.section.id, 'roundId': problem.assignment.id, 'problemId': problem.id})}}">
 								{{problem.name|slice(0,1)}}
 								</a>
 							</th>
@@ -168,7 +177,7 @@ console.log(JSON.parse("{{ leaderboard | json_encode(constant('JSON_PRETTY_PRINT
 						{% set isCorrect = team.results[loop.index0] %}
 						
 					
-						<tr class="{{rowClassName}}" onclick="window.location='{{path('assignment', {'sectionId': problem.assignment.section.id, 'assignmentId': problem.assignment.id, 'problemId': problem.id})}}'">
+						<tr class="{{rowClassName}}" onclick="window.location='{{path('contest_problem', {'contestId': problem.assignment.section.id, 'roundId': problem.assignment.id, 'problemId': problem.id})}}'">
 							<td class="name {{className}}"><div> {{problem.name}} </div></td>
 							
 							<td class="penalties {{className}}"><div> {{ (isCorrect) ?  team.times[loop.index0] ~ ' + ' ~ team.raw_penalties[loop.index0]  : "" }} </div></td>
@@ -181,6 +190,29 @@ console.log(JSON.parse("{{ leaderboard | json_encode(constant('JSON_PRETTY_PRINT
 				</div>
 			</div>
 		</div>
+		
+		{#		
+		<div class="card">
+			
+			<div class="btn-close" onclick="collapseCard('recentSubs')">
+				<h2 style="margin: 0px">Recent Submissions
+					<span style="float: right"><i class="fa fa-angle-down"></i></span>
+				</h2>
+			</div>
+		
+			<div id="recentSubs" class="card-contents" style="margin-top: 0px">
+				<div>
+					<ul>
+						{% for team in contest.teams %}		
+							{% for sub in team.submissions %}
+								<li> <a href="{{path('problem_result', {'submission_id': sub.id})}}"> {{team.name}} - {{sub.language.name}} </a></li>
+							{% endfor %}
+						{% endfor %}
+					</ul>
+				</div>
+			</div>
+		</div>
+		#}
 			
 	</section>
 
@@ -239,6 +271,7 @@ console.log(JSON.parse("{{ leaderboard | json_encode(constant('JSON_PRETTY_PRINT
 		
 		var time = {{"now"|date('U')}} - {{contest.start_time|date('U')}}; // current seconds into the contest
 		var total = {{contest.end_time|date('U')}} - {{contest.start_time|date('U')}};
+		//var freeze 
 		$(document).ready( function() {
 					
 			$('#progressbar').progressbar({
@@ -292,8 +325,12 @@ console.log(JSON.parse("{{ leaderboard | json_encode(constant('JSON_PRETTY_PRINT
 				
 				$('#time-left').text(hours+":"+minutes+":"+seconds+" left");
 			}
-			
+			freeze = 0;
 			// check for AJAX information
+			if(time > freeze){
+				console.log("Polling for updates...");
+			
+			}
 		}
 		
 	</script>

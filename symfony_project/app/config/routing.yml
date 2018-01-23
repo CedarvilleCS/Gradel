@@ -103,7 +103,7 @@ assignment_delete:
   path: '/section/{sectionId}/assignment/delete/{assignmentId}'
   defaults: {_controller: AppBundle:Assignment:delete}
   methods: [GET]
-
+  
 assignment:
   path: '/section/{sectionId}/assignment/{assignmentId}/problem/{problemId}'
   defaults:
@@ -117,7 +117,54 @@ assignment_modify:
     _controller: AppBundle:Assignment:modifyPost
   methods: [POST]
 
-
+# CONTEST ROUTES
+contest_edit:
+  path: '/contest/edit/{contestId}'
+  defaults:
+    _controller: AppBundle:Contest:contestEdit
+    roundId: 0
+  methods: [GET]
+    
+contest:
+  path: '/contest/{contestId}/round/{roundId}'
+  defaults:
+    _controller: AppBundle:Contest:contest
+    roundId: 0
+  methods: [GET]
+    
+contest_problem_edit:
+  path: '/contest/{contestId}/round/{roundId}/problem/edit/{problemId}'
+  defaults:
+    _controller: AppBundle:Contest:problemEdit
+    problemId: 0
+  methods: [GET]
+  
+contest_problem:
+  path: '/contest/{contestId}/round/{roundId}/problem/{problemId}'
+  defaults:
+    _controller: AppBundle:Contest:problem
+    problemId: 0
+  methods: [GET]
+  
+contest_judging:
+  path: '/contest/{contestId}/round/{roundId}/judging'
+  defaults:
+    _controller: AppBundle:Contest:judging
+  methods: [GET]
+  
+contest_result:
+  path: '/contest/result/{submission_id}'
+  defaults:
+    _controller: AppBundle:Contest:result
+  methods: [GET]
+  
+contest_modify:
+  path: '/modify/contest'
+  defaults:
+    _controller: AppBundle:Contest:modifyPost
+  methods: [POST]
+  
+  
 # UPLOAD ROUTES
 get_contents:
     path: '/get_contents'

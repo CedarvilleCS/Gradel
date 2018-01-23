@@ -86,38 +86,19 @@ class ProblemController extends Controller {
 		
 		$recommendedSlaves = [];
 		$recommendedSlaves = $em->getRepository('AppBundle\Entity\Problem')->findBy(array('name' => $problem->name));
-		
-		if($problem->assignment->section->course->is_contest){
+
+		return $this->render('problem/edit.html.twig', [
+			'languages' => $languages,
+			'section' => $section,
+			'assignment' => $assignment,
+			'problem' => $problem,
 			
-			return $this->render('contest/problem_edit.html.twig', [
-				'languages' => $languages,
-				'section' => $section,
-				'assignment' => $assignment,
-				'problem' => $problem,
+			'default_code' => $default_code,
+			'ace_modes' => $ace_modes,
+			'filetypes' => $filetypes,
 				
-				'default_code' => $default_code,
-				'ace_modes' => $ace_modes,
-				'filetypes' => $filetypes,
-				
-				'recommendedSlaves' => $recommendedSlaves,
-			]);
-			
-			
-		} else {
-			
-			return $this->render('problem/edit.html.twig', [
-				'languages' => $languages,
-				'section' => $section,
-				'assignment' => $assignment,
-				'problem' => $problem,
-				
-				'default_code' => $default_code,
-				'ace_modes' => $ace_modes,
-				'filetypes' => $filetypes,
-				
-				'recommendedSlaves' => $recommendedSlaves,
-			]);
-		}
+			'recommendedSlaves' => $recommendedSlaves,
+		]);
     }
 
 	public function deleteAction($sectionId, $assignmentId, $problemId){
@@ -297,29 +278,24 @@ class ProblemController extends Controller {
 		$problem->extra_testcases_display = ($extra_testcases_display == "true");		
 		
 		# linked problems
-		foreach($problem->slaves as &$slave){
-			$slave->master = null;
-		}
-		
-		foreach($postData['linked_probs'] as $link){
+		if(!$problem->assignment->section->course->is_contest){
 			
-			$linked = $em->find("AppBundle\Entity\Problem", $link);
-			
-			if(!$linked){
-				return $this->returnForbiddenResponse("Provided problem id ".$link." does not exist");
+			foreach($problem->slaves as &$slave){
+				$slave->master = null;
 			}
 			
-			$problem->slaves->add($linked);
-			$linked->master = $problem;			
-		}
-		
-		$str = "";
-		foreach($problem->slaves->toArray() as $l){
-			$str = $str."-".$l->id;
-		}
-		
-		//return $this->returnForbiddenResponse($str);
-		
+			foreach($postData['linked_probs'] as $link){
+				
+				$linked = $em->find("AppBundle\Entity\Problem", $link);
+				
+				if(!$linked){
+					return $this->returnForbiddenResponse("Provided problem id ".$link." does not exist");
+				}
+				
+				$problem->slaves->add($linked);
+				$linked->master = $problem;			
+			}
+		}		
 		
 		# custom validator
 		$custom_validator = trim($postData['custom_validator']);
@@ -407,7 +383,27 @@ class ProblemController extends Controller {
 
 		}
 		$problem->testcases = $newTestcases;
-		$problem->testcase_counts[] = count($problem->testcases);
+		$problem->testcase_counts[] = count($problem->testcases);	
+		
+		
+		# CONTEST SETTINGS OVERRIDE
+		if($problem->assignment->section->course->is_contest){
+			
+			$problem->slaves = new ArrayCollection();
+			$problem->master = null;
+
+			$problem->weight = 1;
+			$problem->is_extra_credit = false;
+			$problem->total_attempts = 0;
+			$problem->attempts_before_penalty = 0;
+			$problem->penalty_per_attempt = 0;
+			$problem->stop_on_first_fail = true;
+			$problem->response_level = "None";
+			$problem->display_testcaseresults = false;
+			$problem->testcase_output_level = "None";
+			$problem->extra_testcases_display = false;			
+		}
+				
 		
 		# update all the linked problems
 		foreach($problem->slaves as &$slave){
@@ -474,27 +470,6 @@ class ProblemController extends Controller {
 			$slave->testcase_counts[] = count($slave->testcases);
 
 			$em->persist($slave);
-		}
-		
-		
-		
-		
-		# CONTEST SETTINGS OVERRIDE
-		if($problem->assignment->section->course->is_contest){
-			
-			$problem->slaves = new ArrayCollection();
-			$problem->master = null;
-
-			$problem->weight = 1;
-			$problem->is_extra_credit = false;
-			$problem->total_attempts = 0;
-			$problem->attempts_before_penalty = 0;
-			$problem->penalty_per_attempt = 0;
-			$problem->stop_on_first_fail = true;
-			$problem->response_level = "None";
-			$problem->display_testcaseresults = false;
-			$problem->testcase_output_level = "None";
-			$problem->extra_testcases_display = false;			
 		}
 		
 		$em->flush();

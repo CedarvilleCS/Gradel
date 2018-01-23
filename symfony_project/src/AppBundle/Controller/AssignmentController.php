@@ -15,6 +15,7 @@ use AppBundle\Utils\Uploader;
 use Doctrine\Common\Collections\ArrayCollection;
 
 use \DateTime;
+use \DateInterval;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Routing\Router;
@@ -37,6 +38,16 @@ class AssignmentController extends Controller {
 			die("USER DOES NOT EXIST!");		  
 		}
 		
+		# get the section
+		if(!isset($sectionId) || !($sectionId > 0)){
+			die("SECTION ID WAS NOT PROVIDED OR FORMATTED PROPERLY");
+		}
+		
+		$section_entity = $em->find("AppBundle\Entity\Section", $sectionId);
+		if(!section_entity){
+			die("SECTION DOES NOT EXIST");
+		}
+		
 		# get the assignment
 		if(!isset($assignmentId) || !($assignmentId > 0)){
 			die("ASSIGNMENT ID WAS NOT PROVIDED OR FORMATTED PROPERLY");
@@ -46,6 +57,8 @@ class AssignmentController extends Controller {
 		if(!assignment_entity){
 			die("ASSIGNMENT DOES NOT EXIST");
 		}
+		
+		$origProblemId = $problemId;
 		
 		if($problemId == 0){
 			$problemId = $assignment_entity->problems[0]->id;
@@ -146,7 +159,8 @@ class AssignmentController extends Controller {
 		if(count($all_submissions) > 0){
 			$last_submission = $all_submissions[0];
 		}
-
+		
+		
 		return $this->render('assignment/index.html.twig', [
 			'user' => $user,
 			'team' => $team,
@@ -167,7 +181,8 @@ class AssignmentController extends Controller {
 			'default_code' => $default_code,
 			'ace_modes' => $ace_modes,
 			'filetypes' => $filetypes,
-		]);	
+		]);
+
 	}
 
     public function editAction($sectionId, $assignmentId) {
@@ -228,27 +243,13 @@ class AssignmentController extends Controller {
 			
 			$students[] = $student;
 		}
-		
-		
-		if($section->course->is_contest){
 
-			return $this->render('contest/assignment_edit.html.twig', [
-				"assignment" => $assignment,
-				"section" => $section,
-				"edit" => true,
-				"students" => $students,
-			]);
-			
-		} else {
-		
-			return $this->render('assignment/edit.html.twig', [
-				"assignment" => $assignment,
-				"section" => $section,
-				"edit" => true,
-				"students" => $students,
-			]);
-		
-		}
+		return $this->render('assignment/edit.html.twig', [
+			"assignment" => $assignment,
+			"section" => $section,
+			"edit" => true,
+			"students" => $students,
+		]);
     }
 
     public function deleteAction($sectionId, $assignmentId){
@@ -313,7 +314,7 @@ class AssignmentController extends Controller {
 		}		
 		
 		# check mandatory fields
-		if(!isset($postData['name']) || !isset($postData['open_time']) || !isset($postData['close_time']) || !isset($postData['teams']) || !isset($postData['teamnames']) || !isset($postData['penalty'])){
+		if(!isset($postData['name']) || !isset($postData['open_time']) || !isset($postData['close_time']) || !isset($postData['teams']) || !isset($postData['teamnames'])){
 			return $this->returnForbiddenResponse("Not every required field is provided.");			
 		} else {
 			
@@ -509,50 +510,6 @@ class AssignmentController extends Controller {
 				$em->remove($old);	
 				$em->flush();
 			}
-		}
-		
-		
-		# CONTEST SETTINGS OVERRIDE
-		if($section->course->is_contest){
-					
-			# set cutoff time to end time
-			$assignment->cutoff_time = $assigment->end_time;
-			$assignment->penalty_per_day = 0;
-			$assignment->weight = 1;
-			$assignment->is_extra_credit = false;
-			
-					
-			# validate everything
-			$penalty_per_wrong_answer = trim($postData['penalty_per_wrong_answer']);
-			if(!is_numeric($penalty_per_wrong_answer) || (int)$penalty_per_wrong_answer >= 0){					
-				return $this->returnForbiddenResponse("The provided penalty_per_wrong_answer ".$postData['penalty_per_wrong_answer']." is not permitted.");
-			}
-
-			$penalty_per_compile_error = trim($postData['penalty_per_compile_error']);
-			if(!is_numeric($penalty_per_compile_error) || (int)$penalty_per_compile_error >= 0){					
-				return $this->returnForbiddenResponse("The provided penalty_per_compile_error ".$postData['penalty_per_compile_error']." is not permitted.");
-			}
-
-			$penalty_per_time_limit = trim($postData['penalty_per_time_limit']);
-			if(!is_numeric($penalty_per_time_limit) || (int)$penalty_per_time_limit >= 0){					
-				return $this->returnForbiddenResponse("The provided penalty_per_time_limit ".$postData['penalty_per_time_limit']." is not permitted.");
-			}
-
-			$penalty_per_runtime_error = trim($postData['penalty_per_runtime_error']);
-			if(!is_numeric($penalty_per_runtime_error) || (int)$penalty_per_runtime_error >= 0){					
-				return $this->returnForbiddenResponse("The provided penalty_per_runtime_error ".$postData['penalty_per_runtime_error']." is not permitted.");
-			}			
-			
-			$freezeTime = DateTime::createFromFormat("H:i:s", $postData['freeze_time'].":00");			
-			if(!isset($freezeTime) || $freezeTime->format("H:i") != $postData['freeze_time']){
-				return $this->returnForbiddenResponse("Provided freeze time ".$postData['freeze_time']." is not valid.");
-			}
-			
-			$assignment->freeze_time = $freezeTime;
-			$assignment->penalty_per_wrong_answer = (int)$penalty_per_wrong_answer;
-			$assignment->penalty_per_compile_error = (int)$penalty_per_compile_error;
-			$assignment->penalty_per_time_limit = (int)$penalty_per_time_limit;
-			$assignment->penalty_per_runtime_error = (int)$penalty_per_runtime_error;
 		}
 			
 		$em->persist($assignment);	

@@ -35,8 +35,12 @@
 					{% for section in course.sections %}
 						
 						{% if not section.is_deleted and section.start_time|date('U') < now|date('U') and section.end_time|date('U') > now|date('U') %}
-					
+						
+						{% if section.course.is_contest %}
+						<li><a style="text-decoration:none" href="{{path('contest', {'contestId': section.id})}}">{{section.name}} <small><i>{{section.start_time|date('m/d/Y')}} - {{section.end_time|date('m/d/Y')}}</i></small></a></li>
+						{% else %}
 						<li><a style="text-decoration:none" href="{{path('section', {'sectionId': section.id})}}">{{section.name}} <small><i>{{section.start_time|date('m/d/Y')}} - {{section.end_time|date('m/d/Y')}}</i></small></a></li>
+						{% endif %}
 						
 						{% endif %}
 					{% endfor %}
@@ -49,7 +53,11 @@
 						
 						{% if section.start_time|date('U') > now|date('U') or section.end_time|date('U') < now|date('U') %}
 					
+						{% if section.course.is_contest %}
+						<li><a style="text-decoration:none" href="{{path('contest', {'contestId': section.id})}}">{{section.name}} <small><i>{{section.start_time|date('m/d/Y')}} - {{section.end_time|date('m/d/Y')}}</i></small></a></li>
+						{% else %}
 						<li><a style="text-decoration:none" href="{{path('section', {'sectionId': section.id})}}">{{section.name}} <small><i>{{section.start_time|date('m/d/Y')}} - {{section.end_time|date('m/d/Y')}}</i></small></a></li>
+						{% endif %}
 						
 						{% endif %}
 					{% endfor %}
@@ -62,8 +70,12 @@
 						
 						{% if section.is_deleted %}
 					
+						{% if section.course.is_contest %}
+						<li><a style="text-decoration:none" href="{{path('contest', {'contestId': section.id})}}">{{section.name}} <small><i>{{section.start_time|date('m/d/Y')}} - {{section.end_time|date('m/d/Y')}}</i></small></a></li>
+						{% else %}
 						<li><a style="text-decoration:none" href="{{path('section', {'sectionId': section.id})}}">{{section.name}} <small><i>{{section.start_time|date('m/d/Y')}} - {{section.end_time|date('m/d/Y')}}</i></small></a></li>
-						
+						{% endif %}
+
 						{% endif %}
 					{% endfor %}
 				</ul>

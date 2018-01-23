@@ -87,35 +87,8 @@
 						  <input type="text" id="time_limit" style="width: 100px" value="{{(problem) ? problem.time_limit: 1000}}">					  
 					  </th>
 					</tr>
-					<tr>
-					  <th colspan="1">
-						{% if not problem.master %}
-						  
-							<label for="linked_probs">Slave Problems </label>
-							<input type="text" id="linked_probs" style="width: 200px" value="{% for slave in problem.slaves %}{{slave.id}}{{(loop.last)?'':',&nbsp;'}}{% endfor %}">
-							<div id="recommended-slaves" style="margin-top:15px">
-								Recommended Slaves
-								<ul>
-									{% set noreco = true %}
-									{% for recommended in recommendedSlaves %}
-									
-									{% if recommended != problem and recommended not in problem.slaves %}
-									{% set noreco = false %}
-									<li> <a href="{{path('assignment', {'problemId': recommended.id, 'assignmentId': recommended.assignment.id, 'sectionId': recommended.assignment.section.id})}}"> {{recommended.id}} - <i>{{recommended.assignment.section.name}}</i> <small>{{recommended.name}}</small> </a> </li>
-									
-									{% endif %}
-									
-									{% endfor %}
-									
-									{{ (noreco) ? '<li>None to recommend</li>' : '' }}
-								</ul>
-							</div>
-						{% endif %}
-					  
-					  </th>
-					</tr>
-					  
-				  </table>
+
+					</table>
 				</div>
 			</div>
 		</div>

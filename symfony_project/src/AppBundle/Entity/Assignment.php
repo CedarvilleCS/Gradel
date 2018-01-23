@@ -127,7 +127,7 @@ class Assignment implements JsonSerializable{
 	
 	// Contest-Specific Information
 	/**
-	* @ORM\Column(type="time", nullable=true)
+	* @ORM\Column(type="datetime", nullable=true)
 	*/
 	public $freeze_time;
 	

@@ -169,7 +169,7 @@
 
 #problems .penalties {
 	font-size: 1.2em;
-	text-align: right;
+	text-align: left;
 }
 
 #problems .checkbox {
@@ -223,4 +223,18 @@
 #problems .last-row{
 	border-bottom: none;
 	margin-bottom: 5px;
+}
+
+
+/* side-bar */
+#judge-link-buttom{
+	
+}
+
+#assignment-pool{
+	position: absolute;
+    bottom: 10px;
+    margin-left: 10px;
+	
+	font-size: 0.9em;
 }

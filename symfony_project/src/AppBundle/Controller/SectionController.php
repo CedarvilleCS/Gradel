@@ -84,135 +84,94 @@ class SectionController extends Controller {
 			}
 		}
 
-		if($section_entity->course->is_contest){
-			
-			return $this->render('contest/hub.html.twig', [
-				'section' => $section_entity,
-				'grader' => new Grader($em),
-				
-				'assignments' => $assignments,
-				'grades' => $grades,
+		
+		# GET FUTURE ASSIGNMENTS
+		$twoweeks_date = new DateTime();
+		$twoweeks_date = $twoweeks_date->add(new DateInterval('P2W'));
 
-				'section_takers' => $section_takers,
-				'section_judges' => $section_judges,
-			]);
-			
-		} else {
-			
-			# GET FUTURE ASSIGNMENTS
-			$twoweeks_date = new DateTime();
-			$twoweeks_date = $twoweeks_date->add(new DateInterval('P2W'));
+		$qb_asgn = $em->createQueryBuilder();
+		$qb_asgn->select('a')
+				->from('AppBundle\Entity\Assignment', 'a')
+				->where('a.section = ?1')
+				->andWhere('a.end_time > ?2')
+				->andWhere('a.end_time < ?3')
+				->setParameter(1, $section_entity)
+				->setParameter(2, new DateTime())
+				->setParameter(3, $twoweeks_date)
+				->orderBy('a.end_time', 'ASC');
 
-			$qb_asgn = $em->createQueryBuilder();
-			$qb_asgn->select('a')
-					->from('AppBundle\Entity\Assignment', 'a')
-					->where('a.section = ?1')
-					->andWhere('a.end_time > ?2')
-					->andWhere('a.end_time < ?3')
-					->setParameter(1, $section_entity)
-					->setParameter(2, new DateTime())
-					->setParameter(3, $twoweeks_date)
-					->orderBy('a.end_time', 'ASC');
-
-			$asgn_query = $qb_asgn->getQuery();
-			$future_assig = $asgn_query->getResult();
-			
-			# GATHER SUBMISSIONS
-			# get all of the problems to get all of the submissions
-			$allprobs = [];
-			foreach($section_entity->assignments as $asgn){
-				foreach($asgn->problems as $prob){
-					$allprobs[] = $prob;
-				}
+		$asgn_query = $qb_asgn->getQuery();
+		$future_assig = $asgn_query->getResult();
+		
+		# GATHER SUBMISSIONS
+		# get all of the problems to get all of the submissions
+		$allprobs = [];
+		foreach($section_entity->assignments as $asgn){
+			foreach($asgn->problems as $prob){
+				$allprobs[] = $prob;
 			}
-
-			$grader = new Grader($em);
-
-			if($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isTeaching($user, $section_entity) || $grader->isJudging($user, $section_entity)){
-
-				$qb_submissions = $em->createQueryBuilder();
-				$qb_submissions->select('s')
-						->from('AppBundle\Entity\Submission', 's')
-						->where('s.problem IN (?1)')
-						->orderBy('s.timestamp', 'DESC')
-						->setParameter(1, $allprobs);
-
-				$submission_query = $qb_submissions->getQuery();
-				$submissions = $submission_query->getResult();
-
-			} else {
-				$teams = [];
-
-				foreach($section_entity->assignments as $asgn){
-					$teams[] = $grader->getTeam($user, $asgn);
-				}
-
-				$qb_submissions = $em->createQueryBuilder();
-				$qb_submissions->select('s')
-						->from('AppBundle\Entity\Submission', 's')
-						->where('s.problem IN (?1)')
-						->andWhere('s.team IN (?2)')
-						->orderBy('s.timestamp', 'DESC')
-						->setParameter(1, $allprobs)
-						->setParameter(2, $teams);
-
-				$submission_query = $qb_submissions->getQuery();
-				$submissions = $submission_query->getResult();
-			}
-			
-			
-			
-			
-			$grades = [];
-			foreach($section_takers as $section_taker){
-				$grades[$section_taker->id] = $grader->getAllAssignmentGrades($section_taker, $section_entity);
-			}
-
-			
-			return $this->render('section/index.html.twig', [
-				'section' => $section_entity,
-				'grader' => new Grader($em),
-				'user' => $user,
-
-				'assignments' => $assignments,
-				'grades' => $grades,
-
-				'future_assigs' => $future_assig,
-
-				'recent_submissions' => $submissions,
-
-				'section_takers' => $section_takers,
-				'section_teachers' => $section_teachers,
-				'section_helpers' => $section_helpers,
-			]);
 		}
+
+		$grader = new Grader($em);
+
+		if($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isTeaching($user, $section_entity) || $grader->isJudging($user, $section_entity)){
+
+			$qb_submissions = $em->createQueryBuilder();
+			$qb_submissions->select('s')
+					->from('AppBundle\Entity\Submission', 's')
+					->where('s.problem IN (?1)')
+					->orderBy('s.timestamp', 'DESC')
+					->setParameter(1, $allprobs);
+
+			$submission_query = $qb_submissions->getQuery();
+			$submissions = $submission_query->getResult();
+
+		} else {
+			$teams = [];
+
+			foreach($section_entity->assignments as $asgn){
+				$teams[] = $grader->getTeam($user, $asgn);
+			}
+
+			$qb_submissions = $em->createQueryBuilder();
+			$qb_submissions->select('s')
+					->from('AppBundle\Entity\Submission', 's')
+					->where('s.problem IN (?1)')
+					->andWhere('s.team IN (?2)')
+					->orderBy('s.timestamp', 'DESC')
+					->setParameter(1, $allprobs)
+					->setParameter(2, $teams);
+
+			$submission_query = $qb_submissions->getQuery();
+			$submissions = $submission_query->getResult();
+		}
+		
+		$grades = [];
+		foreach($section_takers as $section_taker){
+			$grades[$section_taker->id] = $grader->getAllAssignmentGrades($section_taker, $section_entity);
+		}
+		
+		return $this->render('section/index.html.twig', [
+			'section' => $section_entity,
+			'grader' => new Grader($em),
+			'user' => $user,
+
+			'assignments' => $assignments,
+			'grades' => $grades,
+
+			'future_assigs' => $future_assig,
+
+			'recent_submissions' => $submissions,
+
+			'section_takers' => $section_takers,
+			'section_teachers' => $section_teachers,
+			'section_helpers' => $section_helpers,
+		]);
     }
 
     public function editSectionAction($sectionId) {
 
 		$em = $this->getDoctrine()->getManager();
-		$builder = $em->createQueryBuilder();
-
-		$builder->select('c')
-				->from('AppBundle\Entity\Course', 'c')
-				->where('c.is_deleted = false');
-		$query = $builder->getQuery();
-		$courses = $query->getResult();
-
-		$user = $this->get('security.token_storage')->getToken()->getUser();
-		if(!$user){
-			die("USER DOES NOT EXIST");
-		}
-
-		$users = $em->getRepository("AppBundle\Entity\User")->findAll();
-
-		$instructors = [];
-
-		foreach ($users as $u) {
-			if($u->hasRole("ROLE_ADMIN") or $u->hasRole("ROLE_SUPER")) {
-				$instructors[] = $u;
-			}
-		}
 
 		if($sectionId != 0){
 
@@ -226,6 +185,11 @@ class SectionController extends Controller {
 				die("SECTION DOES NOT EXIST");
 			}
 
+			if($section->course->is_contest){
+				return $this->redirectToRoute('contest_edit', ['contestId' => $section->id]);	
+			}
+			
+			
 			$section_taker_roles = [];
 			$section_teacher_roles = [];
 
@@ -241,6 +205,28 @@ class SectionController extends Controller {
 					$section_teacher_roles[] = $ur;
 				}
 
+			}
+		}
+		
+		$builder = $em->createQueryBuilder();
+		$builder->select('c')
+				->from('AppBundle\Entity\Course', 'c')
+				->where('c.is_deleted = false');
+		$query = $builder->getQuery();
+		$courses = $query->getResult();
+
+		$user = $this->get('security.token_storage')->getToken()->getUser();
+		if(!$user){
+			die("USER DOES NOT EXIST");
+		}
+		
+		
+		$users = $em->getRepository("AppBundle\Entity\User")->findAll();
+		$instructors = [];
+
+		foreach ($users as $u) {
+			if($u->hasRole("ROLE_ADMIN") or $u->hasRole("ROLE_SUPER")) {
+				$instructors[] = $u;
 			}
 		}
 

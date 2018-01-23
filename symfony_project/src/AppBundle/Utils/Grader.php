@@ -586,8 +586,8 @@ class Grader  {
 			
 			
 			$num_attempts++;
-			
 			if($sub->isCorrect()){
+				
 				$correct_sub = $sub;
 				break;
 			}
@@ -700,6 +700,8 @@ class Grader  {
 	}
 	
 	public function getLeaderboard($user, $assignment){
+		
+		
 		
 		$teams = $assignment->teams->toArray();
 		

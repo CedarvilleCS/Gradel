@@ -5,12 +5,8 @@
 
 {# Left Nav For the Section List (On the homepage) #}
 <nav class="nav-left">
-<!--
-	{% if is_granted("ROLE_ADMIN") or is_granted("ROLE_SUPER") %}
-		<a href="{{path('section_edit')}}" class="btn">
-			<div class="btn btn-center">+ Section</div>
-		</a>
-	{% endif %} -->
+
+
 	<ol>
 	<li class="sidebar" style="text-align:center">Welcome, {{app.user.getFirstName()}}!  <br>
 	<small>Today is {{"now"|date('F d, Y')}}.</small>
@@ -20,6 +16,7 @@
 		<strong>Sections</strong>
 		{% if elevatedUser %}
 			<object>
+				{# figure out a way to switch it around if it is a contest section #}
 				<a title="Create Section" href={{path('section_edit')}}>
 					<img class="small-icon" id="add-icon" src="{{ asset('add_circle.png') }}">
 				</a>
@@ -45,7 +42,12 @@
 
 			{% for section in sections_taking %}
 
-				<a href="{{path('section', {'sectionId':section.id})}}">
+				{% if section.course.is_contest %}				
+				<a href="{{path('contest', {'contestId':section.id})}}">				
+				{% else %}				
+				<a href="{{path('section', {'sectionId':section.id})}}">				
+				{% endif %}
+				
 					<li class="sidebar list-item">
 						<span class="preview">{{section.course.name}}
 							<br/><small>
@@ -81,7 +83,11 @@
 			{% if sections_taking|length > 0%} <li style="margin: 0px; padding-bottom: 5px"> TEACHING: </li> {% endif %}
 			{% for section in sections_teaching %}
 
-				<a href="{{path('section', {'sectionId':section.id})}}">
+				{% if section.course.is_contest %}				
+				<a href="{{path('contest', {'contestId':section.id})}}">				
+				{% else %}				
+				<a href="{{path('section', {'sectionId':section.id})}}">				
+				{% endif %}
 
 				<li class="sidebar list-item">
 
