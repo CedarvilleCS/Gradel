@@ -168,10 +168,10 @@
 					
 					<br>
 					
-					<!-- <a id="downloadAssignment" download="grades.csv">
+					<a id="downloadAssignment" download="grades.csv">
 						<div class="btn">Download Grades</div>
 					</a>
-				 -->
+				 
 				{% endif %}
 				
 				</div>
@@ -316,36 +316,33 @@
 
 		// Generate a CSV list of the grades
 		function generateGradeCSVAssignment() {
-			var gradesCSV = "Name, User, ";
+
+			var gradesCSV[];
+			var i = 0;
+			gradesCSV = "Name, User, ";
 			
 			{% for asgn in assignments %}
+
 				{% for problem in problems %}
-					gradesCSV += "Testcases Correct, Total Testcases, ";
+					gradesCSV[i] += "User, " + {{ problem.name }} + ", ";
 				{% endfor %}
-			{% endfor %}
+				gradesCSV[i] += "\n";
 
-			gradesCSV += "\n";
+				{% for user in section_takers %}
+					
+					gradesCSV[i] += '{{user.getFirstName()}} {{user.getLastName()}}, ';
 
-			{% for user in section_takers %}
-				
-				gradesCSV += '{{user.getFirstName()}} {{user.getLastName()}}, ';
-				gradesCSV += '{{user }}, ';
-
-				{% for asgn in assignments %}
 					{% for problem in problems %}
-
-						var correct = parseFloat("{{ grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] }}");
-						var total = parseFloat("{{ grades[user.id][asgn.id]['problem_grades'][problem.id]['total_testcases'] }}");
-						// var percent = correct/total;
-
-						gradesCSV += correct + ', ' + total + ', ';
-
+						gradesCSV[i] += "{{ grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] }}  / {{ grades[user.id][asgn.id]['problem_grades'][problem.id]['total_testcases'] }}, ";
 					{% endfor %}
+
+					gradesCSV[i] += "\n";
 				{% endfor %}
-				gradesCSV += "\n";
+
+				i += 1;
 			{% endfor %}
 			
-			console.log(gradesCSV);
+			console.log(gradesCSV[0]);
 
 			return gradesCSV;
 		}
