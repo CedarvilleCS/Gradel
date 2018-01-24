@@ -163,14 +163,14 @@
 
 						</table>
 						<br><br>
+
+						<a id="downloadAssignment" download="grades.csv">
+							<div class="btn">Download Grades</div>
+						</a>
 					{% endfor %}
 						
 					
 					<br>
-					
-					<a id="downloadAssignment" download="grades.csv">
-						<div class="btn">Download Grades</div>
-					</a>
 				 
 				{% endif %}
 				
@@ -315,36 +315,50 @@
 
 
 		// Generate a CSV list of the grades
-		function generateGradeCSVAssignment() {
+		function generateGradeCSVAssignment(index) {
 
-			var gradesCSV[];
+			var gradesCSV = [];
 			var i = 0;
-			gradesCSV = "Name, User, ";
 			
 			{% for asgn in assignments %}
 
-				{% for problem in problems %}
-					gradesCSV[i] += "User, " + {{ problem.name }} + ", ";
+				gradesCSV[i] = " , ";
+
+				{% for problem in asgn.problems %}
+					gradesCSV[i] += "{{ problem.name }}" + ", , , ";
 				{% endfor %}
+
+				gradesCSV[i] += "\nUser, ";
+				{% for problem in asgn.problems %}
+					gradesCSV[i] += "Testcases Right, Total Testcases, Grade, ";
+				{% endfor %}
+
 				gradesCSV[i] += "\n";
 
 				{% for user in section_takers %}
-					
+					//console.log("user");
 					gradesCSV[i] += '{{user.getFirstName()}} {{user.getLastName()}}, ';
 
-					{% for problem in problems %}
-						gradesCSV[i] += "{{ grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] }}  / {{ grades[user.id][asgn.id]['problem_grades'][problem.id]['total_testcases'] }}, ";
+					{% for problem in asgn.problems %}
+						var right = parseFloat("{{ grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] }}");
+						var total = parseFloat("{{ grades[user.id][asgn.id]['problem_grades'][problem.id]['total_testcases'] }}");
+						
+						gradesCSV[i] += right + ", " + total + ", " + right/total + ", ";
+
 					{% endfor %}
 
 					gradesCSV[i] += "\n";
 				{% endfor %}
 
+				//console.log("grades at " + i + gradesCSV[i]);
 				i += 1;
 			{% endfor %}
 			
-			console.log(gradesCSV[0]);
+			for(var j = 0; j <= i; j++){
+				//console.log(gradesCSV[j]);
+			}
 
-			return gradesCSV;
+			return gradesCSV[index];
 		}
 
 
@@ -360,7 +374,7 @@
 		var downloadAssignment = document.getElementById('downloadAssignment');	
 		downloadAssignment.addEventListener('click', function () {
 			var link = document.getElementById('downloadAssignment');
-			link.href = makeTextFile(generateGradeCSVAssignment());
+			link.href = makeTextFile(generateGradeCSVAssignment(1));
 			link.style.display = 'block';
 		}, false);
 
