@@ -45,6 +45,12 @@ class SectionController extends Controller {
 		if(!$section_entity){
 			die("SECTION DOES NOT EXIST!");
 		}
+		
+		# REDIRECT TO CONTEST PATH IF NEED BE
+		if($section_entity->course->is_contest){
+			return $this->redirectToRoute('contest', ['contestId' => $section_entity->id]);
+		}
+		
 
 		# GET ALL ASSIGNMENTS
 		$qb = $em->createQueryBuilder();
@@ -185,6 +191,7 @@ class SectionController extends Controller {
 				die("SECTION DOES NOT EXIST");
 			}
 
+			# REDIRECT TO CONTEST IF NEED BE
 			if($section->course->is_contest){
 				return $this->redirectToRoute('contest_edit', ['contestId' => $section->id]);	
 			}
@@ -398,20 +405,20 @@ class SectionController extends Controller {
 
 		$em->persist($section);
 
-    # validate the students csv
+		# validate the students csv
 		$students = array_unique(json_decode($postData['students']));
 
-    foreach ($students as $student) {
+		foreach ($students as $student) {
 
-			if (!filter_var($student, FILTER_VALIDATE_EMAIL)) {
-				return $this->returnForbiddenResponse("Provided student email address ".$student." is not valid");
+				if (!filter_var($student, FILTER_VALIDATE_EMAIL)) {
+					return $this->returnForbiddenResponse("Provided student email address ".$student." is not valid");
+				}
 			}
-		}
 
-    # vallidate teacher csv
-    $teachers = array_unique(json_decode($postData['teachers']));
+		# vallidate teacher csv
+		$teachers = array_unique(json_decode($postData['teachers']));
 
-    foreach ($teachers as $teacher){
+		foreach ($teachers as $teacher){
 
 			if(!filter_var($teacher, FILTER_VALIDATE_EMAIL)) {
 				return $this->returnForbiddenResponse("Provided teacher email address ".$teacher." is not valid");
@@ -435,7 +442,7 @@ class SectionController extends Controller {
 			$em->flush();
 		}
 
-    # add students from the students array
+		# add students from the students array
 
 		$takes_role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));
 		foreach ($students as $student) {

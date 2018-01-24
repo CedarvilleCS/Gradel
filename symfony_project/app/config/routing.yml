@@ -117,21 +117,14 @@ assignment_modify:
     _controller: AppBundle:Assignment:modifyPost
   methods: [POST]
 
+  
 # CONTEST ROUTES
-contest_edit:
-  path: '/contest/edit/{contestId}'
+contest_result:
+  path: '/contest/{contestId}/round/{roundId}/problem/{problemId}/result/{resultId}'
   defaults:
-    _controller: AppBundle:Contest:contestEdit
-    roundId: 0
+    _controller: AppBundle:Contest:result
   methods: [GET]
-    
-contest:
-  path: '/contest/{contestId}/round/{roundId}'
-  defaults:
-    _controller: AppBundle:Contest:contest
-    roundId: 0
-  methods: [GET]
-    
+  
 contest_problem_edit:
   path: '/contest/{contestId}/round/{roundId}/problem/edit/{problemId}'
   defaults:
@@ -152,17 +145,50 @@ contest_judging:
     _controller: AppBundle:Contest:judging
   methods: [GET]
   
-contest_result:
-  path: '/contest/result/{submission_id}'
+contest_edit:
+  path: '/contest/edit/{contestId}'
   defaults:
-    _controller: AppBundle:Contest:result
+    _controller: AppBundle:Contest:contestEdit
+    roundId: 0
   methods: [GET]
-  
+    
+contest:
+  path: '/contest/{contestId}/round/{roundId}'
+  defaults:
+    _controller: AppBundle:Contest:contest
+    roundId: 0
+  methods: [GET]
+ 
+contest_problem_modify:
+  path: '/modify/contest_problem'
+  defaults:
+    _controller: AppBundle:Contest:modifyProblemPost
+  methods: [POST]
+ 
 contest_modify:
   path: '/modify/contest'
   defaults:
-    _controller: AppBundle:Contest:modifyPost
+    _controller: AppBundle:Contest:modifyContestPost
   methods: [POST]
+  
+contest_poll:
+  path: '/poll/contest'
+  defaults:
+    _controller: AppBundle:Contest:pollContest
+  methods: [POST]
+
+judging_poll:
+  path: '/poll/judging'
+  defaults:
+    _controller: AppBundle:Contest:pollJudging
+  methods: [POST]
+  
+judging_modify:
+  path: '/judging/submission'
+  defaults:
+    _controller: AppBundle:Contest:submissionJudging
+  methods: [POST]
+  
   
   
 # UPLOAD ROUTES

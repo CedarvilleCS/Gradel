@@ -36,15 +36,9 @@
 						<div style="margin-left: 20px">
 							<small>{{asgn.section.name}}</small>
 							
-							{% if asgn.section.course.is_contest%}
-							<a href="{{path('contest', {'contestId':asgn.section.id, 'roundId':asgn.id})}}">
-								{{asgn.name}}
-							</a>
-							{% else %}
 							<a href="{{path('assignment', {'sectionId':asgn.section.id, 'assignmentId':asgn.id})}}">
 								{{asgn.name}}
 							</a>		
-							{% endif %}
 							
 						</div>
 					{% else %}

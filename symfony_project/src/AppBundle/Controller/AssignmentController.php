@@ -44,8 +44,18 @@ class AssignmentController extends Controller {
 		}
 		
 		$section_entity = $em->find("AppBundle\Entity\Section", $sectionId);
-		if(!section_entity){
+		if(!$section_entity){
 			die("SECTION DOES NOT EXIST");
+		}
+		
+		# REDIRECT TO CONTEST IF NEED BE
+		if($section_entity->course->is_contest){
+			
+			if(isset($problemId)){
+				return $this->redirectToRoute('contest', ['contestId' => $sectionId, 'roundId' => $assignmendId]);
+			} else {
+				return $this->redirectToRoute('contest_problem', ['contestId' => $sectionId, 'roundId' => $assignmendId, 'problemId' => $problemId]);
+			}
 		}
 		
 		# get the assignment
@@ -57,8 +67,6 @@ class AssignmentController extends Controller {
 		if(!assignment_entity){
 			die("ASSIGNMENT DOES NOT EXIST");
 		}
-		
-		$origProblemId = $problemId;
 		
 		if($problemId == 0){
 			$problemId = $assignment_entity->problems[0]->id;
@@ -196,6 +204,10 @@ class AssignmentController extends Controller {
 		$section = $em->find('AppBundle\Entity\Section', $sectionId);	
 		if(!$section){
 			die("SECTION DOES NOT EXIST");
+		}
+		
+		if($section->course->is_contest){
+			return $this->returnForbiddenResponse('contest_edit', ['contestId' => $sectionId]);
 		}
 		
 		$user = $this->get('security.token_storage')->getToken()->getUser();  	  

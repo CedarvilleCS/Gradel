@@ -31,7 +31,6 @@ use Psr\Log\LoggerInterface;
 class ContestController extends Controller {
 
 	public function contestAction($contestId, $roundId) {
-
 		
 		$em = $this->getDoctrine()->getManager();
 
@@ -45,7 +44,7 @@ class ContestController extends Controller {
 		$section = $em->find('AppBundle\Entity\Section', $contestId);
 
 		if(!$section || !$section->course->is_contest){
-			die("SECTION DOES NOT EXIST!");
+			die("SECTION (CONTEST) DOES NOT EXIST!");
 		}
 
 		# GET ALL USERS		
@@ -86,12 +85,14 @@ class ContestController extends Controller {
 					break;
 				}
 			}
+			
 
 			if(!$contest){
 				die("Contest does not exist!");
 			}			
 		}
 		
+		$practice = $section->assignments[0];
 		$leaderboard = $grader->getLeaderboard($user, $contest);
 		
 		
@@ -100,10 +101,10 @@ class ContestController extends Controller {
 			'grader' => $grader,
 			'leaderboard' => $leaderboard, 
 			
+			'elevatedUser' => $elevatedUser,
+			
 			'contest' => $contest,
 			'practice' => $practice,
-			
-			'assignments' => $section->assignments,
 
 			'section_takers' => $section_takers,
 			'section_judges' => $section_judges,
@@ -139,10 +140,43 @@ class ContestController extends Controller {
     }
 	
 	public function judgingAction($contestId, $roundId){
-	
-		die("judgingAction");
+		
+		$em = $this->getDoctrine()->getManager();
 
-		return new Response();		
+		$user = $this->get('security.token_storage')->getToken()->getUser();
+		if(!$user){
+			die("USER DOES NOT EXIST");
+		}
+		$section = $em->find('AppBundle\Entity\Section', $contestId);
+		if(!$section || !$section->course->is_contest){
+			die("SECTION (CONTEST) DOES NOT EXIST!");
+		}
+		
+		$contest = $em->find('AppBundle\Entity\Assignment', $roundId);
+		if(!$contest || $contest->section != $section){
+			die("ASSIGNMENT (ROUND) DOES NOT EXIST!");
+		}
+		
+		
+		$grader = new Grader($em);
+		
+		$elevatedUser = ($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isJudging($user, $section));
+		
+		if(!$elevatedUser){
+			die("YOU ARE NOT ALLOWED TO ACCESS THIS PAGE");
+		}
+		
+		return $this->render('contest/judging.html.twig', [
+			'section' => $section,
+			'grader' => $grader,
+						
+			'elevatedUser' => $elevatedUser,
+						
+			'contest' => $contest,
+
+			'section_takers' => $section_takers,
+			'section_judges' => $section_judges,
+		]);	
 	}	
 		
 	public function contestEditAction($contestId) {
@@ -169,9 +203,16 @@ class ContestController extends Controller {
 		]);
 	}
 	
-	public function modifyPostAction(){
+	public function modifyProblemPostAction(Request $request){
 		
-		return $this->returnForbiddenResponse("modifyPostAction");
+		return $this->returnForbiddenResponse("modifyProblemPostAction");
+		
+		return new Response();
+	}
+	
+	public function modifyContestPostAction(Request $request){
+		
+		return $this->returnForbiddenResponse("modifyContestPostAction");
 		
 		# CONTEST SETTINGS OVERRIDE
 		if($section->course->is_contest){
@@ -253,6 +294,94 @@ class ContestController extends Controller {
 		return $this->render('contest/result.html.twig', []);
 		
 	}
+	
+	
+	public function pollContestAction(Request $request){
+		
+		return $this->returnForbiddenResponse("pollContestAction");
+		
+		return new Response();
+	}
+	
+	public function pollJudgingAction(Request $request){
+		
+		return $this->returnForbiddenResponse("pollJudgingAction");
+		
+		return new Response();
+	}
+	
+	public function submissionJudgingAction(Request $request){
+		
+		$em = $this->getDoctrine()->getManager();
+
+		$user = $this->get('security.token_storage')->getToken()->getUser();
+		if(!$user){
+			die("USER DOES NOT EXIST");
+		}
+		# see which fields were included	
+		$postData = $request->request->all();
+		
+		$submission = $em->find('AppBundle\Entity\Submission', $postData['submissionId']);
+		
+		$grader = new Grader($em);
+		
+		# validation
+		if(!($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isJudging($user, $submission->problem->assignment->section))){
+			return $this->returnForbiddenResponse("You are not allowed to edit this submission");
+		}
+		
+		if(!$submission){
+			return $this->returnForbiddenResponse('Submission ID is not valid.');
+		}
+		
+		$reviewed = true;
+		if($postData['type'] == "wrong"){
+			
+			// TODO: do nothing
+			
+		} else if($postData['type'] == "correct"){
+			
+			// TODO: override the submission to correct
+			
+			
+		} else if($postData['type'] == "delete"){
+				
+			// delete the submission
+			$em->remove($submission);			
+				
+		} else if($postData['type'] == "formatting"){
+					
+			// TODO: add formatting message to submission
+					
+		} else if($postData['type'] == "message"){
+			
+			$message = $postData['message'];
+			
+			// TODO: add custom message to submission
+						
+		} else if($postData['type'] == "claimed"){
+			
+			$reviewed = false;
+			// TODO: set the submission to be claimed for review and check for previous claim
+			
+		} else {
+			return $this->returnForbiddenResponse("Type of judging command not allowed");
+		}
+
+		
+		$response = new Response(json_encode([
+			'id' => $submission->id,
+			'reviewed' => $reviewed, 
+		]));
+		
+		$em->flush();		
+		
+		$response->headers->set('Content-Type', 'application/json');
+		$response->setStatusCode(Response::HTTP_OK);
+
+		return $response;
+	}
+	
 	
 	private function returnForbiddenResponse($message){		
 		$response = new Response($message);

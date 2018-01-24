@@ -49,10 +49,6 @@
   margin: 0px;
 }
 
-#submissions-container {
-	height: 100px;
-}
-
 #time-container{
 	display: flex;
 	flex-direction: row;
@@ -62,7 +58,6 @@
 	font-style: italic;
 	font-weight: bold;
 }
-
 
 #leaderboard th{
 	text-align: center;
@@ -157,6 +152,7 @@
 	border-radius: 15px;
 }
 
+/* problem table css*/
 #problems {
 	border-collapse: collapse;
 	font-size: 1em;
@@ -177,8 +173,6 @@
 	text-align: right;
 }
 
-
-/* trs */
 #problems .accepted {	
 	background: #bde8be;
 	color: black;
@@ -227,14 +221,194 @@
 
 
 /* side-bar */
-#judge-link-buttom{
-	
-}
-
-#assignment-pool{
+.btn-bottom{
 	position: absolute;
     bottom: 10px;
     margin-left: 10px;
 	
 	font-size: 0.9em;
+}
+
+
+
+/* JUDGING CSS */
+#submissions-container {
+	display: block;	
+}
+
+#queue-container {
+	min-height: 100px;
+}
+
+.submission {
+	
+	min-height: 65px;
+	padding: 5px;
+	border-radius: 10px;
+	
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+	
+	margin-bottom: 10px;
+	
+}
+
+.queued.submission {
+	min-height: 25px;
+	height: 25px;
+}
+
+.queued.submission .left-side {
+	
+	flex-direction: row;
+	display: flex;
+	justify-content: space-between;
+	min-width: 98%;
+	cursor: pointer;
+}
+
+.left-side{
+	padding-left: 5px; 
+	min-width: 200px;
+}
+
+.middle-side{
+	 flex-grow: 1;
+}
+
+.right-side{
+	min-width: 160px; 
+	padding-right: 5px; 
+	display: flex; 
+	flex-direction: column; 
+	justify-content: space-around;	
+}
+
+.submission .name{
+	line-height: 25px;
+}
+
+.submission .results {
+	font-style: italic;
+	line-height: 25px;
+}
+
+.marker-container {
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+	
+	flex-wrap: wrap;
+}
+
+.marker {
+	height: 20px;
+	width: 20px;
+	background: lightgrey;
+	border: 1pt solid white;
+	border-radius: 2px;
+	margin: 2;
+	
+	text-align: center;
+	line-height: 20px;
+	
+	font-size: 1.1em;
+	position: relative;
+}
+
+.marker-hover{
+	
+	height: 500px;
+	width: 500px;
+	
+	position: absolute;
+	bottom: -529px;
+	left: -225px;	
+	
+	background: white;
+	border: 3pt solid grey;
+	
+	border-radius: 10px;
+		
+	display: none;
+	
+	text-align: left;
+	flex-direction: column;
+	justify-content: space-around;
+	
+	padding: 10px;
+	
+	z-index: 100;
+}
+
+.marker.correct {
+	color: green;
+	
+	cursor: pointer;
+}
+
+.marker.wrong {
+	color: red;
+	
+	cursor: pointer;
+}
+
+.submission .title {
+	
+	color: black;
+	font-size: 1.5em;
+	font-weight: bold;
+}
+
+
+.button {
+	height: 42px;
+	width: 42px;
+	
+	margin: 2px;
+	
+	border-radius: 2px;
+	background: lightgrey;
+	
+		
+	border-top: 1px solid white;
+	border-right: 1px solid #333333;
+	border-bottom: 1px solid #333333;
+	border-left: 1px solid white;
+	
+	text-align: center;
+	font-size: 1.8em;
+	line-height: 41px;
+	
+	cursor: pointer;
+}
+
+.main-options {	
+	display: flex;	
+	flex-direction: row;
+	justify-content: flex-end;	
+}
+
+.additional-options {	
+	display: flex;	
+	flex-direction: row;
+	justify-content: flex-end;	
+}
+
+.additional-options .button {
+	height: 26px;
+	width: 26px;
+	font-size: 1.2em;
+	line-height: 25px;
+}
+
+.submission.correct {
+	background: lightgreen;
+	border: 2pt solid green;
+}	
+
+.submission.wrong {
+	background: #AAAAAA;
+	border: 2pt solid red;
 }

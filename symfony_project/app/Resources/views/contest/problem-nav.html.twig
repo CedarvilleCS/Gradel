@@ -1,0 +1,71 @@
+<nav class="nav-left">	
+	<ol style="padding-top: 0px; padding-bottom: 10px">
+		
+		<li style="text-align:center"> {{contest.section.name}} 
+			
+			<div><small>{{contest.section.course.name}}</small></div>
+		</li>
+
+		<li class="sidebar" style="text-align:left">
+			<strong>Problems</strong>		
+
+			<object>
+				<a title="Create problem" href="{{path('contest_problem_edit', {'contestId': contest.section.id, 'roundId': contest.id})}}">
+					<img class="small-icon" id="add-icon" src="{{asset('add_circle.png')}}">
+				</a>
+			</object>				
+		</li>		
+			
+			
+		{% for problem in contest.problems %}
+
+		<a href={{path('contest_problem', {'contestId': problem.assignment.section.id, 'roundId': problem.assignment.id, 'problemId': problem.id})}}>
+		
+		<li class="sidebar list-item">					
+	
+		<span class="preview">
+			<div class="{% if elevatedUser %}sidebar-text{% endif %}">{{ problem.name }}</div>
+			<small>
+			
+			{# put progress here if the student has submissions #}
+			
+			</small>
+		</span>
+
+		{# display edit pencil icon #}
+		{% if elevatedUser %}
+			<object>
+				<a title="Edit problem" href="{{path('contest_problem_edit', {'contestId': problem.assignment.section.id, 'roundId': problem.assignment.id, 'problemId': problem.id})}}">
+					<img class="small-icon" id="right-icon" src="{{ asset('edit.png') }}">
+				</a>
+			</object>
+		{% endif %}
+		
+		</li>
+		</a>
+		
+		{% endfor %}
+		
+	</ol>
+	
+	{% if app.request.attributes.get('_route') == "contest" %}
+	<a href="{{path('contest_judging', {'contestId': contest.section.id, 'roundId': contest.id})}}">
+		<div class="btn btn-center"> Judging Hub </div>
+	</a>
+	{% else %}
+	<a href="{{path('contest', {'contestId': contest.section.id, 'roundId': contest.id})}}">
+		<div class="btn btn-center"> Contest Hub </div>
+	</a>
+	{% endif %}
+	
+	
+	{% if app.request.attributes.get('_route') == "contest" %}
+	<a href="{{path('contest', {'contestId': practice.section.id, 'roundId': practice.id})}}">
+		<div class="btn btn-center btn-bottom" style="bottom: 65px;"> Switch to Practice Contest </div>
+	</a>
+	{% endif %}
+	
+	<a href="{{path('contest_edit', {'contestId': contest.section.id})}}" class="btn">
+		<div class="btn btn-center btn-bottom" style="font-size: 1em;">Edit Contest</div>
+	</a>
+</nav>

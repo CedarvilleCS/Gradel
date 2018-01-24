@@ -42,11 +42,7 @@
 
 			{% for section in sections_taking %}
 
-				{% if section.course.is_contest %}				
-				<a href="{{path('contest', {'contestId':section.id})}}">				
-				{% else %}				
 				<a href="{{path('section', {'sectionId':section.id})}}">				
-				{% endif %}
 				
 					<li class="sidebar list-item">
 						<span class="preview">{{section.course.name}}
@@ -83,11 +79,7 @@
 			{% if sections_taking|length > 0%} <li style="margin: 0px; padding-bottom: 5px"> TEACHING: </li> {% endif %}
 			{% for section in sections_teaching %}
 
-				{% if section.course.is_contest %}				
-				<a href="{{path('contest', {'contestId':section.id})}}">				
-				{% else %}				
 				<a href="{{path('section', {'sectionId':section.id})}}">				
-				{% endif %}
 
 				<li class="sidebar list-item">
 

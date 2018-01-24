@@ -44,6 +44,11 @@ class ProblemController extends Controller {
 			die("SECTION DOES NOT EXIST");
 		}
 		
+		# REDIRECT TO CONTEST_PROBLEM_EDIT IF NEED BE
+		if($section->course->is_contest){
+			return $this->redirectToRoute('contest_problem_edit', ['contestId' => $sectionId, 'roundId' => $assignmentId, 'problemId' => $problemId]);
+		}
+		
 		if(!isset($assignmentId) || !($assignmentId > 0)){
 			die("ASSIGNMENT ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
 		}
@@ -435,6 +440,9 @@ class ProblemController extends Controller {
 			# update the weight
 			$slave->weight = $problem->weight;
 			
+			# update extra credit
+			$slave->is_extra_credit = $problem->is_extra_credit;
+			
 			# update the time limit
 			$slave->time_limit = $problem->time_limit;
 			
@@ -492,6 +500,16 @@ class ProblemController extends Controller {
 
 		if(!$submission){
 			die("SUBMISSION DOES NOT EXIST");
+		}
+		
+		# REDIRECT TO CONTEST IF NEED BE
+		if($submission->problem->assignment->section->course->is_contest){
+			return $this->redirectToRoute('contest_result', [
+				'contestId' => $submission->problem->assignment->section->id, 
+				'roundId' => $submission->problem->assignment->id, 
+				'problemId' => $submission->problem->id, 
+				'resultId' => $submission->id
+			]);
 		}
 
 		# get the user
