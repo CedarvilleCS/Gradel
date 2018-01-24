@@ -156,6 +156,7 @@ class Submission {
 	}
 	
 	/**
+	* @ORM\OneToOne(fetch="EXTRA_LAZY") 
 	* @ORM\Column(type="blob", nullable=true)
 	*/
 	public $log_directory;
