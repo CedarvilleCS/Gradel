@@ -164,9 +164,11 @@
 						</table>
 						<br><br>
 
-						<a id="downloadAssignment" download="grades.csv">
+						<a id="a" download="grades.csv" onclick="downloadAssgnGrades('{{ asn.name }}', 'a')">
 							<div class="btn">Download Grades</div>
 						</a>
+
+
 					{% endfor %}
 						
 					
@@ -377,6 +379,16 @@
 			link.href = makeTextFile(generateGradeCSVAssignment(1));
 			link.style.display = 'block';
 		}, false);
+
+
+		function downloadAssgnGrades(name, id) {
+			
+			console.log(name);
+
+			var link = document.getElementById(id);
+			link.href = makeTextFile(generateGradeCSVAssignment(1));
+			link.style.display = 'block';
+		}
 
 		{% endif %}
 	</script>
