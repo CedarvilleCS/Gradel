@@ -351,7 +351,6 @@ Uploaded file was a ZIP file
 				
 					beforeSubmit: 	function(formData, jqForm, options){
 						
-						/* CLIENT-SIDE VALIDATION */
 						return true;
 						
 					},
@@ -435,12 +434,7 @@ Uploaded file was a ZIP file
 					success: function(data){
 
 						console.log(data);
-						
-						if(data['data'] != null){
-							submitSolution(data['data']);
-						} else {
-							window.location = data["redirect_url"]
-						}
+						window.location = data["redirect_url"];
 					},
 					error: function(data){
 						alert(data['responseText']);

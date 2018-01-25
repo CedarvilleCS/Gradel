@@ -30,6 +30,7 @@ class Problem{
 		$this->testcases = new ArrayCollection();
 		$this->problem_languages = new ArrayCollection();
 		$this->slaves = new ArrayCollection();
+		$this->queries = new ArrayCollection();
 		
 		$this->master = null;
 	}
@@ -114,8 +115,15 @@ class Problem{
 	
 	/**
 	* @ORM\OneToMany(targetEntity="Testcase", mappedBy="problem", cascade={"persist"})
+	* @ORM\OrderBy({"seq_num" = "ASC"})
 	*/
 	public $testcases;
+	
+	/**
+	* @ORM\OneToMany(targetEntity="Query", mappedBy="problem", cascade={"persist"})
+	* @ORM\OrderBy({"timestamp" = "ASC"})
+	*/
+	public $queries;
 	
 	/**
     * @ORM\OneToMany(targetEntity="Problem", mappedBy="master", orphanRemoval=true)

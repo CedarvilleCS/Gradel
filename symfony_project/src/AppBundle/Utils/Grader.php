@@ -195,22 +195,6 @@ class Grader  {
 		
 		$grades['total_testcases'] = $total_normal_testcases;	
 		$grades['total_extra_testcases'] = $total_testcases - $total_normal_testcases;
-			
-				
-		# array of all submissions
-		$qb_subs = $this->em->createQueryBuilder();
-		$qb_subs->select('s')
-			->from('AppBundle\Entity\Submission', 's')
-			->where('s.problem = ?1')
-			->andWhere('s.team = ?2')
-			->setParameter(1, $problem)
-			->setParameter(2, $team)
-			->orderBy('s.timestamp', 'ASC');
-			
-		$subs_query = $qb_subs->getQuery();
-		$subs = $subs_query->getResult();
-			
-		$grades['all_submissions'] = $subs;	
 		
 		$attempts = $this->getNumAttempts($user, $problem);				
 		$grades['attempts'] = $attempts;		
@@ -509,12 +493,19 @@ class Grader  {
 		return $feedback;		
 	}
 		
-	public function isAcceptedSubmission($submission, $previous, $total_correct){
+	public function isAcceptedSubmission($submission, $previous){
+		
+		$count = 0;
+		foreach($submission->testcaseresults->toArray() as $tcr){
+			if($tcr->is_correct){
+				$count++;
+			}
+		}
 		
 		// take the new solution if it is 100% no matter wha
 		$total_testcases = count($submission->problem->testcases);
 		
-		if($total_correct == $total_testcases){
+		if($count == $total_testcases){
 			#echo "This new testcase solves all of the testcases!";
 			return true;
 		}

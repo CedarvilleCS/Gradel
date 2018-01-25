@@ -127,7 +127,7 @@ class UploadController extends Controller {
 			$main_class = "";
 			$package_name = "";
 
-			$filename = "problem". $problem_entity->id . $language_entity->filetype;
+			$filename = "problem".$problem_entity->id.$language_entity->filetype;
 		}
 		
 		# save uploaded file to $web_dir.compilation/uploads/user_id/problem
@@ -135,7 +135,7 @@ class UploadController extends Controller {
         $uploader = new Uploader($web_dir);
 
 
-		$uploads_directory = $uploader->getUploadDirectory($user, $problem_entity);
+		$uploads_directory = $uploader->createUploadDirectory($user, $problem_entity);
 
 		if(!file_put_contents($uploads_directory . $filename, $postData["ACE"], FILE_USE_INCLUDE_PATH)){
 			 return "UNABLE TO MOVE THE ACE EDITOR CONTENTS";

@@ -70,10 +70,10 @@ class ContestController extends Controller {
 
 		$grader = new Grader($em);
 		$elevatedUser = $grader->isJudging($user, $section) || $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN");
-
+		
 		// get the current assignment
 		if($roundId == 0){
-			$contest = $section->assignments[0]; // TODO: SWITCH TO 1
+			$contest = $section->assignments[1];
 			$practice = $section->assignments[0];
 		} else {
 			$contest = $em->find("AppBundle\Entity\Assignment", $roundId);
@@ -84,15 +84,13 @@ class ContestController extends Controller {
 					$practice = $asgn;
 					break;
 				}
-			}
-			
-
-			if(!$contest){
-				die("Contest does not exist!");
-			}			
+			}		
 		}
 		
-		$practice = $section->assignments[0];
+		if(!$contest || $contest->section != $section){
+			die("Contest does not exist!");
+		}	
+		
 		$leaderboard = $grader->getLeaderboard($user, $contest);
 		
 		

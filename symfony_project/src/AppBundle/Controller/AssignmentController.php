@@ -67,7 +67,7 @@ class AssignmentController extends Controller {
 		if(!assignment_entity){
 			die("ASSIGNMENT DOES NOT EXIST");
 		}
-		
+				
 		if($problemId == 0){
 			$problemId = $assignment_entity->problems[0]->id;
 		}
