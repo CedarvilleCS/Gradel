@@ -37,310 +37,7 @@ use Psr\Log\LoggerInterface;
 
 class CompilationController extends Controller {	
 	
-		
-	/* name=generate */
-	public function generateAction(Request $request) {
-		
-		# entity manager
-		$em = $this->getDoctrine()->getManager();		
-		
-		# gets the gradel/symfony_project directory
-		$web_dir = $this->get('kernel')->getProjectDir()."/";
-			
-		$generator = new Generator($em, $web_dir);		
-		$grader = new Grader($em);
-						
-		# get the current user
-		$user= $this->get('security.token_storage')->getToken()->getUser();
-		
-		if(!$user){
-			return $this->returnForbiddenResponse("USER DOES NOT EXIST");
-		}
-		
-		$postData = $request->request->all();
-		
-		if(!isset($postData['assignmentId']) || !($postData['assignmentId'] > 0)){
-			return $this->returnForbiddenResponse("Assignment ID was not provided or not formatted properly");
-		}
-		
-		$assignment = $em->find("AppBundle\Entity\Assignment", $postData['assignmentId']);
-		
-		if(!$assignment){
-			return $this->returnForbiddenResponse("Assignment does not exist");
-		}
-		
-		$is_teaching = $grader->isTeaching($user, $assignment->section) || $grader->isJudging($user, $assignment->section);		
-		if(!$is_teaching && !$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN")){
-			return $this->returnForbiddenResponse("You are not allowed to generate output for this problem");
-		}
-		
-		
-		# PROBLEM CREATION
-		$problem = new Problem();
-		
-		$problem->name = "";
-		$problem->description = "";
-		$problem->weight = 1;
-		$problem->time_limit = 10000;
-		
-		$problem->is_extra_credit = false;
-		
-		$problem->total_attempts = 0;
-		$problem->attempts_before_penalty = 0;
-		$problem->penalty_per_attempt = 0;
-		
-		$problem->stop_on_first_fail = false;
-		$problem->response_level = "";
-		$problem->display_testcaseresults = true;
-		$problem->testcase_output_level = "";
-		$problem->extra_testcases_display = true;
-		
-		$em->persist($problem);
-		
-		# instantiate the languages
-		$qb = $em->createQueryBuilder();
-		$qb->select('l')
-			->from('AppBundle\Entity\Language', 'l')
-			->where('1 = 1');
-		$languages = $qb->getQuery()->getResult();
-		
-		foreach($languages as $language){
-
-			$problemLanguage = new ProblemLanguage();
-
-			$problemLanguage->language = $language;
-			$problemLanguage->problem = $problem;
-			$em->persist($problemLanguage);
-		}		
-		
-		# TESTCASES
-		$postData = $request->request->all();
-		$postTestcases = (array) json_decode($postData['testcases']);
-		
-		if(!(count($postTestcases) >= 1)){
-			return $this->returnForbiddenResponse("No testcases given!");
-		}
-		
-		$count = 1;
-		foreach($postTestcases as &$tc){
-			
-			$tc = (array) $tc;
-			
-			# build the testcase
-			try{				
-				$testcase = new Testcase($problem, $tc, $count);
-				$count++;
-					
-				$em->persist($testcase);
-				$problem->testcases[] = $testcase;	
-			} catch(Exception $e){
-				return $this->returnForbiddenResponse($e->getMessage());
-			}
-		}		
-		
-		$em->persist($problem);		
-		$em->flush();
-							
-		# FILE UPLOAD
-		# upload the file via the UploadController
-		$response = $this->forward('AppBundle\Controller\UploadController::submitProblemUploadAction', array(
-			'problem_id'  => $problem->id,
-			'request' => $request,
-		));		
-		
-		$content = (array) json_decode($response->getContent())->data;	
-
-		if(!isset($content)){
-			return $response;
-		}		
-		
-		$submitted_filename = $content['submitted_filename'];
-		$language_id = $content['language_id'];
-		$main_class = $content['main_class'];
-		$package_name = $content['package_name'];
-		
-		if(!isset($submitted_filename) || trim($submitted_filename) == ""){
-			return $this->returnForbiddenResponse("Filename was not provided. Contact a systems administrator");
-		}
-
-		# INITIALIZE A SUBMISSION
-		# create an entity for the current submission
-		$submission = new Submission($problem, null, null);	
-
-		# persist to the database to get the id
-		$em->persist($submission);
-		$em->flush();	
-		
-		# SETTING UP FOLDERS
-		$sub_dir = $web_dir."compilation/submissions/".$submission->id."/";
-		
-		$student_code_dir = $sub_dir."student_code/";
-		$compiled_code_dir = $sub_dir."compiled_code/";
-		
-		$flags_dir = $sub_dir."flags/";
-		$custom_validator_dir = $sub_dir."custom_validator/";
-		
-		$run_log_dir = $sub_dir."run_logs/";
-		$time_log_dir = $sub_dir."time_logs/";
-		$diff_log_dir = $sub_dir."diff_logs/";
-		
-		$input_file_dir = $sub_dir."input_files/";
-		$output_file_dir = $sub_dir."output_files/";
-		$arg_file_dir = $sub_dir."arg_files/";
-		
-		$user_output_dir = $sub_dir."user_output/";		
-		
-		# create all of the folders
-		# make the directory for the submission output
-		shell_exec("mkdir -p ".$sub_dir);
-		shell_exec("mkdir -p ".$student_code_dir);	
-		shell_exec("mkdir -p ".$compiled_code_dir);	
-		shell_exec("mkdir -p ".$flags_dir);	
-		shell_exec("mkdir -p ".$custom_validator_dir);	
-		shell_exec("mkdir -p ".$run_log_dir);	
-		shell_exec("mkdir -p ".$time_log_dir);	
-		shell_exec("mkdir -p ".$diff_log_dir);	
-		shell_exec("mkdir -p ".$input_file_dir);	
-		shell_exec("mkdir -p ".$output_file_dir);	
-		shell_exec("mkdir -p ".$arg_file_dir);	
-		shell_exec("mkdir -p ".$user_output_dir);
-		
-		# uploads directory 
-		# get the submitted file path
-		$uploads_dir = $web_dir."compilation/uploads/".$user->id."/".$problem->id."/";
-		$submitted_file_path = $uploads_dir.$submitted_filename;
-		
-		# save the input/output files to a temp folder by deblobinating them	
-		$testcaseGen = $generator->generateTestcaseFiles($problem, $input_file_dir, $arg_file_dir, $output_file_dir);
-		
-		//return $this->returnForbiddenResponse(var_dump($submission->id));
-		//return $this->returnForbiddenResponse(var_dump($testcaseGen));
-		if($testcaseGen != 1){			
-			$this->cleanUp($submission, $problem, $sub_dir, $uploads_dir);	
-			return $this->returnForbiddenResponse($testcaseGen."");
-		}
-				
-		# SUBMISSION COMPILATION
-		# open the submitted file and prep for compilation
-		$submitted_file = fopen($submitted_file_path, "r");
-		if(!$submitted_file){
-			$this->cleanUp($submission, $problem, $sub_dir, $uploads_dir);
-			return $this->returnForbiddenResponse("Unable to open submitted file: ".$submitted_file_path." - contact a system admin");
-		}
-		$submission->language = $language;
-		$submission->submitted_file = $submitted_file;
-		$submission->filename = $submitted_filename;
-		
-		# move the file into the proper directory
-		shell_exec("mv ".$submitted_file_path." ".$student_code_dir."/");
-		
-		# query for the current filetype		
-		$extension = pathinfo($submitted_file_path, PATHINFO_EXTENSION);
-		
-		$is_zipped = false;
-		if($extension == "zip"){
-			$is_zipped = true;
-		};		
-		
-		# set the main class and package name
-		$submission->main_class_name = $main_class;
-		$submission->package_name = $package_name;
-				
-		# get the current language
-		if(!isset($language_id) || !($language_id > 0)){
-			return $this->returnForbiddenResponse("PROBLEM ID WAS NOT PROVIDED PROPERLY");
-		}
-		
-		$language = $em->find("AppBundle\Entity\Language", $language_id);
-		//return null;
-		if(!$language){
-			$this->cleanUp($submission, $problem, $sub_dir, $uploads_dir);	
-			return $this->returnForbiddenResponse("Language with id ".$language_id." does not exist");
-		}				
-		
-		/* CREATE THE DOCKER CONTAINER */
-		// required fields
-		$docker_options = "";
-		$dockerOptGen = $generator->generateDockerOptions($docker_options, $language, $submitted_filename, $problem, $main_class, $package_name, $is_zipped, false);
-		
-		if($dockerOptGen != 1){			
-			$this->cleanUp($submission, $problem, $sub_dir, $uploads_dir);	
-			return $this->returnForbiddenResponse($dockerOptGen."");
-		}
-		
-		# RUN THE DOCKER COMPILATION
-		$docker_time_limit = intval(count($problem->testcases) * ceil(floatval($problem->time_limit)/1000.0)) + 8 + rand(1,4);
-
-		$docker_script = $web_dir."compilation/dockercompiler.sh \"".$docker_options."\" ".$submission->id." ".$docker_time_limit;
-		
-		#return $this->returnForbiddenResponse($docker_script);
-		
-		$docker_output = shell_exec($docker_script);	
-		
-		$docker_log_file = fopen($flags_dir."docker_log", "w");
-		if(!$docker_log_file){
-			$this->cleanUp($submission, $problem, $sub_dir, $uploads_dir);
-			return $this->returnForbiddenResponse("Cannot open docker_script.log - contact a system admin");
-		}
-		fwrite($docker_log_file, $docker_output);
-		fclose($docker_log_file);
-		
-		#return $this->returnForbiddenResponse($docker_output);
-		
-		# PARSE FOR SUBMISSION		
-		$testcases = [];
-		$submissionGen = $generator->generateOutput($testcases, $submission, count($problem->testcases));
-			
-		if($submissionGen != 1) {
-			$this->cleanUp($submission, $problem, $sub_dir, $uploads_dir);
-			return $this->returnForbiddenResponse($submissionGen."");
-		}
-						
-		# REMOVE TEMPORARY FOLDERS AND DATABASES
-		$this->cleanUp($submission, $problem, $sub_dir, $uploads_dir);
-		
-		# RETURN THE TESTCASES OF THE RESULT
-		$response = new Response(json_encode([		
-			'testcases' => $testcases,			
-		]));
-		
-		$response->headers->set('Content-Type', 'application/json');
-		$response->setStatusCode(Response::HTTP_OK);
-	
-		return $response;
-	}
-	
-	// function to remove the submission and problem on failure
-	private function cleanUp($submission, $problem, $sub_dir, $uploads_dir){
-		
-		# entity manager
-		$em = $this->getDoctrine()->getManager();	
-		
-		if(isset($submission)){
-			$em->remove($submission);
-		}
-		
-		if(isset($problem)){
-			$em->remove($problem);
-		}
-		
-		if(isset($sub_dir)){
-			shell_exec("rm -rf ".$sub_dir);
-		}
-		
-		if(isset($uploads_dir)){
-			shell_exec("rm -rf ".$uploads_dir);			
-		}
-		
-		$em->flush();
-	}
-	
-	private function returnForbiddenResponse($message){		
-		$response = new Response($message);
-		$response->setStatusCode(Response::HTTP_FORBIDDEN);
-		return $response;
-	}
-	
+	/* submit */
 	public function submitAction(Request $request) {
 				
 		# entity manager
@@ -647,6 +344,308 @@ class CompilationController extends Controller {
 		return $response;
 	}
 	
+	/* name=generate */
+	public function generateAction(Request $request) {
+		
+		# entity manager
+		$em = $this->getDoctrine()->getManager();		
+		
+		# gets the gradel/symfony_project directory
+		$web_dir = $this->get('kernel')->getProjectDir()."/";
+			
+		$generator = new Generator($em, $web_dir);		
+		$grader = new Grader($em);
+						
+		# get the current user
+		$user= $this->get('security.token_storage')->getToken()->getUser();
+		
+		if(!$user){
+			return $this->returnForbiddenResponse("USER DOES NOT EXIST");
+		}
+		
+		$postData = $request->request->all();
+		
+		if(!isset($postData['assignmentId']) || !($postData['assignmentId'] > 0)){
+			return $this->returnForbiddenResponse("Assignment ID was not provided or not formatted properly");
+		}
+		
+		$assignment = $em->find("AppBundle\Entity\Assignment", $postData['assignmentId']);
+		
+		if(!$assignment){
+			return $this->returnForbiddenResponse("Assignment does not exist");
+		}
+		
+		$is_teaching = $grader->isTeaching($user, $assignment->section) || $grader->isJudging($user, $assignment->section);		
+		if(!$is_teaching && !$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN")){
+			return $this->returnForbiddenResponse("You are not allowed to generate output for this problem");
+		}
+		
+		
+		# PROBLEM CREATION
+		$problem = new Problem();
+		
+		$problem->name = "";
+		$problem->description = "";
+		$problem->weight = 1;
+		$problem->time_limit = 10000;
+		
+		$problem->is_extra_credit = false;
+		
+		$problem->total_attempts = 0;
+		$problem->attempts_before_penalty = 0;
+		$problem->penalty_per_attempt = 0;
+		
+		$problem->stop_on_first_fail = false;
+		$problem->response_level = "";
+		$problem->display_testcaseresults = true;
+		$problem->testcase_output_level = "";
+		$problem->extra_testcases_display = true;
+		
+		$em->persist($problem);
+		
+		# instantiate the languages
+		$qb = $em->createQueryBuilder();
+		$qb->select('l')
+			->from('AppBundle\Entity\Language', 'l')
+			->where('1 = 1');
+		$languages = $qb->getQuery()->getResult();
+		
+		foreach($languages as $language){
+
+			$problemLanguage = new ProblemLanguage();
+
+			$problemLanguage->language = $language;
+			$problemLanguage->problem = $problem;
+			$em->persist($problemLanguage);
+		}		
+		
+		# TESTCASES
+		$postData = $request->request->all();
+		$postTestcases = (array) json_decode($postData['testcases']);
+		
+		if(!(count($postTestcases) >= 1)){
+			return $this->returnForbiddenResponse("No testcases given!");
+		}
+		
+		$count = 1;
+		foreach($postTestcases as &$tc){
+			
+			$tc = (array) $tc;
+			
+			# build the testcase
+			try{				
+				$testcase = new Testcase($problem, $tc, $count);
+				$count++;
+					
+				$em->persist($testcase);
+				$problem->testcases[] = $testcase;	
+			} catch(Exception $e){
+				return $this->returnForbiddenResponse($e->getMessage());
+			}
+		}		
+		
+		$em->persist($problem);		
+		$em->flush();
+							
+		# FILE UPLOAD
+		# upload the file via the UploadController
+		$response = $this->forward('AppBundle\Controller\UploadController::submitProblemUploadAction', array(
+			'problem_id'  => $problem->id,
+			'request' => $request,
+		));		
+		
+		$content = (array) json_decode($response->getContent())->data;	
+
+		if(!isset($content)){
+			return $response;
+		}		
+		
+		$submitted_filename = $content['submitted_filename'];
+		$language_id = $content['language_id'];
+		$main_class = $content['main_class'];
+		$package_name = $content['package_name'];
+		
+		if(!isset($submitted_filename) || trim($submitted_filename) == ""){
+			return $this->returnForbiddenResponse("Filename was not provided. Contact a systems administrator");
+		}
+
+		# INITIALIZE A SUBMISSION
+		# create an entity for the current submission
+		$submission = new Submission($problem, null, null);	
+
+		# persist to the database to get the id
+		$em->persist($submission);
+		$em->flush();	
+		
+		# SETTING UP FOLDERS
+		$sub_dir = $web_dir."compilation/submissions/".$submission->id."/";
+		
+		$student_code_dir = $sub_dir."student_code/";
+		$compiled_code_dir = $sub_dir."compiled_code/";
+		
+		$flags_dir = $sub_dir."flags/";
+		$custom_validator_dir = $sub_dir."custom_validator/";
+		
+		$run_log_dir = $sub_dir."run_logs/";
+		$time_log_dir = $sub_dir."time_logs/";
+		$diff_log_dir = $sub_dir."diff_logs/";
+		
+		$input_file_dir = $sub_dir."input_files/";
+		$output_file_dir = $sub_dir."output_files/";
+		$arg_file_dir = $sub_dir."arg_files/";
+		
+		$user_output_dir = $sub_dir."user_output/";		
+		
+		# create all of the folders
+		# make the directory for the submission output
+		shell_exec("mkdir -p ".$sub_dir);
+		shell_exec("mkdir -p ".$student_code_dir);	
+		shell_exec("mkdir -p ".$compiled_code_dir);	
+		shell_exec("mkdir -p ".$flags_dir);	
+		shell_exec("mkdir -p ".$custom_validator_dir);	
+		shell_exec("mkdir -p ".$run_log_dir);	
+		shell_exec("mkdir -p ".$time_log_dir);	
+		shell_exec("mkdir -p ".$diff_log_dir);	
+		shell_exec("mkdir -p ".$input_file_dir);	
+		shell_exec("mkdir -p ".$output_file_dir);	
+		shell_exec("mkdir -p ".$arg_file_dir);	
+		shell_exec("mkdir -p ".$user_output_dir);
+		
+		# uploads directory 
+		# get the submitted file path
+		$uploads_dir = $web_dir."compilation/uploads/".$user->id."/".$problem->id."/";
+		$submitted_file_path = $uploads_dir.$submitted_filename;
+		
+		# save the input/output files to a temp folder by deblobinating them	
+		$testcaseGen = $generator->generateTestcaseFiles($problem, $input_file_dir, $arg_file_dir, $output_file_dir);
+		
+		//return $this->returnForbiddenResponse(var_dump($submission->id));
+		//return $this->returnForbiddenResponse(var_dump($testcaseGen));
+		if($testcaseGen != 1){			
+			$this->cleanUp($submission, $problem, $sub_dir, $uploads_dir);	
+			return $this->returnForbiddenResponse($testcaseGen."");
+		}
+				
+		# SUBMISSION COMPILATION
+		# open the submitted file and prep for compilation
+		$submitted_file = fopen($submitted_file_path, "r");
+		if(!$submitted_file){
+			$this->cleanUp($submission, $problem, $sub_dir, $uploads_dir);
+			return $this->returnForbiddenResponse("Unable to open submitted file: ".$submitted_file_path." - contact a system admin");
+		}
+		$submission->language = $language;
+		$submission->submitted_file = $submitted_file;
+		$submission->filename = $submitted_filename;
+		
+		# move the file into the proper directory
+		shell_exec("mv ".$submitted_file_path." ".$student_code_dir."/");
+		
+		# query for the current filetype		
+		$extension = pathinfo($submitted_file_path, PATHINFO_EXTENSION);
+		
+		$is_zipped = false;
+		if($extension == "zip"){
+			$is_zipped = true;
+		};		
+		
+		# set the main class and package name
+		$submission->main_class_name = $main_class;
+		$submission->package_name = $package_name;
+				
+		# get the current language
+		if(!isset($language_id) || !($language_id > 0)){
+			return $this->returnForbiddenResponse("PROBLEM ID WAS NOT PROVIDED PROPERLY");
+		}
+		
+		$language = $em->find("AppBundle\Entity\Language", $language_id);
+		//return null;
+		if(!$language){
+			$this->cleanUp($submission, $problem, $sub_dir, $uploads_dir);	
+			return $this->returnForbiddenResponse("Language with id ".$language_id." does not exist");
+		}				
+		
+		/* CREATE THE DOCKER CONTAINER */
+		// required fields
+		$docker_options = "";
+		$dockerOptGen = $generator->generateDockerOptions($docker_options, $language, $submitted_filename, $problem, $main_class, $package_name, $is_zipped, false);
+		
+		if($dockerOptGen != 1){			
+			$this->cleanUp($submission, $problem, $sub_dir, $uploads_dir);	
+			return $this->returnForbiddenResponse($dockerOptGen."");
+		}
+		
+		# RUN THE DOCKER COMPILATION
+		$docker_time_limit = intval(count($problem->testcases) * ceil(floatval($problem->time_limit)/1000.0)) + 8 + rand(1,4);
+
+		$docker_script = $web_dir."compilation/dockercompiler.sh \"".$docker_options."\" ".$submission->id." ".$docker_time_limit;
+		
+		#return $this->returnForbiddenResponse($docker_script);
+		
+		$docker_output = shell_exec($docker_script);	
+		
+		$docker_log_file = fopen($flags_dir."docker_log", "w");
+		if(!$docker_log_file){
+			$this->cleanUp($submission, $problem, $sub_dir, $uploads_dir);
+			return $this->returnForbiddenResponse("Cannot open docker_script.log - contact a system admin");
+		}
+		fwrite($docker_log_file, $docker_output);
+		fclose($docker_log_file);
+		
+		#return $this->returnForbiddenResponse($docker_output);
+		
+		# PARSE FOR SUBMISSION		
+		$testcases = [];
+		$submissionGen = $generator->generateOutput($testcases, $submission, count($problem->testcases));
+			
+		if($submissionGen != 1) {
+			$this->cleanUp($submission, $problem, $sub_dir, $uploads_dir);
+			return $this->returnForbiddenResponse($submissionGen."");
+		}
+						
+		# REMOVE TEMPORARY FOLDERS AND DATABASES
+		$this->cleanUp($submission, $problem, $sub_dir, $uploads_dir);
+		
+		# RETURN THE TESTCASES OF THE RESULT
+		$response = new Response(json_encode([		
+			'testcases' => $testcases,			
+		]));
+		
+		$response->headers->set('Content-Type', 'application/json');
+		$response->setStatusCode(Response::HTTP_OK);
+	
+		return $response;
+	}
+	
+	// function to remove the submission and problem on failure
+	private function cleanUp($submission, $problem, $sub_dir, $uploads_dir){
+		
+		# entity manager
+		$em = $this->getDoctrine()->getManager();	
+		
+		if(isset($submission)){
+			$em->remove($submission);
+		}
+		
+		if(isset($problem)){
+			$em->remove($problem);
+		}
+		
+		if(isset($sub_dir)){
+			shell_exec("rm -rf ".$sub_dir);
+		}
+		
+		if(isset($uploads_dir)){
+			shell_exec("rm -rf ".$uploads_dir);			
+		}
+		
+		$em->flush();
+	}
+	
+	private function returnForbiddenResponse($message){		
+		$response = new Response($message);
+		$response->setStatusCode(Response::HTTP_FORBIDDEN);
+		return $response;
+	}
 	
 }
 
