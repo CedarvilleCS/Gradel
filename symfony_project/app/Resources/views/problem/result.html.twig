@@ -217,7 +217,7 @@ The grader was not passed from the controller.
 				
 				<h2 style="">SUBMITTED CODE</h2>
 				
-				<a href="{{path('assignment', {'sectionId': submission.problem.assignment.section.id, 'assignmentId': submission.problem.assignment.id, 'problemId': submission.problem.id} )}}">
+				<a href="{{path('assignment', {'sectionId': submission.problem.assignment.section.id, 'assignmentId': submission.problem.assignment.id, 'problemId': submission.problem.id, 'submissionId': submission.id} )}}">
 					Edit and resubmit
 				</a>
 				

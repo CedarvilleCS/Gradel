@@ -19,7 +19,7 @@
 			
 		{% for problem in contest.problems %}
 
-		<a href={{path('contest_problem', {'contestId': problem.assignment.section.id, 'roundId': problem.assignment.id, 'problemId': problem.id})}}>
+			<a href="{{path("assignment", {'sectionId': problem.assignment.section.id, 'assignmentId': problem.assignment.id, 'problemId': problem.id})}}">
 		
 		<li class="sidebar list-item">					
 	

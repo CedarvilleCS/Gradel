@@ -30,6 +30,12 @@
 					<div id="end-time">{{(showDates) ? contest.end_time|date('n/j') : ""}} {{contest.end_time|date('g:i:s A')}}</div>
 				</div>
 				<div id="progressbar"> </div>
+				
+				<div id="stats-container" >
+					<div style="margin-top: 5px; padding-left: 5px; font-weight: bold; font-size: 0.9em;"> Previous Reviews <small> </small> </div>
+					<div id="recent-reviews">
+					</div>
+				</div>
 			</div>
 		</div>
 		
@@ -54,77 +60,7 @@
 		
 			<div id="submissions-container" class="card-contents">
 				
-				{% for i in 20..30 %}
 				
-				<div class="queued submission wrong" id="{{i}}"> 
-					<div class="left-side">
-						<div class="title">Problem Name</div>
-						<div class="name">Team Name</div>
-						<div class="results">Wrong Answer</div>
-					</div>
-					<div class="middle-side">
-						<div class="marker-container">
-							
-							{% for j in 1..random(10) %}
-							<div class="marker correct"> &#x2713; 
-								<div class="marker-hover">
-								
-									<div>
-									Expected Output:
-									<textarea disabled> Goodbye! </textarea>
-									</div>
-									
-									<div>
-									Their Output:
-									<textarea disabled> Goodbye! </textarea>
-									</div>
-								
-								</div>						
-							</div>
-							{% endfor %}
-							<div class="marker wrong"> &#x2718; 							
-								<div class="marker-hover">
-								
-									<div>
-									Expected Output:
-									<textarea disabled> Goodbye! </textarea>
-									</div>
-									
-									<div>
-									Their Output:
-									<textarea disabled> Hello! </textarea>
-									</div>
-								
-								</div>
-							</div>
-							
-							<div class="marker"> </div>
-							<div class="marker"> </div>
-							<div class="marker"> </div>
-							<div class="marker">
-
-							</div>
-												
-						</div>
-					</div>
-					
-					<div class="right-side">
-					
-						<div class="main-options">
-							<div class="button formatting-button" title="Mark as Formatting Error" id="{{i}}">&#x270F;</div>
-							<div class="button wrong-button" title="Mark as Incorrect" id="{{i}}">&#x2718;</div>
-						</div>
-						
-						<div class="additional-options">
-							<div class="button correct-button" title="Mark as Correct" id="{{i}}">&#x2713;</div>
-							<div class="button custom-buttom" title="Return Custom Message" id="{{i}}">&#x1f589;</div>
-							<div class="button delete-button" title="Delete Submission" id="{{i}}">&#x1F5D1;</div>
-						</div>
-										
-					</div>
-				</div>
-				
-				{% endfor %}
 				
 				
 			</div>		
@@ -200,17 +136,198 @@
 			});
 						
 			setInterval(loopFunction, 1000);
-			loopFunction();
+			loopFunction();					
+		});
+
+		/* FUNCTION TO HANDLE POST TO UPDATE SUBMISSIONS */
+		function updateSubmission(type){	
 			
+			var id;
+			var formData = new FormData();
 			
+			formData.append('type', type);
+			
+			if(type == "message"){				
+				id = $('#custom-message-form').val();
+				message = $('#message').val();
+				customMessageDialog.dialog( "close" );
+				
+				formData.append('message', message);
+			} 
+			else if(type == "delete"){
+				id = $('#delete-form').val();
+				deleteDialog.dialog( "close" );				
+			}
+			else if(type == "correct"){
+				id = $('#correct-form').val();
+				correctDialog.dialog( "close" );
+			}
+			else if(type == "wrong"){
+				id = $('#wrong-form').val();
+				wrongDialog.dialog( "close" );
+			}
+			else if(type == "formatting"){			
+				id = $('#formatting-form').val();
+				formattingDialog.dialog( "close" );					
+			}
+			else if(type == "claimed"){
+				id = claimed_id;
+			}
+			else if(type == "unclaimed"){
+				id = claimed_id;			
+			}else {
+				return false;
+			}
+			
+			formData.append('submissionId', id);
+			
+			$.ajax({
+				type: "POST",
+				url: "{{path('judging_modify')}}",
+				data: formData,
+				processData: false,
+				contentType: false,
+				success: function(data){
+
+					console.log(data);
+					
+					if(data['id'] != null && data['reviewed'] != null){						
+						
+						if(data['reviewed']){
+							$('.submission#'+ data['id']).remove();
+						}
+						
+					} else {
+						alert("Error reviewing submission");						
+					}
+				},
+				error: function(data){
+					alert(data['responseText']);
+					console.log(data['responseText']);
+				}
+			});
+			
+			return true;
+		}
+		var freeze = 0;
+		/* FUNCTION TO HANDLE GETTING UPDATES FROM THE WEBSITE */
+		function loopFunction(){
+			
+			// update the progress bar
+			$( "#progressbar" ).progressbar( "option", "value", time);
+			time++;
+			
+			// update the scoreboard
+			var left = total-time;
+			
+			if(left <= 0){
+				
+				$('#time-left').text("FINISHED");
+				
+			} else {
+				
+				var hours = parseInt(left/3600);
+				var minutes = parseInt((left - hours*3600)/60);
+				var seconds = (left - hours*3600 - minutes*60);
+				
+				hours = (hours < 10) ? "0"+hours : hours;
+				minutes = (minutes < 10) ? "0"+minutes : minutes;
+				seconds = (seconds < 10) ? "0"+seconds : seconds;
+				
+				$('#time-left').text(hours+":"+minutes+":"+seconds+" left");
+			}
+			// check for AJAX information
+			if(freeze < 1){
+				console.log("Polling for updates...");
+				pollJudging();
+			}
+		}
+		
+		
+		function pollJudging(){
+		
+			var formData = new FormData();
+			
+			formData.append('contestId', {{contest.id}});
+		
+			$.ajax({
+				type: "POST",
+				url: "{{path('judging_poll')}}",
+				data: formData,
+				processData: false,
+				contentType: false,
+				success: function(data){
+
+					console.log(data);
+					updateQueue(data);
+					updateReviewScroller(data);
+					
+				},
+				error: function(data){
+					alert(data['responseText']);
+					console.log(data['responseText']);
+				}
+			});
+		
+		}
+		
+		function updateReviewScroller(data){
+			
+			var reviews = data['reviewed_submissions'];			
+			if(addReviews(reviews)){
+				
+				$('#recent-reviews').scrollTop($('#recent-reviews').height());	
+				
+			}
+		}
+		
+		
+		function updateQueue(data){
+
+			addSubmissions(data['pending_submissions']);
+		
+			$('.submission.queued .right-side, .submission.queued .middle-side').hide();
+
+			updateActions();
+		}
+		
+		function updateActions(){
+			
+			$('.submission').off( 'dblclick');
+			$('.submission').dblclick( function() {
+				
+				if($(this).hasClass('queued')){			
+				
+					$('#queue-container').append(this);
+					$(this).removeClass('queued');
+					$(this).find('.right-side, .middle-side').show();
+					
+					claimed_id = $(this).attr('id');
+					updateSubmission("claimed");
+				} else {
+				
+					$('#submissions-container').append(this);
+					$(this).addClass('queued');
+					$(this).find('.right-side, .middle-side').hide();
+					
+					claimed_id = $(this).attr('id');
+					updateSubmission("unclaimed");
+				
+				}
+			});	
+			
+			$('.marker').off('mouseover');
 			$('.marker').on('mouseover', function() {			
 				$(this).find('.marker-hover').show().css('display', 'flex');			
 			});
 			
+			$('.marker').off('mouseout');
 			$('.marker').on('mouseout', function() {			
 				$(this).find('.marker-hover').hide();			
 			});
 			
+			$('.button').off('mousedown');
+			$('.button').off('mouseup');
 			$('.button')
 				.mousedown(function() {
 				
@@ -250,6 +367,7 @@
 				  customMessageForm[0].reset();
 			  }
 			});
+			
 			customMessageForm = customMessageDialog.find( "form" ).on( "submit", function( event ) {
 				event.preventDefault();
 				updateSubmission("message");
@@ -354,125 +472,103 @@
 				formattingDialog.dialog("open");
 			});
 			
+		}
+		
+		function addReviews(reviews){
 			
+			var newOne = false;
 			
-			updateQueue();
-		});
-
-		/* FUNCTION TO HANDLE POST TO UPDATE SUBMISSIONS */
-		function updateSubmission(type){	
+			for(var i=0; i<reviews.length; i++){
 			
-			var id;
-			var formData = new FormData();
-			
-			formData.append('type', type);
-			
-			if(type == "message"){				
-				id = $('#custom-message-form').val();
-				message = $('#message').val();
-				customMessageDialog.dialog( "close" );
+				var rev = reviews[i];
 				
-				formData.append('message', message);
-			} 
-			else if(type == "delete"){
-				id = $('#delete-form').val();
-				deleteDialog.dialog( "close" );				
-			}
-			else if(type == "correct"){
-				id = $('#correct-form').val();
-				correctDialog.dialog( "close" );
-			}
-			else if(type == "wrong"){
-				id = $('#wrong-form').val();
-				wrongDialog.dialog( "close" );
-			}
-			else if(type == "formatting"){			
-				id = $('#formatting-form').val();
-				formattingDialog.dialog( "close" );					
-			} else if(type == "claimed"){
-				id = claimed_id;
-				console.log(id + " AJKJ");
-			} else {
-				return false;
-			}
+				var str = '#' + rev.id;
+				var prevSubs = $(str);
+				if(prevSubs.length > 0) continue;
+				
+				newOne = true;
+				
+				var reviewHTML = `<a href="{{path('contest', {'contestId': contest.section.id, 'roundId': contest.id})}}/problem/` + rev.problem.id + `/result/` + rev.id + `"> <div class="review ` + ((rev.is_correct) ? "correct" : "wrong") + `" id="` + rev.id + `"> ` + 
+									`<div>` + rev.id + `) ` + rev.problem.name.substring(0,1) + ` - <small>` + rev.team.name + `</small></div><div> Reviewed by: ` + rev.reviewer.first_name + `</div>` + 
+								`</div> </a>`;
+				$('#recent-reviews').append(reviewHTML);				
+			}			
 			
-			formData.append('submissionId', id);
+			return newOne;
+		}
+		
+		function addSubmissions(submissions){			
 			
-			$.ajax({
-				type: "POST",
-				url: "{{path('judging_modify')}}",
-				data: formData,
-				processData: false,
-				contentType: false,
-				success: function(data){
-
-					console.log(data);
+			for(var i=0; i<submissions.length; i++){
+				
+				
+				var sub = submissions[i];
+				
+				
+				var str = '#' + sub.id;
+				var prevSubs = $(str);
+				if(prevSubs.length > 0) continue;
+				
+				
+				var submissionHTML = `<div class="queued submission ` + ((sub.is_correct) ? 'correct' : 'wrong') + `" id="` + sub.id + `">` +
+					`<div class="left-side">` +
+						`<div class="title">` + sub.problem.name + `</div>` +
+						`<div class="name">` + sub.team.name + `</div>` +
+						`<div class="results">` + ((sub.is_correct) ? 'Correct' : 'Wrong Answer') + `</div>` +
+					`</div>` +
+					`<div class="middle-side">` +
+						`<div class="marker-container">`;
+							
+							var middleStuff = "";
+							for(var j=0; j<sub.testcaseresults.length; j++){
+								
+								var tcr = sub.testcaseresults[j];
+								
+								middleStuff += `<div class="marker ` + ((tcr.is_correct) ? 'correct' : 'wrong') + `">\n` + 
+								
+									((tcr.is_correct) ? '&#x2713;\n' : '&#x2718;\n') +
+									
+									`<div class="marker-hover">\n` +
+									
+										`<div>\n` +
+										`Expected Output:\n` +
+										`<textarea disabled> ` + tcr.testcase.correct_output + ` </textarea>\n` +
+										`</div>\n` +
+										
+										`<div>\n` +
+										`Their Output:\n` +
+										`<textarea disabled>` + tcr.std_output + `</textarea>\n` +
+										`</div>\n` +
+									
+									`</div>\n` +					
+								`</div>\n`;
+							
+							}
+							
+				submissionHTML += middleStuff;
+				
+				submissionHTML += `</div>` +
+					`</div>` +
 					
-					if(data['id'] != null && data['reviewed'] != null){						
+					`<div class="right-side">` +
+					
+						`<div class="main-options">` +
+							`<div class="button formatting-button" title="Mark as Formatting Error" id="` + sub.id + `">&#x270F;</div>` +
+							`<div class="button wrong-button" title="Mark as Incorrect" id="` + sub.id + `">&#x2718;</div>` +
+						`</div>` +
 						
-						if(data['reviewed']){
-							$('.submission#'+ data['id']).remove();
-						}
-						
-					} else {
-						alert("Error reviewing submission");						
-					}
-				},
-				error: function(data){
-					alert(data['responseText']);
-					console.log(data['responseText']);
-				}
-			});
-			
-			return true;
-		}
-		
-		/* FUNCTION TO HANDLE GETTING UPDATES FROM THE WEBSITE */
-		function loopFunction(){
-			
-			// update the progress bar
-			$( "#progressbar" ).progressbar( "option", "value", time);
-			time++;
-			
-			// update the scoreboard
-			var left = total-time;
-			
-			if(left <= 0){
+						`<div class="additional-options">` +
+							`<div class="button correct-button" title="Mark as Correct" id="` + sub.id + `">&#x2713;</div>` +
+							`<div class="button custom-buttom" title="Return Custom Message" id="` + sub.id + `">&#x1f589;</div>` +
+							`<div class="button delete-button" title="Delete Submission" id="` + sub.id + `">&#x1F5D1;</div>` +
+						`</div>` +
+										
+					`</div>` +
+				`</div>`;
 				
-				$('#time-left').text("FINISHED");
 				
-			} else {
-				
-				var hours = parseInt(left/3600);
-				var minutes = parseInt((left - hours*3600)/60);
-				var seconds = (left - hours*3600 - minutes*60);
-				
-				hours = (hours < 10) ? "0"+hours : hours;
-				minutes = (minutes < 10) ? "0"+minutes : minutes;
-				seconds = (seconds < 10) ? "0"+seconds : seconds;
-				
-				$('#time-left').text(hours+":"+minutes+":"+seconds+" left");
+				$('#submissions-container').append(submissionHTML);
 			}
-			freeze = 0;
-			// check for AJAX information
-			if(time > freeze){
-				console.log("Polling for updates...");
-			
-			}
-		}
-		
-		
-		function updateQueue(){			
-			$('.submission.queued .right-side, .submission.queued .middle-side').hide();
-
-			$('.submission.queued').dblclick( function() {
-				$('#queue-container').append(this);
-				$(this).removeClass('queued');
-				$(this).find('.right-side, .middle-side').show();
-				
-				claimed_id = $(this).attr('id');
-				updateSubmission("claimed");
-			});			
 		}
 		
 	</script>

@@ -1,6 +1,9 @@
 <?php
 
 namespace AppBundle\Entity;
+
+use JsonSerializable;
+
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Config\Definition\Exception\Exception;
 
@@ -8,7 +11,7 @@ use Symfony\Component\Config\Definition\Exception\Exception;
 *@ORM\Entity
 *@ORM\Table(name="testcase")
 **/
-class Testcase {
+class Testcase implements JsonSerializable {
 
 	public function __construct(){
 
@@ -167,5 +170,12 @@ class Testcase {
 	*@ORM\Column(type="boolean")
 	*/
 	public $is_extra_credit;
+	
+	public function jsonSerialize(){
+		return [
+			'correct_output' => $this->correct_output,
+			'input' => $this->input,
+		];
+	}
 }
 ?>

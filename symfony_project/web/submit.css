@@ -87,7 +87,7 @@ textarea {
 }
 
 #markdown-collapser{
-	width: 100%;
+	width: calc(100% - 27px);
 	background: lightgrey;
 	height: 25px;
 	margin-top: 10px;

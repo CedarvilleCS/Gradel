@@ -8,6 +8,7 @@ use AppBundle\Entity\UserSectionRole;
 use AppBundle\Entity\Section;
 use AppBundle\Entity\Assignment;
 use AppBundle\Entity\Team;
+use AppBundle\Entity\Trial;
 
 use AppBundle\Utils\Grader;
 use AppBundle\Utils\Uploader;
@@ -49,14 +50,14 @@ class AssignmentController extends Controller {
 		}
 		
 		# REDIRECT TO CONTEST IF NEED BE
-		if($section_entity->course->is_contest){
+		/*if($section_entity->course->is_contest){
 			
 			if(isset($problemId)){
 				return $this->redirectToRoute('contest', ['contestId' => $sectionId, 'roundId' => $assignmendId]);
 			} else {
 				return $this->redirectToRoute('contest_problem', ['contestId' => $sectionId, 'roundId' => $assignmendId, 'problemId' => $problemId]);
 			}
-		}
+		}*/
 		
 		# get the assignment
 		if(!isset($assignmentId) || !($assignmentId > 0)){
@@ -163,11 +164,47 @@ class AssignmentController extends Controller {
 		$subs_query = $qb_allsubs->getQuery();
 		$all_submissions = $subs_query->getResult();
 		
-		$last_submission = null;
-		if(count($all_submissions) > 0){
-			$last_submission = $all_submissions[0];
-		}
+		# get the user's trial for this problem
+		$qb_trial = $em->createQueryBuilder();
+		$qb_trial->select('t')
+				->from('AppBundle\Entity\Trial', 't')
+				->where('t.user = ?1')
+				->andWhere('t.problem = ?2')
+				->setParameter(1, $user)
+				->setParameter(2, $problem_entity);
+
+		$trial_query = $qb_trial->getQuery();
+		$trial = $trial_query->getOneorNullResult();
 		
+		
+		if($_GET["submissionId"] && $_GET["submissionId"] > 0){
+			
+			$submission = $em->find("AppBundle\Entity\Submission", $_GET["submissionId"]);
+			
+			if($submission->user != $user || $submission->problem != $problem_entity){
+				die("You are not allowed to edit this submission on this problem!");
+			}
+			
+			if(!$trial){
+				$trial = new Trial();
+				
+				$trial->user = $user;
+				$trial->problem = $problem_entity;
+				$trial->language = $submission->language;			
+				$trial->show_description = true;
+				
+				$em->persist($trial);
+			}
+			
+			$trial->file = $submission->submitted_file;
+						
+			
+			$trial->filename = $submission->filename;
+			$trial->main_class = $submission->main_class_name;
+			$trial->package_name = $submission->package_name;
+			$trial->last_edit_time = new \DateTime("now");
+		}
+						
 		
 		return $this->render('assignment/index.html.twig', [
 			'user' => $user,
@@ -183,7 +220,7 @@ class AssignmentController extends Controller {
 			'attempts_remaining' => $attempts_remaining,
 			
 			'best_submission' => $best_submission,
-			'last_submission' => $last_submission,
+			'trial' => $trial,
 			'all_submissions' => $all_submissions,
 
 			'default_code' => $default_code,

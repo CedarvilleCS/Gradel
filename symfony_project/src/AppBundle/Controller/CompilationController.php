@@ -327,12 +327,19 @@ class CompilationController extends Controller {
 		$em->flush();
 		
 		//return $this->returnForbiddenResponse($submission->percentage."");
-		$url = $this->generateUrl('contest_result', [
-			'contestId' => $submission->problem->assignment->section-id,
-			'roundId' => $submission->problem->assignment->id,
-			'problemId' => $submission->problem->id,
-			'resultId' => $submission->id
-		]);
+		
+		if($submission->problem->assignment->section->course->is_contest){
+			$url = $this->generateUrl('contest_result', [
+				'contestId' => $submission->problem->assignment->section-id,
+				'roundId' => $submission->problem->assignment->id,
+				'problemId' => $submission->problem->id,
+				'resultId' => $submission->id
+			]);
+		} else {
+			$url = $this->generateUrl('problem_result', [
+				'submission_id' => $submission->id
+			]);
+		}
 		
 		$response = new Response(json_encode([		
 			'redirect_url' => $url,			
@@ -456,6 +463,8 @@ class CompilationController extends Controller {
 		
 		$content = (array) json_decode($response->getContent())->data;	
 
+		//return $this->returnForbiddenResponse(json_encode($response->getContent()));
+		
 		if(!isset($content)){
 			return $response;
 		}		

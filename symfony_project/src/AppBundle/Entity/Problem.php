@@ -2,6 +2,8 @@
 
 namespace AppBundle\Entity;
 
+use JsonSerializable;
+
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Config\Definition\Exception\Exception;
@@ -10,7 +12,7 @@ use Symfony\Component\Config\Definition\Exception\Exception;
  * @ORM\Entity
  * @ORM\Table(name="problem")
  */
-class Problem{
+class Problem implements JsonSerializable{
 	
 	public function __construct(){
 		
@@ -223,6 +225,14 @@ class Problem{
 	* @ORM\Column(type="boolean")
 	*/
 	public $extra_testcases_display;
+	
+		
+	public function jsonSerialize(){
+		return [
+			'id' => $this->id,
+			'name' => $this->name,
+		];
+	}
 }
 
 ?>

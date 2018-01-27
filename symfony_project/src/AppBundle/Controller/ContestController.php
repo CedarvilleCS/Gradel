@@ -112,9 +112,9 @@ class ContestController extends Controller {
 	
 	public function problemAction($contestId, $roundId, $problemId) {
 		
-		die("problemAction");
 		
-		return $this->render('contest/problem.html.twig', [
+		
+		return $this->render('assignment/problem.html.twig', [
 			'user' => $user,
 			'team' => $team,
 			'section' => $assignment_entity->section,
@@ -171,6 +171,8 @@ class ContestController extends Controller {
 			'elevatedUser' => $elevatedUser,
 						
 			'contest' => $contest,
+			
+			'pending_submissions' => $pending_submissions,
 
 			'section_takers' => $section_takers,
 			'section_judges' => $section_judges,
@@ -265,8 +267,7 @@ class ContestController extends Controller {
 		return new Response();
 		
 	}
-	
-	
+		
 	public function problemEditAction($contestId, $roundId, $problemId) {
 		
 		die("problemEditAction");
@@ -285,7 +286,7 @@ class ContestController extends Controller {
 		]);
 	}	
 
-	public function resultAction($submission_id){
+	public function resultAction($resultId){
 		
 		die("resultAction");
 		
@@ -303,9 +304,62 @@ class ContestController extends Controller {
 	
 	public function pollJudgingAction(Request $request){
 		
-		return $this->returnForbiddenResponse("pollJudgingAction");
+		$em = $this->getDoctrine()->getManager();
+		$grader = new Grader($em);
+
+		$user = $this->get('security.token_storage')->getToken()->getUser();
+		if(!$user){
+			return $this->returnForbiddenResponse('User does not exist.');
+		}
 		
-		return new Response();
+		# post data
+		$postData = $request->request->all();
+		
+		$contest = $em->find('AppBundle\Entity\Assignment', $postData['contestId']);		
+		if(!$contest){
+			return $this->returnForbiddenResponse('Contest ID is not valid.');
+		}		
+		
+		# validation
+		if(!($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isJudging($user, $contest->section))){
+			return $this->returnForbiddenResponse("You are not allowed to poll this contest");
+		}
+		
+		# get the pending submissions
+		$qb_allsubs = $em->createQueryBuilder();
+		$qb_allsubs->select('s')
+			->from('AppBundle\Entity\Submission', 's')
+			->where('s.problem IN (?1)')
+			->andWhere('s.pending_status = ?2')
+			->orderBy('s.timestamp', 'ASC')
+			->setParameter(1, $contest->problems->toArray())
+			->setParameter(2, 0);
+		$subs_query = $qb_allsubs->getQuery();
+		$pending_submissions = $subs_query->getResult();
+		
+//		return $this->returnForbiddenResponse(json_encode($pending_submissions[0])." ");
+		
+		$qb_revsubs = $em->createQueryBuilder();
+		$qb_revsubs->select('s')
+			->from('AppBundle\Entity\Submission', 's')
+			->where('s.problem IN (?1)')
+			->andWhere('s.pending_status != ?2')
+			->orderBy('s.timestamp', 'ASC')
+			->setParameter(1, $contest->problems->toArray())
+			->setParameter(2, 0);
+		$rev_subs_query = $qb_revsubs->getQuery();
+		$reviewed_submissions = $rev_subs_query->getResult();
+		
+		$response = new Response(json_encode([
+			'pending_submissions' => $pending_submissions,
+			'reviewed_submissions' => $reviewed_submissions,
+		]));
+			
+		
+		$response->headers->set('Content-Type', 'application/json');
+		$response->setStatusCode(Response::HTTP_OK);
+
+		return $response;
 	}
 	
 	public function submissionJudgingAction(Request $request){
@@ -332,15 +386,30 @@ class ContestController extends Controller {
 			return $this->returnForbiddenResponse('Submission ID is not valid.');
 		}
 		
+		
+		// check to make sure the submission hasn't been claimed
+		// ************************* RACE CONDITIONS *************************
+		if($submission->pending_status > 1){
+			return $this->returnForbiddenResponse("Submission has already been reviewed");
+		}
+			
+		
 		$reviewed = true;
 		if($postData['type'] == "wrong"){
 			
-			// TODO: do nothing
+			// override the submission to wrong
+			if($submission->isCorrect()){
+				$submission->wrong_override = true;
+				$submission->correct_override = false;
+			}
 			
 		} else if($postData['type'] == "correct"){
 			
-			// TODO: override the submission to correct
-			
+			// override the submission to correct
+			if(!$submission->isCorrect()){
+				$submission->wrong_override = false;
+				$submission->correct_override = true;
+			}
 			
 		} else if($postData['type'] == "delete"){
 				
@@ -349,23 +418,53 @@ class ContestController extends Controller {
 				
 		} else if($postData['type'] == "formatting"){
 					
-			// TODO: add formatting message to submission
+			// add formatting message to submission
+			$submission->judge_message = "Formatting Error";
 					
 		} else if($postData['type'] == "message"){
 			
 			$message = $postData['message'];
 			
-			// TODO: add custom message to submission
+			if(!isset($message) || trim($message) == ""){
+				return $this->returnForbiddenResponse("Message provided is not valid");
+			}
+			
+			// add custom message to submission
+			$submission->judge_message = trim($postData['message']);
 						
 		} else if($postData['type'] == "claimed"){
 			
-			$reviewed = false;
-			// TODO: set the submission to be claimed for review and check for previous claim
+			$reviewed = false;			
+			
+			if($submission->pending_status > 0){
+				return $this->returnForbiddenResponse("Submission has already been claimed");
+			}	
+			
+			$submission->pending_status = 1;
+			
+		} else if($postData['type'] == "unclaimed"){
+			
+			$reviewed = false;			
+			
+			if($submission->pending_status < 1){
+				return $this->returnForbiddenResponse("Submission has already been un-claimed");
+			}	
+			
+			$submission->pending_status = 0;
+			
 			
 		} else {
 			return $this->returnForbiddenResponse("Type of judging command not allowed");
 		}
 
+		
+		if($reviewed){
+			$submission->pending_status = 2;
+		}
+		
+		$submission->reviewer = $user;
+		
+		$submission->edited_timestamp = new \DateTime("now");
 		
 		$response = new Response(json_encode([
 			'id' => $submission->id,

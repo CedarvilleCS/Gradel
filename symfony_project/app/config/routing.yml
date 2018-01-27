@@ -189,13 +189,18 @@ judging_modify:
     _controller: AppBundle:Contest:submissionJudging
   methods: [POST]
   
-  
+# TRIAL ROUTES
+modify_trial:
+  path: 'modify/trial'
+  defaults:
+    _controller: AppBundle:Trial:trialModify
+  methods: [POST]    
   
 # UPLOAD ROUTES
 get_contents:
-    path: '/get_contents'
-    defaults: { _controller: AppBundle:Upload:getContents}
-    methods: [POST]
+  path: '/get_contents'
+  defaults: { _controller: AppBundle:Upload:getContents}
+  methods: [POST]
 
 # temporary route for GUI development
 professorsection:

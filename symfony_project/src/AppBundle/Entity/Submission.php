@@ -1,6 +1,9 @@
 <?php
 
 namespace AppBundle\Entity;
+
+use JsonSerializable;
+
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Config\Definition\Exception\Exception;
@@ -11,7 +14,7 @@ use AppBundle\Entity\Trial;
 *@ORM\Entity
 *@ORM\Table(name="submission")
 **/
-class Submission {
+class Submission implements JsonSerializable {
 
 	public function __construct(){
 		
@@ -85,9 +88,10 @@ class Submission {
 		$this->judge_message = null;
 		$this->correct_override = false;
 		$this->wrong_override = false;
+		$this->reviewer = null;
 	}
 		
-	public function __construct25($prob, $tm, $user, $time, $acc, $subm, $log, $filename, $mainclass, $package, $compout, $didcomp, $didtime, $didrun, $maxtime, $lang, $perc, $ques, $vers, $pend, $edit, $std_msg, $jdg_msg, $correct_over, $wrong_over){
+	public function __construct26($prob, $tm, $user, $time, $acc, $subm, $log, $filename, $mainclass, $package, $compout, $didcomp, $didtime, $didrun, $maxtime, $lang, $perc, $ques, $vers, $pend, $edit, $std_msg, $jdg_msg, $correct_over, $wrong_over, $rev){
 		$this->problem = $prob;
 		$this->user = $user;
 		$this->team = $tm;
@@ -114,6 +118,7 @@ class Submission {
 		$this->judge_message = $jdg_msg;
 		$this->correct_override = $correct_over;
 		$this->wrong_override = $wrong_over;
+		$this->reviewer = $rev;
 	}
 	
 	public function isCorrect(){
@@ -269,9 +274,16 @@ class Submission {
 	
 	// CONTEST-SPECIFIC THINGS
 	/**
+	* [0 = pending, 1 = claimed, 2 = reviewed]
 	* @ORM\Column(type="integer")
 	*/
 	public $pending_status;
+	
+	/**
+     * @ORM\ManyToOne(targetEntity="User")
+     * @ORM\JoinColumn(name="reviewer_id", referencedColumnName="id", nullable=true)
+     */
+	public $reviewer;
 
 	/**
 	* @ORM\Column(type="datetime", nullable=true)
@@ -296,7 +308,23 @@ class Submission {
 	/**
 	* @ORM\Column(type="boolean")
 	*/
-	public $wrong_override;
+	public $wrong_override;	
+	
+	
+	public function jsonSerialize(){
+		return [
+			'team' => ($this->team) ? $this->team : ["name" => "NO TEAM"],			
+			'id' => $this->id,
+			'problem' => $this->problem,
+			'is_correct' => $this->isCorrect(),
+			'testcaseresults' => $this->testcaseresults->toArray(),
+			'runtime_error' => $this->runtime_error,
+			'exceeded_time_limit' => $this->exceeded_time_limit,
+			'compiler_error' => $this->compiler_error,
+			
+			'reviewer' => $this->reviewer,
+		];
+	}
 	
 }
 ?>
