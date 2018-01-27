@@ -80,17 +80,17 @@
 									
 									{% if grades[user.id][asgn.id]['num_correct_problems'] > 0 and grades[user.id][asgn.id]['num_correct_problems'] == grades[user.id][asgn.id]['num_problems'] %}
 									
-										<td style="color:green; font-size: 25px">&#x2713; 
+										<td style="color:green; font-size: 25px">{{grades[user.id][asgn.id]['num_correct_problems']}}/{{grades[user.id][asgn.id]['num_problems']}} 
 										
 										{% if grades[user.id][asgn.id]['num_extra_problems'] > 0 and grades[user.id][asgn.id]['num_extra_correct_problems'] == grades[user.id][asgn.id]['num_extra_problems'] %}
-										&#x2713; 										
+										{{grades[user.id][asgn.id]['num_correct_problems']}}/{{grades[user.id][asgn.id]['num_problems']}}										
 										{% endif %}
 										</td>
 										
 									{% elseif grades[user.id][asgn.id]['num_correct_problems'] != 0 %}
 										<td style="color:orange; font-size: 25px"><i> {{grades[user.id][asgn.id]['num_correct_problems']}}/{{grades[user.id][asgn.id]['num_problems']}}</i></td>
 								 {% else %} 
-										<td style="color:red; font-size: 25px"> &#x2718</td>
+										<td style="color:red; font-size: 25px">{{grades[user.id][asgn.id]['num_correct_problems']}}/{{grades[user.id][asgn.id]['num_problems']}}</td>
 								 {% endif %}
 									
 								{% endfor %}
@@ -234,11 +234,11 @@
 						+				"{# number of testcases passed, number of test cases failed #}"
 						+				"{# {{ grades|json_encode() }} #}"
 						+				"{% if grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] == grades[user.id][asgn.id]['problem_grades'][problem.id]['total_testcases'] %}"
-						+					'<td style="color:green; font-size: 25px">' + "{{ grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] }}  / {{ grades[user.id][asgn.id]['problem_grades'][problem.id]['total_testcases'] }}</td>"
+						+					'<td style="color:green; font-size: 20px">' + "{{ grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] }}  / {{ grades[user.id][asgn.id]['problem_grades'][problem.id]['total_testcases'] }}</td>"
 						+				"{% elseif grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] != 0 %}"
-						+					'<td style="color:orange; font-size: 25px">' + "{{ grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] }}  / {{ grades[user.id][asgn.id]['problem_grades'][problem.id]['total_testcases'] }}</td>"
+						+					'<td style="color:orange; font-size: 20px">' + "{{ grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] }}  / {{ grades[user.id][asgn.id]['problem_grades'][problem.id]['total_testcases'] }}</td>"
 						+				"{% else %}"
-						+					'<td style="color:red; font-size: 25px">' + "{{ grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] }}  / {{ grades[user.id][asgn.id]['problem_grades'][problem.id]['total_testcases'] }}</td>"
+						+					'<td style="color:red; font-size: 20px">' + "{{ grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] }}  / {{ grades[user.id][asgn.id]['problem_grades'][problem.id]['total_testcases'] }}</td>"
 						+				"{% endif %}"									
 						+			"{% endfor %}"
 						+		"{% endfor %}"
