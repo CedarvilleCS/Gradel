@@ -384,7 +384,7 @@ class CompilationController extends Controller {
 		
 		$is_teaching = $grader->isTeaching($user, $assignment->section) || $grader->isJudging($user, $assignment->section);		
 		if(!$is_teaching && !$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN")){
-			return $this->returnForbiddenResponse("You are not allowed to generate output for this problem");
+			//return $this->returnForbiddenResponse("You are not allowed to generate output for this problem");
 		}
 		
 		

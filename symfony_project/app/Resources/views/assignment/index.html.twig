@@ -75,14 +75,13 @@ var markdownText = converter.makeHtml("{{problem.description|e('js')}}");
 {# the ACE editor text area #}
 				
 <div id="editor">{% if trial != null and trial.filename|split('.')|last != 'zip' %}
-{{ trial.deblobinateFile()|nl2br }}
-{% elseif trial != null %}
+{{ trial.deblobinateFile()|nl2br }}{% elseif trial != null %}
 Uploaded file was a ZIP file<br>
 We are not able to repopulate zip files at this time.<br>
 Please re-upload it!
 {% endif %}
 </div>
-<div id="trial-status" style="fone-style: italic; font-size:0.8em; color: grey;">&nbsp;</div>
+<div id="trial-status" style="font-style: italic; font-size:0.8em; color: grey;">&nbsp;</div>
 				<br/>
 
 				{# display the form or not #}
@@ -344,11 +343,10 @@ Please re-upload it!
 			
 			editor.getSession().on('change', function() {	
 
-				
+				second++;
 				if(second > 1){
 					$('#trial-status').text("Unsaved changes...");
 				}
-				second++;
 				
 				clearInterval(trialUpdateTimer);
 				trialUpdateTimer = setInterval(updateTrial, 5000);		
@@ -455,10 +453,6 @@ Please re-upload it!
 			$("#ACE").val(editor.getValue());
 
 			var ACE = $('#ACE').val();		
-
-			if(saved_code == ACE){
-				return;			
-			}
 			
 			formData.append('problem_id', {{problem.id}});
 			formData.append('language', language);

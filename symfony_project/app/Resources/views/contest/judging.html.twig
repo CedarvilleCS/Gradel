@@ -489,7 +489,7 @@
 				newOne = true;
 				
 				var reviewHTML = `<a href="{{path('contest', {'contestId': contest.section.id, 'roundId': contest.id})}}/problem/` + rev.problem.id + `/result/` + rev.id + `"> <div class="review ` + ((rev.is_correct) ? "correct" : "wrong") + `" id="` + rev.id + `"> ` + 
-									`<div>` + rev.id + `) ` + rev.problem.name.substring(0,1) + ` - <small>` + rev.team.name + `</small></div><div> Reviewed by: ` + rev.reviewer.first_name + `</div>` + 
+									`<div>` + rev.id + `) ` + rev.problem.name.substring(0,1) + ` - <small>` + rev.team.name + `</small></div><div><small> Reviewer: ` + rev.reviewer.first_name + `</small></div>` + 
 								`</div> </a>`;
 				$('#recent-reviews').append(reviewHTML);				
 			}			

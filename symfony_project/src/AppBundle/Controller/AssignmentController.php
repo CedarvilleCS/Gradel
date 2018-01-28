@@ -50,14 +50,14 @@ class AssignmentController extends Controller {
 		}
 		
 		# REDIRECT TO CONTEST IF NEED BE
-		/*if($section_entity->course->is_contest){
+		if($section_entity->course->is_contest){
 			
 			if(isset($problemId)){
 				return $this->redirectToRoute('contest', ['contestId' => $sectionId, 'roundId' => $assignmendId]);
 			} else {
 				return $this->redirectToRoute('contest_problem', ['contestId' => $sectionId, 'roundId' => $assignmendId, 'problemId' => $problemId]);
 			}
-		}*/
+		}
 		
 		# get the assignment
 		if(!isset($assignmentId) || !($assignmentId > 0)){

@@ -1,10 +1,32 @@
-{% set teaching=grader.isTeaching(app.user, problem.assignment.section) or grader.isJudging(app.user, problem.assignment.section) or is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") %}
+{% set elevatedUser=grader.isTeaching(app.user, problem.assignment.section) or grader.isJudging(app.user, problem.assignment.section) or is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") %}
 
 
 {% block head %}
 	<title>Gradel {% if problem != null %} | {{problem.assignment.name}} {% endif %}</title>
 	<link rel="icon" type="image/x-icon" href="{{ asset('logo.png') }}" />
 {% endblock %}
+
+
+{% block stylesheets %}
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
+	
+    <link rel="stylesheet" href="{{ asset('styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('card.css') }}" />
+    <link rel="stylesheet" href="{{ asset('contest-hub.css') }}" />	
+    <link rel="stylesheet" href="{{ asset('submit.css') }}" />
+    <link rel="stylesheet" href="{{ asset('contest-problem.css') }}" />
+	
+	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">		
+    <link rel="stylesheet" href="{{ asset('markdown-styles.css') }}" />
+
+	<style>
+		#submissionButton:hover {
+			cursor:pointer;
+		}
+	</style>
+{% endblock %}
+
+
 
 {% block body %}
 
@@ -26,76 +48,13 @@ var markdownText = converter.makeHtml("{{problem.description|e('js')}}");
 
 <body>
     {{ include('template/top-nav.html.twig') }}
-
-	{# left panel with the problem links #}
-	<nav class="nav-left">
-
-		<ol style="padding-top: 0px; padding-bottom: 10px">
-			{# overview of when the assignment is due #}		
-			<li style="text-align:center">{{assignment.name}} </li>
-			
-			<li class="sidebar" style="text-align:left">
-				<strong>Problems</strong>
-				{% if teaching %}
-					<object>
-						<a title="Create problem" href={{path('contest_problem_edit', {'contestId': section.id, 'roundId': assignment.id})}}>
-							<img class="small-icon" id="add-icon" src="{{ asset('add_circle.png') }}">
-						</a>
-					</object>
-				{% endif %}
-			</li>
-			
-			{# problem list #}
-			{% for prob in problem.assignment.problems %}
-
-				{% if prob.id != problem.id%}
-				
-					<a href="{{path('contest_problem', {'contestId': prob.assignment.section.id, 'roundId': prob.assignment.id, 'problemId': prob.id})}}">
-				
-					<li class="sidebar list-item" style="{%if prob.id == problem.id %}background: #5a5a5a; {%endif%}">			
-						<div class="{% if teaching %}sidebar-text{% endif %}">{{ prob.name }}&nbsp;</div>
-				{% else %}
-				
-					<li class="sidebar list-item" style="background: #5a5a5a">
-						<div class="{% if teaching %}sidebar-text{% endif %}">{{ prob.name }}&nbsp;</div>
-						<div class="selectbar"></div>
-					
-				{% endif %}
-
-				{# display edit icon #}
-				{% if teaching %}
-					<object>
-						<a title="Edit{{(prob.master) ? " Master" : "" }} Problem" href="{{path('contest_problem_edit', {'contestId': prob.assignment.section.id, 'roundId': prob.assignment.id, 'problemId': prob.id})}}">
-							<img class="small-icon" id="right-icon" src="{{ asset('edit.png') }}">
-						</a>
-						
-					</object>
-				{% endif %}	
-				
-				</li>
-				
-				{% if prob.id != problem.id %}
-				</a>
-				{% endif %}
-				
-			{% else %}
-				<li class="sidebar list-item"> There are no problems for this assignment </li>
-			{% endfor %}
-		  
-		</ol>
-		
-	</nav>
-
-	{# {{ include('template/path-nav.html.twig') }} #}
 	
+	{{ include('contest/problem-nav.html.twig') }}
+
     <section id="main">
 
-		{% if problem.assignment.problems|length == 0 %}
-
-		{% else %}
-
 		<div class="card" style="padding-top: 2px">
-					
+						
 			<div id="courseInfo" class="card-contents">
 			
 				<div class="markdown-container">
@@ -107,19 +66,20 @@ var markdownText = converter.makeHtml("{{problem.description|e('js')}}");
 
 {# the ACE editor text area #}
 				
-<div id="editor">{% if last_submission != null and last_submission.filename|split('.')|last != 'zip' %}
-{{ last_submission.deblobinateSubmittedFile()|nl2br }}
-{% elseif last_submission != null %}
-Uploaded file was a ZIP file
+<div id="editor">{% if trial != null and trial.filename|split('.')|last != 'zip' %}
+{{ trial.deblobinateFile()|nl2br }}{% elseif trial != null %}
+Uploaded file was a ZIP file<br>
+We are not able to repopulate zip files at this time.<br>
+Please re-upload it!
 {% endif %}
 </div>
-				<br/>
 
-				{# display the form or not #}
-				{% set open = (problem.assignment.start_time|date('U') < "now"|date('U') and problem.assignment.cutoff_time|date('U') > "now"|date('U')) %}
+<div id="trial-status" style="font-style: italic; font-size:0.8em; color: grey;">&nbsp;</div>
+				<br>
 
-				{% if teaching or (usersectionrole.role.role_name == 'Takes' and open and attempts_remaining != 0)%}
-
+				{# display the form or not #}				
+				{% if elevatedUser or (problem.assignment.start_time|date('U') < "now"|date('U') and problem.assignment.cutoff_time|date('U') > "now"|date('U')) %}
+				
 					{# file upload#}
 					<form id="submissionUploadForm" action="{{path('get_contents')}}" method="post">
 						<input type="file" name="file" id="file" value="Upload File">
@@ -148,88 +108,118 @@ Uploaded file was a ZIP file
 						</div>
 					</div>
 
-				{% elseif attempts_remaining == 0 %}
-					You are out of attempts for this problem.
-				{% elseif open %}
-					You are not allowed to submit for this problem.
 				{% else %}
-					This problem is not currently open.
+					This problem is not open.
 				{% endif %}
+				
 			</div>
 		</div>
+		
+		{# testing code card #}
+		<div class="card">
+			<div class="btn-close">
+				<h2 style="margin: 0px;">Test Your Code</h2>
+			</div>
+			
+			<div id="codeTester" class="card-contents" style="margin-top: 5px">
+				<div style="position: relative">   
+					<div id="add-testcase-button"> Add Testcase </div>
+					<div id="test-code-markers">
+						<ul>
+							{% for tc in problem.testcases %}
+								
+								<li id="test-code-tab-{{tc.id}}-marker"> <a href="#test-code-tab-{{tc.id}}">
+									#{{loop.index}}
+								</a></li>
+							
+							{% endfor %}
+						</ul>
+						
+						{% for tc in problem.testcases %}
+						
+								<div id="test-code-tab-{{tc.id}}" class="test-case">
+									<div class="testcase-data">
+										<div style="display: flex; flex-direction: row; justify-content: space-between;">
+											
+											<div class="input-container" style="display: flex; flex-direction: column; width: 33%">
+											<small>Standard Input:</small>
+											<textarea rows=10 class="input">{{tc.input|replace({'\n': "&#x21b5;\n"})|raw}}</textarea>
+											</div>
+											
+											<div class="output-container" style="display: flex; flex-direction: column; width: 33%">
+											<small>Expected Output:</small>
+											<textarea rows=10 class="exp-output">{{tc.correct_output|replace({'\n': "&#x21b5;\n"})|raw}}</textarea>
+											</div>
+											
+											<div class="user-output-container" style="display: flex; flex-direction: column; width: 33%">
+											<small>Your Output:</small>
+											<textarea rows=10 class="output"></textarea>
+											</div>
+										</div>
+									</div>
+								</div>
+						
+						{% endfor %}
+				
+					</div>
+				</div>
+				
+				<br>
+				<div>
+					<div class="btn" style="width: 100px; cursor: pointer;" id="generate-output-button"> Test </div>
+					<div id="loading-container-test" style="display: none">
+						<img id="loadingGif-test" style="height: 60px" src="{{asset('beoload.gif')}}" alt="Loading..."/>
+						<h3 style="margin: 0px"> Testing Code... </h3>
+					</div>
+				</div>
+			</div>
+		</div>	
 		
 		{% if all_submissions|length > 0 %}
 		<div class="card">
 			<div class="btn-close" onclick="collapseCard('recentSubs')">
-				<h2 style="margin: 0px">Your {% if team.users|length > 1 %} Team's {% endif %} Recent Submissions</h2>
+				<h2 style="margin: 0px">Submissions</h2>
 			</div>
 			
 			<div id="recentSubs" class="card-contents" style="margin-top: 0px">
 				<div>   
 					<ul>
-					{% if all_submissions|length == 0 %}
-						<li> No recent submissions </li>
-					{% else %}
-						
-						{% for sub in all_submissions %}
-							{% if sub.isCorrect %}
-								<div style="color: green">
-							{% else %}
-								
-								<div style="color: red">
-							{% endif %}
+					
+					{% for sub in all_submissions %}
+						{% if sub.isCorrect %}
+							<div style="color: green">
+						{% else %}
 							
-							<li><a href="{{path('problem_result', {'submission_id': sub.id})}}">
-								[{{sub.problem.name}}] 
-									{% if sub.team.users|length > 1 %}
-										{
-										{% for user in sub.team.users %}
-											
-											{{user.getLastName}}
-											{% if not loop.last %}
-											, 
-											{% endif%}
-										{% endfor %}
-										}
-									{% endif %}
-									- {{sub.timestamp|date('F d, Y  \\a\\t  h:i:s')}} ({{sub.language.name}})
-							</a> </li>
+							<div style="color: red">
+						{% endif %}
 						
-							</div>
-						{% endfor %}
-						
-					{% endif %}
+						<li><a href="{{path('problem_result', {'submission_id': sub.id})}}">
+							[{{sub.problem.name}}] 
+								{% if sub.team.users|length > 1 %}
+									{
+									{% for user in sub.team.users %}
+										
+										{{user.getLastName}}
+										{% if not loop.last %}
+										, 
+										{% endif%}
+									{% endfor %}
+									}
+								{% endif %}
+								- {{sub.timestamp|date('F d, Y  \\a\\t  h:i:s')}} ({{sub.language.name}})
+						</a> </li>
+					
+						</div>
+					{% endfor %}
 					
 					</ul>
 				</div>
 			</div>
 		</div>
-		{% endif %}
-
-		{% endif %}
-
-		
+		{% endif %}		
 		
     </section>
 </body>
-{% endblock %}
-
-
-{% block stylesheets %}
-	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
-	
-    <link rel="stylesheet" href="{{ asset('styles.css') }}" />
-    <link rel="stylesheet" href="{{ asset('card.css') }}" />
-	
-    <link rel="stylesheet" href="{{ asset('submit.css') }}" />
-	
-    <link rel="stylesheet" href="{{ asset('markdown-styles.css') }}" />
-
-	<style>
-		#submissionButton:hover {
-			cursor:pointer;
-		}
-	</style>
 {% endblock %}
 
 {% block scripts %}
@@ -345,6 +335,117 @@ Uploaded file was a ZIP file
 
 	<script>
 	
+		var trialUpdateTimer = null;
+		var trialId = {{(trial) ? trial.id : "0"}};
+		var second = 0;
+
+	
+		$(document).ready(function() {
+			
+			$('#markdown').html(markdownText);
+			
+			// update key bindings
+			var editor = ace.edit("editor");
+			editor.$blockScrolling = Infinity;
+			
+			editor.getSession().on('change', function() {	
+
+				second++;
+				if(second > 1){
+					$('#trial-status').text("Unsaved changes...");
+				}
+				
+				clearInterval(trialUpdateTimer);
+				trialUpdateTimer = setInterval(updateTrial, 5000);		
+			});
+
+			editor.commands.addCommand({
+				name: "replace",
+				bindKey: {win: "Ctrl-S", mac: "Command-S"},
+				exec: function(editor) {
+					updateTrial();
+				}
+			});
+			
+			
+			// set default stuff for the ace editor
+			var editor = ace.edit("editor");
+			editor.$blockScrolling = Infinity;
+			editor.setTheme("ace/theme/xcode");
+			
+			// handle having a trial and displaying the description
+			{% if trial != null %}
+			setLanguageFromFilename("{{trial.filename}}");
+			
+			{% if not trial.show_description %}
+			$("#markdown-collapser").click();
+			{% endif %}
+			
+			{% else %}
+			$('#languageSelect').change();			
+			{% endif %}
+			
+			
+			// test code marker tabs
+			$('#add-testcase-button').button().click(function() {
+
+				var num_tabs = $("div#test-code-markers ul li").length + 1;
+
+				$("div#test-code-markers ul").append(
+					"<li id='test-code-tab-user-" + num_tabs + "-marker'><a href='#test-code-tab-user-" + num_tabs + "'>#" + num_tabs + "</a></li>"
+				);
+				
+				$("div#test-code-markers").append(
+					"<div id='test-code-tab-user-" + num_tabs + "' class='test-case'>" + 
+						"<div class='testcase-data'>" +
+							"<div style='display: flex; flex-direction: row; justify-content: space-between;'>" +
+								
+								"<div class='input-container' style='display: flex; flex-direction: column; width: 33%'>" +
+								"<small>Standard Input:</small>" +
+								"<textarea rows=10 class='input'></textarea>" +
+								"</div>" +
+								
+								"<div class='output-container' style='display: flex; flex-direction: column; width: 33%'>" +
+								"<small>Expected Output:</small>" +
+								"<textarea rows=10 class='exp-output'></textarea>" +
+								"</div>" +
+								
+								"<div class='user-output-container' style='display: flex; flex-direction: column; width: 33%'>" +
+								"<small>Your Output:</small>" +
+								"<textarea rows=10 class='output'></textarea>" +
+								"</div>" +
+							"</div>" +
+						"</div>" +
+					"</div>"
+				);
+				
+				$("div#test-code-markers").tabs("refresh");
+				
+				$('#test-code-markers textarea').keyup( function() {
+					$(this).val($(this).val().replace(/\u21b5\n/g, '\n').replace(/\n/g, '\u21b5\n'));
+				});
+				
+				
+			});  
+			
+			$('#generate-output-button').click(function() {
+				
+				testSolution();
+				
+			});
+			
+			$('#test-code-markers').tabs();
+	
+			if(trialId == 0){
+				updateTrial();
+			}
+		});
+		
+		$('#test-code-markers textarea').keyup( function() {
+			$(this).val($(this).val().replace(/\u21b5\n/g, '\n').replace(/\n/g, '\u21b5\n'));
+		});
+				
+		// show/hide the description	
 		$("#markdown-collapser").click(function () {
 			
 			$collapser = $(this);
@@ -356,147 +457,284 @@ Uploaded file was a ZIP file
 			
 			$content.slideToggle(20, function() {});
 			
+			updateTrial();
+			
 		});
-	
-		$(document).ready(function() {
+		
+		// make the language dropdown change affect the code
+		$('#languageSelect').change( function(data) {
+
+			var language = $('#languageSelect option:selected').text();
+			setLanguage(language);
+		});
+
+		// submit the form if the file upload is changed
+		$('#submissionUploadForm #file').change( function(data) {
+			$('#submissionUploadForm').submit();
+		});
+
+		// overwrite the normal submit to call the ajaxsubmit
+		$('#submissionUploadForm').submit(function() {
 			
-			$('#markdown').html(markdownText);
+			$(this).ajaxSubmit({
 			
-			var editor = ace.edit("editor");
-			editor.$blockScrolling = Infinity;
-
-			// make the language dropdown change affect the code
-			$('#languageSelect').change( function(data) {
-
-				var language = $('#languageSelect option:selected').text();
-				setLanguage(language);
-			});
-
-			// submit the form if the file upload is changed
-			$('#submissionUploadForm #file').change( function(data) {
-				$('#submissionUploadForm').submit();
-			});
-
-			// overwrite the normal submit to call the ajaxsubmit
-			$('#submissionUploadForm').submit(function() {
-				
-				$(this).ajaxSubmit({
-				
-					beforeSubmit: 	function(formData, jqForm, options){
-						
-						/* CLIENT-SIDE VALIDATION */
-						return true;
-						
-					},
-					success:		function(responseText, statusText, xhr, $form) {
-						
-						var file = responseText['files'][0];
-				
-						console.log(responseText);
-						setLanguageFromFilename(file['name']);
-						
-						var editor = ace.edit("editor");
-						editor.$blockScrolling = Infinity;
-						editor.setValue(atob(file['contents']));
-						
-						updateAceCode();		
-										
-					},
-					error:			function(xhr, textStatus, errorThrown) {
-						console.log(xhr);						
-						alert(xhr['responseText']);
-					}
-				});
-				
-				return false;
-			});
-
-			$('#submissionButton').click( function() {
-
-				// Create a FormData object
-				var formData = new FormData();
-
-				// validate that fields are filled in
-				var language = $('#languageSelect option:selected').val();
-				var languageText = $('#languageSelect option:selected').text();
-				var main_class = $('#main_class_input').val();
-				var package_name = $('#package_name_input').val();
-
-				if(languageText == 'Java' && main_class == '') {
-				
-					setInvalid($('#main_class_input'));				
-					return false;
+				beforeSubmit: 	function(formData, jqForm, options){
 					
-				} else if(languageText != 'Java'){
-
-					main_class = "";
-					package_name = "";
-				}
-				setValid($('#main_class_input'));
-
-				var editor = ace.edit("editor");
-				editor.$blockScrolling = Infinity;				
-				$("#ACE").val(editor.getValue());
-
-				var ACE = $('#ACE').val();				
-				
-				formData.append('problem_id', {{problem.id}});
-				formData.append('language', language);
-				formData.append('main_class', main_class);
-				formData.append('package_name', package_name);
-				formData.append('ACE', ACE);
-
-
-				if(getExtension($('#submissionUploadForm #file').val()) == "zip"){
-
-					var file = $('#submissionUploadForm #file').prop('files')[0];
-
-					if(file){
-						formData.append('file', file);
-					}
-				}
-
-				$('#loading-container').show();
-				$('#submissionButton').hide();
-				
-				$.ajax({
-					type: "POST",
-					url: "{{path('submit')}}",
-					data: formData,
-					processData: false,
-					contentType: false,
-					success: function(data){
-
-						console.log(data);
-						
-						if(data['data'] != null){
-							submitSolution(data['data']);
-						} else {
-							window.location = data["redirect_url"]
-						}
-					},
-					error: function(data){
-						alert(data['responseText']);
-						console.log(data['responseText']);
-						
-						$('#loading-container').hide();
-						$('#submissionButton').show();
-					}
-				});
-
-			});
-
-			// set default stuff for the ace editor
-			var editor = ace.edit("editor");
-			editor.$blockScrolling = Infinity;
-			editor.setTheme("ace/theme/xcode");
+					/* CLIENT-SIDE VALIDATION MAY HAPPEN HERE */
+					return true;
+					
+				},
+				success:		function(responseText, statusText, xhr, $form) {
+					
+					var file = responseText['files'][0];
 			
-			{% if last_submission != null %}
-			setLanguageFromFilename("{{last_submission.filename}}");
-			{% else %}
-			$('#languageSelect').change();			
-			{% endif %}
+					console.log(responseText);
+					setLanguageFromFilename(file['name']);
+					
+					var editor = ace.edit("editor");
+					editor.$blockScrolling = Infinity;
+					editor.setValue(atob(file['contents']));
+					
+					updateAceCode();
+
+					updateTrial(responseText);						
+									
+				},
+				error:			function(xhr, textStatus, errorThrown) {
+					console.log(xhr);						
+					alert(xhr['responseText']);
+				}
+			});
+			
+			return false;
 		});
+
+		$('#submissionButton').click( function() {			
+			updateTrial("submit");			
+		});
+				
+		function updateTrial(submitAfter){
+					
+			clearInterval(trialUpdateTimer);	
+			
+			// Create a FormData object
+			var formData = new FormData();
+
+			var language = $('#languageSelect option:selected').val();
+			var main_class = $('#main_class_input').val();
+			var package_name = $('#package_name_input').val();
+			var show_description = !($("#markdown-collapser").text() == "Show Description");
+			
+			var editor = ace.edit("editor");
+			editor.$blockScrolling = Infinity;				
+			$("#ACE").val(editor.getValue());
+
+			var ACE = $('#ACE').val();		
+			
+			formData.append('problem_id', {{problem.id}});
+			formData.append('language', language);
+			formData.append('main_class', main_class);
+			formData.append('package_name', package_name);
+			formData.append('show_description', show_description);
+			formData.append('ACE', ACE);
+
+			if(getExtension($('#submissionUploadForm #file').val()) == "zip"){
+
+				var file = $('#submissionUploadForm #file').prop('files')[0];
+				if(file){
+					formData.append('file', file);
+				}
+			}
+			
+			$.ajax({
+				type: "POST",
+				url: "{{path('modify_trial')}}",
+				data: formData,
+				processData: false,
+				contentType: false,
+				async: true,
+				success: function(data){
+					console.log(data);
+					$('#trial-status').text("Code saved.");
+					trialId = data['trial_id'];
+					
+					if(submitAfter == "submit"){
+						submitSolution();
+					}
+				},
+				error: function(data){
+					//alert(data['responseText']);
+					console.log(data['responseText']);
+					$('#trial-status').text(data['responseText']);
+					
+					if(data['continue'] && submitAfter=="submit"){
+						submitSolution();
+					}
+				}
+			});						
+		}
+		
+		function submitSolution(){
+			
+			// Create a FormData object
+			var formData = new FormData();
+
+			// validate that fields are filled in
+			var language = $('#languageSelect option:selected').val();
+			var languageText = $('#languageSelect option:selected').text();
+			var main_class = $('#main_class_input').val();
+			var package_name = $('#package_name_input').val();
+
+			if(languageText == 'Java' && main_class == '') {
+			
+				setInvalid($('#main_class_input'));				
+				return false;
+				
+			} else if(languageText != 'Java'){
+
+				main_class = "";
+				package_name = "";
+			}
+			setValid($('#main_class_input'));
+
+			formData.append('trial_id', trialId);
+
+			if(getExtension($('#submissionUploadForm #file').val()) == "zip"){
+
+				var file = $('#submissionUploadForm #file').prop('files')[0];
+
+				if(file){
+					formData.append('file', file);
+				}
+			}
+
+			$('#loading-container').show();
+			$('#submissionButton').hide();
+						
+			$.ajax({
+				type: "POST",
+				url: "{{path('submit')}}",
+				data: formData,
+				processData: false,
+				contentType: false,
+				success: function(data){
+
+					console.log(data);
+					window.location = data["redirect_url"];
+				},
+				error: function(data){
+					alert(data['responseText']);
+					console.log(data['responseText']);
+					
+					$('#loading-container').hide();
+					$('#submissionButton').show();
+				}
+			});
+		}
+		
+		function testSolution(){
+			
+			// Create a FormData object
+			var submitData = new FormData();
+
+			// validate that fields are filled in
+			var language = $('#languageSelect option:selected').val();
+			var languageText = $('#languageSelect option:selected').text();
+			var main_class = $('#main_class_input').val();
+			var package_name = $('#package_name_input').val();
+
+			if(languageText == 'Java' && main_class == '') {
+				
+				setInvalid($('#main_class_input'));
+				return false;
+				
+			} else if(languageText != 'Java'){
+
+				main_class = "";
+				package_name = "";
+			}
+			setValid($('#main_class_input'));
+			
+			var editor = ace.edit("editor");
+			editor.$blockScrolling = Infinity;				
+			$("#ACE").val(editor.getValue());
+
+			var ACE = $('#ACE').val();	
+			
+			submitData.append('assignmentId', {{problem.assignment.id}}),
+
+			submitData.append('language', language);
+			submitData.append('main_class', main_class);
+			submitData.append('package_name', package_name);
+			submitData.append('ACE', ACE);
+
+			if(getExtension($('#submissionUploadForm #file').val()) == "zip"){
+
+				var file = $('#submissionUploadForm #file').prop('files')[0];
+
+				if(file){
+					submitData.append('file', file);
+				}
+			}
+			
+			/* build the testcase array */
+			tcs = [];
+			$('.test-case').each( function (index) {
+				
+				const input = $(this).find("."+"input").val().replace(/\u21b5/g, '');
+				const tc = {"input": input, "args": "", "output": "", "weight": 1, "short_response": "", "long_response": "", "extra_credit": "false"};
+				tcs.push(tc);
+				
+			});
+			
+			console.log(tcs);		
+						
+			submitData.append('testcases', JSON.stringify(tcs));
+			
+			$('#loading-container-test').show();
+			$('#generate-output-button').hide();
+		
+			$.ajax({
+				type: "POST",
+				url: "{{path('generate')}}",
+				data: submitData,
+				processData: false,
+				contentType: false,
+				success: function(data){
+
+					console.log(data);
+					
+					// save the testcase data to the output textboxes
+					
+					$(".test-case").each(function(index) {	
+
+						$(this).find('.output').val(data['testcases'][index].replace('\n', '\u21b5\n'));
+						
+						if($(this).find('.output').val() != $(this).find('.exp-output').val()){
+							
+							$('#'+$(this).attr('id')+'-marker').css('background', 'pink');
+							$('#'+$(this).attr('id')+'-marker').css('border', '1pt solid red');
+							
+						} else {
+							
+							$('#'+$(this).attr('id')+'-marker').css('background', 'lightgreen');
+							$('#'+$(this).attr('id')+'-marker').css('border', '1pt solid green');
+						}
+					});
+										
+					$('#loading-container-test').hide();
+					$('#generate-output-button').show();
+				},
+				error: function(data){
+					alert(data['responseText']);
+					console.log(data['responseText']);
+					
+					$('#loading-container-test').hide();
+					$('#generate-output-button').show();
+				}
+			});
+		}
+		
 	</script>
 
 {% endblock %}

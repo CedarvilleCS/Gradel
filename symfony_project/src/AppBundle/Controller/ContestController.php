@@ -8,6 +8,7 @@ use AppBundle\Entity\UserSectionRole;
 use AppBundle\Entity\Section;
 use AppBundle\Entity\Assignment;
 use AppBundle\Entity\Team;
+use AppBundle\Entity\Trial;
 
 use AppBundle\Utils\Grader;
 use AppBundle\Utils\Uploader;
@@ -109,28 +110,102 @@ class ContestController extends Controller {
 		]);
     }
 	
-	
+	/* contest_problem route */
 	public function problemAction($contestId, $roundId, $problemId) {
+			
+		$em = $this->getDoctrine()->getManager();
+
+		$user = $this->get('security.token_storage')->getToken()->getUser();
+
+		if(!$user){
+			die("USER DOES NOT EXIST");
+		}
+
+		# VALIDATION
+		$section = $em->find('AppBundle\Entity\Section', $contestId);
+		if(!$section || !$section->course->is_contest){
+			die("CONTEST DOES NOT EXIST!");
+		}
+		
+		$assignment = $em->find('AppBundle\Entity\Assignment', $roundId);		
+		if(!$assignment || $assignment->section != $section){
+			die("ASSIGNMENT DOES NOT EXIST!");
+		}
+		
+		$problem = $em->find('AppBundle\Entity\Problem', $problemId);		
+		if(!$problem || $problem->assignment != $assignment){
+			die("PROBLEM DOES NOT EXIST!");
+		}
+		
+		// user must be enrolled in the contest or a super user to view this contest problem
+		$user_role = $em->getRepository('AppBundle\Entity\UserSectionRole')->findBy([
+			'user' => $user,
+			'section' => $section,
+		]);
 		
 		
+		if(!($user_role || $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN"))){
+			die("YOU ARE NOT ALLOWED TO VIEW THIS SECTION");
+		}
 		
-		return $this->render('assignment/problem.html.twig', [
+		// get JSON info for language info
+		$problem_languages = $problem->problem_languages->toArray();
+		
+		$languages = [];
+		$default_code = [];
+		$ace_modes = [];
+		$filetypes = [];
+		
+		foreach($problem_languages as $pl){
+			$languages[] = $pl->language;
+			
+			$ace_modes[$pl->language->name] = $pl->language->ace_mode;
+			$filetypes[str_replace(".", "", $pl->language->filetype)] = $pl->language->name;
+			
+			// either get the default code from the problem or from the overall default
+			if($pl->default_code != null){
+				$default_code[$pl->language->name] = $pl->deblobinateDefaultCode();
+			} else{
+				$default_code[$pl->language->name] = $pl->language->deblobinateDefaultCode();
+			}
+		}
+				
+		$grader = new Grader($em);
+		$team = $grader->getTeam($user, $section);
+		// get the list of all submissions by the team/user
+		if($team){
+			$all_submissions = $em->getRepository('AppBundle\Entity\Submission')->findBy([
+				'team' => $team,
+				'problem' => $problem,
+			], ['timestamp'=>'DESC']);
+		} else {
+			$all_submissions = $em->getRepository('AppBundle\Entity\Submission')->findBy([
+				'user' => $user,
+				'problem' => $problem,
+			], ['timestamp'=>'DESC']);
+		}
+		
+		// get the trial for the problem
+		$trial = $em->getRepository('AppBundle\Entity\Trial')->findOneBy([
+			'user' => $user,
+			'problem' => $problem,
+		]);
+				
+		return $this->render('contest/problem.html.twig', [
 			'user' => $user,
 			'team' => $team,
-			'section' => $assignment_entity->section,
-			'assignment' => $assignment_entity,
-			'problem' => $problem_entity,
+			
+			'section' => $section,
+			'contest' => $assignment,
+			'problem' => $problem,
+			
+			'trial' => $trial,
 
-			'languages' => $languages,
-			'usersectionrole' => $usersectionrole,
-			'grader' => new Grader($em),
+			'grader' => $grader,
 			
-			'attempts_remaining' => $attempts_remaining,
-			
-			'best_submission' => $best_submission,
-			'last_submission' => $last_submission,
 			'all_submissions' => $all_submissions,
 
+			'languages' => $languages,
 			'default_code' => $default_code,
 			'ace_modes' => $ace_modes,
 			'filetypes' => $filetypes,
