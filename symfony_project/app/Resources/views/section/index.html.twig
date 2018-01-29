@@ -255,7 +255,7 @@
 
 			// add it to the card
 			counter = 0;
-			selection = "<select id='assignmentSelect' onchange='gradeTable()'><option value='default'>Select an Assignment</option>";
+			selection = "<select id='assignmentSelect' onchange='gradeTable()' style='height: 30px; font-size: 13px;'><option value='default'>Select an Assignment</option>";
 					// onclick='gradeTable(" + counter + ")
 			{% for asgn in assignments %}
 				selection += "<option value=" + counter + ">{{ asgn.name }}</option>";
