@@ -129,9 +129,25 @@ class SectionController extends Controller {
 			$grader = new Grader($em);
 
 			if($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isTeaching($user, $section_entity) || $grader->isJudging($user, $section_entity)){
+				
+				// query for accepted submissions
+				$qb_accsub = $em->createQueryBuilder();
+				$qb_accsub->select('s')
+				   ->from('AppBundle\Entity\Submission', 's')
+				   ->where('s.user = ?1')
+				   ->andWhere('s.problem = ?2')
+				   ->andWhere('s.is_accepted = true')
+				   ->setParameter(1, $user)
+				   ->setParameter(2, $problem_entity);        
+						   
+				$sub_query = $qb_accsub->getQuery();
+				$best_submission = $sub_query->getOneOrNullResult();
 
+				// die(json_encode($best_submission));
+
+				// query for all submissions
 				$qb_submissions = $em->createQueryBuilder();
-				$qb_submissions->select('s')
+		 		$qb_submissions->select('s')
 						->from('AppBundle\Entity\Submission', 's')
 						->where('s.problem IN (?1)')
 						->orderBy('s.timestamp', 'DESC')
@@ -180,6 +196,8 @@ class SectionController extends Controller {
 				'future_assigs' => $future_assig,
 
 				'recent_submissions' => $submissions,
+
+				'accepted_submissions' => $best_submission,
 
 				'section_takers' => $section_takers,
 				'section_teachers' => $section_teachers,

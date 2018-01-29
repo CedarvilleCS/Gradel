@@ -102,7 +102,7 @@
 					<br>
 					
 					<a id="download" download="{{ section.name }} grades.csv">
-						<div class="btn">Download Grades</div>
+						<div class="btn">Download Grades Overview</div>
 					</a>
 				
 				{% endif %}
@@ -118,10 +118,9 @@
 			<div class="btn-close" onclick="collapseCard('studentInfoAssignment')"><h2 style="margin: 0px">Assignment Grades<span style="float: right"><i class="fa fa-angle-down"></i></span></h2></div>
 			<div id="studentInfoAssignment" class="card-contents">
 				<div id="assignmentLinks"></div>
-
-				
 			</div>
 		</div>
+
 		{% endif %}
 		
 		{# Recent Submissions Card #}	
@@ -139,6 +138,10 @@
 					
 				<div>   
 					<ul>
+					{% if accepted_submissions|length != 0 %}
+						<li> accepted submissions </li>
+					{% endif %}
+
 					{% if recent_submissions|length == 0 %}
 						<li> No recent submissions </li>
 					{% else %}
@@ -170,21 +173,14 @@
 
 								- {{sub.timestamp|date('M d  \\a\\t  h:i:s A')}}
 							</a> </li>
-						
 							</div>
 						{% endfor %}
-						
 					{% endif %}
-					
 					</ul>
 				</div>
 			</div>
 		</div>
-		
-		
 	</section>
-
-	
 </body>
 
 {% endblock %}
@@ -236,7 +232,7 @@
 						+				"{# number of testcases passed, number of test cases failed #}"
 						+				"{# {{ grades|json_encode() }} #}"
 						+				"{% if grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] == grades[user.id][asgn.id]['problem_grades'][problem.id]['total_testcases'] %}"
-						+					'<td style="color:green; font-size: 20px">' + "{{ grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] }}  / {{ grades[user.id][asgn.id]['problem_grades'][problem.id]['total_testcases'] }}</td>"
+						+					'<a href="' + "" + '"><td style="color:green; font-size: 20px">' + "{{ grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] }}  / {{ grades[user.id][asgn.id]['problem_grades'][problem.id]['total_testcases'] }}</td></a>"
 						+				"{% elseif grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] != 0 %}"
 						+					'<td style="color:orange; font-size: 20px">' + "{{ grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] }}  / {{ grades[user.id][asgn.id]['problem_grades'][problem.id]['total_testcases'] }}</td>"
 						+				"{% else %}"
@@ -247,7 +243,7 @@
 						+		"</table>"
 						+		"<br><br>"	
 						+		'<a id="download' + counter + '" download="{{ asgn.name }}.csv" onclick="' + "downloadAssgnGrades(" + counter + ", 'download" +  counter + "')" + '">'
-						+			'<div class="btn">Download Grades</div>'
+						+			'<div class="btn">Download Assignment Grades</div>'
 						+		"</a>";
 						counter += 1;
 			{% endfor %}
