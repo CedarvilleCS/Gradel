@@ -101,7 +101,7 @@
 					
 					<br>
 					
-					<a id="download" download="grades.csv">
+					<a id="download" download="{{ section.name }} grades.csv">
 						<div class="btn">Download Grades</div>
 					</a>
 				
@@ -205,7 +205,6 @@
 	<script>
 
 		$( document ).ready(function() {
-			console.log( "ready!" );
 
 			var counter = 0;
 
@@ -244,7 +243,7 @@
 						+		"{% endfor %}"
 						+		"</table>"
 						+		"<br><br>"	
-						+		'<a id="download' + counter + '" download="grades.csv" onclick="' + "downloadAssgnGrades(" + counter + ", 'download" +  counter + "')" + '">'
+						+		'<a id="download' + counter + '" download="{{ asgn.name }}.csv" onclick="' + "downloadAssgnGrades(" + counter + ", 'download" +  counter + "')" + '">'
 						+			'<div class="btn">Download Grades</div>'
 						+		"</a>";
 						counter += 1;
@@ -294,21 +293,16 @@
 				gradesCSV += '{{user }}, ';
 
 				{% for asgn in assignments %}
-									
-					{# // {% if grades[user.id][asgn.id]['num_correct_problems'] > 0 and grades[user.id][asgn.id]['num_correct_problems'] == grades[user.id][asgn.id]['num_problems'] %} #}
 
 					var correct = parseFloat("{{grades[user.id][asgn.id]['num_correct_problems']}}");
 					var total = parseFloat("{{grades[user.id][asgn.id]['num_problems']}}");
 					var percent = correct/total;
 
 					gradesCSV += correct + ', ' + total + ', ' + percent + ', '; 
-					// console.log("{{grades[user.id][asgn.id]['num_correct_problems']}}");
 
 				{% endfor %}
 				gradesCSV += "\n";
 			{% endfor %}
-			
-			// console.log(gradesCSV);
 
 			return gradesCSV;
 		}
@@ -336,7 +330,6 @@
 				gradesCSV[i] += "\n";
 
 				{% for user in section_takers %}
-					//console.log("user");
 					gradesCSV[i] += '{{user.getFirstName()}} {{user.getLastName()}}, ';
 
 					{% for problem in asgn.problems %}
@@ -349,14 +342,8 @@
 
 					gradesCSV[i] += "\n";
 				{% endfor %}
-
-				//console.log("grades at " + i + gradesCSV[i]);
 				i += 1;
 			{% endfor %}
-			
-			// for(var j = 0; j <= i; j++){
-				//console.log(gradesCSV[j]);
-			// }
 
 			return gradesCSV[index];
 		}
@@ -370,21 +357,7 @@
 			link.style.display = 'block';
 		}, false);
 
-		// Download the CSV of grades when the downloadAssignment button is clicked
-/*		var downloadAssignment = document.getElementById('downloadAssignment');	
-		downloadAssignment.addEventListener('click', function () {
-			var link = document.getElementById('downloadAssignment');
-			link.href = makeTextFile(generateGradeCSVAssignment(1));
-			link.style.display = 'block';
-		}, false); */
-
-
 		function downloadAssgnGrades(index, id) {
-			
-			console.log("index: " + index);
-			console.log(generateGradeCSVAssignment(index));
-			console.log("id: " + id);
-
 			var link = document.getElementById(id);
 			link.href = makeTextFile(generateGradeCSVAssignment(index));
 			link.style.display = 'block';
