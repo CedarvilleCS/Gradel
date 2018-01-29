@@ -121,7 +121,7 @@ class Submission implements JsonSerializable {
 		$this->reviewer = $rev;
 	}
 	
-	public function isCorrect(){
+	public function isCorrect($raw){
 		
 		$tcs = 0;
 		$passed_tcs = 0;
@@ -135,9 +135,11 @@ class Submission implements JsonSerializable {
 			}			
 		}
 		
-		if($this->correct_override) return true;
-		
-		if($this->wrong_override) return false;
+		if(!$raw){
+			
+			if($this->correct_override) return true;		
+			if($this->wrong_override) return false;
+		}
 		
 		return $passed_tcs == $tcs;
 	}

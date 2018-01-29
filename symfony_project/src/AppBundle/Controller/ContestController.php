@@ -361,11 +361,45 @@ class ContestController extends Controller {
 		]);
 	}	
 
-	public function resultAction($resultId){
+	public function resultAction($contestId, $roundId, $problemId, $resultId){
 		
-		die("resultAction");
+		$em = $this->getDoctrine()->getManager();
+
+		$user = $this->get('security.token_storage')->getToken()->getUser();
+
+		if(!$user){
+			die("USER DOES NOT EXIST");
+		}
 		
-		return $this->render('contest/result.html.twig', []);
+		
+		$section = $em->find('AppBundle\Entity\Section', $contestId);
+		if(!$section || !$section->course->is_contest){
+			die("CONTEST DOES NOT EXIST!");
+		}
+		
+		$assignment = $em->find('AppBundle\Entity\Assignment', $roundId);		
+		if(!$assignment || $assignment->section != $section){
+			die("ASSIGNMENT DOES NOT EXIST!");
+		}
+		
+		$problem = $em->find('AppBundle\Entity\Problem', $problemId);		
+		if(!$problem || $problem->assignment != $assignment){
+			die("PROBLEM DOES NOT EXIST!");
+		}	
+
+		$submission = $em->find('AppBundle\Entity\Submission', $resultId);		
+		if(!$submission || $submission->problem != $problem){
+			die("SUBMISSION DOES NOT EXIST");
+		}
+		
+		return $this->render('contest/result.html.twig', [
+		
+			'problem' => $problem,
+			'contest' => $assignment,
+			'submission' => $submission,
+		
+			'grader' => new Grader($em),
+		]);
 		
 	}
 	
@@ -464,26 +498,36 @@ class ContestController extends Controller {
 		
 		// check to make sure the submission hasn't been claimed
 		// ************************* RACE CONDITIONS *************************
-		if($submission->pending_status > 1){
+		if($submission->pending_status > 1 && !$postData['override']){
 			return $this->returnForbiddenResponse("Submission has already been reviewed");
 		}
-			
-		
+					
 		$reviewed = true;
 		if($postData['type'] == "wrong"){
 			
 			// override the submission to wrong
-			if($submission->isCorrect()){
-				$submission->wrong_override = true;
+			if($submission->isCorrect(true)){
+				
+				$submission->wrong_override = true;				
+				$submission->correct_override = false;
+			} else {
+				
+				$submission->wrong_override = false;
 				$submission->correct_override = false;
 			}
 			
 		} else if($postData['type'] == "correct"){
 			
 			// override the submission to correct
-			if(!$submission->isCorrect()){
+			if($submission->isCorrect(true)){
+				
 				$submission->wrong_override = false;
-				$submission->correct_override = true;
+				$submission->correct_override = false;	
+				
+			} else {
+				
+				$submission->wrong_override = false;
+				$submission->correct_override = true;					
 			}
 			
 		} else if($postData['type'] == "delete"){
@@ -500,12 +544,12 @@ class ContestController extends Controller {
 			
 			$message = $postData['message'];
 			
-			if(!isset($message) || trim($message) == ""){
-				return $this->returnForbiddenResponse("Message provided is not valid");
-			}
-			
 			// add custom message to submission
-			$submission->judge_message = trim($postData['message']);
+			if(!isset($message) || trim($message) == ""){
+				$submission->judge_message = NULL;
+			} else {
+				$submission->judge_message = trim($postData['message']);	
+			}			
 						
 		} else if($postData['type'] == "claimed"){
 			

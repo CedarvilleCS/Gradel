@@ -1,284 +1,107 @@
-{% extends 'base.html.twig' %}
+{% set elevatedUser = grader.isJudging(app.user, contest.section) or is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") %}
 
 {% block title %}
-	Gradel | Submission {{submission.id}}
+	<title>Gradel | Submission {{submission.id}}</title>
+{% endblock %}
+
+
+{% block stylesheets %}
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
+	
+	<link rel="stylesheet" href="{{ asset('styles.css') }}" />
+	<link rel="stylesheet" href="{{ asset('card.css') }}" />
+	<link rel="stylesheet" href="{{ asset('contest-hub.css') }}" />
+	<link rel="stylesheet" href="{{ asset('submission-results.css') }}">
 {% endblock %}
 
 {% block body %}
 
-{% if grader is not defined %}
-
-The grader was not passed from the controller.
-
-{% else %}
-
-{% set grades = grader.getProblemGrade(app.user, submission.problem) %}
-
 <body>
-	{{ include('template/top-nav.html.twig') }}
+    {{ include('template/top-nav.html.twig') }}
 	
-	{# left panel with the problem links #}
-	<nav class="nav-left">	
-		<ol style="padding-top: 0px; padding-bottom: 10px">
-			
-			<li style="text-align:center"> {{section.name}} 
-				
-				<div><small>{{section.course.name}}</small></div>
-			</li>
-
-			<li class="sidebar" style="text-align:left">
-				<strong>Problems</strong>		
-
-				<object>
-					<a title="Create problem" href="{{path('contest_problem_edit', {'contestId': contest.section.id, 'roundId': contest.id})}}">
-						<img class="small-icon" id="add-icon" src="/gradel_dev/tgsmith/gradel/symfony_project/web/add_circle.png">
-					</a>
-				</object>				
-			</li>	
-				
-				
-				
-			{% for problem in contest.problems %}
-
-			<a href={{path('contest_problem', {'contestId': problem.assignment.section.id, 'roundId': problem.assignment.id, 'problemId': problem.id})}}>
-			
-			<li class="sidebar list-item">					
-		
-			<span class="preview">
-				<div class="{% if elevatedUser %}sidebar-text{% endif %}">{{ problem.name }}</div>
-				<small>
-				
-				{# put progress here #}
-				
-				</small>
-			</span>
-
-			{# display edit icon #}
-			{% if elevatedUser %}
-				<object>
-					<a title="Edit problem" href="{{path('contest_problem_edit', {'contestId': problem.assignment.section.id, 'roundId': problem.assignment.id, 'problemId': problem.id})}}">
-						<img class="small-icon" id="right-icon" src="{{ asset('edit.png') }}">
-					</a>
-				</object>
-			{% endif %}
-			
-			</li>
-			</a>
-			
-			{% endfor %}
-		</ol>
-		
-		<a href="{{path('section_edit', {'sectionId': contest.section.id})}}" class="btn">
-			<div class="btn btn-center">Edit {{contest.section.name}}</div>
-		</a>
-		
-		<a>
-			<div id="assignment-pool" class="btn btn-center"> Switch to Practice Contest </div>
-		</a>
-	</nav>
+	{{ include('contest/problem-nav.html.twig') }}
 	
-	{# {{ include('template/path-nav.html.twig') }} #}
-
-	<section id="main">
-	
+	<section id="main">	
 		<div class="card">
 			<div style="display: flex; flex-direction: row; justify-content: space-between">
 				<h2 style="margin: 0px">{{submission.problem.name}}</h2>
 				
-				{% if is_granted("ROLE_SUPER") or grader.isTeaching(app.user, submission.problem.assignment.section) %}
-				<a title="Delete Submission" href="{{path('result_delete', {'submission_id': submission.id})}}">
-					<img src="{{ asset('trash.png') }}">
-				</a>
+				{% if elevatedUser %}
+				<div style="position: absolute; right: 45;">
+					<div class="main-options">
+						<div class="button formatting-button" title="Mark as Formatting Error" id="{{submission.id}}">&#x270F;</div>
+						<div class="button wrong-button" title="Mark as Incorrect" id="{{submission.id}}">&#x2718;</div>
+					</div>
+							
+					<div class="additional-options">
+						<div class="button correct-button" title="Mark as Correct" id="{{submission.id}}">&#x2713;</div>
+						<div class="button custom-buttom" title="Return Custom Message" id="{{submission.id}}">&#x1f589;</div>
+						<div class="button delete-button" title="Delete Submission" id="{{submission.id}}">&#x1F5D1;</div>
+					</div>
+				</div>
 				{% endif %}
+				
 			</div>
 			
 			<div id="submissionOverview" class="card-contents">
 				<h3 style="margin-top: 2px; margin-bottom: 2px">
-					RESULT: 
-					{% if submission.isCorrect() %}						
-						<span style="color:green">CORRECT!</span>
-						
+					RESULT:
+					{% if submission.pending_status < 2 %}
+						<i> PENDING REVIEW </i>
+					{% elseif submission.isCorrect() %}						
+						<span style="color:green">
+							CORRECT!
+							
+							{% if not submission.isCorrect(true) %}
+							(Overriden by Judge)
+							{% endif %}
+						</span>
+							
 					{% else %}					
 						<span style="color:red">
+						
 						{% if submission.compiler_error %}
 						COMPILER ERROR!
 						{% elseif submission.exceeded_time_limit %}
 						TIME LIMIT EXCEEEDED!
-						<br/>
-						
-						{% if submission.testcaseresults|length > 0 %}
-							{% for tcr in submission.testcaseresults %}
-								Runtime for input {{tcr.testcase.seq_num}}) {{tcr.execution_time/1000}}s
-								<br/>
-							{% endfor %}
-						{% else %}
-							Wall clock limit exceeded <br/>
-						{% endif %}
-						
 						{% elseif submission.runtime_error %}
 						RUNTIME ERROR!
 						{% else %}
 						WRONG ANSWER!
+						
+						{% if submission.isCorrect(true) %}
+						(Overriden by Judge)
 						{% endif %}
-						</span>
+						
+						{% endif %}	
+						
+						</span>	
 						
 					{% endif %}
+						
+					{% if submission.judge_message %}
+					<div> JUDGE MESSAGE: {{ submission.judge_message }} </div>
+					{% endif %}
+					
 				</h3>				
 				
 				
 
 				<div>
-				{% if submission.questionable_behavior %}
-					POSSIBLE MALICIOUS BEHAVIOR DETECTED
-				{% endif %}
-				
-				{% if submission.compiler_output %}
+				{% if submission.compiler_error and submission.compiler_output %}
 					<h2> COMPILER OUTPUT </h2>
 					<textarea disabled id='compiler-output'>{{submission.compiler_output}}</textarea>
 				{% endif %}
 				
 				</div>
-					
-				<!--span style="word-wrap: break-word"> {{feedback|json_encode}} </span-->
 				
-				
-				
-				{% if feedback.display_markers and not submission.compiler_error and not submission.questionable_behavior and submission.testcaseresults|length > 0%}
-				<div id="feedback-holder">
-					<div id="testcase-markers-container">
-						<h3>TESTCASES:</h3>				
-							{% if feedback.output|length > 0 %}
-							<div id="testcase-markers">
-								<ul>
-									{% set failed = false %}
-									{% for tcr in submission.testcaseresults %}						
-									
-										{% if not failed or not feedback.stop_on_first_fail %}
-										{% if not tcr.testcase.is_extra_credit or feedback.extra_testcases_display %}
-										
-										{% if tcr.is_correct %}
-											{% set classname = 'correct'%}
-										{% else %}
-											{% set classname = 'incorrect'%}
-										{% endif %}
-										
-										<li id="{{classname}}"> <a href="#testcase-tab-{{tcr.id}}">
-											{% if tcr.is_correct %}
-												<span style="color:green; font-size: 20px;"> &#x2713;</span> 				
-											{% else %}
-												{% set failed = true %}
-												<span style="color:red; font-size: 20px;"> &#x2718;</span>
-											{% endif %}
-										</a></li>	
-										
-										{% endif %}
-										{% endif %}
-									
-									{% endfor %}
-								</ul>
-								
-								{% for tcr in submission.testcaseresults %}
-								
-									{% if not tcr.runtime_error %}
-										{% if not tcr.testcase.is_extra_credit or feedback.extra_testcases_display %}
-										
-										<div id="testcase-tab-{{tcr.id}}">
-											<div class="testcase-data">
-												{% if feedback.input[tcr.testcase.seq_num] or feedback.command_line[tcr.testcase.seq_num] %}
-												<div id="testcase-input">
-													
-													{% if feedback.input[tcr.testcase.seq_num] %}
-													<div>
-														<div class="testcase-data-heading">Input:</div>
-														<textarea {% if feedback.input[tcr.testcase.seq_num] %} id="input-textarea" {% endif %} disabled>{{feedback.input[tcr.testcase.seq_num]}}</textarea>
-													</div>
-													{% endif %}
-													
-													{% if feedback.command_line[tcr.testcase.seq_num] %}
-													<div>
-														<div class="testcase-data-heading">Command-Line Arguments:</div>
-														<textarea  {% if feedback.command_line[tcr.testcase.seq_num] %} id="command-line-textarea" {% endif %} disabled>{{feedback.command_line[tcr.testcase.seq_num]}}</textarea>
-													</div>
-													{% endif %}
-													
-												</div>	
-												{% endif %}
-												
-												
-												
-												<div id="testcase-outputexp">
-													<div class="testcase-data-heading">Expected Output:</div>
-													<textarea disabled>{{feedback.output[tcr.testcase.seq_num]}}</textarea>
-												</div>
-												
-												<div id="testcase-outputyrs">
-													<div class="testcase-data-heading">Your Output:</div>
-													<textarea disabled>{{submission.testcaseresults[loop.index0].std_output}}</textarea>
-												</div>
-											</div>
-										</div>
-										
-										{% endif %}
-									{% else %}
-									
-										<div id="testcase-tab-{{tcr.id}}">
-											<div class="testcase-data">
-												<div id="testcase-outputexp" style="width: 100%">
-													<div class="testcase-data-heading">Runtime Output:</div>
-													<textarea disabled>{{feedback.runtime[tcr.testcase.seq_num]}}</textarea>
-												</div>
-											
-											</div>
-										</div>								
-									
-									{% endif %}
-								
-								{% endfor %}
-						
-							</div>
-							<i style="color: red"><small>Note that expected output may contain regex patterns that could match an variety of strings.</small></i>							
-							{% else %}
-							<div id="testcase-markers-no-out">
-								{% for tcr in submission.testcaseresults %}						
-									
-									{% if not tcr.testcase.is_extra_credit or feedback.extra_testcases_display %}
-									
-									{% if tcr.is_correct %}
-										<span style="color:green; font-size: 20px;"> &#x2713;</span> 				
-									{% else %}
-										<span style="color:red; font-size: 20px;"> &#x2718;</span>
-									{% endif %}
-									
-									{% endif %}
-								
-								{% endfor %}						
-							
-							</div>		
-							{% endif %}
-					</div>
-					
-					{% if feedback.response|length > 0 %}
-					<div id="feedback"> 
-						<h3> TIPS: </h3>
-						<ul>
-						{% for response in feedback.response %}
-							<li>{{response}}</li>
-						{% endfor %}
-					
-					{% endif %}
-						</ul>
-					</div>
-				</div>
-				
-				{% endif %}
-				
-				<h2 style="">SUBMITTED CODE</h2>
-				
+				<h2 style="">SUBMITTED CODE</h2>				
 				<a href="{{path('contest_problem', {'contestId': submission.problem.assignment.section.id, 'roundId': submission.problem.assignment.id, 'problemId': submission.problem.id} )}}">
 					Edit and resubmit
 				</a>
 				
-<div id="editor">{% if submission.filename|split('.')|last != 'zip' %}
+<div id="editor" style="height: 550px">{% if submission.filename|split('.')|last != 'zip' %}
 {{ submission.deblobinateSubmittedFile()|nl2br }}{% else %}
 Submission was a ZIP file{% endif %}</div>
 				
@@ -288,22 +111,40 @@ Submission was a ZIP file{% endif %}</div>
 		
 	</section>
 	
-	</body>
+		
 	
-{% endif %}
-
 	
-{% endblock %}
-
-{% block stylesheets %}
-	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
+	{# custom dialog #}	
+	<div id="custom-message-form" title="Custom Message" value="0">
+	  <form>
+		  <input type="text" name="message" id="message" class="text ui-widget-content ui-corner-all">
+		 
+		  <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+	  </form>
+	</div>
+		
+	{# delete dialog #}
+	<div id="delete-form" title="Delete Submission?" value="0">
+	  <p>This submission will be permanently deleted. Are you sure?</p>
+	</div>
+	 
+	{# correct dialog #}
+	<div id="correct-form" title="Mark Submission Correct?" value="0">
+	  <p>This submission will be marked correct. Are you sure?</p>
+	</div>
 	
-	<link rel="stylesheet" href="{{ asset('styles.css') }}" />
-	<link rel="stylesheet" href="{{ asset('card.css') }}" />
+	{# wrong answer dialog #}
+	<div id="wrong-form" title="Confirm Submission Wrong?" value="0">
+	  <p>This submission will be confirmed wrong answer. Are you sure?</p>
+	</div>
 	
-	<link rel="stylesheet" href="{{ asset('submission-results.css') }}">
-
+	{# formatting dialog #}
+	<div id="formatting-form" title="Mark Submission Wrong Formatting?" value="0">
+	  <p>This submission will be marked as having wrong formatting. Are you sure?</p>
+	</div>
+	
+</body>
+	
 {% endblock %}
 
 {% block javascripts %}
@@ -316,8 +157,6 @@ Submission was a ZIP file{% endif %}</div>
 	
 	$(document).ready( function() {
 	
-		$('#testcase-markers').tabs();
-
 		{% if submission.compiler_output %}
 		
 		var a = $('#compiler-output').html();
@@ -329,6 +168,221 @@ Submission was a ZIP file{% endif %}</div>
 		editor.setTheme("ace/theme/xcode");	
 		editor.setReadOnly(true);
 	});
+	
+	
+	$('.button')
+		.mousedown(function() {
+		
+			$(this).css({
+				
+				'border-top': '1px solid #333333',
+				'border-right': '1px solid white',
+				'border-bottom': '1px solid white',
+				'border-left': '1px solid #333333'						
+			});
+	
+		})
+		.mouseup(function() {
+			
+			$(this).css({						
+				'border-top': '1px solid white',
+				'border-right': '1px solid #333333',
+				'border-bottom': '1px solid #333333',
+				'border-left': '1px solid white'						
+			});
+		});
+		
+	/* CUSTOM FORMATTING MESSAGE */
+	customMessageDialog = $("#custom-message-form").dialog({
+		autoOpen: false,
+		modal: true,
+		buttons: {
+			"Update Submission": function () {
+				updateSubmission("message");						
+			}, 
+			Cancel: function() {
+				customMessageDialog.dialog( "close" );
+			}
+		},
+	  close: function() {
+		  customMessageForm[0].reset();
+	  }
+	});
+	
+	customMessageForm = customMessageDialog.find( "form" ).on( "submit", function( event ) {
+		event.preventDefault();
+		updateSubmission("message");
+	});
+	
+	$( ".custom-buttom" ).on( "click", function() {
+		var sub_id = $(this).attr('id');
+		$('#custom-message-form').val(sub_id);
+		customMessageDialog.dialog("open");
+	});
+	
+	
+	/* DELETE MESSAGE */
+	deleteDialog = $( "#delete-form" ).dialog({
+		resizable: false,
+		modal: true,
+		autoOpen: false,
+		width: "auto",
+		height: "auto",
+		buttons: {
+			"Delete Submission": function() {
+				updateSubmission("delete");
+			},
+			Cancel: function() {
+				$( this ).dialog( "close" );
+			}
+		}
+	});
+	
+	$( ".delete-button" ).on( "click", function() {
+		var sub_id = $(this).attr('id');
+		$('#delete-form').val(sub_id);
+		deleteDialog.dialog("open");
+	});
+	
+	/* CORRECT MESSAGE */
+	correctDialog = $( "#correct-form" ).dialog({
+		resizable: false,
+		modal: true,
+		autoOpen: false,
+		width: "auto",
+		height: "auto",
+		buttons: {
+			"Mark Correct": function() {
+				updateSubmission("correct");
+			},
+			Cancel: function() {
+				$( this ).dialog( "close" );
+			}
+		}
+	});
+	
+	$( ".correct-button" ).on( "click", function() {
+		var sub_id = $(this).attr('id');
+		$('#correct-form').val(sub_id);
+		correctDialog.dialog("open");
+	});
+
+	/* WRONG MESSAGE */
+	wrongDialog = $( "#wrong-form" ).dialog({
+		resizable: false,
+		modal: true,
+		autoOpen: false,
+		width: "auto",
+		height: "auto",
+		buttons: {
+			"Mark Wrong Answer": function() {
+				updateSubmission("wrong");
+			},
+			Cancel: function() {
+				$( this ).dialog( "close" );
+			}
+		}
+	});
+	
+	$( ".wrong-button" ).on( "click", function() {
+		var sub_id = $(this).attr('id');
+		$('#wrong-form').val(sub_id);
+		wrongDialog.dialog("open");
+	});
+	
+	/* FORMATTING MESSAGE */
+	formattingDialog = $( "#formatting-form" ).dialog({
+		resizable: false,
+		modal: true,
+		autoOpen: false,
+		width: "auto",
+		height: "auto",
+		buttons: {
+			"Mark Wrong Formatting": function() {
+				updateSubmission("formatting");
+			},
+			Cancel: function() {
+				$( this ).dialog( "close" );
+			}
+		}
+	});
+	
+	$( ".formatting-button" ).on( "click", function() {
+		var sub_id = $(this).attr('id');
+		$('#formatting-form').val(sub_id);
+		formattingDialog.dialog("open");
+	});
+	
+	
+	/* FUNCTION TO HANDLE POST TO UPDATE SUBMISSIONS */
+	function updateSubmission(type){	
+		
+		var id;
+		var formData = new FormData();
+		
+		formData.append('override', true);
+		formData.append('type', type);
+		
+		if(type == "message"){				
+			id = $('#custom-message-form').val();
+			message = $('#message').val();
+			customMessageDialog.dialog( "close" );
+			
+			formData.append('message', message);
+		} 
+		else if(type == "delete"){
+			id = $('#delete-form').val();
+			deleteDialog.dialog( "close" );				
+		}
+		else if(type == "correct"){
+			id = $('#correct-form').val();
+			correctDialog.dialog( "close" );
+		}
+		else if(type == "wrong"){
+			id = $('#wrong-form').val();
+			wrongDialog.dialog( "close" );
+		}
+		else if(type == "formatting"){			
+			id = $('#formatting-form').val();
+			formattingDialog.dialog( "close" );					
+		}
+		else if(type == "claimed"){
+			id = claimed_id;
+		}
+		else if(type == "unclaimed"){
+			id = claimed_id;			
+		}else {
+			return false;
+		}
+		
+		formData.append('submissionId', id);
+		
+		$.ajax({
+			type: "POST",
+			url: "{{path('judging_modify')}}",
+			data: formData,
+			processData: false,
+			contentType: false,
+			success: function(data){
+
+				console.log(data);
+				
+				if(data['id'] != null && data['reviewed'] != null){						
+
+					window.location.reload();
+					
+				} else {
+					alert("Error reviewing submission");						
+				}
+			},
+			error: function(data){
+				alert(data['responseText']);
+				console.log(data['responseText']);
+			}
+		});
+		
+		return true;
+	}
 	
 	
 	</script>

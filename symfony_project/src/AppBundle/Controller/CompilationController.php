@@ -322,6 +322,19 @@ class CompilationController extends Controller {
 			}
 		}
 		
+		$submission->pending_status = 2;
+		
+		if($submission->problem->assignment->section->course->is_contest){
+		
+			if(!($submission->isCorrect() 
+					|| $submission->compiler_error 
+					|| $submission->exceeded_time_limit 
+					|| $submission->runtime_error)){
+					
+				$submission->pending_status = 0;				
+			} 
+		}
+		
 		# update the submission entity
 		$em->persist($submission);
 		$em->flush();
@@ -330,7 +343,7 @@ class CompilationController extends Controller {
 		
 		if($submission->problem->assignment->section->course->is_contest){
 			$url = $this->generateUrl('contest_result', [
-				'contestId' => $submission->problem->assignment->section-id,
+				'contestId' => $submission->problem->assignment->section->id,
 				'roundId' => $submission->problem->assignment->id,
 				'problemId' => $submission->problem->id,
 				'resultId' => $submission->id
