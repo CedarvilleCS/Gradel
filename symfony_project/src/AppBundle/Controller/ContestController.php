@@ -9,6 +9,7 @@ use AppBundle\Entity\Section;
 use AppBundle\Entity\Assignment;
 use AppBundle\Entity\Team;
 use AppBundle\Entity\Trial;
+use AppBundle\Entity\Query;
 
 use AppBundle\Utils\Grader;
 use AppBundle\Utils\Uploader;
@@ -109,8 +110,7 @@ class ContestController extends Controller {
 			'section_judges' => $section_judges,
 		]);
     }
-	
-	/* contest_problem route */
+
 	public function problemAction($contestId, $roundId, $problemId) {
 			
 		$em = $this->getDoctrine()->getManager();
@@ -254,6 +254,24 @@ class ContestController extends Controller {
 		]);	
 	}	
 		
+	public function problemEditAction($contestId, $roundId, $problemId) {
+		
+		die("problemEditAction");
+
+		return $this->render('contest/problem_edit.html.twig', [
+			'languages' => $languages,
+			'section' => $section,
+			'assignment' => $assignment,
+			'problem' => $problem,
+			
+			'default_code' => $default_code,
+			'ace_modes' => $ace_modes,
+			'filetypes' => $filetypes,
+			
+			'recommendedSlaves' => $recommendedSlaves,
+		]);
+	}
+	
 	public function contestEditAction($contestId) {
 		
 		
@@ -277,7 +295,7 @@ class ContestController extends Controller {
 			"minutesLeft" => $minutesLeft,
 		]);
 	}
-	
+
 	public function modifyProblemPostAction(Request $request){
 		
 		return $this->returnForbiddenResponse("modifyProblemPostAction");
@@ -342,24 +360,6 @@ class ContestController extends Controller {
 		return new Response();
 		
 	}
-		
-	public function problemEditAction($contestId, $roundId, $problemId) {
-		
-		die("problemEditAction");
-
-		return $this->render('contest/problem_edit.html.twig', [
-			'languages' => $languages,
-			'section' => $section,
-			'assignment' => $assignment,
-			'problem' => $problem,
-			
-			'default_code' => $default_code,
-			'ace_modes' => $ace_modes,
-			'filetypes' => $filetypes,
-			
-			'recommendedSlaves' => $recommendedSlaves,
-		]);
-	}	
 
 	public function resultAction($contestId, $roundId, $problemId, $resultId){
 		
@@ -402,7 +402,6 @@ class ContestController extends Controller {
 		]);
 		
 	}
-	
 	
 	public function pollContestAction(Request $request){
 		
@@ -459,9 +458,23 @@ class ContestController extends Controller {
 		$rev_subs_query = $qb_revsubs->getQuery();
 		$reviewed_submissions = $rev_subs_query->getResult();
 		
+		// get the trial for the problem
+		$qb_clars = $em->createQueryBuilder();
+		$qb_clars->select('s')
+			->from('AppBundle\Entity\Query', 's')
+			->where('s.problem IN (?1)')
+			->orWhere('s.assignment IN (?2)')
+			->andWhere('s.answer IS NULL')
+			->orderBy('s.timestamp', 'ASC')
+			->setParameter(1, $contest->problems->toArray())
+			->setParameter(2, $contest);
+		$clar_query = $qb_clars->getQuery();
+		$clarifications = $clar_query->getResult();	
+		
 		$response = new Response(json_encode([
 			'pending_submissions' => $pending_submissions,
 			'reviewed_submissions' => $reviewed_submissions,
+			'clarifications' => $clarifications,
 		]));
 			
 		
@@ -597,13 +610,15 @@ class ContestController extends Controller {
 
 		return $response;
 	}
-	
-	
+		
 	private function returnForbiddenResponse($message){		
 		$response = new Response($message);
 		$response->setStatusCode(Response::HTTP_FORBIDDEN);
 		return $response;
 	}
-}
+
+	
+	
+	}
 
 ?>

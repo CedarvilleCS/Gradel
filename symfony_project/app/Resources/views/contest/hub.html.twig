@@ -127,6 +127,36 @@ console.log(JSON.parse("{{ leaderboard | json_encode(constant('JSON_PRETTY_PRINT
 			</div>
 		</div>
 		
+		<div class="card">
+			
+			<div class="btn-close" onclick="collapseCard('questionsCard')">
+				<h2 style="margin: 0px">Clarifications
+					<span style="float: right"><i class="fa fa-angle-down"></i></span>
+				</h2>
+			</div>
+		
+			<div id="questionsCard" class="card-contents" style="margin-top: 0px">
+				<div>
+					<ul style="list-style: none; padding-left: 5px;">
+						{% for query in contest.queries %}
+	
+							{% if query.answer %}
+						
+							{% if query.question %}
+								<li style="font-weight: bold">[{{query.timestamp|date('h:i A')}}] Q: {{query.question}}</li> 
+								<li style="font-style: italic">A: {{query.answer}} </li>
+							{% else %}
+								<li style="font-style: italic; font-weight: bold; color: red;">[{{query.timestamp|date('h:i A')}}]  NOTICE: {{query.answer}} </li>
+							{% endif %}
+							<hr>
+							{% endif %}
+							
+						{% endfor %}
+					</ul>
+				</div>
+			</div>
+		</div>
+		
 		{#		
 		<div class="card">
 			

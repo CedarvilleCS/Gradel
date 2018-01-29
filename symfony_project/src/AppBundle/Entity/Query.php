@@ -62,12 +62,12 @@ class Query {
 	public $assignment;
 	
 	/**
-	* @ORM\Column(type="text")
+	* @ORM\Column(type="text", nullable=true)
 	*/	
 	public $question;
 	
 	/**
-	* @ORM\Column(type="text")
+	* @ORM\Column(type="text", nullable=true)
 	*/	
 	public $answer;
 	

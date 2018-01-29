@@ -295,8 +295,6 @@
 	justify-content: flex-start;
 	
 	margin-bottom: 10px;
-	
-	
 }
 
 .queued.submission {
@@ -475,4 +473,35 @@
 
 .review.correct:hover {
 	background: lightgreen;
+}
+
+.clarification{
+	min-height: 65px;
+	padding: 5px;
+	border-radius: 10px;
+	
+	margin-bottom: 5px;
+	
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+	
+	
+	min-height: 25px;
+	
+	padding-left: 15px;
+	font-size: 1.0em;
+	
+	font-style: italic;
+	
+	background: #CCCCCC;
+	border: 1pt solid blue;
+	
+	cursor: pointer;
+	line-height: 25px;
+}
+
+.clarification .name{
+	min-width: 300px;	
+	font-size: 1.2em;
 }
