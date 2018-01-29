@@ -117,6 +117,7 @@
 		<div class="card">
 			<div class="btn-close" onclick="collapseCard('studentInfoAssignment')"><h2 style="margin: 0px">Assignment Grades<span style="float: right"><i class="fa fa-angle-down"></i></span></h2></div>
 			<div id="studentInfoAssignment" class="card-contents">
+				<div id="assignmentLinks"></div>
 
 				
 			</div>
@@ -204,17 +205,19 @@
 
 	<script>
 
+		var table = [];
+		var selecton = "";
+
 		$( document ).ready(function() {
 
 			var counter = 0;
-
-			var table 	= "<div>";
+			
 			{% if section_takers|length == 0 %}				
-			table 		+=	"There are no students enrolled in this class";
+			table[0] 		+=	"There are no students enrolled in this class";
 			{% else %}
 			{# For each assignment #}
 			{% for asgn in assignments %}
-				table 	+= "<h3>{{asgn.name}}</h3>"
+				table[counter] = "<h3 id='asgn" + counter + "'>{{asgn.name}}</h3>"
 						+	"<table>"
 						+		"<tr>"
 						+			"<th style='border-right: 1px solid black;'>&nbsp;</th>"
@@ -248,14 +251,37 @@
 						+		"</a>";
 						counter += 1;
 			{% endfor %}
-			table		+=	"<br>";
 			{% endif %}
-			table 		+= "</div>";
-
 
 			// add it to the card
-			$("#studentInfoAssignment").append(table);
+			counter = 0;
+			selection = "<select id='assignmentSelect' onchange='gradeTable()'><option value='default'>Select an Assignment</option>";
+					// onclick='gradeTable(" + counter + ")
+			{% for asgn in assignments %}
+				selection += "<option value=" + counter + ">{{ asgn.name }}</option>";
+				counter += 1;
+			{% endfor %}
+			selection += "</select>";
+
+			initializeGradeTable(0);
+
+			// create a list of links and add to card
+			{# counter = 0;
+			{% for asgn in assignments %}
+				$("#assignmentLinks").append("<a href='#asgn" + counter + "'>{{ asgn.name }}</a><br>");
+				counter += 1;
+			{% endfor %} #}
 		});
+
+		function initializeGradeTable(index) {
+			console.log("grade table " + index);
+			$("#studentInfoAssignment").html(selection + table[index]);
+		}
+		function gradeTable() {
+			index = $('#assignmentSelect').val();
+			console.log("grade table without index" + index);
+			$("#studentInfoAssignment").html(selection + table[index]);
+		}
 	
 
 		{% if is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") or grader.isTeaching(user, section) %}
