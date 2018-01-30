@@ -322,19 +322,17 @@ class CompilationController extends Controller {
 			}
 		}
 		
+		// update pending status
 		$submission->pending_status = 2;
 		
 		if($submission->problem->assignment->section->course->is_contest){
 		
-			if(!($submission->isCorrect() 
-					|| $submission->compiler_error 
-					|| $submission->exceeded_time_limit 
-					|| $submission->runtime_error)){
-					
+		
+			if($submission->percentage != 1 && !$submission->compiler_error && !$submission->exceeded_time_limit && !$submission->runtime_error){
 				$submission->pending_status = 0;				
 			} 
 		}
-		
+
 		# update the submission entity
 		$em->persist($submission);
 		$em->flush();

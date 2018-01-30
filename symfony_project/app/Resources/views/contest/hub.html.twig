@@ -111,8 +111,7 @@ console.log(JSON.parse("{{ leaderboard | json_encode(constant('JSON_PRETTY_PRINT
 						{% set className = (loop.last) ? "last-row" : "" %}
 						{% set rowClassName = (team.results[loop.index0]) ? "accepted" : (team.attempts[loop.index0] > 0) ? "attempted" : "unattempted" %}
 						{% set isCorrect = team.results[loop.index0] %}
-						
-					
+											
 						<tr class="{{rowClassName}}" onclick="window.location='{{path('contest_problem', {'contestId': problem.assignment.section.id, 'roundId': problem.assignment.id, 'problemId': problem.id})}}'">
 							<td class="name {{className}}"><div> {{problem.name}} </div></td>
 							
@@ -129,28 +128,33 @@ console.log(JSON.parse("{{ leaderboard | json_encode(constant('JSON_PRETTY_PRINT
 		
 		<div class="card">
 			
-			<div class="btn-close" onclick="collapseCard('questionsCard')">
-				<h2 style="margin: 0px">Clarifications
+			<div class="btn-close">
+				<h2 style="margin: 0px" onclick="collapseCard('questionsCard')">Clarifications
 					<span style="float: right"><i class="fa fa-angle-down"></i></span>
 				</h2>
+				
+				<div id="clarification-button" style="top: 15px">Ask for Clarification</div>
 			</div>
 		
 			<div id="questionsCard" class="card-contents" style="margin-top: 0px">
 				<div>
 					<ul style="list-style: none; padding-left: 5px;">
-						{% for query in contest.queries %}
+						{% for query in queries %}
 	
 							{% if query.answer %}
 						
 							{% if query.question %}
-								<li style="font-weight: bold">[{{query.timestamp|date('h:i A')}}] Q: {{query.question}}</li> 
-								<li style="font-style: italic">A: {{query.answer}} </li>
-							{% else %}
-								<li style="font-style: italic; font-weight: bold; color: red;">[{{query.timestamp|date('h:i A')}}]  NOTICE: {{query.answer}} </li>
-							{% endif %}
-							<hr>
+							<li style="font-weight: bold">Q: {{query.question}}</li> 
+							<li style="font-style: italic">A: {{query.answer}} </li>
+							{% else %}							
+							<li style="font-weight: bold; color: red;">{{query.answer}} </li>
 							{% endif %}
 							
+							<hr>
+							{% else %}
+							<li style="font-weight: bold">Q: [PENDING] {{query.question}}</li>
+							<hr>
+							{% endif %}
 						{% endfor %}
 					</ul>
 				</div>
@@ -182,6 +186,16 @@ console.log(JSON.parse("{{ leaderboard | json_encode(constant('JSON_PRETTY_PRINT
 			
 	</section>
 
+		
+	
+	{# clarification dialog #}	
+	<div id="clarification-form" title="Ask for Clarification" value="0">
+	  <form>
+			<div> General Clarification: </div>
+			<input type="text" name="question" id="question" class="text ui-widget-content ui-corner-all">
+			<input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+	  </form>
+	</div>
 	
 </body>
 
@@ -232,6 +246,7 @@ console.log(JSON.parse("{{ leaderboard | json_encode(constant('JSON_PRETTY_PRINT
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 	<script src="{{ asset('js/cards.js') }}"></script>
+	<script src="{{ asset('js/validation.js') }}"></script>
 	
 	<script>
 		
@@ -239,12 +254,49 @@ console.log(JSON.parse("{{ leaderboard | json_encode(constant('JSON_PRETTY_PRINT
 		var total = {{contest.end_time|date('U')}} - {{contest.start_time|date('U')}};
 		//var freeze 
 		$(document).ready( function() {
-					
+			
+			/* COUNTDOWN TIMER */
 			$('#progressbar').progressbar({
 				max: total, // total seconds in the contest
 				value: time	// current seconds into the contest		
 			});
-						
+			
+			
+			/* QUESTION ASKER */
+			clarificationDialog = $("#clarification-form").dialog({
+				autoOpen: false,
+				modal: true,
+				width: "600px",
+				height: "auto",
+				buttons: {
+					"Ask Question": function () {
+						if(postClarification()){
+							clarificationDialog.dialog( "close" );
+						}						
+					}, 
+					Cancel: function() {
+						clarificationDialog.dialog( "close" );
+					}
+				},
+			  close: function() {
+				  noticeMessageForm[0].reset();
+			  }
+			});
+
+			clarificationDialog.find("form").off( "submit");
+			noticeMessageForm = clarificationDialog.find( "form" ).on( "submit", function( event ) {				
+				event.preventDefault();
+				
+				if(postClarification()){	
+					clarificationDialog.dialog("close");
+				}
+			});
+			
+			$('#clarification-button').button().click(function() {
+				clarificationDialog.dialog("open");
+			});
+					
+			/* AJAX LOOP */
 			setInterval(loopFunction, 1000);
 			loopFunction();
 
@@ -297,6 +349,45 @@ console.log(JSON.parse("{{ leaderboard | json_encode(constant('JSON_PRETTY_PRINT
 				console.log("Polling for updates...");
 			
 			}
+		}
+		
+				
+		function postClarification(){
+			
+			// Create a FormData object
+			var formData = new FormData();
+
+			formData.append('contestId', {{contest.id}});
+			
+			var question = $('#clarification-form #question').val();
+
+			if(question == ""){
+				setInvalid($('#clarification-form #question'));
+				return false;
+			} else {
+				setValid($('#clarification-form #question'));
+			}
+			
+			formData.append('question', question);
+			
+			$.ajax({
+				type: "POST",
+				url: "{{path('judging_query')}}",
+				data: formData,
+				processData: false,
+				contentType: false,
+				async: true,
+				success: function(data){
+					console.log(data);
+				},
+				error: function(data){					
+					alert(data['responseText']);
+					console.log(data['responseText']);					
+				}
+			});
+			
+			
+			return true;
 		}
 		
 	</script>

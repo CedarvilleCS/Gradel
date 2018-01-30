@@ -35,6 +35,12 @@
 	font-style: italic;
 }
 
+#clarification-button{
+	position: absolute;
+	right: 45px;
+	top: 25px;
+}
+
 #progressbar-container .ui-progressbar-value {
   border: none;
   color: rgba(255,255,255,1);
@@ -156,8 +162,8 @@
 	min-height: 100px;
 	min-width: 100%;
 	display: flex;
-	flex-direction: column;
-	align-items: flex-end;
+	flex-direction: row;
+	justify-content: flex-end;
 }
 
 /* problem table css*/
@@ -248,23 +254,25 @@
 	min-height: 100px;
 }
 
-#recent-reviews {
-	height: 100px;
+#recent-reviews, #recent-clarifications {
+	height: 110px;
 	padding: 2px;
-	width: 25%;
 	border-radius: 7px;
 	
 	background: #F1F1F1;
 	
 	overflow-y: auto;
+	
+	margin-left: 5px;
+	border: 1pt solid grey;
 }
 
-.review {
+.review, .query {
 	margin-left: 1px;
 	width: calc(100% - 18px);
 	background: #E2E2E2;
 	border-radius: 15px;
-	height: 15px;
+	min-height: 15px;
 	
 	margin-bottom: 2px;
 	
@@ -282,6 +290,19 @@
 	text-overflow: clip;
 	white-space: nowrap;
 	
+}
+
+.query {
+	border: 1pt solid blue;
+	word-wrap: break-word;
+	white-space: normal;
+	line-height: 15px;
+	
+	cursor: pointer;
+}
+
+.query:hover{
+	background: lightblue;
 }
 
 .submission {

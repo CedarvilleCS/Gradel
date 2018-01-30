@@ -48,6 +48,9 @@ class ContestController extends Controller {
 		if(!$section || !$section->course->is_contest){
 			die("SECTION (CONTEST) DOES NOT EXIST!");
 		}
+		
+		$grader = new Grader($em);
+		$team = $grader->getTeam($user, $section);
 
 		# GET ALL USERS		
 		$section_takers = [];
@@ -96,10 +99,33 @@ class ContestController extends Controller {
 		$leaderboard = $grader->getLeaderboard($user, $contest);
 		
 		
+		# get the queries
+		if($grader->isJudging($user, $contest) || $user->hasRole("ROLE_ADMIN") || $user->hasRole("ROLE_SUPER")){
+			$extra_query = "OR 1=1";
+		} else {
+			$extra_query = "";
+		}
+		
+		$qb_queries = $em->createQueryBuilder();
+		$qb_queries->select('q')
+			->from('AppBundle\Entity\Query', 'q')
+			->where('q.assignment = (?1)')
+			->andWhere('q.asker = ?2 OR q.asker IS NULL '.$extra_query)
+			->orderBy('q.timestamp', 'ASC')
+			->setParameter(1, $contest)
+			->setParameter(2, $team);
+		$query_query = $qb_queries->getQuery();
+		$queries = $query_query->getResult();
+		
 		return $this->render('contest/hub.html.twig', [
+			'user' => $user,
+			'team' => $team,
+			
 			'section' => $section,
 			'grader' => $grader,
 			'leaderboard' => $leaderboard, 
+			
+			'queries' => $queries,
 			
 			'elevatedUser' => $elevatedUser,
 			
@@ -171,7 +197,8 @@ class ContestController extends Controller {
 		}
 				
 		$grader = new Grader($em);
-		$team = $grader->getTeam($user, $section);
+		$team = $grader->getTeam($user, $assignment);
+		
 		// get the list of all submissions by the team/user
 		if($team){
 			$all_submissions = $em->getRepository('AppBundle\Entity\Submission')->findBy([
@@ -190,7 +217,25 @@ class ContestController extends Controller {
 			'user' => $user,
 			'problem' => $problem,
 		]);
-				
+		
+		# get the queries
+		if($grader->isJudging($user, $assignment) || $user->hasRole("ROLE_ADMIN") || $user->hasRole("ROLE_SUPER")){
+			$extra_query = "OR 1=1";
+		} else {
+			$extra_query = "";
+		}
+		
+		$qb_queries = $em->createQueryBuilder();
+		$qb_queries->select('q')
+			->from('AppBundle\Entity\Query', 'q')
+			->where('q.problem = (?1)')
+			->andWhere('q.asker = ?2 OR q.asker IS NULL '.$extra_query)
+			->orderBy('q.timestamp', 'ASC')
+			->setParameter(1, $problem)
+			->setParameter(2, $team);
+		$query_query = $qb_queries->getQuery();
+		$queries = $query_query->getResult();
+								
 		return $this->render('contest/problem.html.twig', [
 			'user' => $user,
 			'team' => $team,
@@ -198,8 +243,9 @@ class ContestController extends Controller {
 			'section' => $section,
 			'contest' => $assignment,
 			'problem' => $problem,
-			
 			'trial' => $trial,
+			
+			'queries' => $queries, 
 
 			'grader' => $grader,
 			
@@ -444,21 +490,33 @@ class ContestController extends Controller {
 			->setParameter(2, 0);
 		$subs_query = $qb_allsubs->getQuery();
 		$pending_submissions = $subs_query->getResult();
-		
-//		return $this->returnForbiddenResponse(json_encode($pending_submissions[0])." ");
-		
+				
 		$qb_revsubs = $em->createQueryBuilder();
 		$qb_revsubs->select('s')
 			->from('AppBundle\Entity\Submission', 's')
 			->where('s.problem IN (?1)')
-			->andWhere('s.pending_status != ?2')
+			->andWhere('s.pending_status = ?2')
 			->orderBy('s.timestamp', 'ASC')
 			->setParameter(1, $contest->problems->toArray())
-			->setParameter(2, 0);
+			->setParameter(2, 2);
 		$rev_subs_query = $qb_revsubs->getQuery();
 		$reviewed_submissions = $rev_subs_query->getResult();
 		
-		// get the trial for the problem
+		# get user's claimed subs
+		$qb_claimed = $em->createQueryBuilder();
+		$qb_claimed->select('s')
+			->from('AppBundle\Entity\Submission', 's')
+			->where('s.problem IN (?1)')
+			->andWhere('s.pending_status = ?2')
+			->andWhere('s.reviewer = ?3')
+			->orderBy('s.timestamp', 'ASC')
+			->setParameter(1, $contest->problems->toArray())
+			->setParameter(2, 1)
+			->setParameter(3, $user);
+		$claim_query = $qb_claimed->getQuery();
+		$claimed_submissions = $claim_query->getResult();
+				
+		// get the queries for the contest
 		$qb_clars = $em->createQueryBuilder();
 		$qb_clars->select('s')
 			->from('AppBundle\Entity\Query', 's')
@@ -471,10 +529,26 @@ class ContestController extends Controller {
 		$clar_query = $qb_clars->getQuery();
 		$clarifications = $clar_query->getResult();	
 		
+		// get the answered queries for the contest
+		$qb_ans = $em->createQueryBuilder();
+		$qb_ans->select('s')
+			->from('AppBundle\Entity\Query', 's')
+			->where('s.problem IN (?1)')
+			->orWhere('s.assignment IN (?2)')
+			->andWhere('s.answer IS NOT NULL')
+			->orderBy('s.timestamp', 'ASC')
+			->setParameter(1, $contest->problems->toArray())
+			->setParameter(2, $contest);
+		$ans_query = $qb_ans->getQuery();
+		$answered_clarifications = $ans_query->getResult();	
+		
 		$response = new Response(json_encode([
 			'pending_submissions' => $pending_submissions,
 			'reviewed_submissions' => $reviewed_submissions,
+			'claimed_submissions' => $claimed_submissions,
+			
 			'clarifications' => $clarifications,
+			'answered_clarifications' => $answered_clarifications,
 		]));
 			
 		
@@ -484,9 +558,10 @@ class ContestController extends Controller {
 		return $response;
 	}
 	
-	public function submissionJudgingAction(Request $request){
+	public function postQuestionAction(Request $request){
 		
-		$em = $this->getDoctrine()->getManager();
+		$em = $this->getDoctrine()->getManager();		
+		$grader = new Grader($em);
 
 		$user = $this->get('security.token_storage')->getToken()->getUser();
 		if(!$user){
@@ -495,120 +570,267 @@ class ContestController extends Controller {
 		# see which fields were included	
 		$postData = $request->request->all();
 		
-		$submission = $em->find('AppBundle\Entity\Submission', $postData['submissionId']);
+		$contest = $em->find('AppBundle\Entity\Assignment', $postData['contestId']);
 		
-		$grader = new Grader($em);
+		if(!$contest){
+			return $this->returnForbiddenResponse("Contest ID provided was not valid.");
+		}
 		
 		# validation
-		if(!($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isJudging($user, $submission->problem->assignment->section))){
+		if(!($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isJudging($user, $contest->section) || $grader->getTeam($user, $contest))){
 			return $this->returnForbiddenResponse("You are not allowed to edit this submission");
 		}
 		
-		if(!$submission){
-			return $this->returnForbiddenResponse('Submission ID is not valid.');
+		if(isset($postData['problemId'])){
+			
+			$problem = $em->find('AppBundle\Entity\Problem', $postData['problemId']);
+			
+			if(!$problem || $problem->assignment != $contest){
+				return $this->returnForbiddenResponse("Problem ID provided was not valid.");
+			}
 		}
 		
-		
-		// check to make sure the submission hasn't been claimed
-		// ************************* RACE CONDITIONS *************************
-		if($submission->pending_status > 1 && !$postData['override']){
-			return $this->returnForbiddenResponse("Submission has already been reviewed");
+		if(!isset($postData['question']) || trim($postData['question']) == ""){
+			return $this->returnForbiddenResponse('Question was not provided');
 		}
-					
-		$reviewed = true;
-		if($postData['type'] == "wrong"){
-			
-			// override the submission to wrong
-			if($submission->isCorrect(true)){
-				
-				$submission->wrong_override = true;				
-				$submission->correct_override = false;
-			} else {
-				
-				$submission->wrong_override = false;
-				$submission->correct_override = false;
-			}
-			
-		} else if($postData['type'] == "correct"){
-			
-			// override the submission to correct
-			if($submission->isCorrect(true)){
-				
-				$submission->wrong_override = false;
-				$submission->correct_override = false;	
-				
-			} else {
-				
-				$submission->wrong_override = false;
-				$submission->correct_override = true;					
-			}
-			
-		} else if($postData['type'] == "delete"){
-				
-			// delete the submission
-			$em->remove($submission);			
-				
-		} else if($postData['type'] == "formatting"){
-					
-			// add formatting message to submission
-			$submission->judge_message = "Formatting Error";
-					
-		} else if($postData['type'] == "message"){
-			
-			$message = $postData['message'];
-			
-			// add custom message to submission
-			if(!isset($message) || trim($message) == ""){
-				$submission->judge_message = NULL;
-			} else {
-				$submission->judge_message = trim($postData['message']);	
-			}			
-						
-		} else if($postData['type'] == "claimed"){
-			
-			$reviewed = false;			
-			
-			if($submission->pending_status > 0){
-				return $this->returnForbiddenResponse("Submission has already been claimed");
-			}	
-			
-			$submission->pending_status = 1;
-			
-		} else if($postData['type'] == "unclaimed"){
-			
-			$reviewed = false;			
-			
-			if($submission->pending_status < 1){
-				return $this->returnForbiddenResponse("Submission has already been un-claimed");
-			}	
-			
-			$submission->pending_status = 0;
-			
-			
+		
+		$query = new Query();
+		
+		if($problem){
+			$query->problem = $problem;
 		} else {
-			return $this->returnForbiddenResponse("Type of judging command not allowed");
-		}
-
-		
-		if($reviewed){
-			$submission->pending_status = 2;
+			$query->assignment = $contest;
 		}
 		
-		$submission->reviewer = $user;
+		$query->question = trim($postData['question']);
+		$query->timestamp = new \DateTime("now");
+		$query->asker = $grader->getTeam($user, $contest);
 		
-		$submission->edited_timestamp = new \DateTime("now");
+		$em->persist($query);
+		$em->flush();
 		
 		$response = new Response(json_encode([
-			'id' => $submission->id,
-			'reviewed' => $reviewed, 
-		]));
-		
-		$em->flush();		
-		
+			'id' => $query->id, 
+		]));		
+					
 		$response->headers->set('Content-Type', 'application/json');
 		$response->setStatusCode(Response::HTTP_OK);
 
-		return $response;
+		return $response;		
+	}
+	
+	public function submissionJudgingAction(Request $request){
+		
+		$em = $this->getDoctrine()->getManager();		
+		$grader = new Grader($em);
+
+		$user = $this->get('security.token_storage')->getToken()->getUser();
+		if(!$user){
+			die("USER DOES NOT EXIST");
+		}
+		# see which fields were included	
+		$postData = $request->request->all();
+		
+		// for submission editing
+		if(isset($postData['submissionId'])){
+		
+			$submission = $em->find('AppBundle\Entity\Submission', $postData['submissionId']);
+		
+			if(!$submission){
+				return $this->returnForbiddenResponse('Submission ID is not valid.');
+			}
+			
+			# validation
+			if(!($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isJudging($user, $submission->problem->assignment->section))){
+				return $this->returnForbiddenResponse("You are not allowed to edit this submission");
+			}
+			
+			
+			// check to make sure the submission hasn't been claimed
+			// ************************* RACE CONDITIONS *************************
+			if($submission->pending_status > 1 && !$postData['override']){
+				return $this->returnForbiddenResponse("Submission has already been reviewed");
+			}
+						
+			$reviewed = true;
+			if($postData['type'] == "wrong"){
+				
+				// override the submission to wrong
+				if($submission->isCorrect(true)){
+					
+					$submission->wrong_override = true;				
+					$submission->correct_override = false;
+				} else {
+					
+					$submission->wrong_override = false;
+					$submission->correct_override = false;
+				}
+				
+			} else if($postData['type'] == "correct"){
+				
+				// override the submission to correct
+				if($submission->isCorrect(true)){
+					
+					$submission->wrong_override = false;
+					$submission->correct_override = false;	
+					
+				} else {
+					
+					$submission->wrong_override = false;
+					$submission->correct_override = true;					
+				}
+				
+			} else if($postData['type'] == "delete"){
+					
+				// delete the submission
+				$em->remove($submission);			
+					
+			} else if($postData['type'] == "formatting"){
+						
+				// add formatting message to submission
+				$submission->judge_message = "Formatting Error";
+						
+			} else if($postData['type'] == "message"){
+				
+				$message = $postData['message'];
+				
+				// add custom message to submission
+				if(!isset($message) || trim($message) == ""){
+					$submission->judge_message = NULL;
+				} else {
+					$submission->judge_message = trim($postData['message']);	
+				}			
+							
+			} else if($postData['type'] == "claimed"){
+				
+				$reviewed = false;			
+				
+				if($submission->pending_status > 0){
+					return $this->returnForbiddenResponse("Submission has already been claimed");
+				}	
+				
+				$submission->pending_status = 1;
+				
+			} else if($postData['type'] == "unclaimed"){
+				
+				$reviewed = false;			
+				
+				if($submission->pending_status < 1){
+					return $this->returnForbiddenResponse("Submission has already been un-claimed");
+				}	
+				
+				$submission->pending_status = 0;
+				
+				
+			} else {
+				return $this->returnForbiddenResponse("Type of judging command not allowed");
+			}
+
+			
+			if($reviewed){
+				$submission->pending_status = 2;
+			}
+			
+			$submission->reviewer = $user;
+			
+			$submission->edited_timestamp = new \DateTime("now");
+			
+			
+			$em->flush();	
+			
+			$response = new Response(json_encode([
+				'id' => $submission->id,
+				'reviewed' => $reviewed, 
+			]));
+				
+			
+			$response->headers->set('Content-Type', 'application/json');
+			$response->setStatusCode(Response::HTTP_OK);
+
+			return $response;
+			
+		} 
+		// for clarification editing
+		else if(isset($postData['clarificationId'])){
+			
+			// Posting a notice
+			if($postData['clarificationId'] == 0){
+				$contest = $em->find('AppBundle\Entity\Assignment', $postData['contestId']);
+
+				if(!$contest){
+					return $this->returnForbiddenResponse('Contest ID is not valid.');
+				}
+				
+				$section = $contest->section;
+				
+				$query = new Query();
+				$em->persist($query);
+				
+				$query->assignment = $contest;
+				$query->answerer = $user;
+				$query->timestamp = new \DateTime('now');
+			}
+			// Answering a query
+			else {
+
+				$query = $em->find('AppBundle\Entity\Query', $postData['clarificationId']);
+				
+				if(!$query){
+					return $this->returnForbiddenResponse('Clarification ID is not valid.');
+				}
+				
+				$section = null;
+				
+				if($query->problem){
+					$problem = $query->problem;
+					$section = $problem->assignment->section;
+				} else {
+					$assignment = $query->assignment;
+					$section = $assignment->section;
+				}
+				
+				$query->answerer = $user;
+				if($postData['global']){
+					$query->asker = null;
+				}
+			}
+			
+			# validation
+			if(!($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isJudging($user, $section))){
+				return $this->returnForbiddenResponse("You are not allowed to modify this query");
+			}							
+			
+			$answer = $postData['answer'];
+			
+			// add answer to the query
+			if(!isset($answer)){
+				return $this->returnForbiddenResponse("Answer provided was not valid");
+			}
+			
+			$query->answer = $answer;
+						
+			if(trim($answer) == ""){
+				$qid = $query->id;
+				$em->remove($query);
+			}
+			
+			$em->flush();
+			
+			$response = new Response(json_encode([
+				'id' => ($qid) ? $qid : $query->id,
+				'answered' => $answered, 
+			]));		
+						
+			$response->headers->set('Content-Type', 'application/json');
+			$response->setStatusCode(Response::HTTP_OK);
+
+			return $response;
+						
+		}
+		// error
+		else {
+			return $this->returnForbiddenResponse("Submission or clarification ID not provided");
+		}
 	}
 		
 	private function returnForbiddenResponse($message){		

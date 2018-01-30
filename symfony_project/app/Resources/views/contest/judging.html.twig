@@ -32,8 +32,23 @@
 				<div id="progressbar"> </div>
 				
 				<div id="stats-container" >
-					<div style="margin-top: 5px; padding-left: 5px; font-weight: bold; font-size: 0.9em;"> Previous Reviews <small> </small> </div>
-					<div id="recent-reviews">
+				
+					<div style="width: 28%">
+						<div style="margin-top: 5px; padding-left: 5px; font-weight: bold; font-size: 0.9em;"> Statistics <small> </small> </div>
+						<div id="stats-page">
+						</div>
+					</div>
+					
+					<div style="width: 35%">
+						<div style="margin-top: 5px; padding-left: 5px; font-weight: bold; font-size: 0.9em;"> Previous Reviews <small> </small> </div>
+						<div id="recent-reviews">
+						</div>
+					</div>
+				
+					<div style="width: 35%">
+						<div style="margin-top: 5px; padding-left: 5px; font-weight: bold; font-size: 0.9em;"> Previous Clarifications <small> </small> </div>
+						<div id="recent-clarifications">
+						</div>
 					</div>
 				</div>
 			</div>
@@ -70,10 +85,11 @@
 		
 			<div class="btn-close">
 				<h2 style="margin: 0px">Clarifications Queue <small style="font-size: 0.7em"> <i> Double-click to answer </i> </small> </h2>
-				
+				<div id="notice-button" style="position: absolute; right: 15px; top: 10px;"> Post Contest Notice </div>
 			</div>
 		
 			<div id="clarifications-container" class="card-contents">
+				
 				
 				
 				
@@ -83,36 +99,60 @@
 					
 	</section>
 	
+	{# notice dialog #}	
+	<div id="notice-form" title="Post Notice" value="0">
+	  <form>
+		  <input type="text" name="notice" id="notice" class="text ui-widget-content ui-corner-all">
+		  <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+	  </form>
+	</div>
 	
-	
+	{# answer dialog #}	
+	<div id="clarification-form" title="Answer Clarification" value="0">
+	  <form>
+		  <input type="text" name="answer" id="answer" class="text ui-widget-content ui-corner-all">
+		  <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+	  </form>
+	</div>
 	
 	{# custom dialog #}	
 	<div id="custom-message-form" title="Custom Message" value="0">
 	  <form>
 		  <input type="text" name="message" id="message" class="text ui-widget-content ui-corner-all">
-		 
-		  <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+		  <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">		  
 	  </form>
 	</div>
 		
 	{# delete dialog #}
 	<div id="delete-form" title="Delete Submission?" value="0">
 	  <p>This submission will be permanently deleted. Are you sure?</p>
+	  <form>
+		  <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">		  
+	  </form>
 	</div>
 	 
 	{# correct dialog #}
 	<div id="correct-form" title="Mark Submission Correct?" value="0">
 	  <p>This submission will be marked correct. Are you sure?</p>
+	  <form>
+		  <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">		  
+	  </form>
 	</div>
 	
 	{# wrong answer dialog #}
 	<div id="wrong-form" title="Confirm Submission Wrong?" value="0">
 	  <p>This submission will be confirmed wrong answer. Are you sure?</p>
+	  <form>
+		  <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">		  
+	  </form>
 	</div>
 	
 	{# formatting dialog #}
 	<div id="formatting-form" title="Mark Submission Wrong Formatting?" value="0">
 	  <p>This submission will be marked as having wrong formatting. Are you sure?</p>
+	  <form>
+		  <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">		  
+	  </form>
 	</div>
 
 	
@@ -154,6 +194,66 @@
 			loopFunction();					
 		});
 
+		/* FUNCTION TO HANDLE POST TO ANSWER QUESTION */
+		function updateClarification(type, scope){
+			
+			var id;
+			var formData = new FormData();
+			
+			if(type == "answer"){
+				id = $('#clarification-form').val();
+				
+				answer = $('#answer').val();
+				formData.append('answer', answer);
+				
+				if(scope == "global"){
+					formData.append('global', true);
+				}
+			}
+			else if(type == "notice"){
+				id = 0;
+				notice = $('#notice').val();
+				formData.append('answer', notice);				
+				formData.append('contestId', {{contest.id}});
+			}
+			else {
+				return false;
+			}
+				
+			formData.append('clarificationId', id);
+			
+			$.ajax({
+				type: "POST",
+				url: "{{path('judging_modify')}}",
+				data: formData,
+				processData: false,
+				contentType: false,
+				success: function(data){
+
+					console.log(data);
+					
+					if(data['id'] != null && data['answered']){					
+						
+						$('#clarifications-container #' + data['id']).remove();
+						clarificationMessageDialog.dialog("close");
+												
+					} else if(data['id'] != null){
+						
+						noticeMessageDialog.dialog("close");
+						
+					} else {
+						alert("Error answering question");		
+					}
+				},
+				error: function(data){
+					alert(data['responseText']);
+					console.log(data['responseText']);
+				}
+			});
+			
+			return true;
+		}
+		
 		/* FUNCTION TO HANDLE POST TO UPDATE SUBMISSIONS */
 		function updateSubmission(type){	
 			
@@ -190,7 +290,8 @@
 			}
 			else if(type == "unclaimed"){
 				id = claimed_id;			
-			}else {
+			}
+			else {
 				return false;
 			}
 			
@@ -224,6 +325,7 @@
 			
 			return true;
 		}
+		
 		var freeze = 0;
 		/* FUNCTION TO HANDLE GETTING UPDATES FROM THE WEBSITE */
 		function loopFunction(){
@@ -253,12 +355,11 @@
 			}
 			// check for AJAX information
 			if(freeze < 1){
-				console.log("Polling for updates...");
+				//console.log("Polling for updates...");
 				pollJudging();
 			}
 		}
-		
-		
+				
 		function pollJudging(){
 		
 			var formData = new FormData();
@@ -273,11 +374,11 @@
 				contentType: false,
 				success: function(data){
 
-					console.log(data);
-					updateClarifications(data);
-					updateQueue(data);
+					//console.log(data);
+					updateClarificationQueue(data);
+					updateSubmissionQueue(data);
 					updateReviewScroller(data);
-					
+					updateClarificationScroller(data);
 					
 				},
 				error: function(data){
@@ -287,7 +388,7 @@
 			});		
 		}
 		
-		function updateClarifications(data){
+		function updateClarificationQueue(data){
 			
 			var questions = data['clarifications'];
 			
@@ -300,16 +401,34 @@
 			var reviews = data['reviewed_submissions'];			
 			if(addReviews(reviews)){
 				
-				$('#recent-reviews').scrollTop($('#recent-reviews').height());	
-				
+				$('#recent-reviews').stop();
+			
+				$('#recent-reviews').animate({
+					scrollTop: $('#recent-reviews').prop('scrollHeight'),
+				}, 2000);				
 			}
 		}
 		
+		function updateClarificationScroller(data){
+			
+			var clars = data['answered_clarifications'];
+			
+			if(addAnswered(clars)){
+				
+				$('#recent-clarifications').stop();
+			
+				$('#recent-clarifications').animate({
+					scrollTop: $('#recent-clarifications').prop('scrollHeight'),
+				}, 2000);				
+			}
 		
-		function updateQueue(data){
+			
+		}
+				
+		function updateSubmissionQueue(data){
 
 			addSubmissions(data['pending_submissions']);
-		
+			addClaimed(data['claimed_submissions']);
 			$('.submission.queued .right-side, .submission.queued .middle-side').hide();
 
 			updateActions();
@@ -317,6 +436,7 @@
 		
 		function updateActions(){
 			
+			/* CLAIM SUBMISSIONS */
 			$('.submission').off( 'dblclick');
 			$('.submission').dblclick( function() {
 				
@@ -335,8 +455,7 @@
 					$(this).find('.right-side, .middle-side').hide();
 					
 					claimed_id = $(this).attr('id');
-					updateSubmission("unclaimed");
-				
+					updateSubmission("unclaimed");				
 				}
 			});	
 			
@@ -374,6 +493,77 @@
 					});
 				});
 
+			/* NOTICE POSTER */
+			noticeMessageDialog = $("#notice-form").dialog({
+				autoOpen: false,
+				modal: true,
+				width: "auto",
+				height: "auto",
+				buttons: {
+					"Post Notice": function () {
+						updateClarification("notice");						
+					}, 
+					Cancel: function() {
+						noticeMessageDialog.dialog( "close" );
+					}
+				},
+			  close: function() {
+				  noticeMessageForm[0].reset();
+			  }
+			});
+
+			noticeMessageDialog.find("form").off( "submit");
+			noticeMessageForm = noticeMessageDialog.find( "form" ).on( "submit", function( event ) {				
+				event.preventDefault();
+				updateClarification("notice");	
+				noticeMessageDialog.dialog("close");		
+			});
+			
+			$('#notice-button').off('click');
+			$('#notice-button').button().on('click', function() {
+				
+				noticeMessageDialog.dialog("open");	
+				
+			});
+			
+			/* CLARIFICATION ANSWERER */
+			clarificationMessageDialog = $("#clarification-form").dialog({
+				autoOpen: false,
+				modal: true,
+				width: "auto",
+				height: "auto",
+				buttons: {
+					"Answer for User": function () {
+						updateClarification("answer", "local");
+						clarificationMessageDialog.dialog( "close" );						
+					}, 
+					"Answer Globally": function () {
+						updateClarification("answer", "global");
+						clarificationMessageDialog.dialog( "close" );						
+					}, 
+					Cancel: function() {
+						clarificationMessageDialog.dialog( "close" );
+					}
+				},
+			  close: function() {
+				  clarificationMessageForm[0].reset();
+			  }
+			});
+			
+			clarificationMessageDialog.find("form").off( "submit");
+			clarificationMessageForm = clarificationMessageDialog.find( "form" ).on( "submit", function( event ) {				
+				event.preventDefault();
+				updateClarification("answer");	
+				clarificationMessageDialog.dialog("close");		
+			});
+			
+			$('.clarification').off( 'dblclick' );
+			$('.clarification').dblclick( function() {
+			
+				var clar_id = $(this).attr('id');
+				$('#clarification-form').val(clar_id);
+				clarificationMessageDialog.dialog("open");				
+			});
 			
 			/* CUSTOM FORMATTING MESSAGE */
 			customMessageDialog = $("#custom-message-form").dialog({
@@ -392,9 +582,11 @@
 			  }
 			});
 			
+			customMessageDialog.find("form").off( "submit");
 			customMessageForm = customMessageDialog.find( "form" ).on( "submit", function( event ) {
 				event.preventDefault();
 				updateSubmission("message");
+				customMessageDialog.dialog("close");
 			});
 			
 			$( ".custom-buttom" ).on( "click", function() {
@@ -402,8 +594,7 @@
 				$('#custom-message-form').val(sub_id);
 				customMessageDialog.dialog("open");
 			});
-			
-			
+						
 			/* DELETE MESSAGE */
 			deleteDialog = $( "#delete-form" ).dialog({
 				resizable: false,
@@ -418,9 +609,16 @@
 					Cancel: function() {
 						$( this ).dialog( "close" );
 					}
-				}
+				},
 			});
-			
+		
+			deleteDialog.find( "form" ).off( "submit" );
+			deleteForm = deleteDialog.find( "form" ).on( "submit", function( event ) {
+				event.preventDefault();
+				updateSubmission("delete");
+				deleteDialog.dialog("close");
+			});			
+		
 			$( ".delete-button" ).on( "click", function() {
 				var sub_id = $(this).attr('id');
 				$('#delete-form').val(sub_id);
@@ -442,6 +640,13 @@
 						$( this ).dialog( "close" );
 					}
 				}
+			});
+			
+			correctDialog.find("form").off( "submit");
+			correctForm = correctDialog.find( "form" ).on( "submit", function( event ) {
+				event.preventDefault();
+				updateSubmission("correct");
+				correctDialog.dialog("close");
 			});
 			
 			$( ".correct-button" ).on( "click", function() {
@@ -467,6 +672,13 @@
 				}
 			});
 			
+			wrongDialog.find("form").off( "submit");
+			wrongForm = wrongDialog.find( "form" ).on( "submit", function( event ) {
+				event.preventDefault();
+				updateSubmission("wrong");
+				wrongDialog.dialog("close");
+			});
+						
 			$( ".wrong-button" ).on( "click", function() {
 				var sub_id = $(this).attr('id');
 				$('#wrong-form').val(sub_id);
@@ -490,6 +702,13 @@
 				}
 			});
 			
+			formattingDialog.find("form").off( "submit");
+			formattingForm = formattingDialog.find( "form" ).on( "submit", function( event ) {
+				event.preventDefault();
+				updateSubmission("formatting");
+				formattingDialog.dialog("close");
+			});
+			
 			$( ".formatting-button" ).on( "click", function() {
 				var sub_id = $(this).attr('id');
 				$('#formatting-form').val(sub_id);
@@ -498,28 +717,31 @@
 			
 		}
 		
-		
 		function addClarifications(clarifications){
 			
-			var newOne = false;
 			for(var i=0; i<clarifications.length; i++){			
 				
 				var clarification = clarifications[i];
 				
 				var str = '#clarifications-container #' + clarification.id;
 				var prevClars = $(str);
-				if(prevClars.length > 0) continue;	
 				
-			var probAssignName = (clarification['problem']) ? "[" + clarification['problem']['name'] + "]" : "[General]";
+				if(prevClars.length > 0){
+					prevClars.addClass('found');					
+					continue;	
+				}
 				
-				var clarificationHTML = `<div class="clarification" id="` + clarification['id'] + `">` + 
+				var probAssignName = (clarification['problem']) ? "[" + clarification['problem']['name'] + "]" : "[General]";
+				
+				var clarificationHTML = `<div class="clarification found" id="` + clarification['id'] + `">` + 
 											`<div class="name">` + probAssignName + `</div><div class="question">` + clarification['question'] + `</div>` +
 										`</div>`;
 				
-				$('#clarifications-container').append(clarificationHTML);
-				
+				$('#clarifications-container').append(clarificationHTML);				
 			}
-		
+			
+			$('#clarifications-container .clarification').not('.found').remove();
+			$('#clarifications-container .found').removeClass('found');		
 		}
 		
 		function addReviews(reviews){
@@ -536,8 +758,16 @@
 				
 				newOne = true;
 				
+				var name;
+				if(rev.reviewer == null){
+					name = "No Review";
+				} else {
+					name = rev.reviewer.first_name;
+				}
+				
+				
 				var reviewHTML = `<a href="{{path('contest', {'contestId': contest.section.id, 'roundId': contest.id})}}/problem/` + rev.problem.id + `/result/` + rev.id + `"> <div class="review ` + ((rev.is_correct) ? "correct" : "wrong") + `" id="` + rev.id + `"> ` + 
-									`<div>` + rev.id + `) ` + rev.problem.name.substring(0,1) + ` - <small>` + rev.team.name + `</small></div><div><small> Reviewer: ` + rev.reviewer.first_name + `</small></div>` + 
+									`<div>` + rev.id + `) ` + escapeHTML(rev.problem.name.substring(0,1)) + ` - <small>` + escapeHTML(rev.team.name) + `</small></div><div><small> Reviewer: ` + escapeHTML(name) + `</small></div>` + 
 								`</div> </a>`;
 				$('#recent-reviews').append(reviewHTML);				
 			}			
@@ -545,22 +775,59 @@
 			return newOne;
 		}
 		
-		function addSubmissions(submissions){			
+		function addAnswered(clars){
 			
-			for(var i=0; i<submissions.length; i++){
+			var newOne = false;
+			
+			for(var i=0; i<clars.length; i++){
 				
+				var clar = clars[i];
+				
+				var str = '#recent-clarifications #' + clar.id;
+				var prevClars = $(str);
+				if(prevClars.length > 0) continue;
+				
+				newOne = true;
+				
+				
+				
+				var question = (clar.question) ? clar.question : "Judge Notice";
+				var answer = clar.answer;
+				
+				var name = (clar.problem) ? clar.problem.name.substring(0,1) : "~";
+				
+				var clarHTML = `<div class='query' id='` + clar.id + `' title="` + escapeHTML(answer) + `">` + `[` + escapeHTML(name) + `] ` + escapeHTML(question) + `</div>`;
+				$('#recent-clarifications').append(clarHTML);
+				
+			}
+			
+			return newOne;
+			
+		}
+		
+		function addClaimed(submissions){
+			return addSubmissions(submissions, "claimIt");
+		}
+		
+		function addSubmissions(submissions, claimIt){			
+			
+			for(var i=0; i<submissions.length; i++){				
 				
 				var sub = submissions[i];				
 				
-				var str = '#submissions-container #' + sub.id;
+				var str = (claimIt == "claimIt") ? '#queue-container #' + sub.id : '#submissions-container #' + sub.id;
+				
 				var prevSubs = $(str);
-				if(prevSubs.length > 0) continue;
 				
+				if(prevSubs.length > 0){
+					prevSubs.addClass('found');					
+					continue;
+				}
 				
-				var submissionHTML = `<div class="queued submission ` + ((sub.is_correct) ? 'correct' : 'wrong') + `" id="` + sub.id + `">` +
+				var submissionHTML = `<div class="found queued submission ` + ((sub.is_correct) ? 'correct' : 'wrong') + `" id="` + sub.id + `">` +
 					`<div class="left-side">` +
-						`<div class="title">` + sub.problem.name + `</div>` +
-						`<div class="name">` + sub.team.name + `</div>` +
+						`<div class="title">` + escapeHTML(sub.problem.name) + `</div>` +
+						`<div class="name">` + escapeHTML(sub.team.name) + `</div>` +
 						`<div class="results">` + ((sub.is_correct) ? 'Correct' : 'Wrong Answer') + `</div>` +
 					`</div>` +
 					`<div class="middle-side">` +
@@ -579,12 +846,12 @@
 									
 										`<div>\n` +
 										`Expected Output:\n` +
-										`<textarea disabled> ` + tcr.testcase.correct_output + ` </textarea>\n` +
+										`<textarea disabled> ` + escapeHTML(tcr.testcase.correct_output) + ` </textarea>\n` +
 										`</div>\n` +
 										
 										`<div>\n` +
 										`Their Output:\n` +
-										`<textarea disabled>` + tcr.std_output + `</textarea>\n` +
+										`<textarea disabled>` + escapeHTML(tcr.std_output) + `</textarea>\n` +
 										`</div>\n` +
 									
 									`</div>\n` +					
@@ -613,11 +880,25 @@
 					`</div>` +
 				`</div>`;
 				
-				
-				$('#submissions-container').append(submissionHTML);
+				if(claimIt == "claimIt"){
+					$('#queue-container').append(submissionHTML);
+				} else {
+					$('#submissions-container').append(submissionHTML);
+				}
+			}
+			
+			if(claimIt == "claimIt"){
+				$('#queue-container .submission').not('.found').remove();
+				$('#queue-container .submission').removeClass('found');
+				$('#queue-container .submission').removeClass('queued');
+			} else {
+				$('#submissions-container .submission').not('.found').remove();
+				$('#submissions-container .submission').removeClass('found');
 			}
 		}
 		
+		
 	</script>
+	
 {% endblock %}
 

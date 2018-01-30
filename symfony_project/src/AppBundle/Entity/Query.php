@@ -66,6 +66,20 @@ class Query {
 	*/	
 	public $question;
 	
+	
+	/**
+     * @ORM\ManyToOne(targetEntity="Team")
+     * @ORM\JoinColumn(name="asker_id", referencedColumnName="id", nullable=true, onDelete="CASCADE")
+     */
+	public $asker;
+	
+	/**
+     * @ORM\ManyToOne(targetEntity="User")
+     * @ORM\JoinColumn(name="answer_id", referencedColumnName="id", nullable=true, onDelete="CASCADE")
+     */
+	public $answerer;
+	
+	
 	/**
 	* @ORM\Column(type="text", nullable=true)
 	*/	

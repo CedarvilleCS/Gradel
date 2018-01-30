@@ -189,6 +189,12 @@ judging_modify:
     _controller: AppBundle:Contest:submissionJudging
   methods: [POST]
   
+judging_query:
+  path: '/judging/query'
+  defaults:
+    _controller: AppBundle:Contest:postQuestion
+  methods: [POST]
+  
 # TRIAL ROUTES
 modify_trial:
   path: 'modify/trial'
