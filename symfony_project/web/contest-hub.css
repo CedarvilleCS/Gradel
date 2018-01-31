@@ -163,7 +163,6 @@
 	min-width: 100%;
 	display: flex;
 	flex-direction: row;
-	justify-content: flex-end;
 }
 
 /* problem table css*/
@@ -255,7 +254,7 @@
 }
 
 #recent-reviews, #recent-clarifications {
-	height: 110px;
+	height: 90px;
 	padding: 2px;
 	border-radius: 7px;
 	
@@ -382,14 +381,13 @@
 	position: relative;
 }
 
-.marker-hover{
-	
-	height: 500px;
-	width: 500px;
+#untested{
+	height: 30px;
+	width: 75px;
 	
 	position: absolute;
-	bottom: -529px;
-	left: -225px;	
+	bottom: -75px;
+	left: 0px;	
 	
 	background: white;
 	border: 3pt solid grey;
@@ -401,7 +399,37 @@
 	text-align: left;
 	flex-direction: column;
 	justify-content: space-around;
+	overflow-y: auto;
+	padding: 10px;
 	
+	z-index: 100;
+}
+
+textarea {
+	height: 100px;
+	width: 200px;
+}
+
+.marker-hover{
+	
+	height: 125px;
+	width: 410px;
+	
+	position: absolute;
+	bottom: -175px;
+	left: 0px;	
+	
+	background: white;
+	border: 3pt solid grey;
+	
+	border-radius: 10px;
+		
+	display: none;
+	
+	text-align: left;
+	flex-direction: row;
+	justify-content: space-around;
+	overflow-y: auto;
 	padding: 10px;
 	
 	z-index: 100;

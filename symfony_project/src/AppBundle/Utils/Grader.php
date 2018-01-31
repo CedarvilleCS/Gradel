@@ -194,27 +194,8 @@ class Grader  {
 		}
 		
 		$grades['total_testcases'] = $total_normal_testcases;	
-<<<<<<< HEAD
-		$grades['total_extra_testcases'] = $total_testcases - $total_normal_testcases;	
 
-		# array of all submissions
-		$qb_subs = $this->em->createQueryBuilder();
-		$qb_subs->select('s')
-			->from('AppBundle\Entity\Submission', 's')
-			->where('s.problem = ?1')
-			->andWhere('s.team = ?2')
-			->setParameter(1, $problem)
-			->setParameter(2, $team)
-			->orderBy('s.timestamp', 'ASC');
-		
-		$subs_query = $qb_subs->getQuery();
-		$subs = $subs_query->getResult();
-			
-		$grades['all_submissions'] = $subs;	
-=======
 		$grades['total_extra_testcases'] = $total_testcases - $total_normal_testcases;
->>>>>>> 23712141f58e9af7fa288ade7959400b9d9eb15d
-		
 		$attempts = $this->getNumAttempts($user, $problem);				
 		$grades['attempts'] = $attempts;		
 		
