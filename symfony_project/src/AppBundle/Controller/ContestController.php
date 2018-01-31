@@ -320,25 +320,59 @@ class ContestController extends Controller {
 	
 	public function contestEditAction($contestId) {
 		
-		
-		
-		die("contestEditAction");
-		
-		if($assignment){
-			$di = date_diff($assignment->end_time, $assignment->freeze_time, true);
-		
-			$hoursLeft = $di->format("%a")*24+$di->format("%h");
-			$minutesLeft = $di->format("%i");
+		$em = $this->getDoctrine()->getManager();
+
+		$user = $this->get('security.token_storage')->getToken()->getUser();
+
+		if(!$user){
+			die("USER DOES NOT EXIST");
 		}
+
+		# VALIDATION
+		$section = $em->find('AppBundle\Entity\Section', $contestId);
+
+		if(!$section || !$section->course->is_contest){
+			die("SECTION (CONTEST) DOES NOT EXIST!");
+		}
+		
+		$grader = new Grader($em);
+		$team = $grader->getTeam($user, $section);
+
+		# GET ALL USERS		
+		$section_takers = [];
+		$section_judges = [];
+
+		foreach($usersectionroles as $usr){
+			if($usr->role->role_name == "Takes"){
+				$section_takers[] = $usr->user;
+			} else if($usr->role->role_num == "Judges"){
+				$section_judges[] = $usr->user;
+			}
+		}
+		
+		# GATHER SUBMISSIONS
+		# get all of the problems to get all of the submissions
+		$allprobs = [];
+		foreach($section->assignments as $asgn){
+			foreach($asgn->problems as $prob){
+				$allprobs[] = $prob;
+			}
+		}
+
+		$grader = new Grader($em);
+		$elevatedUser = $grader->isJudging($user, $section) || $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN");
+
+		
+		
+		$students = $em->createQuery("select u from AppBundle\Entity\User u where 1=1")->getResult();
 		
 		return $this->render('contest/edit.html.twig', [
 			"assignment" => $assignment,
 			"section" => $section,
-			"edit" => true,
-			"students" => $students,
 			
-			"hoursLeft" => $hoursLeft,
-			"minutesLeft" => $minutesLeft,
+			"elevatedUser" => $elevatedUser,
+			
+			"students" => $students,
 		]);
 	}
 
@@ -351,7 +385,7 @@ class ContestController extends Controller {
 	
 	public function modifyContestPostAction(Request $request){
 		
-		return $this->returnForbiddenResponse("modifyContestPostAction");
+		return $this->returnForbiddenResponse(json_encode(json_decode($_POST['teams']), JSON_PRETTY_PRINT));
 		
 		# CONTEST SETTINGS OVERRIDE
 		if($section->course->is_contest){

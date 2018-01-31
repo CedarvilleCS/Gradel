@@ -1,5 +1,5 @@
 {% block head %}
-<title>Gradel | Edit Section</title>
+<title>Gradel | Edit Contest</title>
 <link rel="icon" type="image/x-icon" href="{{ asset('logo.png') }}" />
 {% endblock %}
 
@@ -24,126 +24,150 @@
 			<li id="delete-warning" style="padding-top: 0px"></li>
 		</ol>
 
-		{% if section is not null %}
-		<a id="clone-btn" class="btn" href="{{ path('section_clone', {'sectionId': section.id}) }}"><div class="btn btn-center" style="margin-top: 10px;">Clone</div></a>
-		{% endif %}
-
 		{% endif %}
     </nav>
 
-	{{ include('template/path-nav.html.twig') }}
+	{# {{ include('template/path-nav.html.twig') }} #}
 
     {# Main section with the necessary variable#}
 	<section id="main">
 
 		{# Cards #}
+		<div class="parallel-cards">
+			<div class="card" style="flex-grow:5">
+				<div class="btn-close">
+					<h1 style="margin: 0px">
+					{% if section is not null %}
+						{{section.name}}
+					{% else %}
+						New Section
+					{% endif %}
+					</h1>
+					<h4 style="margin: 0px; margin-top: 5px;">
+					A Section of <i>{{section.course.name}}</i>
+					</h4>
+				</div>
+
+				<div id="requiredFields" class="card-contents">
+					<div>
+						<table>
+							<tr> <th colspan="3">
+								<label for="contest-name">Contest Name</label>
+								<input id="contest-name" name="contest-name" type="text" value="">
+							</th> </tr>
+							
+							<tr> <td>
+								<div><b>Practice Contest</b></div>
+								
+								<label for="practice-start-date">Start Time</label>
+								<input type="text" id="practice-start-date" style="width:160px; margin-right:20px">
+								
+								<label for="practice-end-date">End Time</label>
+								<input type="text" id="practice-end-date" style="width:160px; margin-right:20px">
+
+							</td> </tr>
+							
+							<tr> <td>
+								<div><b>Actual Contest</b></div>
+								
+								<label for="actual-start-date">Start Time</label>
+								<input type="text" id="actual-start-date" style="width:160px; margin-right:20px">
+								
+								<label for="actual-end-date">End Time</label>
+								<input type="text" id="actual-end-date" style="width:160px; margin-right:20px">
+							</td> </tr>
+							
+						</table>
+					</div>
+				</div>
+			</div>
+			
+			{# Cards #}
+			<div class="card" style="flex-grow:1">
+				<div class="btn-close">
+					<h2 style="margin: 0px">
+					Grading Options
+					</h2>
+				</div>
+
+				<div id="gradingOptions" class="card-contents">
+					<div>
+						<table>
+						<tr> <th>
+							
+							<label style="margin-bottom: 0px; display: block">Penalty Points Per...</label>
+							<hr>
+							
+							<label style="width: 150px; display: inline-block;">Compilation Error</label>
+							<input id="penalty-per-compile-error" name="penalty-per-compile-error" type="text" value="0" style="width: 100px; margin: 1px;">
+							</br>
+							 
+							<label style="width: 150px; display: inline-block;">Time Limit</label>
+							<input id="penalty-per-time-limit" name="penalty-per-time-limit" type="text" value="20" style="width: 100px; margin: 1px;">
+							</br>
+							  
+							<label style="width: 150px; display: inline-block;">Runtime Error</label>
+							<input id="penalty-per-runtime-error" name="penalty-per-runtime-error" type="text" value="20" style="width: 100px; margin: 1px;">
+							</br>
+							  
+							<label style="width: 150px; display: inline-block;">Wrong Answer</label>
+							<input id="penalty-per-wrong-answer" name="penalty-per-wrong-answer" type="text" value="20" style="width: 100px; margin: 1px;">
+							
+						</th> </tr>
+							
+						<tr> <th>
+							
+							<label>Freeze Scoreboard with</label>
+							<input type="text" id="freeze-time-hours" style="width:60px" value="1"> <small>Hours</small>
+							<input type="text" id="freeze-time-minutes" style="width:60px" value="00"> <small>Minutes Left</small>
+							
+						</th> </tr>
+							
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		{# Cards #}
 		<div class="card">
 			<div class="btn-close">
-				<h2 style="margin: 0px">
-				{% if section is not null %}
-					Edit {{section.name}}
-				{% else %}
-					New Section
-				{% endif %}
-				</h2>
+				<h2 style="margin: 0px; margin-bottom: 5px;"> Judges and Team Creation </h2>
+				
+				{# file upload#}
+				<form id="studentCSVForm" action="{{path('get_contents')}}" method="post">
+					<input type="file" name="file" id="file" value="Upload File">
+				</form>
+				
+				<input id="new-user-input" name="new-user-input" value="Add a new user by email...">
+				<div id="new-user-button" style="">
+					<img src="{{asset('add.png')}}" style="height: 26px">
+				</div>
+				
 			</div>
 
-			<div id="requiredFields" class="card-contents">
+			<div id="teamCreation" class="card-contents">
 				<div>
-					<table>
-						<tr> <th colspan="3">
-							<label for="course">Course</label>
-							<select name="course" id="course">
-							{% for course in courses %}
-								<option value="{{course.id}}">{{course.name}}</option>
-							{% endfor %}
-							</select>
-						</th> </tr>
-
-						<tr> <th colspan="3">
-							<label for="name">Section Name</label>
-							<input id="name" name="name" type="text" value="">
-						</th> </tr>
-
-						<tr> <th colspan="3">
-							<label>Semester</label>
-							<select id="semester">
-								<option>Fall</option>
-								<option>Spring</option>
-								<option>Summer</option>
-							</select>
-						</th> </tr>
-
-						<tr> <th colspan="3">
-							<label>Year</label>
-							<select id="year">
-							{% for yr in ("now"|date("Y"))-1..("now"|date("Y"))+3 %}
-								<option>{{yr}}</option>
-							{% endfor %}
-							</select>
-						</th> </tr>
-
-						<tr> <th>
-							<label>Add Student</label>
-							<select id="student-picker">
-								<option value="-1"></option>
-								{% for u in users %}
-									<option value="{{u.email}}">
-									{{u.getLastName() ~ ", " ~ u.getFirstName()}}
-									</option>
-								{% endfor %}
-							</select>
-
-							{# file upload#}
-							<form id="studentCSVForm" action="{{path('get_contents')}}" method="post">
-								<input type="file" name="file" id="file" value="Upload File">
-							</form>
-
-							<textarea id="student-csv"></textarea>
-						</th> </tr>
-
-					</table>
+					<div>
+						<div id="team-pool"></div>		
+	
+						<div style="display: flex; flex-direction: row; flex-grow: 1">
+							<div style="background: #EEEEEE; padding: 5px;">
+								<h3 style="margin: 0px">Judges</h3>
+								<div id="judge-picker"></div>
+							</div>
+						
+							<div style="background: #EEEEEE; padding: 5px; flex-grow: 3">
+								<h3 style="margin: 0px">Teams</h3>
+								<div id="team-picker"></div>
+								
+							</div>
+						</div>
+					</div>					
 				</div>
 			</div>
 		</div>
 
-		<div class=card>
-			<div class="btn-close" onclick="collapseCard('additionalOptions')">
-				<h2 style="margin: 0px">Additional Options
-					<span style="float: right"><i class="fa fa-angle-down"></i></span>
-				</h2>
-			</div>
-
-			<div id="additionalOptions" class="card-contents">
-
-
-				<table>
-					<tr> <th>
-						<label for="startdatepicker">Starting Date </label><input type="text" id="startdatepicker" style="width: 100px; margin-right: 20px">
-						<label for="enddatepicker">Ending Date </label><input type="text" id="enddatepicker" style="width: 100px">
-					</th></tr>
-
-					<tr> <th>
-						<label>Add Instructor</label>
-						<select id="teacher-picker">
-							<option value="-1"></option>
-							{% for i in instructors %}
-								<option value="{{i.email}}">
-								{{i.getLastName() ~ ", " ~ i.getFirstName()}}
-								</option>
-							{% endfor %}
-						</select>
-
-						{# file upload#}
-						<form id="teacherCSVForm" action="{{path('get_contents')}}" method="post">
-							<input type="file" name="file" id="file" value="Upload File">
-						</form>
-
-						<textarea id="teacher-csv"></textarea>
-					</th> </tr>
-				</table>
-			</div>
-		</div>
 	</section>
 </body>
 
@@ -151,12 +175,16 @@
 
 
 {% block stylesheets %}
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+	<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/jquery-ui-timepicker-addon@1.6.3/dist/jquery-ui-timepicker-addon.css" />
+	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
+	
     <link rel="stylesheet" href="{{ asset('styles.css') }}" />
     <link rel="stylesheet" href="{{ asset('card.css') }}" />
-
-	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
-
+    <link rel="stylesheet" href="{{ asset('contest-hub.css') }}" />
+	
+	<link rel="stylesheet" href="{{ asset('team-creation.css') }}">
+	<link rel="stylesheet" href="{{ asset('custom-toggle.css') }}">
 {% endblock %}
 
 
@@ -164,39 +192,183 @@
     <!-- JQuery -->
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+	
+	<script src="//cdn.jsdelivr.net/npm/jquery-ui-timepicker-addon@1.6.3/dist/jquery-ui-sliderAccess.js"></script>
+	<script src="//cdn.jsdelivr.net/npm/jquery-ui-timepicker-addon@1.6.3/dist/jquery-ui-timepicker-addon.js"></script>
+	
 	<script src="{{ asset('js/cards.js') }}"></script>
 	<script src="{{ asset('js/validation.js') }}"></script>
 
 	{# asynchronous file upload #}
 	<script src="http://malsup.github.com/jquery.form.js"></script>
 
+	{# javascript for team creation #}
+	<script>
+	
+	function formatTeamCreator(){
+	
+		// create all of the students
+		
+		var students = JSON.parse('{{ students|json_encode|raw }}');
+	
+		for(var i=0; i<students.length; i++){
+			addUser(students[i]);
+		}
+	}
+	
+	function createTeamEvents(){
+	
+		$('.user').draggable({
+			revert: true,
+			revertDuration: 0,
+			start: function() {
+						
+				var newTeam = $("<div>", {"class": "team"});
+				newTeam.html("<input type='text' id='team-name' value='Team Name'>");
+								
+				newTeam.droppable({
+					accept: ".user",
+					drop: function(event, ui) {						
+						$(this).append($(ui.draggable));								
+					}
+				});	
+			
+				$('#team-picker').append(newTeam);
+				
+				$('#judge-picker').css('outline', '3pt solid #abef9d');	
+				$('.team').css('outline', '3pt solid #abef9d');
+				
+				
+				$('#judge-picker').css('min-height', $('#team-picker').height());
+			},
+			stop: function() {		
+
+				$('#judge-picker').css('outline', 'none');
+				$('.team').css('outline', 'none');
+			
+				// remove any teams with users
+				$(".team:not(:has(.user))").remove();
+				
+				$('#judge-picker').css('min-height', $('#team-picker').height());
+				
+			}
+		});
+		
+		$('.user').focusout(function() {
+			if($(this).text().trim() == ""){
+				$(this).remove();
+			}
+			$(this).attr('contentEditable', false);
+		});
+		
+		$('.user').dblclick(function() {
+			$(this).attr('contentEditable', true);
+			$(this).focus();
+		});
+		
+		$('.user').contextmenu(function(event) {
+			$(this).appendTo('#team-pool');
+			$(".team:not(:has(.user))").remove();
+			
+			return false;
+		});
+		
+		$('.team').droppable({
+			accept: ".user",
+			drop: function(event, ui) {						
+				$(this).append($(ui.draggable));
+			}
+		});
+		
+		$('#team-pool').droppable({
+			accept: ".user",
+			drop: function(event, ui) {
+				$(this).append($(ui.draggable));
+			}
+		});		
+		
+		$('#judge-picker').droppable({
+			accept: ".user",
+			drop: function(event, ui) {
+				$(this).append($(ui.draggable));
+			}
+		});
+		
+		
+		$('#team-name-checkbox').change(function() {
+			if($(this).is(":checked")) {				
+				$('.team #team-name').show();				
+			} else {
+				$('.team #team-name').hide();
+			}
+		});
+	}
+	
+	function validateTeams(){
+	
+		if($('#team-pool .user').length == 0){
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	</script>
+	
+	
 	<script>
 
 		$(document).ready(function() {
 
-			$('#year').val("{{'now'|date('Y')}}");
-
-			$('#startdatepicker').datepicker({
+			/* DATE TIME PICKERS */
+			$('#practice-start-date').datetimepicker({
 				showAnim: "slideDown",
 				selectOtherMonths: true,
 				showOtherMonths: true,
-				showButtonPanel: true
+				showButtonPanel: true,
+				timeFormat: "h:mm TT",
 			});
-
-			$('#enddatepicker').datepicker({
+			
+			$('#practice-end-date').datetimepicker({
 				showAnim: "slideDown",
 				selectOtherMonths: true,
 				showOtherMonths: true,
-				showButtonPanel: true
+				showButtonPanel: true,
+				timeFormat: "h:mm TT",
 			});
 
+			$('#actual-start-date').datetimepicker({
+				showAnim: "slideDown",
+				selectOtherMonths: true,
+				showOtherMonths: true,
+				showButtonPanel: true,
+				timeFormat: "h:mm TT",
+			});
+			
+			$('#actual-end-date').datetimepicker({
+				showAnim: "slideDown",
+				selectOtherMonths: true,
+				showOtherMonths: true,
+				showButtonPanel: true,
+				timeFormat: "h:mm TT",
+			});
+			
+			
+			/* TEAM CREATION/GENERATION */
+			formatTeamCreator();
+			
+			
 			{% if section is not null %}
-			populateForm();
+				// populate the form with the loaded in section
+				populateForm();
 			{% else %}
-			//collapseCard('additionalOptions');
+				// distribute the teams evenly
+				$('#gen-team-button').click();
 			{% endif %}
 
 			{% if section is not null %}
+			
+			// delete the section warnings
 			var warned = 0;
 			$('#delete-btn').on('click', function(){
 
@@ -213,198 +385,238 @@
 			});
 			{% endif %}
 
-			{# Student CSV Upload #}
-			// submit the form if the file upload is changed
-			$('#studentCSVForm #file').change( function(data) {
-				$('#studentCSVForm').submit();
-			});
-
-			// overwrite the normal submit to call the ajaxsubmit
-			// asynchronous script to handle the submission form upload
-			$('#studentCSVForm').submit(function() {
-				$(this).ajaxSubmit({
-
-					beforeSubmit: 	function(formData, jqForm, options){
-
-						/* CLIENT-SIDE VALIDATION */
-						console.log("THIS IS WHERE I AM");
-						return true;
-
-					},
-					success:		function(responseText, statusText, xhr, $form) {
-
-						var file = responseText['files'][0];
-						console.log(responseText);
-
-						$('#student-csv').val(atob(file["contents"]));
-						$('#studentCSVForm').hide();
-
-					},
-					error:			function(xhr, textStatus, errorThrown) {
-						console.log(xhr);
-						alert(xhr['responseText']);
-					}
-				});
-
-				return false;
-			});
-
-			{# Teacher CSV Upload #}
-			// submit the form if the file upload is changed
-			$('#teacherCSVForm #file').change( function(data) {
-				$('#teacherCSVForm').submit();
-			});
-
-			// overwrite the normal submit to call the ajaxsubmit
-			// asynchronous script to handle the submission form upload
-			$('#teacherCSVForm').submit(function() {
-				$(this).ajaxSubmit({
-
-					beforeSubmit: 	function(formData, jqForm, options){
-
-						/* CLIENT-SIDE VALIDATION */
-						return true;
-
-					},
-					success:		function(responseText, statusText, xhr, $form) {
-
-						var file = responseText['files'][0];
-						console.log(responseText);
-
-						$('#teacher-csv').val(atob(file["contents"]));
-						$('#teacherCSVForm').hide();
-
-					},
-					error:			function(xhr, textStatus, errorThrown) {
-						console.log(xhr);
-						alert(xhr['responseText']);
-					}
-				});
-
-				return false;
-			});
-
-			{# Save Button #}
-			$('#save-btn').on('click', function(){
-
-				/* Client-Side Validation */
-				// section name
-				if ($.trim($('#name').val())  === '') {
-					setInvalid($('#name'));
-					return false;
-				} else {
-					setValid($('#name'));
-				}
-
-				// make sure that if one date is provided, the other one is too
-				if ($('#enddatepicker').val() == '' && $('#startdatepicker').val() != '' || $('#enddatepicker').val() != '' && $('#startdatepicker').val() == ''){
-					setInvalid($('#startdatepicker'));
-					setInvalid($('#enddatepicker'));
-					return false;
-				} else {
-					setValid($('#startdatepicker'));
-					setValid($('#enddatepicker'));
-				}
-
-				// make sure that the dates make sense if they provided them
-				if ($('#enddatepicker').datepicker('getDate') < $('#startdatepicker').datepicker('getDate')){
-					setInvalid($('#enddatepicker'));
-					return false;
-				} else {
-					setValid($('#enddatepicker'));
-				}
-
-				/* Array of Teachers */
-				var teachers = document.getElementById('teacher-csv').value.split(",");
-				for(var i=0; i<teachers.length; i++){
-					teachers[i] = teachers[i].replace(/\n/g, '');
-					teachers[i] = teachers[i].replace(/ /g, '');
-				}
-				teachers.pop(); // remove the blank last element
-
-				/* Array of Students */
-				var students = document.getElementById('student-csv').value.split(",");
-				for(var i=0; i<students.length; i++){
-					students[i] = students[i].replace(/\n/g, '');
-					students[i] = students[i].replace(/ /g, '');
-				}
-				students.pop(); // remove the blank last element
-
-				// check to see if this button is allowed to be pressed
-				if($(this).prop('disabled')){
-					return false;
-				} else {
-					$(this).prop('disabled', true);
-				}
-
-				/* Post to the Symfony Route */
-				$.post( "{{path('section_modify')}}", {
-					name: $.trim($('#name').val()),
-					course: $('#course').val(),
-					semester: $('#semester').val(),
-					year: $('#year').val(),
-					teachers: JSON.stringify(teachers),
-					students: JSON.stringify(students),
-					start_time: $('#startdatepicker').val(),
-					end_time: $('#enddatepicker').val(),
-					section: {% if section is not null %} {{section.id}} {% else %} 0 {% endif %}
-
-				}, function(data) {
-					console.log(data);
-
-					window.location = data["redirect_url"];
-				}).fail(function(data) {
-
-					alert(data["responseText"]);
-					$(this).prop('disabled', false);
-				});
-			});
-
-			$('#student-picker').on('change', function(){
-				updateStudentCSV();
-			});
-
-			$('#teacher-picker').on('change', function(){
-				updateTeacherCSV();
-			});
 		});
 
-		function updateStudentCSV() {
-
-			// get the value of the new student
-			var studentPicker = $('#student-picker');
-
-			if(studentPicker.val() == -1){
-				return;
-			}
-
-			// update the text area
-			var studentCSV = $('#student-csv');
-			studentCSV.val(studentCSV.val() + studentPicker.val() + ", \n");
-
-			// reset the dropdown to black
-			$('option:selected', studentPicker).remove();
-			studentPicker.val(0);
+			
+		function addUser(student){
+		
+			var id = (student.id) ? student.id : 0;
+		
+			var teamHTML = "<div class='user' id='"+id+"' contenteditable='false'>" + escapeHTML(student.full_name) + "</div>";		
+			$('#team-pool').append(teamHTML);	
+			
+			createTeamEvents();
 		}
+		
+		$('#new-user-input')
+			.keyup(function(event) {
+				if (event.keyCode === 13) {				
+					$('#new-user-button').click();
+				}
+			})
+			.focus(function() {
+				$(this).val("");
+				$(this).css('color', 'black');
+				$('#new-user-button').css('background', 'grey');
+			})
+			.focusout(function() {			
+				$(this).css('color', 'lightgrey');
+				$('#new-user-button').css('background', 'lightgrey');
+			});
+		
+		$('#new-user-button').click( function() {		
+		
+			if($('#new-user-input').val().trim() == "" || $('#new-user-input').val() == "Add a new user by email...") return;
+		
+			addUser({'id': 0, 'full_name': $('#new-user-input').val()});
+			$('#new-user-input').val("");		
+		});
+		
+		/* ACTION ON SAVE */
+		$('#save-btn').on('click', function(){
 
-		function updateTeacherCSV() {
+			var formData = new FormData();
 
-			// get the value of the new teacher
-			var teacherPicker = $('#teacher-picker');
+			/* Client-Side Validation */
+			
+			// section name
+			var contest_name = $('#contest-name').val().trim();
 
-			if(teacherPicker.val() == -1){
-				return;
+			if(contest_name == ""){
+				setInvalid($('#contest-name'));
+				return false;
+			} else {
+				setValid($('#contest-name'));
 			}
-
-			// update the text area
-			var teacherCSV = $('#teacher-csv');
-			teacherCSV.val(teacherCSV.val() + teacherPicker.val() + ", \n");
-
-			// reset the dropdown to black
-			$('option:selected', teacherPicker).remove();
-			teacherPicker.val(0);
-		}
-
+			
+			formData.append('contest_name', contest_name);
+			
+			// make sure that the dates make sense
+			// practice contest
+			
+			var practice_start_date = $('#practice-start-date').datepicker('getDate');
+			var practice_end_date = $('#practice-end-date').datepicker('getDate');
+			var actual_start_date = $('#actual-start-date').datepicker('getDate');
+			var actual_end_date = $('#actual-end-date').datepicker('getDate');
+			
+			if(practice_start_date >= practice_end_date){
+				setInvalid($('#practice-start-date'));
+				setInvalid($('#practice-end-date'));
+				return false;
+			} else {
+				setValid($('#practice-start-date'));
+				setValid($('#practice-end-date'));
+			}
+				
+				
+			// actual contest
+			if(actual_start_date >= actual_end_date){
+				setInvalid($('#actual-start-date'));
+				setInvalid($('#actual-end-date'));
+				return false;
+			} else {
+				setValid($('#actual-start-date'));
+				setValid($('#actual-end-date'));
+			}
+			
+			// contests related to each other
+			if(practice_end_date >= actual_start_date){
+				setInvalid($('#actual-start-date'));
+				setInvalid($('#practice-end-date'));
+				return false;
+			} else {
+				setValid($('#actual-start-date'));
+				setValid($('#practice-end-date'));
+			}
+			
+			formData.append('practice_start_date', practice_start_date);
+			formData.append('practice_end_date', practice_end_date);
+			formData.append('actual_start_date', actual_start_date);
+			formData.append('actual_end_date', actual_end_date);
+						
+			// validate the penalties per submissions
+			// compilation error
+			var pen_per_compile = $('#penalty-per-compile-error').val();
+			if(isNaN(pen_per_compile) || pen_per_compile < 0){
+				setInvalid($('#penalty-per-compile-error'));
+				return false;
+			} else {
+				setValid($('#penalty-per-compile-error'));
+			}
+			
+			
+			// time limit error
+			var pen_per_time = $('#penalty-per-time-limit').val();
+			if(isNaN(pen_per_time) || pen_per_time < 0){
+				setInvalid($('#penalty-per-time-limit'));
+				return false;
+			} else {
+				setValid($('#penalty-per-time-limit'));
+			}
+			
+			// runtime error
+			var pen_per_runtime = $('#penalty-per-runtime-error').val();
+			if(isNaN(pen_per_runtime) || pen_per_runtime < 0){
+				setInvalid($('#penalty-per-runtime-error'));
+				return false;
+			} else {
+				setValid($('#penalty-per-runtime-error'));
+			}
+						
+			// wrong answer
+			var pen_per_wrong = $('#penalty-per-wrong-answer').val();
+			if(isNaN(pen_per_wrong) || pen_per_wrong < 0){
+				setInvalid($('#penalty-per-wrong-answer'));
+				return false;
+			} else {
+				setValid($('#penalty-per-wrong-answer'));
+			}
+			
+			formData.append('pen_per_compile', pen_per_compile);
+			formData.append('pen_per_time', pen_per_time);
+			formData.append('pen_per_runtime', pen_per_runtime);
+			formData.append('pen_per_wrong', pen_per_wrong);
+			
+			// freeze time
+			var freeze_hours = $('#freeze-time-hours').val();
+			var freeze_minutes = $('#freeze-time-minutes').val();
+			if(isNaN(freeze_hours) || freeze_hours < 0){
+				setInvalid($('#freeze-time-hours'));
+				return false;
+			} else {
+				setValid($('#freeze-time-hours'));
+			}
+			
+			if(isNaN(freeze_minutes) || freeze_minutes < 0 || freeze_minutes > 60){
+				setInvalid($('#freeze-time-minutes'));
+				return false;
+			} else {
+				setValid($('#freeze-time-minutes'));
+			}
+			
+			var freeze_milliseconds = (freeze_minutes * 60 + freeze_hours * 3600) * 1000;			
+			if(freeze_milliseconds >= (practice_end_date - practice_start_date) || freeze_milliseconds >= (actual_end_date - actual_start_date)){
+				setInvalid($('#freeze-time-minutes'));
+				setInvalid($('#freeze-time-hours'));
+				return false;
+			} else {
+				setValid($('#freeze-time-minutes'));
+				setValid($('#freeze-time-hours'));
+			}
+			
+			formData.append('freeze_minutes', freeze_minutes);
+			formData.append('freeze_hours', freeze_hours);
+						
+			// Array of Judges
+			judges = [];
+			$('#judge-picker .user').each( function() {
+				
+				var judge = {};
+				judge.name = $(this).text().trim();
+				judge.id = $(this).attr('id');
+			
+				judges.push(judge);
+			});			
+			//console.log(judges);
+			
+			formData.append('judges', JSON.stringify(judges));
+			
+			// Array of Teams
+			teams = [];
+			$('#team-picker .team').each( function() {
+				
+				var team = {};
+				team.name = $('#team-name', this).val().trim();
+				var id = $(this).attr('id');
+					
+				team.id = (id) ? id : 0;
+			
+				team.members = [];
+				$(this).children('.user').each(function(index2) {
+					
+					var member = {};
+					member.id = $(this).prop('id');
+					member.name = $(this).text().trim();
+					
+					team.members.push(member);
+				});				
+				
+				teams.push(team);
+			});			
+			//console.log(teams);
+			formData.append('teams', JSON.stringify(teams));
+			
+			// check to see if this button is allowed to be pressed
+			
+			
+			
+			/* AJAX POST */
+			$.ajax({
+				type: "POST",
+				url: "{{path('contest_modify')}}",
+				data: formData,
+				processData: false,
+				contentType: false,
+				async: true,
+				success: function(data){
+					console.log(data);
+				},
+				error: function(data){					
+					alert(data['responseText']);
+					console.log(data['responseText']);					
+				}
+			});
+		});
 	</script>
 
 
@@ -413,16 +625,9 @@
 	function populateForm(){
 
 		// set the course
-		$('#course').val({{section.course.id}});
 
 		// set the name
 		$('#name').val("{{section.name}}");
-
-		// set the semester
-		$('#semester').val("{{section.semester}}");
-
-		// set the year
-		$('#year').val("{{section.year}}");
 
 		// set the teachers csv
 		{% for std in section_teacher_roles %}
@@ -430,17 +635,12 @@
 		updateTeacherCSV();
 		{% endfor %}
 
-		// set the students csv
-		{% for std in section_taker_roles %}
-		$('#student-picker').val("{{std.user.email}}");
-		updateStudentCSV();
-		{% endfor %}
+		// set the teams pool
+		// TODO
 
 		// set the starting date
-		$('#startdatepicker').val("{{section.start_time|date('m/d/Y')}}");
-
 		// set the ending date
-		$('#enddatepicker').val("{{section.end_time|date('m/d/Y')}}");
+		// TODO
 
 	}
 
