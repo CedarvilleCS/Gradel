@@ -31,26 +31,6 @@
 				</div>
 				<div id="progressbar"> </div>
 				
-				<div id="stats-container" >
-				
-					<div style="width: 28%">
-						<div style="margin-top: 5px; padding-left: 5px; font-weight: bold; font-size: 0.9em;"> Statistics <small> </small> </div>
-						<div id="stats-page">
-						</div>
-					</div>
-					
-					<div style="width: 35%">
-						<div style="margin-top: 5px; padding-left: 5px; font-weight: bold; font-size: 0.9em;"> Previous Reviews <small> </small> </div>
-						<div id="recent-reviews">
-						</div>
-					</div>
-				
-					<div style="width: 35%">
-						<div style="margin-top: 5px; padding-left: 5px; font-weight: bold; font-size: 0.9em;"> Previous Clarifications <small> </small> </div>
-						<div id="recent-clarifications">
-						</div>
-					</div>
-				</div>
 			</div>
 		</div>
 		
@@ -75,9 +55,6 @@
 		
 			<div id="submissions-container" class="card-contents">
 				
-				
-				
-				
 			</div>		
 		</div>
 		
@@ -90,11 +67,34 @@
 		
 			<div id="clarifications-container" class="card-contents">
 				
-				
-				
-				
-				
 			</div>		
+		</div>
+		
+		<div class="card">
+			<div class="btn-close">
+				<h2 style="margin: 0px">History </h2>
+			</div>
+
+			<div id="stats-container" >
+				
+				<!-- <div style="width: 28%">
+						<div style="margin-top: 5px; padding-left: 5px; font-weight: bold; font-size: 0.9em;"> Statistics <small> </small> </div>
+						<div id="stats-page">
+						</div>
+					</div> -->
+				
+					<div style="width: 35%">
+						<div style="margin-top: 5px; padding-left: 5px; font-weight: bold; font-size: 0.9em;"> Previous Reviews <small> </small> </div>
+						<div id="recent-reviews">
+						</div>
+					</div>
+				
+					<div style="width: 35%">
+						<div style="margin-top: 5px; padding-left: 5px; font-weight: bold; font-size: 0.9em;"> Previous Clarifications <small> </small> </div>
+						<div id="recent-clarifications">
+						</div>
+					</div>
+				</div>	
 		</div>
 					
 	</section>
@@ -469,6 +469,16 @@
 				$(this).find('.marker-hover').hide();			
 			});
 			
+			/* $('.marker').off('mouseover');
+			$('.marker').on('mouseover', function() {			
+				$(this).find('.marker-hover-untested').show().css('display', 'flex');					
+			});
+			
+			$('.marker').off('mouseout');
+			$('.marker').on('mouseout', function() {			
+				$(this).find('.marker-hover-untested').hide(); 		
+			});*/	
+			
 			$('.button').off('mousedown');
 			$('.button').off('mouseup');
 			$('.button')
@@ -840,6 +850,7 @@
 								
 								middleStuff += `<div class="marker ` + ((tcr.is_correct) ? 'correct' : 'wrong') + `">\n` + 
 								
+								
 									((tcr.is_correct) ? '&#x2713;\n' : '&#x2718;\n') +
 									
 									`<div class="marker-hover">\n` +
@@ -858,6 +869,11 @@
 								`</div>\n`;
 							
 							}
+							
+							for(var k=sub.testcaseresults.length; k < sub.problem.testcases.length; k++){
+								middleStuff += `<div class="marker untested">`  + '&#63;\n' + `<div class="marker-hover" id="untested">\n` + `Untested.` +`</div>\n`+`</div>\n`;
+							}
+							
 							
 				submissionHTML += middleStuff;
 				

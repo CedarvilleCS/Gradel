@@ -514,4 +514,5 @@ class SectionController extends Controller {
 		$response->setStatusCode(Response::HTTP_FORBIDDEN);
 		return $response;
 	}
+	
 }
