@@ -62,7 +62,7 @@ class HomeController extends Controller {
 			
 			if($usr->role->role_name == 'Takes'){
 				$sections_taking[] = $usr->section;
-			} else if($usr->role->role_name == 'Teaches'){
+			} else if($usr->role->role_name == 'Teaches' || $usr->role->role_name == 'Judges'){
 				$sections_teaching[] = $usr->section;
 			}
 		}

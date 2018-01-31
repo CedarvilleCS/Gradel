@@ -84,6 +84,7 @@ class Section{
 
 	/**
 	* @ORM\OneToMany(targetEntity="Assignment", mappedBy="section", cascade={"persist"})
+	* @ORM\OrderBy({"id" = "ASC"})
 	*/
 	public $assignments;
 	

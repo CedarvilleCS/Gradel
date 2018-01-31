@@ -1,0 +1,391 @@
+{% set elevatedUser = grader.isJudging(app.user, contest.section) or is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") %}
+
+{% block title %}
+	<title>Gradel | Submission {{submission.id}}</title>
+	<link rel="icon" type="image/x-icon" href="{{ asset('logo.png') }}" />
+{% endblock %}
+
+
+{% block stylesheets %}
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
+	
+	<link rel="stylesheet" href="{{ asset('styles.css') }}" />
+	<link rel="stylesheet" href="{{ asset('card.css') }}" />
+	<link rel="stylesheet" href="{{ asset('contest-hub.css') }}" />
+	<link rel="stylesheet" href="{{ asset('submission-results.css') }}">
+{% endblock %}
+
+{% block body %}
+
+<body>
+    {{ include('template/top-nav.html.twig') }}
+	
+	{{ include('contest/problem-nav.html.twig') }}
+	
+	<section id="main">	
+		<div class="card">
+			<div style="display: flex; flex-direction: row; justify-content: space-between">
+				<h2 style="margin: 0px">{{submission.problem.name}}</h2>
+				
+				{% if elevatedUser %}
+				<div style="position: absolute; right: 45;">
+					<div class="main-options">
+						<div class="button formatting-button" title="Mark as Formatting Error" id="{{submission.id}}">&#x270F;</div>
+						<div class="button wrong-button" title="Mark as Incorrect" id="{{submission.id}}">&#x2718;</div>
+					</div>
+							
+					<div class="additional-options">
+						<div class="button correct-button" title="Mark as Correct" id="{{submission.id}}">&#x2713;</div>
+						<div class="button custom-buttom" title="Return Custom Message" id="{{submission.id}}">&#x1f589;</div>
+						<div class="button delete-button" title="Delete Submission" id="{{submission.id}}">&#x1F5D1;</div>
+					</div>
+				</div>
+				{% endif %}
+				
+			</div>
+			
+			<div id="submissionOverview" class="card-contents">
+				<h3 style="margin-top: 2px; margin-bottom: 2px">
+					RESULT:
+					{% if submission.pending_status < 2 %}
+						<i> PENDING REVIEW </i>
+					{% elseif submission.isCorrect() %}						
+						<span style="color:green">
+							CORRECT!
+							
+							{% if not submission.isCorrect(true) %}
+							(Overriden by Judge)
+							{% endif %}
+						</span>
+							
+					{% else %}					
+						<span style="color:red">
+						
+						{% if submission.compiler_error %}
+						COMPILER ERROR!
+						{% elseif submission.exceeded_time_limit %}
+						TIME LIMIT EXCEEEDED!
+						{% elseif submission.runtime_error %}
+						RUNTIME ERROR!
+						{% else %}
+						WRONG ANSWER!
+						
+						{% if submission.isCorrect(true) %}
+						(Overriden by Judge)
+						{% endif %}
+						
+						{% endif %}	
+						
+						</span>	
+						
+					{% endif %}
+						
+					{% if submission.judge_message %}
+					<div> JUDGE MESSAGE: {{ submission.judge_message }} </div>
+					{% endif %}
+					
+				</h3>				
+				
+				
+
+				<div>
+				{% if submission.compiler_error and submission.compiler_output %}
+					<h2> COMPILER OUTPUT </h2>
+					<textarea disabled id='compiler-output'>{{submission.compiler_output}}</textarea>
+				{% endif %}
+				
+				</div>
+				
+				<h2 style="">SUBMITTED CODE</h2>				
+				<a href="{{path('contest_problem', {'contestId': submission.problem.assignment.section.id, 'roundId': submission.problem.assignment.id, 'problemId': submission.problem.id} )}}">
+					Edit and resubmit
+				</a>
+				
+<div id="editor" style="height: 550px">{% if submission.filename|split('.')|last != 'zip' %}
+{{ submission.deblobinateSubmittedFile()|nl2br }}{% else %}
+Submission was a ZIP file{% endif %}</div>
+				
+				<h3 style="margin-top: 10px; margin-bottom: 0px">Submission ID: {{submission.id}}</h3>
+			</div>
+		</div>
+		
+	</section>
+	
+		
+	
+	
+	{# custom dialog #}	
+	<div id="custom-message-form" title="Custom Message" value="0">
+	  <form>
+		  <input type="text" name="message" id="message" class="text ui-widget-content ui-corner-all">
+		 
+		  <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+	  </form>
+	</div>
+		
+	{# delete dialog #}
+	<div id="delete-form" title="Delete Submission?" value="0">
+	  <p>This submission will be permanently deleted. Are you sure?</p>
+	</div>
+	 
+	{# correct dialog #}
+	<div id="correct-form" title="Mark Submission Correct?" value="0">
+	  <p>This submission will be marked correct. Are you sure?</p>
+	</div>
+	
+	{# wrong answer dialog #}
+	<div id="wrong-form" title="Confirm Submission Wrong?" value="0">
+	  <p>This submission will be confirmed wrong answer. Are you sure?</p>
+	</div>
+	
+	{# formatting dialog #}
+	<div id="formatting-form" title="Mark Submission Wrong Formatting?" value="0">
+	  <p>This submission will be marked as having wrong formatting. Are you sure?</p>
+	</div>
+	
+</body>
+	
+{% endblock %}
+
+{% block javascripts %}
+    <!-- JQuery -->
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+	<script src="{{ asset('src-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>	
+	
+	<script>
+	
+	$(document).ready( function() {
+	
+		{% if submission.compiler_output %}
+		
+		var a = $('#compiler-output').html();
+		document.getElementById("compiler-output").rows = a.split(/\r\n|\r|\n/).length;
+		
+		{% endif %}
+		
+		var editor = ace.edit("editor");
+		editor.setTheme("ace/theme/xcode");	
+		editor.setReadOnly(true);
+	});
+	
+	
+	$('.button')
+		.mousedown(function() {
+		
+			$(this).css({
+				
+				'border-top': '1px solid #333333',
+				'border-right': '1px solid white',
+				'border-bottom': '1px solid white',
+				'border-left': '1px solid #333333'						
+			});
+	
+		})
+		.mouseup(function() {
+			
+			$(this).css({						
+				'border-top': '1px solid white',
+				'border-right': '1px solid #333333',
+				'border-bottom': '1px solid #333333',
+				'border-left': '1px solid white'						
+			});
+		});
+		
+	/* CUSTOM FORMATTING MESSAGE */
+	customMessageDialog = $("#custom-message-form").dialog({
+		autoOpen: false,
+		modal: true,
+		buttons: {
+			"Update Submission": function () {
+				updateSubmission("message");						
+			}, 
+			Cancel: function() {
+				customMessageDialog.dialog( "close" );
+			}
+		},
+	  close: function() {
+		  customMessageForm[0].reset();
+	  }
+	});
+	
+	customMessageForm = customMessageDialog.find( "form" ).on( "submit", function( event ) {
+		event.preventDefault();
+		updateSubmission("message");
+	});
+	
+	$( ".custom-buttom" ).on( "click", function() {
+		var sub_id = $(this).attr('id');
+		$('#custom-message-form').val(sub_id);
+		customMessageDialog.dialog("open");
+	});
+	
+	
+	/* DELETE MESSAGE */
+	deleteDialog = $( "#delete-form" ).dialog({
+		resizable: false,
+		modal: true,
+		autoOpen: false,
+		width: "auto",
+		height: "auto",
+		buttons: {
+			"Delete Submission": function() {
+				updateSubmission("delete");
+			},
+			Cancel: function() {
+				$( this ).dialog( "close" );
+			}
+		}
+	});
+	
+	$( ".delete-button" ).on( "click", function() {
+		var sub_id = $(this).attr('id');
+		$('#delete-form').val(sub_id);
+		deleteDialog.dialog("open");
+	});
+	
+	/* CORRECT MESSAGE */
+	correctDialog = $( "#correct-form" ).dialog({
+		resizable: false,
+		modal: true,
+		autoOpen: false,
+		width: "auto",
+		height: "auto",
+		buttons: {
+			"Mark Correct": function() {
+				updateSubmission("correct");
+			},
+			Cancel: function() {
+				$( this ).dialog( "close" );
+			}
+		}
+	});
+	
+	$( ".correct-button" ).on( "click", function() {
+		var sub_id = $(this).attr('id');
+		$('#correct-form').val(sub_id);
+		correctDialog.dialog("open");
+	});
+
+	/* WRONG MESSAGE */
+	wrongDialog = $( "#wrong-form" ).dialog({
+		resizable: false,
+		modal: true,
+		autoOpen: false,
+		width: "auto",
+		height: "auto",
+		buttons: {
+			"Mark Wrong Answer": function() {
+				updateSubmission("wrong");
+			},
+			Cancel: function() {
+				$( this ).dialog( "close" );
+			}
+		}
+	});
+	
+	$( ".wrong-button" ).on( "click", function() {
+		var sub_id = $(this).attr('id');
+		$('#wrong-form').val(sub_id);
+		wrongDialog.dialog("open");
+	});
+	
+	/* FORMATTING MESSAGE */
+	formattingDialog = $( "#formatting-form" ).dialog({
+		resizable: false,
+		modal: true,
+		autoOpen: false,
+		width: "auto",
+		height: "auto",
+		buttons: {
+			"Mark Wrong Formatting": function() {
+				updateSubmission("formatting");
+			},
+			Cancel: function() {
+				$( this ).dialog( "close" );
+			}
+		}
+	});
+	
+	$( ".formatting-button" ).on( "click", function() {
+		var sub_id = $(this).attr('id');
+		$('#formatting-form').val(sub_id);
+		formattingDialog.dialog("open");
+	});
+	
+	
+	/* FUNCTION TO HANDLE POST TO UPDATE SUBMISSIONS */
+	function updateSubmission(type){	
+		
+		var id;
+		var formData = new FormData();
+		
+		formData.append('override', true);
+		formData.append('type', type);
+		
+		if(type == "message"){				
+			id = $('#custom-message-form').val();
+			message = $('#message').val();
+			customMessageDialog.dialog( "close" );
+			
+			formData.append('message', message);
+		} 
+		else if(type == "delete"){
+			id = $('#delete-form').val();
+			deleteDialog.dialog( "close" );				
+		}
+		else if(type == "correct"){
+			id = $('#correct-form').val();
+			correctDialog.dialog( "close" );
+		}
+		else if(type == "wrong"){
+			id = $('#wrong-form').val();
+			wrongDialog.dialog( "close" );
+		}
+		else if(type == "formatting"){			
+			id = $('#formatting-form').val();
+			formattingDialog.dialog( "close" );					
+		}
+		else if(type == "claimed"){
+			id = claimed_id;
+		}
+		else if(type == "unclaimed"){
+			id = claimed_id;			
+		}else {
+			return false;
+		}
+		
+		formData.append('submissionId', id);
+		
+		$.ajax({
+			type: "POST",
+			url: "{{path('judging_modify')}}",
+			data: formData,
+			processData: false,
+			contentType: false,
+			success: function(data){
+
+				console.log(data);
+				
+				if(data['id'] != null && data['reviewed'] != null){						
+
+					window.location.reload();
+					
+				} else {
+					alert("Error reviewing submission");						
+				}
+			},
+			error: function(data){
+				alert(data['responseText']);
+				console.log(data['responseText']);
+			}
+		});
+		
+		return true;
+	}
+	
+	
+	</script>
+
+{% endblock %}
