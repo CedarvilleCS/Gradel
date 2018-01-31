@@ -138,8 +138,14 @@
 					
 				<div>   
 					<ul>
-					{% if accepted_submissions|length != 0 %}
-						<li> accepted submissions </li>
+					{% if accepted_submissions|length > 0 %}
+						submissions exist.
+						{# {{ accepted_submissions[0] }} #}
+						{% for acc in accepted_submissions %}
+							<li><a href="{{path('problem_result', {'submission_id': sub.id})}}">
+								<i>{{sub.problem.assignment.name}}:</i> {{sub.problem.name}} ({{sub.language.name}})</i>
+							</a></li>
+						{% endfor %}
 					{% endif %}
 
 					{% if recent_submissions|length == 0 %}
@@ -251,7 +257,7 @@
 
 			// add it to the card
 			counter = 0;
-			selection = "<select id='assignmentSelect' onchange='gradeTable()' style='height: 30px; font-size: 13px;'><option value='default'>Select an Assignment</option>";
+			selection = "Select an assignment: <select id='assignmentSelect' onchange='gradeTable()' style='height: 30px; font-size: 13px;'><option value='default'></option>";
 					// onclick='gradeTable(" + counter + ")
 			{% for asgn in assignments %}
 				selection += "<option value=" + counter + ">{{ asgn.name }}</option>";

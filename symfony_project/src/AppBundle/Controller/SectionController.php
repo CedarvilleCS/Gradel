@@ -34,6 +34,7 @@ class SectionController extends Controller {
 		$em = $this->getDoctrine()->getManager();
 
 		$user = $this->get('security.token_storage')->getToken()->getUser();
+		
 
 		if(!$user){
 			die("USER DOES NOT EXIST");
@@ -41,6 +42,8 @@ class SectionController extends Controller {
 
 		# VALIDATION
 		$section_entity = $em->find('AppBundle\Entity\Section', $sectionId);
+
+		//$problem_entity =  $em->find('AppBundle\Entity\Problem', );
 
 		if(!$section_entity){
 			die("SECTION DOES NOT EXIST!");
@@ -130,20 +133,15 @@ class SectionController extends Controller {
 
 			if($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isTeaching($user, $section_entity) || $grader->isJudging($user, $section_entity)){
 				
-				// query for accepted submissions
-				$qb_accsub = $em->createQueryBuilder();
-				$qb_accsub->select('s')
-				   ->from('AppBundle\Entity\Submission', 's')
-				   ->where('s.user = ?1')
-				   ->andWhere('s.problem = ?2')
-				   ->andWhere('s.is_accepted = true')
-				   ->setParameter(1, $user)
-				   ->setParameter(2, $problem_entity);        
-						   
-				$sub_query = $qb_accsub->getQuery();
-				$best_submission = $sub_query->getOneOrNullResult();
+				// echo json_encode($user);
+				// echo "<br/>";
+				// echo json_encode($problem_entity);
+				// echo "<br/>";
 
-				// die(json_encode($best_submission));
+				// echo json_encode($allprobs);
+
+
+				
 
 				// query for all submissions
 				$qb_submissions = $em->createQueryBuilder();
@@ -155,6 +153,25 @@ class SectionController extends Controller {
 
 				$submission_query = $qb_submissions->getQuery();
 				$submissions = $submission_query->getResult();
+
+				// echo "<br><br><br>submissions:";
+				// echo json_encode($submissions);
+
+				// query for accepted submissions
+				$qb_accsub = $em->createQueryBuilder();
+				$qb_accsub->select('s')
+				   ->from('AppBundle\Entity\Submission', 's')
+				   ->where('s.user = ?1')
+				   ->andWhere('s.problem IN (?2)')
+				   ->andWhere('s.is_accepted = true')
+				   ->setParameter(1, $user)
+				   ->setParameter(2, $allprobs);        
+						   
+				$sub_query = $qb_accsub->getQuery();
+				$best_submission = $sub_query->getOneOrNullResult();
+
+				// echo "<br>best submission:";
+				// echo(json_encode($best_submission));
 
 			} else {
 				$teams = [];
