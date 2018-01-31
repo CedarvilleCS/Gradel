@@ -1,5 +1,6 @@
 /* Client-Side Field Validation */
 function setInvalid(element) {
+	
 	element.css('border', '3px solid red');
 	element.css('background-color', '#FD8177');
 }

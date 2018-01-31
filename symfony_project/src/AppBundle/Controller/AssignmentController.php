@@ -8,6 +8,7 @@ use AppBundle\Entity\UserSectionRole;
 use AppBundle\Entity\Section;
 use AppBundle\Entity\Assignment;
 use AppBundle\Entity\Team;
+use AppBundle\Entity\Trial;
 
 use AppBundle\Utils\Grader;
 use AppBundle\Utils\Uploader;
@@ -15,6 +16,7 @@ use AppBundle\Utils\Uploader;
 use Doctrine\Common\Collections\ArrayCollection;
 
 use \DateTime;
+use \DateInterval;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Routing\Router;
@@ -37,6 +39,26 @@ class AssignmentController extends Controller {
 			die("USER DOES NOT EXIST!");		  
 		}
 		
+		# get the section
+		if(!isset($sectionId) || !($sectionId > 0)){
+			die("SECTION ID WAS NOT PROVIDED OR FORMATTED PROPERLY");
+		}
+		
+		$section_entity = $em->find("AppBundle\Entity\Section", $sectionId);
+		if(!$section_entity){
+			die("SECTION DOES NOT EXIST");
+		}
+		
+		# REDIRECT TO CONTEST IF NEED BE
+		if($section_entity->course->is_contest){
+			
+			if(isset($problemId)){
+				return $this->redirectToRoute('contest', ['contestId' => $sectionId, 'roundId' => $assignmendId]);
+			} else {
+				return $this->redirectToRoute('contest_problem', ['contestId' => $sectionId, 'roundId' => $assignmendId, 'problemId' => $problemId]);
+			}
+		}
+		
 		# get the assignment
 		if(!isset($assignmentId) || !($assignmentId > 0)){
 			die("ASSIGNMENT ID WAS NOT PROVIDED OR FORMATTED PROPERLY");
@@ -46,7 +68,7 @@ class AssignmentController extends Controller {
 		if(!assignment_entity){
 			die("ASSIGNMENT DOES NOT EXIST");
 		}
-		
+				
 		if($problemId == 0){
 			$problemId = $assignment_entity->problems[0]->id;
 		}
@@ -100,7 +122,7 @@ class AssignmentController extends Controller {
 		
 		# figure out how many attempts they have left
 		$total_attempts = $problem_entity->total_attempts;
-		if($total_attempts == 0 || $grader->isTeaching($user, $assignment_entity->section)){
+		if($total_attempts == 0 || $grader->isTeaching($user, $assignment_entity->section) || $grader->isJudging($user, $assignment_entity->section)){
 			$attempts_remaining = -1;
 		} else {
 			$attempts_remaining = max($total_attempts - $grader->getNumTotalAttempts($user, $problem_entity), 0);
@@ -142,11 +164,48 @@ class AssignmentController extends Controller {
 		$subs_query = $qb_allsubs->getQuery();
 		$all_submissions = $subs_query->getResult();
 		
-		$last_submission = null;
-		if(count($all_submissions) > 0){
-			$last_submission = $all_submissions[0];
-		}
+		# get the user's trial for this problem
+		$qb_trial = $em->createQueryBuilder();
+		$qb_trial->select('t')
+				->from('AppBundle\Entity\Trial', 't')
+				->where('t.user = ?1')
+				->andWhere('t.problem = ?2')
+				->setParameter(1, $user)
+				->setParameter(2, $problem_entity);
 
+		$trial_query = $qb_trial->getQuery();
+		$trial = $trial_query->getOneorNullResult();
+		
+		
+		if($_GET["submissionId"] && $_GET["submissionId"] > 0){
+			
+			$submission = $em->find("AppBundle\Entity\Submission", $_GET["submissionId"]);
+			
+			if($submission->user != $user || $submission->problem != $problem_entity){
+				die("You are not allowed to edit this submission on this problem!");
+			}
+			
+			if(!$trial){
+				$trial = new Trial();
+				
+				$trial->user = $user;
+				$trial->problem = $problem_entity;
+				$trial->language = $submission->language;			
+				$trial->show_description = true;
+				
+				$em->persist($trial);
+			}
+			
+			$trial->file = $submission->submitted_file;
+						
+			
+			$trial->filename = $submission->filename;
+			$trial->main_class = $submission->main_class_name;
+			$trial->package_name = $submission->package_name;
+			$trial->last_edit_time = new \DateTime("now");
+		}
+						
+		
 		return $this->render('assignment/index.html.twig', [
 			'user' => $user,
 			'team' => $team,
@@ -161,13 +220,14 @@ class AssignmentController extends Controller {
 			'attempts_remaining' => $attempts_remaining,
 			
 			'best_submission' => $best_submission,
-			'last_submission' => $last_submission,
+			'trial' => $trial,
 			'all_submissions' => $all_submissions,
 
 			'default_code' => $default_code,
 			'ace_modes' => $ace_modes,
 			'filetypes' => $filetypes,
-		]);	
+		]);
+
 	}
 
     public function editAction($sectionId, $assignmentId) {
@@ -183,6 +243,10 @@ class AssignmentController extends Controller {
 			die("SECTION DOES NOT EXIST");
 		}
 		
+		if($section->course->is_contest){
+			return $this->returnForbiddenResponse('contest_edit', ['contestId' => $sectionId]);
+		}
+		
 		$user = $this->get('security.token_storage')->getToken()->getUser();  	  
 		if(!get_class($user)){
 			die("USER DOES NOT EXIST!");		  
@@ -190,8 +254,8 @@ class AssignmentController extends Controller {
 		
 		# validate the user
 		$grader = new Grader($em);
-		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN") && !$grader->isTeaching($user, $section)){
-			die("YOU ARE NOT ALLOWED TO DELETE THIS ASSIGNMENT");			
+		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN") && !$grader->isTeaching($user, $section) && !$grader->isJudging($user, $section)){
+			die("YOU ARE NOT ALLOWED TO EDIT THIS ASSIGNMENT");			
 		}		
 		
 		if($assignmentId != 0){
@@ -228,7 +292,7 @@ class AssignmentController extends Controller {
 			
 			$students[] = $student;
 		}
-		
+
 		return $this->render('assignment/edit.html.twig', [
 			"assignment" => $assignment,
 			"section" => $section,
@@ -258,7 +322,7 @@ class AssignmentController extends Controller {
 		
 		# validate the user
 		$grader = new Grader($em);
-		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN") && !$grader->isTeaching($user, $assignment->section)){
+		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN") && !$grader->isTeaching($user, $assignment->section) && !$grader->isJudging($user, $assignment->section)){
 			die("YOU ARE NOT ALLOWED TO DELETE THIS ASSIGNMENT");			
 		}
 		
@@ -294,12 +358,12 @@ class AssignmentController extends Controller {
 		
 		# only super users/admins/teacher can make/edit an assignment
 		$grader = new Grader($em);		
-		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN") && !$grader->isTeaching($user, $section)){			
+		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN") && !$grader->isTeaching($user, $section) && !$grader->isJudging($user, $section)){			
 			return $this->returnForbiddenResponse("You do not have permission to make an assignment.");
 		}		
 		
 		# check mandatory fields
-		if(!isset($postData['name']) || !isset($postData['open_time']) || !isset($postData['close_time']) || !isset($postData['teams']) || !isset($postData['teamnames']) || !isset($postData['penalty'])){
+		if(!isset($postData['name']) || !isset($postData['open_time']) || !isset($postData['close_time']) || !isset($postData['teams']) || !isset($postData['teamnames'])){
 			return $this->returnForbiddenResponse("Not every required field is provided.");			
 		} else {
 			
@@ -311,7 +375,7 @@ class AssignmentController extends Controller {
 			}
 
 			# validate the penalty if there is one
-			if(	is_numeric(trim($postData['penalty'])) && 
+			if(is_numeric(trim($postData['penalty'])) && 
 				((float)trim($postData['penalty']) > 1.0 || (float)trim($postData['penalty']) < 0.0)){
 					
 				return $this->returnForbiddenResponse("The provided penalty ".$postData['penalty']." is not permitted.");
@@ -388,11 +452,10 @@ class AssignmentController extends Controller {
 			$assignment->is_extra_credit = false;
 		}
 		
-		# set grading method
-		$penalty = (float)trim($postData['penalty']);
-		
+		# set grading penalty
+		$penalty = (float)trim($postData['penalty']);		
 		$assignment->penalty_per_day = $penalty;		
-
+	
 		# get all the users taking the course
 		$takes_role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));
 		$builder = $em->createQueryBuilder();

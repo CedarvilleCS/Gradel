@@ -35,9 +35,11 @@
 						
 						<div style="margin-left: 20px">
 							<small>{{asgn.section.name}}</small>
+							
 							<a href="{{path('assignment', {'sectionId':asgn.section.id, 'assignmentId':asgn.id})}}">
 								{{asgn.name}}
-							</a>								
+							</a>		
+							
 						</div>
 					{% else %}
 					{% if sections_teaching|length > 0 %}

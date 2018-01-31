@@ -1,0 +1,904 @@
+{% block head %}
+
+<title>Judging | {{contest.name}} </title>
+<link rel="icon" type="image/x-icon" href="{{ asset('logo.png') }}" />
+{% endblock %}
+
+
+{% block body %}
+
+<body>        
+    {{ include('template/top-nav.html.twig') }}
+    
+	{{ include('contest/problem-nav.html.twig') }}
+	
+	
+	<section id="main">
+		
+		<div class="card">
+			<div id="contest-heading"><h1>{{contest.section.name}}</h1></div>
+			<div id="name-heading"><h2>{{contest.name}}</h2></div>
+			<div id="time-heading"><h3 id="time-left">-</h3></div>
+			
+			
+			<div id="progressbar-container" class="card-contents">
+				<div id="time-container">
+				
+					{% set showDates = contest.start_time|date('n/j') != contest.end_time|date('n/j') %}
+				
+					<div id="start-time">{{(showDates) ? contest.start_time|date('n/j') : ""}} {{contest.start_time|date('g:i:s A')}}</div>
+					<div id="end-time">{{(showDates) ? contest.end_time|date('n/j') : ""}} {{contest.end_time|date('g:i:s A')}}</div>
+				</div>
+				<div id="progressbar"> </div>
+				
+				<div id="stats-container" >
+				
+					<div style="width: 28%">
+						<div style="margin-top: 5px; padding-left: 5px; font-weight: bold; font-size: 0.9em;"> Statistics <small> </small> </div>
+						<div id="stats-page">
+						</div>
+					</div>
+					
+					<div style="width: 35%">
+						<div style="margin-top: 5px; padding-left: 5px; font-weight: bold; font-size: 0.9em;"> Previous Reviews <small> </small> </div>
+						<div id="recent-reviews">
+						</div>
+					</div>
+				
+					<div style="width: 35%">
+						<div style="margin-top: 5px; padding-left: 5px; font-weight: bold; font-size: 0.9em;"> Previous Clarifications <small> </small> </div>
+						<div id="recent-clarifications">
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<div class="card">
+			<div class="btn-close">
+				<h2 style="margin: 0px">Your Reviews <small style="font-size: 0.7em"> <i> Review them! </i> </small> </h2>
+				
+			</div>
+		
+			<div id="queue-container" class="card-contents">
+				
+				
+			</div>	
+		</div>
+		
+		<div class="card">
+		
+			<div class="btn-close">
+				<h2 style="margin: 0px">Submission Queue <small style="font-size: 0.7em"> <i> Double-click to claim </i> </small> </h2>
+				
+			</div>
+		
+			<div id="submissions-container" class="card-contents">
+				
+				
+				
+				
+			</div>		
+		</div>
+		
+		<div class="card">
+		
+			<div class="btn-close">
+				<h2 style="margin: 0px">Clarifications Queue <small style="font-size: 0.7em"> <i> Double-click to answer </i> </small> </h2>
+				<div id="notice-button" style="position: absolute; right: 15px; top: 10px;"> Post Contest Notice </div>
+			</div>
+		
+			<div id="clarifications-container" class="card-contents">
+				
+				
+				
+				
+				
+			</div>		
+		</div>
+					
+	</section>
+	
+	{# notice dialog #}	
+	<div id="notice-form" title="Post Notice" value="0">
+	  <form>
+		  <input type="text" name="notice" id="notice" class="text ui-widget-content ui-corner-all">
+		  <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+	  </form>
+	</div>
+	
+	{# answer dialog #}	
+	<div id="clarification-form" title="Answer Clarification" value="0">
+	  <form>
+		  <input type="text" name="answer" id="answer" class="text ui-widget-content ui-corner-all">
+		  <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+	  </form>
+	</div>
+	
+	{# custom dialog #}	
+	<div id="custom-message-form" title="Custom Message" value="0">
+	  <form>
+		  <input type="text" name="message" id="message" class="text ui-widget-content ui-corner-all">
+		  <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">		  
+	  </form>
+	</div>
+		
+	{# delete dialog #}
+	<div id="delete-form" title="Delete Submission?" value="0">
+	  <p>This submission will be permanently deleted. Are you sure?</p>
+	  <form>
+		  <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">		  
+	  </form>
+	</div>
+	 
+	{# correct dialog #}
+	<div id="correct-form" title="Mark Submission Correct?" value="0">
+	  <p>This submission will be marked correct. Are you sure?</p>
+	  <form>
+		  <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">		  
+	  </form>
+	</div>
+	
+	{# wrong answer dialog #}
+	<div id="wrong-form" title="Confirm Submission Wrong?" value="0">
+	  <p>This submission will be confirmed wrong answer. Are you sure?</p>
+	  <form>
+		  <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">		  
+	  </form>
+	</div>
+	
+	{# formatting dialog #}
+	<div id="formatting-form" title="Mark Submission Wrong Formatting?" value="0">
+	  <p>This submission will be marked as having wrong formatting. Are you sure?</p>
+	  <form>
+		  <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">		  
+	  </form>
+	</div>
+
+	
+</body>
+
+{% endblock %}
+
+{% block stylesheets %}
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
+	
+    <link rel="stylesheet" href="{{ asset('styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('card.css') }}" />
+    <link rel="stylesheet" href="{{ asset('contest-hub.css') }}" />
+	
+	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
+	
+{% endblock %}
+
+
+{% block scripts %}
+    <!-- JQuery -->
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+	<script src="{{ asset('js/cards.js') }}"></script>
+	
+	<script>
+
+		var time = {{"now"|date('U')}} - {{contest.start_time|date('U')}}; // current seconds into the contest
+		var total = {{contest.end_time|date('U')}} - {{contest.start_time|date('U')}};
+		//var freeze 
+		$(document).ready( function() {
+					
+			$('#progressbar').progressbar({
+				max: total, // total seconds in the contest
+				value: time	// current seconds into the contest		
+			});
+						
+			setInterval(loopFunction, 1000);
+			loopFunction();					
+		});
+
+		/* FUNCTION TO HANDLE POST TO ANSWER QUESTION */
+		function updateClarification(type, scope){
+			
+			var id;
+			var formData = new FormData();
+			
+			if(type == "answer"){
+				id = $('#clarification-form').val();
+				
+				answer = $('#answer').val();
+				formData.append('answer', answer);
+				
+				if(scope == "global"){
+					formData.append('global', true);
+				}
+			}
+			else if(type == "notice"){
+				id = 0;
+				notice = $('#notice').val();
+				formData.append('answer', notice);				
+				formData.append('contestId', {{contest.id}});
+			}
+			else {
+				return false;
+			}
+				
+			formData.append('clarificationId', id);
+			
+			$.ajax({
+				type: "POST",
+				url: "{{path('judging_modify')}}",
+				data: formData,
+				processData: false,
+				contentType: false,
+				success: function(data){
+
+					console.log(data);
+					
+					if(data['id'] != null && data['answered']){					
+						
+						$('#clarifications-container #' + data['id']).remove();
+						clarificationMessageDialog.dialog("close");
+												
+					} else if(data['id'] != null){
+						
+						noticeMessageDialog.dialog("close");
+						
+					} else {
+						alert("Error answering question");		
+					}
+				},
+				error: function(data){
+					alert(data['responseText']);
+					console.log(data['responseText']);
+				}
+			});
+			
+			return true;
+		}
+		
+		/* FUNCTION TO HANDLE POST TO UPDATE SUBMISSIONS */
+		function updateSubmission(type){	
+			
+			var id;
+			var formData = new FormData();
+			
+			formData.append('type', type);
+			
+			if(type == "message"){				
+				id = $('#custom-message-form').val();
+				message = $('#message').val();
+				customMessageDialog.dialog( "close" );
+				
+				formData.append('message', message);
+			} 
+			else if(type == "delete"){
+				id = $('#delete-form').val();
+				deleteDialog.dialog( "close" );				
+			}
+			else if(type == "correct"){
+				id = $('#correct-form').val();
+				correctDialog.dialog( "close" );
+			}
+			else if(type == "wrong"){
+				id = $('#wrong-form').val();
+				wrongDialog.dialog( "close" );
+			}
+			else if(type == "formatting"){			
+				id = $('#formatting-form').val();
+				formattingDialog.dialog( "close" );					
+			}
+			else if(type == "claimed"){
+				id = claimed_id;
+			}
+			else if(type == "unclaimed"){
+				id = claimed_id;			
+			}
+			else {
+				return false;
+			}
+			
+			formData.append('submissionId', id);
+			
+			$.ajax({
+				type: "POST",
+				url: "{{path('judging_modify')}}",
+				data: formData,
+				processData: false,
+				contentType: false,
+				success: function(data){
+
+					console.log(data);
+					
+					if(data['id'] != null && data['reviewed'] != null){						
+						
+						if(data['reviewed']){
+							$('.submission#'+ data['id']).remove();
+						}
+						
+					} else {
+						alert("Error reviewing submission");						
+					}
+				},
+				error: function(data){
+					alert(data['responseText']);
+					console.log(data['responseText']);
+				}
+			});
+			
+			return true;
+		}
+		
+		var freeze = 0;
+		/* FUNCTION TO HANDLE GETTING UPDATES FROM THE WEBSITE */
+		function loopFunction(){
+			
+			// update the progress bar
+			$( "#progressbar" ).progressbar( "option", "value", time);
+			time++;
+			
+			// update the scoreboard
+			var left = total-time;
+			
+			if(left <= 0){
+				
+				$('#time-left').text("FINISHED");
+				
+			} else {
+				
+				var hours = parseInt(left/3600);
+				var minutes = parseInt((left - hours*3600)/60);
+				var seconds = (left - hours*3600 - minutes*60);
+				
+				hours = (hours < 10) ? "0"+hours : hours;
+				minutes = (minutes < 10) ? "0"+minutes : minutes;
+				seconds = (seconds < 10) ? "0"+seconds : seconds;
+				
+				$('#time-left').text(hours+":"+minutes+":"+seconds+" left");
+			}
+			// check for AJAX information
+			if(freeze < 1){
+				//console.log("Polling for updates...");
+				pollJudging();
+			}
+		}
+				
+		function pollJudging(){
+		
+			var formData = new FormData();
+			
+			formData.append('contestId', {{contest.id}});
+		
+			$.ajax({
+				type: "POST",
+				url: "{{path('judging_poll')}}",
+				data: formData,
+				processData: false,
+				contentType: false,
+				success: function(data){
+
+					//console.log(data);
+					updateClarificationQueue(data);
+					updateSubmissionQueue(data);
+					updateReviewScroller(data);
+					updateClarificationScroller(data);
+					
+				},
+				error: function(data){
+					alert(data['responseText']);
+					console.log(data['responseText']);
+				}
+			});		
+		}
+		
+		function updateClarificationQueue(data){
+			
+			var questions = data['clarifications'];
+			
+			addClarifications(questions);
+			
+		}
+		
+		function updateReviewScroller(data){
+			
+			var reviews = data['reviewed_submissions'];			
+			if(addReviews(reviews)){
+				
+				$('#recent-reviews').stop();
+			
+				$('#recent-reviews').animate({
+					scrollTop: $('#recent-reviews').prop('scrollHeight'),
+				}, 2000);				
+			}
+		}
+		
+		function updateClarificationScroller(data){
+			
+			var clars = data['answered_clarifications'];
+			
+			if(addAnswered(clars)){
+				
+				$('#recent-clarifications').stop();
+			
+				$('#recent-clarifications').animate({
+					scrollTop: $('#recent-clarifications').prop('scrollHeight'),
+				}, 2000);				
+			}
+		
+			
+		}
+				
+		function updateSubmissionQueue(data){
+
+			addSubmissions(data['pending_submissions']);
+			addClaimed(data['claimed_submissions']);
+			$('.submission.queued .right-side, .submission.queued .middle-side').hide();
+
+			updateActions();
+		}
+		
+		function updateActions(){
+			
+			/* CLAIM SUBMISSIONS */
+			$('.submission').off( 'dblclick');
+			$('.submission').dblclick( function() {
+				
+				if($(this).hasClass('queued')){			
+				
+					$('#queue-container').append(this);
+					$(this).removeClass('queued');
+					$(this).find('.right-side, .middle-side').show();
+					
+					claimed_id = $(this).attr('id');
+					updateSubmission("claimed");
+				} else {
+				
+					$('#submissions-container').append(this);
+					$(this).addClass('queued');
+					$(this).find('.right-side, .middle-side').hide();
+					
+					claimed_id = $(this).attr('id');
+					updateSubmission("unclaimed");				
+				}
+			});	
+			
+			$('.marker').off('mouseover');
+			$('.marker').on('mouseover', function() {			
+				$(this).find('.marker-hover').show().css('display', 'flex');			
+			});
+			
+			$('.marker').off('mouseout');
+			$('.marker').on('mouseout', function() {			
+				$(this).find('.marker-hover').hide();			
+			});
+			
+			$('.button').off('mousedown');
+			$('.button').off('mouseup');
+			$('.button')
+				.mousedown(function() {
+				
+					$(this).css({
+						
+						'border-top': '1px solid #333333',
+						'border-right': '1px solid white',
+						'border-bottom': '1px solid white',
+						'border-left': '1px solid #333333'						
+					});
+			
+				})
+				.mouseup(function() {
+					
+					$(this).css({						
+						'border-top': '1px solid white',
+						'border-right': '1px solid #333333',
+						'border-bottom': '1px solid #333333',
+						'border-left': '1px solid white'						
+					});
+				});
+
+			/* NOTICE POSTER */
+			noticeMessageDialog = $("#notice-form").dialog({
+				autoOpen: false,
+				modal: true,
+				width: "auto",
+				height: "auto",
+				buttons: {
+					"Post Notice": function () {
+						updateClarification("notice");						
+					}, 
+					Cancel: function() {
+						noticeMessageDialog.dialog( "close" );
+					}
+				},
+			  close: function() {
+				  noticeMessageForm[0].reset();
+			  }
+			});
+
+			noticeMessageDialog.find("form").off( "submit");
+			noticeMessageForm = noticeMessageDialog.find( "form" ).on( "submit", function( event ) {				
+				event.preventDefault();
+				updateClarification("notice");	
+				noticeMessageDialog.dialog("close");		
+			});
+			
+			$('#notice-button').off('click');
+			$('#notice-button').button().on('click', function() {
+				
+				noticeMessageDialog.dialog("open");	
+				
+			});
+			
+			/* CLARIFICATION ANSWERER */
+			clarificationMessageDialog = $("#clarification-form").dialog({
+				autoOpen: false,
+				modal: true,
+				width: "auto",
+				height: "auto",
+				buttons: {
+					"Answer for User": function () {
+						updateClarification("answer", "local");
+						clarificationMessageDialog.dialog( "close" );						
+					}, 
+					"Answer Globally": function () {
+						updateClarification("answer", "global");
+						clarificationMessageDialog.dialog( "close" );						
+					}, 
+					Cancel: function() {
+						clarificationMessageDialog.dialog( "close" );
+					}
+				},
+			  close: function() {
+				  clarificationMessageForm[0].reset();
+			  }
+			});
+			
+			clarificationMessageDialog.find("form").off( "submit");
+			clarificationMessageForm = clarificationMessageDialog.find( "form" ).on( "submit", function( event ) {				
+				event.preventDefault();
+				updateClarification("answer");	
+				clarificationMessageDialog.dialog("close");		
+			});
+			
+			$('.clarification').off( 'dblclick' );
+			$('.clarification').dblclick( function() {
+			
+				var clar_id = $(this).attr('id');
+				$('#clarification-form').val(clar_id);
+				clarificationMessageDialog.dialog("open");				
+			});
+			
+			/* CUSTOM FORMATTING MESSAGE */
+			customMessageDialog = $("#custom-message-form").dialog({
+				autoOpen: false,
+				modal: true,
+				buttons: {
+					"Update Submission": function () {
+						updateSubmission("message");						
+					}, 
+					Cancel: function() {
+						customMessageDialog.dialog( "close" );
+					}
+				},
+			  close: function() {
+				  customMessageForm[0].reset();
+			  }
+			});
+			
+			customMessageDialog.find("form").off( "submit");
+			customMessageForm = customMessageDialog.find( "form" ).on( "submit", function( event ) {
+				event.preventDefault();
+				updateSubmission("message");
+				customMessageDialog.dialog("close");
+			});
+			
+			$( ".custom-buttom" ).on( "click", function() {
+				var sub_id = $(this).attr('id');
+				$('#custom-message-form').val(sub_id);
+				customMessageDialog.dialog("open");
+			});
+						
+			/* DELETE MESSAGE */
+			deleteDialog = $( "#delete-form" ).dialog({
+				resizable: false,
+				modal: true,
+				autoOpen: false,
+				width: "auto",
+				height: "auto",
+				buttons: {
+					"Delete Submission": function() {
+						updateSubmission("delete");
+					},
+					Cancel: function() {
+						$( this ).dialog( "close" );
+					}
+				},
+			});
+		
+			deleteDialog.find( "form" ).off( "submit" );
+			deleteForm = deleteDialog.find( "form" ).on( "submit", function( event ) {
+				event.preventDefault();
+				updateSubmission("delete");
+				deleteDialog.dialog("close");
+			});			
+		
+			$( ".delete-button" ).on( "click", function() {
+				var sub_id = $(this).attr('id');
+				$('#delete-form').val(sub_id);
+				deleteDialog.dialog("open");
+			});
+			
+			/* CORRECT MESSAGE */
+			correctDialog = $( "#correct-form" ).dialog({
+				resizable: false,
+				modal: true,
+				autoOpen: false,
+				width: "auto",
+				height: "auto",
+				buttons: {
+					"Mark Correct": function() {
+						updateSubmission("correct");
+					},
+					Cancel: function() {
+						$( this ).dialog( "close" );
+					}
+				}
+			});
+			
+			correctDialog.find("form").off( "submit");
+			correctForm = correctDialog.find( "form" ).on( "submit", function( event ) {
+				event.preventDefault();
+				updateSubmission("correct");
+				correctDialog.dialog("close");
+			});
+			
+			$( ".correct-button" ).on( "click", function() {
+				var sub_id = $(this).attr('id');
+				$('#correct-form').val(sub_id);
+				correctDialog.dialog("open");
+			});
+
+			/* WRONG MESSAGE */
+			wrongDialog = $( "#wrong-form" ).dialog({
+				resizable: false,
+				modal: true,
+				autoOpen: false,
+				width: "auto",
+				height: "auto",
+				buttons: {
+					"Mark Wrong Answer": function() {
+						updateSubmission("wrong");
+					},
+					Cancel: function() {
+						$( this ).dialog( "close" );
+					}
+				}
+			});
+			
+			wrongDialog.find("form").off( "submit");
+			wrongForm = wrongDialog.find( "form" ).on( "submit", function( event ) {
+				event.preventDefault();
+				updateSubmission("wrong");
+				wrongDialog.dialog("close");
+			});
+						
+			$( ".wrong-button" ).on( "click", function() {
+				var sub_id = $(this).attr('id');
+				$('#wrong-form').val(sub_id);
+				wrongDialog.dialog("open");
+			});
+			
+			/* FORMATTING MESSAGE */
+			formattingDialog = $( "#formatting-form" ).dialog({
+				resizable: false,
+				modal: true,
+				autoOpen: false,
+				width: "auto",
+				height: "auto",
+				buttons: {
+					"Mark Wrong Formatting": function() {
+						updateSubmission("formatting");
+					},
+					Cancel: function() {
+						$( this ).dialog( "close" );
+					}
+				}
+			});
+			
+			formattingDialog.find("form").off( "submit");
+			formattingForm = formattingDialog.find( "form" ).on( "submit", function( event ) {
+				event.preventDefault();
+				updateSubmission("formatting");
+				formattingDialog.dialog("close");
+			});
+			
+			$( ".formatting-button" ).on( "click", function() {
+				var sub_id = $(this).attr('id');
+				$('#formatting-form').val(sub_id);
+				formattingDialog.dialog("open");
+			});
+			
+		}
+		
+		function addClarifications(clarifications){
+			
+			for(var i=0; i<clarifications.length; i++){			
+				
+				var clarification = clarifications[i];
+				
+				var str = '#clarifications-container #' + clarification.id;
+				var prevClars = $(str);
+				
+				if(prevClars.length > 0){
+					prevClars.addClass('found');					
+					continue;	
+				}
+				
+				var probAssignName = (clarification['problem']) ? "[" + clarification['problem']['name'] + "]" : "[General]";
+				
+				var clarificationHTML = `<div class="clarification found" id="` + clarification['id'] + `">` + 
+											`<div class="name">` + probAssignName + `</div><div class="question">` + clarification['question'] + `</div>` +
+										`</div>`;
+				
+				$('#clarifications-container').append(clarificationHTML);				
+			}
+			
+			$('#clarifications-container .clarification').not('.found').remove();
+			$('#clarifications-container .found').removeClass('found');		
+		}
+		
+		function addReviews(reviews){
+			
+			var newOne = false;
+			
+			for(var i=0; i<reviews.length; i++){
+			
+				var rev = reviews[i];
+				
+				var str = '#recent-reviews #' + rev.id;
+				var prevSubs = $(str);
+				if(prevSubs.length > 0) continue;
+				
+				newOne = true;
+				
+				var name;
+				if(rev.reviewer == null){
+					name = "No Review";
+				} else {
+					name = rev.reviewer.first_name;
+				}
+				
+				
+				var reviewHTML = `<a href="{{path('contest', {'contestId': contest.section.id, 'roundId': contest.id})}}/problem/` + rev.problem.id + `/result/` + rev.id + `"> <div class="review ` + ((rev.is_correct) ? "correct" : "wrong") + `" id="` + rev.id + `"> ` + 
+									`<div>` + rev.id + `) ` + escapeHTML(rev.problem.name.substring(0,1)) + ` - <small>` + escapeHTML(rev.team.name) + `</small></div><div><small> Reviewer: ` + escapeHTML(name) + `</small></div>` + 
+								`</div> </a>`;
+				$('#recent-reviews').append(reviewHTML);				
+			}			
+			
+			return newOne;
+		}
+		
+		function addAnswered(clars){
+			
+			var newOne = false;
+			
+			for(var i=0; i<clars.length; i++){
+				
+				var clar = clars[i];
+				
+				var str = '#recent-clarifications #' + clar.id;
+				var prevClars = $(str);
+				if(prevClars.length > 0) continue;
+				
+				newOne = true;
+				
+				
+				
+				var question = (clar.question) ? clar.question : "Judge Notice";
+				var answer = clar.answer;
+				
+				var name = (clar.problem) ? clar.problem.name.substring(0,1) : "~";
+				
+				var clarHTML = `<div class='query' id='` + clar.id + `' title="` + escapeHTML(answer) + `">` + `[` + escapeHTML(name) + `] ` + escapeHTML(question) + `</div>`;
+				$('#recent-clarifications').append(clarHTML);
+				
+			}
+			
+			return newOne;
+			
+		}
+		
+		function addClaimed(submissions){
+			return addSubmissions(submissions, "claimIt");
+		}
+		
+		function addSubmissions(submissions, claimIt){			
+			
+			for(var i=0; i<submissions.length; i++){				
+				
+				var sub = submissions[i];				
+				
+				var str = (claimIt == "claimIt") ? '#queue-container #' + sub.id : '#submissions-container #' + sub.id;
+				
+				var prevSubs = $(str);
+				
+				if(prevSubs.length > 0){
+					prevSubs.addClass('found');					
+					continue;
+				}
+				
+				var submissionHTML = `<div class="found queued submission ` + ((sub.is_correct) ? 'correct' : 'wrong') + `" id="` + sub.id + `">` +
+					`<div class="left-side">` +
+						`<div class="title">` + escapeHTML(sub.problem.name) + `</div>` +
+						`<div class="name">` + escapeHTML(sub.team.name) + `</div>` +
+						`<div class="results">` + ((sub.is_correct) ? 'Correct' : 'Wrong Answer') + `</div>` +
+					`</div>` +
+					`<div class="middle-side">` +
+						`<div class="marker-container">`;
+							
+							var middleStuff = "";
+							for(var j=0; j<sub.testcaseresults.length; j++){
+								
+								var tcr = sub.testcaseresults[j];
+								
+								middleStuff += `<div class="marker ` + ((tcr.is_correct) ? 'correct' : 'wrong') + `">\n` + 
+								
+									((tcr.is_correct) ? '&#x2713;\n' : '&#x2718;\n') +
+									
+									`<div class="marker-hover">\n` +
+									
+										`<div>\n` +
+										`Expected Output:\n` +
+										`<textarea disabled> ` + escapeHTML(tcr.testcase.correct_output) + ` </textarea>\n` +
+										`</div>\n` +
+										
+										`<div>\n` +
+										`Their Output:\n` +
+										`<textarea disabled>` + escapeHTML(tcr.std_output) + `</textarea>\n` +
+										`</div>\n` +
+									
+									`</div>\n` +					
+								`</div>\n`;
+							
+							}
+							
+				submissionHTML += middleStuff;
+				
+				submissionHTML += `</div>` +
+					`</div>` +
+					
+					`<div class="right-side">` +
+					
+						`<div class="main-options">` +
+							`<div class="button formatting-button" title="Mark as Formatting Error" id="` + sub.id + `">&#x270F;</div>` +
+							`<div class="button wrong-button" title="Mark as Incorrect" id="` + sub.id + `">&#x2718;</div>` +
+						`</div>` +
+						
+						`<div class="additional-options">` +
+							`<div class="button correct-button" title="Mark as Correct" id="` + sub.id + `">&#x2713;</div>` +
+							`<div class="button custom-buttom" title="Return Custom Message" id="` + sub.id + `">&#x1f589;</div>` +
+							`<div class="button delete-button" title="Delete Submission" id="` + sub.id + `">&#x1F5D1;</div>` +
+						`</div>` +
+										
+					`</div>` +
+				`</div>`;
+				
+				if(claimIt == "claimIt"){
+					$('#queue-container').append(submissionHTML);
+				} else {
+					$('#submissions-container').append(submissionHTML);
+				}
+			}
+			
+			if(claimIt == "claimIt"){
+				$('#queue-container .submission').not('.found').remove();
+				$('#queue-container .submission').removeClass('found');
+				$('#queue-container .submission').removeClass('queued');
+			} else {
+				$('#submissions-container .submission').not('.found').remove();
+				$('#submissions-container .submission').removeClass('found');
+			}
+		}
+		
+		
+	</script>
+	
+{% endblock %}
+

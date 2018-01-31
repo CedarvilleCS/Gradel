@@ -1,15 +1,20 @@
 <?php
 
 namespace AppBundle\Entity;
+
+use JsonSerializable;
+
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Config\Definition\Exception\Exception;
+
+use AppBundle\Entity\Trial;
 
 /**
 *@ORM\Entity
 *@ORM\Table(name="submission")
 **/
-class Submission {
+class Submission implements JsonSerializable {
 
 	public function __construct(){
 		
@@ -23,6 +28,37 @@ class Submission {
 		}
 		
 		$this->testcaseresults = new ArrayCollection();	
+	}
+	
+	public function __construct2($trial, $tm){
+		
+		$this->problem = $trial->problem;
+		$this->version = $trial->problem->version;
+		$this->team = $tm;
+		$this->user = $trial->user;
+		$this->timestamp = new \DateTime("now");
+		$this->is_accepted = false;
+		$this->submitted_file = $trial->file;
+		#this->log_directory
+		$this->filename = $trial->filename;
+		$this->language = $trial->language;
+		$this->main_class_name = $trial->main_class;
+		$this->package_name = $trial->package_name;
+		#this->compiler_output
+		$this->compiler_error = false;
+		$this->exceeded_time_limit = false;
+		$this->runtime_error = false;
+		$this->max_runtime = -1;
+		$this->percentage = 0.0;
+		$this->questionable_behavior = false;
+		
+		$this->pending_status = 0;
+		$this->edited_timestamp = null;
+		$this->student_message = null;
+		$this->judge_message = null;
+		$this->correct_override = false;
+		$this->wrong_override = false;
+		
 	}
 	
 	public function __construct3($prob, $tm, $user){
@@ -45,10 +81,17 @@ class Submission {
 		#this->language		
 		$this->percentage = 0.0;
 		$this->questionable_behavior = false;
+		
+		$this->pending_status = 0;
+		$this->edited_timestamp = null;
+		$this->student_message = null;
+		$this->judge_message = null;
+		$this->correct_override = false;
+		$this->wrong_override = false;
+		$this->reviewer = null;
 	}
 		
-	
-	public function __construct19($prob, $tm, $user, $time, $acc, $subm, $log, $filename, $mainclass, $package, $compout, $didcomp, $didtime, $didrun, $maxtime, $lang, $perc, $ques, $vers){
+	public function __construct26($prob, $tm, $user, $time, $acc, $subm, $log, $filename, $mainclass, $package, $compout, $didcomp, $didtime, $didrun, $maxtime, $lang, $perc, $ques, $vers, $pend, $edit, $std_msg, $jdg_msg, $correct_over, $wrong_over, $rev){
 		$this->problem = $prob;
 		$this->user = $user;
 		$this->team = $tm;
@@ -68,9 +111,17 @@ class Submission {
 		$this->percentage = $perc;
 		$this->questionable_behavior = $ques;
 		$this->version = $vers;
+		
+		$this->pending_status = $pend;
+		$this->edited_timestamp = $edit;
+		$this->student_message = $std_msg;
+		$this->judge_message = $jdg_msg;
+		$this->correct_override = $correct_over;
+		$this->wrong_override = $wrong_over;
+		$this->reviewer = $rev;
 	}
 	
-	public function isCorrect(){
+	public function isCorrect($raw){
 		
 		$tcs = 0;
 		$passed_tcs = 0;
@@ -82,6 +133,12 @@ class Submission {
 			if($tcr->is_correct){
 				$passed_tcs++;
 			}			
+		}
+		
+		if(!$raw){
+			
+			if($this->correct_override) return true;		
+			if($this->wrong_override) return false;
 		}
 		
 		return $passed_tcs == $tcs;
@@ -96,6 +153,7 @@ class Submission {
 
 	/**
 	* @ORM\OneToMany(targetEntity="TestcaseResult", mappedBy="submission")
+	* @ORM\OrderBy({"testcase" = "ASC"})
 	*/
 	public $testcaseresults;
 	
@@ -164,8 +222,7 @@ class Submission {
 	/**
 	* @ORM\Column(type="string", nullable=true)
 	*/
-	public $filename;
-	
+	public $filename;	
 	
 	/**
 	* @ORM\Column(type="string", length=255)
@@ -217,5 +274,60 @@ class Submission {
 	*@ORM\Column(type="decimal", precision=12, scale=8)
 	*/
 	public $percentage;
+	
+	// CONTEST-SPECIFIC THINGS
+	/**
+	* [0 = pending, 1 = claimed, 2 = reviewed]
+	* @ORM\Column(type="integer")
+	*/
+	public $pending_status;
+	
+	/**
+     * @ORM\ManyToOne(targetEntity="User")
+     * @ORM\JoinColumn(name="reviewer_id", referencedColumnName="id", nullable=true)
+     */
+	public $reviewer;
+
+	/**
+	* @ORM\Column(type="datetime", nullable=true)
+	*/
+	public $edited_timestamp;
+	
+	/**
+	* @ORM\Column(type="string", length=255, nullable=true)
+	*/
+	public $student_message;
+	
+	/**
+	* @ORM\Column(type="string", length=255, nullable=true)
+	*/
+	public $judge_message;
+	
+	/**
+	* @ORM\Column(type="boolean")
+	*/
+	public $correct_override;
+	
+	/**
+	* @ORM\Column(type="boolean")
+	*/
+	public $wrong_override;	
+	
+	
+	public function jsonSerialize(){
+		return [
+			'team' => ($this->team) ? $this->team : ["name" => "NO TEAM"],			
+			'id' => $this->id,
+			'problem' => $this->problem,
+			'is_correct' => $this->isCorrect(),
+			'testcaseresults' => $this->testcaseresults->toArray(),
+			'runtime_error' => $this->runtime_error,
+			'exceeded_time_limit' => $this->exceeded_time_limit,
+			'compiler_error' => $this->compiler_error,
+			
+			'reviewer' => $this->reviewer,
+		];
+	}
+	
 }
 ?>

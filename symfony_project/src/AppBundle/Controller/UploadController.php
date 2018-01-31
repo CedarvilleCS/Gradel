@@ -22,6 +22,7 @@ use AppBundle\Entity\TestcaseResult;
 use Psr\Log\LoggerInterface;
 
 use AppBundle\Utils\Uploader;
+use AppBundle\Utils\Generator;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -65,10 +66,13 @@ class UploadController extends Controller {
 		Handles uploading code from the ACE editor on the assignment page
 		It is called from the submitProblemUploadAction method
 	*/
-	public function aceUpload(&$data, $problem_id, $postData){
+	private function aceUpload(&$data, $problem_id, $postData){
 
 		# entity manager
         $em = $this->getDoctrine()->getManager();
+		$web_dir = $this->get('kernel')->getProjectDir()."/";
+		
+		$generator = new Generator($em, $web_dir);
 				
         # get the current problem
 		
@@ -88,54 +92,24 @@ class UploadController extends Controller {
              return "USER DOES NOT EXIST";
         }
 
-		# check the language
-		if($postData["language"]){
-			$language_id = $postData["language"];
-		} else {
-			$language_id = $postData["languageId"];
-		}
+		# get filename and information
+		$filename = null;
+		$main_class = null;
+		$package_name = null;
+		$language = null;
 		
-		if(!isset($language_id) || !($language_id > 0)){
-			return "LANGUAGE WAS NOT PROVIDED OR FORMATTED PROPERLY";
-		}
+		$response = $generator->generateFilename($filename, $language, $main_class, $package_name, $problem_entity, $postData);
 		
-		$language_entity = $em->find("AppBundle\Entity\Language", $language_id);
-		if(!$language_entity){
-			 return "LANGUAGE DOES NOT EXIST!";
-		}
-		if($language_entity->name == "Java"){
-
-			if((!isset($postData["main_class"]) || trim($postData["main_class"]) == "") && (!isset($postData["mainclass"]) || trim($postData["mainclass"]) == "")){
-				 return "MAIN CLASS IS NEEDED";
-			}
-			
-			$main_class = null;
-			if(!$postData["main_class"]){
-				$main_class = $postData["mainclass"];
-				$package_name = $postData["packagename"];
-			} else {
-				$main_class = $postData["main_class"];
-				$package_name = $postData["package_name"];
-			}
-
-			$main_class = $main_class;
-			$package_name = $package_name;
-
-			$filename = $main_class.".java";
-
-		} else {
-			$main_class = "";
-			$package_name = "";
-
-			$filename = "problem". $problem_entity->id . $language_entity->filetype;
-		}
+		if($response != 1){
+			return $response;
+		}		
 		
 		# save uploaded file to $web_dir.compilation/uploads/user_id/problem
         $web_dir = $this->get('kernel')->getProjectDir()."/";
         $uploader = new Uploader($web_dir);
 
 
-		$uploads_directory = $uploader->getUploadDirectory($user, $problem_entity);
+		$uploads_directory = $uploader->createUploadDirectory($user, $problem_entity);
 
 		if(!file_put_contents($uploads_directory . $filename, $postData["ACE"], FILE_USE_INCLUDE_PATH)){
 			 return "UNABLE TO MOVE THE ACE EDITOR CONTENTS";
@@ -144,7 +118,7 @@ class UploadController extends Controller {
 		$data = [
 			'problem_id' => $problem_entity->id,
 			'submitted_filename' => $filename,
-			'language_id' => $language_id,
+			'language_id' => $language->id,
 			'main_class' => $main_class,
 			'package_name' => $package_name
 		];
@@ -156,10 +130,13 @@ class UploadController extends Controller {
 		Handles uploading code from the file input/selector on the assignment page
 		It is called from the submitProblemUploadAction method
 	*/
-	public function fileUpload(&$data, $problem_id, $postData, $file){
+	private function fileUpload(&$data, $problem_id, $postData, $file){
 
 		# entity manager
         $em = $this->getDoctrine()->getManager();
+		$web_dir = $this->get('kernel')->getProjectDir()."/";
+		
+		$generator = new Generator($em, $web_dir);
 
         # get the current problem
 		if(!isset($problem_id) || !($problem_id > 0)){
@@ -175,9 +152,7 @@ class UploadController extends Controller {
         $user= $this->get('security.token_storage')->getToken()->getUser();
         if(!$user){
            return "USER DOES NOT EXIST";
-        }
-
-        
+        }        
 
 		# save uploaded file to $web_dir.compilation/uploads/user_id/
         $web_dir = $this->get('kernel')->getProjectDir()."/";
@@ -187,35 +162,22 @@ class UploadController extends Controller {
 		
 		if($target_file){
 
-			$language_id = $postData["language"];
+			# get filename and information
+			$filename = null;
+			$main_class = null;
+			$package_name = null;
+			$language = null;
 			
-			if(!isset($language_id) || !($language_id > 0)){
-				return "LANGUAGE WAS NOT PROVIDED OR FORMATTED PROPERLY";
-			}			
-
-			$language_entity = $em->find("AppBundle\Entity\Language", $language_id);
-			if(!$language_entity){
-				return "LANGUAGE DOES NOT EXIST!";
-			}
-
-			if($language_entity->name == "Java"){
-
-				if(strlen($postData["main_class"]) == 0){
-					return "MAIN CLASS IS NEEDED";
-				}
-
-				$main_class = $postData["main_class"];
-				$package_name = $postData["package_name"];
-
-			} else {
-				$main_class = "";
-				$package_name = "";
-			}
+			$response = $generator->generateFilename($filename, $language, $main_class, $package_name, $problem_entity, $postData);
+			
+			if($response != 1){
+				return $response;
+			}	
 
 			$data = [
 				'problem_id' => $problem_entity->id,
 				'submitted_filename' => basename($file->getClientOriginalName()),
-				'language_id' => $language_id,
+				'language_id' => $language->id,
 				'main_class' => $main_class,
 				'package_name' => $package_name,
 			];

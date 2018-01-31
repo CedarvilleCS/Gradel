@@ -1,3 +1,9 @@
+#problems-heading h2, #leaderboard-heading h2 {
+	padding-bottom: 3px;
+	border-bottom: 1px solid lightgrey;
+}
+
+
 #main{	
 	margin-top: 50px;
 	height: calc(100% - 50px);	
@@ -29,6 +35,12 @@
 	font-style: italic;
 }
 
+#clarification-button{
+	position: absolute;
+	right: 45px;
+	top: 25px;
+}
+
 #progressbar-container .ui-progressbar-value {
   border: none;
   color: rgba(255,255,255,1);
@@ -43,10 +55,6 @@
   margin: 0px;
 }
 
-#submissions-container {
-	height: 100px;
-}
-
 #time-container{
 	display: flex;
 	flex-direction: row;
@@ -56,7 +64,6 @@
 	font-style: italic;
 	font-weight: bold;
 }
-
 
 #leaderboard th{
 	text-align: center;
@@ -71,6 +78,11 @@
 
 #leaderboard th:hover{
 	background: lightgrey;
+}
+
+#leaderboard .no-hover {
+	border-left: none;
+	border-right: none;
 }
 
 #leaderboard .no-hover:hover{
@@ -92,14 +104,36 @@
 	padding-right: 8px;
 }
 
+#leaderboard .rank {
+	text-align: center;
+	font-weight: bold;
+}
+
+#leaderboard .time {
+	text-align: center;
+}
+
 #leaderboard tr {
 	padding: 0px;
 	line-height: 18px;
 }
 
+#leaderboard tr:nth-child(even) {
+	background: #EEEEEE;
+}
+
+#leaderboard tr:nth-child(odd) {
+	background: #FFFFFF;
+}
+
+
 #leaderboard .curr-user {
-	background: lightgrey;
+	background: #CCCCCC !important;
 	font-weight: bold;
+}
+
+#leaderboard .top-row {
+	border-top: none;
 }
 
 .accepted, .unattempted, .attempted, .unknown {
@@ -124,13 +158,371 @@
 	border-radius: 15px;
 }
 
-#problems .checklist-item{
+#stats-container {
+	min-height: 100px;
+	min-width: 100%;
 	display: flex;
-	justify-content: space-between;
 	flex-direction: row;
-	line-height: 100%;
+	justify-content: flex-end;
 }
+
+/* problem table css*/
+#problems {
+	border-collapse: collapse;
+	font-size: 1em;
+}
+
+#problems .name {
+	font-size: 1.3em;
+	padding-left: 25px;
+}
+
+#problems .penalties {
+	font-size: 1.2em;
+	text-align: left;
+}
+
+#problems .checkbox {
+	font-size: 1.5em;
+	text-align: right;
+}
+
+#problems .accepted {	
+	background: #bde8be;
+	color: black;
+}
+#problems .accepted:hover {	
+	background: lightgrey;
+}
+
+#problems .unattempted {	
+	background: none;
+	color:	black;
+}
+#problems .unattempted:hover {	
+	background: lightgrey;
+}
+
+#problems .attempted {	
+	background: #f6774c;	
+	color: white;
+}
+#problems .attempted:hover {	
+	background: lightgrey;
+}
+
 
 #problems tr:hover{
 	background: lightgrey;
+	cursor: pointer;
+}
+
+#problems td{
+	border-left: none;
+	border-right: none;
+	border-top: none;
+	border-bottom: 1px solid black;
+	margin: 0px;
+	padding-bottom: 10px;
+	
+	padding-top: 10px;
+}
+
+#problems .last-row{
+	border-bottom: none;
+	margin-bottom: 5px;
+}
+
+
+/* side-bar */
+.btn-bottom{
+	position: absolute;
+    bottom: 10px;
+    margin-left: 10px;
+	
+	font-size: 0.9em;
+}
+
+
+
+/* JUDGING CSS */
+#submissions-container {
+	display: block;	
+}
+
+#queue-container {
+	min-height: 100px;
+}
+
+#recent-reviews, #recent-clarifications {
+	height: 110px;
+	padding: 2px;
+	border-radius: 7px;
+	
+	background: #F1F1F1;
+	
+	overflow-y: auto;
+	
+	margin-left: 5px;
+	border: 1pt solid grey;
+}
+
+.review, .query {
+	margin-left: 1px;
+	width: calc(100% - 18px);
+	background: #E2E2E2;
+	border-radius: 15px;
+	min-height: 15px;
+	
+	margin-bottom: 2px;
+	
+	font-size: 0.78em;
+	line-height: 15px;
+	padding-left: 5px;
+	padding-right: 5px;
+	padding-top: 2px;
+	font-weight: bold;
+	
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	
+	text-overflow: clip;
+	white-space: nowrap;
+	
+}
+
+.query {
+	border: 1pt solid blue;
+	word-wrap: break-word;
+	white-space: normal;
+	line-height: 15px;
+	
+	cursor: pointer;
+}
+
+.query:hover{
+	background: lightblue;
+}
+
+.submission {
+	
+	min-height: 65px;
+	padding: 5px;
+	border-radius: 10px;
+	
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+	
+	margin-bottom: 10px;
+}
+
+.queued.submission {
+	min-height: 25px;
+	height: 25px;
+}
+
+.queued.submission .left-side {
+	
+	flex-direction: row;
+	display: flex;
+	justify-content: space-between;
+	min-width: 98%;
+	cursor: pointer;
+}
+
+.left-side{
+	padding-left: 5px; 
+	min-width: 200px;
+}
+
+.middle-side{
+	 flex-grow: 1;
+	 padding-left: 10px;
+}
+
+.right-side{
+	min-width: 160px; 
+	padding-right: 5px; 
+	display: flex; 
+	flex-direction: column; 
+	justify-content: space-around;	
+}
+
+.submission .name{
+	line-height: 25px;
+}
+
+.submission .results {
+	font-style: italic;
+	line-height: 25px;
+}
+
+.marker-container {
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+	
+	flex-wrap: wrap;
+}
+
+.marker {
+	height: 20px;
+	width: 20px;
+	background: lightgrey;
+	border: 1pt solid white;
+	border-radius: 2px;
+	margin: 2;
+	
+	text-align: center;
+	line-height: 20px;
+	
+	font-size: 1.1em;
+	position: relative;
+}
+
+.marker-hover{
+	
+	height: 500px;
+	width: 500px;
+	
+	position: absolute;
+	bottom: -529px;
+	left: -225px;	
+	
+	background: white;
+	border: 3pt solid grey;
+	
+	border-radius: 10px;
+		
+	display: none;
+	
+	text-align: left;
+	flex-direction: column;
+	justify-content: space-around;
+	
+	padding: 10px;
+	
+	z-index: 100;
+}
+
+.marker.correct {
+	color: green;
+	
+	cursor: pointer;
+}
+
+.marker.wrong {
+	color: red;
+	
+	cursor: pointer;
+}
+
+.submission .title {
+	
+	color: black;
+	font-size: 1.5em;
+	font-weight: bold;
+}
+
+
+.button {
+	height: 42px;
+	width: 42px;
+	
+	margin: 2px;
+	
+	border-radius: 2px;
+	background: lightgrey;
+	
+		
+	border-top: 1px solid white;
+	border-right: 1px solid #333333;
+	border-bottom: 1px solid #333333;
+	border-left: 1px solid white;
+	
+	text-align: center;
+	font-size: 1.8em;
+	line-height: 41px;
+	
+	cursor: pointer;
+}
+
+.main-options {	
+	display: flex;	
+	flex-direction: row;
+	justify-content: flex-end;	
+}
+
+.additional-options {	
+	display: flex;	
+	flex-direction: row;
+	justify-content: flex-end;	
+}
+
+.additional-options .button {
+	height: 26px;
+	width: 26px;
+	font-size: 1.2em;
+	line-height: 25px;
+}
+
+.submission.correct {
+	background: lightgreen;
+	border: 1pt solid green;
+}	
+
+.submission.wrong {
+	background: #AAAAAA;
+	border: 1pt solid red;
+}
+
+.review.wrong {
+	border: 1pt solid red;
+	cursor: pointer;
+}
+
+.review.wrong:hover {
+	background: pink;
+}
+
+.review.correct {
+	border: 1pt solid green;
+	cursor: pointer;
+}
+
+.review.correct:hover {
+	background: lightgreen;
+}
+
+.clarification{
+	min-height: 65px;
+	padding: 5px;
+	border-radius: 10px;
+	
+	margin-bottom: 5px;
+	
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+	
+	
+	min-height: 25px;
+	
+	padding-left: 15px;
+	font-size: 1.0em;
+	
+	font-style: italic;
+	
+	background: #CCCCCC;
+	border: 1pt solid blue;
+	
+	cursor: pointer;
+	line-height: 25px;
+}
+
+.clarification .name{
+	min-width: 300px;	
+	font-size: 1.2em;
 }
