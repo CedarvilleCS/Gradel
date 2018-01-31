@@ -319,7 +319,7 @@
 					
 				}, function(data) {			
 					console.log(data);					
-					window.location = data["redirect_url"];
+					window.location = "{{path('section', {'sectionId': section.id})}}";
 					
 				}).fail(function(data) {				
 					alert(data["responseText"]);					
@@ -559,13 +559,13 @@
 		$('#weight').val({{assignment.weight}});
 		
 		// set the checkbox
-		$('#penalty').val({{assignment.gradingmethod.penalty_per_day}});
+		$('#penalty').val({{assignment.penalty_per_day}});
 		
 		// set the checkbox
 		$('#extracredit').attr('checked', {% if assignment.is_extra_credit %} true {% else %} false {% endif %});
 		
 		// set the teams
-		var teams_str = '{{assignment.teams.toArray()|json_encode|raw}}'.replace(/\\/g, "");
+		var teams_str = '{{assignment.teams.toArray()|json_encode|e('js')}}';
 		var teams = JSON.parse(teams_str);
 		
 		console.log(teams);

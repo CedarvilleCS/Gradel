@@ -13,8 +13,8 @@ use AppBundle\Entity\ProblemLanguage;
 use AppBundle\Entity\UserSectionRole;
 use AppBundle\Entity\Testcase;
 use AppBundle\Entity\Submission;
+use AppBundle\Entity\Trial;
 use AppBundle\Entity\Language;
-use AppBundle\Entity\AssignmentGradingMethod;
 use AppBundle\Entity\Feedback;
 use AppBundle\Entity\TestcaseResult;
 
@@ -61,7 +61,7 @@ class Uploader  {
 		This function will take a user and problem, generate the 
 		appropriate folders for it, and return the directory
 	*/
-	public function getUploadDirectory($user, $problem){
+	public function createUploadDirectory($user, $problem){
 		
 		$target_directory = $this->web_directory."compilation/uploads/".$user->id."/".$problem->id."/";
 		
@@ -75,12 +75,12 @@ class Uploader  {
 	/*
 		This function will take a file, a user, and a problem and
 		put the file in the appropriate directory by using the 
-		getUploadDirectory method
+		createUploadDirectory method
 	*/		
 	public function uploadSubmissionFile($file, $user, $problem){
 		
 		# file paths
-		$target_directory = $this->getUploadDirectory($user, $problem);
+		$target_directory = $this->createUploadDirectory($user, $problem);
 		$target_file = $target_directory.$file->getClientOriginalName();		
 		
 		$moved_file = $file->move($target_directory, $file->getClientOriginalName());
@@ -92,6 +92,28 @@ class Uploader  {
 		} else {
 			return null;		
 		}		
+	}	
+		
+	/*
+		This function will take a trial and 
+		put the contents of the trial in a file and return the location
+		of the new file.
+	
+	*/
+	public function createSubmissionFile($trial){
+		
+		# file paths
+		$target_directory = $this->createUploadDirectory($trial->user, $trial->problem);
+		$target_file = $target_directory.$trial->filename;		
+		
+		$fp = fopen($target_file, 'w');
+		
+		# check to see if the file was uploaded
+		if(fwrite($fp, $trial->deblobinateFile())){
+			return $trial->filename;
+		} else {
+			return null;
+		}
 	}	
 	
 }

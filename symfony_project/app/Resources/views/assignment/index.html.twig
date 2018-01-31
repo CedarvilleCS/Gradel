@@ -74,12 +74,14 @@ var markdownText = converter.makeHtml("{{problem.description|e('js')}}");
 
 {# the ACE editor text area #}
 				
-<div id="editor">{% if last_submission != null and last_submission.filename|split('.')|last != 'zip' %}
-{{ last_submission.deblobinateSubmittedFile()|nl2br }}
-{% elseif last_submission != null %}
-Uploaded file was a ZIP file
+<div id="editor">{% if trial != null and trial.filename|split('.')|last != 'zip' %}
+{{ trial.deblobinateFile()|nl2br }}{% elseif trial != null %}
+Uploaded file was a ZIP file<br>
+We are not able to repopulate zip files at this time.<br>
+Please re-upload it!
 {% endif %}
 </div>
+<div id="trial-status" style="font-style: italic; font-size:0.8em; color: grey;">&nbsp;</div>
 				<br/>
 
 				{# display the form or not #}
@@ -312,6 +314,10 @@ Uploaded file was a ZIP file
 
 	<script>
 	
+		var trialUpdateTimer = null;
+		var trialId = {{(trial) ? trial.id : "0"}};
+		var second = 0;
+		
 		$("#markdown-collapser").click(function () {
 			
 			$collapser = $(this);
@@ -323,147 +329,232 @@ Uploaded file was a ZIP file
 			
 			$content.slideToggle(20, function() {});
 			
+			updateTrial();
+			
 		});
 	
 		$(document).ready(function() {
 			
 			$('#markdown').html(markdownText);
 			
+			// update key bindings
 			var editor = ace.edit("editor");
 			editor.$blockScrolling = Infinity;
+			
+			editor.getSession().on('change', function() {	
 
-			// make the language dropdown change affect the code
-			$('#languageSelect').change( function(data) {
-
-				var language = $('#languageSelect option:selected').text();
-				setLanguage(language);
-			});
-
-			// submit the form if the file upload is changed
-			$('#submissionUploadForm #file').change( function(data) {
-				$('#submissionUploadForm').submit();
-			});
-
-			// overwrite the normal submit to call the ajaxsubmit
-			$('#submissionUploadForm').submit(function() {
-				
-				$(this).ajaxSubmit({
-				
-					beforeSubmit: 	function(formData, jqForm, options){
-						
-						/* CLIENT-SIDE VALIDATION */
-						return true;
-						
-					},
-					success:		function(responseText, statusText, xhr, $form) {
-						
-						var file = responseText['files'][0];
-				
-						console.log(responseText);
-						setLanguageFromFilename(file['name']);
-						
-						var editor = ace.edit("editor");
-						editor.$blockScrolling = Infinity;
-						editor.setValue(atob(file['contents']));
-						
-						updateAceCode();		
-										
-					},
-					error:			function(xhr, textStatus, errorThrown) {
-						console.log(xhr);						
-						alert(xhr['responseText']);
-					}
-				});
-				
-				return false;
-			});
-
-			$('#submissionButton').click( function() {
-
-				// Create a FormData object
-				var formData = new FormData();
-
-				// validate that fields are filled in
-				var language = $('#languageSelect option:selected').val();
-				var languageText = $('#languageSelect option:selected').text();
-				var main_class = $('#main_class_input').val();
-				var package_name = $('#package_name_input').val();
-
-				if(languageText == 'Java' && main_class == '') {
-				
-					setInvalid($('#main_class_input'));				
-					return false;
-					
-				} else if(languageText != 'Java'){
-
-					main_class = "";
-					package_name = "";
+				second++;
+				if(second > 1){
+					$('#trial-status').text("Unsaved changes...");
 				}
-				setValid($('#main_class_input'));
-
-				var editor = ace.edit("editor");
-				editor.$blockScrolling = Infinity;				
-				$("#ACE").val(editor.getValue());
-
-				var ACE = $('#ACE').val();				
 				
-				formData.append('problem_id', {{problem.id}});
-				formData.append('language', language);
-				formData.append('main_class', main_class);
-				formData.append('package_name', package_name);
-				formData.append('ACE', ACE);
-
-
-				if(getExtension($('#submissionUploadForm #file').val()) == "zip"){
-
-					var file = $('#submissionUploadForm #file').prop('files')[0];
-
-					if(file){
-						formData.append('file', file);
-					}
-				}
-
-				$('#loading-container').show();
-				$('#submissionButton').hide();
-				
-				$.ajax({
-					type: "POST",
-					url: "{{path('submit')}}",
-					data: formData,
-					processData: false,
-					contentType: false,
-					success: function(data){
-
-						console.log(data);
-						
-						if(data['data'] != null){
-							submitSolution(data['data']);
-						} else {
-							window.location = data["redirect_url"]
-						}
-					},
-					error: function(data){
-						alert(data['responseText']);
-						console.log(data['responseText']);
-						
-						$('#loading-container').hide();
-						$('#submissionButton').show();
-					}
-				});
-
+				clearInterval(trialUpdateTimer);
+				trialUpdateTimer = setInterval(updateTrial, 5000);		
 			});
 
+			editor.commands.addCommand({
+				name: "replace",
+				bindKey: {win: "Ctrl-S", mac: "Command-S"},
+				exec: function(editor) {
+					updateTrial();
+				}
+			});
+			
+			
 			// set default stuff for the ace editor
 			var editor = ace.edit("editor");
 			editor.$blockScrolling = Infinity;
 			editor.setTheme("ace/theme/xcode");
 			
-			{% if last_submission != null %}
-			setLanguageFromFilename("{{last_submission.filename}}");
+			{% if trial != null %}
+			setLanguageFromFilename("{{trial.filename}}");
+			
+			{% if not trial.show_description %}
+			$("#markdown-collapser").click();
+			{% endif %}
+			
 			{% else %}
 			$('#languageSelect').change();			
 			{% endif %}
+			
+			
+			if(trialId == 0){
+				updateTrial();
+			}
 		});
+		
+		
+		// make the language dropdown change affect the code
+		$('#languageSelect').change( function(data) {
+
+			var language = $('#languageSelect option:selected').text();
+			setLanguage(language);
+		});
+
+		// submit the form if the file upload is changed
+		$('#submissionUploadForm #file').change( function(data) {
+			$('#submissionUploadForm').submit();
+		});
+
+		// overwrite the normal submit to call the ajaxsubmit
+		$('#submissionUploadForm').submit(function() {
+			
+			$(this).ajaxSubmit({
+			
+				beforeSubmit: 	function(formData, jqForm, options){
+					
+					/* CLIENT-SIDE VALIDATION MAY HAPPEN HERE */
+					return true;
+					
+				},
+				success:		function(responseText, statusText, xhr, $form) {
+					
+					var file = responseText['files'][0];
+			
+					console.log(responseText);
+					setLanguageFromFilename(file['name']);
+					
+					var editor = ace.edit("editor");
+					editor.$blockScrolling = Infinity;
+					editor.setValue(atob(file['contents']));
+					
+					updateAceCode();
+
+					updateTrial(responseText);						
+									
+				},
+				error:			function(xhr, textStatus, errorThrown) {
+					console.log(xhr);						
+					alert(xhr['responseText']);
+				}
+			});
+			
+			return false;
+		});
+
+		$('#submissionButton').click( function() {			
+			updateTrial("submit");			
+		});
+				
+		function updateTrial(submitAfter){
+					
+			clearInterval(trialUpdateTimer);	
+			
+			// Create a FormData object
+			var formData = new FormData();
+
+			var language = $('#languageSelect option:selected').val();
+			var main_class = $('#main_class_input').val();
+			var package_name = $('#package_name_input').val();
+			var show_description = !($("#markdown-collapser").text() == "Show Description");
+			
+			var editor = ace.edit("editor");
+			editor.$blockScrolling = Infinity;				
+			$("#ACE").val(editor.getValue());
+
+			var ACE = $('#ACE').val();		
+			
+			formData.append('problem_id', {{problem.id}});
+			formData.append('language', language);
+			formData.append('main_class', main_class);
+			formData.append('package_name', package_name);
+			formData.append('show_description', show_description);
+			formData.append('ACE', ACE);
+
+			if(getExtension($('#submissionUploadForm #file').val()) == "zip"){
+
+				var file = $('#submissionUploadForm #file').prop('files')[0];
+				if(file){
+					formData.append('file', file);
+				}
+			}
+			
+			$.ajax({
+				type: "POST",
+				url: "{{path('modify_trial')}}",
+				data: formData,
+				processData: false,
+				contentType: false,
+				async: true,
+				success: function(data){
+					console.log(data);
+					$('#trial-status').text("Code saved.");
+					trialId = data['trial_id'];
+					
+					if(submitAfter == "submit"){
+						submitSolution();
+					}
+				},
+				error: function(data){
+					//alert(data['responseText']);
+					console.log(data['responseText']);
+					$('#trial-status').text(data['responseText']);
+					
+					if(data['continue'] && submitAfter=="submit"){
+						submitSolution();
+					}
+				}
+			});						
+		}
+		
+		function submitSolution(){
+			
+			// Create a FormData object
+			var formData = new FormData();
+
+			// validate that fields are filled in
+			var language = $('#languageSelect option:selected').val();
+			var languageText = $('#languageSelect option:selected').text();
+			var main_class = $('#main_class_input').val();
+			var package_name = $('#package_name_input').val();
+
+			if(languageText == 'Java' && main_class == '') {
+			
+				setInvalid($('#main_class_input'));				
+				return false;
+				
+			} else if(languageText != 'Java'){
+
+				main_class = "";
+				package_name = "";
+			}
+			setValid($('#main_class_input'));
+
+			formData.append('trial_id', trialId);
+
+			if(getExtension($('#submissionUploadForm #file').val()) == "zip"){
+
+				var file = $('#submissionUploadForm #file').prop('files')[0];
+
+				if(file){
+					formData.append('file', file);
+				}
+			}
+
+			$('#loading-container').show();
+			$('#submissionButton').hide();
+			
+			$.ajax({
+				type: "POST",
+				url: "{{path('submit')}}",
+				data: formData,
+				processData: false,
+				contentType: false,
+				success: function(data){
+
+					console.log(data);
+					window.location = data["redirect_url"];
+				},
+				error: function(data){
+					alert(data['responseText']);
+					console.log(data['responseText']);
+					
+					$('#loading-container').hide();
+					$('#submissionButton').show();
+				}
+			});
+		}
+				
 	</script>
 
 {% endblock %}

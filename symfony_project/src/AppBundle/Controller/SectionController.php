@@ -39,15 +39,18 @@ class SectionController extends Controller {
 			die("USER DOES NOT EXIST");
 		}
 
-		if(!isset($sectionId) || !($sectionId > 0)){
-			die("SECTION ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
-		}
-
+		# VALIDATION
 		$section_entity = $em->find('AppBundle\Entity\Section', $sectionId);
 
 		if(!$section_entity){
 			die("SECTION DOES NOT EXIST!");
 		}
+		
+		# REDIRECT TO CONTEST PATH IF NEED BE
+		if($section_entity->course->is_contest){
+			return $this->redirectToRoute('contest', ['contestId' => $section_entity->id]);
+		}
+		
 
 		# GET ALL ASSIGNMENTS
 		$qb = $em->createQueryBuilder();
@@ -60,6 +63,34 @@ class SectionController extends Controller {
 		$query = $qb->getQuery();
 		$assignments = $query->getResult();
 
+		# GET ALL USERS
+		$qb_user = $em->createQueryBuilder();
+		$qb_user->select('usr')
+			->from('AppBundle\Entity\UserSectionRole', 'usr')
+			->where('usr.section = ?1')
+			->setParameter(1, $section_entity);
+
+		$user_query = $qb_user->getQuery();
+		$usersectionroles = $user_query->getResult();
+
+		$section_takers = [];
+		$section_teachers = [];
+		$section_helpers = [];
+		$section_judges = [];
+
+		foreach($usersectionroles as $usr){
+			if($usr->role->role_name == "Takes"){
+				$section_takers[] = $usr->user;
+			} else if($usr->role->role_name == "Teaches"){
+				$section_teachers[] = $usr->user;
+			} else if($usr->role->role_name == "Helps"){
+				$section_helpers[] = $usr->user;
+			} else if($usr->role->role_num == "Judges"){
+				$section_judges[] = $usr->user;
+			}
+		}
+
+		
 		# GET FUTURE ASSIGNMENTS
 		$twoweeks_date = new DateTime();
 		$twoweeks_date = $twoweeks_date->add(new DateInterval('P2W'));
@@ -77,31 +108,8 @@ class SectionController extends Controller {
 
 		$asgn_query = $qb_asgn->getQuery();
 		$future_assig = $asgn_query->getResult();
-
-		# GET ALL USERS
-		$qb_user = $em->createQueryBuilder();
-		$qb_user->select('usr')
-			->from('AppBundle\Entity\UserSectionRole', 'usr')
-			->where('usr.section = ?1')
-			->setParameter(1, $section_entity);
-
-		$user_query = $qb_user->getQuery();
-		$usersectionroles = $user_query->getResult();
-
-		$section_takers = [];
-		$section_teachers = [];
-		$section_helpers = [];
-
-		foreach($usersectionroles as $usr){
-			if($usr->role->role_name == "Takes"){
-				$section_takers[] = $usr->user;
-			} else if($usr->role->role_name == "Teaches"){
-				$section_teachers[] = $usr->user;
-			} else if($usr->role->role_name == "Helps"){
-				$section_helpers[] = $usr->user;
-			}
-		}
-
+		
+		# GATHER SUBMISSIONS
 		# get all of the problems to get all of the submissions
 		$allprobs = [];
 		foreach($section_entity->assignments as $asgn){
@@ -112,15 +120,14 @@ class SectionController extends Controller {
 
 		$grader = new Grader($em);
 
-		if($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isTeaching($user, $section_entity)){
+		if($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isTeaching($user, $section_entity) || $grader->isJudging($user, $section_entity)){
 
 			$qb_submissions = $em->createQueryBuilder();
 			$qb_submissions->select('s')
 					->from('AppBundle\Entity\Submission', 's')
 					->where('s.problem IN (?1)')
 					->orderBy('s.timestamp', 'DESC')
-					->setParameter(1, $allprobs)
-					->setMaxResults(30);
+					->setParameter(1, $allprobs);
 
 			$submission_query = $qb_submissions->getQuery();
 			$submissions = $submission_query->getResult();
@@ -139,19 +146,17 @@ class SectionController extends Controller {
 					->andWhere('s.team IN (?2)')
 					->orderBy('s.timestamp', 'DESC')
 					->setParameter(1, $allprobs)
-					->setParameter(2, $teams)
-					->setMaxResults(30);
+					->setParameter(2, $teams);
 
 			$submission_query = $qb_submissions->getQuery();
 			$submissions = $submission_query->getResult();
-
 		}
-
+		
 		$grades = [];
 		foreach($section_takers as $section_taker){
 			$grades[$section_taker->id] = $grader->getAllAssignmentGrades($section_taker, $section_entity);
 		}
-
+		
 		return $this->render('section/index.html.twig', [
 			'section' => $section_entity,
 			'grader' => new Grader($em),
@@ -173,28 +178,6 @@ class SectionController extends Controller {
     public function editSectionAction($sectionId) {
 
 		$em = $this->getDoctrine()->getManager();
-		$builder = $em->createQueryBuilder();
-
-		$builder->select('c')
-				->from('AppBundle\Entity\Course', 'c')
-				->where('c.is_deleted = false');
-		$query = $builder->getQuery();
-		$courses = $query->getResult();
-
-		$user = $this->get('security.token_storage')->getToken()->getUser();
-		if(!$user){
-			die("USER DOES NOT EXIST");
-		}
-
-		$users = $em->getRepository("AppBundle\Entity\User")->findAll();
-
-		$instructors = [];
-
-		foreach ($users as $u) {
-			if($u->hasRole("ROLE_ADMIN") or $u->hasRole("ROLE_SUPER")) {
-				$instructors[] = $u;
-			}
-		}
 
 		if($sectionId != 0){
 
@@ -208,6 +191,12 @@ class SectionController extends Controller {
 				die("SECTION DOES NOT EXIST");
 			}
 
+			# REDIRECT TO CONTEST IF NEED BE
+			if($section->course->is_contest){
+				return $this->redirectToRoute('contest_edit', ['contestId' => $section->id]);	
+			}
+			
+			
 			$section_taker_roles = [];
 			$section_teacher_roles = [];
 
@@ -223,6 +212,28 @@ class SectionController extends Controller {
 					$section_teacher_roles[] = $ur;
 				}
 
+			}
+		}
+		
+		$builder = $em->createQueryBuilder();
+		$builder->select('c')
+				->from('AppBundle\Entity\Course', 'c')
+				->where('c.is_deleted = false');
+		$query = $builder->getQuery();
+		$courses = $query->getResult();
+
+		$user = $this->get('security.token_storage')->getToken()->getUser();
+		if(!$user){
+			die("USER DOES NOT EXIST");
+		}
+		
+		
+		$users = $em->getRepository("AppBundle\Entity\User")->findAll();
+		$instructors = [];
+
+		foreach ($users as $u) {
+			if($u->hasRole("ROLE_ADMIN") or $u->hasRole("ROLE_SUPER")) {
+				$instructors[] = $u;
 			}
 		}
 
@@ -394,20 +405,20 @@ class SectionController extends Controller {
 
 		$em->persist($section);
 
-    # validate the students csv
+		# validate the students csv
 		$students = array_unique(json_decode($postData['students']));
 
-    foreach ($students as $student) {
+		foreach ($students as $student) {
 
-			if (!filter_var($student, FILTER_VALIDATE_EMAIL)) {
-				return $this->returnForbiddenResponse("Provided student email address ".$student." is not valid");
+				if (!filter_var($student, FILTER_VALIDATE_EMAIL)) {
+					return $this->returnForbiddenResponse("Provided student email address ".$student." is not valid");
+				}
 			}
-		}
 
-    # vallidate teacher csv
-    $teachers = array_unique(json_decode($postData['teachers']));
+		# vallidate teacher csv
+		$teachers = array_unique(json_decode($postData['teachers']));
 
-    foreach ($teachers as $teacher){
+		foreach ($teachers as $teacher){
 
 			if(!filter_var($teacher, FILTER_VALIDATE_EMAIL)) {
 				return $this->returnForbiddenResponse("Provided teacher email address ".$teacher." is not valid");
@@ -431,7 +442,7 @@ class SectionController extends Controller {
 			$em->flush();
 		}
 
-    # add students from the students array
+		# add students from the students array
 
 		$takes_role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));
 		foreach ($students as $student) {

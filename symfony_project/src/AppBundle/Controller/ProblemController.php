@@ -44,6 +44,11 @@ class ProblemController extends Controller {
 			die("SECTION DOES NOT EXIST");
 		}
 		
+		# REDIRECT TO CONTEST_PROBLEM_EDIT IF NEED BE
+		if($section->course->is_contest){
+			return $this->redirectToRoute('contest_problem_edit', ['contestId' => $sectionId, 'roundId' => $assignmentId, 'problemId' => $problemId]);
+		}
+		
 		if(!isset($assignmentId) || !($assignmentId > 0)){
 			die("ASSIGNMENT ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
 		}
@@ -84,11 +89,9 @@ class ProblemController extends Controller {
 			$default_code[$l->name] = $l->deblobinateDefaultCode();
 		}
 		
-		
 		$recommendedSlaves = [];
-		
 		$recommendedSlaves = $em->getRepository('AppBundle\Entity\Problem')->findBy(array('name' => $problem->name));
-			
+
 		return $this->render('problem/edit.html.twig', [
 			'languages' => $languages,
 			'section' => $section,
@@ -98,7 +101,7 @@ class ProblemController extends Controller {
 			'default_code' => $default_code,
 			'ace_modes' => $ace_modes,
 			'filetypes' => $filetypes,
-			
+				
 			'recommendedSlaves' => $recommendedSlaves,
 		]);
     }
@@ -280,29 +283,24 @@ class ProblemController extends Controller {
 		$problem->extra_testcases_display = ($extra_testcases_display == "true");		
 		
 		# linked problems
-		foreach($problem->slaves as &$slave){
-			$slave->master = null;
-		}
-		
-		foreach($postData['linked_probs'] as $link){
+		if(!$problem->assignment->section->course->is_contest){
 			
-			$linked = $em->find("AppBundle\Entity\Problem", $link);
-			
-			if(!$linked){
-				return $this->returnForbiddenResponse("Provided problem id ".$link." does not exist");
+			foreach($problem->slaves as &$slave){
+				$slave->master = null;
 			}
 			
-			$problem->slaves->add($linked);
-			$linked->master = $problem;			
-		}
-		
-		$str = "";
-		foreach($problem->slaves->toArray() as $l){
-			$str = $str."-".$l->id;
-		}
-		
-		//return $this->returnForbiddenResponse($str);
-		
+			foreach($postData['linked_probs'] as $link){
+				
+				$linked = $em->find("AppBundle\Entity\Problem", $link);
+				
+				if(!$linked){
+					return $this->returnForbiddenResponse("Provided problem id ".$link." does not exist");
+				}
+				
+				$problem->slaves->add($linked);
+				$linked->master = $problem;			
+			}
+		}		
 		
 		# custom validator
 		$custom_validator = trim($postData['custom_validator']);
@@ -390,7 +388,27 @@ class ProblemController extends Controller {
 
 		}
 		$problem->testcases = $newTestcases;
-		$problem->testcase_counts[] = count($problem->testcases);
+		$problem->testcase_counts[] = count($problem->testcases);	
+		
+		
+		# CONTEST SETTINGS OVERRIDE
+		if($problem->assignment->section->course->is_contest){
+			
+			$problem->slaves = new ArrayCollection();
+			$problem->master = null;
+
+			$problem->weight = 1;
+			$problem->is_extra_credit = false;
+			$problem->total_attempts = 0;
+			$problem->attempts_before_penalty = 0;
+			$problem->penalty_per_attempt = 0;
+			$problem->stop_on_first_fail = true;
+			$problem->response_level = "None";
+			$problem->display_testcaseresults = false;
+			$problem->testcase_output_level = "None";
+			$problem->extra_testcases_display = false;			
+		}
+				
 		
 		# update all the linked problems
 		foreach($problem->slaves as &$slave){
@@ -421,6 +439,9 @@ class ProblemController extends Controller {
 			
 			# update the weight
 			$slave->weight = $problem->weight;
+			
+			# update extra credit
+			$slave->is_extra_credit = $problem->is_extra_credit;
 			
 			# update the time limit
 			$slave->time_limit = $problem->time_limit;
@@ -458,6 +479,7 @@ class ProblemController extends Controller {
 
 			$em->persist($slave);
 		}
+		
 		$em->flush();
 
 		$url = $this->generateUrl('assignment', ['sectionId' => $problem->assignment->section->id, 'assignmentId' => $problem->assignment->id, 'problemId' => $problem->id]);
@@ -478,6 +500,16 @@ class ProblemController extends Controller {
 
 		if(!$submission){
 			die("SUBMISSION DOES NOT EXIST");
+		}
+		
+		# REDIRECT TO CONTEST IF NEED BE
+		if($submission->problem->assignment->section->course->is_contest){
+			return $this->redirectToRoute('contest_result', [
+				'contestId' => $submission->problem->assignment->section->id, 
+				'roundId' => $submission->problem->assignment->id, 
+				'problemId' => $submission->problem->id, 
+				'resultId' => $submission->id
+			]);
 		}
 
 		# get the user

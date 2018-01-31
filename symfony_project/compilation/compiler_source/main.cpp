@@ -313,6 +313,10 @@ int main(int argc, char** argv){
 		}
 	}	
 	
+	system("rm custom_validator/validator");
+	system("rm -rf compiled_code");
+	system("rm -rf student_code");
+	
 	// remove the reverse flag for timeout
 	system("rm flags/time_limit");
 	
