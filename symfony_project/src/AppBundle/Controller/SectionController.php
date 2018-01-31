@@ -157,6 +157,8 @@ class SectionController extends Controller {
 				// echo "<br><br><br>submissions:";
 				// echo json_encode($submissions);
 
+
+				// FIXME: only works for unique results
 				// query for accepted submissions
 				$qb_accsub = $em->createQueryBuilder();
 				$qb_accsub->select('s')

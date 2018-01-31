@@ -138,15 +138,6 @@
 					
 				<div>   
 					<ul>
-					{% if accepted_submissions|length > 0 %}
-						submissions exist.
-						{# {{ accepted_submissions[0] }} #}
-						{% for acc in accepted_submissions %}
-							<li><a href="{{path('problem_result', {'submission_id': sub.id})}}">
-								<i>{{sub.problem.assignment.name}}:</i> {{sub.problem.name}} ({{sub.language.name}})</i>
-							</a></li>
-						{% endfor %}
-					{% endif %}
 
 					{% if recent_submissions|length == 0 %}
 						<li> No recent submissions </li>
@@ -180,6 +171,17 @@
 								- {{sub.timestamp|date('M d  \\a\\t  h:i:s A')}}
 							</a> </li>
 							</div>
+						{% endfor %}
+					{% endif %}
+
+					{% if accepted_submissions|length > 0 %}
+						{{ accepted_submissions|length}} submissions exist.
+						{# FIXME: non-unique result error #}
+						{# {{ accepted_submissions[0] }} #}
+						{% for sub in accepted_submissions %}
+							<li><a href="{{path('problem_result', {'submission_id': sub.id})}}">
+								<i>{{sub.problem.assignment.name}}:</i> {{sub.problem.name}} ({{sub.language.name}})</i>
+							</a></li>
 						{% endfor %}
 					{% endif %}
 					</ul>
