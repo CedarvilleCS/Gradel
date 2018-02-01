@@ -66,8 +66,18 @@
 	
 	
 	{% if app.request.attributes.get('_route') == "contest" %}
+		{% if 'Practice' in contest.name %}
+			<a href="{{path('contest', {'contestId': practice.section.id, 'roundId': practice.id})}}">
+				<div class="btn btn-center btn-bottom" style=""> Switch to Actual Contest </div>
+			</a>
+		{% else %}
+			<a href="{{path('contest', {'contestId': practice.section.id, 'roundId': practice.id})}}">
+				<div class="btn btn-center btn-bottom" style=""> Switch to Practice Contest </div>
+			</a>
+		{% endif %}
+	{% else %}
 	<a href="{{path('contest', {'contestId': practice.section.id, 'roundId': practice.id})}}">
-		<div class="btn btn-center btn-bottom" style=""> Switch to Practice Contest </div>
+		<div class="btn btn-center btn-bottom" style=""> Switch to Actual Contest </div>
 	</a>
 	{% endif %}
 	
