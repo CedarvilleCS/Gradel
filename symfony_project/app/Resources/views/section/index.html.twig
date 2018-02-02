@@ -13,10 +13,9 @@
 	{{ include('template/assignment-nav.html.twig') }}
 
 	{{ include('template/path-nav.html.twig') }}
+
 	{# Main section #}
 	<section id="main">
-		{# Cards #}
-		
 		<div class="card">
 			<div class="btn-close" onclick="collapseCard('courseInfo')"><h2 style="margin: 0px">Due Soon<span style="float: right"><i class="fa fa-angle-down"></i></span></h2></div>
 			<div id="courseInfo" class="card-contents">
@@ -81,17 +80,17 @@
 									
 									{% if grades[user.id][asgn.id]['num_correct_problems'] > 0 and grades[user.id][asgn.id]['num_correct_problems'] == grades[user.id][asgn.id]['num_problems'] %}
 									
-										<td style="color:green; font-size: 25px">&#x2713; 
+										<td style="color:green; font-size: 25px">{{grades[user.id][asgn.id]['num_correct_problems']}}/{{grades[user.id][asgn.id]['num_problems']}} 
 										
 										{% if grades[user.id][asgn.id]['num_extra_problems'] > 0 and grades[user.id][asgn.id]['num_extra_correct_problems'] == grades[user.id][asgn.id]['num_extra_problems'] %}
-										&#x2713; 										
+										{{grades[user.id][asgn.id]['num_correct_problems']}}/{{grades[user.id][asgn.id]['num_problems']}}										
 										{% endif %}
 										</td>
 										
 									{% elseif grades[user.id][asgn.id]['num_correct_problems'] != 0 %}
 										<td style="color:orange; font-size: 25px"><i> {{grades[user.id][asgn.id]['num_correct_problems']}}/{{grades[user.id][asgn.id]['num_problems']}}</i></td>
 								 {% else %} 
-										<td style="color:red; font-size: 25px"> &#x2718</td>
+										<td style="color:red; font-size: 25px">{{grades[user.id][asgn.id]['num_correct_problems']}}/{{grades[user.id][asgn.id]['num_problems']}}</td>
 								 {% endif %}
 									
 								{% endfor %}
@@ -100,9 +99,26 @@
 						
 					</table>
 					
+					<br>
+					
+					<a id="download" download="grades.csv">
+						<div class="btn">Download Grades</div>
+					</a>
+				
 				{% endif %}
 				
 				</div>
+			</div>
+		</div>
+		{% endif %}
+
+		{# Assignment Grades Card #}
+		{% if is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") or grader.isTeaching(user, section) %}
+		<div class="card">
+			<div class="btn-close" onclick="collapseCard('studentInfoAssignment')"><h2 style="margin: 0px">Assignment Grades<span style="float: right"><i class="fa fa-angle-down"></i></span></h2></div>
+			<div id="studentInfoAssignment" class="card-contents">
+
+				
 			</div>
 		</div>
 		{% endif %}
@@ -185,4 +201,198 @@
 	<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 	<script src="{{ asset('js/cards.js') }}"></script>
+
+	<script>
+
+		$( document ).ready(function() {
+			console.log( "ready!" );
+
+			var counter = 0;
+
+			var table 	= "<div>";
+			{% if section_takers|length == 0 %}				
+			table 		+=	"There are no students enrolled in this class";
+			{% else %}
+			{# For each assignment #}
+			{% for asgn in assignments %}
+				table 	+= "<h3>{{asgn.name}}</h3>"
+						+	"<table>"
+						+		"<tr>"
+						+			"<th style='border-right: 1px solid black;'>&nbsp;</th>"
+						+			'<th colspan="' + "{{ grades[user.id][asgn.id]['num_problems'] }}"+ '"' + 'style="text-align: center;">Testcases Passed / Total</th>'
+						+		"</tr>"
+						+		"<tr>"
+						+			'<th style="text-align: left; border-bottom: 1px solid black; border-right: 1px solid black;">Student</th>'
+						+			"{% for problem in asgn.problems %}"
+						+				'<th style="text-align: left; border-bottom: 1px solid black;">{{ problem.name }}</th>'
+						+			"{% endfor %}"
+						+		"</tr>"
+						+		"{% for user in section_takers %}"
+						+			"<tr> <th>{{user.getFirstName()}} {{user.getLastName()}}</th>"	
+						+			"{# Loop through problems #}"
+						+			"{% for problem in asgn.problems %}"
+						+				"{# number of testcases passed, number of test cases failed #}"
+						+				"{# {{ grades|json_encode() }} #}"
+						+				"{% if grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] == grades[user.id][asgn.id]['problem_grades'][problem.id]['total_testcases'] %}"
+						+					'<td style="color:green; font-size: 20px">' + "{{ grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] }}  / {{ grades[user.id][asgn.id]['problem_grades'][problem.id]['total_testcases'] }}</td>"
+						+				"{% elseif grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] != 0 %}"
+						+					'<td style="color:orange; font-size: 20px">' + "{{ grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] }}  / {{ grades[user.id][asgn.id]['problem_grades'][problem.id]['total_testcases'] }}</td>"
+						+				"{% else %}"
+						+					'<td style="color:red; font-size: 20px">' + "{{ grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] }}  / {{ grades[user.id][asgn.id]['problem_grades'][problem.id]['total_testcases'] }}</td>"
+						+				"{% endif %}"									
+						+			"{% endfor %}"
+						+		"{% endfor %}"
+						+		"</table>"
+						+		"<br><br>"	
+						+		'<a id="download' + counter + '" download="grades.csv" onclick="' + "downloadAssgnGrades(" + counter + ", 'download" +  counter + "')" + '">'
+						+			'<div class="btn">Download Grades</div>'
+						+		"</a>";
+						counter += 1;
+			{% endfor %}
+			table		+=	"<br>";
+			{% endif %}
+			table 		+= "</div>";
+
+
+			// add it to the card
+			$("#studentInfoAssignment").append(table);
+		});
+	
+
+		{% if is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") or grader.isTeaching(user, section) %}
+		// Download CSV of Grades
+
+		var textFile = null;
+
+		// Create a text file from the given text
+		function makeTextFile(text) {
+			var data = new Blob([text], {type: 'text/plain'});
+		
+			// If we are replacing a previously generated file we need to
+			// manually revoke the object URL to avoid memory leaks.
+			if (textFile !== null) {
+				window.URL.revokeObjectURL(textFile);
+			}
+		
+			textFile = window.URL.createObjectURL(data);
+		
+			return textFile;
+		};
+
+		// Generate a CSV list of the grades
+		function generateGradeCSVSection() {
+			var gradesCSV = "Name, User, ";
+			{% for asgn in assignments %}
+				gradesCSV += "Problems Correct, Total Problems, Grade, ";
+			{% endfor %}
+
+			gradesCSV += "\n";
+
+			{% for user in section_takers %}
+				
+				gradesCSV += '{{user.getFirstName()}} {{user.getLastName()}}, ';
+				gradesCSV += '{{user }}, ';
+
+				{% for asgn in assignments %}
+									
+					{# // {% if grades[user.id][asgn.id]['num_correct_problems'] > 0 and grades[user.id][asgn.id]['num_correct_problems'] == grades[user.id][asgn.id]['num_problems'] %} #}
+
+					var correct = parseFloat("{{grades[user.id][asgn.id]['num_correct_problems']}}");
+					var total = parseFloat("{{grades[user.id][asgn.id]['num_problems']}}");
+					var percent = correct/total;
+
+					gradesCSV += correct + ', ' + total + ', ' + percent + ', '; 
+					// console.log("{{grades[user.id][asgn.id]['num_correct_problems']}}");
+
+				{% endfor %}
+				gradesCSV += "\n";
+			{% endfor %}
+			
+			// console.log(gradesCSV);
+
+			return gradesCSV;
+		}
+
+
+		// Generate a CSV list of the grades
+		function generateGradeCSVAssignment(index) {
+
+			var gradesCSV = [];
+			var i = 0;
+			
+			{% for asgn in assignments %}
+
+				gradesCSV[i] = " , ";
+
+				{% for problem in asgn.problems %}
+					gradesCSV[i] += "{{ problem.name }}" + ", , , ";
+				{% endfor %}
+
+				gradesCSV[i] += "\nUser, ";
+				{% for problem in asgn.problems %}
+					gradesCSV[i] += "Testcases Right, Total Testcases, Grade, ";
+				{% endfor %}
+
+				gradesCSV[i] += "\n";
+
+				{% for user in section_takers %}
+					//console.log("user");
+					gradesCSV[i] += '{{user.getFirstName()}} {{user.getLastName()}}, ';
+
+					{% for problem in asgn.problems %}
+						var right = parseFloat("{{ grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] }}");
+						var total = parseFloat("{{ grades[user.id][asgn.id]['problem_grades'][problem.id]['total_testcases'] }}");
+						
+						gradesCSV[i] += right + ", " + total + ", " + right/total + ", ";
+
+					{% endfor %}
+
+					gradesCSV[i] += "\n";
+				{% endfor %}
+
+				//console.log("grades at " + i + gradesCSV[i]);
+				i += 1;
+			{% endfor %}
+			
+			// for(var j = 0; j <= i; j++){
+				//console.log(gradesCSV[j]);
+			// }
+
+			return gradesCSV[index];
+		}
+
+
+		// Download the CSV of grades when the download button is clicked
+		var download = document.getElementById('download');	
+		download.addEventListener('click', function () {
+			var link = document.getElementById('download');
+			link.href = makeTextFile(generateGradeCSVSection());
+			link.style.display = 'block';
+		}, false);
+
+		// Download the CSV of grades when the downloadAssignment button is clicked
+/*		var downloadAssignment = document.getElementById('downloadAssignment');	
+		downloadAssignment.addEventListener('click', function () {
+			var link = document.getElementById('downloadAssignment');
+			link.href = makeTextFile(generateGradeCSVAssignment(1));
+			link.style.display = 'block';
+		}, false); */
+
+
+		function downloadAssgnGrades(index, id) {
+			
+			console.log("index: " + index);
+			console.log(generateGradeCSVAssignment(index));
+			console.log("id: " + id);
+
+			var link = document.getElementById(id);
+			link.href = makeTextFile(generateGradeCSVAssignment(index));
+			link.style.display = 'block';
+		}
+
+		{% endif %}
+
+
+	</script>
+
 {% endblock %}

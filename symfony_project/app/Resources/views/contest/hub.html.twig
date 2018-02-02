@@ -1,3 +1,42 @@
+{% block stylesheets %}
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
+	
+    <link rel="stylesheet" href="{{ asset('styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('card.css') }}" />
+    <link rel="stylesheet" href="{{ asset('contest-hub.css') }}" />
+	
+	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
+	
+	
+	<style>
+	
+	.accepted{
+		background: #AAE2AB no-repeat center url("{{asset('contest/check.svg')}}");
+		font-size: 0.8em;
+	}
+
+	.unattempted{
+		background: none;
+		color: transparent;
+		font-size: 0.8em;
+	}
+
+	.attempted{
+		background: #F67B51 no-repeat center url("{{asset('contest/cross.svg')}}");
+		font-size: 0.8em;
+		color: white;
+	}
+	
+	.unknown{
+		background: #AAAAAA no-repeat center url("{{asset('contest/question.svg')}}");
+		font-size: 0.8em;
+	}
+	
+	
+	</style>
+	
+{% endblock %}
+
 <script>
 console.log(JSON.parse("{{ leaderboard | json_encode(constant('JSON_PRETTY_PRINT')) | e('js')}}"));
 </script>
@@ -201,44 +240,7 @@ console.log(JSON.parse("{{ leaderboard | json_encode(constant('JSON_PRETTY_PRINT
 
 {% endblock %}
 
-{% block stylesheets %}
-	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
-	
-    <link rel="stylesheet" href="{{ asset('styles.css') }}" />
-    <link rel="stylesheet" href="{{ asset('card.css') }}" />
-    <link rel="stylesheet" href="{{ asset('contest-hub.css') }}" />
-	
-	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
-	
-	
-	<style>
-	
-	.accepted{
-		background: #AAE2AB no-repeat center url("{{asset('contest/check.svg')}}");
-		font-size: 0.8em;
-	}
 
-	.unattempted{
-		background: none;
-		color: transparent;
-		font-size: 0.8em;
-	}
-
-	.attempted{
-		background: #F67B51 no-repeat center url("{{asset('contest/cross.svg')}}");
-		font-size: 0.8em;
-		color: white;
-	}
-	
-	.unknown{
-		background: #AAAAAA no-repeat center url("{{asset('contest/question.svg')}}");
-		font-size: 0.8em;
-	}
-	
-	
-	</style>
-	
-{% endblock %}
 
 
 {% block scripts %}

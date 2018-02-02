@@ -73,14 +73,14 @@ class Grader  {
 				->setParameter(1, $assignment);
 				
 		$query_team = $qb_teams->getQuery();
-		$team_entities = $query_team->getResult();	
+		$team_entities = $query_team->getResult();
 		
 		# loop over all the teams for this assignment and figure out which team the user is a part of
-		$team = null;		
+		$team = null;
 		
-		foreach($team_entities as $tm){		
-			foreach($tm->users as $us){	
-				if($user->id == $us->id){
+		foreach($team_entities as $tm) {
+			foreach($tm->users as $us) {
+				if($user->id == $us->id) {
 					$team = $tm;
 				}
 			}
@@ -194,8 +194,8 @@ class Grader  {
 		}
 		
 		$grades['total_testcases'] = $total_normal_testcases;	
+
 		$grades['total_extra_testcases'] = $total_testcases - $total_normal_testcases;
-		
 		$attempts = $this->getNumAttempts($user, $problem);				
 		$grades['attempts'] = $attempts;		
 		
@@ -211,9 +211,7 @@ class Grader  {
 			$passed_extra_testcases = 0;
 			foreach($accepted_sub->testcaseresults as $tcr){
 				if($tcr->is_correct){
-					
 					if($tcr->testcase->is_extra_credit){
-						
 						$passed_extra_testcases++;
 					} else {
 						$passed_testcases++;
@@ -780,14 +778,5 @@ class Grader  {
 		}
 	}	
 }
-
-
-
-
-
-
-
-
-
 
 ?>

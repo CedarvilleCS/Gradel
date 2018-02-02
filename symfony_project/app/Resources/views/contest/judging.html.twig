@@ -1,6 +1,6 @@
 {% block head %}
 
-<title>Judging | {{contest.name}} </title>
+<title>Judging | {{current.name}} </title>
 <link rel="icon" type="image/x-icon" href="{{ asset('logo.png') }}" />
 {% endblock %}
 
@@ -16,41 +16,21 @@
 	<section id="main">
 		
 		<div class="card">
-			<div id="contest-heading"><h1>{{contest.section.name}}</h1></div>
-			<div id="name-heading"><h2>{{contest.name}}</h2></div>
+			<div id="contest-heading"><h1>{{current.section.name}}</h1></div>
+			<div id="name-heading"><h2>{{current.name}}</h2></div>
 			<div id="time-heading"><h3 id="time-left">-</h3></div>
 			
 			
 			<div id="progressbar-container" class="card-contents">
 				<div id="time-container">
 				
-					{% set showDates = contest.start_time|date('n/j') != contest.end_time|date('n/j') %}
+					{% set showDates = current.start_time|date('n/j') != current.end_time|date('n/j') %}
 				
-					<div id="start-time">{{(showDates) ? contest.start_time|date('n/j') : ""}} {{contest.start_time|date('g:i:s A')}}</div>
-					<div id="end-time">{{(showDates) ? contest.end_time|date('n/j') : ""}} {{contest.end_time|date('g:i:s A')}}</div>
+					<div id="start-time">{{(showDates) ? current.start_time|date('n/j') : ""}} {{current.start_time|date('g:i:s A')}}</div>
+					<div id="end-time">{{(showDates) ? current.end_time|date('n/j') : ""}} {{current.end_time|date('g:i:s A')}}</div>
 				</div>
 				<div id="progressbar"> </div>
 				
-				<div id="stats-container" >
-				
-					<div style="width: 28%">
-						<div style="margin-top: 5px; padding-left: 5px; font-weight: bold; font-size: 0.9em;"> Statistics <small> </small> </div>
-						<div id="stats-page">
-						</div>
-					</div>
-					
-					<div style="width: 35%">
-						<div style="margin-top: 5px; padding-left: 5px; font-weight: bold; font-size: 0.9em;"> Previous Reviews <small> </small> </div>
-						<div id="recent-reviews">
-						</div>
-					</div>
-				
-					<div style="width: 35%">
-						<div style="margin-top: 5px; padding-left: 5px; font-weight: bold; font-size: 0.9em;"> Previous Clarifications <small> </small> </div>
-						<div id="recent-clarifications">
-						</div>
-					</div>
-				</div>
 			</div>
 		</div>
 		
@@ -75,9 +55,6 @@
 		
 			<div id="submissions-container" class="card-contents">
 				
-				
-				
-				
 			</div>		
 		</div>
 		
@@ -90,11 +67,34 @@
 		
 			<div id="clarifications-container" class="card-contents">
 				
-				
-				
-				
-				
 			</div>		
+		</div>
+		
+		<div class="card">
+			<div class="btn-close">
+				<h2 style="margin: 0px">History </h2>
+			</div>
+
+			<div id="stats-container" >
+				
+				<!-- <div style="width: 28%">
+						<div style="margin-top: 5px; padding-left: 5px; font-weight: bold; font-size: 0.9em;"> Statistics <small> </small> </div>
+						<div id="stats-page">
+						</div>
+					</div> -->
+				
+					<div style="width: 35%">
+						<div style="margin-top: 5px; padding-left: 5px; font-weight: bold; font-size: 0.9em;"> Previous Reviews <small> </small> </div>
+						<div id="recent-reviews">
+						</div>
+					</div>
+				
+					<div style="width: 35%">
+						<div style="margin-top: 5px; padding-left: 5px; font-weight: bold; font-size: 0.9em;"> Previous Clarifications <small> </small> </div>
+						<div id="recent-clarifications">
+						</div>
+					</div>
+				</div>	
 		</div>
 					
 	</section>
@@ -180,8 +180,8 @@
 	
 	<script>
 
-		var time = {{"now"|date('U')}} - {{contest.start_time|date('U')}}; // current seconds into the contest
-		var total = {{contest.end_time|date('U')}} - {{contest.start_time|date('U')}};
+		var time = {{"now"|date('U')}} - {{current.start_time|date('U')}}; // current seconds into the contest
+		var total = {{current.end_time|date('U')}} - {{current.start_time|date('U')}};
 		//var freeze 
 		$(document).ready( function() {
 					
@@ -214,7 +214,7 @@
 				id = 0;
 				notice = $('#notice').val();
 				formData.append('answer', notice);				
-				formData.append('contestId', {{contest.id}});
+				formData.append('contestId', {{current.id}});
 			}
 			else {
 				return false;
@@ -364,7 +364,7 @@
 		
 			var formData = new FormData();
 			
-			formData.append('contestId', {{contest.id}});
+			formData.append('contestId', {{current.id}});
 		
 			$.ajax({
 				type: "POST",
@@ -468,6 +468,16 @@
 			$('.marker').on('mouseout', function() {			
 				$(this).find('.marker-hover').hide();			
 			});
+			
+			/* $('.marker').off('mouseover');
+			$('.marker').on('mouseover', function() {			
+				$(this).find('.marker-hover-untested').show().css('display', 'flex');					
+			});
+			
+			$('.marker').off('mouseout');
+			$('.marker').on('mouseout', function() {			
+				$(this).find('.marker-hover-untested').hide(); 		
+			});*/	
 			
 			$('.button').off('mousedown');
 			$('.button').off('mouseup');
@@ -766,7 +776,7 @@
 				}
 				
 				
-				var reviewHTML = `<a href="{{path('contest', {'contestId': contest.section.id, 'roundId': contest.id})}}/problem/` + rev.problem.id + `/result/` + rev.id + `"> <div class="review ` + ((rev.is_correct) ? "correct" : "wrong") + `" id="` + rev.id + `"> ` + 
+				var reviewHTML = `<a href="{{path('contest', {'contestId': current.section.id, 'roundId': current.id})}}/problem/` + rev.problem.id + `/result/` + rev.id + `"> <div class="review ` + ((rev.is_correct) ? "correct" : "wrong") + `" id="` + rev.id + `"> ` + 
 									`<div>` + rev.id + `) ` + escapeHTML(rev.problem.name.substring(0,1)) + ` - <small>` + escapeHTML(rev.team.name) + `</small></div><div><small> Reviewer: ` + escapeHTML(name) + `</small></div>` + 
 								`</div> </a>`;
 				$('#recent-reviews').append(reviewHTML);				
@@ -840,6 +850,7 @@
 								
 								middleStuff += `<div class="marker ` + ((tcr.is_correct) ? 'correct' : 'wrong') + `">\n` + 
 								
+								
 									((tcr.is_correct) ? '&#x2713;\n' : '&#x2718;\n') +
 									
 									`<div class="marker-hover">\n` +
@@ -858,6 +869,11 @@
 								`</div>\n`;
 							
 							}
+							
+							for(var k=sub.testcaseresults.length; k < sub.problem.testcases.length; k++){
+								middleStuff += `<div class="marker untested">`  + '&#63;\n' + `<div class="marker-hover" id="untested">\n` + `Untested.` +`</div>\n`+`</div>\n`;
+							}
+							
 							
 				submissionHTML += middleStuff;
 				
