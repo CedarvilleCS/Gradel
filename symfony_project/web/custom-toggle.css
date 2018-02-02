@@ -10,6 +10,17 @@
   margin-left: 5px;
 }
 
+.card .switch {
+  position: relative;
+  display: inline-block;
+  width: 37px;
+  height: 17px;
+  
+  margin-top: 4px;
+  margin-bottom: 4px;
+  margin-left: 2px;
+}
+
 /* Hide default HTML checkbox */
 .switch input {display:none;}
 
@@ -33,6 +44,30 @@
   width: 19px;
   left: 3px;
   bottom: 3px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.card .slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.card .slider:before {
+  position: absolute;
+  content: "";
+  height: 14px;
+  width: 14px;
+  left: 2px;
+  bottom: 2px;
   background-color: white;
   -webkit-transition: .4s;
   transition: .4s;

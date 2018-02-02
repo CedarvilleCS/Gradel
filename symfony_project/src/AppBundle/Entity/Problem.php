@@ -138,7 +138,7 @@ class Problem implements JsonSerializable{
 	public $master;	 
 		
 	/**
-	* @ORM\OneToMany(targetEntity="ProblemLanguage", mappedBy="problem", cascade={"persist"})
+	* @ORM\OneToMany(targetEntity="ProblemLanguage", mappedBy="problem", cascade={"persist"}, orphanRemoval=true)
 	*/
 	public $problem_languages;
 

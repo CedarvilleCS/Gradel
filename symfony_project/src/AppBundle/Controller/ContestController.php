@@ -14,6 +14,8 @@ use AppBundle\Entity\Assignment;
 use AppBundle\Entity\Submission;
 use AppBundle\Entity\Problem;
 use AppBundle\Entity\Team;
+use AppBundle\Entity\Testcase;
+use AppBundle\Entity\ProblemLanguage;
 
 use AppBundle\Utils\Grader;
 
@@ -297,11 +299,64 @@ class ContestController extends Controller {
 	}	
 		
 	public function problemEditAction($contestId, $roundId, $problemId) {
-		
-		die("problemEditAction");
+				
+		$em = $this->getDoctrine()->getManager();
 
+		$user = $this->get('security.token_storage')->getToken()->getUser();
+		if(!$user){
+			die("USER DOES NOT EXIST");
+		}
+		
+		$section = $em->find('AppBundle\Entity\Section', $contestId);
+		if(!$section || !$section->course->is_contest){
+			die("SECTION (CONTEST) DOES NOT EXIST!");
+		}
+		
+		$contest = $em->find('AppBundle\Entity\Assignment', $roundId);
+		if(!$contest || $contest->section != $section){
+			die("ASSIGNMENT (ROUND) DOES NOT EXIST!");
+		}
+		
+		if($problemId != 0){
+		
+			$problem = $em->find('AppBundle\Entity\Problem', $problemId);
+			if(!$problem || $problem->assignment != $contest){
+				die("PROBLEM DOES NOT EXIST!");
+			}
+			
+		} else {
+			
+			$problem = null;
+			
+		}
+		
+		
+		$languages = $em->getRepository('AppBundle\Entity\Language')->findAll();
+		
+		
+		$default_code = [];
+		$ace_modes = [];
+		$filetypes = [];
+		foreach($languages as $l){
+			
+			$ace_modes[$l->name] = $l->ace_mode;
+			$filetypes[str_replace(".", "", $l->filetype)] = $l->name;
+			
+			// either get the default code from the problem or from the overall default
+			$default_code[$l->name] = $l->deblobinateDefaultCode();
+		}		
+		
+		//die(json_encode($problem, JSON_PRETTY_PRINT));		
+		
 		return $this->render('contest/problem_edit.html.twig', [
-			'problem' => $problem
+			'contest' => $contest,
+			'problem' => $problem,
+			
+			'languages' => $languages, 
+			
+			'ace_modes' => $ace_modes,
+			'filetypes' => $filetypes,
+			'default_code' => $default_code,
 		]);
 	}
 	
@@ -316,35 +371,49 @@ class ContestController extends Controller {
 		}
 
 		# VALIDATION
-		$section = $em->find('AppBundle\Entity\Section', $contestId);
+		if($contestId != 0){
+			$section = $em->find('AppBundle\Entity\Section', $contestId);
 
-		if(!$section || !$section->course->is_contest){
-			die("SECTION (CONTEST) DOES NOT EXIST!");
+			if(!$section || !$section->course->is_contest){
+				die("SECTION (CONTEST) DOES NOT EXIST!");
+			}
+			
+			$course = $section->course;
+			
+			$grader = new Grader($em);
+			$elevatedUser = $grader->isJudging($user, $section) || $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN");
+					
+			# get the judges
+			$judgeRole = $em->getRepository("AppBundle\Entity\Role")->findOneBy([
+				'role_name' => 'Judges',
+			]);
+			
+			$judges = $em->getRepository('AppBundle\Entity\UserSectionRole')->findBy([
+				'section' => $section,
+				'role' => $judgeRole,
+			]);
+			
+			# get freeze time diff
+			$di = $section->assignments[0]->end_time->diff($section->assignments[0]->freeze_time);
+		
+			$freeze_diff_minutes = $di->i;
+			$freeze_diff_hours = ($di->days * 24) + $di->h;
+		
+		} else {
+			
+			$course = $em->find("AppBundle\Entity\Course", 2);
+			
+			$section = null;
+			$freeze_diff_hours = 1;
+			$freeze_diff_minutes = 0;
+			
+			$judges = [];
+			$elevatedUser = $user->hasRole("ROLE_ADMIN") || $user->hasRole("ROLE_SUPER");
 		}
 		
-		$grader = new Grader($em);
-		$elevatedUser = $grader->isJudging($user, $section) || $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN");
 		
-		$students = $em->createQuery("select u from AppBundle\Entity\User u where 1=1")->getResult();
-
-		
-		# get the judges
-		$judgeRole = $em->getRepository("AppBundle\Entity\Role")->findOneBy([
-			'role_name' => 'Judges',
-		]);
-		
-		$judges = $em->getRepository('AppBundle\Entity\UserSectionRole')->findBy([
-			'section' => $section,
-			'role' => $judgeRole,
-		]);
-		
-		# get freeze time diff
-		$di = $section->assignments[0]->end_time->diff($section->assignments[0]->freeze_time);
-		
-		$freeze_diff_minutes = $di->i;
-		$freeze_diff_hours = ($di->days * 24) + $di->h;
-				
 		return $this->render('contest/edit.html.twig', [
+			'course' => $course,
 			'section' => $section,
 			
 			'freeze_diff_hours' => $freeze_diff_hours,
@@ -358,9 +427,172 @@ class ContestController extends Controller {
 
 	public function modifyProblemPostAction(Request $request){
 		
-		return $this->returnForbiddenResponse("modifyProblemPostAction");
+		$em = $this->getDoctrine()->getManager();
+
+		$user = $this->get('security.token_storage')->getToken()->getUser();
+		if(!$user){
+			die("USER DOES NOT EXIST");
+		}
 		
-		return new Response();
+		# POST DATA
+		$postData = $request->request->all();
+		
+		# ASSIGNMENT/CONTEST
+		if(!isset($postData['assignmentId'])){
+			return $this->returnForbiddenResponse("assignmentId not provided");
+		}
+		
+		$assignment = $em->find("AppBundle\Entity\Assignment", $postData['assignmentId']);		
+		if(!$assignment){
+			return $this->returnForbiddenResponse("Assignment with provided id does not exist");
+		}
+				
+		# PROBLEM
+		if(isset($postData['problemId'])){
+			
+			if($postData['problemId'] == 0){
+
+				$problem = new Problem();
+				$problem->assignment = $assignment;
+				//$em->persist($problem);
+
+			} else {
+				
+				$problem = $em->find('AppBundle\Entity\Problem', $postData['problemId']);
+
+				if(!$problem || $assignment != $problem->assignment){
+					return $this->returnForbiddenResponse("Problem with provided id does not exist");
+				}
+			}		
+			
+		} else {			
+			return $this->returnForbiddenResponse("problemId not provided");			
+		}
+		
+		# DEFAULT CONTEST SETTINGS
+		$problem->version = $problem->version+1;
+		$problem->weight = 1;
+		$problem->is_extra_credit = false;
+		$problem->total_attempts = 0;
+		$problem->attempts_before_penalty = 0;
+		$problem->penalty_per_attempt = 0;
+		$problem->stop_on_first_fail = true;
+		$problem->response_level = "None";
+		$problem->display_testcaseresults = false;
+		$problem->testcase_output_level = "None";
+		$problem->extra_testcases_display = false;	
+		$problem->slaves = new ArrayCollection();
+		$problem->master = null;	
+
+		# NAME AND DESCRIPTION
+		if(isset($postData['name']) && trim($postData['name']) != "" && isset($postData['description']) && trim($postData['description']) != ""){
+
+			$problem->name = trim($postData['name']);
+			$problem->description = trim($postData['description']);
+	
+		} else {
+	
+			return $this->returnForbiddenResponse("name and description need to be provided");
+		
+		}
+		
+		# TIME LIMIT
+		$time_limit = trim($postData['time_limit']);
+		if(!is_numeric($time_limit) || $time_limit < 0 || $time_limit != round($time_limit)){					
+			return $this->returnForbiddenResponse("time limit provided was not valid");
+		}
+
+		$problem->time_limit = $time_limit;
+				
+		# PROBLEM LANGUAGES
+		# remove the old ones
+		$problem->problem_languages->clear();
+		
+		// For now, default the contest languages to just be C++ and Java		
+		$languageCPP = $em->getRepository("AppBundle\Entity\Language")->findOneBy([
+			'name' => "C++",
+		]);
+		
+		$languageJAVA = $em->getRepository("AppBundle\Entity\Language")->findOneBy([
+			'name' => "Java",
+		]);
+
+		if(!$languageCPP && !$languageJAVA){
+			return $this->returnForbiddenResponse("languages could not be generated properly - this is Timothy's fault");
+		}
+
+		$problemLanguageCPP = new ProblemLanguage();
+		$problemLanguageJAVA = new ProblemLanguage();
+
+		$problemLanguageCPP->language = $languageCPP;
+		$problemLanguageCPP->problem = $problem;
+		$problemLanguageJAVA->language = $languageJAVA;
+		$problemLanguageJAVA->problem = $problem;
+		
+		$problem->problem_languages->add($problemLanguageCPP);
+		$problem->problem_languages->add($problemLanguageJAVA);
+		
+		# TESTCASES
+		# set the old testcases to null 
+		# so they don't go away and can be accessed in the results page
+		foreach($problem->testcases as &$testcase){
+			$testcase->problem = null;
+			$em->persist($testcase);
+		}
+		
+		$newTestcases = new ArrayCollection();
+		$count = 1;
+		foreach($postData['testcases'] as &$tc){
+			
+			$tc = (array) $tc;
+			
+			# build the testcase
+			$testcase = new Testcase();
+			
+			$testcase->problem = $problem;
+			$testcase->seq_num = $count;
+			$testcase->command_line_input = null;
+			$testcase->feedback = null;
+			$testcase->weight = 1;
+			$testcase->is_extra_credit = false;
+			
+			if(isset($tc['input']) && trim($tc['input']) != "" && isset($tc['output']) && trim($tc['output']) != "" && isset($tc['sample'])){
+				
+				$testcase->input = $tc['input'];
+				$testcase->correct_output = $tc['output'];
+				$testcase->is_sample = ($tc['sample'] == "true");
+				
+			} else {
+				return $this->returnForbiddenResponse("testcase not formatted properly");
+			}
+		 
+			$em->persist($testcase);
+			$newTestcases->add($testcase);
+			
+			
+			$count++;
+		}
+		$problem->testcases = $newTestcases;
+		$problem->testcase_counts[] = count($problem->testcases);	
+
+		
+		//return $this->returnForbiddenResponse(json_encode($problem));
+		
+		$em->persist($problem);		
+		$em->flush();		
+		
+		$url = $this->generateUrl('contest_problem', ['contestId' => $problem->assignment->section->id, 'roundId' => $problem->assignment->id, 'problemId' => $problem->id]);
+				
+		$response = new Response(json_encode([
+			'id' => $problem->id,
+			'redirect_url' => $url,
+			'problem' => $problem,
+		]));			
+		
+		$response->headers->set('Content-Type', 'application/json');
+		$response->setStatusCode(Response::HTTP_OK);
+
+		return $response;
 	}
 	
 	public function modifyContestPostAction(Request $request){
@@ -568,7 +800,6 @@ class ContestController extends Controller {
 			$practice_freeze_date = clone $practice_start_date;
 		}
 		
-		
 		$practiceContest->start_time = $practice_start_date;
 		$practiceContest->end_time = $practice_end_date;
 		$practiceContest->cutoff_time = $practice_end_date;			
@@ -729,8 +960,18 @@ class ContestController extends Controller {
 			
 		}		
 		
-		$practiceToRemove = clone $practiceContest->teams;
-		$actualToRemove = clone $actualContest->teams;
+		if($practiceContest->teams){
+			$practiceToRemove = clone $practiceContest->teams;
+		} else {
+			$practiceToRemove = new ArrayCollection();
+		}
+		
+		
+		if($actualContest->teams){			
+			$actualToRemove = clone $actualContest->teams;
+		} else {
+			$actualToRemove = new ArrayCollection();			
+		}
 		
 		# clear out and replace the teams 
 		foreach($practiceContest->teams as &$team){

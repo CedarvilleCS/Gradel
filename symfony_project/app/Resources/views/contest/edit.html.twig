@@ -44,7 +44,7 @@
 					{% endif %}
 					</h1>
 					<h4 style="margin: 0px; margin-top: 5px;">
-					A Section of <i>{{section.course.name}}</i>
+					A Section of <i>{{course.name}}</i>
 					</h4>
 				</div>
 
@@ -596,7 +596,7 @@
 			formData.append('teams', JSON.stringify(teams));
 			
 			// check to see if this button is allowed to be pressed
-			formData.append('courseId', {{(section) ? section.course.id : 0}});
+			formData.append('courseId', {{course.id}});
 			//formData.append('contestId', {{(section) ? 0 : 0}});
 			formData.append('contestId', {{(section) ? section.id : 0}});
 			
