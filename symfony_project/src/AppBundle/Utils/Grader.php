@@ -559,8 +559,12 @@ class Grader  {
 			->from('AppBundle\Entity\Submission', 's')
 			->where('s.problem = ?1')
 			->andWhere('s.team = ?2')
+			->andWhere('s.pending_status = ?3')
+			->andWhere('s.is_completed = ?4')
 			->setParameter(1, $problem)
 			->setParameter(2, $team)
+			->setParameter(3, 2)
+			->setParameter(4, true)
 			->orderBy('s.timestamp', 'ASC');
 			
 		$subs_query = $qb_subs->getQuery();
@@ -767,7 +771,7 @@ class Grader  {
 				
 			} else {
 				
-				return ($a['total_penalty'] > $b['total_penalty']) ? -1 : 1;				
+				return ($a['total_penalty'] < $b['total_penalty']) ? -1 : 1;				
 			}
 			
 		} else {

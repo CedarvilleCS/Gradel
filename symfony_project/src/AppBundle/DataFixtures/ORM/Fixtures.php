@@ -184,24 +184,6 @@ class Fixtures extends Fixture {
 			$manager->persist($team_02_3);
 			$manager->persist($team_02_4);
 			
-			# ASSIGNMENT 2
-			$team_02_1 = new Team("Wolf_01", $assignment_02);
-			$team_02_1->users[] = $wolf_user;
-			
-			$team_02_2 = new Team("Budd_01", $assignment_02);	
-			$team_02_2->users[] = $budd_user;
-			
-			$team_02_3 = new Team("Gallagher_01", $assignment_02);
-			$team_02_3->users[] = $prof_gallagher;
-			
-			$team_02_4 = new Team("Brauns_01", $assignment_02);
-			$team_02_4->users[] = $brauns_user;
-			
-			$manager->persist($team_02_1);
-			$manager->persist($team_02_2);
-			$manager->persist($team_02_3);
-			$manager->persist($team_02_4);
-			
 			# ASSIGNMENT 3
 			$team_03_1 = new Team("Wolf Bytes", $assignment_03);
 			$team_03_1->users[] = $wolf_user;

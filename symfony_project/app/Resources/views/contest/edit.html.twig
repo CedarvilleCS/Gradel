@@ -204,36 +204,66 @@
 
 	{# javascript for team creation #}
 	<script>
-	
-	function formatTeamCreator(){
-	
-		// create all of the students
+
+			
+	function getUserHtml(student){
 		
-		var students = JSON.parse('{{ students|json_encode|raw }}');
+		var id = (student.id) ? student.id : 0;
+		var userHTML = "<div class='user' id='"+id+"' contenteditable='false'>" + escapeHTML(student.full_name) + "</div>";		
+		
+		return userHTML;
+	}
+
 	
-		for(var i=0; i<students.length; i++){
-			addUser(students[i]);
-		}
+	function addUser(student){
+	
+		var userHTML = getUserHtml(student);
+		$('#team-pool').append(userHTML);	
+		
+		updateActions();
 	}
 	
-	function createTeamEvents(){
+	
+	function createTeam(id1, id2, team){
+		
+		console.log(team);
+		
+		var id = id1 + "," + id2;		
+		var name = (team != null) ? team.name : "Team Name";
+				
+		var newTeam = $("<div>", {"class": "team", "id": id});
+		newTeam.html("<input type='text' id='team-name' value='" + name + "'>");
+						
+		newTeam.droppable({
+			accept: ".user",
+			drop: function(event, ui) {						
+				$(this).append($(ui.draggable));								
+			}
+		});
+		
+		if(team != null && team.users != null){
+			
+			for(var i=0; i<team.users.length; i++){
+				var user = $($.parseHTML(getUserHtml(team.users[i])));
+				
+				newTeam.append(user);
+			}
+		}		
+				
+		$('#team-picker').append(newTeam);
+		
+		
+		updateActions();
+	}
+	
+	function updateActions(){
 	
 		$('.user').draggable({
 			revert: true,
 			revertDuration: 0,
-			start: function() {
-						
-				var newTeam = $("<div>", {"class": "team"});
-				newTeam.html("<input type='text' id='team-name' value='Team Name'>");
-								
-				newTeam.droppable({
-					accept: ".user",
-					drop: function(event, ui) {						
-						$(this).append($(ui.draggable));								
-					}
-				});	
-			
-				$('#team-picker').append(newTeam);
+			start: function() {				
+
+				createTeam(0, 0, null);
 				
 				$('#judge-picker').css('outline', '3pt solid #abef9d');	
 				$('.team').css('outline', '3pt solid #abef9d');
@@ -293,24 +323,6 @@
 				$(this).append($(ui.draggable));
 			}
 		});
-		
-		
-		$('#team-name-checkbox').change(function() {
-			if($(this).is(":checked")) {				
-				$('.team #team-name').show();				
-			} else {
-				$('.team #team-name').hide();
-			}
-		});
-	}
-	
-	function validateTeams(){
-	
-		if($('#team-pool .user').length == 0){
-			return true;
-		} else {
-			return false;
-		}
 	}
 	
 	</script>
@@ -353,11 +365,6 @@
 				timeFormat: "h:mm TT",
 			});
 			
-			
-			/* TEAM CREATION/GENERATION */
-			formatTeamCreator();
-			
-			
 			{% if section is not null %}
 				// populate the form with the loaded in section
 				populateForm();
@@ -386,17 +393,6 @@
 			{% endif %}
 
 		});
-
-			
-		function addUser(student){
-		
-			var id = (student.id) ? student.id : 0;
-		
-			var teamHTML = "<div class='user' id='"+id+"' contenteditable='false'>" + escapeHTML(student.full_name) + "</div>";		
-			$('#team-pool').append(teamHTML);	
-			
-			createTeamEvents();
-		}
 		
 		$('#new-user-input')
 			.keyup(function(event) {
@@ -479,10 +475,10 @@
 				setValid($('#practice-end-date'));
 			}
 			
-			formData.append('practice_start_date', practice_start_date);
-			formData.append('practice_end_date', practice_end_date);
-			formData.append('actual_start_date', actual_start_date);
-			formData.append('actual_end_date', actual_end_date);
+			formData.append('practice_start_date', practice_start_date.toLocaleString());
+			formData.append('practice_end_date', practice_end_date.toLocaleString());
+			formData.append('actual_start_date', actual_start_date.toLocaleString());
+			formData.append('actual_end_date', actual_end_date.toLocaleString());
 						
 			// validate the penalties per submissions
 			// compilation error
@@ -545,7 +541,7 @@
 			}
 			
 			var freeze_milliseconds = (freeze_minutes * 60 + freeze_hours * 3600) * 1000;			
-			if(freeze_milliseconds >= (practice_end_date - practice_start_date) || freeze_milliseconds >= (actual_end_date - actual_start_date)){
+			if(freeze_milliseconds > (practice_end_date - practice_start_date) || freeze_milliseconds > (actual_end_date - actual_start_date)){
 				setInvalid($('#freeze-time-minutes'));
 				setInvalid($('#freeze-time-hours'));
 				return false;
@@ -579,7 +575,10 @@
 				team.name = $('#team-name', this).val().trim();
 				var id = $(this).attr('id');
 					
-				team.id = (id) ? id : 0;
+				id = (id) ? id.split(",") : [0,0];
+				team.id = id;
+			
+				console.log(id);
 			
 				team.members = [];
 				$(this).children('.user').each(function(index2) {
@@ -597,7 +596,9 @@
 			formData.append('teams', JSON.stringify(teams));
 			
 			// check to see if this button is allowed to be pressed
-			
+			formData.append('courseId', {{(section) ? section.course.id : 0}});
+			//formData.append('contestId', {{(section) ? 0 : 0}});
+			formData.append('contestId', {{(section) ? section.id : 0}});
 			
 			
 			/* AJAX POST */
@@ -610,6 +611,7 @@
 				async: true,
 				success: function(data){
 					console.log(data);
+					window.location = data['redirect_url'];
 				},
 				error: function(data){					
 					alert(data['responseText']);
@@ -627,21 +629,34 @@
 		// set the course
 
 		// set the name
-		$('#name').val("{{section.name}}");
-
-		// set the teachers csv
-		{% for std in section_teacher_roles %}
-		$('#teacher-picker').val("{{std.user.email}}");
-		updateTeacherCSV();
+		$('#contest-name').val("{{section.name}}");
+		
+		// set the dates
+		$('#practice-start-date').datetimepicker('setDate', "{{section.assignments[0].start_time|date('m/d/Y h:i A')}}");
+		$('#practice-end-date').datetimepicker('setDate', "{{section.assignments[0].end_time|date('m/d/Y h:i A')}}");
+		$('#actual-start-date').datetimepicker('setDate', "{{section.assignments[1].start_time|date('m/d/Y h:i A')}}");
+		$('#actual-end-date').datetimepicker('setDate', "{{section.assignments[1].end_time|date('m/d/Y h:i A')}}");
+				
+		// set penalties
+		$('#penalty-per-compile-error').val({{section.assignments[0].penalty_per_compile_error}});
+		$('#penalty-per-time-limit').val({{section.assignments[0].penalty_per_time_limit}});
+		$('#penalty-per-runtime-error').val({{section.assignments[0].penalty_per_runtime_error}});
+		$('#penalty-per-wrong-answer').val({{section.assignments[0].penalty_per_wrong_answer}});
+		
+		// set the scoreboard freeze
+		$('#freeze-time-hours').val({{freeze_diff_hours}});
+		$('#freeze-time-minutes').val({{freeze_diff_minutes}});		
+		
+		// set the teams
+		{% for team in section.assignments[0].teams %}		
+		createTeam({{team.id}},{{section.assignments[1].teams[loop.index0].id}}, JSON.parse("{{team|json_encode|e('js')}}"));
+		{% endfor %}	
+		
+		{% for judge in judges %}		
+		$('#judge-picker').append($($.parseHTML(getUserHtml(JSON.parse("{{judge.user|json_encode|e('js')}}")))));				
 		{% endfor %}
-
-		// set the teams pool
-		// TODO
-
-		// set the starting date
-		// set the ending date
-		// TODO
-
+		
+		updateActions();		
 	}
 
 	</script>

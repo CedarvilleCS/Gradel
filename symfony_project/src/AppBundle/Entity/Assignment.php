@@ -40,6 +40,8 @@ class Assignment implements JsonSerializable{
 		$this->weight = $wght;
 		$this->is_extra_credit = $extra;
 		$this->penalty_per_day = $pen;
+		
+		$this->freeze_time = null;
 	}
 	
 	public function __construct10($sect, $nm, $desc, $start, $end, $cutoff, $pen1, $pen2, $pen3, $pen4){
@@ -58,6 +60,8 @@ class Assignment implements JsonSerializable{
 		$this->penalty_per_compile_error = $pen2;
 		$this->penalty_per_time_limit = $pen3;
 		$this->penalty_per_runtime_error = $pen4;
+		
+		$this->freeze_time = null;
 	}
 	
 	# clone method override
@@ -145,7 +149,7 @@ class Assignment implements JsonSerializable{
 	public $is_extra_credit;
 	
 	/**
-	* @ORM\OneToMany(targetEntity="Team", mappedBy="assignment", cascade={"persist"})
+	* @ORM\OneToMany(targetEntity="Team", mappedBy="assignment", cascade={"persist"}, orphanRemoval=true)
 	*/
 	public $teams;
 	
@@ -180,6 +184,7 @@ class Assignment implements JsonSerializable{
 		return [
 			'name' => $this->name,			
 			'weight' => $this->weight,
+			'teams' => $this->teams->toArray(),
 		];
 	}
 }
