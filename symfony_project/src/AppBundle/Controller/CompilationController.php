@@ -333,6 +333,9 @@ class CompilationController extends Controller {
 			} 
 		}
 
+		# complete the submission
+		$submission->is_completed = true;
+		
 		# update the submission entity
 		$em->persist($submission);
 		$em->flush();

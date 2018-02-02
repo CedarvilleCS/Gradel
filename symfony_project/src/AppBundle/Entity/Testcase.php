@@ -34,6 +34,7 @@ class Testcase implements JsonSerializable {
 		$this->feedback = $feed;
 		$this->weight = $wght;
 		$this->is_extra_credit = $extra;
+		$this->is_sample = false;
 	}
 	
 	public function __construct3($problem, $data, $seq){
@@ -103,6 +104,8 @@ class Testcase implements JsonSerializable {
 		$this->weight = $weight;
 		$this->is_extra_credit = $extra_credit;
 		
+		$this->is_sample = false;
+		
 		# CONTEST SETTINGS OVERRIDE
 		if($problem->assignment->section->course->is_contest){
 			$this->weight = 1;	
@@ -171,10 +174,16 @@ class Testcase implements JsonSerializable {
 	*/
 	public $is_extra_credit;
 	
+	/**
+	*@ORM\Column(type="boolean")
+	*/
+	public $is_sample;
+	
 	public function jsonSerialize(){
 		return [
 			'correct_output' => $this->correct_output,
 			'input' => $this->input,
+			'is_sample' => $this->is_sample,
 		];
 	}
 }

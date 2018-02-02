@@ -149,15 +149,21 @@ Please re-upload it!
 					<div id="test-code-markers">
 						<ul>
 							{% for tc in problem.testcases %}
+							
+								{% if tc.is_sample %}
 								
 								<li id="test-code-tab-{{tc.id}}-marker"> <a href="#test-code-tab-{{tc.id}}">
 									#{{loop.index}}
 								</a></li>
+								
+								{% endif %}
 							
 							{% endfor %}
 						</ul>
 						
 						{% for tc in problem.testcases %}
+						
+							{% if tc.is_sample %}
 						
 								<div id="test-code-tab-{{tc.id}}" class="test-case">
 									<div class="testcase-data">
@@ -180,6 +186,8 @@ Please re-upload it!
 										</div>
 									</div>
 								</div>
+								
+							{% endif %}
 						
 						{% endfor %}
 				
@@ -510,7 +518,15 @@ Please re-upload it!
 			});
 			
 			$('#test-code-markers').tabs();
-	
+			var tabCount = $('#test-code-markers >ul >li').length;
+			
+			
+			if(tabCount < 1){
+				$('#add-testcase-button').click();
+				$( "#test-code-markers" ).tabs({ active: 0 });
+			}
+			
+			
 			if(trialId == 0){
 				updateTrial();
 			}

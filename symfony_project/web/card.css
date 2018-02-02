@@ -26,6 +26,28 @@
 	
 }
 
+.contest-card {
+	max-width: calc(25% - 61px) !important;
+	min-width: calc(25% - 61px) !important;
+	margin-left: 10px;
+	margin-right: 10px;
+}
+
+.contest-card .test-case label {
+	font-weight: bold;
+	font-size: 0.9em;
+}
+
+.contest-card .test-case {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+}
+
+.contest-card .test-case textarea {
+	width: 100%;
+}
+
 #testcase-cards{	
 	
 	display: flex;
@@ -33,6 +55,8 @@
 	flex-wrap: wrap;
 	justify-content: flex-start;
 	
+  margin-right: 20px;
+	margin-left: 20px;
 }
 
 #testcase-cards form .file {

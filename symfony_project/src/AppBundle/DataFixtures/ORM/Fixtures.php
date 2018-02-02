@@ -93,9 +93,9 @@ class Fixtures extends Fixture {
 		# SECTION Testing
 		{
 			$CS1210_01 = new Section($course1, "CS-1210-01", "Spring", 2018, \DateTime::createFromFormat($date_format, "00:00:00 11/21/2017"), \DateTime::createFromFormat($date_format, "23:59:59 05/31/2018"), false, false);
-			$contest = new Section($course2, "2018 Local Programming Contest", "Spring", 2018, \DateTime::createFromFormat($date_format, "00:00:00 01/05/2018"), \DateTime::createFromFormat($date_format, "23:59:59 05/31/2018"), false, false);
+			//$contest = new Section($course2, "2018 Local Programming Contest", "Spring", 2018, \DateTime::createFromFormat($date_format, "00:00:00 01/05/2018"), \DateTime::createFromFormat($date_format, "23:59:59 05/31/2018"), false, false);
 			$manager->persist($CS1210_01);
-			$manager->persist($contest);
+			//$manager->persist($contest);
 		}
 		
 		# USERSECTIONROLE Testing
@@ -106,11 +106,11 @@ class Fixtures extends Fixture {
 			$manager->persist(new UserSectionRole($brauns_user, $CS1210_01, $takes_role));
 			$manager->persist(new UserSectionRole($smith_user, $CS1210_01, $teach_role));
 			
-			$manager->persist(new UserSectionRole($wolf_user, $contest, $takes_role));
-			$manager->persist(new UserSectionRole($budd_user, $contest, $takes_role));
-			$manager->persist(new UserSectionRole($prof_gallagher, $contest, $takes_role));
-			$manager->persist(new UserSectionRole($brauns_user, $contest, $takes_role));
-			$manager->persist(new UserSectionRole($smith_user, $contest, $judge_role));
+			//$manager->persist(new UserSectionRole($wolf_user, $contest, $takes_role));
+			//$manager->persist(new UserSectionRole($budd_user, $contest, $takes_role));
+			//$manager->persist(new UserSectionRole($prof_gallagher, $contest, $takes_role));
+			//$manager->persist(new UserSectionRole($brauns_user, $contest, $takes_role));
+			//$manager->persist(new UserSectionRole($smith_user, $contest, $judge_role));
 		}
 		
 		# ASSIGNMENT Testing
@@ -129,7 +129,8 @@ class Fixtures extends Fixture {
 									\DateTime::createFromFormat($date_format, "23:59:59 05/30/2018"), 
 									\DateTime::createFromFormat($date_format, "23:59:59 05/30/2018"), 1, 0.00, false);
 			$manager->persist($assignment_02);
-						
+			
+/*			
 			$assignment_03 = new Assignment($contest, 
 									"Practice Contest",
 									"This is the practice", 
@@ -153,6 +154,7 @@ class Fixtures extends Fixture {
 									20,
 									20);
 			$manager->persist($assignment_04);
+*/
 		}
 		
 		# TEAM Testing
@@ -184,59 +186,41 @@ class Fixtures extends Fixture {
 			$manager->persist($team_02_3);
 			$manager->persist($team_02_4);
 			
-			# ASSIGNMENT 2
-			$team_02_1 = new Team("Wolf_01", $assignment_02);
-			$team_02_1->users[] = $wolf_user;
-			
-			$team_02_2 = new Team("Budd_01", $assignment_02);	
-			$team_02_2->users[] = $budd_user;
-			
-			$team_02_3 = new Team("Gallagher_01", $assignment_02);
-			$team_02_3->users[] = $prof_gallagher;
-			
-			$team_02_4 = new Team("Brauns_01", $assignment_02);
-			$team_02_4->users[] = $brauns_user;
-			
-			$manager->persist($team_02_1);
-			$manager->persist($team_02_2);
-			$manager->persist($team_02_3);
-			$manager->persist($team_02_4);
-			
 			# ASSIGNMENT 3
-			$team_03_1 = new Team("Wolf Bytes", $assignment_03);
-			$team_03_1->users[] = $wolf_user;
+			//$team_03_1 = new Team("Wolf Bytes", $assignment_03);
+			//$team_03_1->users[] = $wolf_user;
 			
-			$team_03_2 = new Team("Buddiful Code", $assignment_03);	
-			$team_03_2->users[] = $budd_user;
+			//$team_03_2 = new Team("Buddiful Code", $assignment_03);	
+			//$team_03_2->users[] = $budd_user;
 			
-			$team_03_3 = new Team("Gallagorithms", $assignment_03);
-			$team_03_3->users[] = $prof_gallagher;
+			//$team_03_3 = new Team("Gallagorithms", $assignment_03);
+			//$team_03_3->users[] = $prof_gallagher;
 			
-			$team_03_4 = new Team("Brogrammers", $assignment_03);
-			$team_03_4->users[] = $brauns_user;
+			//$team_03_4 = new Team("Brogrammers", $assignment_03);
+			//$team_03_4->users[] = $brauns_user;
 			
-			$manager->persist($team_03_1);
-			$manager->persist($team_03_2);
-			$manager->persist($team_03_3);
-			$manager->persist($team_03_4);
+			//$manager->persist($team_03_1);
+			//$manager->persist($team_03_2);
+			//$manager->persist($team_03_3);
+			//$manager->persist($team_03_4);
 			
 			# ASSIGNMENT 4
-			$team_04_1 = new Team("Wolf Bytes", $assignment_04);
-			$team_04_1->users[] = $wolf_user;
+			//$team_04_1 = new Team("Wolf Bytes", $assignment_04);
+			//$team_04_1->users[] = $wolf_user;
 			
-			$team_04_2 = new Team("Buddiful Code", $assignment_04);	
-			$team_04_2->users[] = $budd_user;
+			//$team_04_2 = new Team("Buddiful Code", $assignment_04);	
+			//$team_04_2->users[] = $budd_user;
 			
-			$team_04_3 = new Team("Gallagorithms", $assignment_04);
-			$team_04_3->users[] = $prof_gallagher;
+			//$team_04_3 = new Team("Gallagorithms", $assignment_04);
+			//$team_04_3->users[] = $prof_gallagher;
 			
-			$team_04_4 = new Team("Brogrammers", $assignment_04);
-			$team_04_4->users[] = $brauns_user;
+			//$team_04_4 = new Team("Brogrammers", $assignment_04);
+			//$team_04_4->users[] = $brauns_user;
 			
-			$manager->persist($team_04_1);
-			$manager->persist($team_04_2);
-			$manager->persist($team_04_3);
-			$manager->persist($team_04_4);
+			//$manager->persist($team_04_1);
+			//$manager->persist($team_04_2);
+			//$manager->persist($team_04_3);
+			//$manager->persist($team_04_4);
 		}
 		
 		# LANGUAGE Testing
@@ -315,7 +299,7 @@ class Fixtures extends Fixture {
 			$problems[] = $problem_14;
 			$prob_folds[$problem_14->name] = "quot";
 			
-			
+			/*
 			# PRACTICE CONTEST
 			$desc_file_05 = fopen($folder_path."Z/description.txt", "r") or die("Unable to open 5.desc");
 			$problem_05 = new Problem($assignment_03, "Z - Happy Trails", stream_get_contents($desc_file_05), 1, 1000, false, 0, 0, 0, true, "None", false, "None", true, 1, [NULL, 4]);
@@ -337,7 +321,7 @@ class Fixtures extends Fixture {
 			$problem_08 = new Problem($assignment_04, "C - Lost In Translation", stream_get_contents($desc_file_08), 3, 1000, false, 0, 0, 0, true, "None", false, "None", true, 1, [NULL, 4]);
 			$problems[] = $problem_08;
 			$prob_folds[$problem_08->name] = "C";
-			
+			*/
 			
 			$manager->persist($problem_01);		
 			$manager->persist($problem_02);
@@ -349,10 +333,10 @@ class Fixtures extends Fixture {
 			$manager->persist($problem_14);
 			
 			
-			$manager->persist($problem_05);
-			$manager->persist($problem_06);
-			$manager->persist($problem_07);
-			$manager->persist($problem_08);
+			//$manager->persist($problem_05);
+			//$manager->persist($problem_06);
+			//$manager->persist($problem_07);
+			//$manager->persist($problem_08);
 			
 		}
 		
