@@ -178,11 +178,11 @@
 						{{ accepted_submissions|length}} submissions exist.
 						{# FIXME: non-unique result error #}
 						{# {{ accepted_submissions[0] }} #}
-						{% for sub in accepted_submissions %}
+						{# {% for sub in accepted_submissions %}
 							<li><a href="{{path('problem_result', {'submission_id': sub.id})}}">
 								<i>{{sub.problem.assignment.name}}:</i> {{sub.problem.name}} ({{sub.language.name}})</i>
 							</a></li>
-						{% endfor %}
+						{% endfor %} #}
 					{% endif %}
 					</ul>
 				</div>

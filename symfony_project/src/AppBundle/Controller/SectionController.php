@@ -160,17 +160,17 @@ class SectionController extends Controller {
 
 				// FIXME: only works for unique results
 				// query for accepted submissions
-				$qb_accsub = $em->createQueryBuilder();
-				$qb_accsub->select('s')
-				   ->from('AppBundle\Entity\Submission', 's')
-				   ->where('s.user = ?1')
-				   ->andWhere('s.problem IN (?2)')
-				   ->andWhere('s.is_accepted = true')
-				   ->setParameter(1, $user)
-				   ->setParameter(2, $allprobs);        
+				// $qb_accsub = $em->createQueryBuilder();
+				// $qb_accsub->select('s')
+				//    ->from('AppBundle\Entity\Submission', 's')
+				//    ->where('s.user = ?1')
+				//    ->andWhere('s.problem IN (?2)')
+				//    ->andWhere('s.is_accepted = true')
+				//    ->setParameter(1, $user)
+				//    ->setParameter(2, $allprobs);        
 						   
-				$sub_query = $qb_accsub->getQuery();
-				$best_submission = $sub_query->getOneOrNullResult();
+				// $sub_query = $qb_accsub->getQuery();
+				// $best_submission = $sub_query->getOneOrNullResult();
 
 				// echo "<br>best submission:";
 				// echo(json_encode($best_submission));
