@@ -43,6 +43,11 @@
 .parallel-cards > .testcase-card {
 	width: 42%;
 }
+@media only screen and (max-width: 1460px) {
+	.parallel-cards > .testcase-card {
+		width: 100%;
+	}	
+}
 
 .serial-cards {
 	width: 30%;
