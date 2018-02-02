@@ -76,28 +76,29 @@ class ContestController extends Controller {
 		$grader = new Grader($em);
 		$elevatedUser = $grader->isJudging($user, $section) || $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN");
 		
-		// get the current assignment
-		if($roundId == 0){
-			$contest = $section->assignments[1];
-			$practice = $section->assignments[0];
-		} else {
-			$contest = $em->find("AppBundle\Entity\Assignment", $roundId);
-			$practice = null;
-			
-			foreach($contest->section->assignments as $asgn){
-				if($asgn != $contest){
-					$practice = $asgn;
+		$currTime = strtotime(time());
+		$allContests = $section->assignments;	
+		
+	
+		foreach ($allContests as $cont) {
+			if (strtotime($cont->start_time->getTimestamp()) <= $currTime && $currTime >= strtotime($cont->end_time->getTimestamp())) {
+					$current = $cont;
 					break;
-				}
-			}		
+			}
 		}
 		
-		if(!$contest || $contest->section != $section){
+		if ($roundId == 0){
+			$contest = $current;
+		}
+		else {
+			$contest = $em->find("AppBundle\Entity\Assignment", $roundId);
+		}
+		
+		if(!$current || $current->section != $section){
 			die("Contest does not exist!");
 		}	
 		
-		$leaderboard = $grader->getLeaderboard($user, $contest);
-		
+		$leaderboard = $grader->getLeaderboard($user, $current);
 		
 		# get the queries
 		if($grader->isJudging($user, $contest) || $user->hasRole("ROLE_ADMIN") || $user->hasRole("ROLE_SUPER")){
@@ -124,14 +125,11 @@ class ContestController extends Controller {
 			'section' => $section,
 			'grader' => $grader,
 			'leaderboard' => $leaderboard, 
-			
+			'current' => $current,
 			'queries' => $queries,
-			
+			'contests' => $allContests,
 			'elevatedUser' => $elevatedUser,
-			
 			'contest' => $contest,
-			'practice' => $practice,
-
 			'section_takers' => $section_takers,
 			'section_judges' => $section_judges,
 		]);
@@ -271,11 +269,17 @@ class ContestController extends Controller {
 			die("SECTION (CONTEST) DOES NOT EXIST!");
 		}
 		
-		$contest = $em->find('AppBundle\Entity\Assignment', $roundId);
-		if(!$contest || $contest->section != $section){
-			die("ASSIGNMENT (ROUND) DOES NOT EXIST!");
+		$allContests = $section->assignments;
+		
+		foreach ($allContests as $cont) {
+			if (strtotime($cont->start_time->getTimestamp()) <= $currTime && $currTime >= strtotime($cont->end_time->getTimestamp())) {
+					$current = $cont;
+			}
 		}
 		
+		if(!$current || $current->section != $section){
+			die("ASSIGNMENT (ROUND) DOES NOT EXIST!");
+		}
 		
 		$grader = new Grader($em);
 		
@@ -291,8 +295,8 @@ class ContestController extends Controller {
 						
 			'elevatedUser' => $elevatedUser,
 						
-			'contest' => $contest,
-			
+			'current' => $current,
+			'contests' => $allContests,
 			'pending_submissions' => $pending_submissions,
 
 			'section_takers' => $section_takers,
