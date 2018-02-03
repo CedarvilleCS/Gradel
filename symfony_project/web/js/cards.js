@@ -8,3 +8,7 @@ function collapseCard(cardID) {
 		return false;
     }
 };
+
+function escapeHTML(str){
+	return $('<div>').text(str).html();
+}

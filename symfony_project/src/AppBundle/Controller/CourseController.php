@@ -176,7 +176,7 @@ class CourseController extends Controller {
 		$course->description = trim($postData['description']);
 		
 		# set contest
-		if(isset($postData["is_contest"]) && $postData["is_contest"] == "true"){
+		if(isset($postData["is_contest"]) && trim($postData["is_contest"]) == "true"){
 			$course->is_contest = true;
 		} else {			
 			$course->is_contest = false;

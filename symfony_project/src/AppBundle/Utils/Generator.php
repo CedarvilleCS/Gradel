@@ -45,6 +45,56 @@ class Generator  {
 		$this->web_dir = $web_dir;
 	}
 	
+	/* function to create a filename, language, main_class, package name based on some post information */
+	/* returns a string on failure and 1 on success */
+	public function generateFilename(&$filename, &$language, &$main_class, &$package_name, $problem, $postData){
+		
+		
+		# check the language
+		if(isset($postData["language"])){
+			$language_id = $postData["language"];
+		} else {
+			$language_id = $postData["languageId"];
+		}
+		
+		if(!isset($language_id) || !($language_id > 0)){
+			return "language id was not provided";
+		}
+		
+		$language = $this->em->find("AppBundle\Entity\Language", $language_id);
+		if(!$language){
+			 return "language with id ".$language_id." does not exist";
+		}
+		if($language->name == "Java"){
+
+			if((!isset($postData["main_class"]) || trim($postData["main_class"]) == "") && (!isset($postData["mainclass"]) || trim($postData["mainclass"]) == "")){
+				 return "main class is required";
+			}
+			
+			$main_class = null;
+			if(!$postData["main_class"]){
+				$main_class = $postData["mainclass"];
+				$package_name = $postData["packagename"];
+			} else {
+				$main_class = $postData["main_class"];
+				$package_name = $postData["package_name"];
+			}
+
+			$main_class = $main_class;
+			$package_name = $package_name;
+
+			$filename = $main_class.".java";
+
+		} else {
+			$main_class = "";
+			$package_name = "";
+
+			$filename = "problem".$problem->id.$language->filetype;
+		}
+		
+		return 1;		
+	}
+	
 	/* function to get the set the values for a submission*/
 	/* returns a HTTP_FORBIDDEN response on failure and 1 on success */
 	public function generateSubmission(&$submission, $problem){

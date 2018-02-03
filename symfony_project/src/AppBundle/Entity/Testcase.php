@@ -1,6 +1,9 @@
 <?php
 
 namespace AppBundle\Entity;
+
+use JsonSerializable;
+
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Config\Definition\Exception\Exception;
 
@@ -8,7 +11,7 @@ use Symfony\Component\Config\Definition\Exception\Exception;
 *@ORM\Entity
 *@ORM\Table(name="testcase")
 **/
-class Testcase {
+class Testcase implements JsonSerializable {
 
 	public function __construct(){
 
@@ -31,6 +34,7 @@ class Testcase {
 		$this->feedback = $feed;
 		$this->weight = $wght;
 		$this->is_extra_credit = $extra;
+		$this->is_sample = false;
 	}
 	
 	public function __construct3($problem, $data, $seq){
@@ -99,6 +103,16 @@ class Testcase {
 		$this->correct_output = $output;
 		$this->weight = $weight;
 		$this->is_extra_credit = $extra_credit;
+		
+		$this->is_sample = false;
+		
+		# CONTEST SETTINGS OVERRIDE
+		if($problem->assignment->section->course->is_contest){
+			$this->weight = 1;	
+			$this->is_extra_credit = false;
+			$this->feedback = null;
+		}
+		
 	}
 	
 	# clone method override
@@ -159,5 +173,18 @@ class Testcase {
 	*@ORM\Column(type="boolean")
 	*/
 	public $is_extra_credit;
+	
+	/**
+	*@ORM\Column(type="boolean")
+	*/
+	public $is_sample;
+	
+	public function jsonSerialize(){
+		return [
+			'correct_output' => $this->correct_output,
+			'input' => $this->input,
+			'is_sample' => $this->is_sample,
+		];
+	}
 }
 ?>

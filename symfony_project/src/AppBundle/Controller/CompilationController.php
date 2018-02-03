@@ -13,6 +13,7 @@ use AppBundle\Entity\ProblemLanguage;
 use AppBundle\Entity\UserSectionRole;
 use AppBundle\Entity\Testcase;
 use AppBundle\Entity\Submission;
+use AppBundle\Entity\Trial;
 use AppBundle\Entity\Language;
 use AppBundle\Entity\Feedback;
 use AppBundle\Entity\TestcaseResult;
@@ -21,6 +22,7 @@ use Symfony\Component\Config\Definition\Exception\Exception;
 
 use AppBundle\Utils\Grader;
 use AppBundle\Utils\Generator;
+use AppBundle\Utils\Uploader;
 
 
 use \DateTime;
@@ -35,7 +37,7 @@ use Psr\Log\LoggerInterface;
 
 class CompilationController extends Controller {	
 	
-	/* name=submit */
+	/* submit */
 	public function submitAction(Request $request) {
 				
 		# entity manager
@@ -44,6 +46,8 @@ class CompilationController extends Controller {
 		# gets the gradel/symfony_project directory
 		$web_dir = $this->get('kernel')->getProjectDir()."/";
 			
+			
+		$uploader = new Uploader($web_dir);
 		$generator = new Generator($em, $web_dir);		
 		$grader = new Grader($em);
 						
@@ -55,24 +59,35 @@ class CompilationController extends Controller {
 		}
 				
 		# POST DATA
-		$postData = $request->request->all();		
-		$problem_id = $postData['problem_id'];
+		$postData = $request->request->all();
+		$trial_id = $postData['trial_id'];
 		
-		# get the current problem
-		if(!isset($problem_id) || !($problem_id > 0)){
-			return $this->returnForbiddenResponse("PROBLEM ID WAS NOT PROVIDED PROPERLY");
+		# get the current trial
+		$trial = $em->find("AppBundle\Entity\Trial", $trial_id);
+		
+		if(!$trial || $trial->user != $user){
+			return $this->returnForbiddenResponse("TRIAL DOES NOT EXIST");
 		}
 		
-		$problem = $em->find("AppBundle\Entity\Problem", $problem_id);
-		if(!$problem){
-			return $this->returnForbiddenResponse("PROBLEM DOES NOT EXIST");
-		}
-				
-		# get the type of submission		
-		$is_teaching = $grader->isTeaching($user, $problem->assignment->section);
-		
-		if(!$is_teaching){
+		$problem = $trial->problem;
+	
+		//return $this->returnForbiddenResponse($trial->id."");
 
+	
+		# validation
+		$elevatedUser = ($grader->isTeaching($user, $problem->assignment->section) || $grader->isJudging($user, $problem->assignment->section) || $user->hasRole("ROLE_ADMIN") || $user->hasRole("ROLE_ADMIN"));
+		
+		# get the type of submission				
+		$team = null;
+		
+		if(!$grader->isTeaching($user, $trial->problem->assignment->section) && !$grader->isJudging($user, $trial->problem->assignment->section)){
+
+			# get the current team
+			$team = $grader->getTeam($user, $problem->assignment);		
+			if(!$team && !$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN")){
+				return $this->returnForbiddenResponse("YOU ARE NOT ON A TEAM OR TEACHING FOR THIS ASSIGNMENT");
+			}
+		
 			# make sure that the assignment is still open for submission
 			if($problem->assignment->cutoff_time < new \DateTime("now")){
 				return $this->returnForbiddenResponse("TOO LATE TO SUBMIT FOR THIS PROBLEM");
@@ -82,47 +97,22 @@ class CompilationController extends Controller {
 				return $this->returnForbiddenResponse("TOO EARLY TO SUBMIT FOR THIS PROBLEM");
 			}
 			
-			# get the current team
-			$team = $grader->getTeam($user, $problem->assignment);		
-			if(!$team && !$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN")){
-				return $this->returnForbiddenResponse("YOU ARE NOT ON A TEAM OR TEACHING FOR THIS ASSIGNMENT");
-			}
-			
 			# make sure that you haven't submitted too many times yet
 			$curr_attempts = $grader->getNumTotalAttempts($user, $problem);		
 			if($problem->total_attempts > 0 && $curr_attempts >= $problem->total_attempts){
-				return $this->returnForbiddenResponse("ALREADY REACHED MAX ATTEMPTS FOR PROBLEM AT ".$curr_attempts);
+				return $this->returnForbiddenResponse("ALREADY REACHED MAX ATTEMPTS FOR PROBLEM AT ".$curr_attempts." ATTEMPTS");
 			}
 		}
 		
-		$is_teaching =  $is_teaching || $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN");
-				
-		# FILE UPLOAD
-		# upload the file via the UploadController
-		$response = $this->forward('AppBundle\Controller\UploadController::submitProblemUploadAction', array(
-			'problem_id'  => $problem->id,
-			'request' => $request,
-		));		
+		$submitted_filename = $uploader->createSubmissionFile($trial);
 		
-		$content = (array) json_decode($response->getContent())->data;
-		
-		if(!(count($content) > 0)){
-			return $response;
-		}
-				
-		$submitted_filename = $content['submitted_filename'];
-		$language_id = $content['language_id'];
-		$main_class = $content['main_class'];
-		$package_name = $content['package_name'];
+		$main_class = $trial->main_class;
+		$package_name = $trial->package_name;
+		$language = $trial->language;
 		
 		if(!isset($submitted_filename) || trim($submitted_filename) == ""){
 			return $this->returnForbiddenResponse("Filename was not provided. Contact a systems administrator");
 		}
-			
-		# make sure all the required post params were passed
-		if(!isset($language_id) || !isset($main_class) || !isset($package_name)){
-			return $this->returnForbiddenResponse("NOT EVERY NECESSARY FIELD WAS PROVIDED");
-		}		
 		
 		# check main class and package name for validity
 		if(strlen($main_class) > 0 && preg_match("/^[a-zA-Z0-9_]+$/", $main_class) != 1){
@@ -138,20 +128,9 @@ class CompilationController extends Controller {
 			return $this->returnForbiddenResponse("SUBMITTED FILENAME IS NOT VALID");
 		}
 			
-		# get the current language
-		if(!($language_id > 0)){
-			return $this->returnForbiddenResponse("LANGUAGE ID WAS NOT FORMATTED PROPERLY");
-		}
-		
-		$language = $em->find("AppBundle\Entity\Language", $language_id);
-		
-		if(!$language){
-			return $this->returnForbiddenResponse("Language with id ".$language_id." does not exist");
-		}		
-		
 		# INITIALIZE THE SUBMISSION
-		# create an entity for the current submission
-		$submission = new Submission($problem, $team, $user);	
+		# create an entity for the current submission from the trial
+		$submission = new Submission($trial, $team);	
 
 		# persist to the database to get the id
 		$em->persist($submission);
@@ -225,18 +204,7 @@ class CompilationController extends Controller {
 		
 		
 		# SUBMISSION COMPILATION
-		# open the submitted file and prep for compilation
-		$submitted_file = fopen($submitted_file_path, "r");
-		if(!$submitted_file){
-			$this->cleanUp($submission, null, $sub_dir, $uploads_dir);	
-			return $this->returnForbiddenResponse("Unable to open submitted file - if you weren't fooling around in the javascript, contact a system admin");
-		}
-		$submission->submitted_file = $submitted_file;
-		$submission->filename = $submitted_filename;
-		
-		//fclose($submitted_file);
-		
-		# move the file into the proper directory
+		# move the submitted file into the proper directory
 		shell_exec("mv ".$submitted_file_path." ".$student_code_dir."/");
 		
 		# query for the current filetype		
@@ -249,12 +217,6 @@ class CompilationController extends Controller {
 		
 		# get the problem language entity from the problem and language
 		# store the compilation options from the problem language
-						
-		# set the main class and package name
-		$submission->language = $language;
-		$submission->main_class_name = $main_class;
-		$submission->package_name = $package_name;
-		
 		
 		/* CREATE THE DOCKER CONTAINER */
 		// required fields
@@ -351,24 +313,47 @@ class CompilationController extends Controller {
 		$prev_accepted_sol = $acc_query->getOneOrNullResult();
 		
 		# determine if the new submission is the best one yet
-		if($grader->isAcceptedSubmission($submission, $prev_accepted_sol, $correct_extra_testcase_count + $correct_testcase_count)){
+		if($grader->isAcceptedSubmission($submission, $prev_accepted_sol)){
 			$submission->is_accepted = true;
 			
 			if($prev_accepted_sol){
 				$prev_accepted_sol->is_accepted = false;
+				$em->persist($prev_accepted_sol);
 			}
-		}	
-		
-		if($prev_accepted_sol){
-			$em->persist($prev_accepted_sol);
 		}
+		
+		// update pending status
+		$submission->pending_status = 2;
+		
+		if($submission->problem->assignment->section->course->is_contest){
+		
+		
+			if($submission->percentage != 1 && !$submission->compiler_error && !$submission->exceeded_time_limit && !$submission->runtime_error){
+				$submission->pending_status = 0;				
+			} 
+		}
+
+		# complete the submission
+		$submission->is_completed = true;
 		
 		# update the submission entity
 		$em->persist($submission);
 		$em->flush();
 		
-		# RETURN THE URL OF THE RESULT
-		$url = $this->generateUrl('problem_result', array('submission_id' => $submission->id));
+		//return $this->returnForbiddenResponse($submission->percentage."");
+		
+		if($submission->problem->assignment->section->course->is_contest){
+			$url = $this->generateUrl('contest_result', [
+				'contestId' => $submission->problem->assignment->section->id,
+				'roundId' => $submission->problem->assignment->id,
+				'problemId' => $submission->problem->id,
+				'resultId' => $submission->id
+			]);
+		} else {
+			$url = $this->generateUrl('problem_result', [
+				'submission_id' => $submission->id
+			]);
+		}
 		
 		$response = new Response(json_encode([		
 			'redirect_url' => $url,			
@@ -411,9 +396,9 @@ class CompilationController extends Controller {
 			return $this->returnForbiddenResponse("Assignment does not exist");
 		}
 		
-		$is_teaching = $grader->isTeaching($user, $assignment->section);		
+		$is_teaching = $grader->isTeaching($user, $assignment->section) || $grader->isJudging($user, $assignment->section);		
 		if(!$is_teaching && !$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN")){
-			return $this->returnForbiddenResponse("You are not allowed to generate output for this problem");
+			//return $this->returnForbiddenResponse("You are not allowed to generate output for this problem");
 		}
 		
 		
@@ -492,6 +477,8 @@ class CompilationController extends Controller {
 		
 		$content = (array) json_decode($response->getContent())->data;	
 
+		//return $this->returnForbiddenResponse(json_encode($response->getContent()));
+		
 		if(!isset($content)){
 			return $response;
 		}		
@@ -682,7 +669,6 @@ class CompilationController extends Controller {
 		$response->setStatusCode(Response::HTTP_FORBIDDEN);
 		return $response;
 	}
-	
 	
 }
 

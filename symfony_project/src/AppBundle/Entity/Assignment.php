@@ -27,6 +27,7 @@ class Assignment implements JsonSerializable{
 		
 		$this->problems = new ArrayCollection();
 		$this->teams = new ArrayCollection();
+		$this->queries = new ArrayCollection();
 	}
 	
 	public function __construct9($sect, $nm, $desc, $start, $end, $cutoff, $wght, $pen, $extra){
@@ -39,6 +40,28 @@ class Assignment implements JsonSerializable{
 		$this->weight = $wght;
 		$this->is_extra_credit = $extra;
 		$this->penalty_per_day = $pen;
+		
+		$this->freeze_time = null;
+	}
+	
+	public function __construct10($sect, $nm, $desc, $start, $end, $cutoff, $pen1, $pen2, $pen3, $pen4){
+		$this->section = $sect;
+		$this->name = $nm;
+		$this->description = $desc;
+		$this->start_time = $start;
+		$this->end_time = $end;
+		$this->cutoff_time = $cutoff;
+		
+		$this->weight = 1;
+		$this->is_extra_credit = false;
+		$this->penalty_per_day = 0;
+		
+		$this->penalty_per_wrong_answer = $pen1;
+		$this->penalty_per_compile_error = $pen2;
+		$this->penalty_per_time_limit = $pen3;
+		$this->penalty_per_runtime_error = $pen4;
+		
+		$this->freeze_time = null;
 	}
 	
 	# clone method override
@@ -69,7 +92,7 @@ class Assignment implements JsonSerializable{
 
 	/**
 	* @ORM\OneToMany(targetEntity="Problem", mappedBy="assignment", cascade={"persist"})
-	* @ORM\OrderBy({"name" = "ASC"});
+	* @ORM\OrderBy({"id" = "ASC"});
 	*/
 	public $problems;
 
@@ -89,6 +112,12 @@ class Assignment implements JsonSerializable{
 	*/
 	public $description;
 
+	/**
+	* @ORM\OneToMany(targetEntity="Query", mappedBy="assignment", cascade={"persist"})
+	* @ORM\OrderBy({"timestamp" = "ASC"});
+	*/
+	public $queries;
+	
 	/**
 	* @ORM\Column(type="datetime")
 	*/
@@ -120,14 +149,14 @@ class Assignment implements JsonSerializable{
 	public $is_extra_credit;
 	
 	/**
-	* @ORM\OneToMany(targetEntity="Team", mappedBy="assignment", cascade={"persist"})
+	* @ORM\OneToMany(targetEntity="Team", mappedBy="assignment", cascade={"persist"}, orphanRemoval=true)
 	*/
 	public $teams;
 	
 	
 	// Contest-Specific Information
 	/**
-	* @ORM\Column(type="time", nullable=true)
+	* @ORM\Column(type="datetime", nullable=true)
 	*/
 	public $freeze_time;
 	
@@ -155,6 +184,7 @@ class Assignment implements JsonSerializable{
 		return [
 			'name' => $this->name,			
 			'weight' => $this->weight,
+			'teams' => $this->teams->toArray(),
 		];
 	}
 }
