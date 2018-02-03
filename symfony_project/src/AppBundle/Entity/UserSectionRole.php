@@ -2,6 +2,8 @@
 
 namespace AppBundle\Entity;
 
+use JsonSerializable;
+
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 
@@ -11,7 +13,7 @@ use Symfony\Component\Config\Definition\Exception\Exception;
  * @ORM\Entity
  * @ORM\Table(name="usersectionrole")
  */
-class UserSectionRole{
+class UserSectionRole implements JsonSerializable{
 	
 	public function __construct(){
 		
@@ -30,27 +32,38 @@ class UserSectionRole{
 		$this->section = $sect;
 		$this->role = $rl;
 	}	
+	
+	/**
+	* @ORM\Column(type="integer")
+	* @ORM\Id
+	* @ORM\GeneratedValue(strategy="AUTO")
+	*/
+	public $id;
 
 	/**
-	* @ORM\Id
 	* @ORM\ManyToOne(targetEntity="User", inversedBy="section_roles")
 	* @ORM\JoinColumn(name="user_id", referencedColumnName="id", onDelete="CASCADE")
 	*/
 	public $user;
 
 	/**
-	* @ORM\Id
 	* @ORM\ManyToOne(targetEntity="Section", inversedBy="user_roles")
 	* @ORM\JoinColumn(name="section_id", referencedColumnName="id", onDelete="CASCADE")
 	*/
 	public $section;
 
 	/**
-	* @ORM\Id
 	* @ORM\ManyToOne(targetEntity="Role")
 	* @ORM\JoinColumn(name="role_id", referencedColumnName="id", onDelete="CASCADE")
 	*/
 	public $role;
 	
+		
+	public function jsonSerialize(){
+		return [
+			'user' => $this->user,
+			'role' => $this->role->role_name,
+		];
+	}
 }
 ?>

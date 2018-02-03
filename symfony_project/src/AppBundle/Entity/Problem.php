@@ -2,6 +2,8 @@
 
 namespace AppBundle\Entity;
 
+use JsonSerializable;
+
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Config\Definition\Exception\Exception;
@@ -10,7 +12,7 @@ use Symfony\Component\Config\Definition\Exception\Exception;
  * @ORM\Entity
  * @ORM\Table(name="problem")
  */
-class Problem{
+class Problem implements JsonSerializable{
 	
 	public function __construct(){
 		
@@ -30,6 +32,7 @@ class Problem{
 		$this->testcases = new ArrayCollection();
 		$this->problem_languages = new ArrayCollection();
 		$this->slaves = new ArrayCollection();
+		$this->queries = new ArrayCollection();
 		
 		$this->master = null;
 	}
@@ -114,8 +117,15 @@ class Problem{
 	
 	/**
 	* @ORM\OneToMany(targetEntity="Testcase", mappedBy="problem", cascade={"persist"})
+	* @ORM\OrderBy({"seq_num" = "ASC"})
 	*/
 	public $testcases;
+	
+	/**
+	* @ORM\OneToMany(targetEntity="Query", mappedBy="problem", cascade={"persist"})
+	* @ORM\OrderBy({"timestamp" = "ASC"})
+	*/
+	public $queries;
 	
 	/**
     * @ORM\OneToMany(targetEntity="Problem", mappedBy="master", orphanRemoval=true)
@@ -128,7 +138,7 @@ class Problem{
 	public $master;	 
 		
 	/**
-	* @ORM\OneToMany(targetEntity="ProblemLanguage", mappedBy="problem", cascade={"persist"})
+	* @ORM\OneToMany(targetEntity="ProblemLanguage", mappedBy="problem", cascade={"persist"}, orphanRemoval=true)
 	*/
 	public $problem_languages;
 
@@ -215,6 +225,15 @@ class Problem{
 	* @ORM\Column(type="boolean")
 	*/
 	public $extra_testcases_display;
+	
+		
+	public function jsonSerialize(){
+		return [
+			'id' => $this->id,
+			'name' => $this->name,
+			'testcases' => $this->testcases->toArray(),
+		];
+	}
 }
 
 ?>

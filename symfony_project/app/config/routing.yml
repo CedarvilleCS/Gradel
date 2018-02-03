@@ -102,7 +102,7 @@ assignment_delete:
   path: '/section/{sectionId}/assignment/delete/{assignmentId}'
   defaults: {_controller: AppBundle:Assignment:delete}
   methods: [GET]
-
+  
 assignment:
   path: '/section/{sectionId}/assignment/{assignmentId}/problem/{problemId}'
   defaults:
@@ -116,12 +116,96 @@ assignment_modify:
     _controller: AppBundle:Assignment:modifyPost
   methods: [POST]
 
+  
+# CONTEST ROUTES
+contest_result:
+  path: '/contest/{contestId}/round/{roundId}/problem/{problemId}/result/{resultId}'
+  defaults:
+    _controller: AppBundle:Contest:result
+  methods: [GET]
+  
+contest_problem_edit:
+  path: '/contest/{contestId}/round/{roundId}/problem/edit/{problemId}'
+  defaults:
+    _controller: AppBundle:Contest:problemEdit
+    problemId: 0
+  methods: [GET]
+  
+contest_problem:
+  path: '/contest/{contestId}/round/{roundId}/problem/{problemId}'
+  defaults:
+    _controller: AppBundle:Contest:problem
+    problemId: 0
+  methods: [GET]
+  
+contest_judging:
+  path: '/contest/{contestId}/round/{roundId}/judging'
+  defaults:
+    _controller: AppBundle:Contest:judging
+  methods: [GET]
+  
+contest_edit:
+  path: '/contest/edit/{contestId}'
+  defaults:
+    _controller: AppBundle:Contest:contestEdit
+    roundId: 0
+  methods: [GET]
+    
+contest:
+  path: '/contest/{contestId}/round/{roundId}'
+  defaults:
+    _controller: AppBundle:Contest:contest
+    roundId: 0
+  methods: [GET]
+ 
+contest_problem_modify:
+  path: '/modify/contest_problem'
+  defaults:
+    _controller: AppBundle:Contest:modifyProblemPost
+  methods: [POST]
+ 
+contest_modify:
+  path: '/modify/contest'
+  defaults:
+    _controller: AppBundle:Contest:modifyContestPost
+  methods: [POST]
+  
+contest_poll:
+  path: '/poll/contest'
+  defaults:
+    _controller: AppBundle:Contest:pollContest
+  methods: [POST]
 
+judging_poll:
+  path: '/poll/judging'
+  defaults:
+    _controller: AppBundle:Contest:pollJudging
+  methods: [POST]
+  
+judging_modify:
+  path: '/judging/submission'
+  defaults:
+    _controller: AppBundle:Contest:submissionJudging
+  methods: [POST]
+  
+judging_query:
+  path: '/judging/query'
+  defaults:
+    _controller: AppBundle:Contest:postQuestion
+  methods: [POST]
+  
+# TRIAL ROUTES
+modify_trial:
+  path: 'modify/trial'
+  defaults:
+    _controller: AppBundle:Trial:trialModify
+  methods: [POST]    
+  
 # UPLOAD ROUTES
 get_contents:
-    path: '/get_contents'
-    defaults: { _controller: AppBundle:Upload:getContents}
-    methods: [POST]
+  path: '/get_contents'
+  defaults: { _controller: AppBundle:Upload:getContents}
+  methods: [POST]
 
 # temporary route for GUI development
 professorsection:
