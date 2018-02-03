@@ -197,7 +197,6 @@ class SectionController extends Controller {
 				'section_helpers' => $section_helpers,
 			]);
 		}
-    }
 
     public function editSectionAction($sectionId) {
 
