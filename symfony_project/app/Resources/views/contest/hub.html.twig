@@ -59,18 +59,18 @@ console.log(JSON.parse("{{ leaderboard | json_encode(constant('JSON_PRETTY_PRINT
 	<section id="main">
 		
 		<div class="card">
-			<div id="contest-heading"><h1>{{contest.section.name}}</h1></div>
-			<div id="name-heading"><h2>{{contest.name}}</h2></div>
+			<div id="contest-heading"><h1>{{current_contest.section.name}}</h1></div>
+			<div id="name-heading"><h2>{{current_contest.name}}</h2></div>
 			<div id="time-heading"><h3 id="time-left">-</h3></div>
 			
 			
 			<div id="progressbar-container" class="card-contents">
 				<div id="time-container">
 				
-					{% set showDates = contest.start_time|date('n/j') != contest.end_time|date('n/j') %}
+					{% set showDates = current_contest.start_time|date('n/j') != current_contest.end_time|date('n/j') %}
 				
-					<div id="start-time">{{(showDates) ? contest.start_time|date('n/j') : ""}} {{contest.start_time|date('g:i:s A')}}</div>
-					<div id="end-time">{{(showDates) ? contest.end_time|date('n/j') : ""}} {{contest.end_time|date('g:i:s A')}}</div>
+					<div id="start-time">{{(showDates) ? current_contest.start_time|date('n/j') : ""}} {{current_contest.start_time|date('g:i:s A')}}</div>
+					<div id="end-time">{{(showDates) ? current_contest.end_time|date('n/j') : ""}} {{current_contest.end_time|date('g:i:s A')}}</div>
 				</div>
 				<div id="progressbar"> </div>
 				
@@ -80,6 +80,7 @@ console.log(JSON.parse("{{ leaderboard | json_encode(constant('JSON_PRETTY_PRINT
 		
 		
 		<div class="parallel-cards">
+			
 			<div class="card" id="leaderboard-card" style="flex-grow: 12; padding: 5px; padding-top: 10px; height: max-content;">
 				<div id="leaderboard-heading"><h2>Leaderboard</h2></div>
 				
@@ -89,7 +90,7 @@ console.log(JSON.parse("{{ leaderboard | json_encode(constant('JSON_PRETTY_PRINT
 						<colgroup>
 							<col class="name">
 							
-							{% for problem in contest.problems %}
+							{% for problem in current_contest.problems %}
 							<col class="problem">
 							{% endfor %}
 						</colgroup>
@@ -99,7 +100,7 @@ console.log(JSON.parse("{{ leaderboard | json_encode(constant('JSON_PRETTY_PRINT
 							<th class="top-row no-hover"></th>
 							<th class="top-row no-hover">Problems</th>
 							<th class="top-row no-hover">Time</th>
-							{% for problem in contest.problems %}
+							{% for problem in current_contest.problems %}
 							<th class="top-row">
 								<a href="{{path('contest_problem', {'contestId': problem.assignment.section.id, 'roundId': problem.assignment.id, 'problemId': problem.id})}}">
 								{{problem.name|slice(0,1)}}
@@ -117,7 +118,7 @@ console.log(JSON.parse("{{ leaderboard | json_encode(constant('JSON_PRETTY_PRINT
 							<td class='name'>{{team.team_name}}</td>
 							<td class='time'>{{team.total_penalty}}</td>
 							
-							{% for problem in contest.problems %}
+							{% for problem in current_contest.problems %}
 
 								{% set result = team.results[loop.index0] %}
 							
@@ -137,6 +138,8 @@ console.log(JSON.parse("{{ leaderboard | json_encode(constant('JSON_PRETTY_PRINT
 				</div>
 			</div>
 
+			{% if contest_open %}
+			
 			<div class="card" id="problems-card" style="flex-grow: 6; padding: 5px; padding-top: 10px; height: max-content;">
 				<div id="problems-heading"><h2>Problems</h2></div>
 				
@@ -145,7 +148,7 @@ console.log(JSON.parse("{{ leaderboard | json_encode(constant('JSON_PRETTY_PRINT
 
 					{% set team = leaderboard.scores[leaderboard.index] %}
 					
-					{% for problem in contest.problems %}
+					{% for problem in current_contest.problems %}
 					
 						{% set className = (loop.last) ? "last-row" : "" %}
 						{% set rowClassName = (team.results[loop.index0]) ? "accepted" : (team.attempts[loop.index0] > 0) ? "attempted" : "unattempted" %}
@@ -163,6 +166,9 @@ console.log(JSON.parse("{{ leaderboard | json_encode(constant('JSON_PRETTY_PRINT
 					</table>
 				</div>
 			</div>
+			
+			{% endif %}
+			
 		</div>
 		
 		<div class="card">
@@ -212,7 +218,7 @@ console.log(JSON.parse("{{ leaderboard | json_encode(constant('JSON_PRETTY_PRINT
 			<div id="recentSubs" class="card-contents" style="margin-top: 0px">
 				<div>
 					<ul>
-						{% for team in contest.teams %}		
+						{% for team in current_contest.teams %}		
 							{% for sub in team.submissions %}
 								<li> <a href="{{path('problem_result', {'submission_id': sub.id})}}"> {{team.name}} - {{sub.language.name}} </a></li>
 							{% endfor %}
@@ -252,8 +258,12 @@ console.log(JSON.parse("{{ leaderboard | json_encode(constant('JSON_PRETTY_PRINT
 	
 	<script>
 		
-		var time = {{"now"|date('U')}} - {{contest.start_time|date('U')}}; // current seconds into the contest
-		var total = {{contest.end_time|date('U')}} - {{contest.start_time|date('U')}};
+		var time = {{"now"|date('U')}} - {{current_contest.start_time|date('U')}}; // current seconds into the contest
+		var total = {{current_contest.end_time|date('U')}} - {{current_contest.start_time|date('U')}};
+		var freeze = {{current_contest.freeze_time|date('U')}} - {{current_contest.start_time|date('U')}};
+		
+		var frozen = false;
+		
 		//var freeze 
 		$(document).ready( function() {
 			
@@ -345,11 +355,22 @@ console.log(JSON.parse("{{ leaderboard | json_encode(constant('JSON_PRETTY_PRINT
 				
 				$('#time-left').text(hours+":"+minutes+":"+seconds+" left");
 			}
-			freeze = 0;
+			
 			// check for AJAX information
-			if(time > freeze){
+			if(time < freeze){
 				console.log("Polling for updates...");
 			
+			}
+			
+			// freeze the scoreboard
+			if(!frozen && time >= freeze){
+				console.log("FREEZING SCOREBOARD");
+				
+				$('#progressbar-container').addClass('frozen');
+				$('#leaderboard-heading').html("<h2> <span style='color:red'> <i>FROZEN</i> Leaderboard <i>FROZEN</i> </span> </h2>");
+				
+				$('#leaderboard-card').css('border', '2pt solid red');
+				frozen = true;
 			}
 		}
 		
@@ -359,7 +380,7 @@ console.log(JSON.parse("{{ leaderboard | json_encode(constant('JSON_PRETTY_PRINT
 			// Create a FormData object
 			var formData = new FormData();
 
-			formData.append('contestId', {{contest.id}});
+			formData.append('contestId', {{current_contest.id}});
 			
 			var question = $('#clarification-form #question').val();
 

@@ -72,7 +72,6 @@ class CompilationController extends Controller {
 		$problem = $trial->problem;
 	
 		//return $this->returnForbiddenResponse($trial->id."");
-
 	
 		# validation
 		$elevatedUser = ($grader->isTeaching($user, $problem->assignment->section) || $grader->isJudging($user, $problem->assignment->section) || $user->hasRole("ROLE_ADMIN") || $user->hasRole("ROLE_ADMIN"));
@@ -400,7 +399,6 @@ class CompilationController extends Controller {
 		if(!$is_teaching && !$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN")){
 			//return $this->returnForbiddenResponse("You are not allowed to generate output for this problem");
 		}
-		
 		
 		# PROBLEM CREATION
 		$problem = new Problem();
