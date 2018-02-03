@@ -170,6 +170,8 @@ class SectionController extends Controller {
 
 				// echo "<br>best submission:";
 				// echo(json_encode($best_submission));
+			$submission_query = $qb_submissions->getQuery();
+			$submissions = $submission_query->getResult();
 
 		} else {
 			$teams = [];
