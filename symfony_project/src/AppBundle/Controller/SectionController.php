@@ -190,7 +190,6 @@ class SectionController extends Controller {
 
 			'recent_submissions' => $submissions,
 
-<<<<<<< HEAD
 				'accepted_submissions' => $best_submission,
 
 				'section_takers' => $section_takers,
@@ -198,12 +197,6 @@ class SectionController extends Controller {
 				'section_helpers' => $section_helpers,
 			]);
 		}
-=======
-			'section_takers' => $section_takers,
-			'section_teachers' => $section_teachers,
-			'section_helpers' => $section_helpers,
-		]);
->>>>>>> b2ad564dedaa21b203d73cfc56606970a3bce037
     }
 
     public function editSectionAction($sectionId) {
