@@ -28,6 +28,10 @@ services:
         public: true
         tags: ['controller.service_arguments']
 
+    appbundle_hello.topic_sample_hello:
+        class: AppBundle\Topic\AppBundleTopic
+        tags: 
+            - {name: gos_web_socket.topic }
         
     app.fos_user.oauth_provider:
         # Change the class according to the location of the FOSUBUserProvider class

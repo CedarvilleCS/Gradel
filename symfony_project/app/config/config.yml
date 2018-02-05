@@ -10,6 +10,16 @@ parameters:
     google_client_id: 943566084293-7t91prdqmauh28m8fg43i5o2alrj24mp.apps.googleusercontent.com
     google_secret: z2s4DurG6VIsfMZ1guAXwFdo
 
+# Web Socket Configuration
+gos_web_socket:
+    server:
+        port: 8081        #The port the socket server will listen on
+        host: 127.0.0.1   #The host ip to bind to
+        router:
+          resources:
+            - "AppBundle/Resources/config/pubsub/routing.yml"
+          
+
 framework:
     #esi: ~
     #translator: { fallbacks: ['%locale%'] }
