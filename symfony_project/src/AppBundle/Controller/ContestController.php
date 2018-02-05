@@ -149,7 +149,7 @@ class ContestController extends Controller {
     }
 
 	public function problemAction($contestId, $roundId, $problemId) {
-			
+				
 		$em = $this->getDoctrine()->getManager();
 
 		$user = $this->get('security.token_storage')->getToken()->getUser();
@@ -289,6 +289,8 @@ class ContestController extends Controller {
 	
 	public function judgingAction($contestId, $roundId){
 		
+		# super, judge
+		
 		$em = $this->getDoctrine()->getManager();
 
 		$user = $this->get('security.token_storage')->getToken()->getUser();
@@ -303,30 +305,8 @@ class ContestController extends Controller {
 		$allContests = $section->assignments;
 		
 		# get the current contest (see contestAction for a duplicate function)
-		$current = null;
-		if ($roundId == 0){
-			
-			// if the round was not provided, we need to default to the proper contest for them
-			// get the one that will start next/is currently going on
-			foreach($allContests as $cont) {
-				
-				// choose the one that ends next
-				if ($currTime <= $cont->end_time) {
-					$current = $cont;
-					break;
-				}
-			}
-			
-			// if you aren't in a contest, get the one the final one
-			if(!$current){
-				$current = $allContests[count($allContests)-1];
-			}
-			
-		} else {
-			
-			$current = $em->find("AppBundle\Entity\Assignment", $roundId);
-		}
-	
+		$current = $em->find("AppBundle\Entity\Assignment", $roundId);
+		
 		if(!$current || $current->section != $section){
 			die("Contest does not exist!");
 		}	
@@ -348,6 +328,8 @@ class ContestController extends Controller {
 			'current_contest' => $current,
 			
 			'contests' => $allContests,
+			
+			'contest_open' => true,
 			
 			'pending_submissions' => $pending_submissions,
 
@@ -408,7 +390,8 @@ class ContestController extends Controller {
 		
 		return $this->render('contest/problem_edit.html.twig', [
 			'contest' => $contest,
-			'current' => $contest, 
+			'current' => $contest,
+			'current_contest' => $contest, 
 			
 			'problem' => $problem,
 			
@@ -1125,7 +1108,7 @@ class ContestController extends Controller {
 		return $this->render('contest/result.html.twig', [
 		
 			'problem' => $problem,
-			'contest' => $assignment,
+			'current_contest' => $assignment,
 			'submission' => $submission,
 		
 			'grader' => new Grader($em),
@@ -1135,9 +1118,39 @@ class ContestController extends Controller {
 	
 	public function pollContestAction(Request $request){
 		
-		return $this->returnForbiddenResponse("pollContestAction");
+		$em = $this->getDoctrine()->getManager();
+		$grader = new Grader($em);
+
+		$user = $this->get('security.token_storage')->getToken()->getUser();
+		if(!$user){
+			return $this->returnForbiddenResponse('User does not exist.');
+		}
 		
-		return new Response();
+		# post data
+		$postData = $request->request->all();
+		
+		$contest = $em->find('AppBundle\Entity\Assignment', $postData['contestId']);		
+		if(!$contest){
+			return $this->returnForbiddenResponse('Contest ID is not valid.');
+		}		
+		
+		# validation
+		$elevatedUser = ($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isJudging($user, $contest->section));
+		if(!($elevatedUser || $grader->getTeam($user, $contest))){
+			return $this->returnForbiddenResponse("You are not allowed to poll this contest");
+		}
+		
+		$leaderboard = $grader->getLeaderboard($user, $contest);
+		
+		$response = new Response(json_encode([
+			'leaderboard' => $leaderboard,
+		]));
+			
+		
+		$response->headers->set('Content-Type', 'application/json');
+		$response->setStatusCode(Response::HTTP_OK);
+
+		return $response;
 	}
 	
 	public function pollJudgingAction(Request $request){
@@ -1268,7 +1281,7 @@ class ContestController extends Controller {
 		
 		# validation
 		if(!($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isJudging($user, $contest->section) || $grader->getTeam($user, $contest))){
-			return $this->returnForbiddenResponse("You are not allowed to edit this submission");
+			return $this->returnForbiddenResponse("You are not allowed to ask a question for this");
 		}
 		
 		if(isset($postData['problemId'])){

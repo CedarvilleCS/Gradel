@@ -542,7 +542,7 @@ class Grader  {
 		return $usr->section == $section;		
 	}
 	
-	public function getProblemScore($team, $problem){
+	public function getProblemScore($team, $problem, $elevatedUser){
 		
 		// return an array that contains these values:
 		// num_attempts, time (in minutes) of submission
@@ -550,6 +550,12 @@ class Grader  {
 		// penalty_points (including correct submission time)
 		
 		$score = [];
+		
+		if($elevatedUser){
+			$time_max = $problem->assignment->end_time;
+		} else {
+			$time_max = $problem->assignment->freeze_time;
+		}
 		
 		// get submissions
 		$qb_subs = $this->em->createQueryBuilder();
@@ -559,10 +565,12 @@ class Grader  {
 			->andWhere('s.team = ?2')
 			->andWhere('s.pending_status = ?3')
 			->andWhere('s.is_completed = ?4')
+			->andWhere('s.timestamp <= ?5')
 			->setParameter(1, $problem)
 			->setParameter(2, $team)
 			->setParameter(3, 2)
 			->setParameter(4, true)
+			->setParameter(5, $time_max)
 			->orderBy('s.timestamp', 'ASC');
 			
 		$subs_query = $qb_subs->getQuery();
@@ -640,7 +648,7 @@ class Grader  {
 		return $score;
 	}
 	
-	public function getTeamScore($team){
+	public function getTeamScore($team, $elevatedUser){
 		
 		// returns an array of some pertinent information:
 		// num_correct, total_penalty, array of subtimes, array of penalties
@@ -650,7 +658,7 @@ class Grader  {
 		$scores = [];
 		
 		foreach($problems as $problem){			
-			$scores[] = $this->getProblemScore($team, $problem);			
+			$scores[] = $this->getProblemScore($team, $problem, $elevatedUser);			
 		}
 		
 		$num_correct = 0;
@@ -695,14 +703,16 @@ class Grader  {
 	public function getLeaderboard($user, $assignment){
 		
 		
-		
 		$teams = $assignment->teams->toArray();
 		
 		$user_team = $this->getTeam($user, $assignment);
 		
-		$scores = [];
+		$scores = [];		
+		$elevatedUser = ($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $this->isJudging($user, $assignment->section));
 		foreach($teams as $team){
-			$scores[] = $this->getTeamScore($team);
+			
+			$elevatedTeam = $elevatedUser;			
+			$scores[] = $this->getTeamScore($team, $elevatedTeam);
 		}
 		
 		// sort the scores into the proper order

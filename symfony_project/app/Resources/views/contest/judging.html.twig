@@ -179,9 +179,24 @@
 	<script src="{{ asset('js/cards.js') }}"></script>
 	
 	<script>
+	
+		var pollAJAX;
+		var judgAJAX;
+		var clarAJAX;
 
 		var time = {{"now"|date('U')}} - {{current_contest.start_time|date('U')}}; // current seconds into the contest
 		var total = {{current_contest.end_time|date('U')}} - {{current_contest.start_time|date('U')}};
+		
+		
+		$(window).unload(function() {
+			
+			pollAJAX.abort();
+			judgAJAX.abort();
+			clarAJAX.abort();
+		});
+		
+		
+		
 		//var freeze 
 		$(document).ready( function() {
 					
@@ -222,7 +237,7 @@
 				
 			formData.append('clarificationId', id);
 			
-			$.ajax({
+			clarAJAX = $.ajax({
 				type: "POST",
 				url: "{{path('judging_modify')}}",
 				data: formData,
@@ -297,7 +312,7 @@
 			
 			formData.append('submissionId', id);
 			
-			$.ajax({
+			judgAJAX = $.ajax({
 				type: "POST",
 				url: "{{path('judging_modify')}}",
 				data: formData,
@@ -366,7 +381,7 @@
 			
 			formData.append('contestId', {{current_contest.id}});
 		
-			$.ajax({
+			pollAJAX = $.ajax({
 				type: "POST",
 				url: "{{path('judging_poll')}}",
 				data: formData,
