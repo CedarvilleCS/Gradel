@@ -541,7 +541,7 @@
 			}
 			
 			var freeze_milliseconds = (freeze_minutes * 60 + freeze_hours * 3600) * 1000;			
-			if(freeze_milliseconds > (practice_end_date - practice_start_date) || freeze_milliseconds > (actual_end_date - actual_start_date)){
+			if(freeze_milliseconds > (actual_end_date - actual_start_date)){
 				setInvalid($('#freeze-time-minutes'));
 				setInvalid($('#freeze-time-hours'));
 				return false;

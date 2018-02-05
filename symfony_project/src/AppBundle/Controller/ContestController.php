@@ -64,35 +64,36 @@ class ContestController extends Controller {
 				$section_judges[] = $usr->user;
 			}
 		}
-		
-		# GATHER SUBMISSIONS
-		# get all of the problems to get all of the submissions
-		$allprobs = [];
-		foreach($section->assignments as $asgn){
-			foreach($asgn->problems as $prob){
-				$allprobs[] = $prob;
-			}
-		}
 
 		$grader = new Grader($em);
 		$elevatedUser = $grader->isJudging($user, $section) || $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN");
+				
+		# GET CURRENT CONTEST		
+		$allContests = $section->assignments->toArray();	
+		$currTime = new \DateTime('now');
 		
-		$currTime = strtotime(time());
-		$allContests = $section->assignments;	
-		
-	
-		foreach ($allContests as $cont) {
-			if (strtotime($cont->start_time->getTimestamp()) <= $currTime && $currTime >= strtotime($cont->end_time->getTimestamp())) {
+		$current = null;
+		if ($roundId == 0){
+			
+			// if the round was not provided, we need to default to the proper contest for them
+			// get the one that will start next/is currently going on
+			foreach($allContests as $cont) {
+				
+				// choose the one that ends next
+				if ($currTime <= $cont->end_time) {
 					$current = $cont;
 					break;
+				}
 			}
-		}
-		
-		if ($roundId == 0){
-			$contest = $current;
-		}
-		else {
-			$contest = $em->find("AppBundle\Entity\Assignment", $roundId);
+			
+			// if you aren't in a contest, get the one the final one
+			if(!$current){
+				$current = $allContests[count($allContests)-1];
+			}
+			
+		} else {
+			
+			$current = $em->find("AppBundle\Entity\Assignment", $roundId);
 		}
 	
 		if(!$current || $current->section != $section){
@@ -102,7 +103,7 @@ class ContestController extends Controller {
 		$leaderboard = $grader->getLeaderboard($user, $current);
 		
 		# get the queries
-		if($grader->isJudging($user, $contest) || $user->hasRole("ROLE_ADMIN") || $user->hasRole("ROLE_SUPER")){
+		if($grader->isJudging($user, $section) || $user->hasRole("ROLE_ADMIN") || $user->hasRole("ROLE_SUPER")){
 			$extra_query = "OR 1=1";
 		} else {
 			$extra_query = "";
@@ -119,25 +120,36 @@ class ContestController extends Controller {
 		$query_query = $qb_queries->getQuery();
 		$queries = $query_query->getResult();
 		
+		# set open/not open
+		if($elevatedUser || ($current->start_time <= $currTime)){
+			$contest_open = true;
+		} else {
+			$contest_open = false;
+		}
+		
 		return $this->render('contest/hub.html.twig', [
 			'user' => $user,
 			'team' => $team,
 			
 			'section' => $section,
 			'grader' => $grader,
-			'leaderboard' => $leaderboard, 
-			'current' => $current,
+			'leaderboard' => $leaderboard, 			
+			
+			'current_contest' => $current,			
+			
+			'contest_open' => $contest_open,
+			
 			'queries' => $queries,
 			'contests' => $allContests,
 			'elevatedUser' => $elevatedUser,
-			'contest' => $contest,
+						
 			'section_takers' => $section_takers,
 			'section_judges' => $section_judges,
 		]);
     }
 
 	public function problemAction($contestId, $roundId, $problemId) {
-			
+				
 		$em = $this->getDoctrine()->getManager();
 
 		$user = $this->get('security.token_storage')->getToken()->getUser();
@@ -235,14 +247,30 @@ class ContestController extends Controller {
 			->setParameter(1, $problem)
 			->setParameter(2, $team);
 		$query_query = $qb_queries->getQuery();
-		$queries = $query_query->getResult();
+		$queries = $query_query->getResult();		
+		
+		# set open/not open
+		$currTime = new \DateTime("now");
+		if($elevatedUser || ($assignment->start_time <= $currTime)){
+			$contest_open = true;
+		} else {
+			$contest_open = false;
+		}
+		
+		if(!$contest_open){
+			
+			return $this->redirectToRoute('contest', ['contestId' => $assignment->section->id, 'roundId' => $assignment->id]);
+		}
 								
 		return $this->render('contest/problem.html.twig', [
 			'user' => $user,
 			'team' => $team,
 			
 			'section' => $section,
-			'contest' => $assignment,
+			
+			'current_contest' => $assignment,
+			'contest_open' => $contest_open,
+			
 			'problem' => $problem,
 			'trial' => $trial,
 			
@@ -261,6 +289,8 @@ class ContestController extends Controller {
 	
 	public function judgingAction($contestId, $roundId){
 		
+		# super, judge
+		
 		$em = $this->getDoctrine()->getManager();
 
 		$user = $this->get('security.token_storage')->getToken()->getUser();
@@ -274,15 +304,12 @@ class ContestController extends Controller {
 		
 		$allContests = $section->assignments;
 		
-		foreach ($allContests as $cont) {
-			if (strtotime($cont->start_time->getTimestamp()) <= $currTime && $currTime >= strtotime($cont->end_time->getTimestamp())) {
-					$current = $cont;
-			}
-		}
+		# get the current contest (see contestAction for a duplicate function)
+		$current = $em->find("AppBundle\Entity\Assignment", $roundId);
 		
 		if(!$current || $current->section != $section){
-			die("ASSIGNMENT (ROUND) DOES NOT EXIST!");
-		}
+			die("Contest does not exist!");
+		}	
 		
 		$grader = new Grader($em);
 		
@@ -298,8 +325,12 @@ class ContestController extends Controller {
 						
 			'elevatedUser' => $elevatedUser,
 						
-			'current' => $current,
+			'current_contest' => $current,
+			
 			'contests' => $allContests,
+			
+			'contest_open' => true,
+			
 			'pending_submissions' => $pending_submissions,
 
 			'section_takers' => $section_takers,
@@ -359,6 +390,9 @@ class ContestController extends Controller {
 		
 		return $this->render('contest/problem_edit.html.twig', [
 			'contest' => $contest,
+			'current' => $contest,
+			'current_contest' => $contest, 
+			
 			'problem' => $problem,
 			
 			'languages' => $languages, 
@@ -403,7 +437,7 @@ class ContestController extends Controller {
 			]);
 			
 			# get freeze time diff
-			$di = $section->assignments[0]->end_time->diff($section->assignments[0]->freeze_time);
+			$di = $section->assignments[1]->end_time->diff($section->assignments[1]->freeze_time);
 		
 			$freeze_diff_minutes = $di->i;
 			$freeze_diff_hours = ($di->days * 24) + $di->h;
@@ -793,8 +827,9 @@ class ContestController extends Controller {
 		$actual_freeze_date = clone $actual_end_date;
 		$practice_freeze_date = clone $practice_end_date;
 		
+		# for now, don't allow freezing the scoreboard in the practice contest
 		$actual_freeze_date->sub($di);
-		$practice_freeze_date->sub($di);
+		//$practice_freeze_date->sub($di);
 		
 		if(!$actual_freeze_date || !$practice_freeze_date){
 			return $this->returnForbiddenResponse("Freeze date is not valid ");
@@ -820,8 +855,11 @@ class ContestController extends Controller {
 		$actualContest->freeze_time = $actual_freeze_date;
 		
 		
-		$section->start_time = $practice_start_date;
-		$section->end_time = $actual_end_date;	
+		$section->start_time = clone $practice_start_date;
+		$section->start_time->sub(new DateInterval('P1D'));
+		
+		$section->end_time = clone $actual_end_date;	
+		$section->end_time->add(new DateInterval('P7D'));	
 		
 		# JUDGES
 		$section->user_roles->clear();	
@@ -1070,7 +1108,7 @@ class ContestController extends Controller {
 		return $this->render('contest/result.html.twig', [
 		
 			'problem' => $problem,
-			'contest' => $assignment,
+			'current_contest' => $assignment,
 			'submission' => $submission,
 		
 			'grader' => new Grader($em),
@@ -1080,9 +1118,39 @@ class ContestController extends Controller {
 	
 	public function pollContestAction(Request $request){
 		
-		return $this->returnForbiddenResponse("pollContestAction");
+		$em = $this->getDoctrine()->getManager();
+		$grader = new Grader($em);
+
+		$user = $this->get('security.token_storage')->getToken()->getUser();
+		if(!$user){
+			return $this->returnForbiddenResponse('User does not exist.');
+		}
 		
-		return new Response();
+		# post data
+		$postData = $request->request->all();
+		
+		$contest = $em->find('AppBundle\Entity\Assignment', $postData['contestId']);		
+		if(!$contest){
+			return $this->returnForbiddenResponse('Contest ID is not valid.');
+		}		
+		
+		# validation
+		$elevatedUser = ($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isJudging($user, $contest->section));
+		if(!($elevatedUser || $grader->getTeam($user, $contest))){
+			return $this->returnForbiddenResponse("You are not allowed to poll this contest");
+		}
+		
+		$leaderboard = $grader->getLeaderboard($user, $contest);
+		
+		$response = new Response(json_encode([
+			'leaderboard' => $leaderboard,
+		]));
+			
+		
+		$response->headers->set('Content-Type', 'application/json');
+		$response->setStatusCode(Response::HTTP_OK);
+
+		return $response;
 	}
 	
 	public function pollJudgingAction(Request $request){
@@ -1213,7 +1281,7 @@ class ContestController extends Controller {
 		
 		# validation
 		if(!($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isJudging($user, $contest->section) || $grader->getTeam($user, $contest))){
-			return $this->returnForbiddenResponse("You are not allowed to edit this submission");
+			return $this->returnForbiddenResponse("You are not allowed to ask a question for this");
 		}
 		
 		if(isset($postData['problemId'])){
