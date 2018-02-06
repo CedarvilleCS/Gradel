@@ -1,4 +1,4 @@
-{% set elevatedUser = grader.isJudging(app.user, contest.section) or is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") %}
+{% set elevatedUser = grader.isJudging(app.user, current_contest.section) or is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") %}
 
 {% block title %}
 	<title>Gradel | Submission {{submission.id}}</title>
@@ -98,11 +98,11 @@
 				</div>
 				
 				<h2 style="">SUBMITTED CODE</h2>				
-				<a href="{{path('contest_problem', {'contestId': submission.problem.assignment.section.id, 'roundId': submission.problem.assignment.id, 'problemId': submission.problem.id} )}}">
-					Edit and resubmit
+				<a style="padding:10px;" class="btn btn-center" href="{{path('contest_problem', {'contestId': submission.problem.assignment.section.id, 'roundId': submission.problem.assignment.id, 'problemId': submission.problem.id, 'submissionId': submission.id} )}}">
+					Edit and Resubmit
 				</a>
 				
-<div id="editor" style="height: 550px">{% if submission.filename|split('.')|last != 'zip' %}
+<div id="editor" style="height: 550px; margin-top: 18px;">{% if submission.filename|split('.')|last != 'zip' %}
 {{ submission.deblobinateSubmittedFile()|nl2br }}{% else %}
 Submission was a ZIP file{% endif %}</div>
 				
@@ -368,9 +368,9 @@ Submission was a ZIP file{% endif %}</div>
 
 				console.log(data);
 				
-				if(data['id'] != null && data['reviewed'] != null){						
+				if(data['reviewed'] != null){						
 
-					window.location.reload();
+					window.location = "{{path('contest_judging', {'contestId': current_contest.section.id, 'roundId': current_contest.id})}}";
 					
 				} else {
 					alert("Error reviewing submission");						

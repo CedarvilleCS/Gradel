@@ -406,7 +406,7 @@ class CompilationController extends Controller {
 		$problem->name = "";
 		$problem->description = "";
 		$problem->weight = 1;
-		$problem->time_limit = 10000;
+		$problem->time_limit = 2000;
 		
 		$problem->is_extra_credit = false;
 		
@@ -454,6 +454,12 @@ class CompilationController extends Controller {
 			# build the testcase
 			try{				
 				$testcase = new Testcase($problem, $tc, $count);
+				
+				if(!$testcase->input || trim($testcase->input) == ""){
+					//return $this->returnForbiddenResponse(json_encode($testcase));
+					return $this->returnForbiddenResponse("Your testcases are not valid");
+				}
+				
 				$count++;
 					
 				$em->persist($testcase);
