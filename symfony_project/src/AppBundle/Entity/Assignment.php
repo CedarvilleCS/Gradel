@@ -92,7 +92,7 @@ class Assignment implements JsonSerializable{
 
 	/**
 	* @ORM\OneToMany(targetEntity="Problem", mappedBy="assignment", cascade={"persist"})
-	* @ORM\OrderBy({"id" = "ASC"});
+	* @ORM\OrderBy({"weight" = "ASC", "name" = "ASC"});
 	*/
 	public $problems;
 

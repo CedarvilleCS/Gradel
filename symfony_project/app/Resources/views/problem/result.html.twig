@@ -133,7 +133,7 @@ The grader was not passed from the controller.
 													{% if feedback.input[tcr.testcase.seq_num] %}
 													<div>
 														<div class="testcase-data-heading">Input:</div>
-														<textarea {% if feedback.input[tcr.testcase.seq_num] %} id="input-textarea" {% endif %} disabled>{{feedback.input[tcr.testcase.seq_num]}}</textarea>
+														<textarea {{(feedback.input[tcr.testcase.seq_num]) ? "id='input-textarea'" : "" }} disabled>{{feedback.input[tcr.testcase.seq_num]}}</textarea>
 													</div>
 													{% endif %}
 													
@@ -257,6 +257,8 @@ Submission was a ZIP file{% endif %}</div>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 	<script src="{{ asset('src-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>	
 	
+	<script src="{{ asset('js/unicode_return.js') }}" type="text/javascript" charset="utf-8"></script>
+	
 	<script>
 	
 	$(document).ready( function() {
@@ -273,6 +275,13 @@ Submission was a ZIP file{% endif %}</div>
 		var editor = ace.edit("editor");
 		editor.setTheme("ace/theme/xcode");	
 		editor.setReadOnly(true);
+		
+		
+		$('.testcase-data textarea').each(function () {
+			
+			$(this).html(addReturnKey($(this).html()));
+			
+		});
 	});
 	
 	

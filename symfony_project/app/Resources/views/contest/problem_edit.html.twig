@@ -52,10 +52,9 @@
 					</tr>
 					<tr>
 					  <th colspan="4">
-						<label for="description">Description</label>
-						<textarea rows=20 id="description" name="description" class="problem_creation" type="text">{{problem.description}}</textarea>
-						
-						
+						<div>Description</div>
+						<textarea rows=20 id="description" name="description" class="problem_creation" type="text" style="width: 100%">{{problem.description}}</textarea>
+											
 					  </th>
 					</tr>
 					<tr>
@@ -465,7 +464,7 @@
 			<div id=`+div_name+` class="test-case">
 
 				<div style="display: flex; flex-direction: column; justify-content: flex-start; width: 49%">
-					<label for="input">Standard Input</label>
+					<label for="input">Input</label>
 					<textarea rows="10" id="input` + currentNum +`" class="input problem_creation" type="text" value="">` + (input ? input : "") + `</textarea>
 				</div>
 				

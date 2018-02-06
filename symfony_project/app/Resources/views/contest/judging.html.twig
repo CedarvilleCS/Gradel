@@ -176,7 +176,9 @@
     <!-- JQuery -->
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+	
 	<script src="{{ asset('js/cards.js') }}"></script>
+	<script src="{{ asset('js/unicode_return.js') }}"></script>
 	
 	<script>
 	
@@ -188,8 +190,7 @@
 		var total = {{current_contest.end_time|date('U')}} - {{current_contest.start_time|date('U')}};
 		
 		
-		$(window).unload(function() {
-			
+		$(window).unload(function() {			
 			pollAJAX.abort();
 			judgAJAX.abort();
 			clarAJAX.abort();
@@ -341,7 +342,6 @@
 			return true;
 		}
 		
-		var freeze = 0;
 		/* FUNCTION TO HANDLE GETTING UPDATES FROM THE WEBSITE */
 		function loopFunction(){
 			
@@ -369,10 +369,9 @@
 				$('#time-left').text(hours+":"+minutes+":"+seconds+" left");
 			}
 			// check for AJAX information
-			if(freeze < 1){
-				//console.log("Polling for updates...");
-				pollJudging();
-			}
+				
+			//console.log("Polling for updates...");
+			pollJudging();
 		}
 				
 		function pollJudging(){
@@ -872,12 +871,12 @@
 									
 										`<div>\n` +
 										`Expected Output:\n` +
-										`<textarea disabled> ` + escapeHTML(tcr.testcase.correct_output) + ` </textarea>\n` +
+										`<textarea disabled>` + escapeHTML(addReturnKey(tcr.testcase.correct_output)) + ` </textarea>\n` +
 										`</div>\n` +
 										
 										`<div>\n` +
 										`Their Output:\n` +
-										`<textarea disabled>` + escapeHTML(tcr.std_output) + `</textarea>\n` +
+										`<textarea disabled>` + escapeHTML(addReturnKey(tcr.std_output)) + `</textarea>\n` +
 										`</div>\n` +
 									
 									`</div>\n` +					

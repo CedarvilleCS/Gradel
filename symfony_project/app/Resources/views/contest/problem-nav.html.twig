@@ -63,40 +63,40 @@
 				{% endif %}
 				
 			</li>		
-						
-			
-						
+					
 			{% if contest_open %}
-			
-			{% for prob in current_contest.problems %}
+						
+				{% for prob in current_contest.problems %}
 
-			<a href="{{path("contest_problem", {'contestId': prob.assignment.section.id, 'roundId': prob.assignment.id, 'problemId': prob.id})}}">
-			<li class="sidebar list-item" style="{{(problem == prob) ? 'background: rgb(90, 90, 90)' : ''}}">					
-			
-				<span class="preview">
-					<div class="{% if elevatedUser %}sidebar-text{% endif %}">{{ prob.name }}</div>
-					<small>
-					
-					{# put progress here if the student has submissions #}
-					
-					</small>
-				</span>
-
-				{# display edit pencil icon #}
-				{% if elevatedUser %}
-					<object>
-						<a title="Edit problem" href="{{path('contest_problem_edit', {'contestId': prob.assignment.section.id, 'roundId': prob.assignment.id, 'problemId': prob.id})}}">
-							<img class="small-icon" id="right-icon" src="{{ asset('edit.png') }}">
-						</a>
-					</object>
-				{% endif %}
+				<a href="{{path("contest_problem", {'contestId': prob.assignment.section.id, 'roundId': prob.assignment.id, 'problemId': prob.id})}}">
+				<li class="sidebar list-item" style="{{(problem == prob) ? 'background: rgb(90, 90, 90)' : ''}}">					
 				
-			</li>
-			</a>
-			
-			{% else %}
-			<li class="sidebar list-item"> No problems in this contest </li>			
-			{% endfor %}
+					<span class="preview">
+						<div class="{% if elevatedUser %}sidebar-text{% endif %}">{{ prob.name }}</div>
+						<small>
+						
+						{# put progress here if the student has submissions #}
+						
+						</small>
+					</span>
+
+					{# display edit pencil icon #}
+					{% if elevatedUser %}
+						<object>
+							<a title="Edit problem" href="{{path('contest_problem_edit', {'contestId': prob.assignment.section.id, 'roundId': prob.assignment.id, 'problemId': prob.id})}}">
+								<img class="small-icon" id="right-icon" src="{{ asset('edit.png') }}">
+							</a>
+						</object>
+					{% endif %}
+					
+				</li>
+				</a>
+				
+				{% else %}
+				
+				<li class="sidebar list-item"> No problems in this contest </li>			
+				
+				{% endfor %}
 			
 			{% else %}
 			

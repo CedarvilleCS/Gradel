@@ -9,6 +9,7 @@ use AppBundle\Entity\User;
 use AppBundle\Entity\Course;
 use AppBundle\Entity\UserSectionRole;
 use AppBundle\Entity\Role;
+use AppBundle\Entity\Query;
 use AppBundle\Entity\Section;
 use AppBundle\Entity\Assignment;
 use AppBundle\Entity\Submission;
@@ -115,10 +116,11 @@ class ContestController extends Controller {
 			->where('q.assignment = (?1)')
 			->andWhere('q.asker = ?2 OR q.asker IS NULL '.$extra_query)
 			->orderBy('q.timestamp', 'ASC')
-			->setParameter(1, $contest)
+			->setParameter(1, $current)
 			->setParameter(2, $team);
 		$query_query = $qb_queries->getQuery();
 		$queries = $query_query->getResult();
+		
 		
 		# set open/not open
 		if($elevatedUser || ($current->start_time <= $currTime)){
@@ -180,7 +182,6 @@ class ContestController extends Controller {
 			'section' => $section,
 		]);
 		
-		
 		if(!($user_role || $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN"))){
 			die("YOU ARE NOT ALLOWED TO VIEW THIS SECTION");
 		}
@@ -232,7 +233,8 @@ class ContestController extends Controller {
 		]);
 		
 		# get the queries
-		if($grader->isJudging($user, $assignment) || $user->hasRole("ROLE_ADMIN") || $user->hasRole("ROLE_SUPER")){
+		$elevatedUser = $grader->isJudging($user, $assignment) || $user->hasRole("ROLE_ADMIN") || $user->hasRole("ROLE_SUPER");
+		if($elevatedUser){
 			$extra_query = "OR 1=1";
 		} else {
 			$extra_query = "";
@@ -249,6 +251,7 @@ class ContestController extends Controller {
 		$query_query = $qb_queries->getQuery();
 		$queries = $query_query->getResult();		
 		
+		
 		# set open/not open
 		$currTime = new \DateTime("now");
 		if($elevatedUser || ($assignment->start_time <= $currTime)){
@@ -261,6 +264,36 @@ class ContestController extends Controller {
 			
 			return $this->redirectToRoute('contest', ['contestId' => $assignment->section->id, 'roundId' => $assignment->id]);
 		}
+		
+		# submission updating trial
+		if($_GET["submissionId"] && $_GET["submissionId"] > 0){
+			
+			$submission = $em->find("AppBundle\Entity\Submission", $_GET["submissionId"]);
+			
+			if(!$elevatedUser && ($submission->user != $user || $submission->problem != $problem)){
+				die("You are not allowed to edit this submission on this problem!");
+			}
+			
+			if(!$trial){
+				$trial = new Trial();
+				
+				$trial->user = $user;
+				$trial->problem = $problem;
+				$trial->language = $submission->language;			
+				$trial->show_description = true;
+				
+				$em->persist($trial);
+			}
+			
+			$trial->file = $submission->submitted_file;
+						
+			
+			$trial->filename = $submission->filename;
+			$trial->main_class = $submission->main_class_name;
+			$trial->package_name = $submission->package_name;
+			$trial->last_edit_time = new \DateTime("now");
+		}
+		
 								
 		return $this->render('contest/problem.html.twig', [
 			'user' => $user,
@@ -1110,6 +1143,8 @@ class ContestController extends Controller {
 			'problem' => $problem,
 			'current_contest' => $assignment,
 			'submission' => $submission,
+			
+			'contest_open' => true,
 		
 			'grader' => new Grader($em),
 		]);
@@ -1442,7 +1477,7 @@ class ContestController extends Controller {
 			$em->flush();	
 			
 			$response = new Response(json_encode([
-				'id' => $submission->id,
+				'id' => ($submission) ? $submission->id : null,
 				'reviewed' => $reviewed, 
 			]));
 				
