@@ -394,6 +394,19 @@
 
 		});
 		
+		// set the dates
+		$('#practice-start-date').change(function() {
+			
+			var practiceStartDate = $(this).datetimepicker('getDate');
+			
+			//$('#practice-end-date').datetimepicker('setDate', "11/13/1995 1:31 PM");
+		}); 
+		
+		$('#actual-start-date').change(function() {
+			//$('#actual-end-date').datetimepicker('setDate', "11/23/1999 8:00 PM");			
+		});
+		
+		
 		$('#new-user-input')
 			.keyup(function(event) {
 				if (event.keyCode === 13) {				
@@ -412,7 +425,9 @@
 		
 		$('#new-user-button').click( function() {		
 		
-			if($('#new-user-input').val().trim() == "" || $('#new-user-input').val() == "Add a new user by email...") return;
+			if($('#new-user-input').val().trim() == "" || $('#new-user-input').val() == "Add a new user by email..."){
+				return;
+			}
 		
 			addUser({'id': 0, 'full_name': $('#new-user-input').val()});
 			$('#new-user-input').val("");		

@@ -25,6 +25,7 @@ class Assignment implements JsonSerializable{
 			throw new Exception('ERROR: '.get_class($this).' constructor does not accept '.$i.' arguments');
 		} else {
 			$this->freeze_override = false;
+			$this->freeze_override_time = null;
 		}
 		
 		$this->problems = new ArrayCollection();
@@ -45,6 +46,7 @@ class Assignment implements JsonSerializable{
 		
 		$this->freeze_time = null;
 		$this->freeze_override = false;
+		$this->freeze_override_time = null;
 	}
 	
 	public function __construct10($sect, $nm, $desc, $start, $end, $cutoff, $pen1, $pen2, $pen3, $pen4){
@@ -66,6 +68,7 @@ class Assignment implements JsonSerializable{
 		
 		$this->freeze_time = null;
 		$this->freeze_override = false;
+		$this->freeze_override_time = null;
 	}
 	
 	# clone method override
@@ -163,6 +166,11 @@ class Assignment implements JsonSerializable{
 	* @ORM\Column(type="datetime", nullable=true)
 	*/
 	public $freeze_time;
+	
+	/**
+	* @ORM\Column(type="datetime", nullable=true)
+	*/
+	public $freeze_override_time;
 	
 	/**
 	* @ORM\Column(type="boolean")

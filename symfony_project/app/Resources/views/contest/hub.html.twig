@@ -78,7 +78,14 @@
 		<div class="parallel-cards">
 			
 			<div class="card" id="leaderboard-card" style="flex-grow: 12; padding: 5px; padding-top: 10px; height: max-content;">
-				<div id="leaderboard-heading"><h2>Leaderboard</h2></div>
+			
+				{% if elevatedUser %}
+				<div id="scoreboard-button" style="position: absolute; right: 8px; top: 8px; height: 10px; line-height: 10px;"></div>
+				{% endif %}
+				
+				<div id="leaderboard-heading">
+					<h2>Leaderboard</h2>
+				</div>
 				
 				<div id="leaderboard-container" class="card-contents">
 					<table id="leaderboard">
@@ -213,22 +220,33 @@
 	
 		var pollAJAX;
 		var clarAJAX;
+		var freezeAJAX;
 		
 		var time = {{"now"|date('U')}} - {{current_contest.start_time|date('U')}}; // current seconds into the contest
 		var total = {{current_contest.end_time|date('U')}} - {{current_contest.start_time|date('U')}};
 		var freeze = {{current_contest.freeze_time|date('U')}} - {{current_contest.start_time|date('U')}};
 		
-		var frozen = false;
+		var frozen = {{("now"|date('U') >= current_contest.freeze_time|date('U')) ? 'true' : 'false'}};
+		var visual_frozen = false;
+		var visual_unfrozen = false;
+		
+		var freeze_override = {{(current_contest.freeze_override and current_contest.freeze_override_time) ? "true" : "false"}};
+		var unfreeze_override = {{(current_contest.freeze_override and not current_contest.freeze_override_time) ? "true" : "false"}};
 		
 		$(window).unload(function() {
 			
 			pollAJAX.abort();
 			clarAJAX.abort();			
+			freezeAJAX.abort();
 			
 		});
-		
+				
 		//var freeze 
 		$(document).ready( function() {
+			
+			/* set freeze text */
+			var buttonText = ((frozen && !unfreeze_override) || freeze_override) ? 'Unfreeze' : 'Freeze';
+			$('#scoreboard-button').html(buttonText);
 			
 			/* COUNTDOWN TIMER */
 			$('#progressbar').progressbar({
@@ -270,25 +288,26 @@
 			$('#clarification-button').button().click(function() {
 				clarificationDialog.dialog("open");
 			});
+			
+			{% if elevatedUser %}
+			$('#scoreboard-button').button().click(function() {
+				postScoreboardUnfreeze();
+			});
+			{% endif %}
 					
-			/* AJAX LOOP */
+			/* LOOP */
 			setInterval(loopFunction, 1000);
-			loopFunction();	
-			pollContest(false);				
+			loopFunction();
+			pollContest(true);
+		});
+		
 
-			$(window).resize();
-		
-		});
-		
-		$(window).on('resize', function(){
-			
-			
-		});
-		
+		/* UPDATE THE LIST OF PROBLEMS */
 		function updateChecklist(checklist){
 			
 		}
 		
+		/* UPDATE THE LEADERBOARD */
 		function updateScoreboard(leaderboard){
 			
 			var tableHTML = "";
@@ -343,17 +362,63 @@
 				tableHTML += "</tr>";
 			}			
 			
-			$('#leaderboard').html(tableHTML);
+			$('#leaderboard').html(tableHTML);		
+
+			// freeze the scoreboard
+			if(!visual_frozen && !unfreeze_override && (time >= freeze || freeze_override)){
+				
+				$('#progressbar-container').addClass('frozen');
+				
+				{% if not elevatedUser %}
+					$('#leaderboard-heading').html("<h2> <span style='color:red'> <i>FROZEN</i> LEADERBOARD </span> </h2>");				
+				{% else %}
+				
+					var extraInfo = (time < freeze && freeze_override) ? " / Overriden" : "";
+					$('#leaderboard-heading').html("<h2 style='color:red'> <div> <i>FROZEN</i> LEADERBOARD </div><div> (Not Really)" + extraInfo + "</div> </h2>");				
+				{% endif %}				
+				
+				$('#leaderboard-card').css('border', '2pt solid red');
+				visual_frozen = true;
+				visual_unfrozen = false;
+				
+				$('#scoreboard-button').html("Unfreeze");
+				
+			} else if(!visual_unfrozen && !freeze_override && (time < freeze || unfreeze_override)){
+				
+				$('#progressbar-container').removeClass('frozen');
+				
+				{% if not elevatedUser %}
+					$('#leaderboard-heading').html("<h2> LEADERBOARD </h2>");				
+				{% else %}
+				
+					var extraInfo = (unfreeze_override) ? "<div>Overriden</div>" : "";
+				
+					$('#leaderboard-heading').html("<h2 <div> LEADERBOARD </div>" + extraInfo + "</h2>");				
+				{% endif %}				
+				
+				$('#leaderboard-card').css('border', 'initial');
+				visual_frozen = false;
+				visual_unfrozen = true;
+				
+				
+				$('#scoreboard-button').html("Freeze");				
+			}
+
+			// update frozen
+			if(time >= freeze){
+				frozen = true;
+			}
 			
 		}		
 		
+		/* LOOP FUNCTION THAT RUNS EVERY SECOND TO UPDATE THINGS */
 		function loopFunction(){
 			
 			// update the progress bar
 			$( "#progressbar" ).progressbar( "option", "value", time);
 			time++;
 			
-			// update the scoreboard
+			// update the time left
 			var left = total-time;
 			
 			if(left <= 0){
@@ -374,35 +439,23 @@
 			}
 			
 			// check for AJAX information
-			if(time < freeze){
-				console.log("Polling for updates...");
 			
-			}
-			
-			// freeze the scoreboard
-			if(!frozen && time >= freeze){
-				console.log("FREEZING SCOREBOARD");
-				
-				$('#progressbar-container').addClass('frozen');
-				$('#leaderboard-heading').html("<h2> <span style='color:red'> <i>FROZEN</i> Leaderboard <i>FROZEN</i> </span> </h2>");
-				
-				$('#leaderboard-card').css('border', '2pt solid red');
-				frozen = true;
-			}
-			
+			// change this to a different number to change the frequency
 			if(time % 1 == 0){
-				console.log("Polling Contest");
-				pollContest(frozen);	
+				pollContest();	
 			}
 			
 		}
 		
-		function pollContest(scoreboardFreeze){
+		function pollContest(override){
 			
 			// Create a FormData object
 			var formData = new FormData();
 
 			formData.append('contestId', {{current_contest.id}});
+			formData.append('end_time', '{{current_contest.end_time|date('U')}}');
+			formData.append('start_time', '{{current_contest.start_time|date('U')}}');
+			formData.append('freeze_time', '{{current_contest.freeze_time|date('U')}}');
 						
 			pollAJAX = $.ajax({
 				type: "POST",
@@ -414,15 +467,31 @@
 				success: function(data){
 					console.log(data);
 					
-					{% if elevatedUser %}
+					// if page needs to be refreshed
+					if(data['page_refresh'] === true){
+						window.location.reload();
+					}
 					
-						updateScoreboard(data['leaderboard']);
+					// set frozen vs unfrozen
+					if(data['frozen_override'] === true){
+						
+						unfreeze_override = false;
+						freeze_override = true;
 					
+					} else if(data['unfrozen_override'] === true){
+						unfreeze_override = true;
+						freeze_override = false;
+					} else if(data['unfrozen_override'] === false && data['frozen_override'] == false) {
+						unfreeze_override = false;
+						freeze_override = false;
+					}
+										
+					// update the scoreboard
+					{% if elevatedUser %}					
+						updateScoreboard(data['leaderboard']);					
 					{% else %}
 					
-					if(!scoreboardFreeze){
-						updateScoreboard(data['leaderboard']);
-					}
+					updateScoreboard(data['leaderboard']);
 					
 					{% endif %}
 					
@@ -439,7 +508,53 @@
 			return true;
 		}
 		
-				
+		{% if elevatedUser %}
+		function postScoreboardUnfreeze(){
+			
+			var formData = new FormData();
+			
+			formData.append('contestId', {{current_contest.id}});
+			
+			if((frozen && !unfreeze_override) || freeze_override){
+				formData.append('type', 'unfreeze');				
+			} else {
+				formData.append('type', 'freeze');
+			}
+			
+			freezeAJAX = $.ajax({
+				type: "POST",
+				url: "{{path('judging_scoreboard')}}",
+				data: formData,
+				processData: false,
+				contentType: false,
+				async: true,
+				success: function(data){
+					console.log(data);
+					
+					if(data['freeze'] == true){
+						freeze_override = true;
+						unfreeze_override = false;
+						
+						$('#scoreboard-button').html("Unfreeze");
+						
+					} else {
+						unfreeze_override = true;
+						freeze_override = false;
+						
+						$('#scoreboard-button').html("Freeze");
+					}
+				},
+				error: function(data){					
+					alert(data['responseText']);
+					console.log(data['responseText']);
+				}
+			});
+			
+			
+			return true;
+		}
+		{% endif %}
+		
 		function postClarification(){
 			
 			// Create a FormData object

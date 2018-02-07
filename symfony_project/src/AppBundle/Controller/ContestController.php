@@ -1175,10 +1175,58 @@ class ContestController extends Controller {
 			return $this->returnForbiddenResponse("You are not allowed to poll this contest");
 		}
 		
+		# leaderboad
 		$leaderboard = $grader->getLeaderboard($user, $contest);
+				
+		# scoreboard frozen status
+		$frozen_override = false;
+		$unfrozen_override = false;
+		// if the override is set and theres is a time, its frozen
+		if($contest->freeze_override && $contest->freeze_override_time){				
+			$frozen_override = true;				
+		} 
+		// if the override is set but no time, its unfrozen
+		else if($contest->freeze_override) {			
+			$unfrozen_override = true;	
+		}
 		
+		# get the queries
+		if($grader->isJudging($user, $contest->section) || $user->hasRole("ROLE_ADMIN") || $user->hasRole("ROLE_SUPER")){
+			$extra_query = "OR 1=1";
+		} else {
+			$extra_query = "";
+			$team = $grader->getTeam($user, $contest);
+		}
+		
+		$qb_queries = $em->createQueryBuilder();
+		$qb_queries->select('q')
+			->from('AppBundle\Entity\Query', 'q')
+			->where('q.assignment = (?1)')
+			->andWhere('q.asker = ?2 OR q.asker IS NULL '.$extra_query)
+			->orderBy('q.timestamp', 'ASC')
+			->setParameter(1, $contest)
+			->setParameter(2, $team);
+		$query_query = $qb_queries->getQuery();
+		$queries = $query_query->getResult();
+		
+		$checklist = ["hi", "hello", "hey"];
+		
+		# determine if a page refresh is needed
+		if((isset($postData['end_time']) && $postData['end_time'] != $contest->end_time->format('U'))
+			|| (isset($postData['start_time']) && $postData['start_time'] != $contest->start_time->format('U'))
+			|| (isset($postData['freeze_time']) && $postData['freeze_time'] != $contest->freeze_time->format('U'))){
+			$page_refresh = true;
+		} else {
+			$page_refresh = false;
+		}
+	
 		$response = new Response(json_encode([
 			'leaderboard' => $leaderboard,
+			'frozen_override' => $frozen_override,
+			'unfrozen_override' => $unfrozen_override,
+			'page_refresh' => $page_refresh,
+			'clarifications' => $queries,
+			'checklist' => $checklist,
 		]));
 			
 		
@@ -1356,6 +1404,105 @@ class ContestController extends Controller {
 
 		return $response;		
 	}
+		
+	public function scoreboardFreezeAction(Request $request){
+		
+		$em = $this->getDoctrine()->getManager();		
+		$grader = new Grader($em);
+
+		$user = $this->get('security.token_storage')->getToken()->getUser();
+		if(!$user){
+			die("USER DOES NOT EXIST");
+		}
+		# see which fields were included	
+		$postData = $request->request->all();
+		
+		$contest = $em->find('AppBundle\Entity\Assignment', $postData['contestId']);
+		
+		if(!$contest){
+			return $this->returnForbiddenResponse("Contest ID provided was not valid.");
+		}
+		
+		# validation
+		if(!($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isJudging($user, $contest->section))){
+			return $this->returnForbiddenResponse("You are not allowed to modify the scoreboard");
+		}
+		
+		# get the type 
+		if(!isset($postData['type'])){
+			return $this->returnForbiddenResponse('type was not provided');
+		}
+
+
+		$currTime = new \DateTime("now");
+	
+		$frozen = ($contest->freeze_time <= $currTime);
+			
+		if($postData['type'] == "freeze"){
+			
+			// scoreboard is naturally open
+			if(!$frozen){
+				
+				// scoreboard is frozen at this moment so only submissions at this moment and before can be seen
+				$contest->freeze_override_time = $currTime;
+				$contest->freeze_override = true;
+								
+			}
+			// scoreboard is already overriden, undo the changes
+			else if($contest->freeze_override && $contest->freeze_override_time == null) {
+			
+				$contest->freeze_override_time = null;
+				$contest->freeze_override = false;
+				
+			}
+			// error
+			else {
+				return $this->returnForbiddenResponse("Scoreboard is already frozen");				
+			}
+			
+			$shouldFreeze = true;
+		} else if($postData['type'] == "unfreeze"){
+			
+			// scoreboard is naturally frozen
+			if($frozen){
+				
+				// scoreboard is unfrozen so all submissions can be seen
+				$contest->freeze_override_time = null;
+				$contest->freeze_override = true;
+				
+			} 
+			// scoreboard is already overriden, undo the changes
+			else if($contest->freeze_override && $contest->freeze_override_time != null) { 
+			
+				$contest->freeze_override_time = null;
+				$contest->freeze_override = false;
+				
+			} 
+			// error
+			else {
+				return $this->returnForbiddenResponse("Scoreboard is already unfrozen");
+			}
+			
+			$shouldFreeze = false;
+			
+		} else {
+			return $this->returnForbiddenResponse("type provided ".$postData['type']." is not valid");
+		}
+		
+		
+		$em->persist($contest);
+		$em->flush();
+		
+		$response = new Response(json_encode([
+			'id' => $contest->id,
+			'freeze' => $shouldFreeze,
+		]));		
+					
+		$response->headers->set('Content-Type', 'application/json');
+		$response->setStatusCode(Response::HTTP_OK);
+
+		return $response;		
+	}
 	
 	public function submissionJudgingAction(Request $request){
 		
@@ -1421,6 +1568,7 @@ class ContestController extends Controller {
 			} else if($postData['type'] == "delete"){
 					
 				// delete the submission
+				$subId = $submission->id;
 				$em->remove($submission);			
 					
 			} else if($postData['type'] == "formatting"){
@@ -1477,7 +1625,7 @@ class ContestController extends Controller {
 			$em->flush();	
 			
 			$response = new Response(json_encode([
-				'id' => ($submission) ? $submission->id : null,
+				'id' => ($submission) ? $submission->id : $subId,
 				'reviewed' => $reviewed, 
 			]));
 				

@@ -323,11 +323,9 @@
 
 					console.log(data);
 					
-					if(data['id'] != null && data['reviewed'] != null){						
-						
-						if(data['reviewed']){
-							$('.submission#'+ data['id']).remove();
-						}
+					if(data['reviewed'] != null){						
+
+						$('.submission#'+ data['id']).remove();
 						
 					} else {
 						alert("Error reviewing submission");						

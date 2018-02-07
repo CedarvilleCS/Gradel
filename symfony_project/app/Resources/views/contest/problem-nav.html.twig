@@ -155,8 +155,8 @@
 			var dropdowns = document.getElementsByClassName("dropdown-content");
 			var i;
 			for (i = 0; i < dropdowns.length; i++) {
-				if (openDropdown.classList.contains('show')) {
-					openDropdown.classList.remove('show');
+				if ($('#all-contests').hasClass('show')) {
+					$('#all-contests').removeClass('show');
 				}
 			}
 		}
