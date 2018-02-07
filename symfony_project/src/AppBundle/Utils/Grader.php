@@ -552,9 +552,24 @@ class Grader  {
 		$score = [];
 		
 		if($elevatedUser){
-			$time_max = $problem->assignment->end_time;
+			$time_max = $problem->assignment->section->end_time;
 		} else {
-			$time_max = $problem->assignment->freeze_time;
+			
+			// if the override is set to less than the current time, use that as the max time
+			if($problem->assignment->freeze_override 
+				&& $problem->assignment->freeze_override_time 
+				&& $problem->assignment->freeze_override_time < $problem->assignment->freeze_time){
+					
+				$time_max = $problem->assignment->freeze_override_time;
+			} 
+			// if the override is set but no time, there is no max time
+			else if($problem->assignment->freeze_override) {
+				$time_max = $problem->assignment->section->end_time;
+			} 
+			// normal scenario
+			else {
+				$time_max = $problem->assignment->freeze_time;
+			}
 		}
 		
 		// get submissions
@@ -775,7 +790,7 @@ class Grader  {
 				}
 				
 				// they are equal
-				return 0;
+				return strcmp($a['team_name'], $b['team_name']);
 				
 			} else {
 				

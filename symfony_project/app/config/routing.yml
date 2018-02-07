@@ -193,7 +193,13 @@ judging_query:
   defaults:
     _controller: AppBundle:Contest:postQuestion
   methods: [POST]
-  
+
+judging_scoreboard:
+  path: '/judging/scoreboard_freeze'
+  defaults:
+    _controller: AppBundle:Contest:scoreboardFreeze
+  methods: [POST]
+    
 # TRIAL ROUTES
 modify_trial:
   path: 'modify/trial'
