@@ -145,6 +145,7 @@ Please re-upload it!
 		<div class="card">
 			<div class="btn-close">
 				<h2 style="margin: 0px;">Test Your Code</h2>
+				<div class="btn" id="diff">diff</div>
 			</div>
 			
 			<div id="codeTester" class="card-contents" style="margin-top: 5px">
@@ -182,13 +183,15 @@ Please re-upload it!
 											
 											<div class="output-container" style="display: flex; flex-direction: column; width: 33%">
 											<small>Expected Output:</small>
-											<textarea rows=10 class="exp-output">{{tc.correct_output|raw}}</textarea>
+											<textarea rows=10 class="exp-output original">{{tc.correct_output|raw}}</textarea>
 											</div>
 											
 											<div class="user-output-container" style="display: flex; flex-direction: column; width: 33%">
 											<small>Your Output:</small>
-											<textarea rows=10 class="output"></textarea>
+											<textarea rows=10 class="output changed"></textarea>
 											</div>
+
+											<div class="diff"></div>
 										</div>
 									</div>
 								</div>
@@ -278,12 +281,24 @@ Please re-upload it!
 	
 	<script src="{{ asset('js/validation.js') }}"></script>
 	<script src="{{ asset('js/unicode_return.js') }}"></script>
+
+	{# text diff #}
+	<script src="{{ asset('js/jquery.pretty-text-diff.js') }}"></script>
+	<script src="{{ asset('js/diff_match_patch.js') }}"></script>
 	
 	{# asynchronous file upload #}
 	<script src="http://malsup.github.com/jquery.form.js"></script>
 	{# markdown #}
 
 	<script>
+		
+		$("#diff").click(function() { 
+			$(".test-case").prettyTextDiff({
+				cleanup: true
+			});
+		});
+
+
 		var saved_code = "";
 
 		{% if elevatedUser or (problem.assignment.start_time|date('U') < "now"|date('U') and problem.assignment.cutoff_time|date('U') > "now"|date('U')) %}
