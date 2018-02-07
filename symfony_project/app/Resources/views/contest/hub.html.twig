@@ -381,6 +381,8 @@
 				visual_frozen = true;
 				visual_unfrozen = false;
 				
+				$('#scoreboard-button').html("Unfreeze");
+				
 			} else if(!visual_unfrozen && !freeze_override && (time < freeze || unfreeze_override)){
 				
 				$('#progressbar-container').removeClass('frozen');
@@ -389,7 +391,7 @@
 					$('#leaderboard-heading').html("<h2> LEADERBOARD </h2>");				
 				{% else %}
 				
-					var extraInfo = (time < freeze && unfreeze_override) ? "<div>Overriden</div>" : "";
+					var extraInfo = (unfreeze_override) ? "<div>Overriden</div>" : "";
 				
 					$('#leaderboard-heading').html("<h2 <div> LEADERBOARD </div>" + extraInfo + "</h2>");				
 				{% endif %}				
@@ -398,7 +400,14 @@
 				visual_frozen = false;
 				visual_unfrozen = true;
 				
-			}	
+				
+				$('#scoreboard-button').html("Freeze");				
+			}
+
+			// update frozen
+			if(time >= freeze){
+				frozen = true;
+			}
 			
 		}		
 		
