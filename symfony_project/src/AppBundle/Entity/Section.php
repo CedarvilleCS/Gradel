@@ -77,6 +77,12 @@ class Section implements JsonSerializable{
 		}		
 	}
 	
+	public function isActive(){
+		
+		$currTime = new \DateTime("now");
+		
+		return $this->start_time <= $currTime && $currTime < $this->end_time;
+	}
 
 	/**
 	* @ORM\Column(type="integer")

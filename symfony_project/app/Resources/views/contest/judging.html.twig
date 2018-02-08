@@ -216,6 +216,8 @@
 			var id;
 			var formData = new FormData();
 			
+			formData.append('contestId', {{current_contest.id}});
+			
 			if(type == "answer"){
 				id = $('#clarification-form').val();
 				
@@ -230,7 +232,6 @@
 				id = 0;
 				notice = $('#notice').val();
 				formData.append('answer', notice);				
-				formData.append('contestId', {{current_contest.id}});
 			}
 			else {
 				return false;
@@ -277,6 +278,7 @@
 			var formData = new FormData();
 			
 			formData.append('type', type);
+			formData.append('contestId', {{current_contest.id}});
 			
 			if(type == "message"){				
 				id = $('#custom-message-form').val();

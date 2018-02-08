@@ -45,11 +45,13 @@
 	<nav class="nav-left">	
 		<ol style="padding-top: 0px; padding-bottom: 10px">
 			
-			<li style="text-align:center"> {{current_contest.section.name}} 
+			<a href="{{path('contest', {'contestId': current_contest.section.id, 'roundId': current_contest.id})}}">
+				<li style="text-align:center"> {{current_contest.section.name}} 
 				
-				<div><small>{{current_contest.section.course.name}}</small></div>
-				{{current_contest.section.assignment[0].end_time}}
-			</li>
+					<div><small>{{current_contest.section.course.name}}</small></div>
+					{{current_contest.section.assignment[0].end_time}}
+				</li>
+			</a>
 
 			<li class="sidebar" style="text-align:left">
 				<strong>Problems</strong>		

@@ -39,10 +39,9 @@ class Grader  {
 		$this->em = $em;		
 	}
 	
-	public function isTeaching($user, $section){
-		
-		$role = $this->em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Teaches'));		
-		
+	
+	private function isRole($user, $section, $role){
+
 		$qb = $this->em->createQueryBuilder();
 		$qb->select('usr')
 			->from('AppBundle\Entity\UserSectionRole', 'usr')
@@ -56,8 +55,37 @@ class Grader  {
 		$query = $qb->getQuery();
 		$usr = $query->getOneOrNullResult();
 		
-		return $usr->section == $section;		
+		return isset($usr);
+	}	
+	
+	public function isTeaching($user, $section){
+		
+		$role = $this->em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Teaches'));		
+		
+		return $this->isRole($user, $section, $role);
 	}
+	
+	public function isTaking($user, $section){
+		
+		$role = $this->em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));		
+		
+		return $this->isRole($user, $section, $role);		
+	}
+		
+	public function isHelping($user, $section){
+		
+		$role = $this->em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Helps'));		
+		
+		return $this->isRole($user, $section, $role);	
+	}
+	
+	public function isJudging($user, $section){
+		
+		$role = $this->em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Judges'));		
+		
+		return $this->isRole($user, $section, $role);		
+	}
+	
 		
 	public function isOnTeam($user, $assignment, $team){
 		return $team == $this->getTeam($user, $assignment);
@@ -538,26 +566,6 @@ class Grader  {
 	
 	
 	# Contest Grading Methods
-	public function isJudging($user, $section){
-		
-		$role = $this->em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Judges'));		
-		
-		$qb = $this->em->createQueryBuilder();
-		$qb->select('usr')
-			->from('AppBundle\Entity\UserSectionRole', 'usr')
-			->where('usr.role = ?1')
-			->andWhere('usr.user = ?2')
-			->andWhere('usr.section = ?3')
-			->setParameter(1, $role)
-			->setParameter(2, $user)
-			->setParameter(3, $section);
-			
-		$query = $qb->getQuery();
-		$usr = $query->getOneOrNullResult();
-		
-		return $usr->section == $section;		
-	}
-	
 	public function getProblemScore($team, $problem, $elevatedUser){
 		
 		// return an array that contains these values:
