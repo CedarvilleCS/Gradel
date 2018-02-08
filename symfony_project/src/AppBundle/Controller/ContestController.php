@@ -101,7 +101,7 @@ class ContestController extends Controller {
 			die("Contest does not exist!");
 		}	
 		
-		$leaderboard = $grader->getLeaderboard($user, $current);
+		//$leaderboard = $grader->getLeaderboard($user, $current, false);
 		
 		# get the queries
 		if($grader->isJudging($user, $section) || $user->hasRole("ROLE_ADMIN") || $user->hasRole("ROLE_SUPER")){
@@ -135,7 +135,7 @@ class ContestController extends Controller {
 			
 			'section' => $section,
 			'grader' => $grader,
-			'leaderboard' => $leaderboard, 			
+			//'leaderboard' => $leaderboard, 			
 			
 			'current_contest' => $current,			
 			
@@ -1151,6 +1151,55 @@ class ContestController extends Controller {
 		
 	}
 	
+	public function scoreboardAction($contestId, $roundId){
+				
+		$em = $this->getDoctrine()->getManager();
+		$user = $this->get('security.token_storage')->getToken()->getUser();
+		$grader = new Grader($em);
+		
+		if(!$user){
+			die("USER DOES NOT EXIST");
+		}
+
+		# VALIDATION
+		$section = $em->find('AppBundle\Entity\Section', $contestId);
+
+		if(!$section || !$section->course->is_contest){
+			die("SECTION (CONTEST) DOES NOT EXIST!");
+		}
+		
+		$contest = $em->find('AppBundle\Entity\Assignment', $roundId);
+		
+		if(!$contest || $contest->section != $section){
+			die("ROUND DOES NOT EXIST!");
+		}
+		
+		
+		$elevatedUser = $grader->isJudging($user, $section) || $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN");
+		$team = $grader->getTeam($user, $contest);
+		
+		# set open/not open
+		if($elevatedUser || ($current->start_time <= $currTime)){
+			$contest_open = true;
+		} else {
+			$contest_open = false;
+		}
+		
+		return $this->render('contest/scoreboard.html.twig', [
+			'user' => $user,
+			'team' => $team,
+			
+			'section' => $section,
+			'grader' => $grader, 			
+			
+			'current_contest' => $contest,
+			'contest_open' => $contest_open,
+			
+			'elevatedUser' => $elevatedUser,
+		]);
+		
+	}
+	
 	public function pollContestAction(Request $request){
 		
 		$em = $this->getDoctrine()->getManager();
@@ -1176,7 +1225,7 @@ class ContestController extends Controller {
 		}
 		
 		# leaderboad
-		$leaderboard = $grader->getLeaderboard($user, $contest);
+		$leaderboard = $grader->getLeaderboard($user, $contest, false);
 				
 		# scoreboard frozen status
 		$frozen_override = false;
@@ -1236,6 +1285,65 @@ class ContestController extends Controller {
 		return $response;
 	}
 	
+	public function pollScoreboardAction(Request $request){
+		$em = $this->getDoctrine()->getManager();
+		$grader = new Grader($em);
+
+		$user = $this->get('security.token_storage')->getToken()->getUser();
+		if(!$user){
+			return $this->returnForbiddenResponse('User does not exist.');
+		}
+		
+		# post data
+		$postData = $request->request->all();
+		
+		$contest = $em->find('AppBundle\Entity\Assignment', $postData['contestId']);		
+		if(!$contest){
+			return $this->returnForbiddenResponse('Contest ID is not valid.');
+		}		
+		
+		# validation (none)
+		$elevatedUser = ($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isJudging($user, $contest->section));
+
+				
+		# leaderboad
+		$leaderboard = $grader->getLeaderboard($user, $contest, $postData['normal_user']);
+				
+		# scoreboard frozen status
+		$frozen_override = false;
+		$unfrozen_override = false;
+		// if the override is set and theres is a time, its frozen
+		if($contest->freeze_override && $contest->freeze_override_time){				
+			$frozen_override = true;				
+		} 
+		// if the override is set but no time, its unfrozen
+		else if($contest->freeze_override) {			
+			$unfrozen_override = true;	
+		}		
+		
+		# determine if a page refresh is needed
+		if((isset($postData['end_time']) && $postData['end_time'] != $contest->end_time->format('U'))
+			|| (isset($postData['start_time']) && $postData['start_time'] != $contest->start_time->format('U'))
+			|| (isset($postData['freeze_time']) && $postData['freeze_time'] != $contest->freeze_time->format('U'))){
+			$page_refresh = true;
+		} else {
+			$page_refresh = false;
+		}
+	
+		$response = new Response(json_encode([
+			'leaderboard' => $leaderboard,
+			'frozen_override' => $frozen_override,
+			'unfrozen_override' => $unfrozen_override,
+			'page_refresh' => $page_refresh,
+		]));
+			
+		
+		$response->headers->set('Content-Type', 'application/json');
+		$response->setStatusCode(Response::HTTP_OK);
+
+		return $response;
+	}
+	
 	public function pollJudgingAction(Request $request){
 		
 		$em = $this->getDoctrine()->getManager();
@@ -1279,6 +1387,7 @@ class ContestController extends Controller {
 			->where('s.problem IN (?1)')
 			->andWhere('s.pending_status = ?2')
 			->andWhere('s.is_completed = ?3')
+			->andWhere('s.team IS NOT NULL')
 			->orderBy('s.timestamp', 'ASC')
 			->setParameter(1, $contest->problems->toArray())
 			->setParameter(2, 2)

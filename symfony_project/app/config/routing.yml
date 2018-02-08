@@ -150,14 +150,20 @@ contest_edit:
     _controller: AppBundle:Contest:contestEdit
     roundId: 0
   methods: [GET]
-    
+  
+contest_scoreboard:
+  path: '/contest/{contestId}/round/{roundId}/scoreboard'
+  defaults:
+    _controller: AppBundle:Contest:scoreboard
+  methods: [GET]
+  
 contest:
   path: '/contest/{contestId}/round/{roundId}'
   defaults:
     _controller: AppBundle:Contest:contest
     roundId: 0
   methods: [GET]
- 
+   
 contest_problem_modify:
   path: '/modify/contest_problem'
   defaults:
@@ -168,6 +174,12 @@ contest_modify:
   path: '/modify/contest'
   defaults:
     _controller: AppBundle:Contest:modifyContestPost
+  methods: [POST]
+  
+scoreboard_poll:
+  path: '/poll/scoreboard'
+  defaults:
+    _controller: AppBundle:Contest:pollScoreboard
   methods: [POST]
   
 contest_poll:

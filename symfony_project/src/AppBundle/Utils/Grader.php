@@ -109,6 +109,22 @@ class Grader  {
 		return count($subs);
 	}
 	
+	public function getProbTotalAttempts($problem){	
+		
+		# array of all submissions
+		$qb_subs = $this->em->createQueryBuilder();
+		$qb_subs->select('s')
+			->from('AppBundle\Entity\Submission', 's')
+			->where('s.problem = ?1')
+			->setParameter(1, $problem)
+			->orderBy('s.timestamp', 'ASC');
+			
+		$subs_query = $qb_subs->getQuery();
+		$subs = $subs_query->getResult();
+				
+		return count($subs);
+	}
+	
 	public function getNumAttempts($user, $problem){
 		
 		# get team from user
@@ -705,17 +721,17 @@ class Grader  {
 		$score['team_name'] = $team->name;
 		$score['num_correct'] = $num_correct;
 		$score['total_penalty'] = $total_penalty;
-		$score['results'] = $results;
-		$score['penalties'] = $penalties;
-		$score['raw_penalties'] = $raw_penalties;
+		$score['results'] = $results; // boolean array of yes/no solved per problem
+		$score['penalties'] = $penalties; // int array of penalties per problem
+		$score['raw_penalties'] = $raw_penalties; // int array of penalties per problem without  
 		$score['times'] = $times;
-		$score['attempts'] = $attempts;
+		$score['attempts'] = $attempts; // integer array of attempts per problem
 		$score['rank'] = -1;
 		
 		return $score;
 	}
 	
-	public function getLeaderboard($user, $assignment){
+	public function getLeaderboard($user, $assignment, $normal_user){
 		
 		
 		$teams = $assignment->teams->toArray();
@@ -723,7 +739,7 @@ class Grader  {
 		$user_team = $this->getTeam($user, $assignment);
 		
 		$scores = [];		
-		$elevatedUser = ($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $this->isJudging($user, $assignment->section));
+		$elevatedUser = ($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $this->isJudging($user, $assignment->section)) && !$normal_user;
 		foreach($teams as $team){
 			
 			$elevatedTeam = $elevatedUser;			
@@ -731,7 +747,7 @@ class Grader  {
 		}
 		
 		// sort the scores into the proper order
-		usort($scores, array($this, 'compareTeamScores'));
+		usort($scores, array($this, 'compareTeamScoresNames'));
 		
 		$prevScore = null;
 		$rank = 0;
@@ -763,6 +779,45 @@ class Grader  {
 		return $leaderboard;
 	}
 	
+	private static function compareTeamScoresNames($a, $b){
+				
+		// compares two teams with the following tiebreakers:
+		// 1) team with most correct submissions
+		// 2) team with the fewest penalty points
+		// 3) team with the quickest final submission, 2nd-to-last submission, ...
+		
+		if($a['num_correct'] == $b['num_correct']){
+		
+			if($a['total_penalty'] == $b['total_penalty']){
+				
+				$a_times = $a['times'];
+				$b_times = $b['times'];
+				
+				rsort($a_times);
+				rsort($b_times);
+				
+				// go through the times from max to min
+				for($i=0; $i<count($a_times); $i++){
+					
+					if($a_times[$i] != $b_times[$i]){						
+						return ($a_times[$i] > $b_times[$i]) ? -1 : 1;												
+					}
+				}
+				
+				// they are equal
+				return strcmp($a['team_name'], $b['team_name']);
+				
+			} else {
+				
+				return ($a['total_penalty'] < $b['total_penalty']) ? -1 : 1;				
+			}
+			
+		} else {
+			
+			return ($a['num_correct'] > $b['num_correct']) ? -1 : 1;
+		}
+		
+	}
 	
 	private static function compareTeamScores($a, $b){	
 		
@@ -790,7 +845,7 @@ class Grader  {
 				}
 				
 				// they are equal
-				return strcmp($a['team_name'], $b['team_name']);
+				return 0;
 				
 			} else {
 				
