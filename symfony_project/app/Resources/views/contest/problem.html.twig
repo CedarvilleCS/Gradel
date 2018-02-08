@@ -56,14 +56,16 @@ var markdownText = converter.makeHtml("{{problem.description|e('js')}}");
 		<div class="card" style="padding-top: 2px">
 						
 			<div id="courseInfo" class="card-contents">
-			
+				
+{% if elevatedUser or (contest_open and problem.assignment.cutoff_time|date('U') > "now"|date('U')) %}
+				
 				<div class="markdown-container">
 					<div id="clarification-button">Ask for Clarification</div>
 					<div id="markdown-header"><h1>{{problem.name}}</h1></div>
 					<div id="markdown"></div>
 					<div id="markdown-collapser">Hide Description</div>
 				</div>
-				
+
 				{% if queries|length > 0 %}
 				<div class="clarifications">
 					<h3 style="margin-bottom: 0px"> Clarifications </h3>
@@ -83,8 +85,7 @@ var markdownText = converter.makeHtml("{{problem.description|e('js')}}");
 					</ul>
 				</div>
 				{% endif %}
-				
-
+	
 {# the ACE editor text area #}
 				
 <div id="editor">{% if trial != null and trial.filename|split('.')|last != 'zip' %}
@@ -99,7 +100,6 @@ Please re-upload it!
 				<br>
 
 				{# display the form or not #}				
-				{% if elevatedUser or (problem.assignment.start_time|date('U') < "now"|date('U') and problem.assignment.cutoff_time|date('U') > "now"|date('U')) %}
 				
 					{# file upload#}
 					<form id="submissionUploadForm" action="{{path('get_contents')}}" method="post">
@@ -129,9 +129,13 @@ Please re-upload it!
 						</div>
 					</div>
 
-				{% else %}
-					This problem is not open.
-				{% endif %}
+{% else %}
+	<div class="markdown-container">
+		<div><h1 style="color: red; font-style: italic"> Contest is not open </h1></div>
+		<div id="markdown-header"><h1>{{problem.name}}</h1></div>
+		<div id="markdown"></div>
+	</div>				
+{% endif %}
 				
 			</div>
 		</div>
@@ -148,29 +152,37 @@ Please re-upload it!
 					<div id="add-testcase-button"> Add Testcase </div>
 					<div id="test-code-markers">
 						<ul>
+							{% set count = 0 %}
 							{% for tc in problem.testcases %}
-								
-								<li id="test-code-tab-{{tc.id}}-marker"> <a href="#test-code-tab-{{tc.id}}">
-									#{{loop.index}}
+							
+								{% if tc.is_sample %}
+								{% set count = count + 1 %}
+								<li id="test-code-tab-{{count}}-marker"> <a href="#test-code-tab-{{count}}">
+									#{{count}}
 								</a></li>
+								
+								{% endif %}
 							
 							{% endfor %}
 						</ul>
 						
+						{% set count = 0 %}
 						{% for tc in problem.testcases %}
 						
-								<div id="test-code-tab-{{tc.id}}" class="test-case">
+							{% if tc.is_sample %}
+								{% set count = count + 1 %}
+								<div id="test-code-tab-{{count}}" class="test-case">
 									<div class="testcase-data">
 										<div style="display: flex; flex-direction: row; justify-content: space-between;">
 											
 											<div class="input-container" style="display: flex; flex-direction: column; width: 33%">
 											<small>Standard Input:</small>
-											<textarea rows=10 class="input">{{tc.input|replace({'\n': "&#x21b5;\n"})|raw}}</textarea>
+											<textarea rows=10 class="input">{{tc.input|raw}}</textarea>
 											</div>
 											
 											<div class="output-container" style="display: flex; flex-direction: column; width: 33%">
 											<small>Expected Output:</small>
-											<textarea rows=10 class="exp-output">{{tc.correct_output|replace({'\n': "&#x21b5;\n"})|raw}}</textarea>
+											<textarea rows=10 class="exp-output">{{tc.correct_output|raw}}</textarea>
 											</div>
 											
 											<div class="user-output-container" style="display: flex; flex-direction: column; width: 33%">
@@ -180,6 +192,8 @@ Please re-upload it!
 										</div>
 									</div>
 								</div>
+								
+							{% endif %}
 						
 						{% endfor %}
 				
@@ -245,7 +259,7 @@ Please re-upload it!
 	
 	
 	{# clarification dialog #}	
-	<div id="clarification-form" title="Ask for Clarification" value="0">
+	<div id="clarification-form" title="Ask for Clarification" value="0" style="display:none">
 	  <form>
 			<div> Clarification on {{problem.name}}: </div>
 			<input type="text" name="question" id="question" class="text ui-widget-content ui-corner-all">
@@ -261,8 +275,10 @@ Please re-upload it!
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 	<script src="{{ asset('src-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>
+	
 	<script src="{{ asset('js/validation.js') }}"></script>
-		
+	<script src="{{ asset('js/unicode_return.js') }}"></script>
+	
 	{# asynchronous file upload #}
 	<script src="http://malsup.github.com/jquery.form.js"></script>
 	{# markdown #}
@@ -349,8 +365,8 @@ Please re-upload it!
 
 		function updateAceCode(){
 
-			var default_code = JSON.parse('{{ default_code|json_encode|replace({'\\':'\\\\'})|raw }}');
-			var ace_modes = JSON.parse('{{ ace_modes|json_encode|raw }}');
+			var default_code = JSON.parse("{{ default_code|json_encode|e('js') }}");
+			var ace_modes = JSON.parse("{{ ace_modes|json_encode|e('js') }}");
 
 			var editor = ace.edit("editor");
 			editor.$blockScrolling = Infinity;
@@ -494,31 +510,40 @@ Please re-upload it!
 					"</div>"
 				);
 				
-				$("div#test-code-markers").tabs("refresh");
-				
+				$('#test-code-markers textarea').off('keyup');
 				$('#test-code-markers textarea').keyup( function() {
-					$(this).val($(this).val().replace(/\u21b5\n/g, '\n').replace(/\n/g, '\u21b5\n'));
-				});
+					$(this).val(addReturnKey($(this).val()));
+				}).keyup();
 				
-				
+				$("div#test-code-markers").tabs("refresh");				
 			});  
 			
 			$('#generate-output-button').click(function() {
 				
+				updateTrial();
 				testSolution();
 				
 			});
 			
 			$('#test-code-markers').tabs();
-	
+			var tabCount = $('#test-code-markers >ul >li').length;
+			
+			
+			if(tabCount < 1){
+				$('#add-testcase-button').click();
+				$( "#test-code-markers" ).tabs({ active: 0 });
+			}
+			
+			
 			if(trialId == 0){
 				updateTrial();
 			}
 		});
 		
 		$('#test-code-markers textarea').keyup( function() {
-			$(this).val($(this).val().replace(/\u21b5\n/g, '\n').replace(/\n/g, '\u21b5\n'));
-		});
+			$(this).val(addReturnKey($(this).val()));
+		}).keyup();
+		
 				
 		// show/hide the description	
 		$("#markdown-collapser").click(function () {
@@ -593,7 +618,7 @@ Please re-upload it!
 			// Create a FormData object
 			var formData = new FormData();
 
-			formData.append('contestId', {{contest.id}});
+			formData.append('contestId', {{current_contest.id}});
 			formData.append('problemId', {{problem.id}});
 			
 			var question = $('#clarification-form #question').val();
@@ -795,7 +820,7 @@ Please re-upload it!
 			tcs = [];
 			$('.test-case').each( function (index) {
 				
-				const input = $(this).find("."+"input").val().replace(/\u21b5/g, '');
+				const input = removeReturnKey($(this).find("."+"input").val());
 				const tc = {"input": input, "args": "", "output": "", "weight": 1, "short_response": "", "long_response": "", "extra_credit": "false"};
 				tcs.push(tc);
 				
@@ -822,7 +847,7 @@ Please re-upload it!
 					
 					$(".test-case").each(function(index) {	
 
-						$(this).find('.output').val(data['testcases'][index].replace('\n', '\u21b5\n'));
+						$(this).find('.output').val(addReturnKey(data['testcases'][index]));
 						
 						if($(this).find('.output').val() != $(this).find('.exp-output').val()){
 							

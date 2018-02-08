@@ -73,14 +73,14 @@ class Grader  {
 				->setParameter(1, $assignment);
 				
 		$query_team = $qb_teams->getQuery();
-		$team_entities = $query_team->getResult();	
+		$team_entities = $query_team->getResult();
 		
 		# loop over all the teams for this assignment and figure out which team the user is a part of
-		$team = null;		
+		$team = null;
 		
-		foreach($team_entities as $tm){		
-			foreach($tm->users as $us){	
-				if($user->id == $us->id){
+		foreach($team_entities as $tm) {
+			foreach($tm->users as $us) {
+				if($user->id == $us->id) {
 					$team = $tm;
 				}
 			}
@@ -194,8 +194,8 @@ class Grader  {
 		}
 		
 		$grades['total_testcases'] = $total_normal_testcases;	
+
 		$grades['total_extra_testcases'] = $total_testcases - $total_normal_testcases;
-		
 		$attempts = $this->getNumAttempts($user, $problem);				
 		$grades['attempts'] = $attempts;		
 		
@@ -211,9 +211,7 @@ class Grader  {
 			$passed_extra_testcases = 0;
 			foreach($accepted_sub->testcaseresults as $tcr){
 				if($tcr->is_correct){
-					
 					if($tcr->testcase->is_extra_credit){
-						
 						$passed_extra_testcases++;
 					} else {
 						$passed_testcases++;
@@ -544,7 +542,7 @@ class Grader  {
 		return $usr != null;		
 	}
 	
-	public function getProblemScore($team, $problem){
+	public function getProblemScore($team, $problem, $elevatedUser){
 		
 		// return an array that contains these values:
 		// num_attempts, time (in minutes) of submission
@@ -553,14 +551,41 @@ class Grader  {
 		
 		$score = [];
 		
+		if($elevatedUser){
+			$time_max = $problem->assignment->section->end_time;
+		} else {
+			
+			// if the override is set to less than the current time, use that as the max time
+			if($problem->assignment->freeze_override 
+				&& $problem->assignment->freeze_override_time 
+				&& $problem->assignment->freeze_override_time < $problem->assignment->freeze_time){
+					
+				$time_max = $problem->assignment->freeze_override_time;
+			} 
+			// if the override is set but no time, there is no max time
+			else if($problem->assignment->freeze_override) {
+				$time_max = $problem->assignment->section->end_time;
+			} 
+			// normal scenario
+			else {
+				$time_max = $problem->assignment->freeze_time;
+			}
+		}
+		
 		// get submissions
 		$qb_subs = $this->em->createQueryBuilder();
 		$qb_subs->select('s')
 			->from('AppBundle\Entity\Submission', 's')
 			->where('s.problem = ?1')
 			->andWhere('s.team = ?2')
+			->andWhere('s.pending_status = ?3')
+			->andWhere('s.is_completed = ?4')
+			->andWhere('s.timestamp <= ?5')
 			->setParameter(1, $problem)
 			->setParameter(2, $team)
+			->setParameter(3, 2)
+			->setParameter(4, true)
+			->setParameter(5, $time_max)
 			->orderBy('s.timestamp', 'ASC');
 			
 		$subs_query = $qb_subs->getQuery();
@@ -638,7 +663,7 @@ class Grader  {
 		return $score;
 	}
 	
-	public function getTeamScore($team){
+	public function getTeamScore($team, $elevatedUser){
 		
 		// returns an array of some pertinent information:
 		// num_correct, total_penalty, array of subtimes, array of penalties
@@ -648,7 +673,7 @@ class Grader  {
 		$scores = [];
 		
 		foreach($problems as $problem){			
-			$scores[] = $this->getProblemScore($team, $problem);			
+			$scores[] = $this->getProblemScore($team, $problem, $elevatedUser);			
 		}
 		
 		$num_correct = 0;
@@ -693,14 +718,16 @@ class Grader  {
 	public function getLeaderboard($user, $assignment){
 		
 		
-		
 		$teams = $assignment->teams->toArray();
 		
 		$user_team = $this->getTeam($user, $assignment);
 		
-		$scores = [];
+		$scores = [];		
+		$elevatedUser = ($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $this->isJudging($user, $assignment->section));
 		foreach($teams as $team){
-			$scores[] = $this->getTeamScore($team);
+			
+			$elevatedTeam = $elevatedUser;			
+			$scores[] = $this->getTeamScore($team, $elevatedTeam);
 		}
 		
 		// sort the scores into the proper order
@@ -763,11 +790,11 @@ class Grader  {
 				}
 				
 				// they are equal
-				return 0;
+				return strcmp($a['team_name'], $b['team_name']);
 				
 			} else {
 				
-				return ($a['total_penalty'] > $b['total_penalty']) ? -1 : 1;				
+				return ($a['total_penalty'] < $b['total_penalty']) ? -1 : 1;				
 			}
 			
 		} else {
@@ -776,14 +803,5 @@ class Grader  {
 		}
 	}	
 }
-
-
-
-
-
-
-
-
-
 
 ?>

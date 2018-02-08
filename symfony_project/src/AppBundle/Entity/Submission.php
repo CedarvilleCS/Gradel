@@ -59,6 +59,8 @@ class Submission implements JsonSerializable {
 		$this->correct_override = false;
 		$this->wrong_override = false;
 		
+		$this->is_completed = false;
+		
 	}
 	
 	public function __construct3($prob, $tm, $user){
@@ -89,6 +91,8 @@ class Submission implements JsonSerializable {
 		$this->correct_override = false;
 		$this->wrong_override = false;
 		$this->reviewer = null;
+		
+		$this->is_completed = false;
 	}
 		
 	public function __construct26($prob, $tm, $user, $time, $acc, $subm, $log, $filename, $mainclass, $package, $compout, $didcomp, $didtime, $didrun, $maxtime, $lang, $perc, $ques, $vers, $pend, $edit, $std_msg, $jdg_msg, $correct_over, $wrong_over, $rev){
@@ -119,6 +123,8 @@ class Submission implements JsonSerializable {
 		$this->correct_override = $correct_over;
 		$this->wrong_override = $wrong_over;
 		$this->reviewer = $rev;
+		
+		$this->is_completed = false;
 	}
 	
 	public function isCorrect($raw){
@@ -201,6 +207,11 @@ class Submission implements JsonSerializable {
 	* @ORM\Column(type="boolean")
 	*/
 	public $is_accepted;
+	
+	/**
+	* @ORM\Column(type="boolean")
+	*/
+	public $is_completed;
 
 	/**
 	* @ORM\Column(type="blob", nullable=true)

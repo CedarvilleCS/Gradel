@@ -2,6 +2,8 @@
 
 namespace AppBundle\Entity;
 
+use JsonSerializable;
+
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Config\Definition\Exception\Exception;
@@ -11,7 +13,7 @@ use \DateTime;
  * @ORM\Entity
  * @ORM\Table(name="section")
  */
-class Section{
+class Section implements JsonSerializable{
 
 	public function __construct(){
 
@@ -25,6 +27,7 @@ class Section{
 		}
 
 		$this->assignments = new ArrayCollection();
+		$this->user_roles = new ArrayCollection();
 	}
 
 	public function __construct8($crs, $nm, $sem, $yr, $start, $end, $public, $deleted){
@@ -94,7 +97,7 @@ class Section{
 	public $assignments;
 	
 	/**
-     * @ORM\OneToMany(targetEntity="UserSectionRole", mappedBy="section", cascade={"persist"})
+     * @ORM\OneToMany(targetEntity="UserSectionRole", mappedBy="section", cascade={"persist", "remove"}, orphanRemoval=true)
      */
     public $user_roles;
 
@@ -137,6 +140,14 @@ class Section{
 	* @ORM\Column(type="boolean")
 	*/
 	public $is_public;
+	
+	public function jsonSerialize(){
+		return [
+			'name' => $this->name,			
+			'assignments' => $this->assignments->toArray(),
+			'user_roles' => $this->user_roles->toArray(),
+		];
+	}
 }
 
 ?>

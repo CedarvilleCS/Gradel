@@ -34,6 +34,7 @@ class SectionController extends Controller {
 		$em = $this->getDoctrine()->getManager();
 
 		$user = $this->get('security.token_storage')->getToken()->getUser();
+		
 
 		if(!$user){
 			die("USER DOES NOT EXIST");
@@ -41,6 +42,8 @@ class SectionController extends Controller {
 
 		# VALIDATION
 		$section_entity = $em->find('AppBundle\Entity\Section', $sectionId);
+
+		//$problem_entity =  $em->find('AppBundle\Entity\Problem', );
 
 		if(!$section_entity){
 			die("SECTION DOES NOT EXIST!");
@@ -118,9 +121,27 @@ class SectionController extends Controller {
 			}
 		}
 
-		$grader = new Grader($em);
+			$grader = new Grader($em);
 
-		if($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isTeaching($user, $section_entity) || $grader->isJudging($user, $section_entity)){
+			if($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isTeaching($user, $section_entity) || $grader->isJudging($user, $section_entity)){
+				
+				// echo json_encode($user);
+				// echo "<br/>";
+				// echo json_encode($problem_entity);
+				// echo "<br/>";
+
+				// echo json_encode($allprobs);
+
+
+				
+
+				// query for all submissions
+				$qb_submissions = $em->createQueryBuilder();
+		 		$qb_submissions->select('s')
+						->from('AppBundle\Entity\Submission', 's')
+						->where('s.problem IN (?1)')
+						->orderBy('s.timestamp', 'DESC')
+						->setParameter(1, $allprobs);
 
 			$qb_submissions = $em->createQueryBuilder();
 			$qb_submissions->select('s')
@@ -129,6 +150,26 @@ class SectionController extends Controller {
 					->orderBy('s.timestamp', 'DESC')
 					->setParameter(1, $allprobs);
 
+				// echo "<br><br><br>submissions:";
+				// echo json_encode($submissions);
+
+
+				// FIXME: only works for unique results
+				// query for accepted submissions
+				// $qb_accsub = $em->createQueryBuilder();
+				// $qb_accsub->select('s')
+				//    ->from('AppBundle\Entity\Submission', 's')
+				//    ->where('s.user = ?1')
+				//    ->andWhere('s.problem IN (?2)')
+				//    ->andWhere('s.is_accepted = true')
+				//    ->setParameter(1, $user)
+				//    ->setParameter(2, $allprobs);        
+						   
+				// $sub_query = $qb_accsub->getQuery();
+				// $best_submission = $sub_query->getOneOrNullResult();
+
+				// echo "<br>best submission:";
+				// echo(json_encode($best_submission));
 			$submission_query = $qb_submissions->getQuery();
 			$submissions = $submission_query->getResult();
 
@@ -169,11 +210,13 @@ class SectionController extends Controller {
 
 			'recent_submissions' => $submissions,
 
-			'section_takers' => $section_takers,
-			'section_teachers' => $section_teachers,
-			'section_helpers' => $section_helpers,
-		]);
-    }
+				'accepted_submissions' => $best_submission,
+
+				'section_takers' => $section_takers,
+				'section_teachers' => $section_teachers,
+				'section_helpers' => $section_helpers,
+			]);
+		}
 
     public function editSectionAction($sectionId) {
 
@@ -514,4 +557,5 @@ class SectionController extends Controller {
 		$response->setStatusCode(Response::HTTP_FORBIDDEN);
 		return $response;
 	}
+	
 }

@@ -1,6 +1,41 @@
-<script>
-console.log(JSON.parse("{{ leaderboard | json_encode(constant('JSON_PRETTY_PRINT')) | e('js')}}"));
-</script>
+{% block stylesheets %}
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
+	
+    <link rel="stylesheet" href="{{ asset('styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('card.css') }}" />
+    <link rel="stylesheet" href="{{ asset('contest-hub.css') }}" />
+	
+	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
+	
+	
+	<style>
+	
+	.accepted{
+		background: #AAE2AB no-repeat center url("{{asset('contest/check.svg')}}");
+		font-size: 0.8em;
+	}
+
+	.unattempted{
+		background: none;
+		color: transparent;
+		font-size: 0.8em;
+	}
+
+	.attempted{
+		background: #F67B51 no-repeat center url("{{asset('contest/cross.svg')}}");
+		font-size: 0.8em;
+		color: white;
+	}
+	
+	.unknown{
+		background: #AAAAAA no-repeat center url("{{asset('contest/question.svg')}}");
+		font-size: 0.8em;
+	}
+	
+	
+	</style>
+	
+{% endblock %}
 
 {% block head %}
 
@@ -22,84 +57,50 @@ console.log(JSON.parse("{{ leaderboard | json_encode(constant('JSON_PRETTY_PRINT
 	<section id="main">
 		
 		<div class="card">
-			<div id="contest-heading"><h1>{{contest.section.name}}</h1></div>
-			<div id="name-heading"><h2>{{contest.name}}</h2></div>
+			<div id="contest-heading"><h1>{{current_contest.section.name}}</h1></div>
+			<div id="name-heading"><h2>{{current_contest.name}}</h2></div>
 			<div id="time-heading"><h3 id="time-left">-</h3></div>
 			
 			
 			<div id="progressbar-container" class="card-contents">
 				<div id="time-container">
 				
-					{% set showDates = contest.start_time|date('n/j') != contest.end_time|date('n/j') %}
+					{% set showDates = current_contest.start_time|date('n/j') != current_contest.end_time|date('n/j') %}
 				
-					<div id="start-time">{{(showDates) ? contest.start_time|date('n/j') : ""}} {{contest.start_time|date('g:i:s A')}}</div>
-					<div id="end-time">{{(showDates) ? contest.end_time|date('n/j') : ""}} {{contest.end_time|date('g:i:s A')}}</div>
+					<div id="start-time">{{(showDates) ? current_contest.start_time|date('n/j') : ""}} {{current_contest.start_time|date('g:i:s A')}}</div>
+					<div id="end-time">{{(showDates) ? current_contest.end_time|date('n/j') : ""}} {{current_contest.end_time|date('g:i:s A')}}</div>
 				</div>
 				<div id="progressbar"> </div>
 				
-				<div id="stats-container"></div>
+				<!--<div id="stats-container"></div>-->
 			</div>
 		</div>
 		
 		
 		<div class="parallel-cards">
+			
 			<div class="card" id="leaderboard-card" style="flex-grow: 12; padding: 5px; padding-top: 10px; height: max-content;">
-				<div id="leaderboard-heading"><h2>Leaderboard</h2></div>
+			
+				{% if elevatedUser %}
+				<div id="scoreboard-button" style="position: absolute; right: 8px; top: 8px; height: 10px; line-height: 10px;"></div>
+				{% endif %}
+				
+				<div id="leaderboard-heading">
+					<h2>Leaderboard</h2>
+				</div>
 				
 				<div id="leaderboard-container" class="card-contents">
 					<table id="leaderboard">
 					
-						<colgroup>
-							<col class="name">
-							
-							{% for problem in contest.problems %}
-							<col class="problem">
-							{% endfor %}
-						</colgroup>
+						
 					
 					
-						<tr>
-							<th class="top-row no-hover"></th>
-							<th class="top-row no-hover">Problems</th>
-							<th class="top-row no-hover">Time</th>
-							{% for problem in contest.problems %}
-							<th class="top-row">
-								<a href="{{path('contest_problem', {'contestId': problem.assignment.section.id, 'roundId': problem.assignment.id, 'problemId': problem.id})}}">
-								{{problem.name|slice(0,1)}}
-								</a>
-							</th>
-							{% endfor %}
-						</tr>
-						
-						
-						{% for team in leaderboard.scores %}
-						
-							<tr {{(loop.index0 == leaderboard.index) ? "class='curr-user'" : ""}}>
-							
-							<td class='rank'>{{team.rank}}</td>
-							<td class='name'>{{team.team_name}}</td>
-							<td class='time'>{{team.total_penalty}}</td>
-							
-							{% for problem in contest.problems %}
-
-								{% set result = team.results[loop.index0] %}
-							
-								<td class='{{(result) ? "accepted" : (team.attempts[loop.index0] > 0) ? "attempted" : "unattempted"}}'>
-									
-									<div class="attempts-count">{{(team.attempts[loop.index0] > 0) ? team.attempts[loop.index0] : "-"}}</div>
-									
-									<div class="penalty-mins">{{(result) ? team.penalties[loop.index0] : (team.attempts[loop.index0] > 0) ? "--" : "-"}}</div>
-								</td>
-							
-							{% endfor %}
-						
-							</tr>
-						{% endfor %}
-						
 					</table>
 				</div>
 			</div>
 
+			{% if contest_open %}
+			
 			<div class="card" id="problems-card" style="flex-grow: 6; padding: 5px; padding-top: 10px; height: max-content;">
 				<div id="problems-heading"><h2>Problems</h2></div>
 				
@@ -108,7 +109,7 @@ console.log(JSON.parse("{{ leaderboard | json_encode(constant('JSON_PRETTY_PRINT
 
 					{% set team = leaderboard.scores[leaderboard.index] %}
 					
-					{% for problem in contest.problems %}
+					{% for problem in current_contest.problems %}
 					
 						{% set className = (loop.last) ? "last-row" : "" %}
 						{% set rowClassName = (team.results[loop.index0]) ? "accepted" : (team.attempts[loop.index0] > 0) ? "attempted" : "unattempted" %}
@@ -126,6 +127,9 @@ console.log(JSON.parse("{{ leaderboard | json_encode(constant('JSON_PRETTY_PRINT
 					</table>
 				</div>
 			</div>
+			
+			{% endif %}
+			
 		</div>
 		
 		<div class="card">
@@ -175,7 +179,7 @@ console.log(JSON.parse("{{ leaderboard | json_encode(constant('JSON_PRETTY_PRINT
 			<div id="recentSubs" class="card-contents" style="margin-top: 0px">
 				<div>
 					<ul>
-						{% for team in contest.teams %}		
+						{% for team in current_contest.teams %}		
 							{% for sub in team.submissions %}
 								<li> <a href="{{path('problem_result', {'submission_id': sub.id})}}"> {{team.name}} - {{sub.language.name}} </a></li>
 							{% endfor %}
@@ -203,44 +207,7 @@ console.log(JSON.parse("{{ leaderboard | json_encode(constant('JSON_PRETTY_PRINT
 
 {% endblock %}
 
-{% block stylesheets %}
-	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
-	
-    <link rel="stylesheet" href="{{ asset('styles.css') }}" />
-    <link rel="stylesheet" href="{{ asset('card.css') }}" />
-    <link rel="stylesheet" href="{{ asset('contest-hub.css') }}" />
-	
-	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
-	
-	
-	<style>
-	
-	.accepted{
-		background: #AAE2AB no-repeat center url("{{asset('contest/check.svg')}}");
-		font-size: 0.8em;
-	}
 
-	.unattempted{
-		background: none;
-		color: transparent;
-		font-size: 0.8em;
-	}
-
-	.attempted{
-		background: #F67B51 no-repeat center url("{{asset('contest/cross.svg')}}");
-		font-size: 0.8em;
-		color: white;
-	}
-	
-	.unknown{
-		background: #AAAAAA no-repeat center url("{{asset('contest/question.svg')}}");
-		font-size: 0.8em;
-	}
-	
-	
-	</style>
-	
-{% endblock %}
 
 
 {% block scripts %}
@@ -251,11 +218,37 @@ console.log(JSON.parse("{{ leaderboard | json_encode(constant('JSON_PRETTY_PRINT
 	<script src="{{ asset('js/validation.js') }}"></script>
 	
 	<script>
+	
+	
+		var pollAJAX;
+		var clarAJAX;
+		var freezeAJAX;
 		
-		var time = {{"now"|date('U')}} - {{contest.start_time|date('U')}}; // current seconds into the contest
-		var total = {{contest.end_time|date('U')}} - {{contest.start_time|date('U')}};
+		var time = {{"now"|date('U')}} - {{current_contest.start_time|date('U')}}; // current seconds into the contest
+		var total = {{current_contest.end_time|date('U')}} - {{current_contest.start_time|date('U')}};
+		var freeze = {{current_contest.freeze_time|date('U')}} - {{current_contest.start_time|date('U')}};
+		
+		var frozen = {{("now"|date('U') >= current_contest.freeze_time|date('U')) ? 'true' : 'false'}};
+		var visual_frozen = false;
+		var visual_unfrozen = false;
+		
+		var freeze_override = {{(current_contest.freeze_override and current_contest.freeze_override_time) ? "true" : "false"}};
+		var unfreeze_override = {{(current_contest.freeze_override and not current_contest.freeze_override_time) ? "true" : "false"}};
+		
+		$(window).unload(function() {
+			
+			pollAJAX.abort();
+			clarAJAX.abort();			
+			freezeAJAX.abort();
+			
+		});
+				
 		//var freeze 
 		$(document).ready( function() {
+			
+			/* set freeze text */
+			var buttonText = ((frozen && !unfreeze_override) || freeze_override) ? 'Unfreeze' : 'Freeze';
+			$('#scoreboard-button').html(buttonText);
 			
 			/* COUNTDOWN TIMER */
 			$('#progressbar').progressbar({
@@ -297,36 +290,137 @@ console.log(JSON.parse("{{ leaderboard | json_encode(constant('JSON_PRETTY_PRINT
 			$('#clarification-button').button().click(function() {
 				clarificationDialog.dialog("open");
 			});
+			
+			{% if elevatedUser %}
+			$('#scoreboard-button').button().click(function() {
+				postScoreboardUnfreeze();
+			});
+			{% endif %}
 					
-			/* AJAX LOOP */
+			/* LOOP */
 			setInterval(loopFunction, 1000);
 			loopFunction();
+			pollContest(true);
+		});
+		
 
-			$(window).resize();
-		
-		});
-		
-		$(window).on('resize', function(){
+		/* UPDATE THE LIST OF PROBLEMS */
+		function updateChecklist(checklist){
 			
-			var h1 = $('#leaderboard-card').height();
-			var h2 = $('#problems-card').height();
+		}
+		
+		/* UPDATE THE LEADERBOARD */
+		function updateScoreboard(leaderboard){
 			
-			if(h1 > h2){
-				$('#leaderboard-card').css('height', 'max-content');
-			} else {
-				$('#leaderboard-card').height(h2);				
-				$('#problems-card').css('height', 'max-content');
+			var tableHTML = "";
+			
+			tableHTML += "<colgroup><col class='name'>";
+				
+				for(var i=0; i<{{current_contest.problems|length}}; i++){
+					tableHTML += "<col class='problem'>"
+				}
+			
+			tableHTML += `</colgroup>
+			
+			<tr>
+				<th class="top-row no-hover"></th>
+				<th class="top-row no-hover">Problems</th>
+				<th class="top-row no-hover">Time</th>
+				{% for problem in current_contest.problems %}
+				<th class="top-row">
+					<a href="{{path('contest_problem', {'contestId': problem.assignment.section.id, 'roundId': problem.assignment.id, 'problemId': problem.id})}}">
+					{{problem.name|slice(0,1)}}
+					</a>
+				</th>
+				{% endfor %}
+			</tr>`;
+			
+			
+			for(var i = 0; i<leaderboard.scores.length; i++){
+				
+				var team = leaderboard.scores[i];
+				var curr_user = (i==leaderboard.index);
+			
+				tableHTML += "<tr class='" + ((curr_user) ? "curr-user" : "") + "'>";
+				
+				tableHTML += "<td class='rank'>" + team.rank + "</td>";
+				tableHTML += "<td class='name'>" + team.team_name + "</td>";
+				tableHTML += "<td class='time'>" + team.total_penalty + "</td>";
+				
+				for(var j=0; j<team.attempts.length; j++){
+
+					var result = team.results[j];
+				
+					tableHTML += "<td class='" + ((result) ? "accepted" : ((team.attempts[j] > 0) ? "attempted" : "unattempted")) + "'>";
+						
+						tableHTML += "<div class='attempts-count'>" + ((team.attempts[j] > 0) ? team.attempts[j] : "-") + "</div>";
+						
+						tableHTML += "<div class='penalty-mins'>" + ((result) ? team.penalties[j] : ((team.attempts[j] > 0) ? "--" : "-")) + "</div>";
+					
+					tableHTML += "</td>";
+				
+				}
+			
+				tableHTML += "</tr>";
 			}			
-		});
+			
+			$('#leaderboard').html(tableHTML);		
+
+			// freeze the scoreboard
+			if(!visual_frozen && !unfreeze_override && (time >= freeze || freeze_override)){
+				
+				$('#progressbar-container').addClass('frozen');
+				
+				{% if not elevatedUser %}
+					$('#leaderboard-heading').html("<h2> <span style='color:red'> <i>FROZEN</i> LEADERBOARD </span> </h2>");				
+				{% else %}
+				
+					var extraInfo = (time < freeze && freeze_override) ? " / Overriden" : "";
+					$('#leaderboard-heading').html("<h2 style='color:red'> <div> <i>FROZEN</i> LEADERBOARD </div><div> (Not Really)" + extraInfo + "</div> </h2>");				
+				{% endif %}				
+				
+				$('#leaderboard-card').css('border', '2pt solid red');
+				visual_frozen = true;
+				visual_unfrozen = false;
+				
+				$('#scoreboard-button').html("Unfreeze");
+				
+			} else if(!visual_unfrozen && !freeze_override && (time < freeze || unfreeze_override)){
+				
+				$('#progressbar-container').removeClass('frozen');
+				
+				{% if not elevatedUser %}
+					$('#leaderboard-heading').html("<h2> LEADERBOARD </h2>");				
+				{% else %}
+				
+					var extraInfo = (unfreeze_override) ? "<div>Overriden</div>" : "";
+				
+					$('#leaderboard-heading').html("<h2 <div> LEADERBOARD </div>" + extraInfo + "</h2>");				
+				{% endif %}				
+				
+				$('#leaderboard-card').css('border', 'initial');
+				visual_frozen = false;
+				visual_unfrozen = true;
+				
+				
+				$('#scoreboard-button').html("Freeze");				
+			}
+
+			// update frozen
+			if(time >= freeze){
+				frozen = true;
+			}
+			
+		}		
 		
-		
+		/* LOOP FUNCTION THAT RUNS EVERY SECOND TO UPDATE THINGS */
 		function loopFunction(){
 			
 			// update the progress bar
 			$( "#progressbar" ).progressbar( "option", "value", time);
 			time++;
 			
-			// update the scoreboard
+			// update the time left
 			var left = total-time;
 			
 			if(left <= 0){
@@ -345,21 +439,130 @@ console.log(JSON.parse("{{ leaderboard | json_encode(constant('JSON_PRETTY_PRINT
 				
 				$('#time-left').text(hours+":"+minutes+":"+seconds+" left");
 			}
-			freeze = 0;
-			// check for AJAX information
-			if(time > freeze){
-				console.log("Polling for updates...");
 			
+			// check for AJAX information
+			
+			// change this to a different number to change the frequency
+			if(time % 1 == 0){
+				pollContest();	
 			}
+			
 		}
 		
-				
+		function pollContest(override){
+			
+			// Create a FormData object
+			var formData = new FormData();
+
+			formData.append('contestId', {{current_contest.id}});
+			formData.append('end_time', '{{current_contest.end_time|date('U')}}');
+			formData.append('start_time', '{{current_contest.start_time|date('U')}}');
+			formData.append('freeze_time', '{{current_contest.freeze_time|date('U')}}');
+						
+			pollAJAX = $.ajax({
+				type: "POST",
+				url: "{{path('contest_poll')}}",
+				data: formData,
+				processData: false,
+				contentType: false,
+				async: true,
+				success: function(data){
+					console.log(data);
+					
+					// if page needs to be refreshed
+					if(data['page_refresh'] === true){
+						window.location.reload();
+					}
+					
+					// set frozen vs unfrozen
+					if(data['frozen_override'] === true){
+						
+						unfreeze_override = false;
+						freeze_override = true;
+					
+					} else if(data['unfrozen_override'] === true){
+						unfreeze_override = true;
+						freeze_override = false;
+					} else if(data['unfrozen_override'] === false && data['frozen_override'] == false) {
+						unfreeze_override = false;
+						freeze_override = false;
+					}
+										
+					// update the scoreboard
+					{% if elevatedUser %}					
+						updateScoreboard(data['leaderboard']);					
+					{% else %}
+					
+					updateScoreboard(data['leaderboard']);
+					
+					{% endif %}
+					
+					updateChecklist(data['checklist']);
+					
+				},
+				error: function(data){					
+					alert(data['responseText']);
+					console.log(data['responseText']);					
+				}
+			});
+			
+			
+			return true;
+		}
+		
+		{% if elevatedUser %}
+		function postScoreboardUnfreeze(){
+			
+			var formData = new FormData();
+			
+			formData.append('contestId', {{current_contest.id}});
+			
+			if((frozen && !unfreeze_override) || freeze_override){
+				formData.append('type', 'unfreeze');				
+			} else {
+				formData.append('type', 'freeze');
+			}
+			
+			freezeAJAX = $.ajax({
+				type: "POST",
+				url: "{{path('judging_scoreboard')}}",
+				data: formData,
+				processData: false,
+				contentType: false,
+				async: true,
+				success: function(data){
+					console.log(data);
+					
+					if(data['freeze'] == true){
+						freeze_override = true;
+						unfreeze_override = false;
+						
+						$('#scoreboard-button').html("Unfreeze");
+						
+					} else {
+						unfreeze_override = true;
+						freeze_override = false;
+						
+						$('#scoreboard-button').html("Freeze");
+					}
+				},
+				error: function(data){					
+					alert(data['responseText']);
+					console.log(data['responseText']);
+				}
+			});
+			
+			
+			return true;
+		}
+		{% endif %}
+		
 		function postClarification(){
 			
 			// Create a FormData object
 			var formData = new FormData();
 
-			formData.append('contestId', {{contest.id}});
+			formData.append('contestId', {{current_contest.id}});
 			
 			var question = $('#clarification-form #question').val();
 
@@ -372,7 +575,7 @@ console.log(JSON.parse("{{ leaderboard | json_encode(constant('JSON_PRETTY_PRINT
 			
 			formData.append('question', question);
 			
-			$.ajax({
+			clarAJAX = $.ajax({
 				type: "POST",
 				url: "{{path('judging_query')}}",
 				data: formData,

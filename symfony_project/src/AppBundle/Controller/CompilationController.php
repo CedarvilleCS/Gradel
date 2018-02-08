@@ -72,7 +72,6 @@ class CompilationController extends Controller {
 		$problem = $trial->problem;
 	
 		//return $this->returnForbiddenResponse($trial->id."");
-
 	
 		# validation
 		$elevatedUser = ($grader->isTeaching($user, $problem->assignment->section) || $grader->isJudging($user, $problem->assignment->section) || $user->hasRole("ROLE_ADMIN") || $user->hasRole("ROLE_ADMIN"));
@@ -333,6 +332,9 @@ class CompilationController extends Controller {
 			} 
 		}
 
+		# complete the submission
+		$submission->is_completed = true;
+		
 		# update the submission entity
 		$em->persist($submission);
 		$em->flush();
@@ -398,14 +400,13 @@ class CompilationController extends Controller {
 			//return $this->returnForbiddenResponse("You are not allowed to generate output for this problem");
 		}
 		
-		
 		# PROBLEM CREATION
 		$problem = new Problem();
 		
 		$problem->name = "";
 		$problem->description = "";
 		$problem->weight = 1;
-		$problem->time_limit = 10000;
+		$problem->time_limit = 2000;
 		
 		$problem->is_extra_credit = false;
 		
@@ -453,6 +454,12 @@ class CompilationController extends Controller {
 			# build the testcase
 			try{				
 				$testcase = new Testcase($problem, $tc, $count);
+				
+				if(!$testcase->input || trim($testcase->input) == ""){
+					//return $this->returnForbiddenResponse(json_encode($testcase));
+					return $this->returnForbiddenResponse("Your testcases are not valid");
+				}
+				
 				$count++;
 					
 				$em->persist($testcase);

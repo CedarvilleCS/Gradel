@@ -1,79 +1,165 @@
-{% set elevatedUser = grader.isJudging(app.user, contest.section) or is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") %}
-
-{% set problem_page = (problem is not null) %}
-
-<nav class="nav-left">	
-	<ol style="padding-top: 0px; padding-bottom: 10px">
-		
-		<li style="text-align:center"> {{contest.section.name}} 
-			
-			<div><small>{{contest.section.course.name}}</small></div>
-		</li>
-
-		<li class="sidebar" style="text-align:left">
-			<strong>Problems</strong>		
-
-			<object>
-				<a title="Create problem" href="{{path('contest_problem_edit', {'contestId': contest.section.id, 'roundId': contest.id})}}">
-					<img class="small-icon" id="add-icon" src="{{asset('add_circle.png')}}">
-				</a>
-			</object>				
-		</li>		
-			
-			
-		{% for prob in contest.problems %}
-
-			<a href="{{path("contest_problem", {'contestId': prob.assignment.section.id, 'roundId': prob.assignment.id, 'problemId': prob.id})}}">
-		
-		<li class="sidebar list-item" style="{{(problem == prob) ? 'background: rgb(90, 90, 90)' : ''}}">					
+{% block stylesheets %}
+	<style>
+	.drop {
+		cursor: pointer;
+	}
 	
-		<span class="preview">
-			<div class="{% if elevatedUser %}sidebar-text{% endif %}">{{ prob.name }}</div>
-			<small>
-			
-			{# put progress here if the student has submissions #}
-			
-			</small>
-		</span>
+	/* The container <div> - needed to position the dropdown content */
+	.dropdown {
+		position: relative;
+		display: inline-block;
+	}
 
-		{# display edit pencil icon #}
-		{% if elevatedUser %}
-			<object>
-				<a title="Edit problem" href="{{path('contest_problem_edit', {'contestId': prob.assignment.section.id, 'roundId': prob.assignment.id, 'problemId': prob.id})}}">
-					<img class="small-icon" id="right-icon" src="{{ asset('edit.png') }}">
+	/* Dropdown Content (Hidden by Default) */
+	.dropdown-content {
+		display: none;
+		position: absolute;
+		background-color: #f1f1f1;
+		min-width: 160px;
+		box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+		z-index: 1;
+	}
+
+	/* Links inside the dropdown */
+	.dropdown-content a {
+		color: black;
+		padding: 12px 16px;
+		text-decoration: none;
+		display: block;
+	}
+
+	/* Change color of dropdown links on hover */
+	.dropdown-content a:hover {background-color: #ddd}
+
+	/* Show the dropdown menu (use JS to add this class to the .dropdown-content container when the user clicks on the dropdown button) */
+	.show {display:inline-block;}
+	</style>
+	
+{% endblock %}
+
+{% block body %}
+	{% set elevatedUser = grader.isJudging(app.user, current_contest.section) or is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") %}
+
+	{% set problem_page = (problem is not null) %}
+
+	<nav class="nav-left">	
+		<ol style="padding-top: 0px; padding-bottom: 10px">
+			
+			<li style="text-align:center"> {{current_contest.section.name}} 
+				
+				<div><small>{{current_contest.section.course.name}}</small></div>
+				{{current_contest.section.assignment[0].end_time}}
+			</li>
+
+			<li class="sidebar" style="text-align:left">
+				<strong>Problems</strong>		
+				
+				{% if elevatedUser %}
+				<object>
+					<a title="Create problem" href="{{path('contest_problem_edit', {'contestId': current_contest.section.id, 'roundId': current_contest.id})}}">
+						<img class="small-icon" id="add-icon" src="{{asset('add_circle.png')}}">
+					</a>
+				</object>			
+				{% endif %}
+				
+			</li>		
+					
+			{% if contest_open %}
+						
+				{% for prob in current_contest.problems %}
+
+				<a href="{{path("contest_problem", {'contestId': prob.assignment.section.id, 'roundId': prob.assignment.id, 'problemId': prob.id})}}">
+				<li class="sidebar list-item" style="{{(problem == prob) ? 'background: rgb(90, 90, 90)' : ''}}">					
+				
+					<span class="preview">
+						<div class="{% if elevatedUser %}sidebar-text{% endif %}">{{ prob.name }}</div>
+						<small>
+						
+						{# put progress here if the student has submissions #}
+						
+						</small>
+					</span>
+
+					{# display edit pencil icon #}
+					{% if elevatedUser %}
+						<object>
+							<a title="Edit problem" href="{{path('contest_problem_edit', {'contestId': prob.assignment.section.id, 'roundId': prob.assignment.id, 'problemId': prob.id})}}">
+								<img class="small-icon" id="right-icon" src="{{ asset('edit.png') }}">
+							</a>
+						</object>
+					{% endif %}
+					
+				</li>
 				</a>
-			</object>
+				
+				{% else %}
+				
+				<li class="sidebar list-item"> No problems in this contest </li>			
+				
+				{% endfor %}
+			
+			{% else %}
+			
+			<li> Problems are not available right now </li>			
+			
+			{% endif %}
+			
+		</ol>
+		
+		{% if app.request.attributes.get('_route') == "contest" %}
+			{% if elevatedUser %}
+			<a href="{{path('contest_judging', {'contestId': current_contest.section.id, 'roundId': current_contest.id})}}">
+				<div class="btn btn-center"> Judging Hub </div>
+			</a>
+			{% endif %}
+			
+			
+			<div onclick="showOptions()" class="btn btn-center drop" style="">See Other Contests</div>
+			<div class="dropdown">
+				<div id="all-contests" class="dropdown-content">
+				{% for cont in contests %}
+					<a href="{{path('contest', {'contestId': cont.section.id, 'roundId': cont.id})}}">
+						<div class="btn" style=""> {{cont.name}} </div>
+					</a>
+				{% endfor %}
+				</div>
+			</div>
+						
+		{% else %}
+			<a href="{{path('contest', {'contestId': current_contest.section.id, 'roundId': current_contest.id})}}">
+				<div class="btn btn-center"> Contest Hub </div>
+			</a>
 		{% endif %}
 		
-		</li>
+		
+		{% if elevatedUser and app.request.attributes.get('_route') == "contest" %}
+		<a href="{{path('contest_edit', {'contestId': current_contest.section.id})}}" class="btn">
+			<div class="btn btn-center btn-bottom">Edit Contest</div>
 		</a>
+		{% endif %}
 		
-		{% endfor %}
-		
-	</ol>
-	
-	{% if app.request.attributes.get('_route') == "contest" %}
-	{% if elevatedUser %}
-	<a href="{{path('contest_judging', {'contestId': contest.section.id, 'roundId': contest.id})}}">
-		<div class="btn btn-center"> Judging Hub </div>
-	</a>
-	{% endif %}
-	{% else %}
-	<a href="{{path('contest', {'contestId': contest.section.id, 'roundId': contest.id})}}">
-		<div class="btn btn-center"> Contest Hub </div>
-	</a>
-	{% endif %}
-	
-	
-	{% if app.request.attributes.get('_route') == "contest" %}
-	<a href="{{path('contest', {'contestId': practice.section.id, 'roundId': practice.id})}}">
-		<div class="btn btn-center btn-bottom" style=""> Switch to Practice Contest </div>
-	</a>
-	{% endif %}
-	
-	{% if elevatedUser and app.request.attributes.get('_route') == "contest" %}
-	<a href="{{path('contest_edit', {'contestId': contest.section.id})}}" class="btn">
-		<div class="btn btn-center btn-bottom" style="bottom: 65px; font-size: 1em;">Edit Contest</div>
-	</a>
-	{% endif %}
-</nav>
+	</nav>
+{% endblock %}
+
+
+
+{% block scripts %}
+	<script>
+	function showOptions() {
+		document.getElementById("all-contests").classList.toggle("show");
+	}
+
+	// Close the dropdown menu if the user clicks outside of it
+	window.onclick = function(event) {
+		if (!event.target.matches('.drop')) {			
+			var dropdowns = document.getElementsByClassName("dropdown-content");
+			var i;
+			for (i = 0; i < dropdowns.length; i++) {
+				if ($('#all-contests').hasClass('show')) {
+					$('#all-contests').removeClass('show');
+				}
+			}
+		}
+	}
+	</script>
+{% endblock %}
