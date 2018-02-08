@@ -145,7 +145,6 @@ Please re-upload it!
 		<div class="card">
 			<div class="btn-close">
 				<h2 style="margin: 0px;">Test Your Code</h2>
-				<div class="btn" id="diff">diff</div>
 			</div>
 			
 			<div id="codeTester" class="card-contents" style="margin-top: 5px">
@@ -190,8 +189,7 @@ Please re-upload it!
 											<small>Your Output:</small>
 											<textarea rows=10 class="output changed"></textarea>
 											</div>
-
-											<div class="diff"></div>
+											
 										</div>
 									</div>
 								</div>
@@ -506,19 +504,24 @@ Please re-upload it!
 						"<div class='testcase-data'>" +
 							"<div style='display: flex; flex-direction: row; justify-content: space-between;'>" +
 								
-								"<div class='input-container' style='display: flex; flex-direction: column; width: 33%'>" +
+								"<div class='input-container' style='display: flex; flex-direction: column; width: 25%'>" +
 								"<small>Standard Input:</small>" +
 								"<textarea rows=10 class='input'></textarea>" +
 								"</div>" +
 								
-								"<div class='output-container' style='display: flex; flex-direction: column; width: 33%'>" +
+								"<div class='output-container' style='display: flex; flex-direction: column; width: 25%'>" +
 								"<small>Expected Output:</small>" +
-								"<textarea rows=10 class='exp-output'></textarea>" +
+								"<textarea rows=10 class='exp-output original'></textarea>" +
 								"</div>" +
 								
-								"<div class='user-output-container' style='display: flex; flex-direction: column; width: 33%'>" +
+								"<div class='user-output-container' style='display: flex; flex-direction: column; width: 25%'>" +
 								"<small>Your Output:</small>" +
-								"<textarea rows=10 class='output'></textarea>" +
+								"<textarea rows=10 class='output changed'></textarea>" +
+								"</div>" +
+
+								"<div class='user-output-container' style='display: flex; flex-direction: column; width: 25%'>" +
+								"<small>Output Diffs:</small>" +
+								"<div class='diff' style='border: 1px solid black; height: 164px; font-family: monospace; font-size: 14px;'></p>" +
 								"</div>" +
 							"</div>" +
 						"</div>" +
@@ -878,6 +881,10 @@ Please re-upload it!
 										
 					$('#loading-container-test').hide();
 					$('#generate-output-button').show();
+
+					$(".test-case").prettyTextDiff({
+						cleanup: true
+					});
 				},
 				error: function(data){
 					alert(data['responseText']);
@@ -888,7 +895,7 @@ Please re-upload it!
 				}
 			});
 		}
-		
+	
 	</script>
 
 {% endblock %}

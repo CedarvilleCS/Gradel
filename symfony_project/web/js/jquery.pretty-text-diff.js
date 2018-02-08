@@ -18,16 +18,16 @@ See https://github.com/arnab/jQuery.PrettyTextDiff/
         changedContainer: ".changed",
         diffContainer: ".diff",
         cleanup: true,
-        debug: false
+        debug: true
       };
       settings = $.extend(settings, options);
       $.fn.prettyTextDiff.debug("Options: ", settings, settings);
       dmp = new diff_match_patch();
       return this.each(function() {
         var changed, diff_as_html, diffs, original;
-        original = $(settings.originalContainer, this).text();
+        original = $(settings.originalContainer, this).val(); // orignally used .text, but we're using text areas
         $.fn.prettyTextDiff.debug("Original text found: ", original, settings);
-        changed = $(settings.changedContainer, this).text();
+        changed = $(settings.changedContainer, this).val();
         $.fn.prettyTextDiff.debug("Changed  text found: ", changed, settings);
         diffs = dmp.diff_main(original, changed);
         if (settings.cleanup) {
