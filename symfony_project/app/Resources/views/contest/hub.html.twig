@@ -15,6 +15,8 @@ console.log(JSON.parse("{{ leaderboard | json_encode(constant('JSON_PRETTY_PRINT
     {{ include('template/top-nav.html.twig') }}
     
 	{{ include('contest/problem-nav.html.twig') }}
+
+	{{ include('contest/contest_gas.html.twig') }}
 	
 	
 	<section id="main">

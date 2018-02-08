@@ -1,0 +1,28 @@
+<script type="text/javascript" src="{{ asset('bundles/goswebsocket/js/gos_web_socket_client.js') }}"></script>
+<script type="text/javascript" src="{{ asset('bundles/goswebsocket/js/vendor/autobahn.min.js') }}"></script>
+
+<script>
+    var sessionGlob = undefined;
+    var webSocket = WS.connect("ws://joseph.cedarville.edu:8081/");
+    console.log("Establishing Websocket...");
+
+    webSocket.on("socket/connect", function(session){
+        //session is an Autobahn JS WAMP session.
+
+      session.subscribe("appbundle/channel", function(uri, payload){
+        console.log("Received message", payload.msg);
+      });
+  
+      sessionGlob = session;
+    })
+
+    webSocket.on("socket/disconnect", function(error){
+        //error provides us with some insight into the disconnection: error.reason and error.code
+
+        console.log("Disconnected for " + error.reason + " with code " + error.code);
+    })
+
+    function sendMessage(msg){ 
+        sessionGlob.publish("appbundle/channel", {contestId: "{{section.id}}",  scope: "question", recipients: null, msg: msg});
+    }
+</script>

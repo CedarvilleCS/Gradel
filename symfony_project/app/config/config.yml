@@ -14,10 +14,30 @@ parameters:
 gos_web_socket:
     server:
         port: 8081        #The port the socket server will listen on
-        host: 127.0.0.1   #The host ip to bind to
+        host: 0.0.0.0  #The host ip to bind to
         router:
           resources:
-            - "AppBundle/Resources/config/pubsub/routing.yml"
+            - "routing.yml"
+    client:
+        session_handler: session.handler.pdo
+        firewall: main
+        storage:
+            # driver: gos_web_socket.client_storage.driver.redis
+            # decorator: gos_web_socket.client_storage.doctrine.decorator
+
+
+# doctrine_cache:
+#     providers:
+#         redis_cache:
+#             redis:
+#                 host: 127.0.0.1
+#                 port: 6379
+#                 database: 3
+#         websocket_cache_client:
+#             type: redis
+#             alias: gos_web_socket.client_storage.driver.redis         
+
+
           
 
 framework:
@@ -37,8 +57,8 @@ framework:
     trusted_hosts: ~
     session:
         # https://symfony.com/doc/current/reference/configuration/framework.html#handler-id
-        handler_id: session.handler.native_file
-        save_path: '%kernel.project_dir%/var/sessions/%kernel.environment%'
+        handler_id: session.handler.pdo
+        # save_path: '%kernel.project_dir%/var/sessions/%kernel.environment%'
     fragments: ~
     http_method_override: true
     assets: ~

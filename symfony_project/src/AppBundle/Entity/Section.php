@@ -5,6 +5,7 @@ namespace AppBundle\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Config\Definition\Exception\Exception;
+use \DateTime;
 
 /**
  * @ORM\Entity
@@ -72,6 +73,10 @@ class Section{
 			}
 			$this->user_roles = $usrsClone;			
 		}		
+	}
+
+	public function isActive() {
+		return $this->start_time < new DateTime("now") && $this->end_time > new DateTime("now");
 	}
 	
 

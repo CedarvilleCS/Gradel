@@ -56,7 +56,7 @@ class Grader  {
 		$query = $qb->getQuery();
 		$usr = $query->getOneOrNullResult();
 		
-		return $usr->section == $section;		
+		return $usr;		
 	}
 		
 	public function isOnTeam($user, $assignment, $team){
@@ -541,7 +541,7 @@ class Grader  {
 		$query = $qb->getQuery();
 		$usr = $query->getOneOrNullResult();
 		
-		return $usr->section == $section;		
+		return $usr != null;		
 	}
 	
 	public function getProblemScore($team, $problem){
