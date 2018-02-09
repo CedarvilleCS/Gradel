@@ -94,51 +94,7 @@ class ContestController extends Controller {
 		}	
 		
 		$team = $grader->getTeam($user, $current);
-
-		$leaderboard = $grader->getLeaderboard($user, $current);
-		
-		# get the queries
-		if($grader->isJudging($user, $section) || $user->hasRole("ROLE_ADMIN") || $user->hasRole("ROLE_SUPER")){
-			$extra_query = "OR 1=1";
-		} else {
-			$extra_query = "";
-		}
-		
-		$qb_queries = $em->createQueryBuilder();
-		$qb_queries->select('q')
-			->from('AppBundle\Entity\Query', 'q')
-			->where('q.assignment = (?1)')
-			->andWhere('q.asker = ?2 OR q.asker IS NULL '.$extra_query)
-			->orderBy('q.timestamp', 'ASC')
-			->setParameter(1, $current)
-			->setParameter(2, $team);
-		$query_query = $qb_queries->getQuery();
-		$queries = $query_query->getResult();
-		
-		$attempts_per_problem_count = [];
-		$correct_submissions_per_problem_count = [];
-		
-		$scores = $leaderboard["scores"];
-		$index = 0;
-		foreach ($current->problems as $prob) {
-			$correct_submissions_per_problem_count[$index] = 0;
-			$attempts_per_problem_count[$index] = 0;
-			foreach($scores as $team_score){
-				$prob_correct_maybe = $team_score["results"];
-				$ps = $prob_correct_maybe[$index];
-				if ( $ps == true) {
-					$correct_submissions_per_problem_count[$index]++;
-				}
-				else {
-				}
-				$att = $team_score["attempts"];
-				$attempts_per_problem_count[$index] += $att[$index];
 				
-			}
-			
-			$index++;
-		}
-    
 		# set open/not open
 		if($elevatedUser || ($current->start_time <= $currTime)){
 			$contest_open = true;
@@ -152,8 +108,7 @@ class ContestController extends Controller {
 			
 			'section' => $section,
 
-      'grader' => $grader,
-			'leaderboard' => $leaderboard, 			
+      'grader' => $grader,		
 			'attempts_per_problem_count' => $attempts_per_problem_count,
 			'correct_submissions_per_problem_count' => $correct_submissions_per_problem_count,
 			'current_contest' => $current,
@@ -498,7 +453,11 @@ class ContestController extends Controller {
 		} else {
 			
 			// TODO FIX THIS LINE
-			$course = $em->find("AppBundle\Entity\Course", 2);
+			$course = $em->find("AppBundle\Entity\Course", $_GET['courseId']);
+			
+			if(!$course->is_contest){
+				return $this->returnForbiddenResponse('PERMISSION DENIED');
+			}
 			
 			$section = null;
 			$freeze_diff_hours = 1;
@@ -1296,22 +1255,7 @@ class ContestController extends Controller {
 		if( !($elevatedUser || ($grader->isTaking($user, $section) && $section->isActive())) ){
 			return $this->returnForbiddenResponse("PERMISSION DENIED");
 		}
-		
-		# leaderboard
-		$leaderboard = $grader->getLeaderboard($user, $contest, false);
 				
-		# scoreboard frozen status
-		$frozen_override = false;
-		$unfrozen_override = false;
-		// if the override is set and theres is a time, its frozen
-		if($contest->freeze_override && $contest->freeze_override_time){				
-			$frozen_override = true;				
-		} 
-		// if the override is set but no time, its unfrozen
-		else if($contest->freeze_override) {			
-			$unfrozen_override = true;	
-		}
-		
 		# get the queries
 		if($grader->isJudging($user, $contest->section) || $user->hasRole("ROLE_ADMIN") || $user->hasRole("ROLE_SUPER")){
 			$extra_query = "OR 1=1";
@@ -1332,21 +1276,8 @@ class ContestController extends Controller {
 		$queries = $query_query->getResult();
 		
 		$checklist = ["hi", "hello", "hey"];
-		
-		# determine if a page refresh is needed
-		if((isset($postData['end_time']) && $postData['end_time'] != $contest->end_time->format('U'))
-			|| (isset($postData['start_time']) && $postData['start_time'] != $contest->start_time->format('U'))
-			|| (isset($postData['freeze_time']) && $postData['freeze_time'] != $contest->freeze_time->format('U'))){
-			$page_refresh = true;
-		} else {
-			$page_refresh = false;
-		}
 	
 		$response = new Response(json_encode([
-			'leaderboard' => $leaderboard,
-			'frozen_override' => $frozen_override,
-			'unfrozen_override' => $unfrozen_override,
-			'page_refresh' => $page_refresh,
 			'clarifications' => $queries,
 			'checklist' => $checklist,
 		]));
@@ -1383,11 +1314,45 @@ class ContestController extends Controller {
 		# elevated or section active
 		if( !($section->isActive()) ){			
 			return $this->returnForbiddenResponse("PERMISSION DENIED");
-		}
-				
-		# leaderboad
+		}				
+		
+		# GET STUFF
+		
+		# leaderboard and totals
 		$leaderboard = $grader->getLeaderboard($user, $assignment, $postData['normal_user']);
+		
+		$attempts_per_problem_count = [];
+		$correct_submissions_per_problem_count = [];
+		
+		$scores = $leaderboard["scores"];
+		$index = 0;
+		// loop through each problem 
+		foreach ($assignment->problems as $prob) {
+			
+			$correct_submissions_per_problem_count[$index] = 0;
+			$attempts_per_problem_count[$index] = 0;
+			
+			foreach($scores as $team_score){
 				
+				$prob_correct_maybe = $team_score["results"];
+				$ps = $prob_correct_maybe[$index];
+				
+				if ( $ps == true) {
+					$correct_submissions_per_problem_count[$index]++;
+				}
+				
+				$att = $team_score["attempts"];
+				$attempts_per_problem_count[$index] += $att[$index];
+				
+			}
+			
+			$index++;
+		}
+		
+		$leaderboard['attempts_per_problem_count'] = $attempts_per_problem_count;
+		$leaderboard['correct_submissions_per_problem_count'] = $correct_submissions_per_problem_count;
+		
+		
 		# scoreboard frozen status
 		$frozen_override = false;
 		$unfrozen_override = false;
@@ -1415,7 +1380,6 @@ class ContestController extends Controller {
 			'unfrozen_override' => $unfrozen_override,
 			'page_refresh' => $page_refresh,
 		]));
-			
 		
 		$response->headers->set('Content-Type', 'application/json');
 		$response->setStatusCode(Response::HTTP_OK);
