@@ -365,6 +365,44 @@
 				timeFormat: "h:mm TT",
 			});
 			
+			// set the dates
+			var oldPracticeStartDate = $('#practice-start-date').datetimepicker('getDate');
+			
+			$('#practice-start-date').change(function() {
+				
+				var practiceStartDate = $(this).datetimepicker('getDate');
+				var practiceEndDate = $('#practice-end-date').datetimepicker('getDate');
+				
+				var diff = practiceEndDate - oldPracticeStartDate;
+				
+				if(practiceEndDate != null){
+					practiceEndDate = new Date(practiceStartDate.getTime() + diff);					
+					var dateStr = getDateString(practiceEndDate);					
+					$('#practice-end-date').datetimepicker('setDate', dateStr);
+				}
+				oldPracticeStartDate = practiceStartDate;
+			}); 
+			
+			var oldActualStartDate = $('#actual-start-date').datetimepicker('getDate');
+			
+			$('#actual-start-date').change(function() {
+				
+				var actualStartDate = $(this).datetimepicker('getDate');
+				var actualEndDate = $('#actual-end-date').datetimepicker('getDate');
+				
+				var diff = actualEndDate - oldActualStartDate;
+				
+				if(actualEndDate != null){
+					actualEndDate = new Date(actualStartDate.getTime() + diff);					
+					var dateStr = getDateString(actualEndDate);					
+					$('#actual-end-date').datetimepicker('setDate', dateStr);
+				}
+				oldActualStartDate = actualStartDate;
+				
+			});
+
+
+			
 			{% if section is not null %}
 				// populate the form with the loaded in section
 				populateForm();
@@ -392,18 +430,6 @@
 			});
 			{% endif %}
 
-		});
-		
-		// set the dates
-		$('#practice-start-date').change(function() {
-			
-			var practiceStartDate = $(this).datetimepicker('getDate');
-			
-			//$('#practice-end-date').datetimepicker('setDate', "11/13/1995 1:31 PM");
-		}); 
-		
-		$('#actual-start-date').change(function() {
-			//$('#actual-end-date').datetimepicker('setDate', "11/23/1999 8:00 PM");			
 		});
 		
 		
@@ -636,6 +662,37 @@
 		});
 	</script>
 
+	<script>
+	
+	function getDateString(date){
+		
+		var days = date.getDate();
+		var month = date.getMonth()+1;
+		var year = date.getFullYear();
+		var hours = date.getHours();
+		var minutes = date.getMinutes();
+		var seconds = date.getSeconds();
+		
+		if(hours > 12){
+			apm = "PM";
+			hours = hours-12;
+		} else if(hours == 12) {
+			apm = "PM";						
+		} else {
+			apm = "AM";
+		}
+		
+		if(hours == 0){
+			hours = 12;
+			apm = "AM";
+		}
+		
+		str = month+"/"+days+"/"+year+" "+hours+":"+minutes+" "+apm;
+		
+		return str;
+	}
+	
+	</script>
 
 	{% if section is not null %}
 	<script>
@@ -677,4 +734,6 @@
 	</script>
 	{% endif %}
 
+	
+	
 {% endblock %}

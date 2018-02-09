@@ -439,3 +439,11 @@ textarea.problem_creation{
 form{
 	margin-bottom: 0px;
 }
+
+del {
+    color: red;
+}
+
+ins {
+    color: green;
+}

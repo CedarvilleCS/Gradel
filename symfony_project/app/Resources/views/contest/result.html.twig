@@ -321,6 +321,7 @@ Submission was a ZIP file{% endif %}</div>
 		var id;
 		var formData = new FormData();
 		
+		formData.append('contestId', {{current_contest.id}});
 		formData.append('override', true);
 		formData.append('type', type);
 		
