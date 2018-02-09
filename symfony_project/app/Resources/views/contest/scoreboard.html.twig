@@ -92,12 +92,14 @@
 	
 	<script>
 	
+		var contest_started = false;
 	
 		var scoreboardPollAJAX;
 		
 		var time = {{"now"|date('U')}} - {{current_contest.start_time|date('U')}}; // current seconds into the contest
 		var total = {{current_contest.end_time|date('U')}} - {{current_contest.start_time|date('U')}};
 		var freeze = {{current_contest.freeze_time|date('U')}} - {{current_contest.start_time|date('U')}};
+		var starttime = {{current_contest.start_time|date('U')}} - {{"now"|date('U')}}; // current seconds until the contest
 		
 		var frozen = {{("now"|date('U') >= current_contest.freeze_time|date('U')) ? 'true' : 'false'}};
 		var visual_frozen = false;
@@ -220,14 +222,24 @@
 			
 			// update the progress bar
 			$( "#progressbar" ).progressbar( "option", "value", time);
-			time++;
 			
-			// update the time left
-			var left = total-time;
+			if (starttime <= 0) {
+				time++;
+				var left = total-time;
+			} else {
+				starttime--;
+				// update the time left
+				var left = starttime;
+			}
 			
 			if(left <= 0){
 				
-				$('#time-left').text("FINISHED");
+				if(contest_started) {
+					$('#time-left').text("FINISHED");
+				} else {
+					$('#time-left').text("START");
+					contest_started = !contest_started;
+				}
 				
 			} else {
 				
@@ -239,10 +251,14 @@
 				minutes = (minutes < 10) ? "0"+minutes : minutes;
 				seconds = (seconds < 10) ? "0"+seconds : seconds;
 				
-				$('#time-left').text(hours+":"+minutes+":"+seconds+" left");
+				
+				if (starttime <= 0) {
+					$('#time-left').text(hours+":"+minutes+":"+seconds+" left");
+				} else {
+					$('#time-left').text(hours+":"+minutes+":"+seconds+" until start");
+				}
+				
 			}
-			
-			// check for AJAX information
 			
 			// change this to a different number to change the frequency
 			if(time % 1 == 0){
