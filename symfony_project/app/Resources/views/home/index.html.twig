@@ -1,3 +1,11 @@
+{% block stylesheets %}
+	<link rel="stylesheet" href="{{ asset('styles.css') }}" />
+	<link rel="stylesheet" href="{{ asset('card.css') }}" />
+
+	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
+{% endblock %}
+
+
 {% block head %}
 <title>Gradel Home</title>
 <link rel="icon" type="image/x-icon" href="{{ asset('logo.png') }}" title="Gradel: when you're here, you're coding."/>
@@ -129,13 +137,6 @@
         </div>
     </section>
 </body>
-{% endblock %}
-
-{% block stylesheets %}
-	<link rel="stylesheet" href="{{ asset('styles.css') }}" />
-	<link rel="stylesheet" href="{{ asset('card.css') }}" />
-
-	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
 {% endblock %}
 
 {% block scripts %}
