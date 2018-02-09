@@ -19,6 +19,7 @@ use AppBundle\Entity\Testcase;
 use AppBundle\Entity\ProblemLanguage;
 
 use AppBundle\Utils\Grader;
+use AppBundle\Utils\SocketPusher;
 
 use Doctrine\Common\Collections\ArrayCollection;
 
@@ -835,6 +836,7 @@ class ContestPostController extends Controller {
 		
 		$em = $this->getDoctrine()->getManager();		
 		$grader = new Grader($em);
+		$pusher = new SocketPusher($this->container->get('gos_web_socket.wamp.pusher'));
 
 		$user = $this->get('security.token_storage')->getToken()->getUser();
 		if(!$user){
@@ -894,6 +896,13 @@ class ContestPostController extends Controller {
 					
 					$submission->wrong_override = false;
 					$submission->correct_override = false;
+
+					$pusher->pushUserSpecificMessage(
+						$pusher->buildRejection($submission),
+						$pusher->getUsernamesFromTeam($submission->team),
+						$submission->problem->assignment->section->id,
+						true
+					);
 				}
 				
 			} else if($postData['type'] == "correct"){
@@ -914,12 +923,28 @@ class ContestPostController extends Controller {
 					
 				// delete the submission
 				$subId = $submission->id;
-				$em->remove($submission);			
+				$em->remove($submission);
+
+				// show card
+				$pusher->pushUserSpecificMessage(
+					$pusher->buildDeleteRejection($submission),
+					$pusher->getUsernamesFromTeam($submission->team),
+					$submission->problem->assignment->section->id,
+					true
+				);
 					
 			} else if($postData['type'] == "formatting"){
 						
 				// add formatting message to submission
 				$submission->judge_message = "Formatting Error";
+				// show card
+				$pusher->pushUserSpecificMessage(
+					$pusher->buildFormattingRejection($submission),
+					$pusher->getUsernamesFromTeam($submission->team),
+					$submission->problem->assignment->section->id,
+					true
+				);
+				
 						
 			} else if($postData['type'] == "message"){
 				
@@ -929,7 +954,15 @@ class ContestPostController extends Controller {
 				if(!isset($message) || trim($message) == ""){
 					$submission->judge_message = NULL;
 				} else {
-					$submission->judge_message = trim($postData['message']);	
+					$submission->judge_message = trim($postData['message']);
+
+					// show card
+					$pusher->pushUserSpecificMessage(
+						$pusher->buildCustomRejection($submission),
+						$pusher->getUsernamesFromTeam($submission->team),
+						$submission->problem->assignment->section->id,
+						true
+					);
 				}			
 							
 			} else if($postData['type'] == "claimed"){
@@ -1037,6 +1070,21 @@ class ContestPostController extends Controller {
 						
 			$response->headers->set('Content-Type', 'application/json');
 			$response->setStatusCode(Response::HTTP_OK);
+
+			if ($query->asker->users == null) {
+				$pusher->pushGlobalMessage(
+					$pusher->buildClarificationMessageFromQuery($query),
+					$section->id
+				);
+			}
+			else {
+				$pusher->pushUserSpecificMessage(
+					$pusher->buildClarificationMessageFromQuery($query),
+					$pusher->getUsernamesFromTeam($query->asker),
+					$section->id,
+					false
+				);
+			}
 
 			return $response;
 						

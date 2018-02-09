@@ -7,6 +7,7 @@ use JsonSerializable;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Config\Definition\Exception\Exception;
+use \DateTime;
 
 /**
  * @ORM\Entity
