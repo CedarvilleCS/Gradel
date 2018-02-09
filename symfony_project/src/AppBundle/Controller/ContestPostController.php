@@ -437,10 +437,10 @@ class ContestPostController extends Controller {
 		
 		
 		$section->start_time = clone $practice_start_date;
-		$section->start_time->sub(new DateInterval('P1D'));
+		$section->start_time->sub(new DateInterval('P30D'));
 		
 		$section->end_time = clone $actual_end_date;	
-		$section->end_time->add(new DateInterval('P7D'));	
+		$section->end_time->add(new DateInterval('P14D'));	
 		
 		# JUDGES
 		$section->user_roles->clear();	

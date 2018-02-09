@@ -2139,23 +2139,25 @@
         },
         {
             "name": "kriswallsmith/buzz",
-            "version": "v0.15.2",
+            "version": "v0.16.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/kriswallsmith/Buzz.git",
-                "reference": "d0b82d8a6169276f91f445c26792ff4a2b11e831"
+                "reference": "bd3299b7b6be3eeeb7a2842e677685031b93aa26"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/kriswallsmith/Buzz/zipball/d0b82d8a6169276f91f445c26792ff4a2b11e831",
-                "reference": "d0b82d8a6169276f91f445c26792ff4a2b11e831",
+                "url": "https://api.github.com/repos/kriswallsmith/Buzz/zipball/bd3299b7b6be3eeeb7a2842e677685031b93aa26",
+                "reference": "bd3299b7b6be3eeeb7a2842e677685031b93aa26",
                 "shasum": ""
             },
             "require": {
-                "php": "^5.3.3 || ^7.0"
+                "guzzlehttp/psr7": "^1.4",
+                "php": "^5.4 || ^7.0"
             },
             "require-dev": {
-                "symfony/phpunit-bridge": "^3.3"
+                "php-http/client-integration-tests": "^0.6.2",
+                "symfony/phpunit-bridge": "^3.4 || ^4.0"
             },
             "suggest": {
                 "ext-curl": "*"
@@ -2183,7 +2185,7 @@
                 "curl",
                 "http client"
             ],
-            "time": "2017-11-24T19:18:50+00:00"
+            "time": "2018-02-03T19:40:45+00:00"
         },
         {
             "name": "monolog/monolog",
