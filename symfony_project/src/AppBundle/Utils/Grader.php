@@ -726,6 +726,7 @@ class Grader  {
 		
 		$score = [];
 		
+		$score['team_id'] = $team->id;
 		$score['team_name'] = $team->name;
 		$score['num_correct'] = $num_correct;
 		$score['total_penalty'] = $total_penalty;
@@ -764,7 +765,7 @@ class Grader  {
 		$user_index = -1;
 		foreach($scores as &$scr){
 			
-			if($scr['team_name'] == $user_team->name){
+			if($scr['team_id'] == $user_team->id){
 				$user_index = $count;
 			}
 			$count++;
@@ -783,6 +784,38 @@ class Grader  {
 		
 		$leaderboard['scores'] = $scores;
 		$leaderboard['index'] = $user_index;
+		
+		
+		$attempts_per_problem_count = [];
+		$correct_submissions_per_problem_count = [];
+		
+		$probIndex = 0;
+		// loop through each problem 
+		foreach ($assignment->problems as $prob) {
+			
+			$correct_submissions_per_problem_count[$probIndex] = 0;
+			$attempts_per_problem_count[$probIndex] = 0;
+			
+			foreach($scores as $team_score){
+				
+				$prob_correct_maybe = $team_score["results"];
+				$ps = $prob_correct_maybe[$probIndex];
+				
+				if ( $ps == true) {
+					$correct_submissions_per_problem_count[$probIndex]++;
+				}
+				
+				$att = $team_score["attempts"];
+				$attempts_per_problem_count[$probIndex] += $att[$probIndex];
+				
+			}
+			
+			$probIndex++;
+		}
+		
+		$leaderboard['attempts_per_problem_count'] = $attempts_per_problem_count;
+		$leaderboard['correct_submissions_per_problem_count'] = $correct_submissions_per_problem_count;
+		
 		
 		return $leaderboard;
 	}

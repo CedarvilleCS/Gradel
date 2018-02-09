@@ -1,3 +1,15 @@
+{% block stylesheets %}
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
+	
+    <link rel="stylesheet" href="{{ asset('styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('card.css') }}" />
+    <link rel="stylesheet" href="{{ asset('contest-hub.css') }}" />
+	
+	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
+	
+{% endblock %}
+
+
 {% block head %}
 
 <title>Judging | {{current_contest.name}} </title>
@@ -13,7 +25,7 @@
 	{{ include('contest/problem-nav.html.twig') }}
 	
 	
-	<section id="main">
+	<section id="main" class="scrolly">
 		
 		<div class="card">
 			<div id="contest-heading"><h1>{{current_contest.section.name}}</h1></div>
@@ -177,18 +189,6 @@
 
 {% endblock %}
 
-{% block stylesheets %}
-	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
-	
-    <link rel="stylesheet" href="{{ asset('styles.css') }}" />
-    <link rel="stylesheet" href="{{ asset('card.css') }}" />
-    <link rel="stylesheet" href="{{ asset('contest-hub.css') }}" />
-	
-	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
-	
-{% endblock %}
-
-
 {% block scripts %}
     <!-- JQuery -->
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
@@ -198,6 +198,8 @@
 	<script src="{{ asset('js/unicode_return.js') }}"></script>
 	
 	<script>
+		
+		var contest_started = false;
 	
 		var pollAJAX;
 		var judgAJAX;
@@ -205,15 +207,14 @@
 
 		var time = {{"now"|date('U')}} - {{current_contest.start_time|date('U')}}; // current seconds into the contest
 		var total = {{current_contest.end_time|date('U')}} - {{current_contest.start_time|date('U')}};
+		var starttime = {{current_contest.start_time|date('U')}} - {{"now"|date('U')}}; // current seconds until the contest
 		
 		
 		$(window).unload(function() {			
 			pollAJAX.abort();
 			judgAJAX.abort();
 			clarAJAX.abort();
-		});
-		
-		
+		});		
 		
 		//var freeze 
 		$(document).ready( function() {
@@ -420,14 +421,24 @@
 			
 			// update the progress bar
 			$( "#progressbar" ).progressbar( "option", "value", time);
-			time++;
 			
-			// update the scoreboard
-			var left = total-time;
+			if (starttime <= 0) {
+				time++;
+				var left = total-time;
+			} else {
+				starttime--;
+				// update the time left
+				var left = starttime;
+			}
 			
 			if(left <= 0){
 				
-				$('#time-left').text("FINISHED");
+				if(contest_started) {
+					$('#time-left').text("FINISHED");
+				} else {
+					$('#time-left').text("START");
+					contest_started = !contest_started;
+				}
 				
 			} else {
 				
@@ -439,9 +450,14 @@
 				minutes = (minutes < 10) ? "0"+minutes : minutes;
 				seconds = (seconds < 10) ? "0"+seconds : seconds;
 				
-				$('#time-left').text(hours+":"+minutes+":"+seconds+" left");
+				
+				if (starttime <= 0) {
+					$('#time-left').text(hours+":"+minutes+":"+seconds+" left");
+				} else {
+					$('#time-left').text(hours+":"+minutes+":"+seconds+" until start");
+				}
+				
 			}
-			// check for AJAX information
 				
 			//console.log("Polling for updates...");
 			pollJudging();
@@ -1071,6 +1087,7 @@
 		
 		
 	</script>
+	{{ include('contest/contest_gas.html.twig') }}
 	
 {% endblock %}
 

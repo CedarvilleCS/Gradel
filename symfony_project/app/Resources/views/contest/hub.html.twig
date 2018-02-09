@@ -50,9 +50,10 @@
     {{ include('template/top-nav.html.twig') }}
     
 	{{ include('contest/problem-nav.html.twig') }}
+
 	
 	
-	<section id="main">
+	<section id="main" class="scrolly">
 		
 		<div class="card">
 			<div id="contest-heading"><h1>{{current_contest.section.name}}</h1></div>
@@ -75,29 +76,9 @@
 		</div>
 		
 		
-		<div class="parallel-cards">
+		<div class="parallel-cards">		
 		
-		
-			<div class="card" id="leaderboard-card" style="flex-grow: 12; padding: 5px; padding-top: 10px; height: max-content;">
-			
-				{% if elevatedUser %}
-				<div id="scoreboard-button" style="position: absolute; right: 8px; top: 8px; height: 10px; line-height: 10px;"></div>
-				{% endif %}
-				
-				<div id="leaderboard-heading">
-					<h2>Leaderboard</h2>
-				</div>
-				
-				<div id="leaderboard-container" class="card-contents">
-					<table id="leaderboard">
-					
-						
-					
-					
-					</table>
-				</div>
-			</div>
-		
+			{{ block('leaderboard_html', 'contest/leaderboard.twig') }}
 			
 			{% if contest_open %}
 				
@@ -203,7 +184,8 @@
 
 
 {% block scripts %}
-    <!-- JQuery -->
+    
+	<!-- JQuery -->
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 	<script src="{{ asset('js/cards.js') }}"></script>
@@ -231,7 +213,8 @@
 		
 		$(window).unload(function() {
 			
-			pollAJAX.abort();
+			scoreboardPollAJAX.abort();
+			contestPollAJAX.abort();
 			clarAJAX.abort();			
 			freezeAJAX.abort();
 			
@@ -345,64 +328,15 @@
 			}
 			
 		}
+		
 		/* UPDATE THE LEADERBOARD */
 		function updateScoreboard(leaderboard){
 			
-			var tableHTML = "";
-			
-			tableHTML += "<colgroup><col class='name'>";
-				
-				for(var i=0; i<{{current_contest.problems|length}}; i++){
-					tableHTML += "<col class='problem'>"
-				}
-			
-			tableHTML += `</colgroup>
-			
-			<tr>
-				<th class="top-row no-hover"></th>
-				<th class="top-row no-hover">Problems</th>
-				<th class="top-row no-hover">Time</th>
-				{% for problem in current_contest.problems %}
-				<th class="top-row">
-					<a href="{{path('contest_problem', {'contestId': problem.assignment.section.id, 'roundId': problem.assignment.id, 'problemId': problem.id})}}">
-					{{problem.name|slice(0,1)}}
-					</a>
-				</th>
-				{% endfor %}
-			</tr>`;
+			// script for creating the table (takes the leaderboard variable)
+			{{ block('leaderboard_tablecreation', 'contest/leaderboard.twig') }}
 			
 			
-			for(var i = 0; i<leaderboard.scores.length; i++){
-				
-				var team = leaderboard.scores[i];
-				var curr_user = (i==leaderboard.index);
-			
-				tableHTML += "<tr class='" + ((curr_user) ? "curr-user" : "") + "'>";
-				
-				tableHTML += "<td class='rank'>" + team.rank + "</td>";
-				tableHTML += "<td class='name'>" + team.team_name + "</td>";
-				tableHTML += "<td class='time'>" + team.total_penalty + "</td>";
-				
-				for(var j=0; j<team.attempts.length; j++){
-
-					var result = team.results[j];
-				
-					tableHTML += "<td class='" + ((result) ? "accepted" : ((team.attempts[j] > 0) ? "attempted" : "unattempted")) + "'>";
-						
-						tableHTML += "<div class='attempts-count'>" + ((team.attempts[j] > 0) ? team.attempts[j] : "-") + "</div>";
-						
-						tableHTML += "<div class='penalty-mins'>" + ((result) ? team.penalties[j] : ((team.attempts[j] > 0) ? "--" : "-")) + "</div>";
-					
-					tableHTML += "</td>";
-				
-				}
-			
-				tableHTML += "</tr>";
-			}			
-			
-			$('#leaderboard').html(tableHTML);		
-
-			// freeze the scoreboard
+			// freeze the scoreboard?
 			if(!visual_frozen && !unfreeze_override && (time >= freeze || freeze_override)){
 				
 				$('#progressbar-container').addClass('frozen');
@@ -465,9 +399,9 @@
 				// update the time left
 				var left = starttime;
 			}
-
 			
 			if(left <= 0){
+				
 				if(contest_started) {
 					$('#time-left').text("FINISHED");
 				} else {
@@ -485,27 +419,27 @@
 				minutes = (minutes < 10) ? "0"+minutes : minutes;
 				seconds = (seconds < 10) ? "0"+seconds : seconds;
 				
-
-
+				
 				if (starttime <= 0) {
 					$('#time-left').text(hours+":"+minutes+":"+seconds+" left");
 				} else {
-					$('#time-left').text(hours+":"+minutes+":"+seconds+" until contest start");
+					$('#time-left').text(hours+":"+minutes+":"+seconds+" until start");
 				}
+				
 			}
 			
-			// check for AJAX information
-			
+			// check for AJAX information			
 			
 			// change this to a different number to change the frequency
 			if(time % 1 == 0){
 				pollContest();	
+				pollScoreboard();
 			}
 			
 		}
 		
-		function pollContest(override){
-			
+		function pollScoreboard(){
+								
 			// Create a FormData object
 			var formData = new FormData();
 
@@ -514,15 +448,14 @@
 			formData.append('start_time', '{{current_contest.start_time|date('U')}}');
 			formData.append('freeze_time', '{{current_contest.freeze_time|date('U')}}');
 						
-			pollAJAX = $.ajax({
+			scoreboardPollAJAX = $.ajax({
 				type: "POST",
-				url: "{{path('contest_poll')}}",
+				url: "{{path('scoreboard_poll')}}",
 				data: formData,
 				processData: false,
 				contentType: false,
 				async: true,
 				success: function(data){
-					console.log(data);
 					
 					// if page needs to be refreshed
 					if(data['page_refresh'] === true){
@@ -542,6 +475,8 @@
 						unfreeze_override = false;
 						freeze_override = false;
 					}
+					
+			
 										
 					// update the scoreboard
 					{% if elevatedUser %}					
@@ -551,6 +486,33 @@
 					updateScoreboard(data['leaderboard']);
 					
 					{% endif %}
+					
+				},
+				error: function(data){					
+					alert(data['responseText']);
+					console.log(data['responseText']);					
+				}
+			});
+			
+			
+			return true;		
+		}
+		
+		function pollContest(override){
+			
+			// Create a FormData object
+			var formData = new FormData();
+
+			formData.append('contestId', {{current_contest.id}});
+						
+			contestPollAJAX = $.ajax({
+				type: "POST",
+				url: "{{path('contest_poll')}}",
+				data: formData,
+				processData: false,
+				contentType: false,
+				async: true,
+				success: function(data){
 					
 					updateChecklist(data['checklist']);
 					updateClarifications(data['clarifications']);
@@ -651,5 +613,7 @@
 		}
 		
 	</script>
+	{{ include('contest/contest_gas.html.twig') }}
+
 {% endblock %}
 

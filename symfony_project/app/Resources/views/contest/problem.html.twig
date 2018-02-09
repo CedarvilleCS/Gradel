@@ -51,7 +51,7 @@ var markdownText = converter.makeHtml("{{problem.description|e('js')}}");
 	
 	{{ include('contest/problem-nav.html.twig') }}
 
-    <section id="main">
+    <section id="main" class="scrolly">
 
 		<div class="card" style="padding-top: 2px">
 						
@@ -895,5 +895,7 @@ Please re-upload it!
 		}
 	
 	</script>
+	{{ include('contest/contest_gas.html.twig') }}
+
 
 {% endblock %}

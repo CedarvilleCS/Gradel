@@ -19,6 +19,7 @@ use AppBundle\Entity\Testcase;
 use AppBundle\Entity\ProblemLanguage;
 
 use AppBundle\Utils\Grader;
+use AppBundle\Utils\SocketPusher;
 
 use Doctrine\Common\Collections\ArrayCollection;
 
@@ -33,498 +34,7 @@ use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 
 
-class ContestController extends Controller {
-
-	public function contestAction($contestId, $roundId) {
-		
-		$em = $this->getDoctrine()->getManager();
-		$user = $this->get('security.token_storage')->getToken()->getUser();
-
-		if(!$user){
-			die("USER DOES NOT EXIST");
-		}
-
-		# VALIDATION
-		$section = $em->find('AppBundle\Entity\Section', $contestId);
-		if(!$section || !$section->course->is_contest){
-			die("CONTEST DOES NOT EXIST!");
-		}
-		
-		$grader = new Grader($em);
-		$elevatedUser = $grader->isJudging($user, $section) || $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN");
-
-		// elevated or taking and active
-		if( !($elevatedUser || ($grader->isTaking($user, $section) && $section->isActive())) ){
-			
-			return $this->returnForbiddenResponse("PERMISSION DENIED");
-		}
-
-		# GET CURRENT CONTEST		
-		$allContests = $section->assignments->toArray();	
-		$currTime = new \DateTime('now');
-		
-		$current = null;
-		// decide the round for the users
-		if ($roundId == 0){
-			
-			// if the round was not provided, we need to default to the proper contest for them
-			// get the one that will start next/is currently going on
-			foreach($allContests as $cont) {
-				
-				// choose the one that ends next
-				if ($currTime <= $cont->end_time) {
-					$current = $cont;
-					break;
-				}
-			}
-			
-			// if all the contest are past, get the final one
-			if(!$current){
-				$current = $allContests[count($allContests)-1];
-			}
-			
-		}
-		// use the round provided
-		else {			
-			$current = $em->find("AppBundle\Entity\Assignment", $roundId);
-		}
-	
-		if(!$current || $current->section != $section){
-			die("ROUND DOES NOT EXIST");
-		}	
-		
-		$team = $grader->getTeam($user, $current);
-
-		$leaderboard = $grader->getLeaderboard($user, $current);
-		
-		# get the queries
-		if($grader->isJudging($user, $section) || $user->hasRole("ROLE_ADMIN") || $user->hasRole("ROLE_SUPER")){
-			$extra_query = "OR 1=1";
-		} else {
-			$extra_query = "";
-		}
-		
-		$qb_queries = $em->createQueryBuilder();
-		$qb_queries->select('q')
-			->from('AppBundle\Entity\Query', 'q')
-			->where('q.assignment = (?1)')
-			->andWhere('q.asker = ?2 OR q.asker IS NULL '.$extra_query)
-			->orderBy('q.timestamp', 'ASC')
-			->setParameter(1, $current)
-			->setParameter(2, $team);
-		$query_query = $qb_queries->getQuery();
-		$queries = $query_query->getResult();
-		
-		$attempts_per_problem_count = [];
-		$correct_submissions_per_problem_count = [];
-		
-		$scores = $leaderboard["scores"];
-		$index = 0;
-		foreach ($current->problems as $prob) {
-			$correct_submissions_per_problem_count[$index] = 0;
-			$attempts_per_problem_count[$index] = 0;
-			foreach($scores as $team_score){
-				$prob_correct_maybe = $team_score["results"];
-				$ps = $prob_correct_maybe[$index];
-				if ( $ps == true) {
-					$correct_submissions_per_problem_count[$index]++;
-				}
-				else {
-				}
-				$att = $team_score["attempts"];
-				$attempts_per_problem_count[$index] += $att[$index];
-				
-			}
-			
-			$index++;
-		}
-    
-		# set open/not open
-		if($elevatedUser || ($current->start_time <= $currTime)){
-			$contest_open = true;
-		} else {
-			$contest_open = false;
-		}
-		
-		return $this->render('contest/hub.html.twig', [
-			'user' => $user,
-			'team' => $team,
-			
-			'section' => $section,
-
-      'grader' => $grader,
-			'leaderboard' => $leaderboard, 			
-			'attempts_per_problem_count' => $attempts_per_problem_count,
-			'correct_submissions_per_problem_count' => $correct_submissions_per_problem_count,
-			'current_contest' => $current,
-			
-			'contest_open' => $contest_open,
-			
-			'contests' => $allContests,
-			'elevatedUser' => $elevatedUser,
-		]);
-    }
-
-	public function problemAction($contestId, $roundId, $problemId) {
-				
-		$em = $this->getDoctrine()->getManager();
-
-		$user = $this->get('security.token_storage')->getToken()->getUser();
-
-		if(!$user){
-			die("USER DOES NOT EXIST");
-		}
-
-		# VALIDATION
-		$section = $em->find('AppBundle\Entity\Section', $contestId);
-		if(!$section || !$section->course->is_contest){
-			die("404 - CONTEST DOES NOT EXIST!");
-		}
-		
-		$assignment = $em->find('AppBundle\Entity\Assignment', $roundId);		
-		if(!$assignment || $assignment->section != $section){
-			die("404 - ASSIGNMENT DOES NOT EXIST!");
-		}
-		
-		$problem = $em->find('AppBundle\Entity\Problem', $problemId);		
-		if(!$problem || $problem->assignment != $assignment){
-			die("404 - PROBLEM DOES NOT EXIST!");
-		}
-		
-		
-		$grader = new Grader($em);
-		$elevatedUser = $grader->isJudging($user, $section) || $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN");
-
-		// elevated or taking and open
-		if( !($elevatedUser || ($grader->isTaking($user, $section) && $assignment->isOpened())) ){
-			
-			return $this->returnForbiddenResponse("PERMISSION DENIED");
-		}
-		
-		// get JSON info for language info
-		$problem_languages = $problem->problem_languages->toArray();
-		
-		$languages = [];
-		$default_code = [];
-		$ace_modes = [];
-		$filetypes = [];
-		
-		foreach($problem_languages as $pl){
-			$languages[] = $pl->language;
-			
-			$ace_modes[$pl->language->name] = $pl->language->ace_mode;
-			$filetypes[str_replace(".", "", $pl->language->filetype)] = $pl->language->name;
-			
-			// either get the default code from the problem or from the overall default
-			if($pl->default_code != null){
-				$default_code[$pl->language->name] = $pl->deblobinateDefaultCode();
-			} else{
-				$default_code[$pl->language->name] = $pl->language->deblobinateDefaultCode();
-			}
-		}
-				
-		$grader = new Grader($em);
-		$team = $grader->getTeam($user, $assignment);
-		
-		// get the list of all submissions by the team/user
-		if($team){
-			$all_submissions = $em->getRepository('AppBundle\Entity\Submission')->findBy([
-				'team' => $team,
-				'problem' => $problem,
-				'is_completed' => true,
-			], ['timestamp'=>'DESC']);
-		}
-		// no team, so it is just a user (judge)
-		else {
-			$all_submissions = $em->getRepository('AppBundle\Entity\Submission')->findBy([
-				'user' => $user,
-				'problem' => $problem,
-				'is_completed' => true,
-			], ['timestamp'=>'DESC']);
-		}
-		
-		// get the trial for the problem
-		$trial = $em->getRepository('AppBundle\Entity\Trial')->findOneBy([
-			'user' => $user,
-			'problem' => $problem,
-		]);
-		
-		# get the queries
-		if($elevatedUser){
-			$extra_query = "OR 1=1";
-		} else {
-			$extra_query = "";
-		}
-		
-		$qb_queries = $em->createQueryBuilder();
-		$qb_queries->select('q')
-			->from('AppBundle\Entity\Query', 'q')
-			->where('q.problem = (?1)')
-			->andWhere('q.asker = ?2 OR q.asker IS NULL '.$extra_query)
-			->orderBy('q.timestamp', 'ASC')
-			->setParameter(1, $problem)
-			->setParameter(2, $team);
-		$query_query = $qb_queries->getQuery();
-		$queries = $query_query->getResult();		
-		
-		
-		# set open/not open
-		$currTime = new \DateTime("now");
-		if($elevatedUser || ($assignment->start_time <= $currTime)){
-			$contest_open = true;
-		} else {
-			$contest_open = false;
-		}
-		
-		if(!$contest_open){
-			
-			return $this->redirectToRoute('contest', ['contestId' => $assignment->section->id, 'roundId' => $assignment->id]);
-		}
-		
-		# submission updating trial
-		if($_GET["submissionId"] && $_GET["submissionId"] > 0){
-			
-			$submission = $em->find("AppBundle\Entity\Submission", $_GET["submissionId"]);
-			
-			if(!$elevatedUser && ($submission->user != $user || $submission->problem != $problem)){
-				die("You are not allowed to edit this submission on this problem!");
-			}
-			
-			if(!$trial){
-				$trial = new Trial();
-				
-				$trial->user = $user;
-				$trial->problem = $problem;
-				$trial->language = $submission->language;			
-				$trial->show_description = true;
-				
-				$em->persist($trial);
-			}
-			
-			$trial->file = $submission->submitted_file;
-						
-			
-			$trial->filename = $submission->filename;
-			$trial->main_class = $submission->main_class_name;
-			$trial->package_name = $submission->package_name;
-			$trial->last_edit_time = new \DateTime("now");
-		}
-		
-								
-		return $this->render('contest/problem.html.twig', [
-			'user' => $user,
-			'team' => $team,
-			
-			'section' => $section,
-			
-			'current_contest' => $assignment,
-			'contest_open' => $contest_open,
-			
-			'problem' => $problem,
-			'trial' => $trial,
-			
-			'queries' => $queries, 
-
-			'grader' => $grader,
-			
-			'all_submissions' => $all_submissions,
-
-			'languages' => $languages,
-			'default_code' => $default_code,
-			'ace_modes' => $ace_modes,
-			'filetypes' => $filetypes,
-		]);
-    }
-	
-	public function judgingAction($contestId, $roundId){
-		
-		$em = $this->getDoctrine()->getManager();
-
-		$user = $this->get('security.token_storage')->getToken()->getUser();
-		if(!$user){
-			die("USER DOES NOT EXIST");
-		}
-		$section = $em->find('AppBundle\Entity\Section', $contestId);
-		if(!$section || !$section->course->is_contest){
-			die("CONTEST DOES NOT EXIST!");
-		}
-		
-		$allContests = $section->assignments;
-		
-		# get the current contest (see contestAction for a duplicate function)
-		$current = $em->find("AppBundle\Entity\Assignment", $roundId);
-		
-		if(!$current || $current->section != $section){
-			die("404 - CONTEST DOES NOT EXIST");
-		}	
-		
-		$grader = new Grader($em);		
-		$elevatedUser = $grader->isJudging($user, $section) || $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN");
-
-		// elevated
-		if( !($elevatedUser) ){
-			
-			return $this->returnForbiddenResponse("PERMISSION DENIED");
-		}
-		
-		return $this->render('contest/judging.html.twig', [
-			'section' => $section,
-			'grader' => $grader,
-						
-			'elevatedUser' => $elevatedUser,
-						
-			'current_contest' => $current,
-			
-			'contests' => $allContests,
-			
-			'contest_open' => true,
-			
-			'pending_submissions' => $pending_submissions,
-
-			'section_takers' => $section_takers,
-			'section_judges' => $section_judges,
-		]);	
-	}	
-		
-	public function problemEditAction($contestId, $roundId, $problemId) {
-				
-		$em = $this->getDoctrine()->getManager();
-
-		$user = $this->get('security.token_storage')->getToken()->getUser();
-		if(!$user){
-			die("USER DOES NOT EXIST");
-		}
-		
-		$section = $em->find('AppBundle\Entity\Section', $contestId);
-		if(!$section || !$section->course->is_contest){
-			die("SECTION (CONTEST) DOES NOT EXIST!");
-		}
-		
-		$contest = $em->find('AppBundle\Entity\Assignment', $roundId);
-		if(!$contest || $contest->section != $section){
-			die("ASSIGNMENT (ROUND) DOES NOT EXIST!");
-		}
-		
-		if($problemId != 0){
-		
-			$problem = $em->find('AppBundle\Entity\Problem', $problemId);
-			if(!$problem || $problem->assignment != $contest){
-				die("PROBLEM DOES NOT EXIST!");
-			}
-			
-		} else {
-			
-			$problem = null;			
-		}
-		
-		$grader = new Grader($em);
-		$elevatedUser = $grader->isJudging($user, $section) || $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN");
-
-		// elevated 
-		if( !($elevatedUser) ){			
-			return $this->returnForbiddenResponse("PERMISSION DENIED");
-		}
-		
-		$default_code = [];
-		$ace_modes = [];
-		$filetypes = [];
-		
-		$languages = $em->getRepository('AppBundle\Entity\Language')->findAll();		
-		foreach($languages as $l){
-			
-			$ace_modes[$l->name] = $l->ace_mode;
-			$filetypes[str_replace(".", "", $l->filetype)] = $l->name;
-			
-			// either get the default code from the problem or from the overall default
-			$default_code[$l->name] = $l->deblobinateDefaultCode();
-		}		
-		
-		//die(json_encode($problem, JSON_PRETTY_PRINT));		
-		
-		return $this->render('contest/problem_edit.html.twig', [
-			'contest' => $contest,
-			'current' => $contest,
-			'current_contest' => $contest, 
-			
-			'problem' => $problem,
-			
-			'languages' => $languages, 
-			
-			'ace_modes' => $ace_modes,
-			'filetypes' => $filetypes,
-			'default_code' => $default_code,
-		]);
-	}
-	
-	public function contestEditAction($contestId) {
-		
-		$em = $this->getDoctrine()->getManager();
-
-		$user = $this->get('security.token_storage')->getToken()->getUser();
-
-		if(!$user){
-			die("USER DOES NOT EXIST");
-		}
-
-		# VALIDATION
-		if($contestId != 0){
-			$section = $em->find('AppBundle\Entity\Section', $contestId);
-
-			if(!$section || !$section->course->is_contest){
-				die("404 - SECTION (CONTEST) DOES NOT EXIST!");
-			}
-			
-			$course = $section->course;
-			
-			$grader = new Grader($em);
-			$elevatedUser = $grader->isJudging($user, $section) || $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN");
-					
-			# get the judges
-			$judgeRole = $em->getRepository("AppBundle\Entity\Role")->findOneBy([
-				'role_name' => 'Judges',
-			]);
-			
-			$judges = $em->getRepository('AppBundle\Entity\UserSectionRole')->findBy([
-				'section' => $section,
-				'role' => $judgeRole,
-			]);
-			
-			# get freeze time diff
-			$di = $section->assignments[1]->end_time->diff($section->assignments[1]->freeze_time);
-		
-			$freeze_diff_minutes = $di->i;
-			$freeze_diff_hours = ($di->days * 24) + $di->h;
-		
-		} else {
-			
-			// TODO FIX THIS LINE
-			$course = $em->find("AppBundle\Entity\Course", 2);
-			
-			$section = null;
-			$freeze_diff_hours = 1;
-			$freeze_diff_minutes = 0;
-			
-			$judges = [];
-			$elevatedUser = $user->hasRole("ROLE_ADMIN") || $user->hasRole("ROLE_SUPER");
-		}
-		
-		if( !($elevatedUser) ){
-			
-			return $this->returnForbiddenResponse("PERMISSION DENIED");
-		}
-		
-		return $this->render('contest/edit.html.twig', [
-			'course' => $course,
-			'section' => $section,
-			
-			'freeze_diff_hours' => $freeze_diff_hours,
-			'freeze_diff_minutes' => $freeze_diff_minutes,
-			
-			'judges' => $judges,
-			
-			"elevatedUser" => $elevatedUser,
-		]);
-	}
+class ContestPostController extends Controller {
 
 	public function modifyProblemPostAction(Request $request){
 		
@@ -1155,387 +665,6 @@ class ContestController extends Controller {
 
 		return $response;	
 	}
-
-	public function resultAction($contestId, $roundId, $problemId, $resultId){
-		
-		$em = $this->getDoctrine()->getManager();
-
-		$user = $this->get('security.token_storage')->getToken()->getUser();
-
-		if(!$user){
-			die("USER DOES NOT EXIST");
-		}
-		
-		
-		$section = $em->find('AppBundle\Entity\Section', $contestId);
-		if(!$section || !$section->course->is_contest){
-			die("404 - CONTEST DOES NOT EXIST!");
-		}
-		
-		$assignment = $em->find('AppBundle\Entity\Assignment', $roundId);		
-		if(!$assignment || $assignment->section != $section){
-			die("404 - ASSIGNMENT DOES NOT EXIST!");
-		}
-		
-		$problem = $em->find('AppBundle\Entity\Problem', $problemId);		
-		if(!$problem || $problem->assignment != $assignment){
-			die("404 - PROBLEM DOES NOT EXIST!");
-		}	
-
-		$submission = $em->find('AppBundle\Entity\Submission', $resultId);		
-		if(!$submission || $submission->problem != $problem || !$submission->is_completed){
-			die("404 - SUBMISSION DOES NOT EXIST");
-		}
-
-		$grader = new Grader($em);
-		$elevatedUser = $grader->isJudging($user, $section) || $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN");
-
-		$team = $grader->getTeam($user, $assignment);
-		
-		// elevated or on submission team
-		if( !($elevatedUser || $team == $submission->team) ){
-			
-			return $this->returnForbiddenResponse("PERMISSION DENIED");
-		}
-		
-		return $this->render('contest/result.html.twig', [
-		
-			'user' => $user,
-			'team' => $team,
-		
-			'problem' => $problem,
-			'current_contest' => $assignment,
-			'submission' => $submission,
-			
-			'contest_open' => true,
-		
-			'grader' => new Grader($em),
-		]);
-		
-	}
-	
-	public function scoreboardAction($contestId, $roundId){
-				
-		$em = $this->getDoctrine()->getManager();
-		$user = $this->get('security.token_storage')->getToken()->getUser();
-		$grader = new Grader($em);
-		
-		if(!$user){
-			die("404 - USER DOES NOT EXIST");
-		}
-
-		# VALIDATION
-		$section = $em->find('AppBundle\Entity\Section', $contestId);
-
-		if(!$section || !$section->course->is_contest){
-			die("404 - CONTEST DOES NOT EXIST!");
-		}
-		
-		$assignment = $em->find('AppBundle\Entity\Assignment', $roundId);
-		
-		if(!$assignment || $assignment->section != $section){
-			die("404 - ROUND DOES NOT EXIST!");
-		}
-		
-		
-		$elevatedUser = $grader->isJudging($user, $section) || $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN");
-		$team = $grader->getTeam($user, $assignment);
-		
-		# elevated or section active
-		if( !($elevatedUser || $section->isActive()) ){			
-			return $this->returnForbiddenResponse("PERMISSION DENIED");
-		}
-		
-		
-		# set open/not open
-		if($elevatedUser || ($current->start_time <= $currTime)){
-			$contest_open = true;
-		} else {
-			$contest_open = false;
-		}
-		
-		return $this->render('contest/scoreboard.html.twig', [
-			'user' => $user,
-			'team' => $team,
-			
-			'section' => $section,
-			'grader' => $grader, 			
-			
-			'current_contest' => $assignment,
-			'contest_open' => $contest_open,
-			
-			'elevatedUser' => $elevatedUser,
-		]);
-		
-	}
-	
-	public function pollContestAction(Request $request){
-		
-		$em = $this->getDoctrine()->getManager();
-		$grader = new Grader($em);
-
-		$user = $this->get('security.token_storage')->getToken()->getUser();
-		if(!$user){
-			return $this->returnForbiddenResponse('User does not exist.');
-		}
-		
-		# post data
-		$postData = $request->request->all();
-		
-		$contest = $em->find('AppBundle\Entity\Assignment', $postData['contestId']);		
-		if(!$contest){
-			return $this->returnForbiddenResponse('Contest ID is not valid.');
-		}		
-		
-		$section = $contest->section;
-		
-		# validation
-		$elevatedUser = $grader->isJudging($user, $section) || $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN");
-		
-		// elevated or taking and active
-		if( !($elevatedUser || ($grader->isTaking($user, $section) && $section->isActive())) ){
-			return $this->returnForbiddenResponse("PERMISSION DENIED");
-		}
-		
-		# leaderboard
-		$leaderboard = $grader->getLeaderboard($user, $contest, false);
-				
-		# scoreboard frozen status
-		$frozen_override = false;
-		$unfrozen_override = false;
-		// if the override is set and theres is a time, its frozen
-		if($contest->freeze_override && $contest->freeze_override_time){				
-			$frozen_override = true;				
-		} 
-		// if the override is set but no time, its unfrozen
-		else if($contest->freeze_override) {			
-			$unfrozen_override = true;	
-		}
-		
-		# get the queries
-		if($grader->isJudging($user, $contest->section) || $user->hasRole("ROLE_ADMIN") || $user->hasRole("ROLE_SUPER")){
-			$extra_query = "OR 1=1";
-		} else {
-			$extra_query = "";
-			$team = $grader->getTeam($user, $contest);
-		}
-		
-		$qb_queries = $em->createQueryBuilder();
-		$qb_queries->select('q')
-			->from('AppBundle\Entity\Query', 'q')
-			->where('q.assignment = (?1)')
-			->andWhere('q.asker = ?2 OR q.asker IS NULL '.$extra_query)
-			->orderBy('q.timestamp', 'ASC')
-			->setParameter(1, $contest)
-			->setParameter(2, $team);
-		$query_query = $qb_queries->getQuery();
-		$queries = $query_query->getResult();
-		
-		$checklist = ["hi", "hello", "hey"];
-		
-		# determine if a page refresh is needed
-		if((isset($postData['end_time']) && $postData['end_time'] != $contest->end_time->format('U'))
-			|| (isset($postData['start_time']) && $postData['start_time'] != $contest->start_time->format('U'))
-			|| (isset($postData['freeze_time']) && $postData['freeze_time'] != $contest->freeze_time->format('U'))){
-			$page_refresh = true;
-		} else {
-			$page_refresh = false;
-		}
-	
-		$response = new Response(json_encode([
-			'leaderboard' => $leaderboard,
-			'frozen_override' => $frozen_override,
-			'unfrozen_override' => $unfrozen_override,
-			'page_refresh' => $page_refresh,
-			'clarifications' => $queries,
-			'checklist' => $checklist,
-		]));
-			
-		
-		$response->headers->set('Content-Type', 'application/json');
-		$response->setStatusCode(Response::HTTP_OK);
-
-		return $response;
-	}
-	
-	public function pollScoreboardAction(Request $request){
-		$em = $this->getDoctrine()->getManager();
-		$grader = new Grader($em);
-
-		$user = $this->get('security.token_storage')->getToken()->getUser();
-		if(!$user){
-			return $this->returnForbiddenResponse('User does not exist.');
-		}
-		
-		# post data
-		$postData = $request->request->all();
-		
-		$assignment = $em->find('AppBundle\Entity\Assignment', $postData['contestId']);		
-		if(!$assignment){
-			return $this->returnForbiddenResponse('Contest ID is not valid.');
-		}		
-		
-		$section = $assignment->section;
-		
-		# validation
-		$elevatedUser = $grader->isJudging($user, $section) || $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN");
-		
-		# elevated or section active
-		if( !($section->isActive()) ){			
-			return $this->returnForbiddenResponse("PERMISSION DENIED");
-		}
-				
-		# leaderboad
-		$leaderboard = $grader->getLeaderboard($user, $assignment, $postData['normal_user']);
-				
-		# scoreboard frozen status
-		$frozen_override = false;
-		$unfrozen_override = false;
-		// if the override is set and theres is a time, its frozen
-		if($assignment->freeze_override && $assignment->freeze_override_time){				
-			$frozen_override = true;				
-		} 
-		// if the override is set but no time, its unfrozen
-		else if($assignment->freeze_override) {			
-			$unfrozen_override = true;	
-		}		
-		
-		# determine if a page refresh is needed
-		if((isset($postData['end_time']) && $postData['end_time'] != $assignment->end_time->format('U'))
-			|| (isset($postData['start_time']) && $postData['start_time'] != $assignment->start_time->format('U'))
-			|| (isset($postData['freeze_time']) && $postData['freeze_time'] != $assignment->freeze_time->format('U'))){
-			$page_refresh = true;
-		} else {
-			$page_refresh = false;
-		}
-	
-		$response = new Response(json_encode([
-			'leaderboard' => $leaderboard,
-			'frozen_override' => $frozen_override,
-			'unfrozen_override' => $unfrozen_override,
-			'page_refresh' => $page_refresh,
-		]));
-			
-		
-		$response->headers->set('Content-Type', 'application/json');
-		$response->setStatusCode(Response::HTTP_OK);
-
-		return $response;
-	}
-	
-	public function pollJudgingAction(Request $request){
-		
-		$em = $this->getDoctrine()->getManager();
-		$grader = new Grader($em);
-
-		$user = $this->get('security.token_storage')->getToken()->getUser();
-		if(!$user){
-			return $this->returnForbiddenResponse('User does not exist.');
-		}
-		
-		# post data
-		$postData = $request->request->all();
-		
-		$contest = $em->find('AppBundle\Entity\Assignment', $postData['contestId']);		
-		if(!$contest){
-			return $this->returnForbiddenResponse('Contest ID is not valid.');
-		}
-
-		$section = $contest->section;
-		
-		# validation
-		$elevatedUser = $grader->isJudging($user, $section) || $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN");
-
-		if( !($elevatedUser) ){
-			
-			return $this->returnForbiddenResponse("PERMISSION DENIED");
-		}
-		
-		# get the pending submissions
-		$qb_allsubs = $em->createQueryBuilder();
-		$qb_allsubs->select('s')
-			->from('AppBundle\Entity\Submission', 's')
-			->where('s.problem IN (?1)')
-			->andWhere('s.pending_status = ?2')
-			->andWhere('s.is_completed = ?3')
-			->orderBy('s.timestamp', 'ASC')
-			->setParameter(1, $contest->problems->toArray())
-			->setParameter(2, 0)
-			->setParameter(3, true);
-		$subs_query = $qb_allsubs->getQuery();
-		$pending_submissions = $subs_query->getResult();
-				
-		$qb_revsubs = $em->createQueryBuilder();
-		$qb_revsubs->select('s')
-			->from('AppBundle\Entity\Submission', 's')
-			->where('s.problem IN (?1)')
-			->andWhere('s.pending_status = ?2')
-			->andWhere('s.is_completed = ?3')
-			->andWhere('s.team IS NOT NULL')
-			->orderBy('s.timestamp', 'ASC')
-			->setParameter(1, $contest->problems->toArray())
-			->setParameter(2, 2)
-			->setParameter(3, true);
-		$rev_subs_query = $qb_revsubs->getQuery();
-		$reviewed_submissions = $rev_subs_query->getResult();
-		
-		# get user's claimed subs
-		$qb_claimed = $em->createQueryBuilder();
-		$qb_claimed->select('s')
-			->from('AppBundle\Entity\Submission', 's')
-			->where('s.problem IN (?1)')
-			->andWhere('s.pending_status = ?2')
-			->andWhere('s.reviewer = ?3')
-			->andWhere('s.is_completed = ?4')
-			->orderBy('s.timestamp', 'ASC')
-			->setParameter(1, $contest->problems->toArray())
-			->setParameter(2, 1)
-			->setParameter(3, $user)
-			->setParameter(4, true);
-		$claim_query = $qb_claimed->getQuery();
-		$claimed_submissions = $claim_query->getResult();
-				
-		// get the queries for the contest
-		$qb_clars = $em->createQueryBuilder();
-		$qb_clars->select('s')
-			->from('AppBundle\Entity\Query', 's')
-			->where('s.problem IN (?1)')
-			->orWhere('s.assignment IN (?2)')
-			->andWhere('s.answer IS NULL')
-			->orderBy('s.timestamp', 'ASC')
-			->setParameter(1, $contest->problems->toArray())
-			->setParameter(2, $contest);
-		$clar_query = $qb_clars->getQuery();
-		$clarifications = $clar_query->getResult();	
-		
-		// get the answered queries for the contest
-		$qb_ans = $em->createQueryBuilder();
-		$qb_ans->select('s')
-			->from('AppBundle\Entity\Query', 's')
-			->where('s.problem IN (?1)')
-			->orWhere('s.assignment IN (?2)')
-			->andWhere('s.answer IS NOT NULL')
-			->orderBy('s.timestamp', 'ASC')
-			->setParameter(1, $contest->problems->toArray())
-			->setParameter(2, $contest);
-		$ans_query = $qb_ans->getQuery();
-		$answered_clarifications = $ans_query->getResult();	
-		
-		$response = new Response(json_encode([
-			'pending_submissions' => $pending_submissions,
-			'reviewed_submissions' => $reviewed_submissions,
-			'claimed_submissions' => $claimed_submissions,
-			
-			'clarifications' => $clarifications,
-			'answered_clarifications' => $answered_clarifications,
-		]));
-			
-		
-		$response->headers->set('Content-Type', 'application/json');
-		$response->setStatusCode(Response::HTTP_OK);
-
-		return $response;
-	}
 	
 	public function postQuestionAction(Request $request){
 		
@@ -1707,6 +836,7 @@ class ContestController extends Controller {
 		
 		$em = $this->getDoctrine()->getManager();		
 		$grader = new Grader($em);
+		$pusher = new SocketPusher($this->container->get('gos_web_socket.wamp.pusher'));
 
 		$user = $this->get('security.token_storage')->getToken()->getUser();
 		if(!$user){
@@ -1766,6 +896,13 @@ class ContestController extends Controller {
 					
 					$submission->wrong_override = false;
 					$submission->correct_override = false;
+
+					$pusher->pushUserSpecificMessage(
+						$pusher->buildRejection($submission),
+						$pusher->getUsernamesFromTeam($submission->team),
+						$submission->problem->assignment->section->id,
+						true
+					);
 				}
 				
 			} else if($postData['type'] == "correct"){
@@ -1786,12 +923,28 @@ class ContestController extends Controller {
 					
 				// delete the submission
 				$subId = $submission->id;
-				$em->remove($submission);			
+				$em->remove($submission);
+
+				// show card
+				$pusher->pushUserSpecificMessage(
+					$pusher->buildDeleteRejection($submission),
+					$pusher->getUsernamesFromTeam($submission->team),
+					$submission->problem->assignment->section->id,
+					true
+				);
 					
 			} else if($postData['type'] == "formatting"){
 						
 				// add formatting message to submission
 				$submission->judge_message = "Formatting Error";
+				// show card
+				$pusher->pushUserSpecificMessage(
+					$pusher->buildFormattingRejection($submission),
+					$pusher->getUsernamesFromTeam($submission->team),
+					$submission->problem->assignment->section->id,
+					true
+				);
+				
 						
 			} else if($postData['type'] == "message"){
 				
@@ -1801,7 +954,15 @@ class ContestController extends Controller {
 				if(!isset($message) || trim($message) == ""){
 					$submission->judge_message = NULL;
 				} else {
-					$submission->judge_message = trim($postData['message']);	
+					$submission->judge_message = trim($postData['message']);
+
+					// show card
+					$pusher->pushUserSpecificMessage(
+						$pusher->buildCustomRejection($submission),
+						$pusher->getUsernamesFromTeam($submission->team),
+						$submission->problem->assignment->section->id,
+						true
+					);
 				}			
 							
 			} else if($postData['type'] == "claimed"){
@@ -1910,10 +1071,29 @@ class ContestController extends Controller {
 			$response->headers->set('Content-Type', 'application/json');
 			$response->setStatusCode(Response::HTTP_OK);
 
+			if ($query->asker->users == null) {
+				$pusher->pushGlobalMessage(
+					$pusher->buildClarificationMessageFromQuery($query),
+					$section->id
+				);
+			}
+			else {
+				$pusher->pushUserSpecificMessage(
+					$pusher->buildClarificationMessageFromQuery($query),
+					$pusher->getUsernamesFromTeam($query->asker),
+					$section->id,
+					false
+				);
+			}
+
 			return $response;
 						
 		}
 		else if($postData['type'] == 'clear-subs'){
+			
+			if($contest->isActive()){
+				return $this->returnForbiddenResponse("Cannot do this while the contest is running.");
+			}
 			
 			$qb = $em->createQueryBuilder();
 			$qb->delete('AppBundle\Entity\Submission', 's')
@@ -1934,6 +1114,11 @@ class ContestController extends Controller {
 			return $response; 		
 		}
 		else if($postData['type'] == 'clear-clars'){
+			
+			if($contest->isActive()){
+				return $this->returnForbiddenResponse("Cannot do this while the contest is running.");
+			}
+			
 			
 			$qb = $em->createQueryBuilder();
 			$qb->delete('AppBundle\Entity\Query', 'q')
@@ -1968,8 +1153,6 @@ class ContestController extends Controller {
 		return $response;
 	}
 
-	
-	
 }
 
 ?>

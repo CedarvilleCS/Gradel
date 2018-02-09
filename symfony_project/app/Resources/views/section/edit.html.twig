@@ -55,7 +55,7 @@
 							<label for="course">Course</label>
 							<select name="course" id="course">
 							{% for course in courses %}
-								<option value="{{course.id}}">{{course.name}}</option>
+								<option value="{{course.id}}" id="{{course.is_contest ? 'yes' : 'no'}}">{{course.name}}</option>
 							{% endfor %}
 							</select>
 						</th> </tr>
@@ -173,7 +173,23 @@
 	<script>
 
 		$(document).ready(function() {
+			
+			var toContest = [];
 
+			{% for course in courses %}
+			toContest[{{course.id}}] = {% if course.is_contest %} true {% else %} false {% endif %};
+			{% endfor %}
+			
+			$('#course').change( function() {
+				
+				
+				
+				if(toContest[$(this).val()]){
+					window.location = "{{ path('contest_edit', {'contestId': 0, 'courseId': ''} ) }}"+$(this).val();	
+				}
+				
+			});
+		
 			$('#year').val("{{'now'|date('Y')}}");
 
 			$('#startdatepicker').datepicker({

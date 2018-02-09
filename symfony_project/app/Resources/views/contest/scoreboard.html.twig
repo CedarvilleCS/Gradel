@@ -73,21 +73,7 @@
 		</div>
 		
 		
-		<div class="card" id="leaderboard-card" style="flex-grow: 12; padding: 5px; padding-top: 10px; height: max-content;">
-		
-			{% if elevatedUser %}
-			<div id="scoreboard-button" style="position: absolute; right: 8px; top: 8px; height: 10px; line-height: 10px;"></div>
-			{% endif %}
-			
-			<div id="leaderboard-heading">
-				<h2>Leaderboard</h2>
-			</div>
-			
-			<div id="leaderboard-container" class="card-contents">
-				<table id="leaderboard">					
-				</table>
-			</div>
-		</div>
+		{{ block('leaderboard_html', 'contest/leaderboard.twig') }}
 		
 	</section>
 
@@ -106,12 +92,14 @@
 	
 	<script>
 	
+		var contest_started = false;
 	
-		var pollAJAX;
+		var scoreboardPollAJAX;
 		
 		var time = {{"now"|date('U')}} - {{current_contest.start_time|date('U')}}; // current seconds into the contest
 		var total = {{current_contest.end_time|date('U')}} - {{current_contest.start_time|date('U')}};
 		var freeze = {{current_contest.freeze_time|date('U')}} - {{current_contest.start_time|date('U')}};
+		var starttime = {{current_contest.start_time|date('U')}} - {{"now"|date('U')}}; // current seconds until the contest
 		
 		var frozen = {{("now"|date('U') >= current_contest.freeze_time|date('U')) ? 'true' : 'false'}};
 		var visual_frozen = false;
@@ -125,7 +113,7 @@
 		
 		$(window).unload(function() {
 			
-			pollAJAX.abort();
+			scoreboardPollAJAX.abort();
 			
 		});
 				
@@ -147,11 +135,6 @@
 				postScoreboardUnfreeze();
 			});
 			{% endif %}
-					
-			/* LOOP */
-			setInterval(loopFunction, 1000);
-			loopFunction();
-			pollContest(true);
 			
 			$('#scoreboard-button').animate({
 					opacity: 0.00,
@@ -170,8 +153,12 @@
 
 				clearInterval(scrollPageInterval);
 				scrollPageInterval = setInterval(scrollPage, 25000);					
-			});				
-				
+			});		
+			
+			/* LOOP */
+			setInterval(loopFunction, 1000);
+			loopFunction();
+			pollScoreboard();				
 		});
 		
 		function scrollPage(){
@@ -195,58 +182,9 @@
 		/* UPDATE THE LEADERBOARD */
 		function updateScoreboard(leaderboard){
 			
-			var tableHTML = "";
-			
-			tableHTML += "<colgroup><col class='name'>";
-				
-				for(var i=0; i<{{current_contest.problems|length}}; i++){
-					tableHTML += "<col class='problem'>"
-				}
-			
-			tableHTML += `</colgroup>
-			
-			<tr>
-				<th class="top-row no-hover"></th>
-				<th class="top-row no-hover">Problems</th>
-				<th class="top-row no-hover">Time</th>
-				{% for problem in current_contest.problems %}
-				<th class="top-row">
-					{{problem.name|slice(0,1)}}
-				</th>
-				{% endfor %}
-			</tr>`;
-			
-			
-			for(var i = 0; i<leaderboard.scores.length; i++){
-				
-				var team = leaderboard.scores[i];
-				
-				tableHTML += "<tr>";
-				
-				tableHTML += "<td class='rank'>" + team.rank + "</td>";
-				tableHTML += "<td class='name'>" + team.team_name + "</td>";
-				tableHTML += "<td class='time'>" + team.total_penalty + "</td>";
-				
-				for(var j=0; j<team.attempts.length; j++){
+			{{ block('leaderboard_tablecreation', 'contest/leaderboard.twig') }}
 
-					var result = team.results[j];
-				
-					tableHTML += "<td class='" + ((result) ? "accepted" : ((team.attempts[j] > 0) ? "attempted" : "unattempted")) + "'>";
-						
-						tableHTML += "<div class='attempts-count'>" + ((team.attempts[j] > 0) ? team.attempts[j] : "-") + "</div>";
-						
-						tableHTML += "<div class='penalty-mins'>" + ((result) ? team.penalties[j] : ((team.attempts[j] > 0) ? "--" : "-")) + "</div>";
-					
-					tableHTML += "</td>";
-				
-				}
-			
-				tableHTML += "</tr>";
-			}			
-			
-			$('#leaderboard').html(tableHTML);		
-
-			// freeze the scoreboard
+			// freeze the scoreboard?
 			if(!visual_frozen && !unfreeze_override && (time >= freeze || freeze_override)){
 				
 				$('#progressbar-container').addClass('frozen');
@@ -284,14 +222,24 @@
 			
 			// update the progress bar
 			$( "#progressbar" ).progressbar( "option", "value", time);
-			time++;
 			
-			// update the time left
-			var left = total-time;
+			if (starttime <= 0) {
+				time++;
+				var left = total-time;
+			} else {
+				starttime--;
+				// update the time left
+				var left = starttime;
+			}
 			
 			if(left <= 0){
 				
-				$('#time-left').text("FINISHED");
+				if(contest_started) {
+					$('#time-left').text("FINISHED");
+				} else {
+					$('#time-left').text("START");
+					contest_started = !contest_started;
+				}
 				
 			} else {
 				
@@ -303,20 +251,24 @@
 				minutes = (minutes < 10) ? "0"+minutes : minutes;
 				seconds = (seconds < 10) ? "0"+seconds : seconds;
 				
-				$('#time-left').text(hours+":"+minutes+":"+seconds+" left");
+				
+				if (starttime <= 0) {
+					$('#time-left').text(hours+":"+minutes+":"+seconds+" left");
+				} else {
+					$('#time-left').text(hours+":"+minutes+":"+seconds+" until start");
+				}
+				
 			}
-			
-			// check for AJAX information
 			
 			// change this to a different number to change the frequency
 			if(time % 1 == 0){
-				pollContest();	
+				pollScoreboard();	
 			}
 			
 		}
 		
-		function pollContest(override){
-			
+		function pollScoreboard(){
+								
 			// Create a FormData object
 			var formData = new FormData();
 
@@ -326,7 +278,7 @@
 			formData.append('freeze_time', '{{current_contest.freeze_time|date('U')}}');
 			formData.append('normal_user', true);
 						
-			pollAJAX = $.ajax({
+			scoreboardPollAJAX = $.ajax({
 				type: "POST",
 				url: "{{path('scoreboard_poll')}}",
 				data: formData,
@@ -334,7 +286,6 @@
 				contentType: false,
 				async: true,
 				success: function(data){
-					console.log(data);
 					
 					// if page needs to be refreshed
 					if(data['page_refresh'] === true){
@@ -354,6 +305,8 @@
 						unfreeze_override = false;
 						freeze_override = false;
 					}
+					
+			
 										
 					// update the scoreboard
 					{% if elevatedUser %}					
@@ -369,11 +322,12 @@
 					alert(data['responseText']);
 					console.log(data['responseText']);					
 				}
-			});			
+			});
 			
-			return true;
+			
+			return true;		
 		}
-		
+				
 		{% if elevatedUser %}
 		function postScoreboardUnfreeze(){
 			
