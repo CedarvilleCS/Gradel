@@ -48,13 +48,11 @@
 
 <body>        
     {{ include('template/top-nav.html.twig') }}
-    
-	{{ include('contest/problem-nav.html.twig') }}
 	
-	
-	<section id="main">
+	<section id="main" style="width: 100%">
 		
-		<div class="card">
+		<div class="card">		
+		
 			<div id="contest-heading"><h1>{{current_contest.section.name}}</h1></div>
 			<div id="name-heading"><h2>{{current_contest.name}}</h2></div>
 			<div id="time-heading"><h3 id="time-left">-</h3></div>
@@ -75,123 +73,24 @@
 		</div>
 		
 		
-		<div class="parallel-cards">
+		<div class="card" id="leaderboard-card" style="flex-grow: 12; padding: 5px; padding-top: 10px; height: max-content;">
 		
-		
-			<div class="card" id="leaderboard-card" style="flex-grow: 12; padding: 5px; padding-top: 10px; height: max-content;">
-			
-				{% if elevatedUser %}
-				<div id="scoreboard-button" style="position: absolute; right: 8px; top: 8px; height: 10px; line-height: 10px;"></div>
-				{% endif %}
-				
-				<div id="leaderboard-heading">
-					<h2>Leaderboard</h2>
-				</div>
-				
-				<div id="leaderboard-container" class="card-contents">
-					<table id="leaderboard">
-					
-					</table>
-				</div>
-			</div>
-		
-			
-			{% if contest_open %}
-				
-			<div class="card" id="problems-card" style="flex-grow: 6; height: max-content;">
-				
-				<div class="btn-close">
-					<h2 style="margin: 0px">Problems
-					</h2>
-					
-				</div>
-				
-				<div id="problems-container" class="card-contents">
-					<table id="problems">
-
-					{% set team = leaderboard.scores[leaderboard.index] %}
-					
-					{% for problem in current_contest.problems %}
-					
-						{% set className = (loop.last) ? "last-row" : "" %}
-						{% set rowClassName = (team.results[loop.index0]) ? "accepted" : (team.attempts[loop.index0] > 0) ? "attempted" : "unattempted" %}
-						{% set isCorrect = team.results[loop.index0] %}
-						
-						
-						<tr class="{{rowClassName}}" onclick="window.location='{{path('contest_problem', {'contestId': problem.assignment.section.id, 'roundId': problem.assignment.id, 'problemId': problem.id})}}'">
-							<td class="name {{className}}"><div> {{problem.name}} </div></td>
-							
-							<td class="penalties {{className}}"><div> {{ (isCorrect) ?  team.times[loop.index0] ~ ' + ' ~ team.raw_penalties[loop.index0]  : "" }} </div></td>
-							<td class="checkbox {{className}}" style="text-align: right; padding-right: 25px">
-								{{ (team.results[loop.index0]) ? "<div style='color: green'> &#x2713; </div>" : (team.attempts[loop.index0] > 0) ? "<div style='color: red'> &#x2718; </div>" : "<div style='color: white'> &#x2718; </div>" }}						</td>
-						</tr>
-					{% endfor %}
-						
-					</table>
-				</div>
-			</div>
-			
+			{% if elevatedUser %}
+			<div id="scoreboard-button" style="position: absolute; right: 8px; top: 8px; height: 10px; line-height: 10px;"></div>
 			{% endif %}
-		
-		</div>
-		
-		
-		
-		<div class="card" style="flex-grow: 8; display: none;" id="clarification-card">
 			
-			<div class="btn-close">
-				<h2 style="margin: 0px")">Clarifications
-				</h2>
-				
-				<div id="clarification-button" style="top: 15px; right: 15px">Ask for Clarification</div>
+			<div id="leaderboard-heading">
+				<h2>Leaderboard</h2>
 			</div>
-		
-			<div id="questionsCard2" class="card-contents">
-				<div id="questionsCard" >
-				</div>
+			
+			<div id="leaderboard-container" class="card-contents">
+				<table id="leaderboard">					
+				</table>
 			</div>
 		</div>
 		
-			
-		
-		
-		
-		{#		
-		<div class="card">
-			
-			<div class="btn-close" onclick="collapseCard('recentSubs')">
-				<h2 style="margin: 0px">Recent Submissions
-					<span style="float: right"><i class="fa fa-angle-down"></i></span>
-				</h2>
-			</div>
-		
-			<div id="recentSubs" class="card-contents" style="margin-top: 0px">
-				<div>
-					<ul>
-						{% for team in current_contest.teams %}		
-							{% for sub in team.submissions %}
-								<li> <a href="{{path('problem_result', {'submission_id': sub.id})}}"> {{team.name}} - {{sub.language.name}} </a></li>
-							{% endfor %}
-						{% endfor %}
-					</ul>
-				</div>
-			</div>
-		</div>
-		#}
-			
 	</section>
 
-		
-	
-	{# clarification dialog #}	
-	<div id="clarification-form" title="Ask for Clarification" value="0">
-	  <form>
-			<div> General Clarification: </div>
-			<input type="text" name="question" id="question" class="text ui-widget-content ui-corner-all">
-			<input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
-	  </form>
-	</div>
-	
 </body>
 
 {% endblock %}
@@ -204,14 +103,11 @@
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 	<script src="{{ asset('js/cards.js') }}"></script>
-	<script src="{{ asset('js/validation.js') }}"></script>
 	
 	<script>
 	
 	
 		var pollAJAX;
-		var clarAJAX;
-		var freezeAJAX;
 		
 		var time = {{"now"|date('U')}} - {{current_contest.start_time|date('U')}}; // current seconds into the contest
 		var total = {{current_contest.end_time|date('U')}} - {{current_contest.start_time|date('U')}};
@@ -224,11 +120,12 @@
 		var freeze_override = {{(current_contest.freeze_override and current_contest.freeze_override_time) ? "true" : "false"}};
 		var unfreeze_override = {{(current_contest.freeze_override and not current_contest.freeze_override_time) ? "true" : "false"}};
 		
+		var hideFreezeButtonInterval;
+		var scrollPageInterval;
+		
 		$(window).unload(function() {
 			
 			pollAJAX.abort();
-			clarAJAX.abort();			
-			freezeAJAX.abort();
 			
 		});
 				
@@ -244,41 +141,7 @@
 				max: total, // total seconds in the contest
 				value: time	// current seconds into the contest		
 			});
-			
-			/* QUESTION ASKER */
-			clarificationDialog = $("#clarification-form").dialog({
-				autoOpen: false,
-				modal: true,
-				width: "600px",
-				height: "auto",
-				buttons: {
-					"Ask Question": function () {
-						if(postClarification()){
-							clarificationDialog.dialog( "close" );
-						}						
-					}, 
-					Cancel: function() {
-						clarificationDialog.dialog( "close" );
-					}
-				},
-			  close: function() {
-				  noticeMessageForm[0].reset();
-			  }
-			});
-
-			clarificationDialog.find("form").off( "submit");
-			noticeMessageForm = clarificationDialog.find( "form" ).on( "submit", function( event ) {				
-				event.preventDefault();
-				
-				if(postClarification()){	
-					clarificationDialog.dialog("close");
-				}
-			});
-			
-			$('#clarification-button').button().click(function() {
-				clarificationDialog.dialog("open");
-			});
-			
+						
 			{% if elevatedUser %}
 			$('#scoreboard-button').button().click(function() {
 				postScoreboardUnfreeze();
@@ -290,56 +153,45 @@
 			loopFunction();
 			pollContest(true);
 			
+			$('#scoreboard-button').animate({
+					opacity: 0.00,
+			}, 0);
 			
+			$(window).mousemove(function() {
+				
+				$('#main').stop();
+				
+				$('#scoreboard-button').animate({
+					opacity: 1.00,
+				}, 0);
+				
+				clearInterval(hideFreezeButtonInterval);
+				hideFreezeButtonInterval = setInterval(hideFreezeButton, 2000);		
+
+				clearInterval(scrollPageInterval);
+				scrollPageInterval = setInterval(scrollPage, 25000);					
+			});				
+				
 		});
 		
-
-		/* UPDATE THE LIST OF PROBLEMS */
-		function updateChecklist(checklist){
+		function scrollPage(){
+			$('#main').animate({
+				scrollTop: $('#leaderboard-card').offset().top+$('#leaderboard-card').height()-$(window).height()+50,
+			}, 18000);
 			
+			$('#main').animate({
+				scrollTop: 0,
+			}, 3000);
 		}
 		
-		/* UPDATE THE CLARIFICATION */
-		function updateClarifications(clarifications){
+		function hideFreezeButton(){
+			clearInterval(hideFreezeButtonInterval);
 			
-			clarHTML = "";
-			
-			clarHTML += "<ul style='list-style: none; padding-left: 5px;'>";
-		
-			for(var i=0; i<clarifications.length; i++){
-				
-				var clar = clarifications[i];
-				
-				if(clar.answer != null){
-							
-					if(clar.question != null){		
-						clarHTML += "<li style='font-weight: bold'>Q: " + escapeHTML(clar.question) + "</li>";
-						clarHTML += "<li style='font-style: italic'>A: " + escapeHTML(clar.answer) + "</li>";					
-					} else {										
-						clarHTML += "<li style='font-weight: bold; color: red;'>" + escapeHTML(clar.answer) + "</li>";				
-					}
-								
-					clarHTML += "<hr>";
-					
-				} else {
-				
-					clarHTML += "<li style='font-weight: bold'>Q: [PENDING] " + escapeHTML(clar.question) + "</li>";
-					clarHTML += "<hr>";				
-				}
-			}
-			
-			clarHTML += "</ul>";
-			
-			
-			$('#questionsCard').html(clarHTML);
-			
-			if(clarifications.length > 0){
-				$('#clarification-card').show();
-			} else {
-				$('#clarification-card').show();
-			}
-			
+			$('#scoreboard-button').animate({
+					opacity: 0.00,
+			}, 1000);
 		}
+		
 		/* UPDATE THE LEADERBOARD */
 		function updateScoreboard(leaderboard){
 			
@@ -354,31 +206,25 @@
 			tableHTML += `</colgroup>
 			
 			<tr>
-				<th class="top-row no-hover">Rank</th>
-				<th class="top-row no-hover">Teams</th>
-				<th class="top-row no-hover">Number Correct</th>
-				<th class="top-row no-hover">Penalty Time</th>
+				<th class="top-row no-hover"></th>
+				<th class="top-row no-hover">Problems</th>
+				<th class="top-row no-hover">Time</th>
 				{% for problem in current_contest.problems %}
 				<th class="top-row">
-					<a href="{{path('contest_problem', {'contestId': problem.assignment.section.id, 'roundId': problem.assignment.id, 'problemId': problem.id})}}">
 					{{problem.name|slice(0,1)}}
-					</a>
 				</th>
 				{% endfor %}
 			</tr>`;
 			
 			
-			
 			for(var i = 0; i<leaderboard.scores.length; i++){
 				
 				var team = leaderboard.scores[i];
-				var curr_user = (i==leaderboard.index);
-			
-				tableHTML += "<tr class='" + ((curr_user) ? "curr-user" : "") + "'>";
+				
+				tableHTML += "<tr>";
 				
 				tableHTML += "<td class='rank'>" + team.rank + "</td>";
 				tableHTML += "<td class='name'>" + team.team_name + "</td>";
-				tableHTML += "<td class='num-correct'>" + team.num_correct + "</td>";
 				tableHTML += "<td class='time'>" + team.total_penalty + "</td>";
 				
 				for(var j=0; j<team.attempts.length; j++){
@@ -387,31 +233,16 @@
 				
 					tableHTML += "<td class='" + ((result) ? "accepted" : ((team.attempts[j] > 0) ? "attempted" : "unattempted")) + "'>";
 						
-					tableHTML += "<div class='attempts-count'>" + ((team.attempts[j] > 0) ? team.attempts[j] : "-") + "</div>";
-					tableHTML += "<div class='penalty-mins'>" + ((result) ? team.times[j] : ((team.times[j] > 0) ? "--" : "-")) + "</div>";
+						tableHTML += "<div class='attempts-count'>" + ((team.attempts[j] > 0) ? team.attempts[j] : "-") + "</div>";
+						
+						tableHTML += "<div class='penalty-mins'>" + ((result) ? team.penalties[j] : ((team.attempts[j] > 0) ? "--" : "-")) + "</div>";
 					
 					tableHTML += "</td>";
 				
 				}
+			
 				tableHTML += "</tr>";
-				
 			}			
-			tableHTML += "<tr height = 5px> </tr>";
-			tableHTML += "<tr class='stats-row'>";
-			tableHTML += "<td><div class='attempts-count'> Correct/Total </div>";
-			tableHTML += "<td><div class='empty-cell'></div></td>";
-			tableHTML += "<td><div class='empty-cell'></div></td>";
-			tableHTML += "<td><div class='empty-cell'></div></td>";
-			
-			
-			
-			{% for att in attempts_per_problem_count %}
-				tableHTML += "<td><div class='stats'>"
-				tableHTML += {{correct_submissions_per_problem_count[loop.index0]}}+ "/";
-				tableHTML += {{attempts_per_problem_count[loop.index0]}} ;
-				
-				tableHTML += "</td></div>"
-			{% endfor %}
 			
 			$('#leaderboard').html(tableHTML);		
 
@@ -420,13 +251,7 @@
 				
 				$('#progressbar-container').addClass('frozen');
 				
-				{% if not elevatedUser %}
-					$('#leaderboard-heading').html("<h2> <span style='color:red'> <i>FROZEN</i> LEADERBOARD </span> </h2>");				
-				{% else %}
-				
-					var extraInfo = (time < freeze && freeze_override) ? " / Overriden" : "";
-					$('#leaderboard-heading').html("<h2 style='color:red'> <div> <i>FROZEN</i> LEADERBOARD </div><div> (Not Really)" + extraInfo + "</div> </h2>");				
-				{% endif %}				
+				$('#leaderboard-heading').html("<h2> <span style='color:red'> <i>FROZEN</i> LEADERBOARD </span> </h2>");				
 				
 				$('#leaderboard-card').css('border', '2pt solid red');
 				visual_frozen = true;
@@ -438,14 +263,7 @@
 				
 				$('#progressbar-container').removeClass('frozen');
 				
-				{% if not elevatedUser %}
-					$('#leaderboard-heading').html("<h2> LEADERBOARD </h2>");				
-				{% else %}
-				
-					var extraInfo = (unfreeze_override) ? "<div>Overriden</div>" : "";
-				
-					$('#leaderboard-heading').html("<h2 <div> LEADERBOARD </div>" + extraInfo + "</h2>");				
-				{% endif %}				
+				$('#leaderboard-heading').html("<h2> LEADERBOARD </h2>");			
 				
 				$('#leaderboard-card').css('border', 'initial');
 				visual_frozen = false;
@@ -459,7 +277,6 @@
 			if(time >= freeze){
 				frozen = true;
 			}
-			
 		}		
 		
 		/* LOOP FUNCTION THAT RUNS EVERY SECOND TO UPDATE THINGS */
@@ -491,7 +308,6 @@
 			
 			// check for AJAX information
 			
-			
 			// change this to a different number to change the frequency
 			if(time % 1 == 0){
 				pollContest();	
@@ -508,10 +324,11 @@
 			formData.append('end_time', '{{current_contest.end_time|date('U')}}');
 			formData.append('start_time', '{{current_contest.start_time|date('U')}}');
 			formData.append('freeze_time', '{{current_contest.freeze_time|date('U')}}');
+			formData.append('normal_user', true);
 						
 			pollAJAX = $.ajax({
 				type: "POST",
-				url: "{{path('contest_poll')}}",
+				url: "{{path('scoreboard_poll')}}",
 				data: formData,
 				processData: false,
 				contentType: false,
@@ -547,16 +364,12 @@
 					
 					{% endif %}
 					
-					updateChecklist(data['checklist']);
-					updateClarifications(data['clarifications']);
-					
 				},
 				error: function(data){					
 					alert(data['responseText']);
 					console.log(data['responseText']);					
 				}
-			});
-			
+			});			
 			
 			return true;
 		}
@@ -601,49 +414,12 @@
 					alert(data['responseText']);
 					console.log(data['responseText']);
 				}
-			});			
-			
-			return true;
-		}
-		{% endif %}
-		
-		function postClarification(){
-			
-			// Create a FormData object
-			var formData = new FormData();
-
-			formData.append('contestId', {{current_contest.id}});
-			
-			var question = $('#clarification-form #question').val();
-
-			if(question == ""){
-				setInvalid($('#clarification-form #question'));
-				return false;
-			} else {
-				setValid($('#clarification-form #question'));
-			}
-			
-			formData.append('question', question);
-			
-			clarAJAX = $.ajax({
-				type: "POST",
-				url: "{{path('judging_query')}}",
-				data: formData,
-				processData: false,
-				contentType: false,
-				async: true,
-				success: function(data){
-					console.log(data);
-				},
-				error: function(data){					
-					alert(data['responseText']);
-					console.log(data['responseText']);					
-				}
 			});
 			
 			
 			return true;
 		}
+		{% endif %}
 		
 	</script>
 {% endblock %}

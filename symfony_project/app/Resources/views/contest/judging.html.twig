@@ -72,10 +72,12 @@
 		
 		<div class="card">
 			<div class="btn-close">
-				<h2 style="margin: 0px">History </h2>
+				<h2 style="margin: 0px">History </h2>				
+				<div id="clear-submissions-button" style="position: absolute; right: 200px; top: 10px;"> Clear Submissions </div>
+				<div id="clear-clarifications-button" style="position: absolute; right: 15px; top: 10px;"> Clear Clarifications </div>
 			</div>
 
-			<div id="stats-container" >
+			<div id="stats-container">
 				
 				<!-- <div style="width: 28%">
 						<div style="margin-top: 5px; padding-left: 5px; font-weight: bold; font-size: 0.9em;"> Statistics <small> </small> </div>
@@ -155,6 +157,21 @@
 	  </form>
 	</div>
 
+	{# clear subs dialog #}
+	<div id="clear-submissions-form" title="Clear All Submissions?" value="0">
+	  <p>All submissions will be removed from the database. Are you sure?</p>
+	  <form>
+		  <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">		  
+	  </form>
+	</div>
+	
+	{# clear clars dialog #}
+	<div id="clear-clarifications-form" title="Clear All Clarifications?" value="0">
+	  <p>All clarifications will be removed from the database. Are you sure?</p>
+	  <form>
+		  <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">		  
+	  </form>
+	</div>
 	
 </body>
 
@@ -216,6 +233,8 @@
 			var id;
 			var formData = new FormData();
 			
+			formData.append('contestId', {{current_contest.id}});
+			
 			if(type == "answer"){
 				id = $('#clarification-form').val();
 				
@@ -230,7 +249,6 @@
 				id = 0;
 				notice = $('#notice').val();
 				formData.append('answer', notice);				
-				formData.append('contestId', {{current_contest.id}});
 			}
 			else {
 				return false;
@@ -270,6 +288,62 @@
 			return true;
 		}
 		
+		function clearSubmissions() {
+			
+			var id;
+			var formData = new FormData();
+			
+			formData.append('contestId', {{current_contest.id}});
+			formData.append('type', 'clear-subs');
+			
+			clarAJAX = $.ajax({
+				type: "POST",
+				url: "{{path('judging_modify')}}",
+				data: formData,
+				processData: false,
+				contentType: false,
+				success: function(data){
+
+					console.log(data);
+					window.location.reload();
+				},
+				error: function(data){
+					alert(data['responseText']);
+					console.log(data['responseText']);
+				}
+			});
+			
+			return true;			
+		}
+		
+		function clearClarifications() {
+			
+			var id;
+			var formData = new FormData();
+			
+			formData.append('contestId', {{current_contest.id}});
+			formData.append('type', 'clear-clars');
+			
+			clarAJAX = $.ajax({
+				type: "POST",
+				url: "{{path('judging_modify')}}",
+				data: formData,
+				processData: false,
+				contentType: false,
+				success: function(data){
+
+					console.log(data);
+					window.location.reload();
+				},
+				error: function(data){
+					alert(data['responseText']);
+					console.log(data['responseText']);
+				}
+			});
+			
+			return true;			
+		}
+		
 		/* FUNCTION TO HANDLE POST TO UPDATE SUBMISSIONS */
 		function updateSubmission(type){	
 			
@@ -277,6 +351,7 @@
 			var formData = new FormData();
 			
 			formData.append('type', type);
+			formData.append('contestId', {{current_contest.id}});
 			
 			if(type == "message"){				
 				id = $('#custom-message-form').val();
@@ -545,6 +620,75 @@
 			$('#notice-button').button().on('click', function() {
 				
 				noticeMessageDialog.dialog("open");	
+				
+			});
+			
+			
+			/* CLEAR SUBMISSION POSTER */
+			clearSubsDialog = $("#clear-submissions-form").dialog({
+				autoOpen: false,
+				modal: true,
+				width: "auto",
+				height: "auto",
+				buttons: {
+					"Clear Submissions": function () {
+						clearSubmissions();
+						clearSubsDialog.dialog( "close" );				
+					}, 
+					Cancel: function() {
+						clearSubsDialog.dialog( "close" );
+					}
+				},
+			  close: function() {
+				  clearSubmissionsForm[0].reset();
+			  }
+			});
+			
+			clearSubsDialog.find("form").off( "submit");
+			clearSubmissionsForm = clearSubsDialog.find( "form" ).on( "submit", function( event ) {				
+				event.preventDefault();
+				clearSubmissions();
+				clearSubsDialog.dialog("close");		
+			});
+						
+			$('#clear-submissions-button').off('click');
+			$('#clear-submissions-button').button().on('click', function() {
+				
+				clearSubsDialog.dialog("open");
+				
+			});
+			
+			/* CLEAR CLARIFICATION POSTER */
+			clearClarsDialog = $("#clear-clarifications-form").dialog({
+				autoOpen: false,
+				modal: true,
+				width: "auto",
+				height: "auto",
+				buttons: {
+					"Clear Clarifications": function () {
+						clearClarifications();
+						clearClarsDialog.dialog( "close" );				
+					}, 
+					Cancel: function() {
+						clearClarsDialog.dialog( "close" );
+					}
+				},
+			  close: function() {
+				  clearClarificationsForm[0].reset();
+			  }
+			});
+			
+			clearClarsDialog.find("form").off( "submit");
+			clearClarificationsForm = clearClarsDialog.find( "form" ).on( "submit", function( event ) {				
+				event.preventDefault();
+				clearClarifications();
+				clearClarsDialog.dialog("close");		
+			});
+						
+			$('#clear-clarifications-button').off('click');
+			$('#clear-clarifications-button').button().on('click', function() {
+				
+				clearClarsDialog.dialog("open");
 				
 			});
 			

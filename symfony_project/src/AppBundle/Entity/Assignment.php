@@ -90,6 +90,29 @@ class Assignment implements JsonSerializable{
 		}
 	}
 	
+	public function isOpened(){
+		
+		$currTime = new \DateTime("now");
+		
+		return $this->start_time <= $currTime && $this->section->isActive();
+		
+	}
+	
+	public function isActive(){
+		
+		$currTime = new \DateTime("now");
+		
+		return $this->start_time <= $currTime && $currTime < $this->end_time;
+	}
+	
+	public function isFrozen(){
+		
+		$currTime = new \DateTime("now");
+		
+		// either the freeze time is in the past or the override is set with a time
+		return ((!$this->freeze_override && $this->freeze_time < $currTime) || ($this->freeze_override && isset($this->freeze_override_time)));		
+	}
+	
 	/** 
 	* @ORM\Column(type="integer")
 	* @ORM\Id

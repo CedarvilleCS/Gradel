@@ -395,9 +395,10 @@ class CompilationController extends Controller {
 			return $this->returnForbiddenResponse("Assignment does not exist");
 		}
 		
-		$is_teaching = $grader->isTeaching($user, $assignment->section) || $grader->isJudging($user, $assignment->section);		
-		if(!$is_teaching && !$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN")){
-			//return $this->returnForbiddenResponse("You are not allowed to generate output for this problem");
+		$elevatedUser = $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isJudging($user, $assignment->section) || $grader->isTeaching($user, $assignment->section);
+		
+		if( !($elevatedUser || ($grader->isTaking($user, $assignment->section) && $assignment->isActive())) ){
+			return $this->returnForbiddenResponse("PERMISSION DENIED");
 		}
 		
 		# PROBLEM CREATION
