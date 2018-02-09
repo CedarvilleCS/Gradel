@@ -330,7 +330,8 @@ i {
 }
 
 ::-webkit-scrollbar {
-    display: none;
+    display: auto;
+	
 }
 
 
