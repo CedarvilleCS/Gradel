@@ -121,6 +121,29 @@ class ContestController extends Controller {
 		$query_query = $qb_queries->getQuery();
 		$queries = $query_query->getResult();
 		
+		$attempts_per_problem_count = [];
+		$correct_submissions_per_problem_count = [];
+		
+		$scores = $leaderboard["scores"];
+		$index = 0;
+		foreach ($current->problems as $prob) {
+			$correct_submissions_per_problem_count[$index] = 0;
+			$attempts_per_problem_count[$index] = 0;
+			foreach($scores as $team_score){
+				$prob_correct_maybe = $team_score["results"];
+				$ps = $prob_correct_maybe[$index];
+				if ( $ps == true) {
+					$correct_submissions_per_problem_count[$index]++;
+				}
+				else {
+				}
+				$att = $team_score["attempts"];
+				$attempts_per_problem_count[$index] += $att[$index];
+				
+			}
+			
+			$index++;
+		}
 		
 		# set open/not open
 		if($elevatedUser || ($current->start_time <= $currTime)){
@@ -136,8 +159,10 @@ class ContestController extends Controller {
 			'section' => $section,
 			'grader' => $grader,
 			'leaderboard' => $leaderboard, 			
-			
-			'current_contest' => $current,			
+			'attempts_per_problem_count' => $attempts_per_problem_count,
+			'correct_submissions_per_problem_count' => $correct_submissions_per_problem_count,
+			'current_contest' => $current,
+			'allSubmissions' => $submissions,
 			
 			'contest_open' => $contest_open,
 			
