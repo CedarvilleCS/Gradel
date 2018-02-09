@@ -157,6 +157,8 @@
   <script src="{{ asset('js/cards.js') }}"></script>	
   <script src="{{ asset('js/validation.js') }}"></script>
   
+  <script src="{{ asset('js/unicode_return.js') }}"></script>
+  
   
   <script>
 	/* OUTPUT GENERATOR FUNCTIONS */
@@ -505,7 +507,13 @@
 			addTestCase();			
 		});
 		
-		$("#testcase-cards").append(addTestCardButton);		
+		$("#testcase-cards").append(addTestCardButton);
+		
+		
+		$('.testcase-card textarea').off('keyup');
+		$('.testcase-card textarea').keyup( function() {
+			$(this).val(addReturnKey($(this).val()));
+		}).keyup();
 		
 /*
 		$('#testcase-cards .file').change(function(data) {
@@ -639,7 +647,7 @@
 		var testcases = document.getElementsByClassName("test-case");
 		tcs = [];
 		for (testcase of testcases) {
-			const input = $("#"+testcase.id).find("."+"input").val();
+			const input = removeReturnKey($("#"+testcase.id).find("."+"input").val());
 			const tc = {"input": input, "args": "", "output": "", "weight": 1, "short_response": "", "long_response": "", "extra_credit": "false"};
 			tcs.push(tc);
 		}
@@ -664,7 +672,7 @@
 				count = 0;
 				$(".test-case").each(function() {
 					
-					$(this).find('.output').val(data['testcases'][count]);
+					$(this).find('.output').val(addReturnKey(data['testcases'][count]));
 					count++;		
 				});
 				
@@ -692,8 +700,8 @@
 		var testcases = document.getElementsByClassName("test-case");
 		tcs = [];
 		for (testcase of testcases) {
-			const input = $("#"+testcase.id).find("."+"input").val();
-			const output = $("#"+testcase.id).find("." + "output").val();			
+			const input = removeReturnKey($("#"+testcase.id).find("."+"input").val());
+			const output = removeReturnKey($("#"+testcase.id).find("." + "output").val());
 			const sample = $("#"+testcase.id).find("#sample-checkbox").is(':checked');
 			
 			const tc = {"input": input, "output": output, "sample": sample};
