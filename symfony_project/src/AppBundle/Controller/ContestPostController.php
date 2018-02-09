@@ -239,10 +239,7 @@ class ContestPostController extends Controller {
 		
 		$grader = new Grader($em);
 		
-		$elevatedUser = $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN");		
-		if( !($elevatedUser) ){
-			return $this->returnForbiddenResponse("PERMISSION DENIED");
-		}			
+		$elevatedUser = $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN");				
 		
 		# SECTION 		
 		if(!isset($postData['contestId'])){
@@ -256,7 +253,8 @@ class ContestPostController extends Controller {
 				return $this->returnForbiddenResponse("Contest does not exist.");
 			}
 			
-			$elevateduser = $elevatedUser || $grader->isJudging($user, $section);
+			
+			$elevatedUser = $elevatedUser || $grader->isJudging($user, $section);
 			
 			if( !($elevatedUser) ){
 				return $this->returnForbiddenResponse("PERMISSION DENIED");
@@ -266,6 +264,10 @@ class ContestPostController extends Controller {
 			$actualContest = $section->assignments[1];
 			
 		} else {
+			
+			if( !($elevatedUser) ){
+				return $this->returnForbiddenResponse("PERMISSION DENIED");
+			}	
 
 			$section = new Section();
 			
