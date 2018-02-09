@@ -118,6 +118,27 @@
 	padding-right: 8px;
 }
 
+#leaderboard .stats {
+	padding-left: 8px;
+	padding-right: 8px;
+	text-align: center;
+}
+
+#leaderboard .num-correct {
+	padding-left: 8px;
+	padding-right: 8px;
+	text-align: center;
+    font-weight: bold;
+}
+
+#leaderboard .attempts-count {
+	padding-left: 8px;
+	padding-right: 8px;
+	text-align: center;
+	font-size: 15px;
+	font-weight: bold;
+}
+
 #leaderboard .rank {
 	text-align: center;
 	font-weight: bold;
@@ -157,7 +178,14 @@
 	font-weight: bold;
 }
 
-.attempts-count {
+.stats-row {
+	font-size: 1.2em;
+	padding-top: 2px;
+	text-align: center;
+	font-size: 15px;
+}
+
+.empty-cell {
 	font-size: 1.2em;
 	padding-top: 2px;
 }
