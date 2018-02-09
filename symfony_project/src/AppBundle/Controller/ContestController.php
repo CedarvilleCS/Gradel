@@ -94,7 +94,51 @@ class ContestController extends Controller {
 		}	
 		
 		$team = $grader->getTeam($user, $current);
+
+		$leaderboard = $grader->getLeaderboard($user, $current);
+		
+		# get the queries
+		if($grader->isJudging($user, $section) || $user->hasRole("ROLE_ADMIN") || $user->hasRole("ROLE_SUPER")){
+			$extra_query = "OR 1=1";
+		} else {
+			$extra_query = "";
+		}
+		
+		$qb_queries = $em->createQueryBuilder();
+		$qb_queries->select('q')
+			->from('AppBundle\Entity\Query', 'q')
+			->where('q.assignment = (?1)')
+			->andWhere('q.asker = ?2 OR q.asker IS NULL '.$extra_query)
+			->orderBy('q.timestamp', 'ASC')
+			->setParameter(1, $current)
+			->setParameter(2, $team);
+		$query_query = $qb_queries->getQuery();
+		$queries = $query_query->getResult();
+		
+		$attempts_per_problem_count = [];
+		$correct_submissions_per_problem_count = [];
+		
+		$scores = $leaderboard["scores"];
+		$index = 0;
+		foreach ($current->problems as $prob) {
+			$correct_submissions_per_problem_count[$index] = 0;
+			$attempts_per_problem_count[$index] = 0;
+			foreach($scores as $team_score){
+				$prob_correct_maybe = $team_score["results"];
+				$ps = $prob_correct_maybe[$index];
+				if ( $ps == true) {
+					$correct_submissions_per_problem_count[$index]++;
+				}
+				else {
+				}
+				$att = $team_score["attempts"];
+				$attempts_per_problem_count[$index] += $att[$index];
 				
+			}
+			
+			$index++;
+		}
+    
 		# set open/not open
 		if($elevatedUser || ($current->start_time <= $currTime)){
 			$contest_open = true;
@@ -107,9 +151,12 @@ class ContestController extends Controller {
 			'team' => $team,
 			
 			'section' => $section,
-			'grader' => $grader,		
-			
-			'current_contest' => $current,			
+
+      'grader' => $grader,
+			'leaderboard' => $leaderboard, 			
+			'attempts_per_problem_count' => $attempts_per_problem_count,
+			'correct_submissions_per_problem_count' => $correct_submissions_per_problem_count,
+			'current_contest' => $current,
 			
 			'contest_open' => $contest_open,
 			
