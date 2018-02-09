@@ -24,18 +24,10 @@ gos_web_socket:
         storage:
             # driver: gos_web_socket.client_storage.driver.redis
             # decorator: gos_web_socket.client_storage.doctrine.decorator
-
-
-# doctrine_cache:
-#     providers:
-#         redis_cache:
-#             redis:
-#                 host: 127.0.0.1
-#                 port: 6379
-#                 database: 3
-#         websocket_cache_client:
-#             type: redis
-#             alias: gos_web_socket.client_storage.driver.redis         
+    pushers: 
+        wamp:
+            host: 127.0.0.1
+            port: 8081
 
 
           
