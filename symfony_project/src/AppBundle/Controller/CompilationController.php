@@ -456,7 +456,7 @@ class CompilationController extends Controller {
 			try{				
 				$testcase = new Testcase($problem, $tc, $count);
 				
-				if(!$testcase->input || trim($testcase->input) == ""){
+				if(!isset($testcase->input) || trim($testcase->input) == ""){
 					//return $this->returnForbiddenResponse(json_encode($testcase));
 					return $this->returnForbiddenResponse("Your testcases are not valid");
 				}
