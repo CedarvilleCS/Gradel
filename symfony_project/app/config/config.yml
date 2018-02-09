@@ -13,7 +13,7 @@ parameters:
 # Web Socket Configuration
 gos_web_socket:
     server:
-        port: 8081        #The port the socket server will listen on
+        port: 8084        #The port the socket server will listen on
         host: 0.0.0.0  #The host ip to bind to
         router:
           resources:
@@ -27,7 +27,7 @@ gos_web_socket:
     pushers: 
         wamp:
             host: 127.0.0.1
-            port: 8081
+            port: 8084
 
 
           
