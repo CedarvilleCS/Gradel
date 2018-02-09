@@ -72,8 +72,8 @@ class SocketPusher  {
     return "Your submission for " . $submission->problem->name . " was <b>incorrect</b>.";
   }
 
-  public function buildCustomRejection($submission, $msg) {
-    return "Your submission for " . $submission->problem->name . " was <b>incorrect</b>. \\nJudge Message: " . trim($postData['message']);
+  public function buildCustomRejection($submission) {
+    return "Your submission for " . $submission->problem->name . " was <b>incorrect</b>. \\nJudge Message: " . $submission->judge_message;
   }
 
   public function buildFormattingRejection($submission) {
@@ -85,11 +85,12 @@ class SocketPusher  {
   }
 
   public function buildClarificationMessageFromQuery($query) {
-    return $this->buildClarificationMessage($query->question, $query->answer);
+    return $this->buildClarificationMessage($query->question, $query->answer, $query->problem->name);
   }
 
-  public function buildClarificationMessage($question, $answer) {
-    return "<b>Question:</b> " . $question . "\\n<b>Answer:</b> " . $answer;
+  public function buildClarificationMessage($question, $answer, $name) {
+    $problemName = $name ? "Question Concerning " . $name . ":" : "Question: ";
+    return "<b>" . $problemName . "</b> " . $question . "\\n<b>Answer:</b> " . $answer;
   }
 }
 

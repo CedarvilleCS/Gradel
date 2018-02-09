@@ -958,7 +958,7 @@ class ContestPostController extends Controller {
 
 					// show card
 					$pusher->pushUserSpecificMessage(
-						$pusher->buildCustomRejection(trim($postData['message'])),
+						$pusher->buildCustomRejection($submission),
 						$pusher->getUsernamesFromTeam($submission->team),
 						$submission->problem->assignment->section->id,
 						true

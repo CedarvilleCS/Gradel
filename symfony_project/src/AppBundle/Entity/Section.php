@@ -77,10 +77,6 @@ class Section implements JsonSerializable{
 			$this->user_roles = $usrsClone;			
 		}		
 	}
-
-	public function isActive() {
-		return $this->start_time < new DateTime("now") && $this->end_time > new DateTime("now");
-	}
 	
 	public function isActive(){
 		

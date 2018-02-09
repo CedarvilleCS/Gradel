@@ -159,17 +159,17 @@ class AppBundleTopic implements TopicInterface
                 else if (($scope == "userSpecificReject" || $scope = "userSpecificClarify") && $elevatedUser == true) {
                     if ($recipients == null) {
                         dump("Required to provide recipients!");
-                        die();
                     }
-                    $finalScope = $scope == "userSpecificReject" ? "reject" : "notice";
-                    $message = '{"msg": "' . $msg . '", "type": "' . $finalScope . '"}';
-                    dump("Sending message: " . $message . "to specific users...");
-                    foreach ($recipients as $r) {
-                        dump("Current username: " . $r);
-                        $student = $this->clientManipulator->findByUsername($topic, $r);
-                        $topic->broadcast($message, array(), array($student['connection']->WAMP->sessionId));
+                    else {
+                        $finalScope = $scope == "userSpecificReject" ? "reject" : "notice";
+                        $message = '{"msg": "' . $msg . '", "type": "' . $finalScope . '"}';
+                        dump("Sending message: " . $message . "to specific users...");
+                        foreach ($recipients as $r) {
+                            dump("Current username: " . $r);
+                            $student = $this->clientManipulator->findByUsername($topic, $r);
+                            $topic->broadcast($message, array(), array($student['connection']->WAMP->sessionId));
+                        }
                     }
-
                 }
                 else if ($scope == "question") {
                     // send message only to admins...
