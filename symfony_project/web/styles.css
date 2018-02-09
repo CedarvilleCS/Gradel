@@ -447,3 +447,27 @@ del {
 ins {
     color: green;
 }
+
+
+.scrolly::-webkit-scrollbar-track
+{
+	margin-right: 10px;
+	background: #71BA62;
+	cursor: pointer;
+}
+
+.scrolly::-webkit-scrollbar
+{
+	cursor: pointer;
+	all:unset;
+	width: 12px;
+	background-color: #F5F5F5;
+}
+
+.scrolly::-webkit-scrollbar-thumb
+{
+	cursor: pointer;
+	all: unset;
+	border-radius: 10px;
+	background-color: rgba(140, 140, 140, 0.9);
+}
