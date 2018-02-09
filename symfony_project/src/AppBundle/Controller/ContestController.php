@@ -94,26 +94,7 @@ class ContestController extends Controller {
 		}	
 		
 		$team = $grader->getTeam($user, $current);
-		
-		# get the queries
-		if($elevatedUser){
-			$extra_query = "OR 1=1";
-		} else {
-			$extra_query = "";
-		}
-		
-		$qb_queries = $em->createQueryBuilder();
-		$qb_queries->select('q')
-			->from('AppBundle\Entity\Query', 'q')
-			->where('q.assignment = (?1)')
-			->andWhere('q.asker = ?2 OR q.asker IS NULL '.$extra_query)
-			->orderBy('q.timestamp', 'ASC')
-			->setParameter(1, $current)
-			->setParameter(2, $team);
-		$query_query = $qb_queries->getQuery();
-		$queries = $query_query->getResult();
-		
-		
+				
 		# set open/not open
 		if($elevatedUser || ($current->start_time <= $currTime)){
 			$contest_open = true;
@@ -132,7 +113,6 @@ class ContestController extends Controller {
 			
 			'contest_open' => $contest_open,
 			
-			'queries' => $queries,
 			'contests' => $allContests,
 			'elevatedUser' => $elevatedUser,
 		]);
@@ -923,7 +903,12 @@ class ContestController extends Controller {
 					
 					// validate email
 					if( !filter_var($judge->name, FILTER_VALIDATE_EMAIL) ) {
-						return $this->returnForbiddenResponse("Email address ".$judge->name." is not valid");
+						
+						$judge->name = $judge->name."@cedarville.edu";
+						
+						if( !filter_var($judge->name, FILTER_VALIDATE_EMAIL) ){
+							return $this->returnForbiddenResponse("Email address ".$judge->name." is not valid");	
+						}
 					}
 					
 					$judgeUser = $em->getRepository('AppBundle\Entity\User')->findOneBy([
@@ -1007,7 +992,13 @@ class ContestController extends Controller {
 					
 							// validate email
 							if( !filter_var($member->name, FILTER_VALIDATE_EMAIL) ) {
-								return $this->returnForbiddenResponse("Email address ".$member->name." is not valid");
+								
+						
+								$member->name = $member->name."@cedarville.edu";
+								
+								if( !filter_var($member->name, FILTER_VALIDATE_EMAIL) ) {
+									return $this->returnForbiddenResponse("Email address ".$member->name." is not valid");
+								}
 							}
 							
 							$teamUser = $em->getRepository('AppBundle\Entity\User')->findOneBy([
@@ -1874,6 +1865,49 @@ class ContestController extends Controller {
 
 			return $response;
 						
+		}
+		else if($postData['type'] == 'clear-subs'){
+			
+			$qb = $em->createQueryBuilder();
+			$qb->delete('AppBundle\Entity\Submission', 's')
+				->where('s.problem IN (?1)')
+				->setParameter(1, $contest->problems->toArray());
+			
+			$query = $qb->getQuery();
+			$res = $query->getResult();
+			
+			$response = new Response(json_encode([
+				'good' => true,
+			]));
+				
+			
+			$response->headers->set('Content-Type', 'application/json');
+			$response->setStatusCode(Response::HTTP_OK);
+
+			return $response; 		
+		}
+		else if($postData['type'] == 'clear-clars'){
+			
+			$qb = $em->createQueryBuilder();
+			$qb->delete('AppBundle\Entity\Query', 'q')
+				->where('q.problem IN (?1)')
+				->orWhere('q.assignment = (?2)')
+				->setParameter(1, $contest->problems->toArray())
+				->setParameter(2, $contest);
+			
+			$query = $qb->getQuery();
+			$res = $query->getResult();
+			
+			$response = new Response(json_encode([
+				'good' => true,
+			]));
+				
+			
+			$response->headers->set('Content-Type', 'application/json');
+			$response->setStatusCode(Response::HTTP_OK);
+
+			return $response;
+			
 		}
 		// error
 		else {

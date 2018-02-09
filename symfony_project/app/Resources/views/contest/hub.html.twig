@@ -76,7 +76,8 @@
 		
 		
 		<div class="parallel-cards">
-			
+		
+		
 			<div class="card" id="leaderboard-card" style="flex-grow: 12; padding: 5px; padding-top: 10px; height: max-content;">
 			
 				{% if elevatedUser %}
@@ -96,11 +97,17 @@
 					</table>
 				</div>
 			</div>
-
-			{% if contest_open %}
+		
 			
-			<div class="card" id="problems-card" style="flex-grow: 6; padding: 5px; padding-top: 10px; height: max-content;">
-				<div id="problems-heading"><h2>Problems</h2></div>
+			{% if contest_open %}
+				
+			<div class="card" id="problems-card" style="flex-grow: 6; height: max-content;">
+				
+				<div class="btn-close">
+					<h2 style="margin: 0px">Problems
+					</h2>
+					
+				</div>
 				
 				<div id="problems-container" class="card-contents">
 					<table id="problems">
@@ -112,7 +119,8 @@
 						{% set className = (loop.last) ? "last-row" : "" %}
 						{% set rowClassName = (team.results[loop.index0]) ? "accepted" : (team.attempts[loop.index0] > 0) ? "attempted" : "unattempted" %}
 						{% set isCorrect = team.results[loop.index0] %}
-											
+						
+						
 						<tr class="{{rowClassName}}" onclick="window.location='{{path('contest_problem', {'contestId': problem.assignment.section.id, 'roundId': problem.assignment.id, 'problemId': problem.id})}}'">
 							<td class="name {{className}}"><div> {{problem.name}} </div></td>
 							
@@ -127,43 +135,29 @@
 			</div>
 			
 			{% endif %}
-			
+		
 		</div>
 		
-		<div class="card">
+		
+		
+		<div class="card" style="flex-grow: 8; display: none;" id="clarification-card">
 			
 			<div class="btn-close">
-				<h2 style="margin: 0px" onclick="collapseCard('questionsCard')">Clarifications
-					<span style="float: right"><i class="fa fa-angle-down"></i></span>
+				<h2 style="margin: 0px")">Clarifications
 				</h2>
 				
-				<div id="clarification-button" style="top: 15px">Ask for Clarification</div>
+				<div id="clarification-button" style="top: 15px; right: 15px">Ask for Clarification</div>
 			</div>
 		
-			<div id="questionsCard" class="card-contents" style="margin-top: 0px">
-				<div>
-					<ul style="list-style: none; padding-left: 5px;">
-						{% for query in queries %}
-	
-							{% if query.answer %}
-						
-							{% if query.question %}
-							<li style="font-weight: bold">Q: {{query.question}}</li> 
-							<li style="font-style: italic">A: {{query.answer}} </li>
-							{% else %}							
-							<li style="font-weight: bold; color: red;">{{query.answer}} </li>
-							{% endif %}
-							
-							<hr>
-							{% else %}
-							<li style="font-weight: bold">Q: [PENDING] {{query.question}}</li>
-							<hr>
-							{% endif %}
-						{% endfor %}
-					</ul>
+			<div id="questionsCard2" class="card-contents">
+				<div id="questionsCard" >
 				</div>
 			</div>
 		</div>
+		
+			
+		
+		
 		
 		{#		
 		<div class="card">
@@ -254,7 +248,6 @@
 				value: time	// current seconds into the contest		
 			});
 			
-			
 			/* QUESTION ASKER */
 			clarificationDialog = $("#clarification-form").dialog({
 				autoOpen: false,
@@ -299,6 +292,8 @@
 			setInterval(loopFunction, 1000);
 			loopFunction();
 			pollContest(true);
+			
+			
 		});
 		
 
@@ -307,6 +302,47 @@
 			
 		}
 		
+		/* UPDATE THE CLARIFICATION */
+		function updateClarifications(clarifications){
+			
+			clarHTML = "";
+			
+			clarHTML += "<ul style='list-style: none; padding-left: 5px;'>";
+		
+			for(var i=0; i<clarifications.length; i++){
+				
+				var clar = clarifications[i];
+				
+				if(clar.answer != null){
+							
+					if(clar.question != null){		
+						clarHTML += "<li style='font-weight: bold'>Q: " + escapeHTML(clar.question) + "</li>";
+						clarHTML += "<li style='font-style: italic'>A: " + escapeHTML(clar.answer) + "</li>";					
+					} else {										
+						clarHTML += "<li style='font-weight: bold; color: red;'>" + escapeHTML(clar.answer) + "</li>";				
+					}
+								
+					clarHTML += "<hr>";
+					
+				} else {
+				
+					clarHTML += "<li style='font-weight: bold'>Q: [PENDING] " + escapeHTML(clar.question) + "</li>";
+					clarHTML += "<hr>";				
+				}
+			}
+			
+			clarHTML += "</ul>";
+			
+			
+			$('#questionsCard').html(clarHTML);
+			
+			if(clarifications.length > 0){
+				$('#clarification-card').show();
+			} else {
+				$('#clarification-card').show();
+			}
+			
+		}
 		/* UPDATE THE LEADERBOARD */
 		function updateScoreboard(leaderboard){
 			
@@ -440,6 +476,7 @@
 			
 			// check for AJAX information
 			
+			
 			// change this to a different number to change the frequency
 			if(time % 1 == 0){
 				pollContest();	
@@ -496,6 +533,7 @@
 					{% endif %}
 					
 					updateChecklist(data['checklist']);
+					updateClarifications(data['clarifications']);
 					
 				},
 				error: function(data){					
@@ -548,8 +586,7 @@
 					alert(data['responseText']);
 					console.log(data['responseText']);
 				}
-			});
-			
+			});			
 			
 			return true;
 		}
