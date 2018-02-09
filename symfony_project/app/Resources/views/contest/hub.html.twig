@@ -90,6 +90,9 @@
 				<div id="leaderboard-container" class="card-contents">
 					<table id="leaderboard">
 					
+						
+					
+					
 					</table>
 				</div>
 			</div>
@@ -118,7 +121,7 @@
 								{{ (team.results[loop.index0]) ? "<div style='color: green'> &#x2713; </div>" : (team.attempts[loop.index0] > 0) ? "<div style='color: red'> &#x2718; </div>" : "<div style='color: white'> &#x2718; </div>" }}						</td>
 						</tr>
 					{% endfor %}
-						
+					
 					</table>
 				</div>
 			</div>
@@ -214,12 +217,14 @@
 	
 	<script>
 	
+		var contest_started = false;
 	
 		var pollAJAX;
 		var clarAJAX;
 		var freezeAJAX;
 		
 		var time = {{"now"|date('U')}} - {{current_contest.start_time|date('U')}}; // current seconds into the contest
+		var starttime = {{current_contest.start_time|date('U')}} - {{"now"|date('U')}}; // current seconds until the contest
 		var total = {{current_contest.end_time|date('U')}} - {{current_contest.start_time|date('U')}};
 		var freeze = {{current_contest.freeze_time|date('U')}} - {{current_contest.start_time|date('U')}};
 		
@@ -318,10 +323,9 @@
 			tableHTML += `</colgroup>
 			
 			<tr>
-				<th class="top-row no-hover">Rank</th>
-				<th class="top-row no-hover">Teams</th>
-				<th class="top-row no-hover">Number Correct</th>
-				<th class="top-row no-hover">Penalty Time</th>
+				<th class="top-row no-hover"></th>
+				<th class="top-row no-hover">Problems</th>
+				<th class="top-row no-hover">Time</th>
 				{% for problem in current_contest.problems %}
 				<th class="top-row">
 					<a href="{{path('contest_problem', {'contestId': problem.assignment.section.id, 'roundId': problem.assignment.id, 'problemId': problem.id})}}">
@@ -330,7 +334,6 @@
 				</th>
 				{% endfor %}
 			</tr>`;
-			
 			
 			
 			for(var i = 0; i<leaderboard.scores.length; i++){
@@ -342,7 +345,6 @@
 				
 				tableHTML += "<td class='rank'>" + team.rank + "</td>";
 				tableHTML += "<td class='name'>" + team.team_name + "</td>";
-				tableHTML += "<td class='num-correct'>" + team.num_correct + "</td>";
 				tableHTML += "<td class='time'>" + team.total_penalty + "</td>";
 				
 				for(var j=0; j<team.attempts.length; j++){
@@ -351,31 +353,16 @@
 				
 					tableHTML += "<td class='" + ((result) ? "accepted" : ((team.attempts[j] > 0) ? "attempted" : "unattempted")) + "'>";
 						
-					tableHTML += "<div class='attempts-count'>" + ((team.attempts[j] > 0) ? team.attempts[j] : "-") + "</div>";
-					tableHTML += "<div class='penalty-mins'>" + ((result) ? team.times[j] : ((team.times[j] > 0) ? "--" : "-")) + "</div>";
+						tableHTML += "<div class='attempts-count'>" + ((team.attempts[j] > 0) ? team.attempts[j] : "-") + "</div>";
+						
+						tableHTML += "<div class='penalty-mins'>" + ((result) ? team.penalties[j] : ((team.attempts[j] > 0) ? "--" : "-")) + "</div>";
 					
 					tableHTML += "</td>";
 				
 				}
+			
 				tableHTML += "</tr>";
-				
 			}			
-			tableHTML += "<tr height = 5px> </tr>";
-			tableHTML += "<tr class='stats-row'>";
-			tableHTML += "<td><div class='attempts-count'> Correct/Total </div>";
-			tableHTML += "<td><div class='empty-cell'></div></td>";
-			tableHTML += "<td><div class='empty-cell'></div></td>";
-			tableHTML += "<td><div class='empty-cell'></div></td>";
-			
-			
-			
-			{% for att in attempts_per_problem_count %}
-				tableHTML += "<td><div class='stats'>"
-				tableHTML += {{correct_submissions_per_problem_count[loop.index0]}}+ "/";
-				tableHTML += {{attempts_per_problem_count[loop.index0]}} ;
-				
-				tableHTML += "</td></div>"
-			{% endfor %}
 			
 			$('#leaderboard').html(tableHTML);		
 
@@ -428,17 +415,29 @@
 		
 		/* LOOP FUNCTION THAT RUNS EVERY SECOND TO UPDATE THINGS */
 		function loopFunction(){
-			
+
 			// update the progress bar
 			$( "#progressbar" ).progressbar( "option", "value", time);
-			time++;
 			
-			// update the time left
-			var left = total-time;
+			if (starttime <= 0) {
+				time++;
+
+				// update the time left
+				var left = total-time;
+			} else {
+				starttime--;
+				// update the time left
+				var left = starttime;
+			}
+
 			
 			if(left <= 0){
-				
-				$('#time-left').text("FINISHED");
+				if(contest_started) {
+					$('#time-left').text("FINISHED");
+				} else {
+					$('#time-left').text("START");
+					contest_started = !contest_started;
+				}
 				
 			} else {
 				
@@ -450,7 +449,13 @@
 				minutes = (minutes < 10) ? "0"+minutes : minutes;
 				seconds = (seconds < 10) ? "0"+seconds : seconds;
 				
-				$('#time-left').text(hours+":"+minutes+":"+seconds+" left");
+
+
+				if (starttime <= 0) {
+					$('#time-left').text(hours+":"+minutes+":"+seconds+" left");
+				} else {
+					$('#time-left').text(hours+":"+minutes+":"+seconds+" until contest start");
+				}
 			}
 			
 			// check for AJAX information
