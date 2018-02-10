@@ -90,7 +90,7 @@
 				
 
 				<div>
-				{% if submission.compiler_error and submission.compiler_output %}
+				{% if submission.compiler_output %}
 					<h2> COMPILER OUTPUT </h2>
 					<textarea disabled id='compiler-output'>{{submission.compiler_output}}</textarea>
 				{% endif %}
@@ -155,6 +155,10 @@ Submission was a ZIP file{% endif %}</div>
 	<script src="{{ asset('src-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>	
 	
 	<script>
+	
+	$(window).unload(function() {
+		submissionModifyAJAX.abort();
+	});
 	
 	$(document).ready( function() {
 	
@@ -359,7 +363,7 @@ Submission was a ZIP file{% endif %}</div>
 		
 		formData.append('submissionId', id);
 		
-		$.ajax({
+		submissionModifyAJAX = $.ajax({
 			type: "POST",
 			url: "{{path('judging_modify')}}",
 			data: formData,

@@ -95,6 +95,7 @@
 		var contest_started = false;
 	
 		var scoreboardPollAJAX;
+		var freezeAJAX;
 		
 		var time = {{"now"|date('U')}} - {{current_contest.start_time|date('U')}}; // current seconds into the contest
 		var total = {{current_contest.end_time|date('U')}} - {{current_contest.start_time|date('U')}};
@@ -114,6 +115,7 @@
 		$(window).unload(function() {
 			
 			scoreboardPollAJAX.abort();
+			freezeAJAX.abort();
 			
 		});
 				
@@ -318,9 +320,12 @@
 					{% endif %}
 					
 				},
-				error: function(data){					
-					alert(data['responseText']);
-					console.log(data['responseText']);					
+				error: function(data){
+		
+					if(data['responseText']){					
+						alert(data['responseText']);
+						console.log(data['responseText']);					
+					}				
 				}
 			});
 			
@@ -364,9 +369,12 @@
 						$('#scoreboard-button').html("Freeze");
 					}
 				},
-				error: function(data){					
-					alert(data['responseText']);
-					console.log(data['responseText']);
+				error: function(data){
+		
+					if(data['responseText']){					
+						alert(data['responseText']);
+						console.log(data['responseText']);					
+					}
 				}
 			});
 			

@@ -281,8 +281,11 @@
 					}
 				},
 				error: function(data){
-					alert(data['responseText']);
-					console.log(data['responseText']);
+		
+					if(data['responseText']){					
+						alert(data['responseText']);
+						console.log(data['responseText']);					
+					}
 				}
 			});
 			
@@ -309,8 +312,11 @@
 					window.location.reload();
 				},
 				error: function(data){
-					alert(data['responseText']);
-					console.log(data['responseText']);
+		
+					if(data['responseText']){					
+						alert(data['responseText']);
+						console.log(data['responseText']);					
+					}
 				}
 			});
 			
@@ -337,8 +343,11 @@
 					window.location.reload();
 				},
 				error: function(data){
-					alert(data['responseText']);
-					console.log(data['responseText']);
+		
+					if(data['responseText']){					
+						alert(data['responseText']);
+						console.log(data['responseText']);					
+					}
 				}
 			});
 			
@@ -408,8 +417,11 @@
 					}
 				},
 				error: function(data){
-					alert(data['responseText']);
-					console.log(data['responseText']);
+		
+					if(data['responseText']){					
+						alert(data['responseText']);
+						console.log(data['responseText']);					
+					}
 				}
 			});
 			
@@ -485,8 +497,11 @@
 					
 				},
 				error: function(data){
-					alert(data['responseText']);
-					console.log(data['responseText']);
+		
+					if(data['responseText']){					
+						alert(data['responseText']);
+						console.log(data['responseText']);					
+					}
 				}
 			});		
 		}
@@ -913,10 +928,10 @@
 					continue;	
 				}
 				
-				var probAssignName = (clarification['problem']) ? "[" + clarification['problem']['name'] + "]" : "[General]";
+				var probAssignName = (clarification['problem']) ? "[" + escapeHTML(clarification['problem']['name']) + "]" : "[General]";
 				
 				var clarificationHTML = `<div class="clarification found" id="` + clarification['id'] + `">` + 
-											`<div class="name">` + probAssignName + `</div><div class="question">` + clarification['question'] + `</div>` +
+											`<div class="name">` + probAssignName + `</div><div class="question">` + escapeHTML(clarification['question']) + `</div>` +
 										`</div>`;
 				
 				$('#clarifications-container').append(clarificationHTML);				
@@ -976,7 +991,7 @@
 				var question = (clar.question) ? clar.question : "Judge Notice";
 				var answer = clar.answer;
 				
-				var name = (clar.problem) ? clar.problem.name.substring(0,1) : "~";
+				var name = (clar.problem) ? escapeHTML(clar.problem.name.substring(0,1)) : "~";
 				
 				var clarHTML = `<div class='query' id='` + clar.id + `' title="` + escapeHTML(answer) + `">` + `[` + escapeHTML(name) + `] ` + escapeHTML(question) + `</div>`;
 				$('#recent-clarifications').append(clarHTML);

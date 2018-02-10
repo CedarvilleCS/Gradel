@@ -403,6 +403,13 @@ Please re-upload it!
 		var trialUpdateTimer = null;
 		var trialId = {{(trial) ? trial.id : "0"}};
 		var second = 0;
+		
+		$(window).unload(function() {
+			genAJAX.abort();
+			submitAJAX.abort();
+			saveTrialAJAX.abort();
+			postClarAJAX.abort();
+		}
 
 	
 		$(document).ready(function() {
@@ -648,7 +655,7 @@ Please re-upload it!
 			
 			formData.append('question', question);
 			
-			$.ajax({
+			postClarAJAX = $.ajax({
 				type: "POST",
 				url: "{{path('judging_query')}}",
 				data: formData,
@@ -701,7 +708,7 @@ Please re-upload it!
 				}
 			}
 			
-			$.ajax({
+			saveTrialAJAX = $.ajax({
 				type: "POST",
 				url: "{{path('modify_trial')}}",
 				data: formData,
@@ -766,7 +773,7 @@ Please re-upload it!
 			$('#loading-container').show();
 			$('#submissionButton').hide();
 						
-			$.ajax({
+			submitAJAX = $.ajax({
 				type: "POST",
 				url: "{{path('submit')}}",
 				data: formData,
@@ -849,7 +856,7 @@ Please re-upload it!
 			$('#loading-container-test').show();
 			$('#generate-output-button').hide();
 		
-			$.ajax({
+			genAJAX = $.ajax({
 				type: "POST",
 				url: "{{path('generate')}}",
 				data: submitData,

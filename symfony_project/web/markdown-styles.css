@@ -230,3 +230,18 @@
     color: white;
     font-size: 0.8em !important;
 }
+
+
+#markdown table {
+	width: auto;
+	display: inline-block
+}
+
+#markdown table td, #markdown table th {
+
+	padding: 4px 8px;
+}
+
+#markdown table tr:nth-child(2n){
+	background: #f6f8fa;
+}

@@ -177,7 +177,7 @@ class AssignmentController extends Controller {
 		$trial = $trial_query->getOneorNullResult();
 		
 		
-		if($_GET["submissionId"] && $_GET["submissionId"] > 0){
+		if(isset($_GET["submissionId"]) && $_GET["submissionId"] > 0){
 			
 			$submission = $em->find("AppBundle\Entity\Submission", $_GET["submissionId"]);
 			

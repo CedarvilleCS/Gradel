@@ -486,9 +486,12 @@
 					{% endif %}
 					
 				},
-				error: function(data){					
-					alert(data['responseText']);
-					console.log(data['responseText']);					
+				error: function(data){	
+		
+					if(data['responseText']){					
+						alert(data['responseText']);
+						console.log(data['responseText']);					
+					}
 				}
 			});
 			
@@ -516,9 +519,12 @@
 					updateClarifications(data['clarifications']);
 					
 				},
-				error: function(data){					
-					alert(data['responseText']);
-					console.log(data['responseText']);					
+				error: function(data){			
+				
+					if(data['responseText']){					
+						alert(data['responseText']);
+						console.log(data['responseText']);					
+					}					
 				}
 			});
 			
@@ -562,9 +568,12 @@
 						$('#scoreboard-button').html("Freeze");
 					}
 				},
-				error: function(data){					
-					alert(data['responseText']);
-					console.log(data['responseText']);
+				error: function(data){
+		
+					if(data['responseText']){					
+						alert(data['responseText']);
+						console.log(data['responseText']);					
+					}
 				}
 			});			
 			
