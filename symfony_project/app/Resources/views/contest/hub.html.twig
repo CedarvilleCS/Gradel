@@ -105,10 +105,9 @@
 						
 						<tr class="{{rowClassName}}" onclick="window.location='{{path('contest_problem', {'contestId': problem.assignment.section.id, 'roundId': problem.assignment.id, 'problemId': problem.id})}}'">
 							<td class="name {{className}}"><div> {{problem.name}} </div></td>
-							
 							<td class="penalties {{className}}"><div> {{ (isCorrect) ?  team.times[loop.index0] ~ ' + ' ~ team.raw_penalties[loop.index0]  : "" }} </div></td>
 							<td class="checkbox {{className}}" style="text-align: right; padding-right: 25px">
-								{{ (team.results[loop.index0]) ? "<div style='color: green'> &#x2713; </div>" : (team.attempts[loop.index0] > 0) ? "<div style='color: red'> &#x2718; </div>" : "<div style='color: white'> &#x2718; </div>" }}						</td>
+								{{ (team.results[loop.index0]) ? "<div style='color: green'> &#x2713; </div>" : (team.attempts[loop.index0] > 0) ? "<div style='color: red'> &#x2718; </div>" : "" }}						</td>
 						</tr>
 					{% endfor %}
 					
