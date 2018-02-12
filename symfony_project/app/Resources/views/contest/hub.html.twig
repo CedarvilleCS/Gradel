@@ -111,7 +111,7 @@
 								{{ (team.results[loop.index0]) ? "<div style='color: green'> &#x2713; </div>" : (team.attempts[loop.index0] > 0) ? "<div style='color: red'> &#x2718; </div>" : "<div style='color: white'> &#x2718; </div>" }}						</td>
 						</tr>
 					{% endfor %}
-						
+					
 					</table>
 				</div>
 			</div>
@@ -385,12 +385,14 @@
 		
 		/* LOOP FUNCTION THAT RUNS EVERY SECOND TO UPDATE THINGS */
 		function loopFunction(){
-			
+
 			// update the progress bar
 			$( "#progressbar" ).progressbar( "option", "value", time);
 			
 			if (starttime <= 0) {
 				time++;
+
+				// update the time left
 				var left = total-time;
 			} else {
 				starttime--;
