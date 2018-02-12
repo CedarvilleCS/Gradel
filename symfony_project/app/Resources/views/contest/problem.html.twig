@@ -894,13 +894,15 @@ Please re-upload it!
 						
 						if($(this).find('.output').val() != $(this).find('.exp-output').val()){
 							
-							$('#'+$(this).attr('id')+'-marker').css('background', 'pink');
+							$('#'+$(this).attr('id')+'-marker').css('background', '#ff3a3a');
 							$('#'+$(this).attr('id')+'-marker').css('border', '1pt solid red');
+							$('#'+$(this).attr('id')+'-marker').css('color', 'white');
 							
 						} else {
 							
-							$('#'+$(this).attr('id')+'-marker').css('background', 'lightgreen');
-							$('#'+$(this).attr('id')+'-marker').css('border', '1pt solid green');
+							$('#'+$(this).attr('id')+'-marker').css('background', '#71BA62');
+							$('#'+$(this).attr('id')+'-marker').css('border', '1pt solid green');							
+							$('#'+$(this).attr('id')+'-marker').css('color', 'white');
 						}
 					});
 										
