@@ -69,19 +69,19 @@ class SocketPusher  {
   }
 
   public function buildRejection($submission) {
-    return "Your submission for " . $submission->problem->name . " was <b>incorrect</b>.";
+    return "Your submission for " . htmlspecialchars($submission->problem->name) . " was <b>incorrect</b>.";
   }
 
   public function buildCustomRejection($submission) {
-    return "Your submission for " . $submission->problem->name . " was <b>incorrect</b>. \\nJudge Message: " . $submission->judge_message;
+    return "Your submission for " . htmlspecialchars($submission->problem->name) . " was <b>incorrect</b>. \\nJudge Message: " . htmlspecialchars($submission->judge_message);
   }
 
   public function buildFormattingRejection($submission) {
-    return "Your submission for " . $submission->problem->name . " was <b>incorrect</b>. \\nJudge Message: Formatting Error";
+    return "Your submission for " . htmlspecialchars($submission->problem->name) . " was <b>incorrect</b>. \\nJudge Message: Formatting Error";
   }
 
   public function buildDeleteRejection($submission) {
-    return "Your submission for " . $submission->problem->name . " was deleted";
+    return "Your submission for " . htmlspecialchars($submission->problem->name) . " was deleted";
   }
 
   public function buildClarificationMessageFromQuery($query) {
@@ -90,7 +90,7 @@ class SocketPusher  {
 
   public function buildClarificationMessage($question, $answer, $name) {
     $problemName = $name ? "Question Concerning " . $name . ":" : "Question: ";
-    return "<b>" . $problemName . "</b> " . $question . "\\n<b>Answer:</b> " . $answer;
+    return "<b>" . htmlspecialchars($problemName) . "</b> " . htmlspecialchars($question) . "\\n<b>Answer:</b> " . htmlspecialchars($answer);
   }
 }
 

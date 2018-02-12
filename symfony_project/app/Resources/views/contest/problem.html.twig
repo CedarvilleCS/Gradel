@@ -12,7 +12,9 @@
 	
     <link rel="stylesheet" href="{{ asset('styles.css') }}" />
     <link rel="stylesheet" href="{{ asset('card.css') }}" />
-    <link rel="stylesheet" href="{{ asset('contest-hub.css') }}" />	
+	
+    <link rel="stylesheet" href="{{ asset('contest.css') }}" />	
+	
     <link rel="stylesheet" href="{{ asset('submit.css') }}" />
     <link rel="stylesheet" href="{{ asset('contest-problem.css') }}" />
 	
@@ -51,7 +53,7 @@ var markdownText = converter.makeHtml("{{problem.description|e('js')}}");
 	
 	{{ include('contest/problem-nav.html.twig') }}
 
-    <section id="main" class="scrolly">
+    <section id="main">
 
 		<div class="card" style="padding-top: 2px">
 						
@@ -177,24 +179,21 @@ Please re-upload it!
 											
 											<div class="input-container" style="display: flex; flex-direction: column; width: 33%">
 											<small>Standard Input:</small>
-											<textarea rows=10 class="input">{{tc.input|raw}}</textarea>
+											<textarea style='height: 180px' class="input">{{tc.input|raw}}</textarea>
 											</div>
 											
 											<div class="output-container" style="display: flex; flex-direction: column; width: 33%">
 											<small>Expected Output:</small>
-											<textarea rows=10 class="exp-output original">{{tc.correct_output|raw}}</textarea>
+											<textarea style='height: 180px' class="exp-output original">{{tc.correct_output|raw}}</textarea>
 											</div>
 											
-											<div class="user-output-container" style="display: flex; flex-direction: column; width: 33%">
-											<small>Your Output:</small>
-											<textarea rows=10 class="output changed"></textarea>
-													</div>
+											<textarea style='height: 180px; display: none;' class="output changed"></textarea>
 			
-											<div class='user-output-container' style='display: flex; flex-direction: column; width: 25%'>
+											<div style='display: flex; flex-direction: column; width: 33%'>
 											<small>Output Diffs:</small>
-											<div class='diff' style='border: 1px solid black; height: 164px; font-family: monospace; font-size: 14px;'></p>
+											<div class='output diff' style='font-family: monospace; font-size: 14px; border: 1px solid #878787; height: 178px;'><p></p>
 											</div>
-													
+											</div>	
 										</div>
 									</div>
 								</div>
@@ -400,9 +399,21 @@ Please re-upload it!
 
 	<script>
 	
+		var genAJAX;
+		var submitAJAX;
+		var saveTrialAJAX;
+		var postClarAJAX;
+	
 		var trialUpdateTimer = null;
 		var trialId = {{(trial) ? trial.id : "0"}};
 		var second = 0;
+		
+		$(window).unload(function() {
+			genAJAX.abort();
+			submitAJAX.abort();
+			saveTrialAJAX.abort();
+			postClarAJAX.abort();
+		});
 
 	
 		$(document).ready(function() {
@@ -502,24 +513,22 @@ Please re-upload it!
 						"<div class='testcase-data'>" +
 							"<div style='display: flex; flex-direction: row; justify-content: space-between;'>" +
 								
-								"<div class='input-container' style='display: flex; flex-direction: column; width: 25%'>" +
+								"<div class='input-container' style='display: flex; flex-direction: column; width: 33%'>" +
 								"<small>Standard Input:</small>" +
-								"<textarea rows=10 class='input'></textarea>" +
+								"<textarea style='height: 180px' class='input'></textarea>" +
 								"</div>" +
 								
-								"<div class='output-container' style='display: flex; flex-direction: column; width: 25%'>" +
+								"<div class='output-container' style='display: flex; flex-direction: column; width: 33%'>" +
 								"<small>Expected Output:</small>" +
-								"<textarea rows=10 class='exp-output original'></textarea>" +
+								"<textarea style='height: 180px' class='exp-output original'></textarea>" +
 								"</div>" +
 								
-								"<div class='user-output-container' style='display: flex; flex-direction: column; width: 25%'>" +
-								"<small>Your Output:</small>" +
-								"<textarea rows=10 class='output changed'></textarea>" +
-								"</div>" +
+								"<textarea style='height: 180px; display: none;' class='output changed'></textarea>" +
 
-								"<div class='user-output-container' style='display: flex; flex-direction: column; width: 25%'>" +
+								"<div class='diff-container' style='display: flex; flex-direction: column; width: 33%'>" +
 								"<small>Output Diffs:</small>" +
-								"<div class='diff' style='border: 1px solid black; height: 164px; font-family: monospace; font-size: 14px;'></p>" +
+								"<div class='diff' style='font-family: monospace; font-size: 14px; border: 1px solid #878787; height: 178px;'><p></p>" +
+								"</div>" +
 								"</div>" +
 							"</div>" +
 						"</div>" +
@@ -648,7 +657,10 @@ Please re-upload it!
 			
 			formData.append('question', question);
 			
-			$.ajax({
+			if(postClarAJAX != null){
+				postClarAJAX.abort();
+			}
+			postClarAJAX = $.ajax({
 				type: "POST",
 				url: "{{path('judging_query')}}",
 				data: formData,
@@ -701,7 +713,10 @@ Please re-upload it!
 				}
 			}
 			
-			$.ajax({
+			if(saveTrialAJAX != null){
+				saveTrialAJAX.abort();
+			}
+			saveTrialAJAX = $.ajax({
 				type: "POST",
 				url: "{{path('modify_trial')}}",
 				data: formData,
@@ -765,8 +780,12 @@ Please re-upload it!
 
 			$('#loading-container').show();
 			$('#submissionButton').hide();
-						
-			$.ajax({
+			
+			if(submitAJAX != null){
+				submitAJAX.abort();
+			}
+			
+			submitAJAX = $.ajax({
 				type: "POST",
 				url: "{{path('submit')}}",
 				data: formData,
@@ -849,7 +868,10 @@ Please re-upload it!
 			$('#loading-container-test').show();
 			$('#generate-output-button').hide();
 		
-			$.ajax({
+			if(genAJAX != null){
+				genAJAX.abort();
+			}
+			genAJAX = $.ajax({
 				type: "POST",
 				url: "{{path('generate')}}",
 				data: submitData,
@@ -867,13 +889,15 @@ Please re-upload it!
 						
 						if($(this).find('.output').val() != $(this).find('.exp-output').val()){
 							
-							$('#'+$(this).attr('id')+'-marker').css('background', 'pink');
+							$('#'+$(this).attr('id')+'-marker').css('background', '#ff3a3a');
 							$('#'+$(this).attr('id')+'-marker').css('border', '1pt solid red');
+							$('#'+$(this).attr('id')+'-marker').css('color', 'white');
 							
 						} else {
 							
-							$('#'+$(this).attr('id')+'-marker').css('background', 'lightgreen');
-							$('#'+$(this).attr('id')+'-marker').css('border', '1pt solid green');
+							$('#'+$(this).attr('id')+'-marker').css('background', '#71BA62');
+							$('#'+$(this).attr('id')+'-marker').css('border', '1pt solid green');							
+							$('#'+$(this).attr('id')+'-marker').css('color', 'white');
 						}
 					});
 										
@@ -895,7 +919,5 @@ Please re-upload it!
 		}
 	
 	</script>
-	{{ include('contest/contest_gas.html.twig') }}
-
 
 {% endblock %}

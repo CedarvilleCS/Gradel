@@ -2,8 +2,10 @@
 	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
 	
     <link rel="stylesheet" href="{{ asset('styles.css') }}" />
-    <link rel="stylesheet" href="{{ asset('card.css') }}" />
-    <link rel="stylesheet" href="{{ asset('contest-hub.css') }}" />
+	<link rel="stylesheet" href="{{ asset('card.css') }}" />
+	<link rel="stylesheet" href="{{ asset('contest.css') }}" />
+	<link rel="stylesheet" href="{{ asset('contest-hub.css') }}" />
+	<link rel="stylesheet" href="{{ asset('contest-judge.css') }}" />
 	
 	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
 	
@@ -89,14 +91,7 @@
 				<div id="clear-clarifications-button" style="position: absolute; right: 15px; top: 10px;"> Clear Clarifications </div>
 			</div>
 
-			<div id="stats-container">
-				
-				<!-- <div style="width: 28%">
-						<div style="margin-top: 5px; padding-left: 5px; font-weight: bold; font-size: 0.9em;"> Statistics <small> </small> </div>
-						<div id="stats-page">
-						</div>
-					</div> -->
-				
+			<div id="stats-container">				
 					<div style="width: 35%">
 						<div style="margin-top: 5px; padding-left: 5px; font-weight: bold; font-size: 0.9em;"> Previous Reviews <small> </small> </div>
 						<div id="recent-reviews">
@@ -112,7 +107,8 @@
 					<div style="width: 35%">
 						<div style="margin-top: 5px; padding-left: 5px; font-weight: bold; font-size: 0.9em;"> Stats <small> </small> </div>
 						<div id="stats">
-							{# number of problems current user has reviewed in relation to total #}
+							<p id="review_stats"></p>
+							<p id="clar_stats"></p>
 						</div>
 					</div>
 				</div>	
@@ -515,32 +511,14 @@
 			
 				$('#recent-reviews').animate({
 					scrollTop: $('#recent-reviews').prop('scrollHeight'),
-				}, 2000);				
-
-				
-			}
-
-			var user_reviewed = 0;
-			for(var i = 0; i < reviews.length; i++) {
-				
-				// 
-				console.log(reviews[i]);
-				// console.log(reviews[i]['reviewer'].email);
-				// console.log({{app.user}})
-				// console.log('{{app.user}}');
-				if (reviews[i]['reviewer'] != null && reviews[i]['reviewer'].email == '{{app.user}}') { 
-					// get current users email  {{ user.getEmail() }}
-					user_reviewed += 1;
-				}
-				$("#stats").text("You have made " + user_reviewed + " reviews.");
-				console.log(user_reviewed);
+				}, 2000);
 			}
 		}
-		
+
+
 		function updateClarificationScroller(data){
-			
 			var clars = data['answered_clarifications'];
-			
+
 			if(addAnswered(clars)){
 				
 				$('#recent-clarifications').stop();
@@ -549,8 +527,6 @@
 					scrollTop: $('#recent-clarifications').prop('scrollHeight'),
 				}, 2000);				
 			}
-		
-			
 		}
 				
 		function updateSubmissionQueue(data){
@@ -954,6 +930,7 @@
 		function addReviews(reviews){
 			
 			var newOne = false;
+			var user_reviewed = 0;
 			
 			for(var i=0; i<reviews.length; i++){
 			
@@ -976,7 +953,17 @@
 				var reviewHTML = `<a href="{{path('contest', {'contestId': current_contest.section.id, 'roundId': current_contest.id})}}/problem/` + rev.problem.id + `/result/` + rev.id + `"> <div class="review ` + ((rev.is_correct) ? "correct" : "wrong") + `" id="` + rev.id + `"> ` + 
 									`<div>` + rev.id + `) ` + escapeHTML(rev.problem.name.substring(0,1)) + ` - <small>` + escapeHTML(rev.team.name) + `</small></div><div><small> Reviewer: ` + escapeHTML(name) + `</small></div>` + 
 								`</div> </a>`;
-				$('#recent-reviews').append(reviewHTML);				
+				$('#recent-reviews').append(reviewHTML);
+				
+				
+				// review stats
+				for(var i = 0; i < reviews.length; i++) {
+					if (reviews[i]['reviewer'] != null && reviews[i]['reviewer'].email == '{{app.user}}') { 
+						user_reviewed += 1;
+					}
+					$("#review_stats").text("You have made " + user_reviewed + " of " + reviews.length +  " reviews.");
+				}
+
 			}			
 			
 			return newOne;
@@ -985,6 +972,7 @@
 		function addAnswered(clars){
 			
 			var newOne = false;
+			var user_clarifications = 0;
 			
 			for(var i=0; i<clars.length; i++){
 				
@@ -1005,6 +993,12 @@
 				
 				var clarHTML = `<div class='query' id='` + clar.id + `' title="` + escapeHTML(answer) + `">` + `[` + escapeHTML(name) + `] ` + escapeHTML(question) + `</div>`;
 				$('#recent-clarifications').append(clarHTML);
+
+
+				if (clars[i]['answerer'] != null && clars[i]['answerer'].email == '{{app.user}}') { 
+					user_clarifications += 1;
+				}
+				$("#clar_stats").text("You have given " + user_clarifications + " of " + clars.length +  " clarifications.");
 				
 			}
 			
