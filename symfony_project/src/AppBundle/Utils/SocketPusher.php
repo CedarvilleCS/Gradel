@@ -60,6 +60,16 @@ class SocketPusher  {
       'appbundle_topic', ['username' => 'user1']);
   }
 
+  public function promptDataRefresh($contestId) {
+    $this->pusher->push([
+      'msg' => "null",
+      'contestId' => $contestId,
+      'scope' => 'pageUpdate',
+      'recipients' => null,
+      'passKey' => 'gradeldb251'],
+      'appbundle_topic', ['username' => 'user1']);
+  }
+
   public function getUsernamesFromTeam($team) {
     $recipients = [];
     foreach($team->users as $user) {

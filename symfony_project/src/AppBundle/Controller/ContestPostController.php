@@ -1013,6 +1013,7 @@ class ContestPostController extends Controller {
 			$response->headers->set('Content-Type', 'application/json');
 			$response->setStatusCode(Response::HTTP_OK);
 
+			$pusher->promptDataRefresh($contest->section->id);
 			return $response;
 			
 		} 
@@ -1088,6 +1089,7 @@ class ContestPostController extends Controller {
 				);
 			}
 
+			$pusher->promptDataRefresh($contest->section->id);
 			return $response;
 						
 		}
@@ -1139,7 +1141,8 @@ class ContestPostController extends Controller {
 			
 			$response->headers->set('Content-Type', 'application/json');
 			$response->setStatusCode(Response::HTTP_OK);
-
+			
+			$pusher->promptDataRefresh($contest->section->id);
 			return $response;
 			
 		}
