@@ -177,22 +177,22 @@ Please re-upload it!
 											
 											<div class="input-container" style="display: flex; flex-direction: column; width: 33%">
 											<small>Standard Input:</small>
-											<textarea rows=10 class="input">{{tc.input|raw}}</textarea>
+											<textarea style='height: 180px' class="input">{{tc.input|raw}}</textarea>
 											</div>
 											
 											<div class="output-container" style="display: flex; flex-direction: column; width: 33%">
 											<small>Expected Output:</small>
-											<textarea rows=10 class="exp-output original">{{tc.correct_output|raw}}</textarea>
+											<textarea style='height: 180px' class="exp-output original">{{tc.correct_output|raw}}</textarea>
 											</div>
 											
-											<div class="user-output-container" style="display: flex; flex-direction: column; width: 33%">
-											<small>Your Output:</small>
-											<textarea rows=10 class="output changed"></textarea>
-													</div>
+											{# <div class="user-output-container" style="display: flex; flex-direction: column; width: 33%"> #}
+											{# <small>Your Output:</small> #}
+											<textarea style='height: 180px; display: none;' class="output changed"></textarea>
+											{# </div> #}
 			
-											<div class='user-output-container' style='display: flex; flex-direction: column; width: 25%'>
+											<div class='user-output-container' style='display: flex; flex-direction: column; width: 33%'>
 											<small>Output Diffs:</small>
-											<div class='diff' style='font-family: monospace; font-size: 14px;'></p>
+											<div class='diff' style='font-family: monospace; font-size: 14px; border: 1px solid #878787; height: 180px;'></p>
 											</div>
 													
 										</div>
@@ -504,17 +504,17 @@ Please re-upload it!
 								
 								"<div class='input-container' style='display: flex; flex-direction: column; width: 25%'>" +
 								"<small>Standard Input:</small>" +
-								"<textarea rows=10 class='input'></textarea>" +
+								"<textarea style='height: 180px' class='input'></textarea>" +
 								"</div>" +
 								
 								"<div class='output-container' style='display: flex; flex-direction: column; width: 25%'>" +
 								"<small>Expected Output:</small>" +
-								"<textarea rows=10 class='exp-output original'></textarea>" +
+								"<textarea style='height: 180px' class='exp-output original'></textarea>" +
 								"</div>" +
 								
 								"<div class='user-output-container' style='display: flex; flex-direction: column; width: 25%'>" +
 								"<small>Your Output:</small>" +
-								"<textarea rows=10 class='output changed'></textarea>" +
+								"<textarea style='height: 180px' class='output changed'></textarea>" +
 								"</div>" +
 
 								"<div class='diff-container' style='display: flex; flex-direction: column; width: 25%'>" +
