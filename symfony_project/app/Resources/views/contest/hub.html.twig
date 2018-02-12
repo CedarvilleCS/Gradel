@@ -141,28 +141,6 @@
 		
 		
 		
-		{#		
-		<div class="card">
-			
-			<div class="btn-close" onclick="collapseCard('recentSubs')">
-				<h2 style="margin: 0px">Recent Submissions
-					<span style="float: right"><i class="fa fa-angle-down"></i></span>
-				</h2>
-			</div>
-		
-			<div id="recentSubs" class="card-contents" style="margin-top: 0px">
-				<div>
-					<ul>
-						{% for team in current_contest.teams %}		
-							{% for sub in team.submissions %}
-								<li> <a href="{{path('problem_result', {'submission_id': sub.id})}}"> {{team.name}} - {{sub.language.name}} </a></li>
-							{% endfor %}
-						{% endfor %}
-					</ul>
-				</div>
-			</div>
-		</div>
-		#}
 			
 	</section>
 
@@ -431,11 +409,13 @@
 			// check for AJAX information			
 			
 			// change this to a different number to change the frequency
-			if(time % 5 == 0){
-				pollContest();	
-				pollScoreboard();
-			}
 			
+			
+		}
+		
+		function socketScoreboardUpdate() {
+			pollContest();	
+			pollScoreboard();
 		}
 		
 		function pollScoreboard(){

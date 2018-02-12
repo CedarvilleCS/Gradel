@@ -207,6 +207,7 @@
 	<script src="{{ asset('js/unicode_return.js') }}"></script>
 	
 	<script>
+
 		
 		var contest_started = false;
 	
@@ -517,9 +518,13 @@
 			}
 				
 			//console.log("Polling for updates...");
-			pollJudging();
 		}
 				
+		function socketRefreshJudging() {
+			pollJudging();
+		}
+
+
 		function pollJudging(){
 		
 			var formData = new FormData();
@@ -554,6 +559,8 @@
 				}
 			});		
 		}
+
+		pollJudging();
 		
 		function updateClarificationQueue(data){
 			
