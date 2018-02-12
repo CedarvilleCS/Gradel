@@ -74,7 +74,7 @@ class CompilationController extends Controller {
 		//return $this->returnForbiddenResponse($trial->id."");
 	
 		# validation
-		$elevatedUser = ($grader->isTeaching($user, $problem->assignment->section) || $grader->isJudging($user, $problem->assignment->section) || $user->hasRole("ROLE_ADMIN") || $user->hasRole("ROLE_ADMIN"));
+		$elevatedUser = ($grader->isTeaching($user, $problem->assignment->section) || $grader->isJudging($user, $problem->assignment->section) || $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN"));
 		
 		# get the type of submission				
 		$team = null;
@@ -88,17 +88,17 @@ class CompilationController extends Controller {
 			}
 		
 			# make sure that the assignment is still open for submission
-			if($problem->assignment->cutoff_time < new \DateTime("now")){
+			if(!$elevatedUser && $problem->assignment->cutoff_time < new \DateTime("now")){
 				return $this->returnForbiddenResponse("TOO LATE TO SUBMIT FOR THIS PROBLEM");
 			}
 			
-			if($problem->assignment->start_time > new \DateTime("now")){
+			if(!$elevatedUser && $problem->assignment->start_time > new \DateTime("now")){
 				return $this->returnForbiddenResponse("TOO EARLY TO SUBMIT FOR THIS PROBLEM");
 			}
 			
 			# make sure that you haven't submitted too many times yet
 			$curr_attempts = $grader->getNumTotalAttempts($user, $problem);		
-			if($problem->total_attempts > 0 && $curr_attempts >= $problem->total_attempts){
+			if(!$elevatedUser && $problem->total_attempts > 0 && $curr_attempts >= $problem->total_attempts){
 				return $this->returnForbiddenResponse("ALREADY REACHED MAX ATTEMPTS FOR PROBLEM AT ".$curr_attempts." ATTEMPTS");
 			}
 		}

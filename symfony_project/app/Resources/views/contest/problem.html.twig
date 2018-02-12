@@ -12,7 +12,9 @@
 	
     <link rel="stylesheet" href="{{ asset('styles.css') }}" />
     <link rel="stylesheet" href="{{ asset('card.css') }}" />
-    <link rel="stylesheet" href="{{ asset('contest-hub.css') }}" />	
+	
+    <link rel="stylesheet" href="{{ asset('contest.css') }}" />	
+	
     <link rel="stylesheet" href="{{ asset('submit.css') }}" />
     <link rel="stylesheet" href="{{ asset('contest-problem.css') }}" />
 	
@@ -400,9 +402,21 @@ Please re-upload it!
 
 	<script>
 	
+		var genAJAX;
+		var submitAJAX;
+		var saveTrialAJAX;
+		var postClarAJAX;
+	
 		var trialUpdateTimer = null;
 		var trialId = {{(trial) ? trial.id : "0"}};
 		var second = 0;
+		
+		$(window).unload(function() {
+			genAJAX.abort();
+			submitAJAX.abort();
+			saveTrialAJAX.abort();
+			postClarAJAX.abort();
+		});
 
 	
 		$(document).ready(function() {
@@ -648,7 +662,10 @@ Please re-upload it!
 			
 			formData.append('question', question);
 			
-			$.ajax({
+			if(postClarAJAX != null){
+				postClarAJAX.abort();
+			}
+			postClarAJAX = $.ajax({
 				type: "POST",
 				url: "{{path('judging_query')}}",
 				data: formData,
@@ -701,7 +718,10 @@ Please re-upload it!
 				}
 			}
 			
-			$.ajax({
+			if(saveTrialAJAX != null){
+				saveTrialAJAX.abort();
+			}
+			saveTrialAJAX = $.ajax({
 				type: "POST",
 				url: "{{path('modify_trial')}}",
 				data: formData,
@@ -765,8 +785,12 @@ Please re-upload it!
 
 			$('#loading-container').show();
 			$('#submissionButton').hide();
-						
-			$.ajax({
+			
+			if(submitAJAX != null){
+				submitAJAX.abort();
+			}
+			
+			submitAJAX = $.ajax({
 				type: "POST",
 				url: "{{path('submit')}}",
 				data: formData,
@@ -849,7 +873,10 @@ Please re-upload it!
 			$('#loading-container-test').show();
 			$('#generate-output-button').hide();
 		
-			$.ajax({
+			if(genAJAX != null){
+				genAJAX.abort();
+			}
+			genAJAX = $.ajax({
 				type: "POST",
 				url: "{{path('generate')}}",
 				data: submitData,
@@ -867,13 +894,15 @@ Please re-upload it!
 						
 						if($(this).find('.output').val() != $(this).find('.exp-output').val()){
 							
-							$('#'+$(this).attr('id')+'-marker').css('background', 'pink');
+							$('#'+$(this).attr('id')+'-marker').css('background', '#ff3a3a');
 							$('#'+$(this).attr('id')+'-marker').css('border', '1pt solid red');
+							$('#'+$(this).attr('id')+'-marker').css('color', 'white');
 							
 						} else {
 							
-							$('#'+$(this).attr('id')+'-marker').css('background', 'lightgreen');
-							$('#'+$(this).attr('id')+'-marker').css('border', '1pt solid green');
+							$('#'+$(this).attr('id')+'-marker').css('background', '#71BA62');
+							$('#'+$(this).attr('id')+'-marker').css('border', '1pt solid green');							
+							$('#'+$(this).attr('id')+'-marker').css('color', 'white');
 						}
 					});
 										
