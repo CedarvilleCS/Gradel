@@ -214,10 +214,7 @@
 		var unfreeze_override = {{(current_contest.freeze_override and not current_contest.freeze_override_time) ? "true" : "false"}};
 		
 		$(window).unload(function() {
-			
-			scoreboardPollAJAX.abort();
-			contestPollAJAX.abort();
-			
+						
 		});
 				
 		//var freeze 
@@ -448,9 +445,6 @@
 			formData.append('start_time', '{{current_contest.start_time|date('U')}}');
 			formData.append('freeze_time', '{{current_contest.freeze_time|date('U')}}');
 			
-			if(scoreboardPollAJAX != null){
-				scoreboardPollAJAX.abort();
-			}
 			scoreboardPollAJAX = $.ajax({
 				type: "POST",
 				url: "{{path('scoreboard_poll')}}",
@@ -511,9 +505,6 @@
 
 			formData.append('contestId', {{current_contest.id}});
 			
-			if(contestPollAJAX != null){
-				contestPollAJAX.abort();
-			}
 			contestPollAJAX = $.ajax({
 				type: "POST",
 				url: "{{path('contest_poll')}}",
