@@ -108,6 +108,13 @@
 						<div id="recent-clarifications">
 						</div>
 					</div>
+
+					<div style="width: 35%">
+						<div style="margin-top: 5px; padding-left: 5px; font-weight: bold; font-size: 0.9em;"> Stats <small> </small> </div>
+						<div id="stats">
+							{# number of problems current user has reviewed in relation to total #}
+						</div>
+					</div>
 				</div>	
 		</div>
 					
@@ -509,6 +516,24 @@
 				$('#recent-reviews').animate({
 					scrollTop: $('#recent-reviews').prop('scrollHeight'),
 				}, 2000);				
+
+				
+			}
+
+			var user_reviewed = 0;
+			for(var i = 0; i < reviews.length; i++) {
+				
+				// 
+				console.log(reviews[i]);
+				// console.log(reviews[i]['reviewer'].email);
+				// console.log({{app.user}})
+				// console.log('{{app.user}}');
+				if (reviews[i]['reviewer'] != null && reviews[i]['reviewer'].email == '{{app.user}}') { 
+					// get current users email  {{ user.getEmail() }}
+					user_reviewed += 1;
+				}
+				$("#stats").text("You have made " + user_reviewed + " reviews.");
+				console.log(user_reviewed);
 			}
 		}
 		

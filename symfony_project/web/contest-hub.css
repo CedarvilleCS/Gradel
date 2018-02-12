@@ -294,7 +294,7 @@
 	min-height: 100px;
 }
 
-#recent-reviews, #recent-clarifications {
+#recent-reviews, #recent-clarifications, #stats {
 	height: 90px;
 	padding: 2px;
 	border-radius: 7px;
