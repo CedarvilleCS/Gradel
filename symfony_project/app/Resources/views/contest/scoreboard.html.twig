@@ -114,9 +114,7 @@
 		var scrollPageInterval;
 		
 		$(window).unload(function() {
-			
-			scoreboardPollAJAX.abort();
-			
+						
 		});
 				
 		//var freeze 
@@ -280,9 +278,7 @@
 			formData.append('freeze_time', '{{current_contest.freeze_time|date('U')}}');
 			formData.append('normal_user', true);
 			
-			if(scoreboardPollAJAX != null){
-				scoreboardPollAJAX.abort();
-			}
+			
 			scoreboardPollAJAX = $.ajax({
 				type: "POST",
 				url: "{{path('scoreboard_poll')}}",

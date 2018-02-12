@@ -101,9 +101,10 @@
 				
 					<div style=" width: 35%">
 						<div style="display:inline-block; width: 100%">
-							<div style=" margin-top: 5px; padding-left: 5px; font-weight: bold; font-size: 0.9em;"> Previous Reviews <small> </small> 
-								<input id="review-text" name="review-text" style="float: right; color: lightgrey; font-size: 0.5em; padding-left: 5px;" onchange="filterReviews(this.value)">
-								<div style="padding-right: 5px; font-size: 0.8em; float: right; margin-top: 3px;">Filter for...          </div>
+							<div >
+								<div style="float: left; margin-top: 5px; padding-left: 5px; font-weight: bold; font-size: 0.9em;"> Previous Reviews </div>
+								<input id="review-text" name="review-text" style="width: 25%; float: right; font-size: 0.7em; padding-left: 5px; margin-top: 2px;" title='You can filter on submission number, problem name/letter (i.e. "A -"), team name, correct/wrong, and reviewer name.' onchange="filterReviews(this.value)">
+								<div style="float: right; margin-top: 5px; padding-right: 5px; font-size: 0.9em;" title='You can filter on submission number, problem name/letter (i.e. "A -"), team name, correct/wrong, and reviewer name.'>Filter for... </div>
 							</div>
 						</div>
 						
@@ -223,7 +224,7 @@
 		
 		
 		$(window).unload(function() {			
-			pollAJAX.abort();
+			
 		});		
 		
 		//var freeze 
@@ -307,25 +308,25 @@
 			return true;
 		}
 		
-		function filterReviews(filter){
-			var el = document.getElementById('recent-reviews');
+		$('#review-text').on('keyup', function() {
+			var filter = document.getElementById('review-text').value;
 			
 			$('.review').each(function( index ){
-				var html = $(this).html().toUpperCase();
+				var html = $(this).text().toUpperCase();
 				var num = html.indexOf(filter.toUpperCase());
 				if (filter != '') {
 					if (num > 0) {
-						this.style.display = "block";
+						this.style.display = "flex";
 					} else {
 						this.style.display = "none";
 					}			
 				}
 				else {  
-					this.style.display = "block";
+					this.style.display = "flex";
 				}
 		}
 		);
-		}
+		});
 		
 		function clearSubmissions() {
 			
@@ -530,11 +531,7 @@
 			var formData = new FormData();
 			
 			formData.append('contestId', {{current_contest.id}});
-		
-			if(pollAJAX != null){
-				pollAJAX.abort();
-			}
-		
+				
 			pollAJAX = $.ajax({
 				type: "POST",
 				url: "{{path('judging_poll')}}",
@@ -1021,7 +1018,7 @@
 				
 				
 				var reviewHTML = `<a href="{{path('contest', {'contestId': current_contest.section.id, 'roundId': current_contest.id})}}/problem/` + rev.problem.id + `/result/` + rev.id + `"> <div class="review ` + ((rev.is_correct) ? "correct" : "wrong") + `" id="` + rev.id + `"> ` + 
-									`<div>` + rev.id + `) ` + escapeHTML(rev.problem.name.substring(0,1)) + ` - <small>` + escapeHTML(rev.team.name) + `</small></div><div><small> Reviewer: ` + escapeHTML(name) + `</small></div>` + 
+									`<div>` + rev.id + `) ` + escapeHTML(rev.problem.name.substring(0,1)) + ` - <small>` + escapeHTML(rev.team.name) + `</small></div><div style="display: none">` + escapeHTML(rev.problem.name) + `" " `+((rev.is_correct) ? "correct" : "wrong") +`</div><div><small> Reviewer: ` + escapeHTML(name) + `</small></div>` + 
 								`</div> </a>`;
 				
 				var filter = document.getElementById('review-text').value;

@@ -1,4 +1,4 @@
-sudo ./update_cache
+./update_cache
 php bin/console gos:websocket:server
 
 
