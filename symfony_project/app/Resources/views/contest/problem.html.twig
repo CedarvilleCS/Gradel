@@ -12,7 +12,9 @@
 	
     <link rel="stylesheet" href="{{ asset('styles.css') }}" />
     <link rel="stylesheet" href="{{ asset('card.css') }}" />
-    <link rel="stylesheet" href="{{ asset('contest-hub.css') }}" />	
+	
+    <link rel="stylesheet" href="{{ asset('contest.css') }}" />	
+	
     <link rel="stylesheet" href="{{ asset('submit.css') }}" />
     <link rel="stylesheet" href="{{ asset('contest-problem.css') }}" />
 	
@@ -400,6 +402,11 @@ Please re-upload it!
 
 	<script>
 	
+		var genAJAX;
+		var submitAJAX;
+		var saveTrialAJAX;
+		var postClarAJAX;
+	
 		var trialUpdateTimer = null;
 		var trialId = {{(trial) ? trial.id : "0"}};
 		var second = 0;
@@ -409,7 +416,7 @@ Please re-upload it!
 			submitAJAX.abort();
 			saveTrialAJAX.abort();
 			postClarAJAX.abort();
-		}
+		});
 
 	
 		$(document).ready(function() {
@@ -655,6 +662,9 @@ Please re-upload it!
 			
 			formData.append('question', question);
 			
+			if(postClarAJAX != null){
+				postClarAJAX.abort();
+			}
 			postClarAJAX = $.ajax({
 				type: "POST",
 				url: "{{path('judging_query')}}",
@@ -708,6 +718,9 @@ Please re-upload it!
 				}
 			}
 			
+			if(saveTrialAJAX != null){
+				saveTrialAJAX.abort();
+			}
 			saveTrialAJAX = $.ajax({
 				type: "POST",
 				url: "{{path('modify_trial')}}",
@@ -772,7 +785,11 @@ Please re-upload it!
 
 			$('#loading-container').show();
 			$('#submissionButton').hide();
-						
+			
+			if(submitAJAX != null){
+				submitAJAX.abort();
+			}
+			
 			submitAJAX = $.ajax({
 				type: "POST",
 				url: "{{path('submit')}}",
@@ -856,6 +873,9 @@ Please re-upload it!
 			$('#loading-container-test').show();
 			$('#generate-output-button').hide();
 		
+			if(genAJAX != null){
+				genAJAX.abort();
+			}
 			genAJAX = $.ajax({
 				type: "POST",
 				url: "{{path('generate')}}",

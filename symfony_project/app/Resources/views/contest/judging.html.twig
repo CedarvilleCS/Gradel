@@ -3,7 +3,9 @@
 	
     <link rel="stylesheet" href="{{ asset('styles.css') }}" />
     <link rel="stylesheet" href="{{ asset('card.css') }}" />
-    <link rel="stylesheet" href="{{ asset('contest-hub.css') }}" />
+    <link rel="stylesheet" href="{{ asset('contest.css') }}" />
+    <link rel="stylesheet" href="{{ asset('contest-judge.css') }}" />
+	
 	
 	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
 	
@@ -204,6 +206,8 @@
 		var pollAJAX;
 		var judgAJAX;
 		var clarAJAX;
+		var clarAJAX2;
+		var clarAJAX3;
 
 		var time = {{"now"|date('U')}} - {{current_contest.start_time|date('U')}}; // current seconds into the contest
 		var total = {{current_contest.end_time|date('U')}} - {{current_contest.start_time|date('U')}};
@@ -212,8 +216,6 @@
 		
 		$(window).unload(function() {			
 			pollAJAX.abort();
-			judgAJAX.abort();
-			clarAJAX.abort();
 		});		
 		
 		//var freeze 
@@ -300,7 +302,7 @@
 			formData.append('contestId', {{current_contest.id}});
 			formData.append('type', 'clear-subs');
 			
-			clarAJAX = $.ajax({
+			clarAJAX2 = $.ajax({
 				type: "POST",
 				url: "{{path('judging_modify')}}",
 				data: formData,
@@ -331,7 +333,7 @@
 			formData.append('contestId', {{current_contest.id}});
 			formData.append('type', 'clear-clars');
 			
-			clarAJAX = $.ajax({
+			clarAJAX3 = $.ajax({
 				type: "POST",
 				url: "{{path('judging_modify')}}",
 				data: formData,
@@ -480,6 +482,10 @@
 			var formData = new FormData();
 			
 			formData.append('contestId', {{current_contest.id}});
+		
+			if(pollAJAX != null){
+				pollAJAX.abort();
+			}
 		
 			pollAJAX = $.ajax({
 				type: "POST",

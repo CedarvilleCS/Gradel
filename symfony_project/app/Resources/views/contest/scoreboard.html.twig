@@ -3,6 +3,7 @@
 	
     <link rel="stylesheet" href="{{ asset('styles.css') }}" />
     <link rel="stylesheet" href="{{ asset('card.css') }}" />
+    <link rel="stylesheet" href="{{ asset('contest.css') }}" />
     <link rel="stylesheet" href="{{ asset('contest-hub.css') }}" />
 	
 	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
@@ -115,7 +116,6 @@
 		$(window).unload(function() {
 			
 			scoreboardPollAJAX.abort();
-			freezeAJAX.abort();
 			
 		});
 				
@@ -279,7 +279,10 @@
 			formData.append('start_time', '{{current_contest.start_time|date('U')}}');
 			formData.append('freeze_time', '{{current_contest.freeze_time|date('U')}}');
 			formData.append('normal_user', true);
-						
+			
+			if(scoreboardPollAJAX != null){
+				scoreboardPollAJAX.abort();
+			}
 			scoreboardPollAJAX = $.ajax({
 				type: "POST",
 				url: "{{path('scoreboard_poll')}}",
@@ -368,6 +371,8 @@
 						
 						$('#scoreboard-button').html("Freeze");
 					}
+					
+					pollScoreboard();
 				},
 				error: function(data){
 		
