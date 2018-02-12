@@ -145,15 +145,14 @@ class ContestPagesController extends Controller {
 		if(!$problem || $problem->assignment != $assignment){
 			die("404 - PROBLEM DOES NOT EXIST!");
 		}
-		
-		
+				
 		$grader = new Grader($em);
 		$elevatedUser = $grader->isJudging($user, $section) || $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN");
 
 		// elevated or taking and open
 		if( !($elevatedUser || ($grader->isTaking($user, $section) && $assignment->isOpened())) ){
 			
-			return $this->returnForbiddenResponse("PERMISSION DENIED");
+			return $this->redirectToRoute('contest', ['contestId' => $section->id, 'roundId' => $assignment->id]);
 		}
 		
 		// get JSON info for language info
@@ -237,7 +236,7 @@ class ContestPagesController extends Controller {
 		}
 		
 		# submission updating trial
-		if($_GET["submissionId"] && $_GET["submissionId"] > 0){
+		if(isset($_GET["submissionId"])){
 			
 			$submission = $em->find("AppBundle\Entity\Submission", $_GET["submissionId"]);
 			

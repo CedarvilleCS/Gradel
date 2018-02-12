@@ -3,7 +3,9 @@
 	
     <link rel="stylesheet" href="{{ asset('styles.css') }}" />
     <link rel="stylesheet" href="{{ asset('card.css') }}" />
-    <link rel="stylesheet" href="{{ asset('contest-hub.css') }}" />
+    <link rel="stylesheet" href="{{ asset('contest.css') }}" />
+    <link rel="stylesheet" href="{{ asset('contest-judge.css') }}" />
+	
 	
 	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
 	
@@ -97,9 +99,16 @@
 						</div>
 					</div> -->
 				
-					<div style="width: 35%">
-						<div style="margin-top: 5px; padding-left: 5px; font-weight: bold; font-size: 0.9em;"> Previous Reviews <small> </small> </div>
+					<div style=" width: 35%">
+						<div style="display:inline-block; width: 100%">
+							<div style=" margin-top: 5px; padding-left: 5px; font-weight: bold; font-size: 0.9em;"> Previous Reviews <small> </small> 
+								<input id="review-text" name="review-text" style="float: right; color: lightgrey; font-size: 0.5em; padding-left: 5px;" onchange="filterReviews(this.value)">
+								<div style="padding-right: 5px; font-size: 0.8em; float: right; margin-top: 3px;">Filter for...          </div>
+							</div>
+						</div>
+						
 						<div id="recent-reviews">
+							
 						</div>
 					</div>
 				
@@ -204,6 +213,8 @@
 		var pollAJAX;
 		var judgAJAX;
 		var clarAJAX;
+		var clarAJAX2;
+		var clarAJAX3;
 
 		var time = {{"now"|date('U')}} - {{current_contest.start_time|date('U')}}; // current seconds into the contest
 		var total = {{current_contest.end_time|date('U')}} - {{current_contest.start_time|date('U')}};
@@ -212,8 +223,6 @@
 		
 		$(window).unload(function() {			
 			pollAJAX.abort();
-			judgAJAX.abort();
-			clarAJAX.abort();
 		});		
 		
 		//var freeze 
@@ -225,9 +234,14 @@
 			});
 						
 			setInterval(loopFunction, 1000);
+			
 			loopFunction();					
 		});
-
+		
+		/* function reviewFilter() {
+			alert("The input value has changed. The new value is: " + val);
+		} */
+		
 		/* FUNCTION TO HANDLE POST TO ANSWER QUESTION */
 		function updateClarification(type, scope){
 			
@@ -281,12 +295,35 @@
 					}
 				},
 				error: function(data){
-					alert(data['responseText']);
-					console.log(data['responseText']);
+		
+					if(data['responseText']){					
+						alert(data['responseText']);
+						console.log(data['responseText']);					
+					}
 				}
 			});
 			
 			return true;
+		}
+		
+		function filterReviews(filter){
+			var el = document.getElementById('recent-reviews');
+			
+			$('.review').each(function( index ){
+				var html = $(this).html().toUpperCase();
+				var num = html.indexOf(filter.toUpperCase());
+				if (filter != '') {
+					if (num > 0) {
+						this.style.display = "block";
+					} else {
+						this.style.display = "none";
+					}			
+				}
+				else {  
+					this.style.display = "block";
+				}
+		}
+		);
 		}
 		
 		function clearSubmissions() {
@@ -297,7 +334,7 @@
 			formData.append('contestId', {{current_contest.id}});
 			formData.append('type', 'clear-subs');
 			
-			clarAJAX = $.ajax({
+			clarAJAX2 = $.ajax({
 				type: "POST",
 				url: "{{path('judging_modify')}}",
 				data: formData,
@@ -309,13 +346,26 @@
 					window.location.reload();
 				},
 				error: function(data){
-					alert(data['responseText']);
-					console.log(data['responseText']);
+		
+					if(data['responseText']){					
+						alert(data['responseText']);
+						console.log(data['responseText']);					
+					}
 				}
 			});
 			
 			return true;			
 		}
+		
+		$('#new-file').click( function() {		
+		
+			if($('#new-user-input').val().trim() == "" || $('#new-user-input').val() == "Add a new user by email..."){
+				return;
+			}
+		
+			addUser({'id': 0, 'full_name': $('#new-user-input').val()});
+			$('#new-user-input').val("");		
+		});
 		
 		function clearClarifications() {
 			
@@ -325,7 +375,7 @@
 			formData.append('contestId', {{current_contest.id}});
 			formData.append('type', 'clear-clars');
 			
-			clarAJAX = $.ajax({
+			clarAJAX3 = $.ajax({
 				type: "POST",
 				url: "{{path('judging_modify')}}",
 				data: formData,
@@ -337,8 +387,11 @@
 					window.location.reload();
 				},
 				error: function(data){
-					alert(data['responseText']);
-					console.log(data['responseText']);
+		
+					if(data['responseText']){					
+						alert(data['responseText']);
+						console.log(data['responseText']);					
+					}
 				}
 			});
 			
@@ -408,8 +461,11 @@
 					}
 				},
 				error: function(data){
-					alert(data['responseText']);
-					console.log(data['responseText']);
+		
+					if(data['responseText']){					
+						alert(data['responseText']);
+						console.log(data['responseText']);					
+					}
 				}
 			});
 			
@@ -418,6 +474,7 @@
 		
 		/* FUNCTION TO HANDLE GETTING UPDATES FROM THE WEBSITE */
 		function loopFunction(){
+			
 			
 			// update the progress bar
 			$( "#progressbar" ).progressbar( "option", "value", time);
@@ -469,6 +526,10 @@
 			
 			formData.append('contestId', {{current_contest.id}});
 		
+			if(pollAJAX != null){
+				pollAJAX.abort();
+			}
+		
 			pollAJAX = $.ajax({
 				type: "POST",
 				url: "{{path('judging_poll')}}",
@@ -485,8 +546,11 @@
 					
 				},
 				error: function(data){
-					alert(data['responseText']);
-					console.log(data['responseText']);
+		
+					if(data['responseText']){					
+						alert(data['responseText']);
+						console.log(data['responseText']);					
+					}
 				}
 			});		
 		}
@@ -501,7 +565,8 @@
 		
 		function updateReviewScroller(data){
 			
-			var reviews = data['reviewed_submissions'];			
+			var reviews = data['reviewed_submissions'];	
+			//
 			if(addReviews(reviews)){
 				
 				$('#recent-reviews').stop();
@@ -913,10 +978,10 @@
 					continue;	
 				}
 				
-				var probAssignName = (clarification['problem']) ? "[" + clarification['problem']['name'] + "]" : "[General]";
+				var probAssignName = (clarification['problem']) ? "[" + escapeHTML(clarification['problem']['name']) + "]" : "[General]";
 				
 				var clarificationHTML = `<div class="clarification found" id="` + clarification['id'] + `">` + 
-											`<div class="name">` + probAssignName + `</div><div class="question">` + clarification['question'] + `</div>` +
+											`<div class="name">` + probAssignName + `</div><div class="question">` + escapeHTML(clarification['question']) + `</div>` +
 										`</div>`;
 				
 				$('#clarifications-container').append(clarificationHTML);				
@@ -951,7 +1016,19 @@
 				var reviewHTML = `<a href="{{path('contest', {'contestId': current_contest.section.id, 'roundId': current_contest.id})}}/problem/` + rev.problem.id + `/result/` + rev.id + `"> <div class="review ` + ((rev.is_correct) ? "correct" : "wrong") + `" id="` + rev.id + `"> ` + 
 									`<div>` + rev.id + `) ` + escapeHTML(rev.problem.name.substring(0,1)) + ` - <small>` + escapeHTML(rev.team.name) + `</small></div><div><small> Reviewer: ` + escapeHTML(name) + `</small></div>` + 
 								`</div> </a>`;
-				$('#recent-reviews').append(reviewHTML);				
+				
+				var filter = document.getElementById('review-text').value;
+				var num = reviewHTML.indexOf(filter);
+				if (filter != '') {
+					
+					if (reviewHTML.indexOf(filter) > 0){ 
+						$('#recent-reviews').append(reviewHTML);
+						console.log('---contains---');
+					}			
+				}
+				else {  
+					$('#recent-reviews').append(reviewHTML);
+				}
 			}			
 			
 			return newOne;
@@ -976,7 +1053,7 @@
 				var question = (clar.question) ? clar.question : "Judge Notice";
 				var answer = clar.answer;
 				
-				var name = (clar.problem) ? clar.problem.name.substring(0,1) : "~";
+				var name = (clar.problem) ? escapeHTML(clar.problem.name.substring(0,1)) : "~";
 				
 				var clarHTML = `<div class='query' id='` + clar.id + `' title="` + escapeHTML(answer) + `">` + `[` + escapeHTML(name) + `] ` + escapeHTML(question) + `</div>`;
 				$('#recent-clarifications').append(clarHTML);
