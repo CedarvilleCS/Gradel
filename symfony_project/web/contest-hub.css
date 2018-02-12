@@ -3,7 +3,6 @@
 	border-bottom: 1px solid lightgrey;
 }
 
-
 #main{	
 	margin-top: 50px;
 	height: calc(100% - 50px);	
@@ -428,7 +427,7 @@
 	width: 75px;
 	
 	position: absolute;
-	bottom: -75px;
+	bottom: -60px;
 	left: 0px;	
 	
 	background: white;
@@ -458,7 +457,7 @@ textarea {
 	width: 410px;
 	
 	position: absolute;
-	bottom: -175px;
+	bottom: -155px;
 	left: 0px;	
 	
 	background: white;
