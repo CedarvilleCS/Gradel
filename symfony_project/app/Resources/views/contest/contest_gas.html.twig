@@ -12,7 +12,7 @@
     toastr.options.extendedTimeOut = 120000
     toastr.options.positionClass = "toast-bottom-full-width";
 
-    var webSocket = WS.connect("ws://joseph.cedarville.edu:8084/");
+    var webSocket = WS.connect("{{'ws://joseph.cedarville.edu:' ~ socket_port ~ '/'}}");
     console.log("Establishing Websocket...");
 
     webSocket.on("socket/connect", function(session){
