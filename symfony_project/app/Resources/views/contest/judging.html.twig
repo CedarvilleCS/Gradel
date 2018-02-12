@@ -222,7 +222,7 @@
 		
 		
 		$(window).unload(function() {			
-			pollAJAX.abort();
+			
 		});		
 		
 		//var freeze 
@@ -525,11 +525,7 @@
 			var formData = new FormData();
 			
 			formData.append('contestId', {{current_contest.id}});
-		
-			if(pollAJAX != null){
-				pollAJAX.abort();
-			}
-		
+				
 			pollAJAX = $.ajax({
 				type: "POST",
 				url: "{{path('judging_poll')}}",
