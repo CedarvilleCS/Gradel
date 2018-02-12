@@ -51,7 +51,7 @@ var markdownText = converter.makeHtml("{{problem.description|e('js')}}");
 	
 	{{ include('contest/problem-nav.html.twig') }}
 
-    <section id="main" class="scrolly">
+    <section id="main">
 
 		<div class="card" style="padding-top: 2px">
 						
@@ -513,7 +513,7 @@ Please re-upload it!
 
 								"<div class='diff-container' style='display: flex; flex-direction: column; width: 33%'>" +
 								"<small>Output Diffs:</small>" +
-								"<div class='diff' style='font-family: monospace; font-size: 14px; border: 1px solid #878787; height: 180px;'><p></p>" +
+								"<div class='diff' style='font-family: monospace; font-size: 14px; border: 1px solid #878787; height: 178px;'><p></p>" +
 								"</div>" +
 								"</div>" +
 							"</div>" +
@@ -890,7 +890,5 @@ Please re-upload it!
 		}
 	
 	</script>
-	{{ include('contest/contest_gas.html.twig') }}
-
 
 {% endblock %}
