@@ -7,7 +7,7 @@
 	min-height: 100px;
 }
 
-#recent-reviews, #recent-clarifications {
+#recent-reviews, #recent-clarifications, #stats {
 	height: 90px;
 	padding: 2px;
 	border-radius: 7px;
@@ -20,7 +20,7 @@
 	border: 1pt solid grey;
 }
 
-.review, .query {
+.review, .query, #review_stats, #clar_stats {
 	margin-left: 1px;
 	width: calc(100% - 18px);
 	background: #E2E2E2;
