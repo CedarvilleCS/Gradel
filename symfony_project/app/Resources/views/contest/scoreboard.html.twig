@@ -260,14 +260,6 @@
 			}
 			
 			// change this to a different number to change the frequency
-			if(time % 1 == 0){
-				pollScoreboard();	
-			}
-			
-			if(time == freeze){
-				socketScoreboardUpdate();
-			}
-			
 		}
 
 		function socketScoreboardUpdate() {
@@ -338,6 +330,8 @@
 			
 			return true;		
 		}
+		
+		pollScoreboard();
 				
 		{% if elevatedUser %}
 		function postScoreboardUnfreeze(){
