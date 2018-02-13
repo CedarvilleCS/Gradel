@@ -116,7 +116,15 @@ class ContestPollingController extends Controller {
 		$section = $assignment->section;
 		
 		# validation
-		$elevatedUser = $grader->isJudging($user, $section) || $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN");
+		if( is_object($user) ){
+		
+			$elevatedUser = $grader->isJudging($user, $section) || $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN");
+		
+		} else {
+		
+			$elevatedUser = false;		
+		}
+		
 		
 		# elevated or section active
 		if( !($section->isActive()) ){			

@@ -156,6 +156,7 @@
 			});		
 			
 			/* LOOP */
+			pollScoreboard();
 			setInterval(loopFunction, 1000);
 			loopFunction();
 		});
@@ -258,8 +259,10 @@
 				}
 				
 			}
-			
-			// change this to a different number to change the frequency
+      
+			if(time == freeze){
+				socketScoreboardUpdate();
+			}
 		}
 
 		function socketScoreboardUpdate() {

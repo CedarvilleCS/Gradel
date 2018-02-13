@@ -152,7 +152,7 @@ contest_edit:
   methods: [GET]
   
 contest_scoreboard:
-  path: '/contest/{contestId}/round/{roundId}/scoreboard'
+  path: '/contest/{contestId}/round/{roundId}/anon_scoreboard'
   defaults:
     _controller: AppBundle:ContestPages:scoreboard
   methods: [GET]

@@ -568,9 +568,16 @@ class ContestPagesController extends Controller {
 			die("404 - ROUND DOES NOT EXIST!");
 		}
 		
-		
-		$elevatedUser = $grader->isJudging($user, $section) || $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN");
-		$team = $grader->getTeam($user, $assignment);
+		if( is_object($user) ){
+			
+			$elevatedUser = $grader->isJudging($user, $section) || $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN");
+			$team = $grader->getTeam($user, $assignment);
+			
+		} else {
+			
+			$elevatedUser = false;
+			$team = null;
+		}		
 		
 		# elevated or section active
 		if( !($elevatedUser || $section->isActive()) ){			
