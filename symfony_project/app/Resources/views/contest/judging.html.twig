@@ -97,7 +97,7 @@
 						<div style="display:inline-block; width: 100%">
 							<div >
 								<div style="float: left; margin-top: 5px; padding-left: 5px; font-weight: bold; font-size: 0.9em;"> Previous Reviews </div>
-								<input id="review-text" name="review-text" style="width: 25%; float: right; font-size: 0.7em; padding-left: 5px; margin-top: 2px;" title='You can filter on submission number, problem name/letter (i.e. "A -"), team name, correct/wrong, and reviewer name.' onchange="filterReviews(this.value)">
+								<input id="review-text" name="review-text" style="width: 25%; float: right; font-size: 0.7em; padding-left: 5px; margin-top: 2px;" title='You can filter on submission number, problem name/letter (i.e. "A -"), team name, correct/wrong, and reviewer name.'>
 								<div style="float: right; margin-top: 5px; padding-right: 5px; font-size: 0.9em;" title='You can filter on submission number, problem name/letter (i.e. "A -"), team name, correct/wrong, and reviewer name.'>Filter for... </div>
 							</div>
 						</div>
@@ -234,6 +234,7 @@
 				value: time	// current seconds into the contest		
 			});
 						
+			pollJudging();
 			setInterval(loopFunction, 1000);
 			loopFunction();					
 		});
@@ -486,15 +487,13 @@
 					$('#time-left').text(hours+":"+minutes+":"+seconds+" until start");
 				}
 				
-			}
-				
+			}				
 			//console.log("Polling for updates...");
 		}
 				
 		function socketRefreshJudging() {
 			pollJudging();
 		}
-
 
 		function pollJudging(){
 		
@@ -523,8 +522,6 @@
 				}
 			});		
 		}
-
-		pollJudging();
 		
 		function updateClarificationQueue(data){
 			
@@ -546,7 +543,6 @@
 				}, 2000);
 			}
 		}
-
 
 		function updateClarificationScroller(data){
 			var clars = data['answered_clarifications'];
@@ -577,18 +573,14 @@
 			$('.submission').dblclick( function() {
 				
 				if($(this).hasClass('queued')){			
-				
-					$('#queue-container').append(this);
-					$(this).removeClass('queued');
-					$(this).find('.right-side, .middle-side').show();
+					
+					$(this).remove();
 					
 					claimed_id = $(this).attr('id');
 					updateSubmission("claimed");
 				} else {
 				
-					$('#submissions-container').append(this);
-					$(this).addClass('queued');
-					$(this).find('.right-side, .middle-side').hide();
+					$(this).remove();
 					
 					claimed_id = $(this).attr('id');
 					updateSubmission("unclaimed");				
@@ -962,7 +954,6 @@
 		function addReviews(reviews){
 			
 			var newOne = false;
-			var user_reviewed = 0;
 			
 			for(var i=0; i<reviews.length; i++){
 			
@@ -987,15 +978,21 @@
 								`</div> </a>`;
 				$('#recent-reviews').append(reviewHTML);
 				
-				
-				// review stats
-				for(var i = 0; i < reviews.length; i++) {
-					if (reviews[i]['reviewer'] != null && reviews[i]['reviewer'].email == '{{app.user}}') { 
-						user_reviewed += 1;
-					}
-					$("#review_stats").text("You have made " + user_reviewed + " of " + reviews.length +  " reviews.");
-				}
+			}	
 
+				
+			var user_reviewed = 0;
+			var total_reviews = 0;
+			// review stats
+			for(var i = 0; i < reviews.length; i++) {
+				if (reviews[i]['reviewer'] != null && reviews[i]['reviewer'].email == '{{app.user}}') { 
+					user_reviewed++;
+				} 
+				else if(reviews[i]['reviewer'] == null){
+					total_reviews++;
+				}
+				
+				$("#review_stats").text("You have made " + user_reviewed + " of " + total_reviews +  " reviews.");
 			}			
 			
 			return newOne;

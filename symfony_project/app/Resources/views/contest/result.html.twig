@@ -14,8 +14,8 @@
 	<link rel="stylesheet" href="{{ asset('card.css') }}" />
 	<link rel="stylesheet" href="{{ asset('contest.css') }}" />
 	<link rel="stylesheet" href="{{ asset('contest-hub.css') }}" />
-	<link rel="stylesheet" href="{{ asset('contest-judge.css') }}" />
 	<link rel="stylesheet" href="{{ asset('submission-results.css') }}">
+	<link rel="stylesheet" href="{{ asset('contest-results.css') }}">
 {% endblock %}
 
 {% block body %}
@@ -90,11 +90,56 @@
 				</h3>				
 				
 				
-
 				<div>
 				{% if submission.compiler_output %}
 					<h2> COMPILER OUTPUT </h2>
 					<textarea disabled id='compiler-output'>{{submission.compiler_output}}</textarea>
+				{% endif %}
+				
+				{% if not submission.compiler_output and elevatedUser %}
+				
+				<div class="marker-container">				
+		
+					{% for tc in submission.problem.testcases %}
+					
+					{% if loop.index0 < submission.testcaseresults|length %}
+					{% set tcr = submission.testcaseresults[loop.index0] %}
+					
+					<div class="marker {{((tcr.is_correct) ? 'correct' : 'wrong')}}"> 
+					
+						{{((tcr.is_correct) ? '&#x2713;' : '&#x2718;')}}
+						
+						<div class="marker-hover">
+						
+							<div>
+								Expected Output:
+								<textarea disabled>{{tcr.testcase.correct_output|e}}</textarea>
+							</div>
+							
+							<div>
+								Their Output:
+								<textarea disabled>{{tcr.std_output|e}}</textarea>
+							</div>
+						
+						</div>					
+					</div>
+					
+					{% else %}
+					
+					<div class="marker untested">
+						&#63;
+						<div class="marker-hover" id="untested">
+							Untested.
+						</div>
+					</div>
+					
+					{% endif %}
+		
+					{% endfor %}
+		
+				
+				</div>
+				
 				{% endif %}
 				
 				</div>
@@ -155,6 +200,7 @@ Submission was a ZIP file{% endif %}</div>
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 	<script src="{{ asset('src-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>	
+	<script src="{{ asset('js/unicode_return.js') }}" type="text/javascript" charset="utf-8"></script>	
 	
 	<script>
 	
@@ -174,6 +220,22 @@ Submission was a ZIP file{% endif %}</div>
 		var editor = ace.edit("editor");
 		editor.setTheme("ace/theme/xcode");	
 		editor.setReadOnly(true);
+		
+		
+		$('.marker').off('mouseover');
+		$('.marker').on('mouseover', function() {			
+			$(this).find('.marker-hover').show().css('display', 'flex');			
+		});
+		
+		$('.marker').off('mouseout');
+		$('.marker').on('mouseout', function() {			
+			$(this).find('.marker-hover').hide();			
+		});
+		
+		$('.marker .marker-hover textarea').each(function(){
+			
+			$(this).text(addReturnKey($(this).text()));			
+		});
 	});
 	
 	
@@ -391,7 +453,6 @@ Submission was a ZIP file{% endif %}</div>
 		
 		return true;
 	}
-	
 	
 	</script>
 	{{ include('contest/contest_gas.html.twig') }}

@@ -652,6 +652,10 @@ class ContestPostController extends Controller {
 		$em->persist($section);
 		$em->flush();			
 		
+		
+		$pusher = new SocketPusher($this->container->get('gos_web_socket.wamp.pusher'));
+		$pusher->promptDataRefresh($section->id);	
+		
 		# CLEANUP 
 		
 		$url = $this->generateUrl('contest', ['contestId' => $section->id]);
@@ -825,6 +829,9 @@ class ContestPostController extends Controller {
 		
 		$em->persist($contest);
 		$em->flush();
+				
+		$pusher = new SocketPusher($this->container->get('gos_web_socket.wamp.pusher'));
+		$pusher->promptDataRefresh($section->id);	
 		
 		$response = new Response(json_encode([
 			'id' => $contest->id,
