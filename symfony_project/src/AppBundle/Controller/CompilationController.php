@@ -259,7 +259,8 @@ class CompilationController extends Controller {
 		#return $this->returnForbiddenResponse($docker_output);
 		
 		# PARSE FOR SUBMISSION		
-		$submissionGen = $generator->generateSubmission($submission, $problem);
+		$solvedAllTestcases = false;
+		$submissionGen = $generator->generateSubmission($submission, $problem, $solvedAllTestcases);
 		
 		if($submissionGen != 1){
 			
@@ -320,14 +321,13 @@ class CompilationController extends Controller {
 				$em->persist($prev_accepted_sol);
 			}
 		}
-		
 		// update pending status
 		$submission->pending_status = 2;
 		
 		if($submission->problem->assignment->section->course->is_contest){
 		
 		
-			if( !$elevatedUser && !($submission->percentage == 1 || $submission->compiler_error || $submission->exceeded_time_limit || $submission->runtime_error) ){
+			if( !$elevatedUser && !($solvedAllTestcases || $submission->compiler_error || $submission->exceeded_time_limit || $submission->runtime_error) ){
 				
 				$submission->pending_status = 0;			
 			}

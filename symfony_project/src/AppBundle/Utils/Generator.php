@@ -97,7 +97,7 @@ class Generator  {
 	
 	/* function to get the set the values for a submission*/
 	/* returns a HTTP_FORBIDDEN response on failure and 1 on success */
-	public function generateSubmission(&$submission, $problem){
+	public function generateSubmission(&$submission, $problem, &$solvedAllTestcases){
 		
 		# necessary directories
 		$sub_dir = $this->web_dir."compilation/submissions/".$submission->id."/";
@@ -168,7 +168,6 @@ class Generator  {
 					
 			# used to keep track of the total number of testcases passed
 			$correct_testcase_count = 0;
-			$correct_extra_testcase_count = 0;
 			
 			# get the total testcase weights
 			$total_points = 0;
@@ -270,14 +269,8 @@ class Generator  {
 						
 						if(strcmp("YES", $diff_string) == 0){							
 							$testcase_is_correct = true;
-							
-							
-							if($tc->is_extra_credit){
-								$correct_extra_testcase_count++;
-							} else{
-								$correct_testcase_count++;	
-							}
-							
+							$correct_testcase_count++;	
+														
 							# update submission_percentage
 							$submission_percentage += $tc->weight/$total_points;
 						}
@@ -314,6 +307,8 @@ class Generator  {
 		$submission->max_runtime = $submission_max_runtime;
 		$submission->percentage = $submission_percentage;
 
+		$solvedAllTestcases = ($correct_testcase_count == $problem->testcases->count());
+		
 		/* return 1 on success */
 		return 1;		
 	}
