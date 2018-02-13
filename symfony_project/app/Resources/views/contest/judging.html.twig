@@ -951,11 +951,12 @@
 			$('#clarifications-container .found').removeClass('found');		
 		}
 		
+		var user_reviewed = 0;
 		function addReviews(reviews){
 			
 			var newOne = false;
 			
-			for(var i=0; i<reviews.length; i++){
+			for(var i=0; i < reviews.length; i++){
 			
 				var rev = reviews[i];
 				
@@ -978,32 +979,26 @@
 								`</div> </a>`;
 				$('#recent-reviews').append(reviewHTML);
 				
-			}	
-
+				console.log(reviews[i]);
 				
-			var user_reviewed = 0;
-			var total_reviews = 0;
-			// review stats
-			for(var i = 0; i < reviews.length; i++) {
+				// review stats
 				if (reviews[i]['reviewer'] != null && reviews[i]['reviewer'].email == '{{app.user}}') { 
 					user_reviewed++;
-				} 
-				else if(reviews[i]['reviewer'] == null){
-					total_reviews++;
 				}
+				$("#review_stats").text("You have made " + user_reviewed + " of " + reviews.length +  " reviews.");
 				
-				$("#review_stats").text("You have made " + user_reviewed + " of " + total_reviews +  " reviews.");
+
 			}			
 			
 			return newOne;
 		}
 		
+		var user_clarifications = 0;
 		function addAnswered(clars){
 			
 			var newOne = false;
-			var user_clarifications = 0;
 			
-			for(var i=0; i<clars.length; i++){
+			for(var i=0; i < clars.length; i++){
 				
 				var clar = clars[i];
 				
@@ -1025,7 +1020,7 @@
 
 
 				if (clars[i]['answerer'] != null && clars[i]['answerer'].email == '{{app.user}}') { 
-					user_clarifications += 1;
+					user_clarifications++;
 				}
 				$("#clar_stats").text("You have given " + user_clarifications + " of " + clars.length +  " clarifications.");
 				
