@@ -118,6 +118,8 @@ class AppBundleTopic implements TopicInterface
                 exit("Required to provide message!");
             }
             if ($section->isActive() == true) {
+                
+                // Determine User Status
                 $elevatedUser = false;
                 if ($isNotController){
                     $elevatedUser = $grader->isJudging($emUser, $section) || $emUser->hasRole("ROLE_SUPER") || $emUser->hasRole("ROLE_ADMIN");
@@ -125,28 +127,16 @@ class AppBundleTopic implements TopicInterface
                 else {
                     $elevatedUser = ($key == "gradeldb251");
                 }
+
+                // Send correct message
                 if ($scope == "global" && $elevatedUser == true) {
                     dump("Sending a message to everyone...");
-                    foreach($users as $u) {
-                        // find the judge id, get them in the em, and send them an event
-                        $person = $this->em->find("AppBundle\Entity\User", $u['client']->getID());
-                        dump("Sending global to " . $person->getUsername());
-                        $message = '{"msg": "' . $msg . '", "type": "notice"}';
-                        dump($message);
-                        $topic->broadcast($message, array(), array($u['connection']->WAMP->sessionId));
-                    }
-
+                    $message = $this->buildMessage($msg, "notice");
+                    $this->broadcastMessage(null, $topic, $users, $message);
                 }
                 else if ($scope == "pageUpdate" && $elevatedUser == true) {
-                    $message = '{"msg": "null", "type": "updateData"}';
-                    foreach($users as $u) {
-                        // find the judge id, get them in the em, and send them an event
-                        $person = $this->em->find("AppBundle\Entity\User", $u['client']->getID());
-                        dump("Sending global to " . $person->getUsername());
-                        $message = '{"msg": "' . $msg . '", "type": "updateData"}';
-                        dump($message);
-                        $topic->broadcast($message, array(), array($u['connection']->WAMP->sessionId));
-                    }
+                    $message = $this->buildMessage("null", "updateData");
+                    $this->broadcastMessage(null, $topic, $users, $message);
                 }
                 else if (($scope == "userSpecificReject" || $scope = "userSpecificClarify") && $elevatedUser == true) {
                     if ($recipients == null) {
@@ -154,32 +144,16 @@ class AppBundleTopic implements TopicInterface
                     }
                     else {
                         $finalScope = $scope == "userSpecificReject" ? "reject" : "notice";
-                        $message = '{"msg": "' . $msg . '", "type": "' . $finalScope . '"}';
+                        $message = $this->buildMessage($msg, $finalScope);
                         dump("Sending message: " . $message . "to specific users...");
-
-                        foreach($users as $u) {
-                            $person = $this->em->find("AppBundle\Entity\User", $u['client']->getID());
-                            if (in_array($person->getUsername(), $recipients)) {
-                                dump("Sending global to " . $person->getUsername());
-                                dump($message);
-                                $topic->broadcast($message, array(), array($u['connection']->WAMP->sessionId));
-                            }
-                        }
+                        $this->broadcastMessage($recipients, $topic, $users, $message);
                     }
                 }
                 else if ($scope == "question") {
                     dump("Searching for admins...");
-                    foreach($users as $u) {
-                        $potJudge = $this->em->find("AppBundle\Entity\User", $u['client']->getID());
-                        if ($grader->isJudging($potJudge, $section)) {
-                            dump("Sending question to " . $potJudge->getUsername());
-                            $message = '{"msg": "' . $msg . '", "type": "notice"}';
-                            dump($message);
-                            $topic->broadcast($message, array(), array($u['connection']->WAMP->sessionId));
-                        }
-
-                    }
-
+                    $message = $this->buildMessage($msg, "notice");
+                    $recipients = $this->getJudgeList($users);
+                    $this->broadcastMessage($recipients, $topic, $users, $message);
                 }
                 else {
                     dump("No Scope Match Found!!");
@@ -195,9 +169,42 @@ class AppBundleTopic implements TopicInterface
 
     }
 
+    public function broadcastMessage($recipients, $topic, $users, $message) {
+        $nonGlobal = count($recipients) > 0;
+        foreach($users as $u) {
+            if ($nonGlobal) {
+                $person = $this->em->find("AppBundle\Entity\User", $u['client']->getID());                
+                if (in_array($person->getUsername(), $recipients)) {
+                    dump("Sending to " . $person->getUsername());
+                    dump($message);
+                    $topic->broadcast($message, array(), array($u['connection']->WAMP->sessionId));
+                }
+            } 
+            else {
+                $topic->broadcast($message, array(), array($u['connection']->WAMP->sessionId));
+            }
+        }
+    }
+
+    public function getJudgeList($users) {
+        $recipients = [];
+        foreach($users as $u) {
+            $potJudge = $this->em->find("AppBundle\Entity\User", $u['client']->getID());
+            if ($grader->isJudging($potJudge, $section)) {
+                array_push($potJudge->getUsername());
+            }
+        }
+        return $recipients;
+    }
+
+    public function buildMessage($msg, $type) {
+        return '{"msg": "' . $msg . '", "type": "'. $type . '"}';
+    }
+
+
     public function onPush(Topic $topic, WampRequest $request, $data, $provider)
     {
-        dump("I am inside a push thingy!");
+        dump("Doing a push");
         dump ("REQUEST");
         dump($request);
         dump("END REQUEST");

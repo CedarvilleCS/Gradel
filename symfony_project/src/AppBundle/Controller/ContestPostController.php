@@ -924,6 +924,13 @@ class ContestPostController extends Controller {
 					$submission->wrong_override = false;
 					$submission->correct_override = true;					
 				}
+
+				$pusher->pushUserSpecificMessage(
+					$pusher->buildAcceptance($submission),
+					$pusher->getUsernamesFromTeam($submission->team),
+					$submission->problem->assignment->section->id,
+					false
+				);
 				
 			} else if($postData['type'] == "delete"){
 					
