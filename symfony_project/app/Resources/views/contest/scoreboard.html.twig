@@ -52,14 +52,26 @@
 	
 	<section id="main" style="width: 100%">
 		
-		<div class="card">		
+		<div class="card" style="text-align: center;">		
 		
-			<div id="contest-heading"><h1>{{current_contest.section.name}}</h1></div>
+			<div id="contest-heading" style="display:inline-block; width: 100%">
+				<h1 style=" margin: 0;">{{current_contest.section.name}}</h1> 
+				<a style="position: absolute; top: 25px; left: 8px; height:46px; width:46px" title="Back to Contest" href="{{path('contest', {'contestId': current_contest.section.id, 'roundId': current_contest.id})}}">
+					<img style="z-index: 10; height:30px; width: 30px;" src="{{ asset('back arrow.png') }}" >
+				</a>
+				
+			{% if elevatedUser %}
+				<div id="scoreboard-button" style="position: absolute; right: 8px; top: 10px; height: 10px; line-height: 10px;"></div>
+			{% endif %}
+			
+			</div>
+			
 			<div id="name-heading"><h2>{{current_contest.name}}</h2></div>
 			<div id="time-heading"><h3 id="time-left">-</h3></div>
 			
 			
 			<div id="progressbar-container" class="card-contents">
+				
 				<div id="time-container">
 				
 					{% set showDates = current_contest.start_time|date('n/j') != current_contest.end_time|date('n/j') %}
@@ -114,9 +126,7 @@
 		var scrollPageInterval;
 		
 		$(window).unload(function() {
-			
-			scoreboardPollAJAX.abort();
-			
+						
 		});
 				
 		//var freeze 
@@ -158,9 +168,9 @@
 			});		
 			
 			/* LOOP */
+			pollScoreboard();
 			setInterval(loopFunction, 1000);
 			loopFunction();
-			pollScoreboard();				
 		});
 		
 		function scrollPage(){
@@ -261,12 +271,14 @@
 				}
 				
 			}
-			
-			// change this to a different number to change the frequency
-			if(time % 1 == 0){
-				pollScoreboard();	
+      
+			if(time == freeze){
+				socketScoreboardUpdate();
 			}
-			
+		}
+
+		function socketScoreboardUpdate() {
+			pollScoreboard();
 		}
 		
 		function pollScoreboard(){
@@ -280,9 +292,7 @@
 			formData.append('freeze_time', '{{current_contest.freeze_time|date('U')}}');
 			formData.append('normal_user', true);
 			
-			if(scoreboardPollAJAX != null){
-				scoreboardPollAJAX.abort();
-			}
+			
 			scoreboardPollAJAX = $.ajax({
 				type: "POST",
 				url: "{{path('scoreboard_poll')}}",
@@ -335,6 +345,8 @@
 			
 			return true;		
 		}
+		
+		pollScoreboard();
 				
 		{% if elevatedUser %}
 		function postScoreboardUnfreeze(){
@@ -389,5 +401,6 @@
 		{% endif %}
 		
 	</script>
+	{{ include('contest/contest_gas.html.twig') }}
 {% endblock %}
 

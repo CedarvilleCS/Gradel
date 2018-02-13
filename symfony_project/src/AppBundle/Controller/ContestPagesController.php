@@ -102,13 +102,16 @@ class ContestPagesController extends Controller {
 			$contest_open = false;
 		}
 		
+		//Tim's gonna be mad at this, but idk what normal user is supposed to be
+		$leaderboard = $grader->getLeaderboard($user, $current, true);
+		
 		return $this->render('contest/hub.html.twig', [
 			'user' => $user,
 			'team' => $team,
 			
 			'section' => $section,
-
-      'grader' => $grader,		
+			'leaderboard' => $leaderboard,
+			'grader' => $grader,		
 			'attempts_per_problem_count' => $attempts_per_problem_count,
 			'correct_submissions_per_problem_count' => $correct_submissions_per_problem_count,
 			'current_contest' => $current,
@@ -565,9 +568,16 @@ class ContestPagesController extends Controller {
 			die("404 - ROUND DOES NOT EXIST!");
 		}
 		
-		
-		$elevatedUser = $grader->isJudging($user, $section) || $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN");
-		$team = $grader->getTeam($user, $assignment);
+		if( is_object($user) ){
+			
+			$elevatedUser = $grader->isJudging($user, $section) || $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN");
+			$team = $grader->getTeam($user, $assignment);
+			
+		} else {
+			
+			$elevatedUser = false;
+			$team = null;
+		}		
 		
 		# elevated or section active
 		if( !($elevatedUser || $section->isActive()) ){			

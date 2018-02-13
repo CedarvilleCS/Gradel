@@ -652,6 +652,10 @@ class ContestPostController extends Controller {
 		$em->persist($section);
 		$em->flush();			
 		
+		
+		$pusher = new SocketPusher($this->container->get('gos_web_socket.wamp.pusher'));
+		$pusher->promptDataRefresh($section->id);	
+		
 		# CLEANUP 
 		
 		$url = $this->generateUrl('contest', ['contestId' => $section->id]);
@@ -669,7 +673,8 @@ class ContestPostController extends Controller {
 	}
 	
 	public function postQuestionAction(Request $request){
-		
+		$pusher = new SocketPusher($this->container->get('gos_web_socket.wamp.pusher'));
+
 		$em = $this->getDoctrine()->getManager();		
 		$grader = new Grader($em);
 
@@ -731,6 +736,8 @@ class ContestPostController extends Controller {
 		$response->headers->set('Content-Type', 'application/json');
 		$response->setStatusCode(Response::HTTP_OK);
 
+
+		$pusher->promptDataRefresh($contest->section->id);
 		return $response;		
 	}
 		
@@ -822,6 +829,9 @@ class ContestPostController extends Controller {
 		
 		$em->persist($contest);
 		$em->flush();
+				
+		$pusher = new SocketPusher($this->container->get('gos_web_socket.wamp.pusher'));
+		$pusher->promptDataRefresh($section->id);	
 		
 		$response = new Response(json_encode([
 			'id' => $contest->id,
@@ -830,7 +840,8 @@ class ContestPostController extends Controller {
 					
 		$response->headers->set('Content-Type', 'application/json');
 		$response->setStatusCode(Response::HTTP_OK);
-
+		$pusher = new SocketPusher($this->container->get('gos_web_socket.wamp.pusher'));
+		$pusher->promptDataRefresh($contest->section->id);
 		return $response;		
 	}
 	
@@ -920,6 +931,13 @@ class ContestPostController extends Controller {
 					$submission->wrong_override = false;
 					$submission->correct_override = true;					
 				}
+
+				$pusher->pushUserSpecificMessage(
+					$pusher->buildAcceptance($submission),
+					$pusher->getUsernamesFromTeam($submission->team),
+					$submission->problem->assignment->section->id,
+					false
+				);
 				
 			} else if($postData['type'] == "delete"){
 					
@@ -1013,6 +1031,7 @@ class ContestPostController extends Controller {
 			$response->headers->set('Content-Type', 'application/json');
 			$response->setStatusCode(Response::HTTP_OK);
 
+			$pusher->promptDataRefresh($contest->section->id);
 			return $response;
 			
 		} 
@@ -1088,6 +1107,7 @@ class ContestPostController extends Controller {
 				);
 			}
 
+			$pusher->promptDataRefresh($contest->section->id);
 			return $response;
 						
 		}
@@ -1139,7 +1159,8 @@ class ContestPostController extends Controller {
 			
 			$response->headers->set('Content-Type', 'application/json');
 			$response->setStatusCode(Response::HTTP_OK);
-
+			
+			$pusher->promptDataRefresh($contest->section->id);
 			return $response;
 			
 		}

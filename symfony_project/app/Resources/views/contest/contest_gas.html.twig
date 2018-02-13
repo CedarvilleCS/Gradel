@@ -71,6 +71,15 @@
           console.log("REJECT");
           toastr.error(message);
           break;
+        case "updateData":
+          if (typeof socketScoreboardUpdate === "function") {
+            console.log("UPDATING PAGE");
+            socketScoreboardUpdate();
+          }
+          if (typeof socketRefreshJudging === "function") {
+            console.log("UPDATING PAGE");
+            socketRefreshJudging();
+          }
       }
     }
 </script>

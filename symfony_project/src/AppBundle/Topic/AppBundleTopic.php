@@ -84,15 +84,8 @@ class AppBundleTopic implements TopicInterface
      */
     public function onPublish(ConnectionInterface $connection, Topic $topic, WampRequest $request, $event, array $exclude, array $eligible)
     {
-        dump("I AM IN HERE");
         dump("USER:" . $this->clientManipulator->getClient($connection));
         $isNotController = is_object($this->clientManipulator->getClient($connection));
-        dump("REQUEST");
-        dump($request);
-        dump("DATA");
-        dump($event);
-        dump("END DATA");
-
         $key = "null";
         if (is_array($event) != true) {
             $event = json_decode($event, true);
@@ -100,11 +93,7 @@ class AppBundleTopic implements TopicInterface
         dump($event);
         if (array_key_exists("passKey", $event)){
             $key = $event["passKey"];
-            dump("KEY");
-            dump($key);
-            dump($key == "gradeldb251" ? "true" : "false");
         }
-        
 
         if ($isNotController || $key == "gradeldb251") {
             dump($event);
@@ -119,11 +108,6 @@ class AppBundleTopic implements TopicInterface
             $recipients = $event["recipients"];
             $msg = $event["msg"];
 
-            dump($contestId);
-            dump($scope);
-            dump($recipients);
-            dump($msg);
-
             $section = $this->em->find('AppBundle\Entity\Section', $contestId);
 
             // Look at the scope of the message and check user priveleges
@@ -131,12 +115,11 @@ class AppBundleTopic implements TopicInterface
             dump("Checking Scope and privleges...");
             $grader = new Grader($this->em);
             if ($msg == null) {
-                dump("Required to provide message!");
-                die();
+                exit("Required to provide message!");
             }
-            dump("Valid msg...");
             if ($section->isActive() == true) {
-                dump("Determining Message Type");
+                
+                // Determine User Status
                 $elevatedUser = false;
                 if ($isNotController){
                     $elevatedUser = $grader->isJudging($emUser, $section) || $emUser->hasRole("ROLE_SUPER") || $emUser->hasRole("ROLE_ADMIN");
@@ -144,17 +127,16 @@ class AppBundleTopic implements TopicInterface
                 else {
                     $elevatedUser = ($key == "gradeldb251");
                 }
+
+                // Send correct message
                 if ($scope == "global" && $elevatedUser == true) {
                     dump("Sending a message to everyone...");
-                    foreach($users as $u) {
-                        // find the judge id, get them in the em, and send them an event
-                        $person = $this->em->find("AppBundle\Entity\User", $u['client']->getID());
-                        dump("Sending global to " . $person->getUsername());
-                        $message = '{"msg": "' . $msg . '", "type": "notice"}';
-                        dump($message);
-                        $topic->broadcast($message, array(), array($u['connection']->WAMP->sessionId));
-                    }
-
+                    $message = $this->buildMessage($msg, "notice");
+                    $this->broadcastMessage(null, $topic, $users, $message);
+                }
+                else if ($scope == "pageUpdate" && $elevatedUser == true) {
+                    $message = $this->buildMessage("null", "updateData");
+                    $this->broadcastMessage(null, $topic, $users, $message);
                 }
                 else if (($scope == "userSpecificReject" || $scope = "userSpecificClarify") && $elevatedUser == true) {
                     if ($recipients == null) {
@@ -162,30 +144,16 @@ class AppBundleTopic implements TopicInterface
                     }
                     else {
                         $finalScope = $scope == "userSpecificReject" ? "reject" : "notice";
-                        $message = '{"msg": "' . $msg . '", "type": "' . $finalScope . '"}';
+                        $message = $this->buildMessage($msg, $finalScope);
                         dump("Sending message: " . $message . "to specific users...");
-                        foreach ($recipients as $r) {
-                            dump("Current username: " . $r);
-                            $student = $this->clientManipulator->findByUsername($topic, $r);
-                            $topic->broadcast($message, array(), array($student['connection']->WAMP->sessionId));
-                        }
+                        $this->broadcastMessage($recipients, $topic, $users, $message);
                     }
                 }
                 else if ($scope == "question") {
-                    // send message only to admins...
                     dump("Searching for admins...");
-                    foreach($users as $u) {
-                        // find the judge id, get them in the em, and send them an event
-                        $potJudge = $this->em->find("AppBundle\Entity\User", $u['client']->getID());
-                        if ($grader->isJudging($potJudge, $section)) {
-                            dump("Sending question to " . $potJudge->getUsername());
-                            $message = '{"msg": "' . $msg . '", "type": "notice"}';
-                            dump($message);
-                            $topic->broadcast($message, array(), array($u['connection']->WAMP->sessionId));
-                        }
-
-                    }
-
+                    $message = $this->buildMessage($msg, "notice");
+                    $recipients = $this->getJudgeList($users);
+                    $this->broadcastMessage($recipients, $topic, $users, $message);
                 }
                 else {
                     dump("No Scope Match Found!!");
@@ -201,9 +169,42 @@ class AppBundleTopic implements TopicInterface
 
     }
 
+    public function broadcastMessage($recipients, $topic, $users, $message) {
+        $nonGlobal = count($recipients) > 0;
+        foreach($users as $u) {
+            if ($nonGlobal) {
+                $person = $this->em->find("AppBundle\Entity\User", $u['client']->getID());                
+                if (in_array($person->getUsername(), $recipients)) {
+                    dump("Sending to " . $person->getUsername());
+                    dump($message);
+                    $topic->broadcast($message, array(), array($u['connection']->WAMP->sessionId));
+                }
+            } 
+            else {
+                $topic->broadcast($message, array(), array($u['connection']->WAMP->sessionId));
+            }
+        }
+    }
+
+    public function getJudgeList($users) {
+        $recipients = [];
+        foreach($users as $u) {
+            $potJudge = $this->em->find("AppBundle\Entity\User", $u['client']->getID());
+            if ($grader->isJudging($potJudge, $section)) {
+                array_push($potJudge->getUsername());
+            }
+        }
+        return $recipients;
+    }
+
+    public function buildMessage($msg, $type) {
+        return '{"msg": "' . $msg . '", "type": "'. $type . '"}';
+    }
+
+
     public function onPush(Topic $topic, WampRequest $request, $data, $provider)
     {
-        dump("I am inside a push thingy!");
+        dump("Doing a push");
         dump ("REQUEST");
         dump($request);
         dump("END REQUEST");

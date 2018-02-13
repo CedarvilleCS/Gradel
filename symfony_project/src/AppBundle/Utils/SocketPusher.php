@@ -60,6 +60,16 @@ class SocketPusher  {
       'appbundle_topic', ['username' => 'user1']);
   }
 
+  public function promptDataRefresh($contestId) {
+    $this->pusher->push([
+      'msg' => "null",
+      'contestId' => $contestId,
+      'scope' => 'pageUpdate',
+      'recipients' => null,
+      'passKey' => 'gradeldb251'],
+      'appbundle_topic', ['username' => 'user1']);
+  }
+
   public function getUsernamesFromTeam($team) {
     $recipients = [];
     foreach($team->users as $user) {
@@ -70,6 +80,10 @@ class SocketPusher  {
 
   public function buildRejection($submission) {
     return "Your submission for " . htmlspecialchars($submission->problem->name) . " was <b>incorrect</b>.";
+  }
+
+  public function buildAcceptance($submission) {
+    return "Your submission for " . htmlspecialchars($submission->problem->name) . " was <b>correct</b> (Judge Override).";
   }
 
   public function buildCustomRejection($submission) {
@@ -89,8 +103,13 @@ class SocketPusher  {
   }
 
   public function buildClarificationMessage($question, $answer, $name) {
-    $problemName = $name ? "Question Concerning " . $name . ":" : "Question: ";
-    return "<b>" . htmlspecialchars($problemName) . "</b> " . htmlspecialchars($question) . "\\n<b>Answer:</b> " . htmlspecialchars($answer);
+    if ($question == "") {
+      return "<b>Notice:</b> " . htmlspecialchars($answer);
+    }
+    else {
+      $problemName = $name ? "Question Concerning " . $name . ":" : "Question: ";
+      return "<b>" . htmlspecialchars($problemName) . "</b> " . htmlspecialchars($question) . "\\n<b>Answer:</b> " . htmlspecialchars($answer);
+    }
   }
 }
 

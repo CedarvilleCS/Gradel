@@ -33,6 +33,8 @@ security:
                 path: user_logout
 
     access_control:
+        - { path: /anon_scoreboard, role: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/user, roles: IS_AUTHENTICATED_ANONYMOUSLY }
-        - { path: ^/connect, roles: IS_AUTHENTICATED_ANONYMOUSLY }
-        - { path: ^/, roles: ROLE_USER }
+        - { path: ^/connect, roles: IS_AUTHENTICATED_ANONYMOUSLY }        
+        - { path: ^/, roles: ROLE_USER, methods: [GET] }
+        - { path: ^/, roles: IS_AUTHENTICATED_ANONYMOUSLY, methods: [POST] }

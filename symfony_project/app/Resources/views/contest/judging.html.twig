@@ -91,9 +91,17 @@
 				<div id="clear-clarifications-button" style="position: absolute; right: 15px; top: 10px;"> Clear Clarifications </div>
 			</div>
 
-			<div id="stats-container">				
-					<div style="width: 35%">
-						<div style="margin-top: 5px; padding-left: 5px; font-weight: bold; font-size: 0.9em;"> Previous Reviews <small> </small> </div>
+			<div id="stats-container">
+
+					<div style=" width: 35%">
+						<div style="display:inline-block; width: 100%">
+							<div >
+								<div style="float: left; margin-top: 5px; padding-left: 5px; font-weight: bold; font-size: 0.9em;"> Previous Reviews </div>
+								<input id="review-text" name="review-text" style="width: 25%; float: right; font-size: 0.7em; padding-left: 5px; margin-top: 2px;" title='You can filter on submission number, problem name/letter (i.e. "A -"), team name, correct/wrong, and reviewer name.'>
+								<div style="float: right; margin-top: 5px; padding-right: 5px; font-size: 0.9em;" title='You can filter on submission number, problem name/letter (i.e. "A -"), team name, correct/wrong, and reviewer name.'>Filter for... </div>
+							</div>
+						</div>
+            
 						<div id="recent-reviews">
 						</div>
 					</div>
@@ -201,6 +209,7 @@
 	<script src="{{ asset('js/unicode_return.js') }}"></script>
 	
 	<script>
+
 		
 		var contest_started = false;
 	
@@ -214,9 +223,7 @@
 		
 		
 		$(window).unload(function() {			
-			pollAJAX.abort();
-			judgAJAX.abort();
-			clarAJAX.abort();
+
 		});		
 		
 		//var freeze 
@@ -227,6 +234,7 @@
 				value: time	// current seconds into the contest		
 			});
 						
+			pollJudging();
 			setInterval(loopFunction, 1000);
 			loopFunction();					
 		});
@@ -291,6 +299,25 @@
 			
 			return true;
 		}
+		
+		$('#review-text').on('keyup', function() {
+			var filter = document.getElementById('review-text').value;
+			
+			$('.review').each(function( index ){
+				var html = $(this).text().toUpperCase();
+				var num = html.indexOf(filter.toUpperCase());
+				if (filter != '') {
+				  if (num > 0) {
+					  this.style.display = "flex";
+				  } else {
+					  this.style.display = "none";
+				  }			
+				}
+				else {  
+				  this.style.display = "flex";
+				}
+		   });
+		});
 		
 		function clearSubmissions() {
 			
@@ -460,18 +487,20 @@
 					$('#time-left').text(hours+":"+minutes+":"+seconds+" until start");
 				}
 				
-			}
-				
+			}				
 			//console.log("Polling for updates...");
-			pollJudging();
 		}
 				
+		function socketRefreshJudging() {
+			pollJudging();
+		}
+
 		function pollJudging(){
 		
 			var formData = new FormData();
 			
 			formData.append('contestId', {{current_contest.id}});
-		
+
 			pollAJAX = $.ajax({
 				type: "POST",
 				url: "{{path('judging_poll')}}",
@@ -515,7 +544,6 @@
 			}
 		}
 
-
 		function updateClarificationScroller(data){
 			var clars = data['answered_clarifications'];
 
@@ -545,18 +573,14 @@
 			$('.submission').dblclick( function() {
 				
 				if($(this).hasClass('queued')){			
-				
-					$('#queue-container').append(this);
-					$(this).removeClass('queued');
-					$(this).find('.right-side, .middle-side').show();
+					
+					$(this).remove();
 					
 					claimed_id = $(this).attr('id');
 					updateSubmission("claimed");
 				} else {
 				
-					$('#submissions-container').append(this);
-					$(this).addClass('queued');
-					$(this).find('.right-side, .middle-side').hide();
+					$(this).remove();
 					
 					claimed_id = $(this).attr('id');
 					updateSubmission("unclaimed");				
@@ -951,7 +975,7 @@
 				
 				
 				var reviewHTML = `<a href="{{path('contest', {'contestId': current_contest.section.id, 'roundId': current_contest.id})}}/problem/` + rev.problem.id + `/result/` + rev.id + `"> <div class="review ` + ((rev.is_correct) ? "correct" : "wrong") + `" id="` + rev.id + `"> ` + 
-									`<div>` + rev.id + `) ` + escapeHTML(rev.problem.name.substring(0,1)) + ` - <small>` + escapeHTML(rev.team.name) + `</small></div><div><small> Reviewer: ` + escapeHTML(name) + `</small></div>` + 
+									`<div>` + rev.id + `) ` + escapeHTML(rev.problem.name.substring(0,1)) + ` - <small>` + escapeHTML(rev.team.name) + `</small></div><div style="display: none">` + escapeHTML(rev.problem.name) + `" " `+((rev.is_correct) ? "correct" : "wrong") +`</div><div><small> Reviewer: ` + escapeHTML(name) + `</small></div>` + 
 								`</div> </a>`;
 				$('#recent-reviews').append(reviewHTML);
 				

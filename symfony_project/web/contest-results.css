@@ -1,0 +1,136 @@
+.marker {
+	height: 20px;
+	width: 20px;
+	background: lightgrey;
+	border: 1pt solid white;
+	border-radius: 2px;
+	margin: 2;
+	
+	text-align: center;
+	line-height: 20px;
+	
+	font-size: 1.1em;
+	position: relative;
+}
+
+.marker-hover textarea {
+	height: 100px;
+	width: 200px;
+}
+
+.marker-container {
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+	
+	flex-wrap: wrap;
+	
+	border-radius: 5px;
+	max-width: 50%;
+	background: #e8e8e8;
+}
+
+
+.marker-hover{
+	
+	height: 125px;
+	width: 410px;
+	
+	position: absolute;
+	bottom: -155px;
+	left: 0px;	
+	
+	background: white;
+	border: 2pt solid grey;
+	
+	border-radius: 10px;
+		
+	display: none;
+	
+	text-align: left;
+	flex-direction: row;
+	justify-content: space-around;
+	overflow-y: auto;
+	padding: 10px;
+	
+	z-index: 100;
+}
+
+.marker.correct {
+	color: green;
+	
+	cursor: pointer;
+}
+
+.marker.wrong {
+	color: red;
+	
+	cursor: pointer;
+}
+
+
+#untested{
+	height: 30px;
+	width: 75px;
+	
+	position: absolute;
+	bottom: -60px;
+	left: 0px;	
+	
+	background: white;
+	border: 3pt solid grey;
+	
+	border-radius: 10px;
+		
+	display: none;
+	
+	text-align: left;
+	flex-direction: column;
+	justify-content: space-around;
+	overflow-y: auto;
+	padding: 10px;
+	
+	z-index: 100;
+}
+
+
+.button {
+	height: 42px;
+	width: 42px;
+	
+	margin: 2px;
+	
+	border-radius: 2px;
+	background: lightgrey;
+	
+		
+	border-top: 1px solid white;
+	border-right: 1px solid #333333;
+	border-bottom: 1px solid #333333;
+	border-left: 1px solid white;
+	
+	text-align: center;
+	font-size: 1.8em;
+	line-height: 41px;
+	
+	cursor: pointer;
+}
+
+.main-options {	
+	display: flex;	
+	flex-direction: row;
+	justify-content: flex-end;	
+}
+
+.additional-options {	
+	display: flex;	
+	flex-direction: row;
+	justify-content: flex-end;	
+}
+
+.additional-options .button {
+	height: 26px;
+	width: 26px;
+	font-size: 1.2em;
+	line-height: 25px;
+}
