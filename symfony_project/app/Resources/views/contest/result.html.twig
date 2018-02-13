@@ -14,7 +14,6 @@
 	<link rel="stylesheet" href="{{ asset('card.css') }}" />
 	<link rel="stylesheet" href="{{ asset('contest.css') }}" />
 	<link rel="stylesheet" href="{{ asset('contest-hub.css') }}" />
-	<link rel="stylesheet" href="{{ asset('contest-judge.css') }}" />
 	<link rel="stylesheet" href="{{ asset('submission-results.css') }}">
 	<link rel="stylesheet" href="{{ asset('contest-results.css') }}">
 {% endblock %}
@@ -201,6 +200,7 @@ Submission was a ZIP file{% endif %}</div>
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 	<script src="{{ asset('src-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>	
+	<script src="{{ asset('js/unicode_return.js') }}" type="text/javascript" charset="utf-8"></script>	
 	
 	<script>
 	
@@ -230,6 +230,11 @@ Submission was a ZIP file{% endif %}</div>
 		$('.marker').off('mouseout');
 		$('.marker').on('mouseout', function() {			
 			$(this).find('.marker-hover').hide();			
+		});
+		
+		$('.marker .marker-hover textarea').each(function(){
+			
+			$(this).text(addReturnKey($(this).text()));			
 		});
 	});
 	
