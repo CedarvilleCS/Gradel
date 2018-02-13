@@ -63,7 +63,6 @@ var markdownText = converter.makeHtml("{{problem.description|e('js')}}");
 				
 				<div class="markdown-container">
 					<div id="clarification-button">Ask for Clarification</div>				
-					<div id="hide-clarifications-button" style="position:absolute; right: 230px;"> Hide Clarifications </div>
 					
 					<div id="markdown-header"><h1>{{problem.name}}</h1></div>
 					<div id="markdown"></div>
@@ -71,10 +70,10 @@ var markdownText = converter.makeHtml("{{problem.description|e('js')}}");
 				</div>
 
 				{% if queries|length > 0 %}
-				<div id="clarifications" class="clarifications">
-					<h3 style="margin-bottom: 0px"> Clarifications </h3>
+				<div class="clarifications">
+					<h4 id="clarifications-heading" style="margin-bottom: 15px; color: red; cursor: pointer;"> Clarifications </h4>
 					
-					<ul style="list-style: none; padding-left: 5px; margin-top: 5px;">
+					<ul id="clarifications" style="list-style: none; padding-left: 5px; margin-top: 5px;">
 						{% for query in queries %}
 	
 							{% if query.answer %}
@@ -499,21 +498,22 @@ Please re-upload it!
 				clarificationDialog.dialog("open");
 			});
 			
-			$('#hide-clarifications-button').button().click(function() {				
+			$('#clarifications-heading').click(function() {				
 				
 				if($('#clarifications').is(':visible')){
 					$('#clarifications').hide();
-					$(this).text('Show Clarifications');
+					$(this).text('Clarifications (' + $('#clarifications hr').length + ') \u25b6');
+					$(this).css('color', 'red');					
+										
 				} else {
 					$('#clarifications').show();
-					$(this).text('Hide Clarifications');
+					$(this).text('Clarifications \u25bc');
+					$(this).css('color', 'black');
 				}				
 			});
 			
-			{% if queries|length == 0 %}
-			$('#hide-clarifications-button').hide();
-			{% endif %}
-			
+			$('#clarifications-heading').click();
+						
 			// test code marker tabs
 			$('#add-testcase-button').button().click(function() {
 
