@@ -36,7 +36,7 @@ use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 class ContestPagesController extends Controller {
 
 	public function contestAction($contestId, $roundId) {
-		
+	
 		$em = $this->getDoctrine()->getManager();
 		$user = $this->get('security.token_storage')->getToken()->getUser();
 
