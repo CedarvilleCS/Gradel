@@ -158,7 +158,6 @@
 			/* LOOP */
 			setInterval(loopFunction, 1000);
 			loopFunction();
-			pollScoreboard();				
 		});
 		
 		function scrollPage(){
@@ -265,6 +264,10 @@
 				pollScoreboard();	
 			}
 			
+		}
+
+		function socketScoreboardUpdate() {
+			pollScoreboard();
 		}
 		
 		function pollScoreboard(){
@@ -385,5 +388,6 @@
 		{% endif %}
 		
 	</script>
+	{{ include('contest/contest_gas.html.twig') }}
 {% endblock %}
 
