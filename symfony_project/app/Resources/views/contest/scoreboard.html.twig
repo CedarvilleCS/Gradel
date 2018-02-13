@@ -259,11 +259,10 @@
 				}
 				
 			}
-			
+      
 			if(time == freeze){
 				socketScoreboardUpdate();
 			}
-			
 		}
 
 		function socketScoreboardUpdate() {
@@ -334,6 +333,8 @@
 			
 			return true;		
 		}
+		
+		pollScoreboard();
 				
 		{% if elevatedUser %}
 		function postScoreboardUnfreeze(){

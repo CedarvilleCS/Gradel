@@ -82,6 +82,10 @@ class SocketPusher  {
     return "Your submission for " . htmlspecialchars($submission->problem->name) . " was <b>incorrect</b>.";
   }
 
+  public function buildAcceptance($submission) {
+    return "Your submission for " . htmlspecialchars($submission->problem->name) . " was <b>correct</b> (Judge Override).";
+  }
+
   public function buildCustomRejection($submission) {
     return "Your submission for " . htmlspecialchars($submission->problem->name) . " was <b>incorrect</b>. \\nJudge Message: " . htmlspecialchars($submission->judge_message);
   }
@@ -99,8 +103,13 @@ class SocketPusher  {
   }
 
   public function buildClarificationMessage($question, $answer, $name) {
-    $problemName = $name ? "Question Concerning " . $name . ":" : "Question: ";
-    return "<b>" . htmlspecialchars($problemName) . "</b> " . htmlspecialchars($question) . "\\n<b>Answer:</b> " . htmlspecialchars($answer);
+    if ($question == "") {
+      return "<b>Notice:</b> " . htmlspecialchars($answer);
+    }
+    else {
+      $problemName = $name ? "Question Concerning " . $name . ":" : "Question: ";
+      return "<b>" . htmlspecialchars($problemName) . "</b> " . htmlspecialchars($question) . "\\n<b>Answer:</b> " . htmlspecialchars($answer);
+    }
   }
 }
 
