@@ -747,8 +747,19 @@ class Grader  {
 		
 		$user_team = $this->getTeam($user, $assignment);
 		
-		$scores = [];		
-		$elevatedUser = ($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $this->isJudging($user, $assignment->section)) && !$normal_user;
+		$scores = [];
+		
+		
+		
+		if( is_object($user) ){
+			
+			$elevatedUser = ($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $this->isJudging($user, $assignment->section)) && !$normal_user;
+		
+		} else {
+			
+			$elevatedUser = false;			
+		}
+		
 		foreach($teams as $team){
 			
 			$elevatedTeam = $elevatedUser;			

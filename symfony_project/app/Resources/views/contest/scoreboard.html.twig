@@ -156,6 +156,7 @@
 			});		
 			
 			/* LOOP */
+			pollScoreboard();
 			setInterval(loopFunction, 1000);
 			loopFunction();
 		});
@@ -257,11 +258,6 @@
 					$('#time-left').text(hours+":"+minutes+":"+seconds+" until start");
 				}
 				
-			}
-			
-			// change this to a different number to change the frequency
-			if(time % 1 == 0){
-				pollScoreboard();	
 			}
 			
 			if(time == freeze){
