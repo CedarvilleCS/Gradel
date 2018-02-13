@@ -105,10 +105,9 @@
 						
 						<tr class="{{rowClassName}}" onclick="window.location='{{path('contest_problem', {'contestId': problem.assignment.section.id, 'roundId': problem.assignment.id, 'problemId': problem.id})}}'">
 							<td class="name {{className}}"><div> {{problem.name}} </div></td>
-							
 							<td class="penalties {{className}}"><div> {{ (isCorrect) ?  team.times[loop.index0] ~ ' + ' ~ team.raw_penalties[loop.index0]  : "" }} </div></td>
 							<td class="checkbox {{className}}" style="text-align: right; padding-right: 25px">
-								{{ (team.results[loop.index0]) ? "<div style='color: green'> &#x2713; </div>" : (team.attempts[loop.index0] > 0) ? "<div style='color: red'> &#x2718; </div>" : "<div style='color: white'> &#x2718; </div>" }}						</td>
+								{{ (team.results[loop.index0]) ? "<div style='color: green'> &#x2713; </div>" : (team.attempts[loop.index0] > 0) ? "<div style='color: red'> &#x2718; </div>" : "" }}						</td>
 						</tr>
 					{% endfor %}
 					
@@ -141,28 +140,6 @@
 		
 		
 		
-		{#		
-		<div class="card">
-			
-			<div class="btn-close" onclick="collapseCard('recentSubs')">
-				<h2 style="margin: 0px">Recent Submissions
-					<span style="float: right"><i class="fa fa-angle-down"></i></span>
-				</h2>
-			</div>
-		
-			<div id="recentSubs" class="card-contents" style="margin-top: 0px">
-				<div>
-					<ul>
-						{% for team in current_contest.teams %}		
-							{% for sub in team.submissions %}
-								<li> <a href="{{path('problem_result', {'submission_id': sub.id})}}"> {{team.name}} - {{sub.language.name}} </a></li>
-							{% endfor %}
-						{% endfor %}
-					</ul>
-				</div>
-			</div>
-		</div>
-		#}
 			
 	</section>
 
@@ -214,10 +191,7 @@
 		var unfreeze_override = {{(current_contest.freeze_override and not current_contest.freeze_override_time) ? "true" : "false"}};
 		
 		$(window).unload(function() {
-			
-			scoreboardPollAJAX.abort();
-			contestPollAJAX.abort();
-			
+						
 		});
 				
 		//var freeze 
@@ -431,11 +405,13 @@
 			// check for AJAX information			
 			
 			// change this to a different number to change the frequency
-			if(time % 5 == 0){
-				pollContest();	
-				pollScoreboard();
-			}
 			
+			
+		}
+		
+		function socketScoreboardUpdate() {
+			pollContest();	
+			pollScoreboard();
 		}
 		
 		function pollScoreboard(){
@@ -448,9 +424,6 @@
 			formData.append('start_time', '{{current_contest.start_time|date('U')}}');
 			formData.append('freeze_time', '{{current_contest.freeze_time|date('U')}}');
 			
-			if(scoreboardPollAJAX != null){
-				scoreboardPollAJAX.abort();
-			}
 			scoreboardPollAJAX = $.ajax({
 				type: "POST",
 				url: "{{path('scoreboard_poll')}}",
@@ -511,9 +484,6 @@
 
 			formData.append('contestId', {{current_contest.id}});
 			
-			if(contestPollAJAX != null){
-				contestPollAJAX.abort();
-			}
 			contestPollAJAX = $.ajax({
 				type: "POST",
 				url: "{{path('contest_poll')}}",

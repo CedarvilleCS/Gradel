@@ -156,6 +156,10 @@ class AppBundleTopic implements TopicInterface
                     }
 
                 }
+                else if ($scope == "pageUpdate" && $elevatedUser == true) {
+                    $message = '{"msg": "null", "type": "updateData"}';
+                    $topic->broadcast($message);
+                }
                 else if (($scope == "userSpecificReject" || $scope = "userSpecificClarify") && $elevatedUser == true) {
                     if ($recipients == null) {
                         dump("Required to provide recipients!");

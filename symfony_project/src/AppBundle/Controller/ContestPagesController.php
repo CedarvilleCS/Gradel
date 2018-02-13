@@ -102,13 +102,16 @@ class ContestPagesController extends Controller {
 			$contest_open = false;
 		}
 		
+		//Tim's gonna be mad at this, but idk what normal user is supposed to be
+		$leaderboard = $grader->getLeaderboard($user, $current, true);
+		
 		return $this->render('contest/hub.html.twig', [
 			'user' => $user,
 			'team' => $team,
 			
 			'section' => $section,
-
-      'grader' => $grader,		
+			'leaderboard' => $leaderboard,
+			'grader' => $grader,		
 			'attempts_per_problem_count' => $attempts_per_problem_count,
 			'correct_submissions_per_problem_count' => $correct_submissions_per_problem_count,
 			'current_contest' => $current,

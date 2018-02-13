@@ -22,8 +22,8 @@ use Symfony\Component\Config\Definition\Exception\Exception;
 
 use AppBundle\Utils\Grader;
 use AppBundle\Utils\Generator;
+use AppBundle\Utils\SocketPusher;
 use AppBundle\Utils\Uploader;
-
 
 use \DateTime;
 
@@ -328,8 +328,10 @@ class CompilationController extends Controller {
 		
 		
 			if($submission->percentage != 1 && !$submission->compiler_error && !$submission->exceeded_time_limit && !$submission->runtime_error){
+				$pusher = new SocketPusher($this->container->get('gos_web_socket.wamp.pusher'));
+				$pusher->promptDataRefresh($submission->problem->assignment->section->id);
 				$submission->pending_status = 0;				
-			} 
+			}
 		}
 
 		# complete the submission
