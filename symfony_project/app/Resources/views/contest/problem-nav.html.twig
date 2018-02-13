@@ -108,14 +108,13 @@
 			
 		</ol>
 		
-		{% if app.request.attributes.get('_route') == "contest" %}
-			{% if elevatedUser %}
-			<a href="{{path('contest_judging', {'contestId': current_contest.section.id, 'roundId': current_contest.id})}}">
-				<div class="btn btn-center"> Judging Hub </div>
-			</a>
-			{% endif %}
-			
-			
+		{% if elevatedUser and app.request.attributes.get('_route') != "contest_judging" %}
+		<a href="{{path('contest_judging', {'contestId': current_contest.section.id, 'roundId': current_contest.id})}}">
+			<div class="btn btn-center"> Judging Hub </div>
+		</a>
+		{% endif %}
+		
+		{% if app.request.attributes.get('_route') == "contest" %}			
 			<div onclick="showOptions()" class="btn btn-center drop" style="">See Other Contests</div>
 			<div class="dropdown">
 				<div id="all-contests" class="dropdown-content">
@@ -134,7 +133,7 @@
 		{% endif %}
 		
 		<div style="position: absolute; bottom: 10px; width: 100%; display: flex; flex-direction: column-reverse;">
-		{% if elevatedUser and app.request.attributes.get('_route') == "contest" %}
+		{% if elevatedUser %}
 		<a href="{{path('contest_edit', {'contestId': current_contest.section.id})}}">
 			<div class="btn btn-center">Edit Contest</div>
 		</a>

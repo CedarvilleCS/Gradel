@@ -13,7 +13,7 @@
 	position: relative;
 }
 
-textarea {
+.marker-hover textarea {
 	height: 100px;
 	width: 200px;
 }
@@ -91,4 +91,46 @@ textarea {
 	padding: 10px;
 	
 	z-index: 100;
+}
+
+
+.button {
+	height: 42px;
+	width: 42px;
+	
+	margin: 2px;
+	
+	border-radius: 2px;
+	background: lightgrey;
+	
+		
+	border-top: 1px solid white;
+	border-right: 1px solid #333333;
+	border-bottom: 1px solid #333333;
+	border-left: 1px solid white;
+	
+	text-align: center;
+	font-size: 1.8em;
+	line-height: 41px;
+	
+	cursor: pointer;
+}
+
+.main-options {	
+	display: flex;	
+	flex-direction: row;
+	justify-content: flex-end;	
+}
+
+.additional-options {	
+	display: flex;	
+	flex-direction: row;
+	justify-content: flex-end;	
+}
+
+.additional-options .button {
+	height: 26px;
+	width: 26px;
+	font-size: 1.2em;
+	line-height: 25px;
 }
