@@ -669,7 +669,8 @@ class ContestPostController extends Controller {
 	}
 	
 	public function postQuestionAction(Request $request){
-		
+		$pusher = new SocketPusher($this->container->get('gos_web_socket.wamp.pusher'));
+
 		$em = $this->getDoctrine()->getManager();		
 		$grader = new Grader($em);
 
@@ -731,6 +732,8 @@ class ContestPostController extends Controller {
 		$response->headers->set('Content-Type', 'application/json');
 		$response->setStatusCode(Response::HTTP_OK);
 
+
+		$pusher->promptDataRefresh($contest->section->id);
 		return $response;		
 	}
 		
@@ -830,7 +833,8 @@ class ContestPostController extends Controller {
 					
 		$response->headers->set('Content-Type', 'application/json');
 		$response->setStatusCode(Response::HTTP_OK);
-
+		$pusher = new SocketPusher($this->container->get('gos_web_socket.wamp.pusher'));
+		$pusher->promptDataRefresh($contest->section->id);
 		return $response;		
 	}
 	
