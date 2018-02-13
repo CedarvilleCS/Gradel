@@ -52,14 +52,21 @@
 	
 	<section id="main" style="width: 100%">
 		
-		<div class="card">		
+		<div class="card" style="text-align: center;">		
 		
-			<div id="contest-heading"><h1>{{current_contest.section.name}}</h1></div>
+			<div id="contest-heading" style="display:inline-block; width: 100%">
+				<h1 style=" margin: 0;">{{current_contest.section.name}}</h1> 
+				<a style="position: absolute; top: 25px; left: 8px; height:46px; width:46px" title="Back to Contest" href="{{path('contest', {'contestId': current_contest.section.id, 'roundId': current_contest.id})}}">
+					<img style="z-index: 10; height:30px; width: 30px;" src="{{ asset('back arrow.png') }}" >
+				</a>
+			</div>
+			
 			<div id="name-heading"><h2>{{current_contest.name}}</h2></div>
 			<div id="time-heading"><h3 id="time-left">-</h3></div>
 			
 			
 			<div id="progressbar-container" class="card-contents">
+				
 				<div id="time-container">
 				
 					{% set showDates = current_contest.start_time|date('n/j') != current_contest.end_time|date('n/j') %}
