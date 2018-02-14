@@ -327,7 +327,7 @@ class CompilationController extends Controller {
 		if($submission->problem->assignment->section->course->is_contest){
 		
 		
-			if( !$elevatedUser && !($solvedAllTestcases || $submission->compiler_error || $submission->exceeded_time_limit || $submission->runtime_error) ){
+			if( $grader->getTeam($user, $submission->problem->assignment) && !($solvedAllTestcases || $submission->compiler_error || $submission->exceeded_time_limit || $submission->runtime_error) ){
 				
 				$submission->pending_status = 0;			
 			}
@@ -341,9 +341,10 @@ class CompilationController extends Controller {
 		$em->flush();
 
 		// always refresh on submit!
-		$pusher = new SocketPusher($this->container->get('gos_web_socket.wamp.pusher'));
-		$pusher->promptDataRefresh($submission->problem->assignment->section->id);	
-				
+		if($submission->problem->assignment->section->course->is_contest){
+			$pusher = new SocketPusher($this->container->get('gos_web_socket.wamp.pusher'));
+			$pusher->promptDataRefresh($submission->problem->assignment->section->id);	
+		}
 		
 		//return $this->returnForbiddenResponse($submission->percentage."");		
 		if($submission->problem->assignment->section->course->is_contest){
