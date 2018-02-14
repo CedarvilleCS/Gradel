@@ -85,8 +85,10 @@
 		
 		<div class="card">
 			<div class="btn-close">
-				<h2 class="card-title">History </h2>				
-				<div id="clear-submissions-button"> Clear Submissions </div>
+				<h2 class="card-title">History </h2>	
+				{% if not contest_open %}
+					<div id="clear-submissions-button"> Clear Submissions </div>
+				{% endif %}
 				<div id="clear-clarifications-button"> Clear Clarifications </div>
 			</div>
 
