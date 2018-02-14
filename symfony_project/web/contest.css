@@ -1,0 +1,90 @@
+#main{	
+	margin-top: 50px;
+	height: calc(100% - 50px);	
+}
+
+#contest-heading, #name-heading, #time-heading, #leaderboard-heading, #problems-heading {
+	text-align: center;	
+}
+
+#clarification-button{
+	position: absolute;
+	right: 45px;
+	top: 25px;
+}
+
+
+#contest-heading h1{
+	font-size: 2.6em;
+	margin: 0px;
+}
+
+#name-heading h2, #leaderboard-heading h2, #problems-heading h2 {
+	font-size: 1.3em;
+	margin: 1px;
+}
+
+#time-heading{
+	margin-top: 5px;
+	border-bottom: 1px solid grey;
+}
+
+#time-heading h3{
+	margin: 0px;
+	font-size: 0.9em;
+	font-style: italic;
+}
+
+#progressbar-container .ui-progressbar-value {
+  border: none;
+  color: rgba(255,255,255,1);
+  
+  background: -webkit-linear-gradient(135deg, rgba(255,255,255,0.2) 25%, rgba(0,0,0,0) 25%, rgba(0,0,0,0) 50%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.2) 75%, rgba(0,0,0,0) 75%, rgba(0,0,0,0) 0), #71BA62;
+  background: -moz-linear-gradient(135deg, rgba(255,255,255,0.2) 25%, rgba(0,0,0,0) 25%, rgba(0,0,0,0) 50%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.2) 75%, rgba(0,0,0,0) 75%, rgba(0,0,0,0) 0), #71BA62;
+  background: linear-gradient(135deg, rgba(255,255,255,0.2) 25%, rgba(0,0,0,0) 25%, rgba(0,0,0,0) 50%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.2) 75%, rgba(0,0,0,0) 75%, rgba(0,0,0,0) 0), #71BA62;
+  
+  -webkit-background-size: 10px 10px;
+  background-size: 10px 10px;
+  
+  margin: 0px;
+}
+
+#progressbar-container.frozen .ui-progressbar-value {
+	
+  border: none;
+  color: rgba(255,255,255,1);
+	
+  background: -webkit-linear-gradient(135deg, rgba(255,255,255,0.2) 25%, rgba(0,0,0,0) 25%, rgba(0,0,0,0) 50%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.2) 75%, rgba(0,0,0,0) 75%, rgba(0,0,0,0) 0), #ff4c4c;
+  background: -moz-linear-gradient(135deg, rgba(255,255,255,0.2) 25%, rgba(0,0,0,0) 25%, rgba(0,0,0,0) 50%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.2) 75%, rgba(0,0,0,0) 75%, rgba(0,0,0,0) 0), #ff4c4c;
+  background: linear-gradient(135deg, rgba(255,255,255,0.2) 25%, rgba(0,0,0,0) 25%, rgba(0,0,0,0) 50%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.2) 75%, rgba(0,0,0,0) 75%, rgba(0,0,0,0) 0), #ff4c4c;
+	
+  -webkit-background-size: 10px 10px;
+  background-size: 10px 10px;
+  
+  margin: 0px;
+	
+
+}
+
+#time-container{
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	
+	font-size: 0.9em;
+	font-style: italic;
+	font-weight: bold;
+}
+
+#progressbar{
+	background: #F4F4F4;
+	height: 18px;
+	border-radius: 15px;
+}
+
+#stats-container {
+	min-height: 100px;
+	min-width: 100%;
+	display: flex;
+	flex-direction: row;
+}

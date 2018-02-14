@@ -1,0 +1,87 @@
+{% block leaderboard_html %}
+<div class="card" id="leaderboard-card" style="flex-grow: 12; padding: 5px; padding-top: 10px; height: max-content;">
+	
+	<div id="leaderboard-container" class="card-contents" style="margin-top: 0;">
+		<table id="leaderboard">
+		
+		</table>
+	</div>
+</div>
+{% endblock %}
+
+
+{# this needs a leaderboard variable #}
+{% block leaderboard_tablecreation %}
+	var tableHTML = "";
+				
+	tableHTML += "<colgroup><col class='name'>";
+		
+		for(var i=0; i<{{current_contest.problems|length}}; i++){
+			tableHTML += "<col class='problem'>"
+		}
+
+	tableHTML += `</colgroup>
+
+	<tr>
+		<th class="top-row no-hover">Rank</th>
+		<th class="top-row no-hover">Teams</th>
+		<th class="top-row no-hover">Number Correct</th>
+		<th class="top-row no-hover">Penalty Time</th>
+		{% for problem in current_contest.problems %}
+		<th class="top-row">
+			<a href="{{path('contest_problem', {'contestId': problem.assignment.section.id, 'roundId': problem.assignment.id, 'problemId': problem.id})}}">
+			{{problem.name|slice(0,1)}}
+			</a>
+		</th>
+		{% endfor %}
+	</tr>`;
+
+
+
+	for(var i = 0; i<leaderboard.scores.length; i++){
+		
+		var team = leaderboard.scores[i];
+		var curr_user = (i==leaderboard.index);
+
+		tableHTML += "<tr class='" + ((curr_user) ? "curr-user" : "") + "'>";
+		
+		tableHTML += "<td class='rank'>" + team.rank + "</td>";
+		tableHTML += "<td class='name'>" + team.team_name + "</td>";
+		tableHTML += "<td class='num-correct'>" + team.num_correct + "</td>";
+		tableHTML += "<td class='time'>" + team.total_penalty + "</td>";
+		
+		for(var j=0; j<team.attempts.length; j++){
+
+			var result = team.results[j];
+		
+			tableHTML += "<td class='" + ((result) ? "accepted" : ((team.attempts[j] > 0) ? "attempted" : "unattempted")) + "'>";
+				
+			tableHTML += "<div class='attempts-count'>" + ((team.attempts[j] > 0) ? team.attempts[j] : "-") + "</div>";
+			tableHTML += "<div class='penalty-mins'>" + ((result) ? team.times[j] : ((team.times[j] > 0) ? "--" : "-")) + "</div>";
+			
+			tableHTML += "</td>";
+		
+		}
+		tableHTML += "</tr>";
+		
+	}			
+	tableHTML += "<tr height = 5px> </tr>";
+	tableHTML += "<tr class='stats-row'>";
+	tableHTML += "<td><div class='attempts-count'> Correct/Total </div>";
+	tableHTML += "<td><div class='empty-cell'></div></td>";
+	tableHTML += "<td><div class='empty-cell'></div></td>";
+	tableHTML += "<td><div class='empty-cell'></div></td>";
+
+
+
+	for(var i=0; i<leaderboard.attempts_per_problem_count.length; i++){
+		tableHTML += "<td><div class='stats'>";
+		tableHTML += leaderboard.correct_submissions_per_problem_count[i]+ "/";
+		tableHTML += leaderboard.attempts_per_problem_count[i];
+		
+		tableHTML += "</td></div>";
+	}
+
+	$('#leaderboard').html(tableHTML);	
+	
+{% endblock %}

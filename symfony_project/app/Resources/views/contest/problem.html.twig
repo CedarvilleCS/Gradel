@@ -1,0 +1,928 @@
+{% set elevatedUser=grader.isTeaching(app.user, problem.assignment.section) or grader.isJudging(app.user, problem.assignment.section) or is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") %}
+
+
+{% block head %}
+	<title>Gradel {% if problem != null %} | {{problem.assignment.name}} {% endif %}</title>
+	<link rel="icon" type="image/x-icon" href="{{ asset('logo.png') }}" />
+{% endblock %}
+
+
+{% block stylesheets %}
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
+	
+    <link rel="stylesheet" href="{{ asset('styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('card.css') }}" />
+	
+    <link rel="stylesheet" href="{{ asset('contest.css') }}" />	
+	
+    <link rel="stylesheet" href="{{ asset('submit.css') }}" />
+    <link rel="stylesheet" href="{{ asset('contest-problem.css') }}" />
+	
+	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">		
+    <link rel="stylesheet" href="{{ asset('markdown-styles.css') }}" />
+
+	<style>
+		#submissionButton:hover {
+			cursor:pointer;
+		}
+	</style>
+{% endblock %}
+
+
+
+{% block body %}
+
+{# markdown #}
+<script src="http://cdn.rawgit.com/showdownjs/showdown/1.8.6/dist/showdown.min.js"></script>
+
+<script>
+
+// markdown stuff
+var converter = new showdown.Converter();
+converter.setOption('tasklists', true);
+converter.setOption('backslashEscapesHTMLTags', true);
+converter.setOption('emoji', true);
+
+converter.setFlavor('github');
+var markdownText = converter.makeHtml("{{problem.description|e('js')}}");
+
+</script>
+
+<body>
+    {{ include('template/top-nav.html.twig') }}
+	
+	{{ include('contest/problem-nav.html.twig') }}
+
+    <section id="main">
+
+		<div class="card" style="padding-top: 2px">
+						
+			<div id="courseInfo" class="card-contents">
+				
+{% if elevatedUser or (contest_open and problem.assignment.cutoff_time|date('U') > "now"|date('U')) %}
+				
+				<div class="markdown-container">
+					<div id="clarification-button">Ask for Clarification</div>				
+					
+					<div id="markdown-header"><h1>{{problem.name}}</h1></div>
+					<div id="markdown"></div>
+					<div id="markdown-collapser">Hide Description</div>
+				</div>
+
+				{% if queries|length > 0 %}
+				<div class="clarifications">
+					<h4 id="clarifications-heading" style="margin-bottom: 15px; color: red; cursor: pointer;"> Clarifications </h4>
+					
+					<ul id="clarifications" style="list-style: none; padding-left: 5px; margin-top: 5px;">
+						{% for query in queries %}
+	
+							{% if query.answer %}
+						
+							{% if query.question %} <li style="font-weight: bold">Q: {{query.question}}</li> {% endif %}
+							<li style="font-style: italic">A: {{query.answer}} </li>
+							<hr>
+							{% else %}
+							<li style="font-weight: bold">Q: [PENDING] {{query.question}}</li>
+							<hr>
+							{% endif %}
+						{% endfor %}
+					</ul>
+				</div>
+				{% endif %}
+	
+{# the ACE editor text area #}
+				
+<div id="editor">{% if trial != null and trial.filename|split('.')|last != 'zip' %}
+{{ trial.deblobinateFile()|nl2br }}{% elseif trial != null %}
+Uploaded file was a ZIP file<br>
+We are not able to repopulate zip files at this time.<br>
+Please re-upload it!
+{% endif %}
+</div>
+
+<div id="trial-status" style="font-style: italic; font-size:0.8em; color: grey;">&nbsp;</div>
+				<br>
+
+				{# display the form or not #}				
+				
+					{# file upload#}
+					<form id="submissionUploadForm" action="{{path('get_contents')}}" method="post">
+						<input type="file" name="file" id="file" value="Upload File">
+					</form>
+
+					{# Language selection and hidden field to submit ACE contents #}
+					<div id="submissionForm">
+
+						Language:
+						<select id="languageSelect" name="language">
+							{% for lang in languages %}
+								{% if lang.name != "No Language Restriction" %}
+									<option value={{lang.id}}>{{lang.name}}</option>
+								{% endif %}
+							{% endfor %}
+						</select>
+						<br>
+						<div id="mainClassInput" style="display:none"><label for="main_class">Main Class: </label><input type="text" name="main_class" id="main_class_input"></div>
+						<div id="packgNameInput" style="display:none"><label for="package_name">Package Name: </label><input type="text" name="package_name" id="package_name_input"></div>
+						<br/>
+						<input type="hidden" name="ACE" id="ACE">
+						<div class="btn" style="width: 100px" id="submissionButton"> Submit </div>
+						<div id="loading-container" style="display: none">
+							<img id="loadingGif" style="height: 60px" src="{{asset('beoload.gif')}}" alt="Loading..."/>
+							<h3 style="margin: 0px"> Submitting Code... </h3>
+						</div>
+					</div>
+
+{% else %}
+	<div class="markdown-container">
+		<div><h1 style="color: red; font-style: italic"> Contest is not open </h1></div>
+		<div id="markdown-header"><h1>{{problem.name}}</h1></div>
+		<div id="markdown"></div>
+	</div>				
+{% endif %}
+				
+			</div>
+		</div>
+		
+		{% if elevatedUser or (problem.assignment.start_time|date('U') < "now"|date('U') and problem.assignment.cutoff_time|date('U') > "now"|date('U')) %}
+		{# testing code card #}
+		<div class="card">
+			<div class="btn-close">
+				<h2 style="margin: 0px;">Test Your Code</h2>
+			</div>
+			
+			<div id="codeTester" class="card-contents" style="margin-top: 5px">
+				<div style="position: relative">   
+					<div id="add-testcase-button"> Add Testcase </div>
+					<div id="test-code-markers">
+						<ul>
+							{% set count = 0 %}
+							{% for tc in problem.testcases %}
+							
+								{% if tc.is_sample %}
+								{% set count = count + 1 %}
+								<li id="test-code-tab-{{count}}-marker"> <a href="#test-code-tab-{{count}}">
+									#{{count}}
+								</a></li>
+								
+								{% endif %}
+							
+							{% endfor %}
+						</ul>
+						
+						{% set count = 0 %}
+						{% for tc in problem.testcases %}
+						
+							{% if tc.is_sample %}
+								{% set count = count + 1 %}
+								<div id="test-code-tab-{{count}}" class="test-case">
+									<div class="testcase-data">
+										<div style="display: flex; flex-direction: row; justify-content: space-between;">
+											
+											<div class="input-container" style="display: flex; flex-direction: column; width: 33%">
+											<small>Standard Input:</small>
+											<textarea style='height: 180px' class="input">{{tc.input|raw}}</textarea>
+											</div>
+											
+											<div class="output-container" style="display: flex; flex-direction: column; width: 33%">
+											<small>Expected Output:</small>
+											<textarea style='height: 180px' class="exp-output original">{{tc.correct_output|raw}}</textarea>
+											</div>
+											
+											<textarea style='height: 180px; display: none;' class="output changed"></textarea>
+			
+											<div style='display: flex; flex-direction: column; width: 33%'>
+											<small>Output Diffs:</small>
+											<div class='output diff' style='font-family: monospace; font-size: 14px; border: 1px solid #878787; height: 178px;'><p></p>
+											</div>
+											</div>	
+										</div>
+									</div>
+								</div>
+								
+							{% endif %}
+						
+						{% endfor %}
+				
+					</div>
+				</div>
+				
+				<br>
+				<div>
+					<div class="btn" style="width: 100px; cursor: pointer;" id="generate-output-button"> Test </div>
+					<div id="loading-container-test" style="display: none">
+						<img id="loadingGif-test" style="height: 60px" src="{{asset('beoload.gif')}}" alt="Loading..."/>
+						<h3 style="margin: 0px"> Testing Code... </h3>
+					</div>
+				</div>
+			</div>
+		</div>	
+		{% endif %}
+		
+		{% if all_submissions|length > 0 %}
+		<div class="card">
+			<div class="btn-close" onclick="collapseCard('recentSubs')">
+				<h2 style="margin: 0px">Submissions</h2>
+			</div>
+			
+			<div id="recentSubs" class="card-contents" style="margin-top: 0px">
+				<div>   
+					<ul>
+					
+					{% for sub in all_submissions %}
+						{% if sub.isCorrect %}
+							<div style="color: green">
+						{% else %}
+							
+							<div style="color: red">
+						{% endif %}
+						
+						<li><a href="{{path('problem_result', {'submission_id': sub.id})}}">
+							[{{sub.problem.name}}] 
+								{% if sub.team.users|length > 1 %}
+									{
+									{% for user in sub.team.users %}
+										
+										{{user.getLastName}}
+										{% if not loop.last %}
+										, 
+										{% endif%}
+									{% endfor %}
+									}
+								{% endif %}
+								- {{sub.timestamp|date('F d, Y  \\a\\t  h:i:s')}} ({{sub.language.name}})
+						</a> </li>
+					
+						</div>
+					{% endfor %}
+					
+					</ul>
+				</div>
+			</div>
+		</div>
+		{% endif %}		
+		
+    </section>
+	
+	
+	{# clarification dialog #}	
+	<div id="clarification-form" title="Ask for Clarification" value="0" style="display:none">
+	  <form>
+			<div> Clarification on {{problem.name}}: </div>
+			<input type="text" name="question" id="question" class="text ui-widget-content ui-corner-all">
+			<input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+	  </form>
+	</div>
+	
+</body>
+{% endblock %}
+
+{% block scripts %}
+    <!-- JQuery -->
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+	<script src="{{ asset('src-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>
+	
+	<script src="{{ asset('js/validation.js') }}"></script>
+	<script src="{{ asset('js/unicode_return.js') }}"></script>
+
+	{# text diff #}
+	<script src="{{ asset('js/jquery.pretty-text-diff.js') }}"></script>
+	<script src="{{ asset('js/diff_match_patch.js') }}"></script>
+	
+	{# asynchronous file upload #}
+	<script src="http://malsup.github.com/jquery.form.js"></script>
+	{# markdown #}
+
+	<script>
+
+		var saved_code = "";
+
+		{% if elevatedUser or (problem.assignment.start_time|date('U') < "now"|date('U') and problem.assignment.cutoff_time|date('U') > "now"|date('U')) %}
+		
+		function getLanguage(filename){
+
+			var filetypes = JSON.parse('{{ filetypes|json_encode|raw }}');
+			var ext = getExtension(filename);
+
+			return filetypes[ext];
+		}
+
+		function getExtension(filename){
+
+			var ext = filename.substr(filename.lastIndexOf('.') + 1);
+			return ext;
+		}
+
+		function getName(filename){
+
+			var ext = getExtension(filename);
+			var cls = filename.substr(filename.lastIndexOf('\\') + 1).replace("."+ext,"");
+			
+			return cls;
+		}
+
+		function setLanguageFromFilename(filename){
+
+			var classname = getName(filename);
+			var ext = getExtension(filename);
+			var language = getLanguage(filename);
+
+			if(!language){
+				language = $('#languageSelect option:selected').text();
+			}
+
+			setLanguage(language);
+
+			// set the main class
+			document.getElementById('main_class_input').value = classname;
+
+			// toggle the java inputs
+			toggleJavaInputs(language == "Java", ext == "zip");
+		}
+
+		function setLanguage(language){
+
+			// set the language selector
+			var selectObject = document.getElementById('languageSelect');
+			for(var i=0; i<selectObject.length; i++){
+				if(selectObject.options[i].text == language){
+					selectObject.selectedIndex = i;
+					break;
+				}
+			}
+
+			var editor = ace.edit("editor");
+			editor.$blockScrolling = Infinity;
+			updateAceCode();
+
+			// toggle the java inputs
+			var ext = getExtension($('#submissionUploadForm #file').val());
+			toggleJavaInputs(language == "Java", ext == "zip");
+		}
+
+		function toggleJavaInputs(state1, state2){
+
+			if(!state1){
+				document.getElementById('mainClassInput').style.display = 'none';
+				document.getElementById('packgNameInput').style.display = 'none';
+			} else if(state1 && !state2){
+				document.getElementById('mainClassInput').style.display = 'block';
+				document.getElementById('packgNameInput').style.display = 'none';
+			} else{
+				document.getElementById('mainClassInput').style.display = 'block';
+				document.getElementById('packgNameInput').style.display = 'block';
+			}
+		}
+
+		function updateAceCode(){
+
+			var default_code = JSON.parse("{{ default_code|json_encode|e('js') }}");
+			var ace_modes = JSON.parse("{{ ace_modes|json_encode|e('js') }}");
+
+			var editor = ace.edit("editor");
+			editor.$blockScrolling = Infinity;
+			
+			language = $('#languageSelect option:selected').text();
+			
+			if(saved_code !== editor.getValue()) {
+				editor.setValue(editor.getValue(), -1);
+			} else {
+				// This sets the default code for the selected language.
+				editor.setValue(default_code[language], -1);
+				saved_code = default_code[language];
+			}
+			editor.getSession().setMode("ace/mode/" + ace_modes[language]);
+		}
+		
+		{% endif %}
+
+	</script>
+
+	<script>
+	
+		var genAJAX;
+		var submitAJAX;
+		var saveTrialAJAX;
+		var postClarAJAX;
+	
+		var trialUpdateTimer = null;
+		var trialId = {{(trial) ? trial.id : "0"}};
+		var second = 0;
+		
+		$(window).unload(function() {
+			
+		});
+
+	
+		$(document).ready(function() {
+			
+			$('#markdown').html(markdownText);
+			
+			// update key bindings
+			var editor = ace.edit("editor");
+			editor.$blockScrolling = Infinity;
+			
+			{% if elevatedUser or (problem.assignment.start_time|date('U') < "now"|date('U') and problem.assignment.cutoff_time|date('U') > "now"|date('U')) %}
+			editor.getSession().on('change', function() {	
+
+				second++;
+				if(second > 1){
+					$('#trial-status').text("Unsaved changes...");
+				}
+				
+				clearInterval(trialUpdateTimer);
+				trialUpdateTimer = setInterval(updateTrial, 5000);		
+			});
+
+			editor.commands.addCommand({
+				name: "replace",
+				bindKey: {win: "Ctrl-S", mac: "Command-S"},
+				exec: function(editor) {
+					updateTrial();
+				}
+			});
+			{% endif %}
+			
+			// set default stuff for the ace editor
+			var editor = ace.edit("editor");
+			editor.$blockScrolling = Infinity;
+			editor.setTheme("ace/theme/xcode");
+			
+			// handle having a trial and displaying the description
+			{% if trial != null %}
+			
+			{% if elevatedUser or (problem.assignment.start_time|date('U') < "now"|date('U') and problem.assignment.cutoff_time|date('U') > "now"|date('U')) %}
+			setLanguageFromFilename("{{trial.filename}}");
+			{% endif %}
+	
+			{% if not trial.show_description %}
+			$("#markdown-collapser").click();
+			{% endif %}
+			
+			{% else %}
+			$('#languageSelect').change();			
+			{% endif %}
+			
+			/* QUESTION ASKER */
+			clarificationDialog = $("#clarification-form").dialog({
+				autoOpen: false,
+				modal: true,
+				width: "600px",
+				height: "auto",
+				buttons: {
+					"Ask Question": function () {
+						if(postClarification()){
+							clarificationDialog.dialog( "close" );
+						}						
+					}, 
+					Cancel: function() {
+						clarificationDialog.dialog( "close" );
+					}
+				},
+			  close: function() {
+				  noticeMessageForm[0].reset();
+			  }
+			});
+
+			clarificationDialog.find("form").off( "submit");
+			noticeMessageForm = clarificationDialog.find( "form" ).on( "submit", function( event ) {				
+				event.preventDefault();
+				
+				if(postClarification()){	
+					clarificationDialog.dialog("close");
+				}
+			});
+			
+			$('#clarification-button').button().click(function() {
+				clarificationDialog.dialog("open");
+			});
+			
+			$('#clarifications-heading').click(function() {				
+				
+				if($('#clarifications').is(':visible')){
+					$('#clarifications').hide();
+					$(this).text('Clarifications (' + $('#clarifications hr').length + ') \u25b6');
+					$(this).css('color', 'red');					
+										
+				} else {
+					$('#clarifications').show();
+					$(this).text('Clarifications \u25bc');
+					$(this).css('color', 'black');
+				}				
+			});
+			
+			$('#clarifications-heading').click();
+						
+			// test code marker tabs
+			$('#add-testcase-button').button().click(function() {
+
+				var num_tabs = $("div#test-code-markers ul li").length + 1;
+
+				$("div#test-code-markers ul").append(
+					"<li id='test-code-tab-user-" + num_tabs + "-marker'><a href='#test-code-tab-user-" + num_tabs + "'>#" + num_tabs + "</a></li>"
+				);
+				
+				$("div#test-code-markers").append(
+					"<div id='test-code-tab-user-" + num_tabs + "' class='test-case'>" + 
+						"<div class='testcase-data'>" +
+							"<div style='display: flex; flex-direction: row; justify-content: space-between;'>" +
+								
+								"<div class='input-container' style='display: flex; flex-direction: column; width: 33%'>" +
+								"<small>Standard Input:</small>" +
+								"<textarea style='height: 180px' class='input'></textarea>" +
+								"</div>" +
+								
+								"<div class='output-container' style='display: flex; flex-direction: column; width: 33%'>" +
+								"<small>Expected Output:</small>" +
+								"<textarea style='height: 180px' class='exp-output original'></textarea>" +
+								"</div>" +
+								
+								"<textarea style='height: 180px; display: none;' class='output changed'></textarea>" +
+
+								"<div class='diff-container' style='display: flex; flex-direction: column; width: 33%'>" +
+								"<small>Output Diffs:</small>" +
+								"<div class='diff' style='font-family: monospace; font-size: 14px; border: 1px solid #878787; height: 178px;'><p></p>" +
+								"</div>" +
+								"</div>" +
+							"</div>" +
+						"</div>" +
+					"</div>"
+				);
+				
+				$('#test-code-markers textarea').off('keyup');
+				$('#test-code-markers textarea').keyup( function() {
+					$(this).val(addReturnKey($(this).val()));
+				}).keyup();
+				
+				$("div#test-code-markers").tabs("refresh");				
+			});  
+			
+			$('#generate-output-button').click(function() {
+				
+				updateTrial();
+				testSolution();
+				
+			});
+			
+			$('#test-code-markers').tabs();
+			var tabCount = $('#test-code-markers >ul >li').length;
+			
+			
+			if(tabCount < 1){
+				$('#add-testcase-button').click();
+				$( "#test-code-markers" ).tabs({ active: 0 });
+			}
+			
+			
+			if(trialId == 0){
+				updateTrial();
+			}
+		});
+		
+		$('#test-code-markers textarea').keyup( function() {
+			$(this).val(addReturnKey($(this).val()));
+		}).keyup();
+		
+				
+		// show/hide the description	
+		$("#markdown-collapser").click(function () {
+			
+			$collapser = $(this);
+			$content = $('#markdown');
+						
+			$collapser.text(function() {
+				return $content.is(":visible") ? "Show Description" : "Hide Description";
+			});
+			
+			$content.slideToggle(20, function() {});
+			
+			updateTrial();
+			
+		});
+		
+		// make the language dropdown change affect the code
+		$('#languageSelect').change( function(data) {
+
+			var language = $('#languageSelect option:selected').text();
+			setLanguage(language);
+		});
+
+		// submit the form if the file upload is changed
+		$('#submissionUploadForm #file').change( function(data) {
+			$('#submissionUploadForm').submit();
+		});
+
+		// overwrite the normal submit to call the ajaxsubmit
+		$('#submissionUploadForm').submit(function() {
+			
+			$(this).ajaxSubmit({
+			
+				beforeSubmit: 	function(formData, jqForm, options){
+					
+					/* CLIENT-SIDE VALIDATION MAY HAPPEN HERE */
+					return true;
+					
+				},
+				success:		function(responseText, statusText, xhr, $form) {
+					
+					var file = responseText['files'][0];
+			
+					console.log(responseText);
+					setLanguageFromFilename(file['name']);
+					
+					var editor = ace.edit("editor");
+					editor.$blockScrolling = Infinity;
+					editor.setValue(atob(file['contents']));
+					
+					updateAceCode();
+
+					updateTrial(responseText);						
+									
+				},
+				error:			function(xhr, textStatus, errorThrown) {
+					console.log(xhr);						
+					alert(xhr['responseText']);
+				}
+			});
+			
+			return false;
+		});
+
+		$('#submissionButton').click( function() {			
+			updateTrial("submit");			
+		});
+		
+		function postClarification(){
+			
+			// Create a FormData object
+			var formData = new FormData();
+
+			formData.append('contestId', {{current_contest.id}});
+			formData.append('problemId', {{problem.id}});
+			
+			var question = $('#clarification-form #question').val();
+
+			if(question == ""){
+				setInvalid($('#clarification-form #question'));
+				return false;
+			} else {
+				setValid($('#clarification-form #question'));
+			}
+			
+			formData.append('question', question);
+			
+			
+			postClarAJAX = $.ajax({
+				type: "POST",
+				url: "{{path('judging_query')}}",
+				data: formData,
+				processData: false,
+				contentType: false,
+				async: true,
+				success: function(data){
+					console.log(data);
+				},
+				error: function(data){					
+					alert(data['responseText']);
+					console.log(data['responseText']);					
+				}
+			});
+			
+			
+			return true;
+		}
+				
+		function updateTrial(submitAfter){
+					
+			clearInterval(trialUpdateTimer);	
+			
+			// Create a FormData object
+			var formData = new FormData();
+
+			var language = $('#languageSelect option:selected').val();
+			var main_class = $('#main_class_input').val();
+			var package_name = $('#package_name_input').val();
+			var show_description = !($("#markdown-collapser").text() == "Show Description");
+			
+			var editor = ace.edit("editor");
+			editor.$blockScrolling = Infinity;				
+			$("#ACE").val(editor.getValue());
+
+			var ACE = $('#ACE').val();		
+			
+			formData.append('problem_id', {{problem.id}});
+			formData.append('language', language);
+			formData.append('main_class', main_class);
+			formData.append('package_name', package_name);
+			formData.append('show_description', show_description);
+			formData.append('ACE', ACE);
+
+			if(getExtension($('#submissionUploadForm #file').val()) == "zip"){
+
+				var file = $('#submissionUploadForm #file').prop('files')[0];
+				if(file){
+					formData.append('file', file);
+				}
+			}
+			
+			saveTrialAJAX = $.ajax({
+				type: "POST",
+				url: "{{path('modify_trial')}}",
+				data: formData,
+				processData: false,
+				contentType: false,
+				async: true,
+				success: function(data){
+					console.log(data);
+					$('#trial-status').text("Code saved.");
+					trialId = data['trial_id'];
+					
+					if(submitAfter == "submit"){
+						submitSolution();
+					}
+				},
+				error: function(data){
+					//alert(data['responseText']);
+					console.log(data['responseText']);
+					$('#trial-status').text(data['responseText']);
+					
+					if(data['continue'] && submitAfter=="submit"){
+						submitSolution();
+					}
+				}
+			});						
+		}
+		
+		function submitSolution(){
+			
+			// Create a FormData object
+			var formData = new FormData();
+
+			// validate that fields are filled in
+			var language = $('#languageSelect option:selected').val();
+			var languageText = $('#languageSelect option:selected').text();
+			var main_class = $('#main_class_input').val();
+			var package_name = $('#package_name_input').val();
+
+			if(languageText == 'Java' && main_class == '') {
+			
+				setInvalid($('#main_class_input'));				
+				return false;
+				
+			} else if(languageText != 'Java'){
+
+				main_class = "";
+				package_name = "";
+			}
+			setValid($('#main_class_input'));
+
+			formData.append('trial_id', trialId);
+
+			if(getExtension($('#submissionUploadForm #file').val()) == "zip"){
+
+				var file = $('#submissionUploadForm #file').prop('files')[0];
+
+				if(file){
+					formData.append('file', file);
+				}
+			}
+
+			$('#loading-container').show();
+			$('#submissionButton').hide();
+			
+			
+			submitAJAX = $.ajax({
+				type: "POST",
+				url: "{{path('submit')}}",
+				data: formData,
+				processData: false,
+				contentType: false,
+				success: function(data){
+
+					console.log(data);
+					window.location = data["redirect_url"];
+				},
+				error: function(data){
+					alert(data['responseText']);
+					console.log(data['responseText']);
+					
+					$('#loading-container').hide();
+					$('#submissionButton').show();
+				}
+			});
+		}
+		
+		function testSolution(){
+			
+			// Create a FormData object
+			var submitData = new FormData();
+
+			// validate that fields are filled in
+			var language = $('#languageSelect option:selected').val();
+			var languageText = $('#languageSelect option:selected').text();
+			var main_class = $('#main_class_input').val();
+			var package_name = $('#package_name_input').val();
+
+			if(languageText == 'Java' && main_class == '') {
+				
+				setInvalid($('#main_class_input'));
+				return false;
+				
+			} else if(languageText != 'Java'){
+
+				main_class = "";
+				package_name = "";
+			}
+			setValid($('#main_class_input'));
+			
+			var editor = ace.edit("editor");
+			editor.$blockScrolling = Infinity;				
+			$("#ACE").val(editor.getValue());
+
+			var ACE = $('#ACE').val();	
+			
+			submitData.append('assignmentId', {{problem.assignment.id}}),
+
+			submitData.append('language', language);
+			submitData.append('main_class', main_class);
+			submitData.append('package_name', package_name);
+			submitData.append('ACE', ACE);
+
+			if(getExtension($('#submissionUploadForm #file').val()) == "zip"){
+
+				var file = $('#submissionUploadForm #file').prop('files')[0];
+
+				if(file){
+					submitData.append('file', file);
+				}
+			}
+			
+			/* build the testcase array */
+			tcs = [];
+			$('.test-case').each( function (index) {
+				
+				const input = removeReturnKey($(this).find("."+"input").val());
+				const tc = {"input": input, "args": "", "output": "", "weight": 1, "short_response": "", "long_response": "", "extra_credit": "false"};
+				tcs.push(tc);
+				
+			});
+			
+			console.log(tcs);		
+						
+			submitData.append('testcases', JSON.stringify(tcs));
+			
+			$('#loading-container-test').show();
+			$('#generate-output-button').hide();
+		
+			genAJAX = $.ajax({
+				type: "POST",
+				url: "{{path('generate')}}",
+				data: submitData,
+				processData: false,
+				contentType: false,
+				success: function(data){
+
+					console.log(data);
+					
+					// save the testcase data to the output textboxes
+					
+					$(".test-case").each(function(index) {	
+
+						$(this).find('.output').val(addReturnKey(data['testcases'][index]));
+						
+						if($(this).find('.output').val() != $(this).find('.exp-output').val()){
+							
+							$('#'+$(this).attr('id')+'-marker').css('background', '#ff3a3a');
+							$('#'+$(this).attr('id')+'-marker').css('border', '1pt solid red');
+							$('#'+$(this).attr('id')+'-marker').css('color', 'white');
+							
+						} else {
+							
+							$('#'+$(this).attr('id')+'-marker').css('background', '#71BA62');
+							$('#'+$(this).attr('id')+'-marker').css('border', '1pt solid green');							
+							$('#'+$(this).attr('id')+'-marker').css('color', 'white');
+						}
+					});
+										
+					$('#loading-container-test').hide();
+					$('#generate-output-button').show();
+
+					$(".test-case").prettyTextDiff({
+						cleanup: true
+					});
+				},
+				error: function(data){
+					alert(data['responseText']);
+					console.log(data['responseText']);
+					
+					$('#loading-container-test').hide();
+					$('#generate-output-button').show();
+				}
+			});
+		}
+	
+	</script>
+	{{ include('contest/contest_gas.html.twig') }}
+
+{% endblock %}

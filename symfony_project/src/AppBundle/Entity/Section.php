@@ -2,15 +2,18 @@
 
 namespace AppBundle\Entity;
 
+use JsonSerializable;
+
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Config\Definition\Exception\Exception;
+use \DateTime;
 
 /**
  * @ORM\Entity
  * @ORM\Table(name="section")
  */
-class Section{
+class Section implements JsonSerializable{
 
 	public function __construct(){
 
@@ -24,6 +27,7 @@ class Section{
 		}
 
 		$this->assignments = new ArrayCollection();
+		$this->user_roles = new ArrayCollection();
 	}
 
 	public function __construct8($crs, $nm, $sem, $yr, $start, $end, $public, $deleted){
@@ -36,6 +40,50 @@ class Section{
 		$this->is_public = $public;
 		$this->is_deleted = $deleted;
 	}
+	
+	# clone method override
+	public function __clone() {
+		
+		if($this->id){
+			$this->id = null;
+			
+			$this->name = $this->name." CLONE";
+			
+			# clone assignments
+			$assignmentsClone = new ArrayCollection();
+			
+			foreach($this->assignments as $assignment){
+				$assignmentClone = clone $assignment;
+				$assignmentClone->section = $this;
+				
+				$assignmentsClone->add($assignmentClone);
+			}
+			$this->assignments = $assignmentsClone;
+			
+			
+			# clone user roles
+			$usrsClone = new ArrayCollection();
+			
+			foreach($this->user_roles as $usr){
+				
+				if($usr->role->role_name == "Teaches"){
+				
+					$usrClone = clone $usr;
+					$usrClone->section = $this;
+					
+					$usrsClone->add($usrClone);
+				}
+			}
+			$this->user_roles = $usrsClone;			
+		}		
+	}
+	
+	public function isActive(){
+		
+		$currTime = new \DateTime("now");
+		
+		return $this->start_time <= $currTime && $currTime < $this->end_time;
+	}
 
 	/**
 	* @ORM\Column(type="integer")
@@ -45,12 +93,13 @@ class Section{
 	public $id;
 
 	/**
-	* @ORM\OneToMany(targetEntity="Assignment", mappedBy="section")
+	* @ORM\OneToMany(targetEntity="Assignment", mappedBy="section", cascade={"persist"})
+	* @ORM\OrderBy({"id" = "ASC"})
 	*/
 	public $assignments;
 	
 	/**
-     * @ORM\OneToMany(targetEntity="UserSectionRole", mappedBy="section")
+     * @ORM\OneToMany(targetEntity="UserSectionRole", mappedBy="section", cascade={"persist", "remove"}, orphanRemoval=true)
      */
     public $user_roles;
 
@@ -93,6 +142,14 @@ class Section{
 	* @ORM\Column(type="boolean")
 	*/
 	public $is_public;
+	
+	public function jsonSerialize(){
+		return [
+			'name' => $this->name,			
+			'assignments' => $this->assignments->toArray(),
+			'user_roles' => $this->user_roles->toArray(),
+		];
+	}
 }
 
 ?>

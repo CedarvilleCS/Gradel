@@ -44,6 +44,7 @@ class Team implements JsonSerializable{
 
 	/**
 	* @ORM\OneToMany(targetEntity="Submission", mappedBy="team")
+	* @ORM\OrderBy({"timestamp" = "ASC"})
 	*/
 	public $submissions;
 	
@@ -54,7 +55,7 @@ class Team implements JsonSerializable{
 
 	/**
 	* @ORM\ManyToOne(targetEntity="Assignment", inversedBy="teams")
-	* @ORM\JoinColumn(name="assignment_id", referencedColumnName="id", nullable=false, onDelete="CASCADE")
+	* @ORM\JoinColumn(name="assignment_id", referencedColumnName="id", nullable=true, onDelete="CASCADE")
 	*/
 	public $assignment;
 
@@ -72,6 +73,7 @@ class Team implements JsonSerializable{
 		return [
 			'name' => $this->name,			
 			'users' => $this->users->toArray(),
+			'id' => $this->id,
 		];
 	}
 }

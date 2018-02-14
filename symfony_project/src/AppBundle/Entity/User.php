@@ -7,6 +7,7 @@ use JsonSerializable;
 use FOS\UserBundle\Model\User as BaseUser;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Config\Definition\Exception\Exception;
+use Doctrine\Common\Collections\ArrayCollection;
 
 
 /**
@@ -154,11 +155,16 @@ class User extends BaseUser implements JsonSerializable{
     public $section_roles;
 	
 	public function jsonSerialize(){
+		
+		$first_name = ($this->first_name) ? $this->first_name : $this->email;
+		$last_name = ($this->last_name) ? $this->last_name : "";
+		
 		return [
 			'id' => $this->id,
-			'first_name' => $this->first_name,
-			'last_name' => $this->last_name,
-			'email' => $this->email
+			'first_name' => $first_name,
+			'last_name' => $last_name,
+			'email' => $this->email,
+			'full_name' => trim($first_name." ".$last_name),
 		];
 	}
 }

@@ -1,0 +1,609 @@
+{% block head %}
+<title>Gradel | Edit Assignment</title>
+<link rel="icon" type="image/x-icon" href="{{ asset('logo.png') }}" />
+{% endblock %}
+
+
+{% block body %}
+
+<body>
+    {{ include('template/top-nav.html.twig') }}
+	
+    {# Left Nav for Assignment Edit #}
+	<nav class="nav-left">
+		<a id="save-btn" class="btn"><div class="btn btn-center">Save</div></a>
+		
+		{% if assignment is not null %}
+		<a id="delete-btn" class="btn"><div class="btn btn-center btn-delete">Delete</div></a>
+		
+		<ol style="padding-top: 0px">
+			<li id="delete-warning" style="padding-top: 0px"></li>
+		</ol>
+		{% endif %}
+    </nav>
+	
+	{{ include('template/path-nav.html.twig') }}
+
+    {# Main section #}
+	<section id="main" class="scrolly">
+		{# Cards #}
+
+		<div class="parallel-cards">
+			<div class="card" style="flex-grow:3">
+				
+				<div class="btn-close">
+					<h2 style="margin: 0px">
+					{% if assignment is not null %}
+						Edit {{assignment.name}}
+					{% else %}
+						New Assignment
+					{% endif %}					
+					</h2>
+				</div>
+			
+				<div id="requiredFields" class="card-contents">
+					<div>
+						<table>
+							<tr> <th colspan="1">
+									<label for="name">Name</label>
+									<input id="name" name="name" type="text" value="{{assignment.name}}" style="width: 200px">
+								</th>
+							</tr>
+							
+							<tr>
+								<th colspan="2">
+									<label for="startdatepicker">Open Date</label>
+									<input type="text" id="opendatepicker" style="width:150px; margin-right:20px">
+
+									<label for="enddatepicker">Close Date</label>
+									<input type="text" id="closedatepicker" style="width:150px; margin-right:20px">
+									
+									<label for="cutoffdatepicker">Cutoff Date</label>
+									<input type="text" id="cutoffdatepicker" style="width: 150px">
+								</th>
+							</tr>
+							
+							<tr> <th>
+								<div style="display:flex; justify-content:space-between; align-items: center">
+									<span><label for="weight">Weight </label> <input id="weight" name="weight" type="text" style="width: 50px"></span>
+									<div id="other-assignments" style="font-weight: normal"> </div>				
+								</div>
+							</th> </tr>
+							
+						</table>
+					</div>
+				</div>
+			</div>
+			
+			<div class="card">
+			
+				<div class="btn-close" onclick="collapseCard('additionalOptions')">
+					<h2 style="margin: 0px">Grading Options
+						<span style="float: right"><i class="fa fa-angle-down"></i></span>
+					</h2>
+				</div>
+			
+				<div id="additionalOptions" class="card-contents" style="margin-top:10px">
+					<table>
+						<tr> <th>						  
+							<label for="penalty">Penalty Per Day Late</label>
+							<input id="penalty" name="penalty" type="text" value="0.00">
+							
+							
+							<div id="extra-credit-container" class="toggle-container">
+								<label for="extracredit">Extra Credit</label>
+								<label class="switch">
+									<input id="extracredit" type="checkbox" name="extracredit">
+									<span class="slider round"></span>
+								</label>
+							</div>
+						</th> </tr>
+					</table>
+				</div>
+			</div>
+			
+		</div>
+		
+		<div class="card">
+			
+			<div class="btn-close" onclick="collapseCard('createTeams')">
+				<h2 style="margin: 0px">Team Creation
+					<span style="float: right"><i class="fa fa-angle-down"></i></span>
+				</h2>
+			</div>
+		
+			<div id="createTeams" class="card-contents" style="margin-top: 0px">
+				<div>
+					<div id="team-pool"></div>						
+					<div id="team-picker"></div>
+											
+					<div id="team-name-container" class="toggle-container">
+						<label for="teamnames"> Team Names </label>
+						<label class="switch">
+							<input type="checkbox" id="team-name-checkbox" name="team-name-checkbox" checked>
+							<span class="slider round"></span>
+						</label>
+					</div>
+					
+					<div class="btn" id="gen-team-button" style="margin-top: 10px; width: 150px"> Distribute Teams </div>
+					
+				</div>
+			</div>
+		</div>
+		
+		
+		
+	</section>
+</body>
+
+{% endblock %}
+
+
+{% block stylesheets %}
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
+	<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/jquery-ui-timepicker-addon@1.6.3/dist/jquery-ui-timepicker-addon.css" />
+	
+    <link rel="stylesheet" href="{{ asset('styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('card.css') }}" />
+	
+	<link rel="stylesheet" href="{{ asset('team-creation.css') }}">
+	<link rel="stylesheet" href="{{ asset('custom-toggle.css') }}">
+	
+	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
+{% endblock %}
+
+
+{% block scripts %}
+    <!-- JQuery -->
+    <script src="//code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="//code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+	
+	<script src="//cdn.jsdelivr.net/npm/jquery-ui-timepicker-addon@1.6.3/dist/jquery-ui-sliderAccess.js"></script>
+	<script src="//cdn.jsdelivr.net/npm/jquery-ui-timepicker-addon@1.6.3/dist/jquery-ui-timepicker-addon.js"></script>
+	
+	<script src="{{ asset('js/cards.js') }}"></script>		
+	<script src="{{ asset('js/validation.js') }}"></script>
+	
+    <script>
+	
+		var team_warning = false;
+	
+		$(document).ready(function() {
+			$('#insert').on('click', function(){insertSection();});
+			$('#student-picker').on('change', function(){addStudent();});
+							
+			$( "#opendatepicker" ).datetimepicker();
+			$( "#closedatepicker" ).datetimepicker();
+			$( "#cutoffdatepicker" ).datetimepicker();
+			
+			// show other assignment weights
+			showAssignmentWeights();
+			
+			// format the teampicker
+			formatTeamCreator();
+						
+			{% if assignment is not null %}
+			populateForm();
+			{% else %}
+			//collapseCard('additionalOptions');
+			$('#gen-team-button').click();
+			{% endif %}	
+
+			{% if assignment is not null %}
+			var warned = 0;
+			$('#delete-btn').on('click', function(){
+			
+				if(warned == 1){					
+					window.location = "{{path('assignment_delete', {'sectionId': assignment.section.id, 'assignmentId': assignment.id})}}";
+					
+				} else {
+					$('#delete-warning').html("Are you sure?<br/>Click again to delete.");
+				}
+			
+				warned++;
+			});
+			{% endif %}			
+			
+			
+			
+			$('#save-btn').on('click', function(){
+			
+				/* Client-Side Field Validation */
+        
+				// assignment name
+				if ($.trim($('#name').val())  === '') {						
+					setInvalid($('#name'));
+					$('#delete-warning').html("This assignment must have a name");
+					return false;
+				} else {
+					setValid($('#name'));
+				}
+				
+				// assignment open time
+				if ($('#opendatepicker').val()  === '') {						
+					setInvalid($('#opendatepicker'));
+					$('#delete-warning').html("You must assign a start date");
+					return false;
+				} else {
+					setValid($('#opendatepicker'));
+				}
+				
+				// assignment close time
+				if ($('#closedatepicker').val()  === '') {						
+					setInvalid($('#closedatepicker'));
+					$('#delete-warning').html("You must assign a close date");
+					return false;
+				} else {
+					setValid($('#closedatepicker'));
+				}
+				
+				// compare dates
+				if ($('#closedatepicker').datepicker('getDate') < $('#opendatepicker').datepicker('getDate')){
+					setInvalid($('#closedatepicker'));
+					setInvalid($('#opendatepicker'));
+					$('#delete-warning').html("Close date must be after open date");
+					return false;
+				}
+				
+				if ($('#cutoffdatepicker').val() != '' && $('#cutoffdatepicker').datepicker('getDate') < $('#closedatepicker').datepicker('getDate')){
+					setInvalid($('#cutoffdatepicker'));
+					$('#delete-warning').html("Cutoff date must be after close date");
+					return false;
+				}
+				
+				// weight
+				var wght = new Number($('#weight').val());
+				if($('#weight').val() === '' || ($('#weight').val() != '' && (wght < 1 || wght % 1 != 0))){						
+					setInvalid($('#weight'));
+					$('#delete-warning').html("Weight must be a positive integer");
+					return false;
+				} else {
+					setValid($('#weight'));				
+				}
+				
+				// penalty per day
+				var pen = new Number($('#penalty').val());
+				if($('#penalty').val() === '' || !(pen >= 0.0 && pen <= 1.0)){						
+					setInvalid($('#penalty'));
+					
+					$('#delete-warning').html("Penalty per day late must be a value between 0 and 1");
+					
+					return false;
+				} else {
+					setValid($('#penalty'));				
+				}
+				
+				// teams
+				if(!validateTeams() && !team_warning){
+					setInvalid($('#team-picker'));	
+					team_warning = true;
+					
+					$('#delete-warning').html("Not everyone is assigned to a team - Press save again to override");
+					
+					return false;
+				} else {
+					setValid($('#team-picker'));
+				}
+				
+				// check to see if this button is allowed to be pressed
+				if($(this).prop('disabled')){
+					return false;
+				} else {
+					$(this).prop('disabled', true);
+				}
+				
+				// get JSON structure for the teams
+				var teamarray = getTeams();		
+				console.log(teamarray);
+				
+				/* Post to the Symfony Route */
+				$.post( "{{path('assignment_modify')}}", {				
+					
+					name: $.trim($('#name').val()),
+					description: "",
+					
+					open_time: $('#opendatepicker').val(),
+					close_time: $('#closedatepicker').val(),
+					cutoff_time: $('#cutoffdatepicker').val(),
+					
+					penalty: $('#penalty').val(),
+					
+					is_extra_credit: $('#extracredit').is(':checked'),
+					weight: $('#weight').val(),
+					
+					section: {{section.id}},
+					assignment: {% if assignment is not null %} {{assignment.id}} {% else %} 0 {% endif %},
+					
+					teams: JSON.stringify(teamarray[0]),
+					teamnames: JSON.stringify(teamarray[1]),
+					teamids: JSON.stringify(teamarray[2])
+					
+				}, function(data) {			
+					console.log(data);					
+					window.location = data["redirect_url"];
+					
+				}).fail(function(data) {				
+					alert(data["responseText"]);					
+					$('#save-btn').prop('disabled', false);				
+				});				
+			});
+		});
+
+	</script>
+	
+	<script> 
+	
+	function showAssignmentWeights(){
+	
+		var assignments = JSON.parse('{{ section.assignments.toArray()|json_encode|raw }}');
+				
+		if(assignments.length < 1){
+			return;
+		}
+		
+		console.log(assignments);
+		
+		
+		
+		var str = "<b>Assignment Weights for {{section.name}}</b><ul style='margin: 0; padding-left: 10px; list-style-type: none'>";
+		for(var i=0; i<assignments.length; i++){
+			str += "<li>" + assignments[i].name + ": " +assignments[i].weight +"</li>";
+
+		}
+		str += "</ul>";
+		$('#other-assignments').html(str);
+	}
+	
+	function formatTeamCreator(){
+	
+		// create all of the students
+		
+		var students = JSON.parse('{{ students|json_encode|raw }}');
+	
+		for(var i=0; i<students.length; i++){
+			$('#team-pool').append("<div class='user' id='"+students[i].id+"'>"+students[i].name+"</div>");
+		}
+	
+		createTeamEvents();
+	}
+	
+	function createTeamEvents(){
+		// hide the team names option
+		$('#team-name-container').hide();
+	
+		$('.user').draggable({
+			revert: true,
+			revertDuration: 0,
+			start: function() {
+			
+				var newTeam = $("<div>", {"class": "team"});
+				newTeam.html("<input type='text' id='team-name' value='Team Name'>");
+								
+				newTeam.droppable({
+					accept: ".user",
+					drop: function(event, ui) {						
+						$(this).append($(ui.draggable));								
+					}
+				});				
+			
+				$('#team-picker').append(newTeam);
+				
+				$('#team-name-checkbox').change();
+			},
+			stop: function() {				
+				$(".team:not(:has(.user))").remove();
+
+				if($(".team").length > 0){
+					$('#team-name-container').show();
+				} else {
+					$('#team-name-container').hide();
+				}
+				
+				if($('#team-pool .user').length == 0){
+					$('#gen-team-button').hide();
+				} else {
+					$('#gen-team-button').show();
+				}
+			}
+		});
+		
+		$('.user').contextmenu(function(event) {
+			$(this).appendTo('#team-pool');
+			$(".team:not(:has(.user))").remove();
+			
+			if($(".team").length > 0){
+				$('#team-name-container').show();
+			} else {
+				$('#team-name-container').hide();
+			}
+			
+			if($('#team-pool .user').length == 0){
+				$('#gen-team-button').hide();
+			} else {
+				$('#gen-team-button').show();
+			}
+			
+			return false;
+		});
+		
+		$('.team').droppable({
+			accept: ".user",
+			drop: function(event, ui) {						
+				$(this).append($(ui.draggable));
+			}
+		});
+		
+		$('#team-pool').droppable({
+			accept: ".user",
+			drop: function(event, ui) {
+				$(this).append($(ui.draggable));
+			}
+		});		
+		
+		$('#team-name-checkbox').change(function() {
+			if($(this).is(":checked")) {				
+				$('.team #team-name').show();				
+			} else {
+				$('.team #team-name').hide();
+			}
+		});
+		
+		$('#gen-team-button').click(function() {
+
+			$('#team-pool').append($('.user'));
+			$('.team').remove();
+
+			$('.user').each(function( index ) {
+				var newTeam = $("<div>", {"class": "team"});
+				newTeam.html("<input type='text' id='team-name' value='Team #"+(index+1)+"'>");
+				
+				newTeam.droppable({
+					accept: ".user",
+					drop: function(event, ui) {						
+						$(this).append($(ui.draggable));								
+					}
+				});				
+			
+				$('#team-picker').append(newTeam);
+				
+				newTeam.append($(this));
+			});
+			
+			toggleTeamOptions();		
+		});
+	}
+	
+	function getTeams(){
+	
+		var teams = [];
+		var teamnames = [];
+		var ids = [];
+	
+		$('.team').each(function( index ) {
+		
+			var name = $('#team-name', this).val();
+			var id = $(this).attr('id');
+			
+			teamnames[index] = name;
+			teams[index] = [];
+			ids[index] = (id) ? parseInt(id) : 0;
+			
+			$(this).children('.user').each(function(index2) {
+				teams[index][index2] = $(this).prop('id');
+			});
+			
+		});
+		
+		var res = [];
+		res[0] = teams;
+		res[1] = teamnames;
+		res[2] = ids;
+		
+		console.log(ids);
+		
+		return res;
+	}
+	
+	function validateTeams(){
+	
+		if($('#team-pool .user').length == 0){
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	function toggleTeamOptions(){
+				
+		if($(".team").length > 0){
+			$('#team-name-container').show();
+		} else {
+			$('#team-name-container').hide();
+		}
+		
+		if($('#team-pool .user').length == 0){
+			$('#gen-team-button').hide();
+		} else {
+			$('#gen-team-button').show();
+		}	
+
+		if($('#team-name-checkbox').is(":checked")) {				
+			$('.team #team-name').show();				
+		} else {
+			$('.team #team-name').hide();
+		}	
+	}
+	
+	</script>
+		
+		
+	{% if assignment is not null %}
+	<script>
+	function populateForm(){
+
+		// set the name
+		$('#name').val("{{assignment.name}}");
+		
+		// set the description
+		$('#description').val("{{assignment.description}}");
+		
+		// set the open date
+		$('#opendatepicker').val("{{assignment.start_time|date('m/d/Y H:i')}}");		
+		
+		// set the close date
+		$('#closedatepicker').val("{{assignment.end_time|date('m/d/Y H:i')}}");
+		
+		// set the cuttoff date
+		$('#cutoffdatepicker').val("{{assignment.cutoff_time|date('m/d/Y H:i')}}");
+		
+		// set the weight
+		$('#weight').val({{assignment.weight}});
+		
+		// set the checkbox
+		$('#penalty').val({{assignment.gradingmethod.penalty_per_day}});
+		
+		// set the checkbox
+		$('#extracredit').attr('checked', {% if assignment.is_extra_credit %} true {% else %} false {% endif %});
+		
+		// set the teams
+		var teams_str = '{{assignment.teams.toArray()|json_encode|raw}}'.replace(/\\/g, "");
+		var teams = JSON.parse(teams_str);
+		
+		console.log(teams);
+		for(var i=0; i<teams.length; i++){
+			for(var j=0; j<teams[i].users.length; j++){
+				$('#team-pool #'+teams[i].users[j].id).remove();
+			}
+		
+			//$('#team-pool .user').remove();
+			
+			var newTeam = $("<div>", {"class": "team", "id": teams[i].id});
+			newTeam.html("<input type='text' id='team-name' value='"+teams[i].name+"'>");
+			
+			newTeam.droppable({
+				accept: ".user",
+				drop: function(event, ui) {						
+					$(this).append($(ui.draggable));								
+				}
+			});				
+		
+			$('#team-picker').append(newTeam);
+						
+			for(var j=0; j<teams[i].users.length; j++){
+			
+				var newUser = $("<div>", {"class": "user", "id": teams[i].users[j].id});
+				newUser.html(teams[i].users[j].first_name + " " + teams[i].users[j].last_name);
+				
+				newTeam.append(newUser);			
+			}			
+		}
+		
+		createTeamEvents();
+		toggleTeamOptions();
+		
+	}
+	
+	</script>
+	{% endif %}
+	
+{% endblock %}

@@ -1,6 +1,9 @@
 <?php
 
 namespace AppBundle\Entity;
+
+use JsonSerializable;
+
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Config\Definition\Exception\Exception;
 
@@ -8,7 +11,7 @@ use Symfony\Component\Config\Definition\Exception\Exception;
 *@ORM\Entity
 *@ORM\Table(name="testcaseresult")
 **/
-class TestcaseResult {
+class TestcaseResult implements JsonSerializable {
 
 	public function __construct(){
 
@@ -54,28 +57,14 @@ class TestcaseResult {
 	public $testcase;
 
 	/**
-	 * @ORM\Column(type="blob", nullable=true)
+	 * @ORM\Column(type="text", nullable=true)
 	 */
 	public $std_output;
 
-	public function deblobinateStdOutput(){
-		$val = stream_get_contents($this->std_output);
-		rewind($this->std_output);
-		
-		return $val;
-	}
-
 	/**
-	* @ORM\Column(type="blob", nullable=true)
+	* @ORM\Column(type="text", nullable=true)
 	*/
 	public $runtime_output;
-
-	public function deblobinateRuntimeOutput(){
-		$val = stream_get_contents($this->runtime_output);
-		rewind($this->runtime_output);
-		
-		return $val;
-	}
 
 	/**
 	* @ORM\Column(type="boolean")
@@ -96,5 +85,13 @@ class TestcaseResult {
 	* @ORM\Column(type="boolean")
 	*/
 	public $exceeded_time_limit;
+	
+	public function jsonSerialize(){
+		return [
+			'is_correct' => $this->is_correct,
+			'std_output' => $this->std_output,
+			'testcase' => $this->testcase,
+		];
+	}
 }
 ?>

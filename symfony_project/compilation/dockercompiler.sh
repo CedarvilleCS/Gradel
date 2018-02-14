@@ -1,159 +1,76 @@
 #!/bin/bash
 
-# if [ "$#" -ne 11 ]; then
-
-	# echo "$#"
-	# echo "usage: ./dockercompiler.sh"
-	# echo "(1)problem_id (2)team_id"
-	# echo "(3)submitted_file_path (4)submitted_file_name (5)submitted_language_name "
-	# echo "(6)is_zipped (7)time_limit (8)compiler_flags"
-	# echo "(9)submission_id (10)main_class (11)package_name"
-	# exit 1
-# fi
-
 # get the variables from the command arguments
-problem_id="$1"
-team_id="$2"
+program_options="$1"
+submission_id="$2"
+time_limit="$3"
 
-file_path="$3"
-file_name="$4"
-file_type="$5"
-is_zipped="$6"
-time_limit="$7"
+script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-compiler_flags="$8"
+sub_dir="$script_dir/submissions/$submission_id"
 
-submission_id="$9"
+student_code_dir="$sub_dir/student_code/"
+compiled_code_dir="$sub_dir/compiled_code/"
 
+flags_dir="$sub_dir/flags/"
+custom_validator_dir="$sub_dir/custom_validator/"
 
-if [ "$#" -ge 10 ]; then
-	main_class="${10}"
-fi
+run_log_dir="$sub_dir/run_logs/"
+time_log_dir="$sub_dir/time_logs/"
+diff_log_dir="$sub_dir/diff_logs/"
 
-if [ "$#" -ge 11 ]; then
-	package_name="${11}"
-fi
+input_file_dir="$sub_dir/input_files/"
+output_file_dir="$sub_dir/output_files/"
+arg_file_dir="$sub_dir/arg_files/"
 
-echo "Variable names..."
+user_output_dir="$sub_dir/user_output/"	
 
-echo "The submission_id is $submission_id"
-echo "The team_id is $team_id"
-echo "The problem_id is $problem_id"
-
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
-SUBMISSION_DIRECTORY="$SCRIPT_DIR/submissions/$submission_id"
-CODE_DIRECTORY="$SCRIPT_DIR/submissions/$submission_id/code"
-STUDENT_OUTPUT_DIRECTORY="$SCRIPT_DIR/submissions/$submission_id/output"
-RUNTIME_LOG_DIRECTORY="$SCRIPT_DIR/submissions/$submission_id/runtime_logs"
-DIFF_LOG_DIRECTORY="$SCRIPT_DIR/submissions/$submission_id/diff_logs"
-TIME_LOG_DIRECTORY="$SCRIPT_DIR/submissions/$submission_id/time_logs"
-
-CODE_TO_SUBMIT_DIRECTORY="$SCRIPT_DIR/code_to_submit/$submission_id"
-
-INPUT_DIRECTORY="$SCRIPT_DIR/temp/$submission_id/input"
-EXPECTED_OUTPUT_DIRECTORY="$SCRIPT_DIR/temp/$submission_id/output"
-
-echo "submitted directory: $CODE_DIRECTORY"
-echo "output directory: $STUDENT_OUTPUT_DIRECTORY"
-echo "runtime log directory: $RUNTIME_LOG_DIRECTORY"
-echo "diff log directory: $DIFF_LOG_DIRECTORY"
-echo "diff log directory: $TIME_LOG_DIRECTORY"
-
-# check if the problem has input files
-if [ ! -d "$INPUT_DIRECTORY" ] || [ ! -d "$EXPECTED_OUTPUT_DIRECTORY" ]; then
-
-	echo "$INPUT_DIRECTORY or $EXPECTED_OUTPUT_DIRECTORY does not exist"
-	exit 1
-	
-else
-	
-	file_count=$(find $INPUT_DIRECTORY -maxdepth 1 -name "*.in" | wc -l)
-	other_file_count=$(find $EXPECTED_OUTPUT_DIRECTORY -maxdepth 1 -name "*.out" | wc -l)
-	
-	ls -l $INPUT_DIRECTORY;
-	
-	if [ $file_count -lt 1 ]; then
-		echo "this problem has no input test cases"
-		exit 1
-	elif [ $other_file_count -ne $file_count ]; then
-		echo "this problem does not have the same number of input and output files"
-		exit 1	
-	else
-		echo "$INPUT_DIRECTORY exists and has $file_count input cases"
-	fi
-
-fi
-
-# copy the submitted file over into the mounted directory
-if [ -f "$file_path/$file_name" ]; then
-
-	echo "Found submitted file $file_path/$file_name. Copying to submit directory..."
-	cp "$file_path/$file_name" "$CODE_TO_SUBMIT_DIRECTORY/$file_name"
-
-else
-	echo "Cannot find submitted file $file_path/$file_name"
-	exit 1
-fi	
+echo "SCRIPT DIR: $script_dir"
+echo "STUDENT CODE DIR: $student_code_dir"
+echo "COMPILED CODE DIR: $compiled_code_dir"
 
 # run the sandbox
 echo ""
 echo "Creating the docker sandbox to run student code..."
 
-submission_mount_option="-v $SUBMISSION_DIRECTORY:/home/abc/submission"
-code_to_submit_mount_option="-v $CODE_TO_SUBMIT_DIRECTORY:/home/abc/code_to_submit:ro"
-input_testcases_mount_option="-v $INPUT_DIRECTORY:/home/abc/input:ro"
-output_testcases_mount_option="-v $EXPECTED_OUTPUT_DIRECTORY:/home/abc/output:ro"
+mount_arg="-v $arg_file_dir:/compilation/arg_files"
+mount_cmp="-v $compiled_code_dir:/compilation/compiled_code"
+mount_val="-v $custom_validator_dir:/compilation/custom_validator"
+mount_dif="-v $diff_log_dir:/compilation/diff_logs"
+mount_flg="-v $flags_dir:/compilation/flags"
+mount_inp="-v $input_file_dir:/compilation/input_files"
+mount_run="-v $run_log_dir:/compilation/run_logs"
+mount_std="-v $student_code_dir:/compilation/student_code"
+mount_tim="-v $time_log_dir:/compilation/time_logs"
+mount_use="-v $user_output_dir:/compilation/user_output"
+mount_out="-v $output_file_dir:/compilation/output_files"
 
-group_mount_option="-v /etc/group:/etc/group:ro"
-passwd_mount_option="-v /etc/passwd:/etc/passwd:ro"
+mount_all="$mount_arg $mount_cmp $mount_val $mount_dif $mount_flg $mount_inp $mount_run $mount_std $mount_tim $mount_use $mount_out"
 
-user_option="-u $( id -u $USER ):$( id -g $USER )"
-
-echo "FILETYPE IS: $file_type"
-
-if [ $file_type == "Java" ]; then
-	echo "$# is the number"
-	if [ $# -ge 11 ]; then
-		echo "main class and package name provided"
-		java_script_ext="-M $main_class -P $package_name"
-	elif [ $# -ge 10 ]; then
-		echo "main class provided"
-		java_script_ext="-M $main_class"
-	else
-		echo "neither main class or package name provided"
-		java_script_ext=""
-	fi
-	
-else
-	java_script_ext=""
-fi
-
-if [ $is_zipped == "true" ]; then
-	zip_ext="-z"
-else
-	zip_ext="";
-fi
-
-script_command="/home/abc/compile_code -l ${file_type} -f ${file_name} $zip_ext"
+script_options="$program_options"
 
 container_name="gd$submission_id"
 
-echo docker run --name=$container_name -d $group_mount_option $passwd_mount_option $submission_mount_option $code_to_submit_mount_option $input_testcases_mount_option $output_testcases_mount_option gradel $script_command -c \"$compiler_flags\" $java_script_ext
-echo $(docker run --name=$container_name -d $group_mount_option $passwd_mount_option $submission_mount_option $code_to_submit_mount_option $input_testcases_mount_option $output_testcases_mount_option gradel $script_command -c "$compiler_flags" $java_script_ext)
+echo "docker run --ulimit nofile=128:128 --ulimit nproc=16:16 --name=$container_name -d \
+	$mount_all \
+	gradel \
+	/compilation/compiler $script_options"
+	
+echo $(docker run --ulimit nofile=128:128 --ulimit nproc=16:16 --name=$container_name -d \
+	$mount_all \
+	gradel \
+	/compilation/compiler $script_options)
 
-echo "timeout $time_limit docker wait gd$submission_id"
-
-code=$(timeout $time_limit docker wait gd$submission_id 2>&1 || true)
+echo "timeout $time_limit docker wait $container_name"
+code=$(timeout $time_limit docker wait $container_name 2>&1 || true)
 
 echo $(docker kill $container_name 2>&1)
 echo $(docker rm $container_name 2>&1)
 
 echo -n 'status: '
 if [ -z "$code" ]; then
-    echo TIMEOUT
-	touch $SUBMISSION_DIRECTORY/dockertimeout
+	echo TIMEOUT	
 else
     echo exited with $code
-fi
+fi	
 

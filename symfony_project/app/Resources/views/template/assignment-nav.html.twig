@@ -29,7 +29,7 @@
 
 					<a href={{path('assignment', {'sectionId': assig.section.id, "assignmentId": assig.id})}}>
 					
-					<li class="sidebar" style="padding-left: 15px">					
+					<li class="sidebar list-item">					
 				
 					<span class="preview">
 						<div class="{% if elevatedUser %}sidebar-text{% endif %}">{{ assig.name }}</div>
@@ -56,14 +56,14 @@
 
 					{# display edit icon #}
 					{% if elevatedUser %}
-						<object>
+						<!--object>
 							<a title="Delete assignment" href="{{path('assignment_delete', {'sectionId': assig.section.id, 'assignmentId': assig.id})}}">
 								<img class="small-icon" id="right-icon" src="{{ asset('whitetrash.png') }}">
 							</a>
-						</object>
+						</object-->
 						<object>
 							<a title="Edit assignment" href="{{path('assignment_edit', {'sectionId': assig.section.id, 'assignmentId': assig.id})}}">
-								<img class="small-icon" src="{{ asset('edit.png') }}">
+								<img class="small-icon" id="right-icon" src="{{ asset('edit.png') }}">
 							</a>
 
 						</object>
@@ -79,7 +79,7 @@
 
 		{% else %}
 
-			<li> No Assignments Found </li>
+			<li class="sidebar list-item"> No Assignments Found </li>
 
 		{% endfor %}
 		</ol>
@@ -93,7 +93,7 @@
 				<a href={{path('assignment', {'sectionId': assig.section.id, "assignmentId": assig.id})}}>					
 				{% endif %}
 				
-				<li class="sidebar unopened" style="padding-left: 15px">					
+				<li class="sidebar unopened list-item">					
 					<span class="preview">
 						<div class="{% if elevatedUser %}sidebar-text{% endif %}">{{ assig.name }}</div>
 						<small style="width: 100%">
@@ -130,8 +130,5 @@
 			<a href="{{path('section_edit', {'sectionId': section.id})}}" class="btn">
 				<div class="btn btn-center">Edit Section</div>
 			</a>
-		{% endif %}
-		
-
-		
+		{% endif %}		
 </nav>
