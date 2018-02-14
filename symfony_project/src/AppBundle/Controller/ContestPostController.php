@@ -915,7 +915,8 @@ class ContestPostController extends Controller {
 						$pusher->buildRejection($submission),
 						$pusher->getUsernamesFromTeam($submission->team),
 						$submission->problem->assignment->section->id,
-						true
+						true,
+						$submission->id
 					);
 				}
 				
@@ -951,7 +952,8 @@ class ContestPostController extends Controller {
 					$pusher->buildDeleteRejection($submission),
 					$pusher->getUsernamesFromTeam($submission->team),
 					$submission->problem->assignment->section->id,
-					true
+					true,
+					$submission->id
 				);
 					
 			} else if($postData['type'] == "formatting"){
@@ -963,7 +965,8 @@ class ContestPostController extends Controller {
 					$pusher->buildFormattingRejection($submission),
 					$pusher->getUsernamesFromTeam($submission->team),
 					$submission->problem->assignment->section->id,
-					true
+					true,
+					$submission->id
 				);
 				
 						
@@ -982,7 +985,8 @@ class ContestPostController extends Controller {
 						$pusher->buildCustomRejection($submission),
 						$pusher->getUsernamesFromTeam($submission->team),
 						$submission->problem->assignment->section->id,
-						true
+						true,
+						$submission->id
 					);
 				}			
 							
@@ -1104,7 +1108,8 @@ class ContestPostController extends Controller {
 					$pusher->buildClarificationMessageFromQuery($query),
 					$pusher->getUsernamesFromTeam($query->asker),
 					$section->id,
-					false
+					false,
+					$submission->id
 				);
 			}
 
