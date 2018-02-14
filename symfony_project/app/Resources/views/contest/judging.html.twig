@@ -938,7 +938,7 @@
 					continue;	
 				}
 				
-				var probAssignName = (clarification['problem']) ? "[" + clarification['problem']['name'] + "]" : "[General]";
+				var probAssignName = "[" + clarification.asker.	name + "] - " + ((clarification['problem']) ? "[" + clarification['problem']['name'] + "]" : "[General]");
 				
 				var clarificationHTML = `<div class="clarification found" id="` + clarification['id'] + `">` + 
 											`<div class="name">` + probAssignName + `</div><div class="question">` + clarification['question'] + `</div>` +
