@@ -64,6 +64,7 @@ twig:
     cache: false
     globals:
         socket_port: %socket_port%
+        socket_domain: %socket_domain%
 # Doctrine Configuration
 doctrine:
     dbal:
