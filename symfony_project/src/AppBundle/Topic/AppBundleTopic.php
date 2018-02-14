@@ -171,17 +171,20 @@ class AppBundleTopic implements TopicInterface
 
     public function broadcastMessage($recipients, $topic, $users, $message) {
         $nonGlobal = count($recipients) > 0;
-        foreach($users as $u) {
-            if ($nonGlobal) {
-                $person = $this->em->find("AppBundle\Entity\User", $u['client']->getID());                
-                if (in_array($person->getUsername(), $recipients)) {
-                    dump("Sending to " . $person->getUsername());
-                    dump($message);
+        if ($users != null) {
+            foreach($users as $u) {
+                if ($nonGlobal) {
+                    $person = $this->em->find("AppBundle\Entity\User", $u['client']->getID());                
+                    if (in_array($person->getUsername(), $recipients)) {
+                        dump("Sending to " . $person->getUsername());
+                        dump($message);
+                        $topic->broadcast($message, array(), array($u['connection']->WAMP->sessionId));
+                    }
+                } 
+                else {
+                    dump("Sending global message to user...");
                     $topic->broadcast($message, array(), array($u['connection']->WAMP->sessionId));
                 }
-            } 
-            else {
-                $topic->broadcast($message, array(), array($u['connection']->WAMP->sessionId));
             }
         }
     }

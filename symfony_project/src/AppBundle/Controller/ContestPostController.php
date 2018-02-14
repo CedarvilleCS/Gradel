@@ -96,7 +96,8 @@ class ContestPostController extends Controller {
 		$problem->total_attempts = 0;
 		$problem->attempts_before_penalty = 0;
 		$problem->penalty_per_attempt = 0;
-		$problem->stop_on_first_fail = true;
+		$problem->stop_on_first_fail = false;
+		//$problem->stop_on_first_fail = true;
 		$problem->response_level = "None";
 		$problem->display_testcaseresults = false;
 		$problem->testcase_output_level = "None";
