@@ -471,6 +471,7 @@
 
 			if(contest_name == ""){
 				setInvalid($('#contest-name'));
+				$('#delete-warning').html("Contest name is not valid.");
 				return false;
 			} else {
 				setValid($('#contest-name'));
@@ -489,6 +490,7 @@
 			if(practice_start_date >= practice_end_date){
 				setInvalid($('#practice-start-date'));
 				setInvalid($('#practice-end-date'));
+				$('#delete-warning').html("Practice Dates conflict with each other.");
 				return false;
 			} else {
 				setValid($('#practice-start-date'));
@@ -500,6 +502,7 @@
 			if(actual_start_date >= actual_end_date){
 				setInvalid($('#actual-start-date'));
 				setInvalid($('#actual-end-date'));
+				$('#delete-warning').html("Actual Contest dates conflict with each other.");
 				return false;
 			} else {
 				setValid($('#actual-start-date'));
@@ -510,6 +513,7 @@
 			if(practice_end_date >= actual_start_date){
 				setInvalid($('#actual-start-date'));
 				setInvalid($('#practice-end-date'));
+				$('#delete-warning').html("Practice Contest dates must be before Actual Contest dates.");
 				return false;
 			} else {
 				setValid($('#actual-start-date'));
@@ -526,6 +530,7 @@
 			var pen_per_compile = $('#penalty-per-compile-error').val();
 			if(isNaN(pen_per_compile) || pen_per_compile < 0){
 				setInvalid($('#penalty-per-compile-error'));
+				$('#delete-warning').html("Penalty per Compiler Error must be a non-negative integer.");
 				return false;
 			} else {
 				setValid($('#penalty-per-compile-error'));
@@ -536,6 +541,7 @@
 			var pen_per_time = $('#penalty-per-time-limit').val();
 			if(isNaN(pen_per_time) || pen_per_time < 0){
 				setInvalid($('#penalty-per-time-limit'));
+				$('#delete-warning').html("Penalty per Time Limit Error must be a non-negative integer.");
 				return false;
 			} else {
 				setValid($('#penalty-per-time-limit'));
@@ -545,6 +551,7 @@
 			var pen_per_runtime = $('#penalty-per-runtime-error').val();
 			if(isNaN(pen_per_runtime) || pen_per_runtime < 0){
 				setInvalid($('#penalty-per-runtime-error'));
+				$('#delete-warning').html("Penalty per Runtime Error must be a non-negative integer.");
 				return false;
 			} else {
 				setValid($('#penalty-per-runtime-error'));
@@ -554,6 +561,7 @@
 			var pen_per_wrong = $('#penalty-per-wrong-answer').val();
 			if(isNaN(pen_per_wrong) || pen_per_wrong < 0){
 				setInvalid($('#penalty-per-wrong-answer'));
+				$('#delete-warning').html("Penalty per Wrong Answer must be a non-negative integer.");
 				return false;
 			} else {
 				setValid($('#penalty-per-wrong-answer'));
@@ -569,6 +577,7 @@
 			var freeze_minutes = $('#freeze-time-minutes').val();
 			if(isNaN(freeze_hours) || freeze_hours < 0){
 				setInvalid($('#freeze-time-hours'));
+				$('#delete-warning').html("Freeze time hours must be a non-negative integer.");
 				return false;
 			} else {
 				setValid($('#freeze-time-hours'));
@@ -576,6 +585,7 @@
 			
 			if(isNaN(freeze_minutes) || freeze_minutes < 0 || freeze_minutes > 60){
 				setInvalid($('#freeze-time-minutes'));
+				$('#delete-warning').html("Freeze time minutes must be a non-negative integer.");
 				return false;
 			} else {
 				setValid($('#freeze-time-minutes'));
@@ -585,6 +595,7 @@
 			if(freeze_milliseconds > (actual_end_date - actual_start_date)){
 				setInvalid($('#freeze-time-minutes'));
 				setInvalid($('#freeze-time-hours'));
+				$('#delete-warning').html("Freeze time can't be longer than the Actual Contest.");
 				return false;
 			} else {
 				setValid($('#freeze-time-minutes'));

@@ -632,8 +632,11 @@ class Grader  {
 				break;
 			}
 			
+			if($sub->wrong_override){
+				$pen_type_val = $sub->problem->assignment->penalty_per_wrong_answer;
+			}
 			// compile error
-			if($sub->compiler_error){
+			else if($sub->compiler_error){
 				$pen_type_val = $sub->problem->assignment->penalty_per_compile_error;
 			}
 			// runtime error
