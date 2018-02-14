@@ -46,7 +46,7 @@
 		tableHTML += "<tr class='" + ((curr_user) ? "curr-user" : "") + "'>";
 		
 		tableHTML += "<td class='rank'>" + team.rank + "</td>";
-		tableHTML += "<td class='name'>" + team.team_name + "</td>";
+		tableHTML += "<td class='name'>" + escapeHTML(team.team_name) + "</td>";
 		tableHTML += "<td class='num-correct'>" + team.num_correct + "</td>";
 		tableHTML += "<td class='time'>" + team.total_penalty + "</td>";
 		
