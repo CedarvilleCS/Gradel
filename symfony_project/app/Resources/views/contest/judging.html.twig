@@ -752,6 +752,14 @@
 			  }
 			});
 			
+			$('#clarification-form').keypress(function(e) {
+				if (e.keyCode == $.ui.keyCode.ENTER) {
+					 updateClarification("answer", "local");
+					 clarificationMessageDialog.dialog( "close" );
+					 e.preventDefault();
+				}
+			});
+			
 			clarificationMessageDialog.find("form").off( "submit");
 			clarificationMessageForm = clarificationMessageDialog.find( "form" ).on( "submit", function( event ) {				
 				event.preventDefault();
@@ -933,7 +941,9 @@
 					continue;	
 				}
 				
-				var probAssignName = "[" + clarification.asker.	name + "] - " + ((clarification['problem']) ? "[" + clarification['problem']['name'] + "]" : "[General]");
+				var clarName = ((clarification.asker) ? escapeHTML(clarification.asker.name) : 'Judge Submitted');
+				var problemName = ((clarification['problem']) ? "[" + clarification['problem']['name'] + "]" : "[General]");
+				var probAssignName = "[" + clarName + "] - " + problemName;
 				
 				var clarificationHTML = `<div class="clarification found" id="` + clarification['id'] + `">` + 
 											`<div class="name">` + probAssignName + `</div><div class="question">` + escapeHTML(clarification['question']) + `</div>` +
