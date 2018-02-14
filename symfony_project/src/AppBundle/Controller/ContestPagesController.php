@@ -243,7 +243,20 @@ class ContestPagesController extends Controller {
 			
 			$submission = $em->find("AppBundle\Entity\Submission", $_GET["submissionId"]);
 			
-			if(!$elevatedUser && ($submission->user != $user || $submission->problem != $problem)){
+			$sameTeam = true;
+			$sameUser = true;
+			if($submission->team){
+				
+				$team = $grader->getTeam($user, $submission->problem->assignment);
+				
+				$sameTeam = ($team == $submission->team);
+				
+			} else {
+				
+				$sameUser = ($user == $submission->user);				
+			}
+			
+			if(!$elevatedUser && !($sameTeam || $sameUser || $submission->problem == $problem)){
 				die("You are not allowed to edit this submission on this problem!");
 			}
 			

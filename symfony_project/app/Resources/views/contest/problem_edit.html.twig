@@ -368,6 +368,7 @@
 			// problem name
 			if ($.trim($('#requiredFields #name').val())  === '') {						
 				setInvalid($('#requiredFields #name'));
+				$('#delete-warning').text("Problem name cannot be empty.");
 				return false;
 			} else {
 				setValid($('#requiredFields #name'));
@@ -376,20 +377,26 @@
 			// description
 			if ($.trim($('#requiredFields #description').val())  === '') {						
 				setInvalid($('#requiredFields #description'));
+				$('#delete-warning').text("Description cannot be empty.");
 				return false;
 			} else {
 				setValid($('#requiredFields #description'));
 			}
 			
+			var inputErrs = [];
+			var outputErrs = [];
+			
 			var testcases_valid = true;
 			// testcases
-			$(".test-case").each(function() {
+			$(".test-case").each(function(index) {
 				
-				const input = $(this).find('.input').val();
-				const output = $(this).find('.output').val();
+				const input = removeReturnKey($(this).find('.input').val()).trim();
+				const output = removeReturnKey($(this).find('.output').val()).trim();
 				
-				if(input === '' && args === ''){
+				
+				if(input === ''){
 					setInvalid($(this).find('.input'));
+					inputErrs.push(index);
 					testcases_valid = false;
 				} else {
 					setValid($(this).find('.input'));
@@ -397,13 +404,46 @@
 				
 				if(output === ''){
 					setInvalid($(this).find('.output'));
+					outputErrs.push(index);
 					testcases_valid = false;
 				} else {
 					setValid($(this).find('.output'));
 				}								
 			});
 			
-			if(!testcases_valid){
+			if(!testcases_valid){	
+
+				var inputErrStr = "";
+				
+				if(inputErrs.length > 0){
+					
+					inputErrStr = "Input for testcase(s): ";
+					for(var k=0; k<inputErrs.length; k++){
+						inputErrStr += inputErrs[k];
+						
+						if(k < inputErrs.length-1){
+							inputErrStr += ",";
+						}
+					}
+					inputErrStr += " are not valid";
+				}
+				
+				var outputErrStr = "";
+				if(outputErrs.length > 0){
+					
+					outputErrStr = "Output for testcase(s): ";
+					for(var k=0; k<outputErrs.length; k++){
+						outputErrStr += outputErrs[k];
+						
+						if(k < outputErrs.length-1){
+							outputErrStr += ",";
+						}
+					}
+					outputErrStr += " are not valid";
+				}
+			
+				$('#delete-warning').html(inputErrStr + "<br/>" + outputErrStr);
+			
 				return false;
 			}				
 			

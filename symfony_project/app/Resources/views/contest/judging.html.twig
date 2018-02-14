@@ -941,7 +941,7 @@
 				var probAssignName = (clarification['problem']) ? "[" + clarification['problem']['name'] + "]" : "[General]";
 				
 				var clarificationHTML = `<div class="clarification found" id="` + clarification['id'] + `">` + 
-											`<div class="name">` + probAssignName + `</div><div class="question">` + clarification['question'] + `</div>` +
+											`<div class="name">` + probAssignName + `</div><div class="question">` + escapeHTML(clarification['question']) + `</div>` +
 										`</div>`;
 				
 				$('#clarifications-container').append(clarificationHTML);				
