@@ -233,8 +233,7 @@
 		var name = (team != null) ? team.name : "Team Name";
 				
 		var newTeam = $("<div>", {"class": "team", "id": id});
-		newTeam.html("<input type='text' id='team-name' value='" + name + "'>");
-						
+		newTeam.html("<input type='text' id='team-name' value='" + escapeHTML(name).replace(/'/g, "&#39") + "'>");
 		newTeam.droppable({
 			accept: ".user",
 			drop: function(event, ui) {						

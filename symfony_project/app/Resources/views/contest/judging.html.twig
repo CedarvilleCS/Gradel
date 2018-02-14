@@ -6,6 +6,7 @@
 	<link rel="stylesheet" href="{{ asset('contest.css') }}" />
 	<link rel="stylesheet" href="{{ asset('contest-hub.css') }}" />
 	<link rel="stylesheet" href="{{ asset('contest-judge.css') }}" />
+	<link rel="stylesheet" href="{{ asset('judging-hub.css') }}" />
 	
 	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
 	
@@ -50,7 +51,7 @@
 		
 		<div class="card">
 			<div class="btn-close">
-				<h2 style="margin: 0px">Your Reviews <small style="font-size: 0.7em"> <i> Review them! </i> </small> </h2>
+				<h2 class="card-title">Your Reviews <small class="card-subtitle"> <i> Review them! </i> </small> </h2>
 				
 			</div>
 		
@@ -63,8 +64,7 @@
 		<div class="card">
 		
 			<div class="btn-close">
-				<h2 style="margin: 0px">Submission Queue <small style="font-size: 0.7em"> <i> Double-click to claim </i> </small> </h2>
-				
+				<h2 class="card-title">Submission Queue <small class="card-subtitle"> <i> Double-click to claim </i> </small> </h2>
 			</div>
 		
 			<div id="submissions-container" class="card-contents">
@@ -73,10 +73,9 @@
 		</div>
 		
 		<div class="card">
-		
 			<div class="btn-close">
-				<h2 style="margin: 0px">Clarifications Queue <small style="font-size: 0.7em"> <i> Double-click to answer </i> </small> </h2>
-				<div id="notice-button" style="position: absolute; right: 15px; top: 10px;"> Post Contest Notice </div>
+				<h2 class="card-title">Clarifications Queue <small class="card-subtitle"> <i> Double-click to answer </i> </small> </h2>
+				<div id="notice-button"> Post Contest Notice </div>
 			</div>
 		
 			<div id="clarifications-container" class="card-contents">
@@ -86,19 +85,23 @@
 		
 		<div class="card">
 			<div class="btn-close">
-				<h2 style="margin: 0px">History </h2>				
-				<div id="clear-submissions-button" style="position: absolute; right: 200px; top: 10px;"> Clear Submissions </div>
-				<div id="clear-clarifications-button" style="position: absolute; right: 15px; top: 10px;"> Clear Clarifications </div>
+				<h2 class="card-title">History </h2>	
+				{% if not contest_open %}
+					<div id="clear-submissions-button"> Clear Submissions </div>
+				{% endif %}
+				<div id="clear-clarifications-button"> Clear Clarifications </div>
 			</div>
 
 			<div id="stats-container">
 
-					<div style=" width: 35%">
+					<div class="history-cat">
 						<div style="display:inline-block; width: 100%">
-							<div >
-								<div style="float: left; margin-top: 5px; padding-left: 5px; font-weight: bold; font-size: 0.9em;"> Previous Reviews </div>
-								<input id="review-text" name="review-text" style="width: 25%; float: right; font-size: 0.7em; padding-left: 5px; margin-top: 2px;" title='You can filter on submission number, problem name/letter (i.e. "A -"), team name, correct/wrong, and reviewer name.'>
-								<div style="float: right; margin-top: 5px; padding-right: 5px; font-size: 0.9em;" title='You can filter on submission number, problem name/letter (i.e. "A -"), team name, correct/wrong, and reviewer name.'>Filter for... </div>
+							<div>
+								<div id="previous-review-label"> Previous Reviews </div>
+								<div title='You can filter on submission number, problem name/letter (i.e. "A -"), team name, correct/wrong, and reviewer name. To see a the submissions from a team for a specific problem, type "[letter] - [Team Name]". For example: "A - Wolf Hack".'>
+									<input id="review-filter-input" name="review-filter-input">
+									<div id="review-filter-label">Filter for... </div>
+								</div>
 							</div>
 						</div>
             
@@ -106,14 +109,14 @@
 						</div>
 					</div>
 				
-					<div style="width: 35%">
-						<div style="margin-top: 5px; padding-left: 5px; font-weight: bold; font-size: 0.9em;"> Previous Clarifications <small> </small> </div>
+					<div class="history-cat">
+						<div class="history-label"> Previous Clarifications </div>
 						<div id="recent-clarifications">
 						</div>
 					</div>
 
-					<div style="width: 35%">
-						<div style="margin-top: 5px; padding-left: 5px; font-weight: bold; font-size: 0.9em;"> Stats <small> </small> </div>
+					<div class="history-cat">
+						<div class="history-label"> Stats</div>
 						<div id="stats">
 							<p id="review_stats"></p>
 							<p id="clar_stats"></p>
@@ -128,7 +131,7 @@
 	<div id="notice-form" title="Post Notice" value="0">
 	  <form>
 		  <input type="text" name="notice" id="notice" class="text ui-widget-content ui-corner-all">
-		  <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+		  <input type="submit" tabindex="-1" class="submit-button">
 	  </form>
 	</div>
 	
@@ -136,7 +139,7 @@
 	<div id="clarification-form" title="Answer Clarification" value="0">
 	  <form>
 		  <input type="text" name="answer" id="answer" class="text ui-widget-content ui-corner-all">
-		  <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+		  <input type="submit" tabindex="-1" class="submit-button">
 	  </form>
 	</div>
 	
@@ -144,7 +147,7 @@
 	<div id="custom-message-form" title="Custom Message" value="0">
 	  <form>
 		  <input type="text" name="message" id="message" class="text ui-widget-content ui-corner-all">
-		  <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">		  
+		  <input type="submit" tabindex="-1" class="submit-button">		  
 	  </form>
 	</div>
 		
@@ -152,7 +155,7 @@
 	<div id="delete-form" title="Delete Submission?" value="0">
 	  <p>This submission will be permanently deleted. Are you sure?</p>
 	  <form>
-		  <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">		  
+		  <input type="submit" tabindex="-1" class="submit-button">		  
 	  </form>
 	</div>
 	 
@@ -160,7 +163,7 @@
 	<div id="correct-form" title="Mark Submission Correct?" value="0">
 	  <p>This submission will be marked correct. Are you sure?</p>
 	  <form>
-		  <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">		  
+		  <input type="submit" tabindex="-1" class="submit-button">		  
 	  </form>
 	</div>
 	
@@ -168,7 +171,7 @@
 	<div id="wrong-form" title="Confirm Submission Wrong?" value="0">
 	  <p>This submission will be confirmed wrong answer. Are you sure?</p>
 	  <form>
-		  <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">		  
+		  <input type="submit" tabindex="-1" class="submit-button">		  
 	  </form>
 	</div>
 	
@@ -176,7 +179,7 @@
 	<div id="formatting-form" title="Mark Submission Wrong Formatting?" value="0">
 	  <p>This submission will be marked as having wrong formatting. Are you sure?</p>
 	  <form>
-		  <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">		  
+		  <input type="submit" tabindex="-1" class="submit-button">		  
 	  </form>
 	</div>
 
@@ -184,7 +187,7 @@
 	<div id="clear-submissions-form" title="Clear All Submissions?" value="0">
 	  <p>All submissions will be removed from the database. Are you sure?</p>
 	  <form>
-		  <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">		  
+		  <input type="submit" tabindex="-1" class="submit-button">		  
 	  </form>
 	</div>
 	
@@ -192,7 +195,7 @@
 	<div id="clear-clarifications-form" title="Clear All Clarifications?" value="0">
 	  <p>All clarifications will be removed from the database. Are you sure?</p>
 	  <form>
-		  <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">		  
+		  <input type="submit" tabindex="-1" class="submit-button">		  
 	  </form>
 	</div>
 	
@@ -300,11 +303,13 @@
 			return true;
 		}
 		
-		$('#review-text').on('keyup', function() {
-			var filter = document.getElementById('review-text').value;
+		$('#review-filter-input').on('keyup', function() {
+			var filter = document.getElementById('review-filter-input').value;
 			
 			$('.review').each(function( index ){
 				var html = $(this).text().toUpperCase();
+				console.log(html);
+				
 				var num = html.indexOf(filter.toUpperCase());
 				if (filter != '') {
 				  if (num > 0) {
@@ -540,7 +545,7 @@
 			
 				$('#recent-reviews').animate({
 					scrollTop: $('#recent-reviews').prop('scrollHeight'),
-				}, 2000);
+				}, 0);
 			}
 		}
 
@@ -553,7 +558,7 @@
 			
 				$('#recent-clarifications').animate({
 					scrollTop: $('#recent-clarifications').prop('scrollHeight'),
-				}, 2000);				
+				}, 0);				
 			}
 		}
 				
@@ -596,16 +601,6 @@
 			$('.marker').on('mouseout', function() {			
 				$(this).find('.marker-hover').hide();			
 			});
-			
-			/* $('.marker').off('mouseover');
-			$('.marker').on('mouseover', function() {			
-				$(this).find('.marker-hover-untested').show().css('display', 'flex');					
-			});
-			
-			$('.marker').off('mouseout');
-			$('.marker').on('mouseout', function() {			
-				$(this).find('.marker-hover-untested').hide(); 		
-			});*/	
 			
 			$('.button').off('mousedown');
 			$('.button').off('mouseup');
@@ -938,7 +933,7 @@
 					continue;	
 				}
 				
-				var probAssignName = (clarification['problem']) ? "[" + clarification['problem']['name'] + "]" : "[General]";
+				var probAssignName = "[" + clarification.asker.	name + "] - " + ((clarification['problem']) ? "[" + clarification['problem']['name'] + "]" : "[General]");
 				
 				var clarificationHTML = `<div class="clarification found" id="` + clarification['id'] + `">` + 
 											`<div class="name">` + probAssignName + `</div><div class="question">` + escapeHTML(clarification['question']) + `</div>` +
@@ -974,9 +969,8 @@
 				}
 				
 				
-				var reviewHTML = `<a href="{{path('contest', {'contestId': current_contest.section.id, 'roundId': current_contest.id})}}/problem/` + rev.problem.id + `/result/` + rev.id + `"> <div class="review ` + ((rev.is_correct) ? "correct" : "wrong") + `" id="` + rev.id + `"> ` + 
-									`<div>` + rev.id + `) ` + escapeHTML(rev.problem.name.substring(0,1)) + ` - <small>` + escapeHTML(rev.team.name) + `</small></div><div style="display: none">` + escapeHTML(rev.problem.name) + `" " `+((rev.is_correct) ? "correct" : "wrong") +`</div><div><small> Reviewer: ` + escapeHTML(name) + `</small></div>` + 
-								`</div> </a>`;
+				var reviewHTML = `<a href="{{path('contest', {'contestId': current_contest.section.id, 'roundId': current_contest.id})}}/problem/` + rev.problem.id + `/result/` + rev.id + `"> <div class="review ` + ((rev.is_correct) ? "correct" : "wrong") + `" id="` + rev.id + `"> ` + `<div>` + rev.id + `) ` + escapeHTML(rev.problem.name.substring(0,1)) + ` - <small>` + escapeHTML(rev.team.name) + `</small></div><div style="display: none">` + escapeHTML(rev.problem.name) + `" " `+((rev.is_correct) ? "correct" : "wrong") +`</div><div><small> Reviewer: ` + escapeHTML(name) + `</small></div>` + `</div> </a>`;
+				
 				$('#recent-reviews').append(reviewHTML);
 				
 				console.log(reviews[i]);
