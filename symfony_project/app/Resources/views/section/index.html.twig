@@ -144,6 +144,9 @@
 					{% else %}
 						
 						{% for sub in recent_submissions %}
+						
+							{% is loop.index0 < 30 %}
+						
 							{% if sub.isCorrect %}
 								<div style="color: green">
 							{% else %}
@@ -171,6 +174,9 @@
 								- {{sub.timestamp|date('M d  \\a\\t  h:i:s A')}}
 							</a> </li>
 							</div>
+							
+							{% endif %}
+							
 						{% endfor %}
 					{% endif %}
 
