@@ -39,9 +39,10 @@ class SocketPusher  {
     $this->pusher = $pusher;
 	}
   
-  public function pushGlobalMessage($msg, $contestId) {
+  public function pushGlobalMessage($msg, $contestId, $submissionId = -1) {
     $this->pusher->push([
       'contestId' => $contestId,
+      'submissionId' => $submissionId,
       'scope' => 'global',
       'recipients' => null,
       'msg' => $msg,
@@ -50,9 +51,10 @@ class SocketPusher  {
 
   }	
 
-  public function pushUserSpecificMessage($msg, $recipients, $contestId, $isErrorMessage) {
+  public function pushUserSpecificMessage($msg, $recipients, $contestId, $isErrorMessage, $submissionId = -1) {
     $this->pusher->push([
       'contestId' => $contestId,
+      'submissionId' => $submissionId,
       'scope' => $isErrorMessage ? 'userSpecificReject' : 'userSpecificClarify',
       'recipients' => $recipients,
       'msg' => $msg,
@@ -60,10 +62,11 @@ class SocketPusher  {
       'appbundle_topic', ['username' => 'user1']);
   }
 
-  public function promptDataRefresh($contestId) {
+  public function promptDataRefresh($contestId, $submissionId = -1) {
     $this->pusher->push([
       'msg' => "null",
       'contestId' => $contestId,
+      'submissionId' => $submissionId,
       'scope' => 'pageUpdate',
       'recipients' => null,
       'passKey' => 'gradeldb251'],
