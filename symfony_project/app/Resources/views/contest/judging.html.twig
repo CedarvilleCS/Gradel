@@ -6,7 +6,6 @@
 	<link rel="stylesheet" href="{{ asset('contest.css') }}" />
 	<link rel="stylesheet" href="{{ asset('contest-hub.css') }}" />
 	<link rel="stylesheet" href="{{ asset('contest-judge.css') }}" />
-	<link rel="stylesheet" href="{{ asset('judging-hub.css') }}" />
 	
 	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
 	
@@ -52,6 +51,11 @@
 		<div class="card">
 			<div class="btn-close">
 				<h2 class="card-title">Your Reviews <small class="card-subtitle"> <i> Review them! </i> </small> </h2>
+				<div id="stats-marker"> <img id="stats-marker-icon" src="{{ asset('bargraph.png') }}"> </div>
+				<div id="stats-marker-hover">
+					<p id="review_stats"></p>
+					<p id="clar_stats"></p>
+				</div>
 				
 			</div>
 		
@@ -64,7 +68,7 @@
 		<div class="card">
 		
 			<div class="btn-close">
-				<h2 class="card-title">Submission Queue <small class="card-subtitle"> <i> Double-click to claim </i> </small> </h2>
+				<h2 class="card-title">Submission Queue  <small class="card-subtitle"> <i> Double-click to claim </i> </small>  </h2>
 			</div>
 		
 			<div id="submissions-container" class="card-contents">
@@ -94,7 +98,7 @@
 
 			<div id="stats-container">
 
-					<div class="history-cat">
+					<div class="review-box">
 						<div style="display:inline-block; width: 100%">
 							<div>
 								<div id="previous-review-label"> Previous Reviews </div>
@@ -105,23 +109,16 @@
 							</div>
 						</div>
             
-						<div id="recent-reviews">
+						<div class="scrolly" id="recent-reviews">
 						</div>
 					</div>
 				
-					<div class="history-cat">
+					<div class="clar-box">
 						<div class="history-label"> Previous Clarifications </div>
 						<div id="recent-clarifications">
 						</div>
 					</div>
 
-					<div class="history-cat">
-						<div class="history-label"> Stats</div>
-						<div id="stats">
-							<p id="review_stats"></p>
-							<p id="clar_stats"></p>
-						</div>
-					</div>
 				</div>	
 		</div>
 					
@@ -602,6 +599,16 @@
 				$(this).find('.marker-hover').hide();			
 			});
 			
+			$('#stats-marker').off('mouseover');
+			$('#stats-marker').on('mouseover', function() {	
+				$('#stats-marker-hover').show().css('display', 'inline-block');			
+			});
+			
+			$('#stats-marker').off('mouseout');
+			$('#stats-marker').on('mouseout', function() {	
+				$('#stats-marker-hover').hide();			
+			});
+			
 			$('.button').off('mousedown');
 			$('.button').off('mouseup');
 			$('.button')
@@ -979,7 +986,7 @@
 				}
 				
 				
-				var reviewHTML = `<a href="{{path('contest', {'contestId': current_contest.section.id, 'roundId': current_contest.id})}}/problem/` + rev.problem.id + `/result/` + rev.id + `"> <div class="review ` + ((rev.is_correct) ? "correct" : "wrong") + `" id="` + rev.id + `"> ` + `<div>` + rev.id + `) ` + escapeHTML(rev.problem.name.substring(0,1)) + ` - <small>` + escapeHTML(rev.team.name) + `</small></div><div style="display: none">` + escapeHTML(rev.problem.name) + `" " `+((rev.is_correct) ? "correct" : "wrong") +`</div><div><small> Reviewer: ` + escapeHTML(name) + `</small></div>` + `</div> </a>`;
+				var reviewHTML = `<a href="{{path('contest', {'contestId': current_contest.section.id, 'roundId': current_contest.id})}}/problem/` + rev.problem.id + `/result/` + rev.id + `"> <div class="review ` + ((rev.is_correct) ? "correct" : "wrong") + `" id="` + rev.id + `"> ` + `<div>` + rev.id + `) ` + escapeHTML(rev.problem.name.substring(0,1)) + ` - ` + escapeHTML(rev.team.name) + `</div><div style="display: none">` + escapeHTML(rev.problem.name) + `" " `+((rev.is_correct) ? "correct" : "wrong") +`</div><div> Reviewer: ` + escapeHTML(name) + `</div>` + `</div> </a>`;
 				
 				$('#recent-reviews').append(reviewHTML);
 				
@@ -989,8 +996,8 @@
 				if (reviews[i]['reviewer'] != null && reviews[i]['reviewer'].email == '{{app.user}}') { 
 					user_reviewed++;
 				}
-				$("#review_stats").text("You have made " + user_reviewed + " of " + reviews.length +  " reviews.");
 				
+				$("#review_stats").text("You have made " + user_reviewed + " of " + reviews.length +  " reviews.");
 
 			}			
 			
@@ -1026,8 +1033,9 @@
 				if (clars[i]['answerer'] != null && clars[i]['answerer'].email == '{{app.user}}') { 
 					user_clarifications++;
 				}
-				$("#clar_stats").text("You have given " + user_clarifications + " of " + clars.length +  " clarifications.");
+				console.log(user_clarifications + "sadasd");
 				
+				$("#clar_stats").text("You have made " + user_clarifications + " of " + clars.length +  " reviews.");
 			}
 			
 			return newOne;
