@@ -90,7 +90,7 @@
 		<div class="card">
 			<div class="btn-close">
 				<h2 class="card-title">History </h2>	
-				{% if not contest_open %}
+				{% if not current_contest.isActive() %}
 					<div id="clear-submissions-button"> Clear Submissions </div>
 				{% endif %}
 				<div id="clear-clarifications-button"> Clear Clarifications </div>
@@ -542,7 +542,7 @@
 			
 				$('#recent-reviews').animate({
 					scrollTop: $('#recent-reviews').prop('scrollHeight'),
-				}, 2000);
+				}, 0);
 			}
 		}
 
@@ -555,7 +555,7 @@
 			
 				$('#recent-clarifications').animate({
 					scrollTop: $('#recent-clarifications').prop('scrollHeight'),
-				}, 2000);				
+				}, 0);				
 			}
 		}
 				
@@ -759,6 +759,14 @@
 			  }
 			});
 			
+			$('#clarification-form').keypress(function(e) {
+				if (e.keyCode == $.ui.keyCode.ENTER) {
+					 updateClarification("answer", "local");
+					 clarificationMessageDialog.dialog( "close" );
+					 e.preventDefault();
+				}
+			});
+			
 			clarificationMessageDialog.find("form").off( "submit");
 			clarificationMessageForm = clarificationMessageDialog.find( "form" ).on( "submit", function( event ) {				
 				event.preventDefault();
@@ -940,10 +948,12 @@
 					continue;	
 				}
 				
-				var probAssignName = (clarification['problem']) ? "[" + clarification['problem']['name'] + "]" : "[General]";
+				var clarName = ((clarification.asker) ? escapeHTML(clarification.asker.name) : 'Judge Submitted');
+				var problemName = ((clarification['problem']) ? "[" + clarification['problem']['name'] + "]" : "[General]");
+				var probAssignName = "[" + clarName + "] - " + problemName;
 				
 				var clarificationHTML = `<div class="clarification found" id="` + clarification['id'] + `">` + 
-											`<div class="name">` + probAssignName + `</div><div class="question">` + clarification['question'] + `</div>` +
+											`<div class="name">` + probAssignName + `</div><div class="question">` + escapeHTML(clarification['question']) + `</div>` +
 										`</div>`;
 				
 				$('#clarifications-container').append(clarificationHTML);				
