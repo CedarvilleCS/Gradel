@@ -105,6 +105,7 @@
 	flex-direction: row;
 	justify-content: space-between;
   min-height: 15px;
+	text-align: center;
 }
 
 .review {
