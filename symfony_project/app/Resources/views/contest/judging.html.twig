@@ -48,7 +48,7 @@
 			</div>
 		</div>
 		
-		<div class="card">
+		<div class="card" id="claimed-card">
 			<div class="btn-close">
 				<h2 class="card-title">Your Reviews <small class="card-subtitle"> <i> Review them! </i> </small> </h2>
 				<div id="stats-marker"> <img id="stats-marker-icon" src="{{ asset('bargraph.png') }}"> </div>
@@ -59,19 +59,19 @@
 				
 			</div>
 		
-			<div id="queue-container" class="card-contents">
+			<div id="queue-container" class="card-contents scrolly">
 				
 				
 			</div>	
 		</div>
 		
-		<div class="card">
+		<div class="card" id="submissions-card">
 		
 			<div class="btn-close">
 				<h2 class="card-title">Submission Queue  <small class="card-subtitle"> <i> Double-click to claim </i> </small>  </h2>
 			</div>
 		
-			<div id="submissions-container" class="card-contents">
+			<div id="submissions-container" class="card-contents scrolly">
 				
 			</div>		
 		</div>
@@ -1043,7 +1043,9 @@
 		}
 		
 		function addClaimed(submissions){
-			return addSubmissions(submissions, "claimIt");
+			var thing = addSubmissions(submissions, "claimIt");
+			
+			return thing;
 		}
 		
 		function addSubmissions(submissions, claimIt){			
@@ -1134,9 +1136,14 @@
 				$('#queue-container .submission').not('.found').remove();
 				$('#queue-container .submission').removeClass('found');
 				$('#queue-container .submission').removeClass('queued');
+				
+				$('#claimed-card .card-title .card-subtitle').html("<i> Review them! (" + $('#queue-container .submission').size() + ") </i>");
+				
 			} else {
 				$('#submissions-container .submission').not('.found').remove();
 				$('#submissions-container .submission').removeClass('found');
+				
+				$('#submissions-card .card-title .card-subtitle').html("<i> Double-click to claim (" + $('#submissions-container .submission').size() + ") </i>");
 			}
 		}
 		
