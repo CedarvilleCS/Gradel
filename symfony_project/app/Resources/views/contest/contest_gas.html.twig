@@ -61,7 +61,7 @@
       switch(type) {
         case "notice":
           console.log("NOTICE");
-          toastr.info("<a href='google.com'>" + message + "</a>");
+          toastr.info(message);
           break;
         case "question":
           console.log("QUESTION");
@@ -71,7 +71,7 @@
           console.log("REJECT");
           const route = "{{path('problem_result', 'RESULT')}}" + submissionId;
           console.log(route);
-          toastr.error("<a href='" + route + "'>" + message + "</a>");
+          toastr.error("<a href='" + route + "'><div styles='display: inline-block'>" + message + "<div></a>");
           break;
         case "updateData":
           if (typeof socketScoreboardUpdate === "function") {

@@ -1,48 +1,88 @@
-13:19:15 INFO      [websocket] Starting web socket [] []
-13:19:15 INFO      [websocket] Launching Ratchet on 0.0.0.0:8082 PID: 28813 [] []
-13:19:26 DEBUG     [websocket] INSERT CLIENT 593 ["user" => "C:21:"AppBundle\Entity\User":178:{a:8:{i:0;s:3:"N/A";i:1;N;i:2;s:22:"cbrauns@cedarville.edu";i:3;s:22:"cbrauns@cedarville.edu";i:4;b:1;i:5;i:3;i:6;s:22:"cbrauns@cedarville.edu";i:7;s:22:"cbrauns@cedarville.edu";}}","username" => "cbrauns@cedarville.edu"] []
-13:19:26 INFO      [websocket] cbrauns@cedarville.edu connected ["connection_id" => 593,"session_id" => "10094602255a85cf2e4eb1a697063024","storage_id" => 593] []
-13:19:26 DEBUG     [websocket] GET CLIENT 593 [] []
-13:19:26 INFO      [websocket] cbrauns@cedarville.edu subscribe to appbundle/channel [] []
-13:19:26 DEBUG     [websocket] Matched route "appbundle_topic" [] []
-13:19:26 DEBUG     [websocket] GET CLIENT 593 [] []
-13:20:59 DEBUG     [websocket] INSERT CLIENT 683 ["user" => "C:21:"AppBundle\Entity\User":178:{a:8:{i:0;s:3:"N/A";i:1;N;i:2;s:22:"cbrauns@cedarville.edu";i:3;s:22:"cbrauns@cedarville.edu";i:4;b:1;i:5;i:3;i:6;s:22:"cbrauns@cedarville.edu";i:7;s:22:"cbrauns@cedarville.edu";}}","username" => "cbrauns@cedarville.edu"] []
-13:20:59 INFO      [websocket] cbrauns@cedarville.edu connected ["connection_id" => 683,"session_id" => "8755867935a85cf8bd17cd378416179","storage_id" => 683] []
-13:20:59 DEBUG     [websocket] GET CLIENT 683 [] []
-13:20:59 INFO      [websocket] cbrauns@cedarville.edu subscribe to appbundle/channel [] []
-13:20:59 DEBUG     [websocket] Matched route "appbundle_topic" [] []
-13:20:59 DEBUG     [websocket] GET CLIENT 683 [] []
-13:21:43 DEBUG     [websocket] Matched route "appbundle_topic" [] []
-13:21:43 DEBUG     [websocket] GET CLIENT 683 [] []
-13:21:43 DEBUG     [websocket] REMOVE CLIENT 683 [] []
-13:21:43 INFO      [websocket] cbrauns@cedarville.edu disconnected ["connection_id" => 683,"session_id" => "8755867935a85cf8bd17cd378416179","storage_id" => 683,"username" => "cbrauns@cedarville.edu"] []
-13:21:43 DEBUG     [websocket] INSERT CLIENT 700 ["user" => "C:21:"AppBundle\Entity\User":170:{a:8:{i:0;s:3:"N/A";i:1;N;i:2;s:20:"ewolf@cedarville.edu";i:3;s:20:"ewolf@cedarville.edu";i:4;b:1;i:5;i:4;i:6;s:20:"ewolf@cedarville.edu";i:7;s:20:"ewolf@cedarville.edu";}}","username" => "ewolf@cedarville.edu"] []
-13:21:43 INFO      [websocket] ewolf@cedarville.edu connected ["connection_id" => 700,"session_id" => "19822176025a85cfb73bd56591088173","storage_id" => 700] []
-13:21:43 DEBUG     [websocket] GET CLIENT 700 [] []
-13:21:43 INFO      [websocket] ewolf@cedarville.edu subscribe to appbundle/channel [] []
-13:21:43 DEBUG     [websocket] Matched route "appbundle_topic" [] []
-13:21:43 DEBUG     [websocket] GET CLIENT 700 [] []
-13:21:45 DEBUG     [websocket] Matched route "appbundle_topic" [] []
-13:21:45 DEBUG     [websocket] GET CLIENT 700 [] []
-13:21:45 DEBUG     [websocket] REMOVE CLIENT 700 [] []
-13:21:45 INFO      [websocket] ewolf@cedarville.edu disconnected ["connection_id" => 700,"session_id" => "19822176025a85cfb73bd56591088173","storage_id" => 700,"username" => "ewolf@cedarville.edu"] []
-13:21:45 DEBUG     [websocket] INSERT CLIENT 719 ["user" => "C:21:"AppBundle\Entity\User":170:{a:8:{i:0;s:3:"N/A";i:1;N;i:2;s:20:"ewolf@cedarville.edu";i:3;s:20:"ewolf@cedarville.edu";i:4;b:1;i:5;i:4;i:6;s:20:"ewolf@cedarville.edu";i:7;s:20:"ewolf@cedarville.edu";}}","username" => "ewolf@cedarville.edu"] []
-13:21:45 INFO      [websocket] ewolf@cedarville.edu connected ["connection_id" => 719,"session_id" => "12591047435a85cfb96f6a2729951249","storage_id" => 719] []
-13:21:45 DEBUG     [websocket] GET CLIENT 719 [] []
-13:21:45 INFO      [websocket] ewolf@cedarville.edu subscribe to appbundle/channel [] []
-13:21:45 DEBUG     [websocket] Matched route "appbundle_topic" [] []
-13:21:45 DEBUG     [websocket] GET CLIENT 719 [] []
-13:21:50 DEBUG     [websocket] INSERT CLIENT 731 ["user" => "s:36:"anon-1901113065a85cfbedc41e470587270";"] []
-13:21:50 INFO      [websocket] anon-1901113065a85cfbedc41e470587270 connected ["connection_id" => 731,"session_id" => "1901113065a85cfbedc41e470587270","storage_id" => 731] []
-13:21:50 DEBUG     [websocket] GET CLIENT 731 [] []
-13:21:50 DEBUG     [websocket] anon-1901113065a85cfbedc41e470587270 publish to appbundle/channel [] []
-13:21:50 DEBUG     [websocket] Matched route "appbundle_topic" [] []
-13:21:50 DEBUG     [websocket] GET CLIENT 731 [] []
-"USER:anon-1901113065a85cfbedc41e470587270"
-13:21:50 DEBUG     [websocket] GET CLIENT 731 [] []
+13:24:12 INFO      [websocket] Starting web socket [] []
+13:24:12 INFO      [websocket] Launching Ratchet on 0.0.0.0:8082 PID: 28983 [] []
+13:24:39 DEBUG     [websocket] INSERT CLIENT 593 ["user" => "s:37:"anon-16417826735a85d067eb60f475483219";"] []
+13:24:39 INFO      [websocket] anon-16417826735a85d067eb60f475483219 connected ["connection_id" => 593,"session_id" => "16417826735a85d067eb60f475483219","storage_id" => 593] []
+13:24:39 DEBUG     [websocket] GET CLIENT 593 [] []
+13:24:39 DEBUG     [websocket] anon-16417826735a85d067eb60f475483219 publish to appbundle/channel [] []
+13:24:39 DEBUG     [websocket] Matched route "appbundle_topic" [] []
+13:24:39 DEBUG     [websocket] GET CLIENT 593 [] []
+"USER:anon-16417826735a85d067eb60f475483219"
+13:24:39 DEBUG     [websocket] GET CLIENT 593 [] []
+array:6 [
+  "msg" => "null"
+  "contestId" => 2
+  "submissionId" => -1
+  "scope" => "pageUpdate"
+  "recipients" => null
+  "passKey" => "gradeldb251"
+]
+array:6 [
+  "msg" => "null"
+  "contestId" => 2
+  "submissionId" => -1
+  "scope" => "pageUpdate"
+  "recipients" => null
+  "passKey" => "gradeldb251"
+]
+13:24:39 DEBUG     [websocket] GET CLIENT 593 [] []
+"Checking Scope and privleges..."
+13:24:40 DEBUG     [websocket] GET CLIENT 593 [] []
+13:24:40 DEBUG     [websocket] REMOVE CLIENT 593 [] []
+13:24:40 INFO      [websocket] anon-16417826735a85d067eb60f475483219 disconnected ["connection_id" => 593,"session_id" => "16417826735a85d067eb60f475483219","storage_id" => 593,"username" => "anon-16417826735a85d067eb60f475483219"] []
+13:24:56 DEBUG     [websocket] INSERT CLIENT 758 ["user" => "C:21:"AppBundle\Entity\User":170:{a:8:{i:0;s:3:"N/A";i:1;N;i:2;s:20:"ewolf@cedarville.edu";i:3;s:20:"ewolf@cedarville.edu";i:4;b:1;i:5;i:4;i:6;s:20:"ewolf@cedarville.edu";i:7;s:20:"ewolf@cedarville.edu";}}","username" => "ewolf@cedarville.edu"] []
+13:24:56 INFO      [websocket] ewolf@cedarville.edu connected ["connection_id" => 758,"session_id" => "13905308885a85d0786d1b3262778494","storage_id" => 758] []
+13:24:56 DEBUG     [websocket] GET CLIENT 758 [] []
+13:24:56 INFO      [websocket] ewolf@cedarville.edu subscribe to appbundle/channel [] []
+13:24:56 DEBUG     [websocket] Matched route "appbundle_topic" [] []
+13:24:56 DEBUG     [websocket] GET CLIENT 758 [] []
+13:24:59 DEBUG     [websocket] INSERT CLIENT 777 ["user" => "s:37:"anon-14350675475a85d07b79741376193746";"] []
+13:24:59 INFO      [websocket] anon-14350675475a85d07b79741376193746 connected ["connection_id" => 777,"session_id" => "14350675475a85d07b79741376193746","storage_id" => 777] []
+13:24:59 DEBUG     [websocket] GET CLIENT 777 [] []
+13:24:59 DEBUG     [websocket] anon-14350675475a85d07b79741376193746 publish to appbundle/channel [] []
+13:24:59 DEBUG     [websocket] Matched route "appbundle_topic" [] []
+13:24:59 DEBUG     [websocket] GET CLIENT 777 [] []
+"USER:anon-14350675475a85d07b79741376193746"
+13:24:59 DEBUG     [websocket] GET CLIENT 777 [] []
+array:6 [
+  "msg" => "null"
+  "contestId" => 2
+  "submissionId" => -1
+  "scope" => "pageUpdate"
+  "recipients" => null
+  "passKey" => "gradeldb251"
+]
+array:6 [
+  "msg" => "null"
+  "contestId" => 2
+  "submissionId" => -1
+  "scope" => "pageUpdate"
+  "recipients" => null
+  "passKey" => "gradeldb251"
+]
+13:24:59 DEBUG     [websocket] GET CLIENT 758 [] []
+13:24:59 DEBUG     [websocket] GET CLIENT 777 [] []
+"Checking Scope and privleges..."
+"Sending global message to user..."
+13:24:59 DEBUG     [websocket] GET CLIENT 777 [] []
+13:24:59 DEBUG     [websocket] REMOVE CLIENT 777 [] []
+13:24:59 INFO      [websocket] anon-14350675475a85d07b79741376193746 disconnected ["connection_id" => 777,"session_id" => "14350675475a85d07b79741376193746","storage_id" => 777,"username" => "anon-14350675475a85d07b79741376193746"] []
+13:25:05 DEBUG     [websocket] INSERT CLIENT 796 ["user" => "C:21:"AppBundle\Entity\User":178:{a:8:{i:0;s:3:"N/A";i:1;N;i:2;s:22:"cbrauns@cedarville.edu";i:3;s:22:"cbrauns@cedarville.edu";i:4;b:1;i:5;i:3;i:6;s:22:"cbrauns@cedarville.edu";i:7;s:22:"cbrauns@cedarville.edu";}}","username" => "cbrauns@cedarville.edu"] []
+13:25:05 INFO      [websocket] cbrauns@cedarville.edu connected ["connection_id" => 796,"session_id" => "13598392785a85d081b442a359446264","storage_id" => 796] []
+13:25:05 DEBUG     [websocket] GET CLIENT 796 [] []
+13:25:05 INFO      [websocket] cbrauns@cedarville.edu subscribe to appbundle/channel [] []
+13:25:05 DEBUG     [websocket] Matched route "appbundle_topic" [] []
+13:25:05 DEBUG     [websocket] GET CLIENT 796 [] []
+13:25:11 DEBUG     [websocket] INSERT CLIENT 808 ["user" => "s:36:"anon-9808917615a85d0872768d220280286";"] []
+13:25:11 INFO      [websocket] anon-9808917615a85d0872768d220280286 connected ["connection_id" => 808,"session_id" => "9808917615a85d0872768d220280286","storage_id" => 808] []
+13:25:11 DEBUG     [websocket] GET CLIENT 808 [] []
+13:25:11 DEBUG     [websocket] anon-9808917615a85d0872768d220280286 publish to appbundle/channel [] []
+13:25:11 DEBUG     [websocket] Matched route "appbundle_topic" [] []
+13:25:11 DEBUG     [websocket] GET CLIENT 808 [] []
+"USER:anon-9808917615a85d0872768d220280286"
+13:25:11 DEBUG     [websocket] GET CLIENT 808 [] []
 array:6 [
   "contestId" => 2
-  "submissionId" => 263
+  "submissionId" => 265
   "scope" => "userSpecificReject"
   "recipients" => array:1 [
     0 => "ewolf@cedarville.edu"
@@ -52,7 +92,7 @@ array:6 [
 ]
 array:6 [
   "contestId" => 2
-  "submissionId" => 263
+  "submissionId" => 265
   "scope" => "userSpecificReject"
   "recipients" => array:1 [
     0 => "ewolf@cedarville.edu"
@@ -60,19 +100,19 @@ array:6 [
   "msg" => "Your submission for Calculate the Sum was <b>incorrect</b>."
   "passKey" => "gradeldb251"
 ]
-13:21:50 DEBUG     [websocket] GET CLIENT 593 [] []
-13:21:50 DEBUG     [websocket] GET CLIENT 719 [] []
-13:21:50 DEBUG     [websocket] GET CLIENT 731 [] []
+13:25:11 DEBUG     [websocket] GET CLIENT 758 [] []
+13:25:11 DEBUG     [websocket] GET CLIENT 796 [] []
+13:25:11 DEBUG     [websocket] GET CLIENT 808 [] []
 "Checking Scope and privleges..."
-"Sending message: {"msg": "Your submission for Calculate the Sum was <b>incorrect</b>.", "type": "reject", "submissionId": "263"}to specific users..."
+"Sending message: {"msg": "Your submission for Calculate the Sum was <b>incorrect</b>.", "type": "reject", "submissionId": "265"}to specific users..."
 "Sending to ewolf@cedarville.edu"
-"{"msg": "Your submission for Calculate the Sum was <b>incorrect</b>.", "type": "reject", "submissionId": "263"}"
-13:21:50 DEBUG     [websocket] GET CLIENT 731 [] []
-13:21:50 DEBUG     [websocket] anon-1901113065a85cfbedc41e470587270 publish to appbundle/channel [] []
-13:21:50 DEBUG     [websocket] Matched route "appbundle_topic" [] []
-13:21:50 DEBUG     [websocket] GET CLIENT 731 [] []
-"USER:anon-1901113065a85cfbedc41e470587270"
-13:21:50 DEBUG     [websocket] GET CLIENT 731 [] []
+"{"msg": "Your submission for Calculate the Sum was <b>incorrect</b>.", "type": "reject", "submissionId": "265"}"
+13:25:11 DEBUG     [websocket] GET CLIENT 808 [] []
+13:25:11 DEBUG     [websocket] anon-9808917615a85d0872768d220280286 publish to appbundle/channel [] []
+13:25:11 DEBUG     [websocket] Matched route "appbundle_topic" [] []
+13:25:11 DEBUG     [websocket] GET CLIENT 808 [] []
+"USER:anon-9808917615a85d0872768d220280286"
+13:25:11 DEBUG     [websocket] GET CLIENT 808 [] []
 array:6 [
   "msg" => "null"
   "contestId" => 2
@@ -89,59 +129,36 @@ array:6 [
   "recipients" => null
   "passKey" => "gradeldb251"
 ]
-13:21:50 DEBUG     [websocket] GET CLIENT 593 [] []
-13:21:50 DEBUG     [websocket] GET CLIENT 719 [] []
-13:21:50 DEBUG     [websocket] GET CLIENT 731 [] []
+13:25:11 DEBUG     [websocket] GET CLIENT 758 [] []
+13:25:11 DEBUG     [websocket] GET CLIENT 796 [] []
+13:25:11 DEBUG     [websocket] GET CLIENT 808 [] []
 "Checking Scope and privleges..."
 "Sending global message to user..."
 "Sending global message to user..."
-13:21:50 DEBUG     [websocket] GET CLIENT 731 [] []
-13:21:50 DEBUG     [websocket] REMOVE CLIENT 731 [] []
-13:21:50 INFO      [websocket] anon-1901113065a85cfbedc41e470587270 disconnected ["connection_id" => 731,"session_id" => "1901113065a85cfbedc41e470587270","storage_id" => 731,"username" => "anon-1901113065a85cfbedc41e470587270"] []
-13:21:56 DEBUG     [websocket] INSERT CLIENT 844 ["user" => "s:36:"anon-2739565635a85cfc4a584c243655422";"] []
-13:21:56 INFO      [websocket] anon-2739565635a85cfc4a584c243655422 connected ["connection_id" => 844,"session_id" => "2739565635a85cfc4a584c243655422","storage_id" => 844] []
-13:21:56 DEBUG     [websocket] GET CLIENT 844 [] []
-13:21:56 DEBUG     [websocket] anon-2739565635a85cfc4a584c243655422 publish to appbundle/channel [] []
-13:21:56 DEBUG     [websocket] Matched route "appbundle_topic" [] []
-13:21:56 DEBUG     [websocket] GET CLIENT 844 [] []
-"USER:anon-2739565635a85cfc4a584c243655422"
-13:21:56 DEBUG     [websocket] GET CLIENT 844 [] []
-array:6 [
-  "msg" => "null"
-  "contestId" => 2
-  "submissionId" => -1
-  "scope" => "pageUpdate"
-  "recipients" => null
-  "passKey" => "gradeldb251"
-]
-array:6 [
-  "msg" => "null"
-  "contestId" => 2
-  "submissionId" => -1
-  "scope" => "pageUpdate"
-  "recipients" => null
-  "passKey" => "gradeldb251"
-]
-13:21:56 DEBUG     [websocket] GET CLIENT 593 [] []
-13:21:56 DEBUG     [websocket] GET CLIENT 719 [] []
-13:21:56 DEBUG     [websocket] GET CLIENT 844 [] []
-"Checking Scope and privleges..."
-"Sending global message to user..."
-"Sending global message to user..."
-13:21:56 DEBUG     [websocket] GET CLIENT 844 [] []
-13:21:56 DEBUG     [websocket] REMOVE CLIENT 844 [] []
-13:21:56 INFO      [websocket] anon-2739565635a85cfc4a584c243655422 disconnected ["connection_id" => 844,"session_id" => "2739565635a85cfc4a584c243655422","storage_id" => 844,"username" => "anon-2739565635a85cfc4a584c243655422"] []
-13:21:58 DEBUG     [websocket] INSERT CLIENT 864 ["user" => "s:37:"anon-13419659735a85cfc6d55f7102350988";"] []
-13:21:58 INFO      [websocket] anon-13419659735a85cfc6d55f7102350988 connected ["connection_id" => 864,"session_id" => "13419659735a85cfc6d55f7102350988","storage_id" => 864] []
-13:21:58 DEBUG     [websocket] GET CLIENT 864 [] []
-13:21:58 DEBUG     [websocket] anon-13419659735a85cfc6d55f7102350988 publish to appbundle/channel [] []
-13:21:58 DEBUG     [websocket] Matched route "appbundle_topic" [] []
-13:21:58 DEBUG     [websocket] GET CLIENT 864 [] []
-"USER:anon-13419659735a85cfc6d55f7102350988"
-13:21:58 DEBUG     [websocket] GET CLIENT 864 [] []
+13:25:11 DEBUG     [websocket] GET CLIENT 808 [] []
+13:25:11 DEBUG     [websocket] REMOVE CLIENT 808 [] []
+13:25:11 INFO      [websocket] anon-9808917615a85d0872768d220280286 disconnected ["connection_id" => 808,"session_id" => "9808917615a85d0872768d220280286","storage_id" => 808,"username" => "anon-9808917615a85d0872768d220280286"] []
+13:25:14 DEBUG     [websocket] Matched route "appbundle_topic" [] []
+13:25:14 DEBUG     [websocket] GET CLIENT 758 [] []
+13:25:14 DEBUG     [websocket] REMOVE CLIENT 758 [] []
+13:25:14 INFO      [websocket] ewolf@cedarville.edu disconnected ["connection_id" => 758,"session_id" => "13905308885a85d0786d1b3262778494","storage_id" => 758,"username" => "ewolf@cedarville.edu"] []
+13:25:15 DEBUG     [websocket] INSERT CLIENT 852 ["user" => "C:21:"AppBundle\Entity\User":170:{a:8:{i:0;s:3:"N/A";i:1;N;i:2;s:20:"ewolf@cedarville.edu";i:3;s:20:"ewolf@cedarville.edu";i:4;b:1;i:5;i:4;i:6;s:20:"ewolf@cedarville.edu";i:7;s:20:"ewolf@cedarville.edu";}}","username" => "ewolf@cedarville.edu"] []
+13:25:15 INFO      [websocket] ewolf@cedarville.edu connected ["connection_id" => 852,"session_id" => "7136199885a85d08b163fd115475250","storage_id" => 852] []
+13:25:15 DEBUG     [websocket] GET CLIENT 852 [] []
+13:25:15 INFO      [websocket] ewolf@cedarville.edu subscribe to appbundle/channel [] []
+13:25:15 DEBUG     [websocket] Matched route "appbundle_topic" [] []
+13:25:15 DEBUG     [websocket] GET CLIENT 852 [] []
+13:29:46 DEBUG     [websocket] INSERT CLIENT 864 ["user" => "s:34:"anon-54134905a85d19ae26af382276135";"] []
+13:29:46 INFO      [websocket] anon-54134905a85d19ae26af382276135 connected ["connection_id" => 864,"session_id" => "54134905a85d19ae26af382276135","storage_id" => 864] []
+13:29:46 DEBUG     [websocket] GET CLIENT 864 [] []
+13:29:46 DEBUG     [websocket] anon-54134905a85d19ae26af382276135 publish to appbundle/channel [] []
+13:29:46 DEBUG     [websocket] Matched route "appbundle_topic" [] []
+13:29:46 DEBUG     [websocket] GET CLIENT 864 [] []
+"USER:anon-54134905a85d19ae26af382276135"
+13:29:46 DEBUG     [websocket] GET CLIENT 864 [] []
 array:6 [
   "contestId" => 2
-  "submissionId" => 264
+  "submissionId" => 266
   "scope" => "userSpecificReject"
   "recipients" => array:1 [
     0 => "ewolf@cedarville.edu"
@@ -151,7 +168,7 @@ array:6 [
 ]
 array:6 [
   "contestId" => 2
-  "submissionId" => 264
+  "submissionId" => 266
   "scope" => "userSpecificReject"
   "recipients" => array:1 [
     0 => "ewolf@cedarville.edu"
@@ -159,19 +176,19 @@ array:6 [
   "msg" => "Your submission for Output the Input was <b>incorrect</b>."
   "passKey" => "gradeldb251"
 ]
-13:21:58 DEBUG     [websocket] GET CLIENT 593 [] []
-13:21:58 DEBUG     [websocket] GET CLIENT 719 [] []
-13:21:58 DEBUG     [websocket] GET CLIENT 864 [] []
+13:29:46 DEBUG     [websocket] GET CLIENT 796 [] []
+13:29:46 DEBUG     [websocket] GET CLIENT 852 [] []
+13:29:46 DEBUG     [websocket] GET CLIENT 864 [] []
 "Checking Scope and privleges..."
-"Sending message: {"msg": "Your submission for Output the Input was <b>incorrect</b>.", "type": "reject", "submissionId": "264"}to specific users..."
+"Sending message: {"msg": "Your submission for Output the Input was <b>incorrect</b>.", "type": "reject", "submissionId": "266"}to specific users..."
 "Sending to ewolf@cedarville.edu"
-"{"msg": "Your submission for Output the Input was <b>incorrect</b>.", "type": "reject", "submissionId": "264"}"
-13:21:58 DEBUG     [websocket] GET CLIENT 864 [] []
-13:21:58 DEBUG     [websocket] anon-13419659735a85cfc6d55f7102350988 publish to appbundle/channel [] []
-13:21:58 DEBUG     [websocket] Matched route "appbundle_topic" [] []
-13:21:58 DEBUG     [websocket] GET CLIENT 864 [] []
-"USER:anon-13419659735a85cfc6d55f7102350988"
-13:21:58 DEBUG     [websocket] GET CLIENT 864 [] []
+"{"msg": "Your submission for Output the Input was <b>incorrect</b>.", "type": "reject", "submissionId": "266"}"
+13:29:46 DEBUG     [websocket] GET CLIENT 864 [] []
+13:29:46 DEBUG     [websocket] anon-54134905a85d19ae26af382276135 publish to appbundle/channel [] []
+13:29:46 DEBUG     [websocket] Matched route "appbundle_topic" [] []
+13:29:46 DEBUG     [websocket] GET CLIENT 864 [] []
+"USER:anon-54134905a85d19ae26af382276135"
+13:29:46 DEBUG     [websocket] GET CLIENT 864 [] []
 array:6 [
   "msg" => "null"
   "contestId" => 2
@@ -188,62 +205,33 @@ array:6 [
   "recipients" => null
   "passKey" => "gradeldb251"
 ]
-13:21:58 DEBUG     [websocket] GET CLIENT 593 [] []
-13:21:58 DEBUG     [websocket] GET CLIENT 719 [] []
-13:21:58 DEBUG     [websocket] GET CLIENT 864 [] []
+13:29:46 DEBUG     [websocket] GET CLIENT 796 [] []
+13:29:46 DEBUG     [websocket] GET CLIENT 852 [] []
+13:29:46 DEBUG     [websocket] GET CLIENT 864 [] []
 "Checking Scope and privleges..."
 "Sending global message to user..."
 "Sending global message to user..."
-13:21:58 DEBUG     [websocket] GET CLIENT 864 [] []
-13:21:58 DEBUG     [websocket] REMOVE CLIENT 864 [] []
-13:21:58 INFO      [websocket] anon-13419659735a85cfc6d55f7102350988 disconnected ["connection_id" => 864,"session_id" => "13419659735a85cfc6d55f7102350988","storage_id" => 864,"username" => "anon-13419659735a85cfc6d55f7102350988"] []
-13:22:00 DEBUG     [websocket] Matched route "appbundle_topic" [] []
-13:22:00 DEBUG     [websocket] GET CLIENT 719 [] []
-13:22:00 DEBUG     [websocket] REMOVE CLIENT 719 [] []
-13:22:00 INFO      [websocket] ewolf@cedarville.edu disconnected ["connection_id" => 719,"session_id" => "12591047435a85cfb96f6a2729951249","storage_id" => 719,"username" => "ewolf@cedarville.edu"] []
-13:22:01 DEBUG     [websocket] INSERT CLIENT 897 ["user" => "C:21:"AppBundle\Entity\User":170:{a:8:{i:0;s:3:"N/A";i:1;N;i:2;s:20:"ewolf@cedarville.edu";i:3;s:20:"ewolf@cedarville.edu";i:4;b:1;i:5;i:4;i:6;s:20:"ewolf@cedarville.edu";i:7;s:20:"ewolf@cedarville.edu";}}","username" => "ewolf@cedarville.edu"] []
-13:22:01 INFO      [websocket] ewolf@cedarville.edu connected ["connection_id" => 897,"session_id" => "10214061585a85cfc966100605364549","storage_id" => 897] []
-13:22:01 DEBUG     [websocket] GET CLIENT 897 [] []
-13:22:01 INFO      [websocket] ewolf@cedarville.edu subscribe to appbundle/channel [] []
-13:22:01 DEBUG     [websocket] Matched route "appbundle_topic" [] []
-13:22:01 DEBUG     [websocket] GET CLIENT 897 [] []
-13:22:29 DEBUG     [websocket] INSERT CLIENT 909 ["user" => "s:37:"anon-14641389715a85cfe5ca898907471679";"] []
-13:22:29 INFO      [websocket] anon-14641389715a85cfe5ca898907471679 connected ["connection_id" => 909,"session_id" => "14641389715a85cfe5ca898907471679","storage_id" => 909] []
-13:22:29 DEBUG     [websocket] GET CLIENT 909 [] []
-13:22:29 DEBUG     [websocket] anon-14641389715a85cfe5ca898907471679 publish to appbundle/channel [] []
-13:22:29 DEBUG     [websocket] Matched route "appbundle_topic" [] []
-13:22:29 DEBUG     [websocket] GET CLIENT 909 [] []
-"USER:anon-14641389715a85cfe5ca898907471679"
-13:22:29 DEBUG     [websocket] GET CLIENT 909 [] []
-array:6 [
-  "contestId" => 2
-  "submissionId" => -1
-  "scope" => "global"
-  "recipients" => null
-  "msg" => "<b>Notice:</b> hey guys!"
-  "passKey" => "gradeldb251"
-]
-array:6 [
-  "contestId" => 2
-  "submissionId" => -1
-  "scope" => "global"
-  "recipients" => null
-  "msg" => "<b>Notice:</b> hey guys!"
-  "passKey" => "gradeldb251"
-]
-13:22:29 DEBUG     [websocket] GET CLIENT 593 [] []
-13:22:29 DEBUG     [websocket] GET CLIENT 897 [] []
-13:22:29 DEBUG     [websocket] GET CLIENT 909 [] []
-"Checking Scope and privleges..."
-"Sending a message to everyone..."
-"Sending global message to user..."
-"Sending global message to user..."
-13:22:29 DEBUG     [websocket] GET CLIENT 909 [] []
-13:22:29 DEBUG     [websocket] anon-14641389715a85cfe5ca898907471679 publish to appbundle/channel [] []
-13:22:29 DEBUG     [websocket] Matched route "appbundle_topic" [] []
-13:22:29 DEBUG     [websocket] GET CLIENT 909 [] []
-"USER:anon-14641389715a85cfe5ca898907471679"
-13:22:29 DEBUG     [websocket] GET CLIENT 909 [] []
+13:29:46 DEBUG     [websocket] GET CLIENT 864 [] []
+13:29:46 DEBUG     [websocket] REMOVE CLIENT 864 [] []
+13:29:46 INFO      [websocket] anon-54134905a85d19ae26af382276135 disconnected ["connection_id" => 864,"session_id" => "54134905a85d19ae26af382276135","storage_id" => 864,"username" => "anon-54134905a85d19ae26af382276135"] []
+13:29:50 DEBUG     [websocket] Matched route "appbundle_topic" [] []
+13:29:50 DEBUG     [websocket] GET CLIENT 852 [] []
+13:29:50 DEBUG     [websocket] REMOVE CLIENT 852 [] []
+13:29:50 INFO      [websocket] ewolf@cedarville.edu disconnected ["connection_id" => 852,"session_id" => "7136199885a85d08b163fd115475250","storage_id" => 852,"username" => "ewolf@cedarville.edu"] []
+13:29:50 DEBUG     [websocket] INSERT CLIENT 897 ["user" => "C:21:"AppBundle\Entity\User":170:{a:8:{i:0;s:3:"N/A";i:1;N;i:2;s:20:"ewolf@cedarville.edu";i:3;s:20:"ewolf@cedarville.edu";i:4;b:1;i:5;i:4;i:6;s:20:"ewolf@cedarville.edu";i:7;s:20:"ewolf@cedarville.edu";}}","username" => "ewolf@cedarville.edu"] []
+13:29:50 INFO      [websocket] ewolf@cedarville.edu connected ["connection_id" => 897,"session_id" => "1926391625a85d19eb657a595906851","storage_id" => 897] []
+13:29:50 DEBUG     [websocket] GET CLIENT 897 [] []
+13:29:50 INFO      [websocket] ewolf@cedarville.edu subscribe to appbundle/channel [] []
+13:29:50 DEBUG     [websocket] Matched route "appbundle_topic" [] []
+13:29:50 DEBUG     [websocket] GET CLIENT 897 [] []
+13:29:56 DEBUG     [websocket] INSERT CLIENT 909 ["user" => "s:37:"anon-19511701285a85d1a4aaa3e490978487";"] []
+13:29:56 INFO      [websocket] anon-19511701285a85d1a4aaa3e490978487 connected ["connection_id" => 909,"session_id" => "19511701285a85d1a4aaa3e490978487","storage_id" => 909] []
+13:29:56 DEBUG     [websocket] GET CLIENT 909 [] []
+13:29:56 DEBUG     [websocket] anon-19511701285a85d1a4aaa3e490978487 publish to appbundle/channel [] []
+13:29:56 DEBUG     [websocket] Matched route "appbundle_topic" [] []
+13:29:56 DEBUG     [websocket] GET CLIENT 909 [] []
+"USER:anon-19511701285a85d1a4aaa3e490978487"
+13:29:56 DEBUG     [websocket] GET CLIENT 909 [] []
 array:6 [
   "msg" => "null"
   "contestId" => 2
@@ -260,22 +248,412 @@ array:6 [
   "recipients" => null
   "passKey" => "gradeldb251"
 ]
-13:22:29 DEBUG     [websocket] GET CLIENT 593 [] []
-13:22:29 DEBUG     [websocket] GET CLIENT 897 [] []
-13:22:29 DEBUG     [websocket] GET CLIENT 909 [] []
+13:29:56 DEBUG     [websocket] GET CLIENT 796 [] []
+13:29:56 DEBUG     [websocket] GET CLIENT 897 [] []
+13:29:56 DEBUG     [websocket] GET CLIENT 909 [] []
 "Checking Scope and privleges..."
 "Sending global message to user..."
 "Sending global message to user..."
-13:22:29 DEBUG     [websocket] GET CLIENT 909 [] []
-13:22:29 DEBUG     [websocket] REMOVE CLIENT 909 [] []
-13:22:29 INFO      [websocket] anon-14641389715a85cfe5ca898907471679 disconnected ["connection_id" => 909,"session_id" => "14641389715a85cfe5ca898907471679","storage_id" => 909,"username" => "anon-14641389715a85cfe5ca898907471679"] []
-13:22:33 DEBUG     [websocket] Matched route "appbundle_topic" [] []
-13:22:33 DEBUG     [websocket] GET CLIENT 897 [] []
-13:22:33 DEBUG     [websocket] REMOVE CLIENT 897 [] []
-13:22:33 INFO      [websocket] ewolf@cedarville.edu disconnected ["connection_id" => 897,"session_id" => "10214061585a85cfc966100605364549","storage_id" => 897,"username" => "ewolf@cedarville.edu"] []
-13:22:35 DEBUG     [websocket] INSERT CLIENT 942 ["user" => "C:21:"AppBundle\Entity\User":170:{a:8:{i:0;s:3:"N/A";i:1;N;i:2;s:20:"ewolf@cedarville.edu";i:3;s:20:"ewolf@cedarville.edu";i:4;b:1;i:5;i:4;i:6;s:20:"ewolf@cedarville.edu";i:7;s:20:"ewolf@cedarville.edu";}}","username" => "ewolf@cedarville.edu"] []
-13:22:35 INFO      [websocket] ewolf@cedarville.edu connected ["connection_id" => 942,"session_id" => "13558424275a85cfeb57f46970728877","storage_id" => 942] []
-13:22:35 DEBUG     [websocket] GET CLIENT 942 [] []
-13:22:35 INFO      [websocket] ewolf@cedarville.edu subscribe to appbundle/channel [] []
-13:22:35 DEBUG     [websocket] Matched route "appbundle_topic" [] []
-13:22:35 DEBUG     [websocket] GET CLIENT 942 [] []
+13:29:56 DEBUG     [websocket] GET CLIENT 909 [] []
+13:29:56 DEBUG     [websocket] REMOVE CLIENT 909 [] []
+13:29:56 INFO      [websocket] anon-19511701285a85d1a4aaa3e490978487 disconnected ["connection_id" => 909,"session_id" => "19511701285a85d1a4aaa3e490978487","storage_id" => 909,"username" => "anon-19511701285a85d1a4aaa3e490978487"] []
+13:29:59 DEBUG     [websocket] INSERT CLIENT 929 ["user" => "s:35:"anon-149150185a85d1a72c3b7848548509";"] []
+13:29:59 INFO      [websocket] anon-149150185a85d1a72c3b7848548509 connected ["connection_id" => 929,"session_id" => "149150185a85d1a72c3b7848548509","storage_id" => 929] []
+13:29:59 DEBUG     [websocket] GET CLIENT 929 [] []
+13:29:59 DEBUG     [websocket] anon-149150185a85d1a72c3b7848548509 publish to appbundle/channel [] []
+13:29:59 DEBUG     [websocket] Matched route "appbundle_topic" [] []
+13:29:59 DEBUG     [websocket] GET CLIENT 929 [] []
+"USER:anon-149150185a85d1a72c3b7848548509"
+13:29:59 DEBUG     [websocket] GET CLIENT 929 [] []
+array:6 [
+  "contestId" => 2
+  "submissionId" => 267
+  "scope" => "userSpecificReject"
+  "recipients" => array:1 [
+    0 => "ewolf@cedarville.edu"
+  ]
+  "msg" => "Your submission for Calculate the Sum was <b>incorrect</b>."
+  "passKey" => "gradeldb251"
+]
+array:6 [
+  "contestId" => 2
+  "submissionId" => 267
+  "scope" => "userSpecificReject"
+  "recipients" => array:1 [
+    0 => "ewolf@cedarville.edu"
+  ]
+  "msg" => "Your submission for Calculate the Sum was <b>incorrect</b>."
+  "passKey" => "gradeldb251"
+]
+13:29:59 DEBUG     [websocket] GET CLIENT 796 [] []
+13:29:59 DEBUG     [websocket] GET CLIENT 897 [] []
+13:29:59 DEBUG     [websocket] GET CLIENT 929 [] []
+"Checking Scope and privleges..."
+"Sending message: {"msg": "Your submission for Calculate the Sum was <b>incorrect</b>.", "type": "reject", "submissionId": "267"}to specific users..."
+"Sending to ewolf@cedarville.edu"
+"{"msg": "Your submission for Calculate the Sum was <b>incorrect</b>.", "type": "reject", "submissionId": "267"}"
+13:29:59 DEBUG     [websocket] GET CLIENT 929 [] []
+13:29:59 DEBUG     [websocket] anon-149150185a85d1a72c3b7848548509 publish to appbundle/channel [] []
+13:29:59 DEBUG     [websocket] Matched route "appbundle_topic" [] []
+13:29:59 DEBUG     [websocket] GET CLIENT 929 [] []
+"USER:anon-149150185a85d1a72c3b7848548509"
+13:29:59 DEBUG     [websocket] GET CLIENT 929 [] []
+array:6 [
+  "msg" => "null"
+  "contestId" => 2
+  "submissionId" => -1
+  "scope" => "pageUpdate"
+  "recipients" => null
+  "passKey" => "gradeldb251"
+]
+array:6 [
+  "msg" => "null"
+  "contestId" => 2
+  "submissionId" => -1
+  "scope" => "pageUpdate"
+  "recipients" => null
+  "passKey" => "gradeldb251"
+]
+13:29:59 DEBUG     [websocket] GET CLIENT 796 [] []
+13:29:59 DEBUG     [websocket] GET CLIENT 897 [] []
+13:29:59 DEBUG     [websocket] GET CLIENT 929 [] []
+"Checking Scope and privleges..."
+"Sending global message to user..."
+"Sending global message to user..."
+13:29:59 DEBUG     [websocket] GET CLIENT 929 [] []
+13:29:59 DEBUG     [websocket] REMOVE CLIENT 929 [] []
+13:29:59 INFO      [websocket] anon-149150185a85d1a72c3b7848548509 disconnected ["connection_id" => 929,"session_id" => "149150185a85d1a72c3b7848548509","storage_id" => 929,"username" => "anon-149150185a85d1a72c3b7848548509"] []
+13:34:11 DEBUG     [websocket] Matched route "appbundle_topic" [] []
+13:34:11 DEBUG     [websocket] GET CLIENT 897 [] []
+13:34:11 DEBUG     [websocket] REMOVE CLIENT 897 [] []
+13:34:11 INFO      [websocket] ewolf@cedarville.edu disconnected ["connection_id" => 897,"session_id" => "1926391625a85d19eb657a595906851","storage_id" => 897,"username" => "ewolf@cedarville.edu"] []
+13:34:11 DEBUG     [websocket] INSERT CLIENT 962 ["user" => "C:21:"AppBundle\Entity\User":170:{a:8:{i:0;s:3:"N/A";i:1;N;i:2;s:20:"ewolf@cedarville.edu";i:3;s:20:"ewolf@cedarville.edu";i:4;b:1;i:5;i:4;i:6;s:20:"ewolf@cedarville.edu";i:7;s:20:"ewolf@cedarville.edu";}}","username" => "ewolf@cedarville.edu"] []
+13:34:11 INFO      [websocket] ewolf@cedarville.edu connected ["connection_id" => 962,"session_id" => "19149583315a85d2a3de400941948009","storage_id" => 962] []
+13:34:11 DEBUG     [websocket] GET CLIENT 962 [] []
+13:34:11 INFO      [websocket] ewolf@cedarville.edu subscribe to appbundle/channel [] []
+13:34:11 DEBUG     [websocket] Matched route "appbundle_topic" [] []
+13:34:11 DEBUG     [websocket] GET CLIENT 962 [] []
+13:35:02 DEBUG     [websocket] Matched route "appbundle_topic" [] []
+13:35:02 DEBUG     [websocket] GET CLIENT 962 [] []
+13:35:02 DEBUG     [websocket] REMOVE CLIENT 962 [] []
+13:35:02 INFO      [websocket] ewolf@cedarville.edu disconnected ["connection_id" => 962,"session_id" => "19149583315a85d2a3de400941948009","storage_id" => 962,"username" => "ewolf@cedarville.edu"] []
+13:35:02 DEBUG     [websocket] INSERT CLIENT 979 ["user" => "C:21:"AppBundle\Entity\User":170:{a:8:{i:0;s:3:"N/A";i:1;N;i:2;s:20:"ewolf@cedarville.edu";i:3;s:20:"ewolf@cedarville.edu";i:4;b:1;i:5;i:4;i:6;s:20:"ewolf@cedarville.edu";i:7;s:20:"ewolf@cedarville.edu";}}","username" => "ewolf@cedarville.edu"] []
+13:35:02 INFO      [websocket] ewolf@cedarville.edu connected ["connection_id" => 979,"session_id" => "14646322845a85d2d644f3f035643074","storage_id" => 979] []
+13:35:02 DEBUG     [websocket] GET CLIENT 979 [] []
+13:35:02 INFO      [websocket] ewolf@cedarville.edu subscribe to appbundle/channel [] []
+13:35:02 DEBUG     [websocket] Matched route "appbundle_topic" [] []
+13:35:02 DEBUG     [websocket] GET CLIENT 979 [] []
+13:35:16 DEBUG     [websocket] Matched route "appbundle_topic" [] []
+13:35:16 DEBUG     [websocket] GET CLIENT 979 [] []
+13:35:16 DEBUG     [websocket] REMOVE CLIENT 979 [] []
+13:35:16 INFO      [websocket] ewolf@cedarville.edu disconnected ["connection_id" => 979,"session_id" => "14646322845a85d2d644f3f035643074","storage_id" => 979,"username" => "ewolf@cedarville.edu"] []
+13:35:17 DEBUG     [websocket] INSERT CLIENT 996 ["user" => "C:21:"AppBundle\Entity\User":170:{a:8:{i:0;s:3:"N/A";i:1;N;i:2;s:20:"ewolf@cedarville.edu";i:3;s:20:"ewolf@cedarville.edu";i:4;b:1;i:5;i:4;i:6;s:20:"ewolf@cedarville.edu";i:7;s:20:"ewolf@cedarville.edu";}}","username" => "ewolf@cedarville.edu"] []
+13:35:17 INFO      [websocket] ewolf@cedarville.edu connected ["connection_id" => 996,"session_id" => "12078302985a85d2e53b564993497707","storage_id" => 996] []
+13:35:17 DEBUG     [websocket] GET CLIENT 996 [] []
+13:35:17 INFO      [websocket] ewolf@cedarville.edu subscribe to appbundle/channel [] []
+13:35:17 DEBUG     [websocket] Matched route "appbundle_topic" [] []
+13:35:17 DEBUG     [websocket] GET CLIENT 996 [] []
+13:35:27 DEBUG     [websocket] Matched route "appbundle_topic" [] []
+13:35:27 DEBUG     [websocket] GET CLIENT 996 [] []
+13:35:27 DEBUG     [websocket] REMOVE CLIENT 996 [] []
+13:35:27 INFO      [websocket] ewolf@cedarville.edu disconnected ["connection_id" => 996,"session_id" => "12078302985a85d2e53b564993497707","storage_id" => 996,"username" => "ewolf@cedarville.edu"] []
+13:35:28 DEBUG     [websocket] INSERT CLIENT 1013 ["user" => "C:21:"AppBundle\Entity\User":170:{a:8:{i:0;s:3:"N/A";i:1;N;i:2;s:20:"ewolf@cedarville.edu";i:3;s:20:"ewolf@cedarville.edu";i:4;b:1;i:5;i:4;i:6;s:20:"ewolf@cedarville.edu";i:7;s:20:"ewolf@cedarville.edu";}}","username" => "ewolf@cedarville.edu"] []
+13:35:28 INFO      [websocket] ewolf@cedarville.edu connected ["connection_id" => 1013,"session_id" => "6984354485a85d2f07c48c152661193","storage_id" => 1013] []
+13:35:28 DEBUG     [websocket] GET CLIENT 1013 [] []
+13:35:28 INFO      [websocket] ewolf@cedarville.edu subscribe to appbundle/channel [] []
+13:35:28 DEBUG     [websocket] Matched route "appbundle_topic" [] []
+13:35:28 DEBUG     [websocket] GET CLIENT 1013 [] []
+13:35:32 DEBUG     [websocket] INSERT CLIENT 1025 ["user" => "s:37:"anon-16495313715a85d2f4a1f3f472275060";"] []
+13:35:32 INFO      [websocket] anon-16495313715a85d2f4a1f3f472275060 connected ["connection_id" => 1025,"session_id" => "16495313715a85d2f4a1f3f472275060","storage_id" => 1025] []
+13:35:32 DEBUG     [websocket] GET CLIENT 1025 [] []
+13:35:32 DEBUG     [websocket] anon-16495313715a85d2f4a1f3f472275060 publish to appbundle/channel [] []
+13:35:32 DEBUG     [websocket] Matched route "appbundle_topic" [] []
+13:35:32 DEBUG     [websocket] GET CLIENT 1025 [] []
+"USER:anon-16495313715a85d2f4a1f3f472275060"
+13:35:32 DEBUG     [websocket] GET CLIENT 1025 [] []
+array:6 [
+  "msg" => "null"
+  "contestId" => 2
+  "submissionId" => -1
+  "scope" => "pageUpdate"
+  "recipients" => null
+  "passKey" => "gradeldb251"
+]
+array:6 [
+  "msg" => "null"
+  "contestId" => 2
+  "submissionId" => -1
+  "scope" => "pageUpdate"
+  "recipients" => null
+  "passKey" => "gradeldb251"
+]
+13:35:32 DEBUG     [websocket] GET CLIENT 796 [] []
+13:35:32 DEBUG     [websocket] GET CLIENT 1013 [] []
+13:35:32 DEBUG     [websocket] GET CLIENT 1025 [] []
+"Checking Scope and privleges..."
+"Sending global message to user..."
+"Sending global message to user..."
+13:35:32 DEBUG     [websocket] GET CLIENT 1025 [] []
+13:35:32 DEBUG     [websocket] REMOVE CLIENT 1025 [] []
+13:35:32 INFO      [websocket] anon-16495313715a85d2f4a1f3f472275060 disconnected ["connection_id" => 1025,"session_id" => "16495313715a85d2f4a1f3f472275060","storage_id" => 1025,"username" => "anon-16495313715a85d2f4a1f3f472275060"] []
+13:35:33 DEBUG     [websocket] Matched route "appbundle_topic" [] []
+13:35:33 DEBUG     [websocket] GET CLIENT 1013 [] []
+13:35:33 DEBUG     [websocket] REMOVE CLIENT 1013 [] []
+13:35:33 INFO      [websocket] ewolf@cedarville.edu disconnected ["connection_id" => 1013,"session_id" => "6984354485a85d2f07c48c152661193","storage_id" => 1013,"username" => "ewolf@cedarville.edu"] []
+13:35:33 DEBUG     [websocket] INSERT CLIENT 1050 ["user" => "C:21:"AppBundle\Entity\User":170:{a:8:{i:0;s:3:"N/A";i:1;N;i:2;s:20:"ewolf@cedarville.edu";i:3;s:20:"ewolf@cedarville.edu";i:4;b:1;i:5;i:4;i:6;s:20:"ewolf@cedarville.edu";i:7;s:20:"ewolf@cedarville.edu";}}","username" => "ewolf@cedarville.edu"] []
+13:35:33 INFO      [websocket] ewolf@cedarville.edu connected ["connection_id" => 1050,"session_id" => "13468114175a85d2f5a483e784369188","storage_id" => 1050] []
+13:35:33 DEBUG     [websocket] GET CLIENT 1050 [] []
+13:35:33 INFO      [websocket] ewolf@cedarville.edu subscribe to appbundle/channel [] []
+13:35:33 DEBUG     [websocket] Matched route "appbundle_topic" [] []
+13:35:33 DEBUG     [websocket] GET CLIENT 1050 [] []
+13:35:36 DEBUG     [websocket] INSERT CLIENT 1062 ["user" => "s:36:"anon-9053224725a85d2f8db2dd352930100";"] []
+13:35:36 INFO      [websocket] anon-9053224725a85d2f8db2dd352930100 connected ["connection_id" => 1062,"session_id" => "9053224725a85d2f8db2dd352930100","storage_id" => 1062] []
+13:35:36 DEBUG     [websocket] GET CLIENT 1062 [] []
+13:35:36 DEBUG     [websocket] anon-9053224725a85d2f8db2dd352930100 publish to appbundle/channel [] []
+13:35:36 DEBUG     [websocket] Matched route "appbundle_topic" [] []
+13:35:36 DEBUG     [websocket] GET CLIENT 1062 [] []
+"USER:anon-9053224725a85d2f8db2dd352930100"
+13:35:36 DEBUG     [websocket] GET CLIENT 1062 [] []
+array:6 [
+  "msg" => "null"
+  "contestId" => 2
+  "submissionId" => -1
+  "scope" => "pageUpdate"
+  "recipients" => null
+  "passKey" => "gradeldb251"
+]
+array:6 [
+  "msg" => "null"
+  "contestId" => 2
+  "submissionId" => -1
+  "scope" => "pageUpdate"
+  "recipients" => null
+  "passKey" => "gradeldb251"
+]
+13:35:36 DEBUG     [websocket] GET CLIENT 796 [] []
+13:35:36 DEBUG     [websocket] GET CLIENT 1050 [] []
+13:35:36 DEBUG     [websocket] GET CLIENT 1062 [] []
+"Checking Scope and privleges..."
+"Sending global message to user..."
+"Sending global message to user..."
+13:35:36 DEBUG     [websocket] GET CLIENT 1062 [] []
+13:35:36 DEBUG     [websocket] REMOVE CLIENT 1062 [] []
+13:35:36 INFO      [websocket] anon-9053224725a85d2f8db2dd352930100 disconnected ["connection_id" => 1062,"session_id" => "9053224725a85d2f8db2dd352930100","storage_id" => 1062,"username" => "anon-9053224725a85d2f8db2dd352930100"] []
+13:35:41 DEBUG     [websocket] INSERT CLIENT 1082 ["user" => "s:36:"anon-1868725635a85d2fd84c98032352155";"] []
+13:35:41 INFO      [websocket] anon-1868725635a85d2fd84c98032352155 connected ["connection_id" => 1082,"session_id" => "1868725635a85d2fd84c98032352155","storage_id" => 1082] []
+13:35:41 DEBUG     [websocket] GET CLIENT 1082 [] []
+13:35:41 DEBUG     [websocket] anon-1868725635a85d2fd84c98032352155 publish to appbundle/channel [] []
+13:35:41 DEBUG     [websocket] Matched route "appbundle_topic" [] []
+13:35:41 DEBUG     [websocket] GET CLIENT 1082 [] []
+"USER:anon-1868725635a85d2fd84c98032352155"
+13:35:41 DEBUG     [websocket] GET CLIENT 1082 [] []
+array:6 [
+  "contestId" => 2
+  "submissionId" => 268
+  "scope" => "userSpecificReject"
+  "recipients" => array:1 [
+    0 => "ewolf@cedarville.edu"
+  ]
+  "msg" => "Your submission for Calculate the Sum was <b>incorrect</b>."
+  "passKey" => "gradeldb251"
+]
+array:6 [
+  "contestId" => 2
+  "submissionId" => 268
+  "scope" => "userSpecificReject"
+  "recipients" => array:1 [
+    0 => "ewolf@cedarville.edu"
+  ]
+  "msg" => "Your submission for Calculate the Sum was <b>incorrect</b>."
+  "passKey" => "gradeldb251"
+]
+13:35:41 DEBUG     [websocket] GET CLIENT 796 [] []
+13:35:41 DEBUG     [websocket] GET CLIENT 1050 [] []
+13:35:41 DEBUG     [websocket] GET CLIENT 1082 [] []
+"Checking Scope and privleges..."
+"Sending message: {"msg": "Your submission for Calculate the Sum was <b>incorrect</b>.", "type": "reject", "submissionId": "268"}to specific users..."
+"Sending to ewolf@cedarville.edu"
+"{"msg": "Your submission for Calculate the Sum was <b>incorrect</b>.", "type": "reject", "submissionId": "268"}"
+13:35:41 DEBUG     [websocket] GET CLIENT 1082 [] []
+13:35:41 DEBUG     [websocket] anon-1868725635a85d2fd84c98032352155 publish to appbundle/channel [] []
+13:35:41 DEBUG     [websocket] Matched route "appbundle_topic" [] []
+13:35:41 DEBUG     [websocket] GET CLIENT 1082 [] []
+"USER:anon-1868725635a85d2fd84c98032352155"
+13:35:41 DEBUG     [websocket] GET CLIENT 1082 [] []
+array:6 [
+  "msg" => "null"
+  "contestId" => 2
+  "submissionId" => -1
+  "scope" => "pageUpdate"
+  "recipients" => null
+  "passKey" => "gradeldb251"
+]
+array:6 [
+  "msg" => "null"
+  "contestId" => 2
+  "submissionId" => -1
+  "scope" => "pageUpdate"
+  "recipients" => null
+  "passKey" => "gradeldb251"
+]
+13:35:41 DEBUG     [websocket] GET CLIENT 796 [] []
+13:35:41 DEBUG     [websocket] GET CLIENT 1050 [] []
+13:35:41 DEBUG     [websocket] GET CLIENT 1082 [] []
+"Checking Scope and privleges..."
+"Sending global message to user..."
+"Sending global message to user..."
+13:35:41 DEBUG     [websocket] GET CLIENT 1082 [] []
+13:35:41 DEBUG     [websocket] REMOVE CLIENT 1082 [] []
+13:35:41 INFO      [websocket] anon-1868725635a85d2fd84c98032352155 disconnected ["connection_id" => 1082,"session_id" => "1868725635a85d2fd84c98032352155","storage_id" => 1082,"username" => "anon-1868725635a85d2fd84c98032352155"] []
+13:35:49 DEBUG     [websocket] Matched route "appbundle_topic" [] []
+13:35:49 DEBUG     [websocket] GET CLIENT 1050 [] []
+13:35:49 DEBUG     [websocket] REMOVE CLIENT 1050 [] []
+13:35:49 INFO      [websocket] ewolf@cedarville.edu disconnected ["connection_id" => 1050,"session_id" => "13468114175a85d2f5a483e784369188","storage_id" => 1050,"username" => "ewolf@cedarville.edu"] []
+13:35:50 DEBUG     [websocket] INSERT CLIENT 1115 ["user" => "C:21:"AppBundle\Entity\User":170:{a:8:{i:0;s:3:"N/A";i:1;N;i:2;s:20:"ewolf@cedarville.edu";i:3;s:20:"ewolf@cedarville.edu";i:4;b:1;i:5;i:4;i:6;s:20:"ewolf@cedarville.edu";i:7;s:20:"ewolf@cedarville.edu";}}","username" => "ewolf@cedarville.edu"] []
+13:35:50 INFO      [websocket] ewolf@cedarville.edu connected ["connection_id" => 1115,"session_id" => "16825303425a85d30624a31123777678","storage_id" => 1115] []
+13:35:50 DEBUG     [websocket] GET CLIENT 1115 [] []
+13:35:50 INFO      [websocket] ewolf@cedarville.edu subscribe to appbundle/channel [] []
+13:35:50 DEBUG     [websocket] Matched route "appbundle_topic" [] []
+13:35:50 DEBUG     [websocket] GET CLIENT 1115 [] []
+13:36:04 DEBUG     [websocket] INSERT CLIENT 1127 ["user" => "s:36:"anon-6414996475a85d314404b1134078058";"] []
+13:36:04 INFO      [websocket] anon-6414996475a85d314404b1134078058 connected ["connection_id" => 1127,"session_id" => "6414996475a85d314404b1134078058","storage_id" => 1127] []
+13:36:04 DEBUG     [websocket] GET CLIENT 1127 [] []
+13:36:04 DEBUG     [websocket] anon-6414996475a85d314404b1134078058 publish to appbundle/channel [] []
+13:36:04 DEBUG     [websocket] Matched route "appbundle_topic" [] []
+13:36:04 DEBUG     [websocket] GET CLIENT 1127 [] []
+"USER:anon-6414996475a85d314404b1134078058"
+13:36:04 DEBUG     [websocket] GET CLIENT 1127 [] []
+array:6 [
+  "msg" => "null"
+  "contestId" => 2
+  "submissionId" => -1
+  "scope" => "pageUpdate"
+  "recipients" => null
+  "passKey" => "gradeldb251"
+]
+array:6 [
+  "msg" => "null"
+  "contestId" => 2
+  "submissionId" => -1
+  "scope" => "pageUpdate"
+  "recipients" => null
+  "passKey" => "gradeldb251"
+]
+13:36:04 DEBUG     [websocket] GET CLIENT 796 [] []
+13:36:04 DEBUG     [websocket] GET CLIENT 1115 [] []
+13:36:04 DEBUG     [websocket] GET CLIENT 1127 [] []
+"Checking Scope and privleges..."
+"Sending global message to user..."
+"Sending global message to user..."
+13:36:04 DEBUG     [websocket] GET CLIENT 1127 [] []
+13:36:04 DEBUG     [websocket] REMOVE CLIENT 1127 [] []
+13:36:04 INFO      [websocket] anon-6414996475a85d314404b1134078058 disconnected ["connection_id" => 1127,"session_id" => "6414996475a85d314404b1134078058","storage_id" => 1127,"username" => "anon-6414996475a85d314404b1134078058"] []
+13:36:04 DEBUG     [websocket] Matched route "appbundle_topic" [] []
+13:36:04 DEBUG     [websocket] GET CLIENT 1115 [] []
+13:36:04 DEBUG     [websocket] REMOVE CLIENT 1115 [] []
+13:36:04 INFO      [websocket] ewolf@cedarville.edu disconnected ["connection_id" => 1115,"session_id" => "16825303425a85d30624a31123777678","storage_id" => 1115,"username" => "ewolf@cedarville.edu"] []
+13:36:05 DEBUG     [websocket] INSERT CLIENT 1152 ["user" => "C:21:"AppBundle\Entity\User":170:{a:8:{i:0;s:3:"N/A";i:1;N;i:2;s:20:"ewolf@cedarville.edu";i:3;s:20:"ewolf@cedarville.edu";i:4;b:1;i:5;i:4;i:6;s:20:"ewolf@cedarville.edu";i:7;s:20:"ewolf@cedarville.edu";}}","username" => "ewolf@cedarville.edu"] []
+13:36:05 INFO      [websocket] ewolf@cedarville.edu connected ["connection_id" => 1152,"session_id" => "13389320515a85d3152bc34956750250","storage_id" => 1152] []
+13:36:05 DEBUG     [websocket] GET CLIENT 1152 [] []
+13:36:05 INFO      [websocket] ewolf@cedarville.edu subscribe to appbundle/channel [] []
+13:36:05 DEBUG     [websocket] Matched route "appbundle_topic" [] []
+13:36:05 DEBUG     [websocket] GET CLIENT 1152 [] []
+13:36:10 DEBUG     [websocket] INSERT CLIENT 1164 ["user" => "s:36:"anon-2931415795a85d31a1ba91453743941";"] []
+13:36:10 INFO      [websocket] anon-2931415795a85d31a1ba91453743941 connected ["connection_id" => 1164,"session_id" => "2931415795a85d31a1ba91453743941","storage_id" => 1164] []
+13:36:10 DEBUG     [websocket] GET CLIENT 1164 [] []
+13:36:10 DEBUG     [websocket] anon-2931415795a85d31a1ba91453743941 publish to appbundle/channel [] []
+13:36:10 DEBUG     [websocket] Matched route "appbundle_topic" [] []
+13:36:10 DEBUG     [websocket] GET CLIENT 1164 [] []
+"USER:anon-2931415795a85d31a1ba91453743941"
+13:36:10 DEBUG     [websocket] GET CLIENT 1164 [] []
+array:6 [
+  "msg" => "null"
+  "contestId" => 2
+  "submissionId" => -1
+  "scope" => "pageUpdate"
+  "recipients" => null
+  "passKey" => "gradeldb251"
+]
+array:6 [
+  "msg" => "null"
+  "contestId" => 2
+  "submissionId" => -1
+  "scope" => "pageUpdate"
+  "recipients" => null
+  "passKey" => "gradeldb251"
+]
+13:36:10 DEBUG     [websocket] GET CLIENT 796 [] []
+13:36:10 DEBUG     [websocket] GET CLIENT 1152 [] []
+13:36:10 DEBUG     [websocket] GET CLIENT 1164 [] []
+"Checking Scope and privleges..."
+"Sending global message to user..."
+"Sending global message to user..."
+13:36:10 DEBUG     [websocket] GET CLIENT 1164 [] []
+13:36:10 DEBUG     [websocket] REMOVE CLIENT 1164 [] []
+13:36:10 INFO      [websocket] anon-2931415795a85d31a1ba91453743941 disconnected ["connection_id" => 1164,"session_id" => "2931415795a85d31a1ba91453743941","storage_id" => 1164,"username" => "anon-2931415795a85d31a1ba91453743941"] []
+13:36:31 DEBUG     [websocket] INSERT CLIENT 1184 ["user" => "s:37:"anon-10113514435a85d32f5b638519026356";"] []
+13:36:31 INFO      [websocket] anon-10113514435a85d32f5b638519026356 connected ["connection_id" => 1184,"session_id" => "10113514435a85d32f5b638519026356","storage_id" => 1184] []
+13:36:31 DEBUG     [websocket] GET CLIENT 1184 [] []
+13:36:31 DEBUG     [websocket] anon-10113514435a85d32f5b638519026356 publish to appbundle/channel [] []
+13:36:31 DEBUG     [websocket] Matched route "appbundle_topic" [] []
+13:36:31 DEBUG     [websocket] GET CLIENT 1184 [] []
+"USER:anon-10113514435a85d32f5b638519026356"
+13:36:31 DEBUG     [websocket] GET CLIENT 1184 [] []
+array:6 [
+  "contestId" => 2
+  "submissionId" => 269
+  "scope" => "userSpecificReject"
+  "recipients" => array:1 [
+    0 => "ewolf@cedarville.edu"
+  ]
+  "msg" => "Your submission for Calculate the Sum was <b>incorrect</b>."
+  "passKey" => "gradeldb251"
+]
+array:6 [
+  "contestId" => 2
+  "submissionId" => 269
+  "scope" => "userSpecificReject"
+  "recipients" => array:1 [
+    0 => "ewolf@cedarville.edu"
+  ]
+  "msg" => "Your submission for Calculate the Sum was <b>incorrect</b>."
+  "passKey" => "gradeldb251"
+]
+13:36:31 DEBUG     [websocket] GET CLIENT 796 [] []
+13:36:31 DEBUG     [websocket] GET CLIENT 1152 [] []
+13:36:31 DEBUG     [websocket] GET CLIENT 1184 [] []
+"Checking Scope and privleges..."
+"Sending message: {"msg": "Your submission for Calculate the Sum was <b>incorrect</b>.", "type": "reject", "submissionId": "269"}to specific users..."
+"Sending to ewolf@cedarville.edu"
+"{"msg": "Your submission for Calculate the Sum was <b>incorrect</b>.", "type": "reject", "submissionId": "269"}"
+13:36:31 DEBUG     [websocket] GET CLIENT 1184 [] []
+13:36:31 DEBUG     [websocket] anon-10113514435a85d32f5b638519026356 publish to appbundle/channel [] []
+13:36:31 DEBUG     [websocket] Matched route "appbundle_topic" [] []
+13:36:31 DEBUG     [websocket] GET CLIENT 1184 [] []
+"USER:anon-10113514435a85d32f5b638519026356"
+13:36:31 DEBUG     [websocket] GET CLIENT 1184 [] []
+array:6 [
+  "msg" => "null"
+  "contestId" => 2
+  "submissionId" => -1
+  "scope" => "pageUpdate"
+  "recipients" => null
+  "passKey" => "gradeldb251"
+]
+array:6 [
+  "msg" => "null"
+  "contestId" => 2
+  "submissionId" => -1
+  "scope" => "pageUpdate"
+  "recipients" => null
+  "passKey" => "gradeldb251"
+]
+13:36:31 DEBUG     [websocket] GET CLIENT 796 [] []
+13:36:31 DEBUG     [websocket] GET CLIENT 1152 [] []
+13:36:31 DEBUG     [websocket] GET CLIENT 1184 [] []
+"Checking Scope and privleges..."
+"Sending global message to user..."
+"Sending global message to user..."
+13:36:31 DEBUG     [websocket] GET CLIENT 1184 [] []
+13:36:31 DEBUG     [websocket] REMOVE CLIENT 1184 [] []
+13:36:31 INFO      [websocket] anon-10113514435a85d32f5b638519026356 disconnected ["connection_id" => 1184,"session_id" => "10113514435a85d32f5b638519026356","storage_id" => 1184,"username" => "anon-10113514435a85d32f5b638519026356"] []
