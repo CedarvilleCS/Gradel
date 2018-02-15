@@ -23,7 +23,7 @@
           const data = JSON.parse(payload);
           console.log(data);
           console.log("DID it work?")
-          handleMessage(data["msg"], data["type"]);
+          handleMessage(data["msg"], data["type"], data["submissionId"]);
         } catch(e) {
 
         }
@@ -51,7 +51,7 @@
         sessionGlob.publish("appbundle/channel", {contestId: "{{section.id}}", scope: "userSpecific", recipients: recipients, msg: msg});
     }
 
-    function handleMessage(message, type) {
+    function handleMessage(message, type, submissionId) {
       console.log("Handling Message of type: " + type + "...");
 
       message = message.replace(/\n|\r\n|\r/g, "<br/>");
@@ -69,7 +69,9 @@
           break;
         case "reject":
           console.log("REJECT");
-          toastr.error(message);
+          const route = "{{path('problem_result', 'RESULT')}}" + submissionId;
+          console.log(route);
+          toastr.error("<a href='" + route + "'><div styles='display: inline-block'>" + message + "<div></a>");
           break;
         case "updateData":
           if (typeof socketScoreboardUpdate === "function") {
