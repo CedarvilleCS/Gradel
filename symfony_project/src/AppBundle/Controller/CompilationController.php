@@ -79,11 +79,12 @@ class CompilationController extends Controller {
 		# get the type of submission				
 		$team = null;
 		
-		if(!$grader->isTeaching($user, $trial->problem->assignment->section) && !$grader->isJudging($user, $trial->problem->assignment->section)){
+		// if you are taking, we need to get the team and the number of attempts
+		if( $grader->isTaking($user, $problem->assignment->section) ){
 
 			# get the current team
 			$team = $grader->getTeam($user, $problem->assignment);		
-			if(!$team && !$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN")){
+			if( !($team || $elevatedUser) ){
 				return $this->returnForbiddenResponse("YOU ARE NOT ON A TEAM OR TEACHING FOR THIS ASSIGNMENT");
 			}
 		
@@ -101,6 +102,10 @@ class CompilationController extends Controller {
 			if(!$elevatedUser && $problem->total_attempts > 0 && $curr_attempts >= $problem->total_attempts){
 				return $this->returnForbiddenResponse("ALREADY REACHED MAX ATTEMPTS FOR PROBLEM AT ".$curr_attempts." ATTEMPTS");
 			}
+		} else if( !$elevatedUser ){
+			
+			return $this->returnForbiddenResponse("YOU ARE NOT PERMITTED TO SUBMIT FOR THIS PROBLEM");
+			
 		}
 		
 		$submitted_filename = $uploader->createSubmissionFile($trial);
