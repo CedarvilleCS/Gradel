@@ -76,9 +76,9 @@
 #stats-marker-hover{
 	
 	height: 80px;
-	width: 250px;
+	width: 350px;
 	top: 50px;
-  right: 45px;
+        right: 45px;
 	background: #71BA62;
 	border: 3pt solid grey;
 	display: none;
