@@ -16,10 +16,10 @@
 		{% if assignment is not null %}
 		<a id="delete-btn" class="btn"><div class="btn btn-center btn-delete">Delete</div></a>
 		
+		{% endif %}
 		<ol style="padding-top: 0px">
 			<li id="delete-warning" style="padding-top: 0px"></li>
 		</ol>
-		{% endif %}
     </nav>
 	
 	{{ include('template/path-nav.html.twig') }}
@@ -28,50 +28,80 @@
 	<section id="main">
 		{# Cards #}
 
-		<div class="card">
+		<div class="parallel-cards">
+			<div class="card" style="flex-grow:3">
+				
+				<div class="btn-close">
+					<h2 style="margin: 0px">
+					{% if assignment is not null %}
+						Edit {{assignment.name}}
+					{% else %}
+						New Assignment
+					{% endif %}					
+					</h2>
+				</div>
 			
-			<div class="btn-close">
-				<h2 style="margin: 0px">
-				{% if assignment is not null %}
-					Edit Assignment
-				{% else %}
-					New Assignment
-				{% endif %}					
-				</h2>
-			</div>
-		
-			<div id="requiredFields" class="card-contents">
-				<div>
-					<table>
-						<tr> <th colspan="1">
-								<label for="name">Name</label>
-								<input id="name" name="name" type="text" value="{{assignment.name}}" style="width: 200px">
-							</th>
-						</tr>
-						
-						<tr>
-							<th colspan="2">
-								<label for="startdatepicker">Open Date</label>
-								<input type="text" id="opendatepicker" style="width:150px; margin-right:20px">
+				<div id="requiredFields" class="card-contents">
+					<div>
+						<table>
+							<tr> <th colspan="1">
+									<label for="name">Name</label>
+									<input id="name" name="name" type="text" value="{{assignment.name}}" style="width: 200px">
+								</th>
+							</tr>
+							
+							<tr>
+								<th colspan="2">
+									<label for="startdatepicker">Open Date</label>
+									<input type="text" id="opendatepicker" style="width:150px; margin-right:20px">
 
-								<label for="enddatepicker">Close Date</label>
-								<input type="text" id="closedatepicker" style="width:150px; margin-right:20px">
-								
-								<label for="cutoffdatepicker">Cutoff Date</label>
-								<input type="text" id="cutoffdatepicker" style="width: 150px">
-							</th>
-						</tr>
-						
-						<tr> <th>
-							<div style="display:flex; justify-content:space-between; align-items: center">
-								<span><label for="weight">Weight </label> <input id="weight" name="weight" type="text" style="width: 50px"></span>
-								<div id="other-assignments" style="font-weight: normal">				
+									<label for="enddatepicker">Close Date</label>
+									<input type="text" id="closedatepicker" style="width:150px; margin-right:20px">
+									
+									<label for="cutoffdatepicker">Cutoff Date</label>
+									<input type="text" id="cutoffdatepicker" style="width: 150px">
+								</th>
+							</tr>
+							
+							<tr> <th>
+								<div style="display:flex; justify-content:space-between; align-items: center">
+									<span><label for="weight">Weight </label> <input id="weight" name="weight" type="text" style="width: 50px"></span>
+									<div id="other-assignments" style="font-weight: normal"> </div>				
+								</div>
+							</th> </tr>
+							
+						</table>
+					</div>
+				</div>
+			</div>
+			
+			<div class="card">
+			
+				<div class="btn-close" onclick="collapseCard('additionalOptions')">
+					<h2 style="margin: 0px">Grading Options
+						<span style="float: right"><i class="fa fa-angle-down"></i></span>
+					</h2>
+				</div>
+			
+				<div id="additionalOptions" class="card-contents" style="margin-top:10px">
+					<table>
+						<tr> <th>						  
+							<label for="penalty">Penalty Per Day Late</label>
+							<input id="penalty" name="penalty" type="text" value="0.00">
+							
+							
+							<div id="extra-credit-container" class="toggle-container">
+								<label for="extracredit">Extra Credit</label>
+								<label class="switch">
+									<input id="extracredit" type="checkbox" name="extracredit">
+									<span class="slider round"></span>
+								</label>
 							</div>
 						</th> </tr>
-						
 					</table>
 				</div>
 			</div>
+			
 		</div>
 		
 		<div class="card">
@@ -101,27 +131,7 @@
 			</div>
 		</div>
 		
-		<div class="card">
-			
-			<div class="btn-close" onclick="collapseCard('additionalOptions')">
-				<h2 style="margin: 0px">Additional Options
-					<span style="float: right"><i class="fa fa-angle-down"></i></span>
-				</h2>
-			</div>
 		
-			<div id="additionalOptions" class="card-contents" style="margin-top:10px">
-				<div class="toggle-container">
-					<label for="extracredit"> Extra Credit </label>
-					<label class="switch">
-						<input type="checkbox" id="extracredit" name="extracredit">
-						<span class="slider round"></span>
-					</label>
-				</div>
-				
-				<label for="description">Description</label> <input id="description" name="description" type="text">
-				
-			</div>
-		</div>
 		
 	</section>
 </body>
@@ -154,7 +164,10 @@
 	<script src="{{ asset('js/cards.js') }}"></script>		
 	<script src="{{ asset('js/validation.js') }}"></script>
 	
-    <script>	
+    <script>
+	
+		var team_warning = false;
+	
 		$(document).ready(function() {
 			$('#insert').on('click', function(){insertSection();});
 			$('#student-picker').on('change', function(){addStudent();});
@@ -184,66 +197,64 @@
 					window.location = "{{path('assignment_delete', {'sectionId': assignment.section.id, 'assignmentId': assignment.id})}}";
 					
 				} else {
-					$('#delete-warning').html("Are you sure?<br/>Click again to {% if section.is_deleted %} reinstate {% else %} delete {% endif %}.");
+					$('#delete-warning').html("Are you sure?<br/>Click again to delete.");
 				}
 			
 				warned++;
 			});
 			{% endif %}			
 			
+			/* Client-Side Field Validation */
 			
+			// assignment name
+			validateMessage($("#name"), $("#delete-warning"), "This assignment must have a name<br><br>");
+			// assignment open time
+			validateMessage($("#opendatepicker"), $("#delete-warning"), "You must assign a start date<br><br>");
+			// assignment close time
+			validateMessage($("#closedatepicker"), $("#delete-warning"), "You must assign a close date<br><br>");
+
 			$('#save-btn').on('click', function(){
-			
-				/* Client-Side Field Validation */
-        
-				// assignment name
-				if ($.trim($('#name').val())  === '') {						
-					setInvalid($('#name'));
-					return false;
-				} else {
-					setValid($('#name'));
-				}
-				
-				// assignment open time
-				if ($('#opendatepicker').val()  === '') {						
-					setInvalid($('#opendatepicker'));
-					return false;
-				} else {
-					setValid($('#opendatepicker'));
-				}
-				
-				// assignment close time
-				if ($('#closedatepicker').val()  === '') {						
-					setInvalid($('#closedatepicker'));
-					return false;
-				} else {
-					setValid($('#closedatepicker'));
-				}
 				
 				// compare dates
 				if ($('#closedatepicker').datepicker('getDate') < $('#opendatepicker').datepicker('getDate')){
 					setInvalid($('#closedatepicker'));
 					setInvalid($('#opendatepicker'));
-					return false;
+					$('#delete-warning').append("Close date must be after open date<br><br>");
 				}
-				
 				if ($('#cutoffdatepicker').val() != '' && $('#cutoffdatepicker').datepicker('getDate') < $('#closedatepicker').datepicker('getDate')){
 					setInvalid($('#cutoffdatepicker'));
-					return false;
+					$('#delete-warning').append("Cutoff date must be after close date<br><br>");
 				}
 				
 				// weight
 				var wght = new Number($('#weight').val());
-				if($('#weight').val() != '' && (wght < 1 || wght % 1 != 0)){						
+				if($('#weight').val() === '' || ($('#weight').val() != '' && (wght < 1 || wght % 1 != 0))){						
 					setInvalid($('#weight'));
+					$('#delete-warning').append("Weight must be a positive integer<br><br>");
 					return false;
 				} else {
 					setValid($('#weight'));				
 				}
 				
+				// penalty per day
+				var pen = new Number($('#penalty').val());
+				if($('#penalty').val() === '' || !(pen >= 0.0 && pen <= 1.0)){						
+					setInvalid($('#penalty'));
+					
+					$('#delete-warning').append("Penalty per day late must be a value between 0 and 1<br><br>");
+					
+					return false;
+				} else {
+					setValid($('#penalty'));				
+				}
+				
 				// teams
-				if(!validateTeams()){
-					setInvalid($('#team-picker'));		
+				if(!validateTeams() && !team_warning){
+					setInvalid($('#team-picker'));	
+					team_warning = true;
+					
+					$('#delete-warning').append("Not everyone is assigned to a team - Press save again to override<br><br>");
+					
 					return false;
 				} else {
 					setValid($('#team-picker'));
@@ -257,17 +268,20 @@
 				}
 				
 				// get JSON structure for the teams
-				var teamarray = getTeams();				
+				var teamarray = getTeams();		
+				console.log(teamarray);
 				
 				/* Post to the Symfony Route */
 				$.post( "{{path('assignment_modify')}}", {				
 					
 					name: $.trim($('#name').val()),
-					description: $.trim($('#description').val()),
+					description: "",
 					
 					open_time: $('#opendatepicker').val(),
 					close_time: $('#closedatepicker').val(),
 					cutoff_time: $('#cutoffdatepicker').val(),
+					
+					penalty: $('#penalty').val(),
 					
 					is_extra_credit: $('#extracredit').is(':checked'),
 					weight: $('#weight').val(),
@@ -276,11 +290,12 @@
 					assignment: {% if assignment is not null %} {{assignment.id}} {% else %} 0 {% endif %},
 					
 					teams: JSON.stringify(teamarray[0]),
-					teamnames: JSON.stringify(teamarray[1])
+					teamnames: JSON.stringify(teamarray[1]),
+					teamids: JSON.stringify(teamarray[2])
 					
 				}, function(data) {			
 					console.log(data);					
-					window.location = data["redirect_url"];
+					window.location = "{{path('section', {'sectionId': section.id})}}";
 					
 				}).fail(function(data) {				
 					alert(data["responseText"]);					
@@ -338,7 +353,7 @@
 			
 				var newTeam = $("<div>", {"class": "team"});
 				newTeam.html("<input type='text' id='team-name' value='Team Name'>");
-				
+								
 				newTeam.droppable({
 					accept: ".user",
 					drop: function(event, ui) {						
@@ -347,6 +362,8 @@
 				});				
 			
 				$('#team-picker').append(newTeam);
+				
+				$('#team-name-checkbox').change();
 			},
 			stop: function() {				
 				$(".team:not(:has(.user))").remove();
@@ -435,13 +452,16 @@
 	
 		var teams = [];
 		var teamnames = [];
+		var ids = [];
 	
 		$('.team').each(function( index ) {
 		
 			var name = $('#team-name', this).val();
+			var id = $(this).attr('id');
 			
 			teamnames[index] = name;
 			teams[index] = [];
+			ids[index] = (id) ? parseInt(id) : 0;
 			
 			$(this).children('.user').each(function(index2) {
 				teams[index][index2] = $(this).prop('id');
@@ -452,6 +472,10 @@
 		var res = [];
 		res[0] = teams;
 		res[1] = teamnames;
+		res[2] = ids;
+		
+		console.log(ids);
+		
 		return res;
 	}
 	
@@ -496,7 +520,7 @@
 		$('#name').val("{{assignment.name}}");
 		
 		// set the description
-		$('#description').val("{{assignment.deblobinateDescription()}}");
+		$('#description').val("{{assignment.description}}");
 		
 		// set the open date
 		$('#opendatepicker').val("{{assignment.start_time|date('m/d/Y H:i')}}");		
@@ -511,17 +535,24 @@
 		$('#weight').val({{assignment.weight}});
 		
 		// set the checkbox
+		$('#penalty').val({{assignment.penalty_per_day}});
+		
+		// set the checkbox
 		$('#extracredit').attr('checked', {% if assignment.is_extra_credit %} true {% else %} false {% endif %});
 		
 		// set the teams
-		var teams_str = '{{assignment.teams.toArray()|json_encode|raw}}'.replace(/\\/g, "");
+		var teams_str = '{{assignment.teams.toArray()|json_encode|e('js')}}';
 		var teams = JSON.parse(teams_str);
 		
+		console.log(teams);
 		for(var i=0; i<teams.length; i++){
+			for(var j=0; j<teams[i].users.length; j++){
+				$('#team-pool #'+teams[i].users[j].id).remove();
+			}
+		
+			//$('#team-pool .user').remove();
 			
-			$('#team-pool .user').remove();
-			
-			var newTeam = $("<div>", {"class": "team"});
+			var newTeam = $("<div>", {"class": "team", "id": teams[i].id});
 			newTeam.html("<input type='text' id='team-name' value='"+teams[i].name+"'>");
 			
 			newTeam.droppable({

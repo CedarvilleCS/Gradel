@@ -11,9 +11,9 @@ use AppBundle\Entity\Problem;
 use AppBundle\Entity\ProblemLanguage;
 use AppBundle\Entity\Language;
 use AppBundle\Entity\UserSectionRole;
+use AppBundle\Entity\Testcase;
 
 use AppBundle\Utils\Grader;
-use AppBundle\Utils\TestCaseCreator;
 
 use Psr\Log\LoggerInterface;
 
@@ -22,6 +22,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Config\Definition\Exception\Exception;
 
 class ProblemController extends Controller {
 
@@ -34,9 +35,22 @@ class ProblemController extends Controller {
 			->where('1 = 1');
 		$languages = $qb->getQuery()->getResult();
 		
+		if(!isset($sectionId) || !($sectionId > 0)){
+			die("SECTION ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
+		}
+		
 		$section = $em->find('AppBundle\Entity\Section', $sectionId);
 		if(!$section){
 			die("SECTION DOES NOT EXIST");
+		}
+		
+		# REDIRECT TO CONTEST_PROBLEM_EDIT IF NEED BE
+		if($section->course->is_contest){
+			return $this->redirectToRoute('contest_problem_edit', ['contestId' => $sectionId, 'roundId' => $assignmentId, 'problemId' => $problemId]);
+		}
+		
+		if(!isset($assignmentId) || !($assignmentId > 0)){
+			die("ASSIGNMENT ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
 		}
 		
 		$assignment = $em->find('AppBundle\Entity\Assignment', $assignmentId);
@@ -45,24 +59,60 @@ class ProblemController extends Controller {
 		}
 		
 		if($problemId != 0){
+			
+			if(!isset($problemId) || !($problemId > 0)){
+				die("PROBLEM ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
+			}		
+			
 			$problem = $em->find('AppBundle\Entity\Problem', $problemId);
 			
 			if(!$problem){
 				die("PROBLEM DOES NOT EXIST");
+			}			
+						
+			if($problem->master){
+				$problem = $problem->master;				
+				
+				return $this->redirectToRoute('problem_edit', ['sectionId' => $problem->assignment->section->id, 'assignmentId' => $problem->assignment->id, 'problemId' => $problem->id]);
 			}
 		}
 		
+		$default_code = [];
+		$ace_modes = [];
+		$filetypes = [];
+		foreach($languages as $l){
+			
+			$ace_modes[$l->name] = $l->ace_mode;
+			$filetypes[str_replace(".", "", $l->filetype)] = $l->name;
+			
+			// either get the default code from the problem or from the overall default
+			$default_code[$l->name] = $l->deblobinateDefaultCode();
+		}
+		
+		$recommendedSlaves = [];
+		$recommendedSlaves = $em->getRepository('AppBundle\Entity\Problem')->findBy(array('name' => $problem->name));
+
 		return $this->render('problem/edit.html.twig', [
 			'languages' => $languages,
 			'section' => $section,
 			'assignment' => $assignment,
 			'problem' => $problem,
+			
+			'default_code' => $default_code,
+			'ace_modes' => $ace_modes,
+			'filetypes' => $filetypes,
+				
+			'recommendedSlaves' => $recommendedSlaves,
 		]);
     }
 
 	public function deleteAction($sectionId, $assignmentId, $problemId){
 
 		$em = $this->getDoctrine()->getManager();
+		
+		if(!isset($problemId) || !($problemId > 0)){
+			die("PROBLEM ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
+		}
 
 		$problem = $em->find('AppBundle\Entity\Problem', $problemId);
 		if(!$problem){
@@ -99,6 +149,10 @@ class ProblemController extends Controller {
 		$postData = $request->request->all();
 
 		# get the current assignment
+		if(!isset($postData['assignmentId']) || !($postData['assignmentId'] > 0)){
+			die("ASSIGNMENT ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
+		}
+		
 		$assignment = $em->find('AppBundle\Entity\Assignment', $postData['assignmentId']);
 		if(!$assignment){
 			return $this->returnForbiddenResponse("Assignment ".$postData['assignmentId']." does not exist");
@@ -118,6 +172,10 @@ class ProblemController extends Controller {
 			$em->persist($problem);
 
 		} else {
+			
+			if(!isset($postData['problem']) || !($postData['problem'] > 0)){
+				die("PROBLEM ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
+			}
 
 			$problem = $em->find('AppBundle\Entity\Problem', $postData['problem']);
 
@@ -125,7 +183,6 @@ class ProblemController extends Controller {
 				return $this->returnForbiddenResponse("Problem ".$postData['problem']." does not exist for the given assignment.");
 			}
 		}
-
 
 		# check mandatory fields
 		if(!isset($postData['name']) || trim($postData['name']) == "" || !isset($postData['description']) || trim($postData['description']) == "" || !isset($postData['weight']) || !isset($postData['time_limit'])){
@@ -144,6 +201,7 @@ class ProblemController extends Controller {
 
 		}
 
+		$problem->version = $problem->version+1;
 		$problem->name = trim($postData['name']);
 		$problem->description = trim($postData['description']);
 		$problem->weight = (int)trim($postData['weight']);
@@ -222,54 +280,206 @@ class ProblemController extends Controller {
 		$problem->response_level = $response_level;
 		$problem->display_testcaseresults = ($display_testcaseresults == "true");
 		$problem->testcase_output_level = $testcase_output_level;
-		$problem->extra_testcases_display = ($extra_testcases_display == "true");
-
+		$problem->extra_testcases_display = ($extra_testcases_display == "true");		
+		
+		# linked problems
+		if(!$problem->assignment->section->course->is_contest){
+			
+			foreach($problem->slaves as &$slave){
+				$slave->master = null;
+			}
+			
+			foreach($postData['linked_probs'] as $link){
+				
+				$linked = $em->find("AppBundle\Entity\Problem", $link);
+				
+				if(!$linked){
+					return $this->returnForbiddenResponse("Provided problem id ".$link." does not exist");
+				}
+				
+				$problem->slaves->add($linked);
+				$linked->master = $problem;			
+			}
+		}		
+		
+		# custom validator
+		$custom_validator = trim($postData['custom_validator']);
+		if(isset($custom_validator) && $custom_validator != ""){
+			$problem->custom_validator = $custom_validator;			
+			//return $this->returnForbiddenResponse($custom_validator."");
+		} else {
+			$problem->custom_validator = null;
+		}
+		
 		# go through the problemlanguages
+		# remove the old ones
 		foreach($problem->problem_languages as $pl){
 			$em->remove($pl);
 		}
 
+		$newProblemLanguages = [];
+		foreach($postData['languages'] as $l){
 
-		foreach(array_unique($postData['languages']) as $l) {
+			if(!is_array($l)){
+				return $this->returnForbiddenResponse("Language data is not formatted properly");
+			}
+			
+			if(!isset($l['id']) || !($l['id'] > 0)){				
+				return $this->returnForbiddenResponse("You did not specify a language id");
+			}
 
-			$language = $em->find("AppBundle\Entity\Language", $l);
+			$language = $em->find("AppBundle\Entity\Language", $l['id']);
 
 			if(!$language){
-				return $this->returnForbiddenResponse("Provided language with id ".$l." does not exist");
+				return $this->returnForbiddenResponse("Provided language with id ".$l['id']." does not exist");
 			}
 
 			$problemLanguage = new ProblemLanguage();
 
 			$problemLanguage->language = $language;
 			$problemLanguage->problem = $problem;
+			
+			// set compiler options and default code
+			if(isset($l['compiler_options']) && strlen($l['compiler_options']) > 0){
+				
+				# check the compiler options for invalid characters
+				if(preg_match("/^[ A-Za-z0-9+=\-]+$/", $l['compiler_options']) != 1){
+					return $this->returnForbiddenResponse("The compiler options provided has invalid characters");
+				}
+								
+				$problemLanguage->compilation_options = $l['compiler_options'];
+			}
+			
+			if(isset($l['default_code']) && strlen($l['default_code']) > 0){
+				
+				$problemLanguage->default_code = $l['default_code'];
+			}
+			
+			$newProblemLanguages[] = $problemLanguage;
 			$em->persist($problemLanguage);
 		}
-
-		# go through the testcases array provided if this was a new problem
-		if($postData['problem'] == 0){
-
-			$count = 1;
-			foreach($postData['testcases'] as $tc){
-
-				if(!is_array($tc)){
-					return $this->returnForbiddenResponse("Testcase data is not formatted properly");
-				}
-
-				# build the testcase
-				$response = TestCaseCreator::makeTestCase($em, $problem, $tc, $count);
-				$count++;
-
-				# check what the makeTestCase returns
-				if(!$response->problem){
-					return $response;
-				} else{
-					$testcase = $response;
-				}
-
-				$em->persist($testcase);
-			}
+		
+		
+		# testcases
+		# set the old testcases to null 
+		# (so they don't go away and can be accessed in the results page)
+		foreach($problem->testcases as &$testcase){
+			$testcase->problem = null;
+			$em->persist($testcase);
 		}
+		
+		$newTestcases = new ArrayCollection();
+		$count = 1;
+		foreach($postData['testcases'] as &$tc){
+			
+			$tc = (array) $tc;
+			
+			# build the testcase
+			try{				
+				$testcase = new Testcase($problem, $tc, $count);
+				$count++;
+					
+				$em->persist($testcase);
+				$newTestcases->add($testcase);
+				
+			} catch(Exception $e){
+				return $this->returnForbiddenResponse($e->getMessage());
+			}
 
+		}
+		$problem->testcases = $newTestcases;
+		$problem->testcase_counts[] = count($problem->testcases);	
+		
+		
+		# CONTEST SETTINGS OVERRIDE
+		if($problem->assignment->section->course->is_contest){
+			
+			$problem->slaves = new ArrayCollection();
+			$problem->master = null;
+
+			$problem->weight = 1;
+			$problem->is_extra_credit = false;
+			$problem->total_attempts = 0;
+			$problem->attempts_before_penalty = 0;
+			$problem->penalty_per_attempt = 0;
+			$problem->stop_on_first_fail = true;
+			$problem->response_level = "None";
+			$problem->display_testcaseresults = false;
+			$problem->testcase_output_level = "None";
+			$problem->extra_testcases_display = false;			
+		}
+				
+		
+		# update all the linked problems
+		foreach($problem->slaves as &$slave){
+			
+			# update the version
+			$slave->version = $slave->version+1;
+			
+			# update the name
+			$slave->name = $problem->name;
+			
+			# update the description
+			$slave->description = $problem->description;
+			
+			# update the languages
+			foreach($slave->problem_languages as &$pl){
+				$em->remove($pl);
+				$em->flush();
+			}
+			
+			$plsClone = new ArrayCollection();			
+			foreach($newProblemLanguages as $pl){
+				$plClone = clone $pl;
+				$plClone->problem = $slave;
+				
+				$plsClone->add($plClone);
+			}
+			$slave->problem_languages = $plsClone;
+			
+			# update the weight
+			$slave->weight = $problem->weight;
+			
+			# update extra credit
+			$slave->is_extra_credit = $problem->is_extra_credit;
+			
+			# update the time limit
+			$slave->time_limit = $problem->time_limit;
+			
+			# update the grading options
+			$slave->total_attempts = $problem->total_attempts;
+			$slave->attempts_before_penalty = $problem->attempts_before_penalty;
+			$slave->penalty_per_attempt = $problem->penalty_per_attempt;
+			
+			# update the submission feedback options
+			$slave->stop_on_first_fail = $problem->stop_on_first_fail;
+			$slave->response_level = $problem->response_level;
+			$slave->display_testcaseresults = $problem->display_testcaseresults;
+			$slave->testcase_output_level = $problem->testcase_output_level;
+			$slave->extra_testcases_display = $problem->extra_testcases_display;
+			
+			# update the validator
+			$slave->custom_validator = $problem->custom_validator;
+			
+			# update the test cases
+			foreach($slave->testcases as &$tc){
+				$tc->problem = null;
+				$em->persist($tc);				
+			}
+			
+			$testcaseClone = new ArrayCollection();			
+			foreach($newTestcases->toArray() as $tc){
+				$tcClone = clone $tc;
+				$tcClone->problem = $slave;
+				
+				$testcaseClone->add($tcClone);
+			}
+			$slave->testcases = $testcaseClone;
+			$slave->testcase_counts[] = count($slave->testcases);
+
+			$em->persist($slave);
+		}
+		
 		$em->flush();
 
 		$url = $this->generateUrl('assignment', ['sectionId' => $problem->assignment->section->id, 'assignmentId' => $problem->assignment->id, 'problemId' => $problem->id]);
@@ -281,11 +491,25 @@ class ProblemController extends Controller {
 
 		$em = $this->getDoctrine()->getManager();
 		$grader = new Grader($em);
+		
+		if(!isset($submission_id) || !($submission_id > 0)){
+			die("SUBMISSION ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
+		}
 
 		$submission = $em->find("AppBundle\Entity\Submission", $submission_id);
 
 		if(!$submission){
 			die("SUBMISSION DOES NOT EXIST");
+		}
+		
+		# REDIRECT TO CONTEST IF NEED BE
+		if($submission->problem->assignment->section->course->is_contest){
+			return $this->redirectToRoute('contest_result', [
+				'contestId' => $submission->problem->assignment->section->id, 
+				'roundId' => $submission->problem->assignment->id, 
+				'problemId' => $submission->problem->id, 
+				'resultId' => $submission->id
+			]);
 		}
 
 		# get the user
@@ -295,13 +519,47 @@ class ProblemController extends Controller {
 		}
 
 		# make sure the user has permissions to view the submission result
-		if($user->hasRole("ROLE_SUPER") && !$grader->isTeaching($user, $submission->problem->assignment->section) && !$grader->isOnTeam($user, $submission->problem->assignment, $submission->team)){
+		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN") && !$grader->isTeaching($user, $submission->problem->assignment->section) && !$grader->isOnTeam($user, $submission->problem->assignment, $submission->team)){
 			echo "YOU ARE NOT ALLOWED TO VIEW THIS SUBMISSION";
 			die();
 		}
 
 		$grader = new Grader($em);
 		$feedback = $grader->getFeedback($submission);
+		
+		if(!$submission->isCorrect()){
+			
+			$diff_nums = [];
+			
+			foreach($submission->testcaseresults as $tcr){
+				
+				if($tcr->is_correct){
+					
+					$diff_nums[] = -1;
+					
+				} else {
+					
+					$exp = $tcr->testcase->correct_output;
+					$user = $tcr->std_output;
+					$c = strlen($exp);
+					
+					$highlight = -1;
+					for ($e = 0; $e < $c; $e++) {
+						if($user[$e] != $exp[$e]){
+							$highlight_val = $e;
+							break;
+						}
+						
+						if($e == $c-1){
+							$highlight_val = $e+1;
+						}
+					}
+					
+					$diff_nums[] = $highlight_val;
+					
+				}				
+			}		
+		}
 		
 		# get the usersectionrole
 		$qb_usr = $em->createQueryBuilder();
@@ -324,9 +582,46 @@ class ProblemController extends Controller {
 			'result_page' => true,
 			'feedback' => $feedback,
 			'usersectionrole' => $usersectionrole,
+			
+			'diff_nums' => $diff_nums,
 		]);
 	}
+	
+	
+	public function resultDeleteAction($submission_id){
+		
+		$em = $this->getDoctrine()->getManager();
+		$grader = new Grader($em);
+		
+		if(!isset($submission_id) || !($submission_id > 0)){
+			die("SUBMISSION ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
+		}
 
+		$submission = $em->find("AppBundle\Entity\Submission", $submission_id);
+
+		if(!$submission){
+			die("SUBMISSION DOES NOT EXIST");
+		}
+
+		# get the user
+		$user = $this->get('security.token_storage')->getToken()->getUser();
+		if(!$user){
+			die("USER DOES NOT EXIST!");
+		}
+
+		# make sure the user has permissions to view the submission result
+		if(!$user->hasRole("ROLE_SUPER") && !$grader->isTeaching($user, $submission->problem->assignment->section)){
+			echo "YOU ARE NOT ALLOWED TO DELETE THIS SUBMISSION";
+			die();
+		}
+		
+		
+		$em->remove($submission);
+		$em->flush();
+		
+		return $this->redirectToRoute('assignment', ['problemId' => $submission->problem->id, 'assignmentId' => $submission->problem->assignment->id, 'sectionId' => $submission->problem->assignment->section->id]);	
+	}
+	
 	private function returnForbiddenResponse($message){
 		$response = new Response($message);
 		$response->setStatusCode(Response::HTTP_FORBIDDEN);

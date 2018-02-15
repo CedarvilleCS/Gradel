@@ -1,0 +1,247 @@
+#markdown h1,#markdown h2,#markdown h3,#markdown h4,#markdown h5,#markdown h6 {
+    font-weight: bold;
+}
+
+#markdown-header h1,#markdown-header h2,#markdown-header h3,#markdown-header h4,#markdown-header h5,#markdown-header h6 {
+    font-weight: bold;
+}
+
+
+#markdown h1, #markdown-header h1 {
+	font-size: 28px;	
+}
+
+#markdown h3 {
+    border-bottom: 1px solid #ddd;
+	-webkit-margin-before: 1.33em;
+    -webkit-margin-after: 0.3em;
+    -webkit-margin-start: 0px;
+    -webkit-margin-end: 0px;
+}
+
+#markdown h4, #markdown h5, #markdown h6{
+	-webkit-margin-before: 1.00em;
+    -webkit-margin-after: 0.3em;
+    -webkit-margin-start: 0px;
+    -webkit-margin-end: 0px;
+}
+
+#markdown .serif {
+    font-family: 'Old Standard TT', serif;
+}
+
+#markdown .top-bar {
+    height: 45px;
+    min-height: 45px;
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+}
+
+#markdown .bars-lnk {
+    color: #fff;
+}
+
+#markdown .bars-lnk i {
+    display: inline-block;
+    margin-left: 10px;
+    margin-top: 7px;
+}
+
+#markdown .bars-lnk img {
+    display: inline-block;
+    margin-left: 10px;
+    margin-top: -15px;
+    margin-right: 15px;
+    height: 35px;
+}
+
+#markdown .lateral-menu {
+    background-color: #333;
+    color: rgb(144, 144, 144);
+    width: 300px;
+    font-family: 'Open Sans', 'Myriad Pro', 'Lucida Grande', 'Lucida Sans Unicode', 'Lucida Sans', Geneva, Verdana, sans-serif;
+}
+
+#markdown .lateral-menu label {
+    color: rgb(144, 144, 144);
+}
+
+#markdown .lateral-menu-content {
+    padding-left: 10px;
+    height: 100%;
+    font-size: 12px;
+    font-style: normal;
+    font-variant: normal;
+    font-weight: bold;
+    line-height: 16px;
+}
+
+#markdown .lateral-menu-content .title{
+    padding-top: 15px;
+    font-size: 2em;
+    height: 45px;
+}
+
+#markdown .lateral-menu-content-inner {
+    overflow-y: auto;
+    height: 100%;
+    padding-top: 10px;
+    padding-bottom: 50px;
+    padding-right: 10px;
+    font-size: 0.9em;
+}
+
+
+
+#markdown .container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: stretch;
+    width: 100%;
+    height: 100%;
+    padding-top: 65px;
+}
+
+#markdown .container>* {
+    display: block;
+    width: 50%;
+    margin-left: 10px;
+    margin-right: 10px;
+    max-height: 100%;
+}
+
+#markdown .container textarea {
+    resize: none;
+    font-family: Consolas,"Liberation Mono",Courier,monospace;
+    height: 97%;
+    max-height: 97%;
+    width: 45%;
+}
+
+#markdown #preview {
+    height: 97%;
+    max-height: 97%;
+    border: 1px solid #eee;
+    overflow-y: scroll;
+    width: 55%;
+    padding: 10px;
+}
+
+#markdown pre {
+    white-space: pre-wrap;       /* css-3 */
+    white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+    white-space: -pre-wrap;      /* Opera 4-6 */
+    white-space: -o-pre-wrap;    /* Opera 7 */
+    word-wrap: break-word;       /* Internet Explorer 5.5+ */
+    background-color: #f8f8f8;
+    border: 1px solid #dfdfdf;
+    margin-top: 1.5em;
+    margin-bottom: 1.5em;
+    padding: 0.125rem 0.3125rem 0.0625rem;
+}
+
+#markdown pre code {
+    background-color: transparent;
+    border: 0;
+    padding: 0;
+}
+
+#markdown code{
+	white-space: pre-wrap;       /* css-3 */
+    white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+    white-space: -pre-wrap;      /* Opera 4-6 */
+    white-space: -o-pre-wrap;    /* Opera 7 */
+    word-wrap: break-word;       /* Internet Explorer 5.5+ */
+    background-color: #f8f8f8;
+    border: 1px solid #dfdfdf;
+    margin-top: 1.5em;
+    margin-bottom: 1.5em;
+    padding: 0.125rem 0.3125rem 0.0625rem;
+}
+
+#markdown a {
+	text-decoration: underline;
+	color: green;
+}
+
+#markdown p {
+	line-height: 120%;
+}
+
+
+#markdown .modal-wrapper {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    z-index: 999;
+    background-color: rgba(51,51,51,0.5);
+}
+
+#markdown .modal-inner {
+    margin-top: 200px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 600px;
+    height: 225px;
+    background-color: #fff;
+    opacity: 1;
+    z-index: 1000;
+}
+
+#markdown .modal-close-btn {
+    float: right;
+    display: inline-block;
+    margin-right: 5px;
+    color: #ff4336;
+}
+
+#markdown .modal-close-btn:hover {
+    float: right;
+    display: inline-block;
+    margin-right: 5px;
+    color: #8d0002;
+}
+
+#markdown .modal-topbar {
+    clear: both;
+    height: 25px;
+}
+
+#markdown .modal-inner .link-area {
+    margin: 10px;
+    height: 170px;
+
+}
+
+#markdown .modal-inner textarea {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.#markdown version {
+    color: white;
+    font-size: 0.8em !important;
+}
+
+
+#markdown table {
+	width: auto;
+	display: inline-block
+}
+
+#markdown table td, #markdown table th {
+
+	padding: 4px 8px;
+}
+
+#markdown table tr:nth-child(2n){
+	background: #f6f8fa;
+}

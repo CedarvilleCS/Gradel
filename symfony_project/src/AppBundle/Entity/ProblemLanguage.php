@@ -30,6 +30,14 @@ class ProblemLanguage{
 		$this->compilation_options = $comp;
 	}
 	
+	# clone method override
+	public function __clone(){
+		
+		if($this->id){
+			$this->id = null;			
+		}		
+	}
+	
 	/** 
 	* @ORM\Column(type="integer")
 	* @ORM\Id
@@ -56,7 +64,10 @@ class ProblemLanguage{
 	public $default_code;
 	
 	public function deblobinateDefaultCode(){			
-		return stream_get_contents($this->default_code);
+		$val = stream_get_contents($this->default_code);
+		rewind($this->default_code);
+		
+		return $val;
 	}
 
 	/**

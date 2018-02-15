@@ -14,7 +14,7 @@ html, body {
     overflow-y: scroll;
 	overflow-x: hidden;
     margin-top: 100px;
-	
+
 }
 
 .nav-path {
@@ -58,21 +58,21 @@ ol {
  	height: 90%;
  	padding: 2px 3px;
  }
- 
+
  .topnav #logoword {
     float: left;
  	height: 85%;
  	padding: 2px 3px;
  }
- 
+
 .topnav #logo:hover {
  	background-color: inherit;
- 	color: black;	
+ 	color: black;
  }
- 
+
 .topnav #logoword:hover {
  	background-color: inherit;
- 	color: black;	
+ 	color: black;
  }
 
 .btn {
@@ -103,7 +103,7 @@ ol {
 	bottom: 7;
     right: 23;
     cursor: pointer;
-	height: 15; 
+	height: 15;
 	width: 15;
 	position: absolute;
 }
@@ -160,10 +160,8 @@ a.preview {
 .topnav {
     top: 0;
     margin-top: 0;
-
     background-color: #333;
     overflow: hidden;
-
     position: fixed;
     height: 50px;
     z-index: 100;
@@ -200,7 +198,7 @@ a.preview {
 nav.nav-left {
     float: left;
     position: fixed;
-    overflow-y: scroll;
+    overflow-y: auto;
     border-right: 1px solid grey;
     background-color: grey;
     color: black;
@@ -238,14 +236,11 @@ nav.nav-left > ol  li {
 }
 
 nav.nav-left > ol > a > li:hover {
-    /* color: red; */
     background-color: rgb(90, 90, 90);
 }
 
-/*style="color: white; text-decoration: none; width: 90%; margin: auto; margin-top:15px"*/
 .pathnav{
     margin-top: 50px;
-    /* margin-left: 200px; */
     width: 100%;
 
 	height:50px;
@@ -262,7 +257,7 @@ nav.nav-left > ol > a > li:hover {
 }
 
 .pathnav a {
-	text-decoration: none;	
+	text-decoration: none;
 }
 
 #past_sections_button:hover {
@@ -271,8 +266,8 @@ nav.nav-left > ol > a > li:hover {
 
 
 .back-button{
-	
-	height: 30px; 
+
+	height: 30px;
     position: absolute;
     top: 9;
     left: 220;
@@ -281,38 +276,10 @@ nav.nav-left > ol > a > li:hover {
 .back-img{
 	height: 30px;
 }
-
-/*.btn-delete{
-	position: absolute;
-	bottom: 30px;
-	left:5%;
-	width: 90%;
-	text-decoration: none;
-	color: white;
-	
-	margin:auto;
-    margin-top: 10px;
-    height: 30px;
-    background-color: #ff8b7f;
-    border: none;
-    text-align: center;
-	
-	padding-top: 12px;	
-}
-*/
 .btn-delete:hover{
 	background-color: #FF5A49;
 }
 
-/* i { 
-    position: absolute;
-    right: 20px;
-    top: 14px;
-    -webkit-transition:all 300ms ease-in 0s;
-    -moz-transition: all 300ms ease-in 0s;
-    -o-transition: all 300ms ease-in 0s;
-    transition: all 300ms ease-in 0s;
-} */
 
 i {
     -webkit-transition:all 300ms ease-in 0s;
@@ -331,6 +298,7 @@ i {
 
 ::-webkit-scrollbar {
     display: none;
+	
 }
 
 
@@ -340,6 +308,7 @@ atable {
     margin: 0 auto;
     min-width: 100%;
     max-width: 100%;
+    
 }
 
 a {
@@ -347,16 +316,29 @@ a {
 	text-decoration: none;
 }
 
+table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    margin: 0 auto;
+    min-width: 100%;
+    max-width: 100%;
+}
+
 td, th {
     border: 1px solid #dddddd;
     text-align: left;
-    padding: 8px;
+    padding: 2px;
+    padding-left: 4px;
 }
 
 .sidebar-text{
 	max-width: 140px;
 	word-wrap: word-break;
 	hyphens: auto;
+}
+
+.list-item{
+	padding-left: 15px !important;
 }
 
 .dynamicVal {
@@ -366,6 +348,12 @@ td, th {
 
 .dyLabel {
   display: inline-block;
+}
+
+.feedback-note {
+  position: absolute;
+  bottom: 30px;
+  left: 20px;
 }
 /*tr:nth-child(even) {
     background-color: #dddddd;
@@ -418,4 +406,36 @@ textarea.problem_creation{
 
 form{
 	margin-bottom: 0px;
+}
+
+del {
+    color: red;
+}
+
+ins {
+    color: green;
+}
+
+
+.scrolly::-webkit-scrollbar-track
+{
+	margin-right: 10px;
+	background: #71BA62;
+	cursor: pointer;
+}
+
+.scrolly::-webkit-scrollbar
+{
+	cursor: pointer;
+	all:unset;
+	width: 12px;
+	background-color: #F5F5F5;
+}
+
+.scrolly::-webkit-scrollbar-thumb
+{
+	cursor: pointer;
+	all: unset;
+	border-radius: 10px;
+	background-color: rgba(140, 140, 140, 0.9);
 }

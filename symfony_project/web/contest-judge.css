@@ -1,0 +1,482 @@
+/* JUDGING CSS */
+.card {
+	padding: 10px;
+	margin: 15px;
+}
+
+#submissions-container {
+	display: block;	
+	max-height: 340px;
+}
+
+#queue-container {
+	min-height: 240px;
+	max-height: 240px;
+}
+
+.scrolly {
+	overflow-y: auto;
+}
+
+.scrolly::-webkit-scrollbar-track
+{
+	margin-right: 10px;
+	background: transparent;
+	cursor: pointer;
+}
+
+.scrolly::-webkit-scrollbar
+{
+	cursor: pointer;
+	all:unset;
+	width: 12px;
+	background-color: #F5F5F5;
+}
+
+
+#recent-reviews, #recent-clarifications, #stats {
+	height: 200px;
+	padding: 2px;
+	border-radius: 7px;
+	background: #F1F1F1;
+	overflow-y: auto;
+	margin-left: 5px;
+	border: 1pt solid grey;
+	overflow-x: hidden;
+}
+
+#stats-marker {
+	position: absolute;
+	right: 15px;
+	top: 10px;
+	height: 35px;
+  width: 35px;
+	margin-left: 1px;
+	background: #E2E2E2;
+	border-radius: 15px;
+	min-height: 15px;
+	margin-bottom: 2px;
+	font-size: 0.9em;
+	line-height: 25px;
+	padding-left: 5px;
+	padding-right: 5px;
+	padding-top: 2px;
+	font-weight: bold;
+  text-align: center;
+}
+
+#stats-marker-icon {
+	position: absolute;
+	right: 5px;
+	top: 2px;
+	height: 35px;
+  width: 35px;
+}
+
+#stats-marker-hover{
+	
+	height: 80px;
+	width: 250px;
+	top: 50px;
+  right: 45px;
+	background: #71BA62;
+	border: 3pt solid grey;
+	display: none;
+	border-radius: 10px;
+	text-align: left;
+	flex-direction: row;
+	justify-content: space-around;
+	overflow-y: auto;
+	padding: 10px;
+	position: absolute;
+	z-index: 10;
+}
+#clar_stats, #review_stats {
+  background: #E2E2E2;
+  z-index: 11;
+  margin-top: 5px;
+  font-size: 0.9em;
+	line-height: 25px;
+	padding-left: 5px;
+	padding-right: 5px;
+	padding-top: 2px;
+	font-weight: bold;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+  min-height: 15px;
+}
+
+.review {
+	margin-left: 1px;
+	width: calc(100% - 18px);
+	background: #E2E2E2;
+	border-radius: 15px;
+	min-height: 22px;
+	
+	margin-bottom: 2px;
+	
+	font-size: 1.2em;
+	line-height: 30px;
+	padding-left: 5px;
+	padding-right: 5px;
+	padding-top: 2px;
+	font-weight: bold;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	text-overflow: clip;
+	white-space: nowrap;
+	
+}
+
+.query {
+	margin-left: 1px;
+	width: calc(100% - 18px);
+	background: #E2E2E2;
+	border-radius: 15px;
+	min-height: 22px;
+	
+	margin-bottom: 2px;
+	
+	font-size: .9em;
+	line-height: 30px;
+	padding-left: 5px;
+	padding-right: 5px;
+	padding-top: 2px;
+	font-weight: bold;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	text-overflow: clip;
+	white-space: nowrap;
+}
+
+.query {
+	border: 1pt solid blue;
+	word-wrap: break-word;
+	white-space: normal;
+	line-height: 15px;
+	
+	cursor: pointer;
+}
+
+.query:hover{
+	background: lightblue;
+}
+
+.submission {
+	
+	width: calc(100% - 15px);
+	
+	min-height: 65px;
+	padding: 5px;
+	border-radius: 10px;
+	
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+	
+	margin-bottom: 10px;
+}
+
+.queued.submission {
+	min-height: 25px;
+	height: 25px;
+}
+
+.queued.submission .left-side {
+	
+	flex-direction: row;
+	display: flex;
+	justify-content: space-between;
+	min-width: 98%;
+	cursor: pointer;
+}
+
+.left-side{
+	padding-left: 5px; 
+	min-width: 200px;
+}
+
+.middle-side{
+	 flex-grow: 1;
+	 padding-left: 10px;
+}
+
+.right-side{
+	min-width: 160px; 
+	padding-right: 5px; 
+	display: flex; 
+	flex-direction: column; 
+	justify-content: space-around;	
+}
+
+.submission .name{
+	line-height: 25px;
+}
+
+.submission .results {
+	font-style: italic;
+	line-height: 25px;
+}
+
+.marker-container {
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+	
+	flex-wrap: wrap;
+}
+
+.marker {
+	height: 20px;
+	width: 20px;
+	background: lightgrey;
+	border: 1pt solid white;
+	border-radius: 2px;
+	margin: 2;
+	
+	text-align: center;
+	line-height: 20px;
+	
+	font-size: 1.1em;
+	position: relative;
+}
+
+#untested{
+	height: 30px;
+	width: 75px;
+	
+	position: absolute;
+	bottom: -60px;
+	left: 0px;	
+	
+	background: white;
+	border: 3pt solid grey;
+	
+	border-radius: 10px;
+		
+	display: none;
+	
+	text-align: left;
+	flex-direction: column;
+	justify-content: space-around;
+	overflow-y: auto;
+	padding: 10px;
+	
+	z-index: 100;
+}
+
+textarea {
+	height: 100px;
+	width: 200px;
+}
+
+.marker-hover{
+	
+	height: 125px;
+	width: 410px;
+	
+	position: absolute;
+	bottom: -155px;
+	left: 0px;	
+	
+	background: white;
+	border: 3pt solid grey;
+	
+	border-radius: 10px;
+		
+	display: none;
+	
+	text-align: left;
+	flex-direction: row;
+	justify-content: space-around;
+	overflow-y: auto;
+	padding: 10px;
+	
+	z-index: 100;
+}
+
+
+
+.marker.correct {
+	color: green;
+	
+	cursor: pointer;
+}
+
+.marker.wrong {
+	color: red;
+	
+	cursor: pointer;
+}
+
+.submission .title {
+	
+	color: black;
+	font-size: 1.5em;
+	font-weight: bold;
+}
+
+
+.button {
+	height: 42px;
+	width: 42px;
+	margin: 2px;
+	border-radius: 2px;
+	background: lightgrey;
+	border-top: 1px solid white;
+	border-right: 1px solid #333333;
+	border-bottom: 1px solid #333333;
+	border-left: 1px solid white;
+	
+	text-align: center;
+	font-size: 1.8em;
+	line-height: 41px;
+	
+	cursor: pointer;
+}
+
+.main-options {	
+	display: flex;	
+	flex-direction: row;
+	justify-content: flex-end;	
+}
+
+.additional-options {	
+	display: flex;	
+	flex-direction: row;
+	justify-content: flex-end;	
+}
+
+.additional-options .button {
+	height: 26px;
+	width: 26px;
+	font-size: 1.2em;
+	line-height: 25px;
+}
+
+.submission.correct {
+	background: lightgreen;
+	border: 1pt solid green;
+}	
+
+.submission.wrong {
+	background: #AAAAAA;
+	border: 1pt solid red;
+}
+
+.review.wrong {
+	border: 1pt solid red;
+	cursor: pointer;
+}
+
+.review.wrong:hover {
+	background: pink;
+}
+
+.review.correct {
+	border: 1pt solid green;
+	cursor: pointer;
+}
+
+.review.correct:hover {
+	background: lightgreen;
+}
+
+.clarification{
+	min-height: 65px;
+	padding: 5px;
+	border-radius: 10px;
+	margin-bottom: 5px;
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+	min-height: 25px;
+	padding-left: 15px;
+	font-size: 1.0em;
+	font-style: italic;
+	
+	background: #CCCCCC;
+	border: 1pt solid blue;
+	
+	cursor: pointer;
+	line-height: 25px;
+}
+
+.clarification .name{
+	min-width: 300px;	
+	font-size: 1.2em;
+}
+
+.card-title{
+	margin: 0px;
+}
+
+.card-subtitle{
+	font-size: 0.7em;
+}
+
+#notice-button{
+	position: absolute;
+	right: 15px;
+	top: 10px;
+}
+
+#clear-submissions-button {
+	position: absolute;
+	right: 200px;
+	top: 10px;
+}
+
+#clear-clarifications-button {
+	position: absolute;
+	right: 15px;
+	top: 10px;
+}
+
+
+.review-box{
+	width: 60%;
+  padding: 2px;
+}
+.clar-box{
+	width: 40%;
+  padding: 2px;
+}
+
+#previous-review-label {
+	float: left;
+	margin-top: 5px;
+	padding-left: 5px;
+	font-weight: bold;
+	font-size: 1.1em;
+}
+
+#review-filter-input {
+	width: 25%;
+	float: right;
+	font-size: 1em;
+	padding-left: 5px;
+	margin-top: 2px;
+}
+
+#review-filter-label {
+	float: right;
+	margin-top: 9px; 
+	padding-right: 5px;
+	font-size: 1em;
+}
+
+.history-label {
+	margin-top: 5px;
+	padding-left: 5px;
+	font-weight: bold;
+	font-size: 1.1em;
+}
+
+.submit-button {
+	position:absolute;
+	top:-1000px;
+}

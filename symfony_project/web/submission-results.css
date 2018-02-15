@@ -7,7 +7,8 @@
 }
 
 #testcase-markers-container{
-	 width: 60%;
+	width: 60%;
+	margin-right: 20px;
 }
 
 #testcase-markers{
@@ -30,6 +31,13 @@
 	border: none;
 	padding: 4px;
 	margin: 0px;
+	width: 33%;
+}
+
+#testcase-input{
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
 }
 
 #testcase-tab{
@@ -72,6 +80,9 @@
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+	
+	margin-bottom: -4px;
+    padding-bottom: 1px;
 }
 
 #correct.ui-state-active, .ui-widget-content #correct.ui-state-active, .ui-widget-header #correct.ui-state-active {
@@ -85,6 +96,9 @@
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+	
+	margin-bottom: -4px;
+    padding-bottom: 1px;
 }
 
 
@@ -109,4 +123,17 @@ ul{
 	border-radius: 2px;
 	
 	margin-bottom: 3px;
+}
+
+textarea{
+	height: auto;
+}
+
+#editor { 
+    width: calc(100% - 50px);
+    height: 300px;
+    border: 2px solid grey;
+    padding: 10px;
+    font-family: monospace;
+    font-size: 10pt;
 }

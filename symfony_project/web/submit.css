@@ -47,16 +47,9 @@ nav > ul > li > a {
 
 textarea {
     width: calc(100% - 20px);
-    height: 300px;
-    border-radius: 10px;
-    border: 1px solid #8DC26F;
     padding: 10px;
     font-family: monospace;
     font-size: 10pt;
-
-    -webkit-box-shadow: inset 3px 3px 10px -4px rgba(0,0,0,0.64);
-    -moz-box-shadow: inset 3px 3px 10px -4px rgba(0,0,0,0.64);
-    box-shadow: inset 3px 3px 10px -4px rgba(0,0,0,0.64);
 }
 
 #file-upload {
@@ -84,4 +77,20 @@ textarea {
 
 #submissionForm{
 	margin-top: 10px;
+}
+
+#markdown-collapser{
+	width: calc(100% - 27px);
+	background: lightgrey;
+	height: 25px;
+	margin-top: 10px;
+	margin-bottom: 10px;
+	
+	text-align: center;
+	line-height: 25px;
+	font-weight: bold;
+	color: white;
+	font-size: 10pt;
+	
+	cursor: pointer;
 }

@@ -1,0 +1,35 @@
+#test-code-markers textarea {
+
+	height: auto;
+	border-width: 1.2px;
+	font-family: monospace !important;
+	font-size: 14px;
+	resize: none;
+	width: 100%;
+	margin: 0;
+	padding: 2;
+
+}
+
+#add-testcase-button{
+	position: absolute;
+	right: 8px;
+	top: 9px;
+	z-index: 100;
+}
+
+
+*:focus {
+    outline: none;
+    -moz-box-shadow: none;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+}
+
+.ui-state-active, .ui-widget-content .ui-state-active, .ui-widget-header .ui-state-active, a.ui-button:active, .ui-button:active, .ui-button.ui-state-active:hover {
+
+	background: #71BA62;
+	border: green;
+	box-shadow: none;
+	
+}

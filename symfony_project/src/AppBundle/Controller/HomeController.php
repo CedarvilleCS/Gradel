@@ -30,14 +30,15 @@ class HomeController extends Controller {
 		}
 		
 		# get all of the non-deleted sections
+		# they must start in at least 30 days and have ended at most 14 days ago to show up
 		$builder = $em->createQueryBuilder();
 		$builder->select('s')
 			->from('AppBundle\Entity\Section', 's')
 			->where('s.is_deleted = false')
 			->andWhere('s.start_time < ?1')
 			->andWhere('s.end_time > ?2')
-			->setParameter(1, new DateTime())
-			->setParameter(2, new DateTime());
+			->setParameter(1, (new DateTime("now"))->add(new DateInterval('P30D')))
+			->setParameter(2, (new DateTime("now"))->sub(new DateInterval('P14D')));
 		
 		$section_query = $builder->getQuery();
 		$sections_active = $section_query->getResult();
@@ -62,7 +63,7 @@ class HomeController extends Controller {
 			
 			if($usr->role->role_name == 'Takes'){
 				$sections_taking[] = $usr->section;
-			} else if($usr->role->role_name == 'Teaches'){
+			} else if($usr->role->role_name == 'Teaches' || $usr->role->role_name == 'Judges'){
 				$sections_teaching[] = $usr->section;
 			}
 		}

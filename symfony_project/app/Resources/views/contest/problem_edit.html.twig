@@ -1,0 +1,782 @@
+{% block head %}
+<title>Gradel</title>
+<link rel="icon" type="image/x-icon" href="{{ asset('logo.png') }}" />
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+{% endblock %}
+
+{% block body %}
+<body>
+  {{ include('template/top-nav.html.twig') }}
+
+
+  {# Left Nav Bar #}
+  <nav class="nav-left">
+		<div class="btn btn-center" id="save-btn">Save</div>
+	  
+		{% if problem is not null %}
+			<a id="delete-btn" class="btn"><div class="btn btn-center btn-delete">Delete</div></a>
+			
+			<ol style="padding-top: 0px">
+				<li id="delete-warning" style="padding-top: 0px"></li>
+			</ol>
+		{% endif %}
+  </nav>
+  
+
+  {# Main Section #}
+  <section id="main" class="scrolly">
+
+    {# Cards #}
+	<div class="parallel-cards">
+		<div class="card" style="flex-grow:3">
+		
+			<div class="btn-close">
+				<h2 style="margin: 0px">
+				{% if problem is not null %}
+					Edit {{problem.name}}
+				{% else %}
+					New Problem
+				{% endif %}
+				</h2>
+			</div>
+		
+		<div id="requiredFields" class="card-contents">				
+			<div>
+				<table>
+					<tr>
+					  <th colspan="4">
+						<label for="name">Name</label>
+						<input id="name" name="name" type="text" value="{{problem.name}}">
+					  </th>
+					</tr>
+					<tr>
+					  <th colspan="4">
+						<div>Description</div>
+						<textarea rows=20 id="description" name="description" class="problem_creation" type="text" style="width: 100%">{{problem.description}}</textarea>
+											
+					  </th>
+					</tr>
+					<tr>
+					  <th colspan="1">
+					  
+						  <label for="time_limit">Time Limit (ms)</label>
+						  <input type="text" id="time-limit" style="width: 100px" value="{{(problem) ? problem.time_limit: 1000}}">					  
+					  </th>
+					</tr>
+
+					</table>
+				</div>
+			</div>
+		</div>
+		
+	</div>
+	
+	
+	<div id="generator-card" class="card" style="flex-grow: 8.33">
+	
+		<div class="btn-close" onclick="collapseCard('generator-options')">
+			<h2 style="margin: 0px">Generate Output
+				<span style="float: right"><i class="fa fa-angle-down"></i></span>
+			</h2>
+		</div>
+							
+		<div id="generator-options" class="card-contents">
+		
+			<p>Enter in a solution for this problem to generate output.</p>
+		
+			{# the ACE editor text area #}
+			<div id="output-generator-editor" class="ace-container"></div>
+			<br/>
+
+			{# file upload#}
+			<form id="output-generator-form" action="{{path('get_contents')}}" method="post">
+				<input type="file" name="file" class="file" id="file" value="Upload File">
+			</form>
+
+			<div id="submissionForm">
+
+				<br/>Language: 
+				<select id="languageSelect" name="language">
+					{% for lang in languages %}
+						{% if lang.name != "No Language Restriction" %}
+							<option value={{lang.id}}>{{lang.name}}</option>
+						{% endif %}
+					{% endfor %}
+				</select>
+				<br>
+				<div id="mainClassInput" style="display:none"><label for="main_class">Main Class: </label><input type="text" name="main_class" id="main_class_input"></div>
+				<div id="packgNameInput" style="display:none"><label for="package_name">Package Name: </label><input type="text" name="package_name" id="package_name_input"></div>
+				<br/>
+				<div class="btn" style="width: 300px" id="generator-button"> Generate </div>
+				<div id="generator-loading-container" style="display: none">
+					<img id="generator-loading-gif" style="height: 60px" src="{{asset('beoload.gif')}}" alt="Loading..."/>
+					<h3 style="margin: 0px"> Generating Output... </h3>
+				</div>
+			</div>
+			
+		</div>
+	</div>
+	
+	<div id="testcase-cards" class="parallel-cards">	
+	
+	</div>
+	
+  </section>
+</body>
+{% endblock %}
+
+{% block stylesheets %}
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
+	
+    <link rel="stylesheet" href="{{ asset('styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('contest.css') }}" />
+    <link rel="stylesheet" href="{{ asset('contest-hub.css') }}" />
+	
+    <link rel="stylesheet" href="{{ asset('card.css') }}" />
+    <link rel="stylesheet" href="{{ asset('custom-toggle.css') }}" />
+    <link rel="stylesheet" href="{{ asset('problem-creation.css') }}" />
+	
+	<style type="text/css">
+		.testCardAdder:hover {
+			background: url("{{asset('testcase-blur-grbg.png')}}") no-repeat;
+			background-size: 100% 100%;
+			background-position: center center;
+		}
+	</style>
+{% endblock %}
+
+{% block scripts %}
+  <!-- JQuery -->
+  <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <script src="http://malsup.github.com/jquery.form.js"></script>
+  
+  <script src="{{ asset('src-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>	
+  
+  <script src="{{ asset('js/cards.js') }}"></script>	
+  <script src="{{ asset('js/validation.js') }}"></script>
+  
+  <script src="{{ asset('js/unicode_return.js') }}"></script>
+  
+  
+  <script>
+	/* OUTPUT GENERATOR FUNCTIONS */
+	var saved_code = "";
+
+	function getLanguage(filename){
+
+		var filetypes = JSON.parse('{{ filetypes|json_encode|raw }}');
+		var ext = getExtension(filename);
+
+		return filetypes[ext];
+	}
+
+	function getExtension(filename){
+
+		var ext = filename.substr(filename.lastIndexOf('.') + 1);
+		return ext;
+	}
+
+	function getName(filename){
+
+		var ext = getExtension(filename);
+		var cls = filename.substr(filename.lastIndexOf('\\') + 1).replace("."+ext,"");
+		
+		return cls;
+	}
+
+	function setLanguageFromFilename(filename){
+
+		var classname = getName(filename);
+		var ext = getExtension(filename);
+		var language = getLanguage(filename);
+
+		if(!language){
+			language = $('#languageSelect option:selected').text();
+		}
+
+		setLanguage(language);
+
+		// set the main class
+		document.getElementById('main_class_input').value = classname;
+
+		// toggle the java inputs
+		toggleJavaInputs(language == "Java", ext == "zip");
+	}
+
+	function setLanguage(language){
+
+		// set the language selector
+		var selectObject = document.getElementById('languageSelect');
+		for(var i=0; i<selectObject.length; i++){
+			if(selectObject.options[i].text == language){
+				selectObject.selectedIndex = i;
+				break;
+			}
+		}
+
+		var editor = ace.edit("output-generator-editor");
+		editor.$blockScrolling = Infinity;
+		updateAceCode();
+
+		// toggle the java inputs
+		var ext = getExtension($('#output-generator-form #file').val());
+		toggleJavaInputs(language == "Java", ext == "zip");
+	}
+
+	function toggleJavaInputs(state1, state2){
+
+		if(!state1){
+			document.getElementById('mainClassInput').style.display = 'none';
+			document.getElementById('packgNameInput').style.display = 'none';
+		} else if(state1 && !state2){
+			document.getElementById('mainClassInput').style.display = 'block';
+			document.getElementById('packgNameInput').style.display = 'none';
+		} else{
+			document.getElementById('mainClassInput').style.display = 'block';
+			document.getElementById('packgNameInput').style.display = 'block';
+		}
+	}
+
+	function updateAceCode(){
+
+		var default_code = JSON.parse('{{ default_code|json_encode|replace({'\\':'\\\\'})|raw }}');
+		var ace_modes = JSON.parse('{{ ace_modes|json_encode|raw }}');
+
+		var editor = ace.edit("output-generator-editor");
+		editor.$blockScrolling = Infinity;
+		
+		language = $('#languageSelect option:selected').text();
+		
+		if(saved_code !== editor.getValue()) {
+			editor.setValue(editor.getValue(), -1);
+		} else {
+			// This sets the default code for the selected language.
+			editor.setValue(default_code[language], -1);
+			saved_code = default_code[language];
+		}
+		editor.getSession().setMode("ace/mode/" + ace_modes[language]);
+		editor.resize(true);
+	}
+
+  </script>
+
+  <script>
+    var languages = [];
+	testCases = 0;
+    currentNum = 0;
+    currentFieldId = "";
+    uploadFormId = "";
+
+    $(document).ready(() => {
+		
+		/* OUTPUT GENERATOR ACE EDITOR */		
+		var generatorEditor = ace.edit("output-generator-editor");
+		generatorEditor.$blockScrolling = Infinity;
+		generatorEditor.setTheme("ace/theme/xcode");
+		generatorEditor.resize();
+				
+		// make the language dropdown change affect the code
+		$('#languageSelect').change( function(data) {
+			var language = $('#languageSelect option:selected').text();
+			setLanguage(language);
+		});
+		$('#languageSelect').change();
+		
+		$('#output-generator-form').submit(function(e) {
+				
+			$(this).ajaxSubmit({
+			
+				beforeSubmit: 	function(formData, jqForm, options){
+					
+					/* CLIENT-SIDE VALIDATION */
+					return true;
+					
+				},
+				success:		function(responseText, statusText, xhr, $form) {
+					
+					var file = responseText['files'][0];
+			
+					console.log(responseText);
+					setLanguageFromFilename(file['name']);
+					
+					var editor = ace.edit("output-generator-editor");
+					editor.$blockScrolling = Infinity;
+					editor.setValue(atob(file['contents']));
+					
+					updateAceCode();		
+									
+				},
+				error:			function(xhr, textStatus, errorThrown) {
+					console.log(xhr);						
+					alert(xhr['responseText']);
+				}
+			});
+			
+			return false;
+		});
+		
+		/* handle uploading a correct solution and putting it in the editor */
+		$('#output-generator-form .file').change(function(data) {
+			
+			$('#output-generator-form').submit();
+		});
+		
+		
+		{# add in the testcases #}
+		{% if (problem.testcases) %}
+			{% for tc in problem.testcases %}
+				addTestCase(
+					"{{tc.input|e('js')}}",
+					"{{tc.correct_output|e('js')}}",
+					{{(tc.is_sample) ? 'true' : 'false'}},
+				);
+			{% endfor %}
+		{% else %}	  
+			/* default to at least one testcase */
+			addTestCase();	  
+		{% endif %}
+		
+		/* delete button javascript if there is a problem (edit page) */
+		{% if problem is not null %}
+			var warned = 0;
+			$('#delete-btn').on('click', function(){
+			
+				if(warned == 1){					
+					window.location = "{{path('problem_delete', {'sectionId': problem.assignment.section.id, 'assignmentId': problem.assignment.id, 'problemId': problem.id})}}";
+					
+				} else {
+					$('#delete-warning').html("Are you sure?<br/>Click again to delete.");
+				}
+			
+				warned++;
+			});
+		{% endif %}	
+		
+		/* on clicking the generate button, validate the fields and call the post function */
+		$('#generator-button').click( function() {
+			genOutput();
+		});
+		
+		/* on clicking the save button, validate fields and call the post function */
+		$('#save-btn').click( function() {
+		
+			/* Client-Side Validation */
+        
+			// problem name
+			if ($.trim($('#requiredFields #name').val())  === '') {						
+				setInvalid($('#requiredFields #name'));
+				$('#delete-warning').text("Problem name cannot be empty.");
+				return false;
+			} else {
+				setValid($('#requiredFields #name'));
+			}
+			
+			// description
+			if ($.trim($('#requiredFields #description').val())  === '') {						
+				setInvalid($('#requiredFields #description'));
+				$('#delete-warning').text("Description cannot be empty.");
+				return false;
+			} else {
+				setValid($('#requiredFields #description'));
+			}
+			
+			var inputErrs = [];
+			var outputErrs = [];
+			
+			var testcases_valid = true;
+			// testcases
+			$(".test-case").each(function(index) {
+				
+				const input = removeReturnKey($(this).find('.input').val()).trim();
+				const output = removeReturnKey($(this).find('.output').val()).trim();
+				
+				
+				if(input === ''){
+					setInvalid($(this).find('.input'));
+					inputErrs.push(index);
+					testcases_valid = false;
+				} else {
+					setValid($(this).find('.input'));
+				}
+				
+				if(output === ''){
+					setInvalid($(this).find('.output'));
+					outputErrs.push(index);
+					testcases_valid = false;
+				} else {
+					setValid($(this).find('.output'));
+				}								
+			});
+			
+			if(!testcases_valid){	
+
+				var inputErrStr = "";
+				
+				if(inputErrs.length > 0){
+					
+					inputErrStr = "Input for testcase(s): ";
+					for(var k=0; k<inputErrs.length; k++){
+						inputErrStr += inputErrs[k];
+						
+						if(k < inputErrs.length-1){
+							inputErrStr += ",";
+						}
+					}
+					inputErrStr += " are not valid";
+				}
+				
+				var outputErrStr = "";
+				if(outputErrs.length > 0){
+					
+					outputErrStr = "Output for testcase(s): ";
+					for(var k=0; k<outputErrs.length; k++){
+						outputErrStr += outputErrs[k];
+						
+						if(k < outputErrs.length-1){
+							outputErrStr += ",";
+						}
+					}
+					outputErrStr += " are not valid";
+				}
+			
+				$('#delete-warning').html(inputErrStr + "<br/>" + outputErrStr);
+			
+				return false;
+			}				
+			
+			// check to see if this button is allowed to be pressed
+			if($(this).prop('disabled')){
+				return false;
+			} else {
+				$(this).prop('disabled', true);
+			}
+		
+			/* Post the Problem */
+			newProb();		
+		
+		});
+		
+		/* allow tabs in textareas */
+		$("textarea").keydown(function(e) {
+			if(e.keyCode === 9) { // tab was pressed
+				// get caret position/selection
+				var start = this.selectionStart;
+				var end = this.selectionEnd;
+
+				var $this = $(this);
+				var value = $this.val();
+
+				// set textarea value to: text before caret + tab + text after caret
+				$this.val(value.substring(0, start)
+							+ "\t"
+							+ value.substring(end));
+
+				// put caret at right position again (add one for the tab)
+				this.selectionStart = this.selectionEnd = start + 1;
+
+				// prevent the focus lose
+				e.preventDefault();
+			}
+		});
+
+	});
+
+
+    function addTestCase(input, output, sample) {
+		
+		currentNum++;
+		testCases++;
+		div_name ="testcases"+currentNum;
+		formalName="Test Case "+currentNum;
+		
+		$('#generator-button').html("Generate Output for " + testCases + " Testcases");
+		
+		newTestCard = `<div class="card testcase-card contest-card" id=`+div_name+`>
+			<div class="btn-close">
+				<h2 style="margin: 0px">`+formalName+`</h2>
+				<object>
+						<a title="Delete assignment" id="closeButton" onclick="deleteTestCase(&quot;`+div_name+`&quot;)")}}">
+							<img class="test_case_delete" id="right-icon" src="{{ asset('trash.png') }}">
+						</a>
+				</object>
+			</div>
+			
+			<div id=`+div_name+` class="test-case">
+
+				<div style="display: flex; flex-direction: column; justify-content: flex-start; width: 49%">
+					<label for="input">Input</label>
+					<textarea rows="10" id="input` + currentNum +`" class="input problem_creation" type="text" value="">` + (input ? input : "") + `</textarea>
+				</div>
+				
+				<div style="display: flex; flex-direction: column; justify-content: flex-start; width: 49%">
+					<label for="output">Output</label>
+					<textarea rows="10" id="output` + currentNum + `" class="output problem_creation" type="text" value="">` + (output ? output : "") + `</textarea>
+				</div>
+				
+			</div>
+			
+			
+				
+				
+			<div class="toggle-container">
+				
+				<label for="sample"> Sample </label>
+				<label class="switch">
+					<input type="checkbox" id="sample-checkbox" name="sample-checkbox" ` + ((sample === true) ? "checked" : "") + `>
+					<span class="slider round"></span>
+				</label>
+			</div>
+			
+			
+		</div>`;
+		
+		$("#testcase-cards").append(newTestCard);
+		
+		$('.testCardAdder').remove();
+		
+		var addTestCardButton = $(document.createElement('div'));
+		addTestCardButton.addClass('testcase-card');
+		addTestCardButton.addClass('card');
+		addTestCardButton.addClass('testCardAdder');
+		addTestCardButton.addClass('contest-card');
+		addTestCardButton.append('<img id="add-button" src="{{asset('big_add_circle.png')}}">');
+		
+		addTestCardButton.click(function() {
+			addTestCase();			
+		});
+		
+		$("#testcase-cards").append(addTestCardButton);
+		
+		
+		$('.testcase-card textarea').off('keyup');
+		$('.testcase-card textarea').keyup( function() {
+			$(this).val(addReturnKey($(this).val()));
+		}).keyup();
+		
+/*
+		$('#testcase-cards .file').change(function(data) {
+			currentFieldId = $(this).siblings("textarea, input")[0].id;
+			uploadFormId = "#" + currentFieldId.substring(0, currentFieldId.length - 1) + "Upload" + currentNum;
+			
+			
+			$(uploadFormId).submit(function(e) {
+				$(this).ajaxSubmit({
+				
+					beforeSubmit: 	function(formData, jqForm, options){
+						
+
+						return true;
+						
+					},
+					success:		function(responseText, statusText, xhr, $form) {
+						
+						var file = responseText['files'][0];
+				
+						console.log(responseText);
+						
+						element = document.getElementById(currentFieldId);
+						element.value = atob(file['contents']);
+										
+					},
+					error:			function(xhr, textStatus, errorThrown) {
+						console.log(xhr);						
+						alert(xhr['responseText']);
+					}
+				});
+				
+				return false;
+			});			
+
+			$(uploadFormId).submit();
+		});
+		
+*/
+
+	}
+
+	function deleteTestCase(testcase){
+		
+		if(testCases > 1){
+			testCases--;
+			$('#generator-button').html("Generate Output for " + testCases + " Testcases");
+			document.getElementById(testcase).remove();		
+			
+			renumberTestCases();
+		} else {
+			alert("You must have at least one testcase!");
+		}
+
+	};
+	
+	function renumberTestCases(){
+		
+		var testcases = document.getElementsByClassName("test-case");
+		tcs = [];
+		for (testcase of testcases) {
+			const input = $("#"+testcase.id).find("."+"input").val();
+			const output = $("#"+testcase.id).find("." + "output").val();
+			const sample = $("#"+testcase.id).find("#sample-checkbox").is(':checked');
+			
+			const tc = {"input": input, "output": output, "sample": sample};
+			tcs.push(tc);
+		}
+		
+		currentNum = 0;
+		testCases = 0;	
+		
+		$('#testcase-cards .testcase-card').each( function() {
+			
+			if(!$(this).hasClass('testCardAdder')){
+				$(this).remove();
+			}		
+		});
+		
+		for(tc of tcs){			
+			addTestCase(tc.input, tc.output, tc.sample);
+		}
+	}
+	
+	/* function to make the data and send a post with all of the stuff 
+	necessary to generate the output for the current testcases */
+	function genOutput(){		
+		
+		// Create a FormData object
+		var submitData = new FormData();
+
+		// validate that fields are filled in
+		var language = $('#languageSelect option:selected').val();
+		var languageText = $('#languageSelect option:selected').text();
+		var main_class = $('#main_class_input').val();
+		var package_name = $('#package_name_input').val();
+
+		if(languageText == 'Java' && main_class == '') {
+			
+			setInvalid($('#main_class_input'));
+			return false;
+			
+		} else if(languageText != 'Java'){
+
+			main_class = "";
+			package_name = "";
+		}
+		setValid($('#main_class_input'));
+
+		var editor = ace.edit("output-generator-editor");
+		editor.$blockScrolling = Infinity;				
+		
+		var generatorText = editor.getValue();
+		
+		submitData.append('assignmentId', {{contest.id}}),
+
+		submitData.append('language', language);
+		submitData.append('main_class', main_class);
+		submitData.append('package_name', package_name);
+		submitData.append('ACE', generatorText);
+
+		if(getExtension($('#output-generator-form #file').val()) == "zip"){
+
+			var file = $('#output-generator-form #file').prop('files')[0];
+			if(file){
+				submitData.append('file', file);
+			}
+		}
+		
+		/* build the testcase array */
+		var testcases = document.getElementsByClassName("test-case");
+		tcs = [];
+		for (testcase of testcases) {
+			const input = removeReturnKey($("#"+testcase.id).find("."+"input").val());
+			const tc = {"input": input, "args": "", "output": "", "weight": 1, "short_response": "", "long_response": "", "extra_credit": "false"};
+			tcs.push(tc);
+		}
+		
+		console.log(JSON.stringify(tcs));		
+		submitData.append('testcases', JSON.stringify(tcs));
+		
+		$('#generator-loading-container').show();
+		$('#generator-button').hide();
+		
+		$.ajax({
+			type: "POST",
+			url: "{{path('generate')}}",
+			data: submitData,
+			processData: false,
+			contentType: false,
+			success: function(data){
+
+				console.log(data);
+				
+				// save the testcase data to the output textboxes
+				count = 0;
+				$(".test-case").each(function() {
+					
+					$(this).find('.output').val(addReturnKey(data['testcases'][count]));
+					count++;		
+				});
+				
+				$('#generator-loading-container').hide();
+				$('#generator-button').show();				
+				alert("Output generated for " + data['testcases'].length + " testcases");
+			},
+			error: function(data){
+				alert(data['responseText']);
+				console.log(data['responseText']);
+				
+				$('#generator-loading-container').hide();
+				$('#generator-button').show();
+			}
+		});
+	}
+	
+	/* function to send a post request with all of the info needed to create a new problem */
+	function newProb(){
+		const name = document.getElementById('name').value;
+		const description = document.getElementById('description').value;
+		const time_limit = $('#time-limit').val();
+
+		/* build the testcase array */
+		var testcases = document.getElementsByClassName("test-case");
+		tcs = [];
+		for (testcase of testcases) {
+			const input = removeReturnKey($("#"+testcase.id).find("."+"input").val());
+			const output = removeReturnKey($("#"+testcase.id).find("." + "output").val());
+			const sample = $("#"+testcase.id).find("#sample-checkbox").is(':checked');
+			
+			const tc = {"input": input, "output": output, "sample": sample};
+			tcs.push(tc);
+		}
+		
+		console.log(tcs);
+			
+		var path = "{{path('contest_problem_modify')}}";
+		$.post(path, {
+			
+			"assignmentId": {{contest.id}},
+			"problemId": {{(problem ? problem.id : 0)}},
+			"name": name,
+			"description": description,
+			"time_limit": time_limit,			
+			
+			"testcases": tcs,
+			
+		}, (data) => {
+			console.log(data);
+		
+			window.location = data['redirect_url'];
+		
+		}, "json")
+		.fail(function(data) {
+			console.log(data['responseJSON']);
+			
+			alert(data['responseText']);					
+			$('#save-btn').prop('disabled', false);	
+		});
+    }
+	
+	</script>
+			
+		
+{% endblock %}

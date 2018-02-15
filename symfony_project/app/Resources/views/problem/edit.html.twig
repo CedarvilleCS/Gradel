@@ -10,15 +10,22 @@
   {{ include('template/top-nav.html.twig') }}
 
 
-  {# Left Nav #}
+  {# Left Nav Bar #}
   <nav class="nav-left">
-      <div class="btn btn-center" id="add-test">Add Test Case</div>
-      <div class="btn btn-center" id="save-btn">Save</div>
+		<div class="btn btn-center" id="save-btn">Save</div>
+	  
+		{% if problem is not null %}
+			<a id="delete-btn" class="btn"><div class="btn btn-center btn-delete">Delete</div></a>
+			
+			<ol style="padding-top: 0px">
+				<li id="delete-warning" style="padding-top: 0px"></li>
+			</ol>
+		{% endif %}
   </nav>
 
   {{ include('template/path-nav.html.twig') }}
 
-  {# Main section #}
+  {# Main Section #}
   <section id="main">
 
     {# Cards #}
@@ -47,55 +54,27 @@
 					<tr>
 					  <th colspan="4">
 						<label for="description">Description</label>
-						<textarea rows=20 id="description" name="description" class="problem_creation" type="text">{{problem.deblobinateDescription}}</textarea>
+						<textarea rows=20 id="description" name="description" class="problem_creation" type="text">{{problem.description}}</textarea>
 						
 						
 					  </th>
 					</tr>
 					<tr>
 					  <th colspan="1">
-						 
-						<div id="language-container">
-							
-							<div style="margin-right: 30px">
-							<label> Used </label>
-							<div id="language-list">
-							{% if problem is not null %}						
-								{% for l in problem.problem_languages %}
-									<div id="{{l.language.name}}" name="{{l.language.id}}" class="language">{{l.language.name}}</div>
-								{% endfor %}
-							{% else %}
-								{% for l in languages %}
-									<div id="{{l.name}}" name="{{l.id}}" class="language">{{l.name}}</div>
-								{% endfor %}
-							{% endif %}
-							</div>
-							</div>
-							
-							<div>
-							<label> Unused </label>
+						
+						<div style="display: flex; flex-direction: row; justify-content: space-between">
+							<h3 style="margin: 0px">Languages</h3>
 							<div id="language-pool">
-								{# add all the languages not currently used by the problem to this pool #}
-								{% if problem is not null %}
-								
-									{% for l in languages %}
-									
-										{% set not_found = true %}
-										{% for pl in problem.problem_languages %}
-										
-											{% if pl.language == l %}
-												{% set not_found = false %}
-											{% endif %}
-										
-											{% if loop.last and not_found %}												
-												<div id="{{l.name}}" name="{{l.id}}" class="language">{{l.name}}</div>
-											{% endif%}
-										
-										{% endfor %}
-									{% endfor %}
-								{% endif %}
+							{# add all the languages not currently used by the problem to this pool #}
+							{% for l in languages %}
+								<div id="{{l.id}}" name="{{l.name}}" class="language">{{l.name}}</div>
+							{% endfor %}
 							</div>
-							</div>
+						</div>
+						<div id="language-container">
+							<ul>
+							</ul>							
+														
 						</div>
 					  </th>					 
 					</tr>
@@ -105,9 +84,36 @@
 						  <input id="weight" name="weight" type="text" style="width: 100px" value="{{(problem) ? problem.weight : 1}}">
 					  
 						  <label for="time_limit">Time Limit (ms)</label>
-						  <input type="text" id="time_limit" style="width: 100px" value="{{(problem) ? problem.time_limit: 1000}}">
+						  <input type="text" id="time_limit" style="width: 100px" value="{{(problem) ? problem.time_limit: 1000}}">					  
+					  </th>
+					</tr>
+					<tr>
+					  <th colspan="1">
+						{% if not problem.master %}
+						  
+							<label for="linked_probs">Slave Problems </label>
+							<input type="text" id="linked_probs" style="width: 200px" value="{% for slave in problem.slaves %}{{slave.id}}{{(loop.last)?'':',&nbsp;'}}{% endfor %}">
+							<div id="recommended-slaves" style="margin-top:15px">
+								Recommended Slaves
+								<ul>
+									{% set noreco = true %}
+									{% for recommended in recommendedSlaves %}
+									
+									{% if recommended != problem and recommended not in problem.slaves %}
+									{% set noreco = false %}
+									<li> <a href="{{path('assignment', {'problemId': recommended.id, 'assignmentId': recommended.assignment.id, 'sectionId': recommended.assignment.section.id})}}"> {{recommended.id}} - <i>{{recommended.assignment.section.name}}</i> <small>{{recommended.name}}</small> </a> </li>
+									
+									{% endif %}
+									
+									{% endfor %}
+									
+									{{ (noreco) ? '<li>None to recommend</li>' : '' }}
+								</ul>
+							</div>
+						{% endif %}
 					  
 					  </th>
+					</tr>
 					  
 				  </table>
 				</div>
@@ -203,13 +209,86 @@
 					</table>
 				</div>
 			</div>
-
 		</div>
 	</div>
 	
+	<div class="parallel-cards">
 	
-	<div id="testcase-cards" class="parallel-cards">
+		<div id="validator-card" class="card" style="flex-grow: 10">
+			<div class="btn-close" onclick="collapseCardValidator()">
+				<h2 style="margin: 0px">Validation Options
+					<span style="float: right"><i class="fa fa-angle-down"></i></span>
+				</h2>
+			</div>
+			
+			<div id="validator-options" class="card-contents">
+				
+				<div style="display: flex; flex-direction: column; justify-content: space-between">
+
+					<div>
+						<div id="use-custom-container" class="toggle-container">
+							<label for="use-custom" style="font-weight: bold">Use Custom Validator</label>
+							<label class="switch">
+								<input id="use-custom" type="checkbox" name="use-custom" {{(problem.custom_validator) ? "checked" : ""}}>
+								<span class="slider round"></span>
+							</label>
+						</div>
+						
+						<div id="custom-validator-editor" style="height:490px" class="ace-container">{% if problem.custom_validator %}{{ problem.deblobinateCustomValidator()|nl2br }}{% endif %}</div>
+					</div>
+
+				</div>
+			</div>
+		</div>
+		
+		<div id="generator-card" class="card" style="flex-grow: 8.33">
+		
+			<div class="btn-close" onclick="collapseCardGenerator()">
+				<h2 style="margin: 0px">Generate Output
+					<span style="float: right"><i class="fa fa-angle-down"></i></span>
+				</h2>
+			</div>
+								
+			<div id="generator-options" class="card-contents">
+			
+				<p>Enter in a solution for this problem to generate output.</p>
+			
+				{# the ACE editor text area #}
+				<div id="output-generator-editor" class="ace-container"></div>
+				<br/>
+
+				{# file upload#}
+				<form id="output-generator-form" action="{{path('get_contents')}}" method="post">
+					<input type="file" name="file" class="file" id="file" value="Upload File">
+				</form>
+
+				<div id="submissionForm">
+
+					<br/>Language: 
+					<select id="languageSelect" name="language">
+						{% for lang in languages %}
+							{% if lang.name != "No Language Restriction" %}
+								<option value={{lang.id}}>{{lang.name}}</option>
+							{% endif %}
+						{% endfor %}
+					</select>
+					<br>
+					<div id="mainClassInput" style="display:none"><label for="main_class">Main Class: </label><input type="text" name="main_class" id="main_class_input"></div>
+					<div id="packgNameInput" style="display:none"><label for="package_name">Package Name: </label><input type="text" name="package_name" id="package_name_input"></div>
+					<br/>
+					<div class="btn" style="width: 300px" id="generator-button"> Generate </div>
+					<div id="generator-loading-container" style="display: none">
+						<img id="generator-loading-gif" style="height: 60px" src="{{asset('beoload.gif')}}" alt="Loading..."/>
+						<h3 style="margin: 0px"> Generating Output... </h3>
+					</div>
+				</div>
+				
+			</div>
+		</div>
+		
+	</div>
 	
+	<div id="testcase-cards" class="parallel-cards">	
 	
 	</div>
 	
@@ -218,10 +297,13 @@
 {% endblock %}
 
 {% block stylesheets %}
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
+	
     <link rel="stylesheet" href="{{ asset('styles.css') }}" />
     <link rel="stylesheet" href="{{ asset('card.css') }}" />
-    <link rel="stylesheet" href="{{ asset('problem-creation.css') }}" />
     <link rel="stylesheet" href="{{ asset('custom-toggle.css') }}" />
+    <link rel="stylesheet" href="{{ asset('problem-creation.css') }}" />
 	
 	<style type="text/css">
 		.testCardAdder:hover {
@@ -234,8 +316,117 @@
 
 {% block scripts %}
   <!-- JQuery -->
+  <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
   <script src="http://malsup.github.com/jquery.form.js"></script>
-  <script src="{{ asset('js/cards.js') }}"></script>
+  
+  <script src="{{ asset('src-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>	
+  
+  <script src="{{ asset('js/cards.js') }}"></script>	
+  <script src="{{ asset('js/validation.js') }}"></script>
+  
+  
+  <script>
+	/* OUTPUT GENERATOR FUNCTIONS */
+	var saved_code = "";
+
+	function getLanguage(filename){
+
+		var filetypes = JSON.parse('{{ filetypes|json_encode|raw }}');
+		var ext = getExtension(filename);
+
+		return filetypes[ext];
+	}
+
+	function getExtension(filename){
+
+		var ext = filename.substr(filename.lastIndexOf('.') + 1);
+		return ext;
+	}
+
+	function getName(filename){
+
+		var ext = getExtension(filename);
+		var cls = filename.substr(filename.lastIndexOf('\\') + 1).replace("."+ext,"");
+		
+		return cls;
+	}
+
+	function setLanguageFromFilename(filename){
+
+		var classname = getName(filename);
+		var ext = getExtension(filename);
+		var language = getLanguage(filename);
+
+		if(!language){
+			language = $('#languageSelect option:selected').text();
+		}
+
+		setLanguage(language);
+
+		// set the main class
+		document.getElementById('main_class_input').value = classname;
+
+		// toggle the java inputs
+		toggleJavaInputs(language == "Java", ext == "zip");
+	}
+
+	function setLanguage(language){
+
+		// set the language selector
+		var selectObject = document.getElementById('languageSelect');
+		for(var i=0; i<selectObject.length; i++){
+			if(selectObject.options[i].text == language){
+				selectObject.selectedIndex = i;
+				break;
+			}
+		}
+
+		var editor = ace.edit("output-generator-editor");
+		editor.$blockScrolling = Infinity;
+		updateAceCode();
+
+		// toggle the java inputs
+		var ext = getExtension($('#output-generator-form #file').val());
+		toggleJavaInputs(language == "Java", ext == "zip");
+	}
+
+	function toggleJavaInputs(state1, state2){
+
+		if(!state1){
+			document.getElementById('mainClassInput').style.display = 'none';
+			document.getElementById('packgNameInput').style.display = 'none';
+		} else if(state1 && !state2){
+			document.getElementById('mainClassInput').style.display = 'block';
+			document.getElementById('packgNameInput').style.display = 'none';
+		} else{
+			document.getElementById('mainClassInput').style.display = 'block';
+			document.getElementById('packgNameInput').style.display = 'block';
+		}
+	}
+
+	function updateAceCode(){
+
+		var default_code = JSON.parse('{{ default_code|json_encode|replace({'\\':'\\\\'})|raw }}');
+		var ace_modes = JSON.parse('{{ ace_modes|json_encode|raw }}');
+
+		var editor = ace.edit("output-generator-editor");
+		editor.$blockScrolling = Infinity;
+		
+		language = $('#languageSelect option:selected').text();
+		
+		if(saved_code !== editor.getValue()) {
+			editor.setValue(editor.getValue(), -1);
+		} else {
+			// This sets the default code for the selected language.
+			editor.setValue(default_code[language], -1);
+			saved_code = default_code[language];
+		}
+		editor.getSession().setMode("ace/mode/" + ace_modes[language]);
+		editor.resize(true);
+	}
+
+  </script>
 
   <script>
     var languages = [];
@@ -245,17 +436,97 @@
     uploadFormId = "";
 
     $(document).ready(() => {
-	
-		$('#save-btn').click( function() {
 		
-			/* Client-Side Validation */
+		/* CUSTOM VALIDATOR ACE EDITOR */
+		var validatorEditor = ace.edit("custom-validator-editor");
+		validatorEditor.$blockScrolling = Infinity;
+		validatorEditor.setTheme("ace/theme/xcode");
+		validatorEditor.session.setMode({ path: "ace/mode/c_cpp", inline: true } );
+		validatorEditor.resize();
 		
+		{# set the validator editor to be this code if the custom validator wasn't set #}
+		{% if problem.custom_validator is null %}
+		validatorEditor.setValue(  "#include <string>\n"
+						+ "#include \"custom_validate.h\"\n"
+						+ "\n"
+						+ "using namespace std;\n"
+						+ "\n"
+						+ "bool validate(string expected, string user){\n"
+							+ "\n"
+							+ "\tbool correct = (expected == user);\n"
+							+ "\n"
+							+ "\treturn correct;\n"
+						+ "}", 1);
+		{% endif %}
 		
-			/* Post the Problem */
-			newProb();		
+		/* grey out the custom validator ACE editor on toggle changer */
+		$('#use-custom').change( function() {
+			
+			if($(this).is(':checked') ){
+				validatorEditor.$blockScrolling = Infinity;
+				validatorEditor.setTheme("ace/theme/xcode");
+			} else{				
+				validatorEditor.$blockScrolling = Infinity;
+				validatorEditor.setTheme("ace/theme/solarized_dark");
+			}
+		});		
+		$('#use-custom').change();
 		
+		/* OUTPUT GENERATOR ACE EDITOR */
+		
+		var generatorEditor = ace.edit("output-generator-editor");
+		generatorEditor.$blockScrolling = Infinity;
+		generatorEditor.setTheme("ace/theme/xcode");
+		generatorEditor.resize();
+				
+		// make the language dropdown change affect the code
+		$('#languageSelect').change( function(data) {
+			var language = $('#languageSelect option:selected').text();
+			setLanguage(language);
+		});
+		$('#languageSelect').change();
+		
+		$('#output-generator-form').submit(function(e) {
+				
+			$(this).ajaxSubmit({
+			
+				beforeSubmit: 	function(formData, jqForm, options){
+					
+					/* CLIENT-SIDE VALIDATION */
+					return true;
+					
+				},
+				success:		function(responseText, statusText, xhr, $form) {
+					
+					var file = responseText['files'][0];
+			
+					console.log(responseText);
+					setLanguageFromFilename(file['name']);
+					
+					var editor = ace.edit("output-generator-editor");
+					editor.$blockScrolling = Infinity;
+					editor.setValue(atob(file['contents']));
+					
+					updateAceCode();		
+									
+				},
+				error:			function(xhr, textStatus, errorThrown) {
+					console.log(xhr);						
+					alert(xhr['responseText']);
+				}
+			});
+			
+			return false;
 		});
 		
+		/* handle uploading a correct solution and putting it in the editor */
+		$('#output-generator-form .file').change(function(data) {
+			
+			$('#output-generator-form').submit();
+		});
+		
+		
+		/* On the Display Testcases checkbox toggle, you should display/hide the Output Level dropdown */
 		$('#display-testcase').change( function() {
 			
 			if($(this).is(':checked') ){
@@ -264,50 +535,287 @@
 				$('#output-level-container').hide();
 			}
 			
-		});
-		
-		$('.language').click( function() {
-		
-			if($(this).parent().attr('id') == "language-list"){
-				$('#language-pool').append($(this));
-			} else {
-				$('#language-list').append($(this));
-			}
-		
-		
-		});
-		
-		
+		});		
 		$('#display-testcase').change();
-	
+		
+		/* move languages to the tabs and vice-versa */			
+		$('#language-container').tabs({
+			collapsible: true
+		});
+		
+		/* on clicking a language, add it to the language-container tab div */
+		$('#language-pool').on("click", ".language", function() {
+				
+			var num_tabs = $("#language-container ul li").length + 1;
+
+			$("#language-container ul").append(
+				"<li id='" + $(this)[0].id + "'><a href='#language-tab-" + $(this)[0].id + "'>" + $(this).attr('name') + "</a></li>"
+			);
+			
+			$("#language-container").append(
+				"<div id='language-tab-" + $(this)[0].id + "' class='language-tab'>"
+				
+					+ "<div class='language-data' id='" + $(this)[0].id + "'>"
+					
+						+ "<div style='display: flex; flex-direction: row; justify-content: space-between'>"
+							+ "<h1 style='margin-top: 5px'> " + $(this).attr('name') + "</h1>"
+						
+							+ "<div class='remove-language' name='" + $(this).attr('name') + "' id='" + $(this)[0].id + "'>"
+								+ "Remove " + $(this).attr('name') 
+							+ " </div>"
+						+ " </div>"
+					
+						+ "<label for='compile-options-" + $(this)[0].id + "'> Compiler Options </label>"
+						+ "<input type='text' class='compile-options' id='compile-options-" + $(this)[0].id + "' name='compile-options'>"
+
+						+ "<label for='default-code" + $(this)[0].id + "'> Default Code </label>"
+						+ "<textarea class='default-code' id='default-code-" + $(this)[0].id + "'></textarea>"
+						
+					+ "</div>"
+					
+				+ "</div>"				
+			);
+												
+			$(this).remove();
+						
+			$("#language-container").tabs("refresh");
+			$("#language-container").tabs("option", "active", num_tabs-1);
+		});
+		
+		/* on language removal click, add a language back to the pool */
+		$('#language-container').on("click", ".remove-language", function() {
+			
+			$("#language-pool").append(
+				"<div class='language' name='" + $(this).attr('name') + "' id='" + $(this)[0].id + "'> " + $(this).attr('name') + "</div>"
+			);
+		
+			$("#language-container ul #" + $(this)[0].id).remove();
+			$("#language-container #language-tab-" + $(this)[0].id).remove();
+						
+			$("#language-container").tabs("refresh");
+		});
+		
+		/* add the languages if they existed in the problem */
+		{% for l in languages %}
+			{% set found_l = null %}
+			{% set found_pl = null %}
+			{% for pl in problem.problem_languages %}
+				
+				{% if l == pl.language %}
+					{% set found_pl = pl %}
+					{% set found_l = l %}
+				{% endif %}									
+			{% else %}								
+				{% set found_l = l %}
+			{% endfor %}
+		
+			{% if found_l is not null %}
+				$('.language#{{found_l.id}}').click();
+				
+				$('#default-code-{{found_l.id}}').html("{{(found_pl.deblobinateDefaultCode) ? found_pl.deblobinateDefaultCode|e('js') : found_l.deblobinateDefaultCode|e('js')}}");
+				$('#language-container #language-tab-{{found_l.id}} .compile-options').val("{{found_pl.compilation_options}}");
+			{% endif %}
+			
+		{% endfor %}
+			
+		
+		
+		/* start the language container collapsed */
+		$("#language-container").tabs("option", "active", false);
+		
 		{# add in the testcases #}
 		{% if (problem.testcases) %}
 			{% for tc in problem.testcases %}
 				addTestCase(
-					"{{tc.deblobinateInput|replace({'\n': '\\n'})}}",
-					"{{tc.deblobinateCorrectOutput|replace({'\n': '\\n'})}}",
+					"{{tc.input|e('js')}}",
+					"{{tc.command_line_input|e}}",
+					"{{tc.correct_output|e('js')}}",
 					"{{tc.weight}}",
 					"{{tc.is_extra_credit}}",
-					"{{tc.feedback.deblobinateShortResponse|replace({'\n': '\\n'})}}",
-					"{{tc.feedback.deblobinateLongResponse|replace({'\n': '\\n'})}}",
+					"{{tc.feedback.short_response|e('js')}}",
+					"{{tc.feedback.long_response|e('js')}}",
 				);
 			{% endfor %}
 		{% else %}	  
 			/* default to at least one testcase */
 			addTestCase();	  
-      {% endif %}
-    });
+		{% endif %}
+		
+		/* delete button javascript if there is a problem (edit page) */
+		{% if problem is not null %}
+			var warned = 0;
+			$('#delete-btn').on('click', function(){
+			
+				if(warned == 1){					
+					window.location = "{{path('problem_delete', {'sectionId': problem.assignment.section.id, 'assignmentId': problem.assignment.id, 'problemId': problem.id})}}";
+					
+				} else {
+					$('#delete-warning').html("Are you sure?<br/>Click again to delete.");
+				}
+			
+				warned++;
+			});
+		{% endif %}	
+		
+		/* on clicking the generate button, validate the fields and call the post function */
+		$('#generator-button').click( function() {
+			genOutput();
+		});
+		
+		/* on clicking the save button, validate fields and call the post function */
+		$('#save-btn').click( function() {
+		
+			/* Client-Side Validation */
+        
+			// problem name
+			if ($.trim($('#requiredFields #name').val())  === '') {						
+				setInvalid($('#requiredFields #name'));
+				return false;
+			} else {
+				setValid($('#requiredFields #name'));
+			}
+			
+			// description
+			if ($.trim($('#requiredFields #description').val())  === '') {						
+				setInvalid($('#requiredFields #description'));
+				return false;
+			} else {
+				setValid($('#requiredFields #description'));
+			}
+			
+			// weight
+			var wght = new Number($('#requiredFields #weight').val());
+			if($('#requiredFields #weight').val() === '' || ($('#requiredFields #weight').val() != '' && (wght < 1 || wght % 1 != 0))){						
+				setInvalid($('#requiredFields #weight'));
+				return false;
+			} else {
+				setValid($('#requiredFields #weight'));				
+			}
+			
+			// time limit
+			var tml = new Number($('#requiredFields #time_limit').val());
+			if($('#requiredFields #time_limit').val() === '' || ($('#requiredFields #time_limit').val() != '' && (tml < 1 || tml % 1 != 0))){						
+				setInvalid($('#requiredFields #time_limit'));
+				return false;
+			} else {
+				setValid($('#requiredFields #time_limit'));				
+			}
+			
+			// total attempts
+			var att = new Number($('#optional-grading #total_attempts').val());
+			if($('#optional-grading #total_attempts').val() === '' || ($('#optional-grading #total_attempts').val() != '' && (att < 0 || att % 1 != 0))){						
+				setInvalid($('#optional-grading #total_attempts'));
+				return false;
+			} else {
+				setValid($('#optional-grading #total_attempts'));				
+			}
+			
+			// attempts before penalty
+			var pen = new Number($('#optional-grading #pen_attempts').val());
+			if($('#optional-grading #pen_attempts').val() === '' || ($('#optional-grading #pen_attempts').val() != '' && (pen < 0 || pen % 1 != 0)) || att < pen){						
+				setInvalid($('#optional-grading #pen_attempts'));
+				return false;
+			} else {
+				setValid($('#optional-grading #pen_attempts'));				
+			}
+			
+			// pen per attempt
+			var ppa = new Number($('#optional-grading #penalty').val());
+			if($('#optional-grading #penalty').val() === '' || ppa < 0 || ppa > 1){						
+				setInvalid($('#optional-grading #penalty'));
+				return false;
+			} else {
+				setValid($('#optional-grading #penalty'));				
+			}
+			
+			var testcases_valid = true;
+			// testcases
+			$(".test-case").each(function() {
+				
+				const input = $(this).find('.input').val();
+				const args = $(this).find('.args').val();
+				const output = $(this).find('.output').val();
+				
+				const weight = $(this).find('.weight').val();
+				
+				if(input === '' && args === ''){
+					setInvalid($(this).find('.input'));
+					setInvalid($(this).find('.args'));
+					testcases_valid = false;
+				} else {
+					setValid($(this).find('.input'));
+					setValid($(this).find('.args'));
+				}
+				
+				if(output === ''){
+					setInvalid($(this).find('.output'));
+					testcases_valid = false;
+				} else {
+					setValid($(this).find('.output'));
+				}
+				
+				if(weight < 1 || weight % 1 != 0){
+					setInvalid($(this).find('.weight'));
+					testcases_valid = false;
+				} else {
+					setValid($(this).find('.weight'));
+				}				
+			});
+			
+			if(!testcases_valid){
+				return false;
+			}				
+			
+			// check to see if this button is allowed to be pressed
+			if($(this).prop('disabled')){
+				return false;
+			} else {
+				$(this).prop('disabled', true);
+			}
+		
+			/* Post the Problem */
+			newProb();		
+		
+		});
+		
+		/* allow tabs in textareas */
+		$("textarea").keydown(function(e) {
+			if(e.keyCode === 9) { // tab was pressed
+				// get caret position/selection
+				var start = this.selectionStart;
+				var end = this.selectionEnd;
+
+				var $this = $(this);
+				var value = $this.val();
+
+				// set textarea value to: text before caret + tab + text after caret
+				$this.val(value.substring(0, start)
+							+ "\t"
+							+ value.substring(end));
+
+				// put caret at right position again (add one for the tab)
+				this.selectionStart = this.selectionEnd = start + 1;
+
+				// prevent the focus lose
+				e.preventDefault();
+			}
+		});
+
+	});
 
 
-    function addTestCase(input, output, weight, extraCredit, short, long) {
+    function addTestCase(input, args, output, weight, extraCredit, short, long) {
 		
 		currentNum++;
 		testCases++;
-		div_name ="testcases"+testCases;
-		formalName="Test Case "+testCases;
+		div_name ="testcases"+currentNum;
+		formalName="Test Case "+currentNum;
+		
+		$('#generator-button').html("Generate Output for " + testCases + " Testcases");
+		
 		newTestCard = `<div class="card testcase-card" id=`+div_name+`>
 			<div class="btn-close">
-				<h2 style="margin: 0px">`+formalName+`<span style="float: right"><i class="fa fa-angle-down"></i></span></h2>
+				<h2 style="margin: 0px">`+formalName+`</h2>
 				<object>
 						<a title="Delete assignment" id="closeButton" onclick="deleteTestCase(&quot;`+div_name+`&quot;)")}}">
 							<img class="test_case_delete" id="right-icon" src="{{ asset('trash.png') }}">
@@ -328,9 +836,15 @@
 				
 				<th colspan="2">
 					<form id="inputUpload`+ currentNum + `" method="post" action="{{path("get_contents")}}">
-						<label for="input">Input</label>
+						<label for="input">Standard Input</label>
 						<input class="file" id="file" name="file" type="file" value="">
 						<textarea rows="5" id="input` + currentNum +`" class="input problem_creation" type="text" value="">` + (input ? input : "") + `</textarea>
+					</form>
+					
+					<form id="argsUpload`+ currentNum + `" method="post" action="{{path("get_contents")}}">
+						<label for="args">Command Line Args</label>
+						<input class="file" id="file" name="file" type="file" value="">
+						<input id="args` + currentNum +`" class="args problem_creation" type="text" value="` + (args ? args : "") + `">
 					</form>
 					</th>
 					
@@ -338,7 +852,7 @@
 					<form id="outputUpload` + currentNum + `"  method="post" action="{{path("get_contents")}}">
 						<label for="output">Output</label>
 						<input class="file" id="file" name="file" type="file" value="">
-						<textarea rows="5" id="output` + currentNum + `" class="output problem_creation" type="text" value="">` + (output ? output : "") + `</textarea>
+						<textarea rows="10" id="output` + currentNum + `" class="output problem_creation" type="text" value="">` + (output ? output : "") + `</textarea>
 					</form>
 				</th>
 				
@@ -355,6 +869,13 @@
 							<input id="weight" name="weight" class="weight" style="width: 100px" type="text" value="` + (weight ? weight : "1") + `">
 						</span>
 						
+						<label for="input-type">Input Type</label>
+						<select id="input-type` + currentNum + `">
+							<option value="Input">Standard Input</option>
+							<option value="Command-Line">Command-Line Args</option>
+							<option value="Both">Both</option>
+						</select>
+						
 						<label for="extra-credit">Extra Credit</label>
 						<div id="extra-credit" class="toggle-container">
 							<br/><label class="switch">
@@ -363,7 +884,8 @@
 							</label>
 						</div>
 					</div>
-					<div style="width: 75%">
+					
+					<div style="width: 75%; padding-left: 10px;">
 						
 						<form id="shortFeedbackUpload` + currentNum + `" method="post" action="{{path("get_contents")}}">
 							<label for="shortFeedback">Short Feedback</label>
@@ -389,6 +911,7 @@
 		$("#testcase-cards").append(newTestCard);
 		
 		$('.testCardAdder').remove();
+		
 		var addTestCardButton = $(document.createElement('div'));
 		addTestCardButton.addClass('testcase-card');
 		addTestCardButton.addClass('card');
@@ -397,54 +920,250 @@
 		
 		addTestCardButton.click(function() {
 			addTestCase();
+			
+			console.log($('#input-type' + (currentNum-1)).val());
+			
+			$('#input-type' + currentNum).val($('#input-type' + (currentNum-1)).val());
+			
+			console.log($('#input-type' + currentNum).val());
+			
+			$('#input-type' + currentNum).change();
 		});
 		
+		$("#testcase-cards").append(addTestCardButton);		
+			
+		$('#input-type' + currentNum).change( function() {
 		
-		$("#testcase-cards").append(addTestCardButton);
+			id = $(this)[0].id;
+				
+			argsId = "#argsUpload" + id.substring(10);
+			inptId = "#inputUpload" + id.substring(10);
+			outId = "#output" + id.substring(10);
+			
+			if($(this).val() == 'Command-Line'){
+							
+				$(inptId + " .input").val("");
+				$(inptId).hide();
+				
+				$(argsId).show();
+				
+				$(outId).attr('rows', 5);
+				
+			} else if($(this).val() == 'Input'){
+				
+				$(inptId).show();
+				
+				$(argsId + " .args").val("");
+				$(argsId).hide();				
+				
+				$(outId).attr('rows', 5);
+				
+			} else {
+				
+				$(inptId).show();
+				$(argsId).show();
+
+				$(outId).attr('rows', 10);				
+			}		
+		});
+		
+		if((input != null && input != "") && ((args != null && args != ""))){
+			$('#input-type' + currentNum).val('Both');			
+		} else if(args != null && args != ""){
+			$('#input-type' + currentNum).val('Command-Line');
+		} else {
+			$('#input-type' + currentNum).val('Input');
+		}
+		
+		$('#input-type' + currentNum).change();
 		
 		
-		$('.file').change(function(data) {
+		$('#testcase-cards .file').change(function(data) {
 			currentFieldId = $(this).siblings("textarea, input")[0].id;
 			uploadFormId = "#" + currentFieldId.substring(0, currentFieldId.length - 1) + "Upload" + currentNum;
-			$(uploadFormId).ajaxForm(function(data) {
-				changeVar = "";
-				changeVar = atob(data.contents);
-				element = document.getElementById(currentFieldId);
-				element.value = changeVar;
-			});
-
-			$(uploadFormId).submit(function(e) {
-			  e.preventDefault();
-			  $(this).ajaxSubmit();
-			});
 			
+			
+			$(uploadFormId).submit(function(e) {
+				$(this).ajaxSubmit({
+				
+					beforeSubmit: 	function(formData, jqForm, options){
+						
+						/* CLIENT-SIDE VALIDATION */
+						return true;
+						
+					},
+					success:		function(responseText, statusText, xhr, $form) {
+						
+						var file = responseText['files'][0];
+				
+						console.log(responseText);
+						
+						element = document.getElementById(currentFieldId);
+						element.value = atob(file['contents']);
+										
+					},
+					error:			function(xhr, textStatus, errorThrown) {
+						console.log(xhr);						
+						alert(xhr['responseText']);
+					}
+				});
+				
+				return false;
+			});			
+
 			$(uploadFormId).submit();
 		});
-    }
-
-		$("#add-test").click(function(input, output, weight, extraCredit, short, long) {
-      addTestCase();
-		});
+	}
 
 	function deleteTestCase(testcase){
 		
 		if(testCases > 1){
 			testCases--;
+			$('#generator-button').html("Generate Output for " + testCases + " Testcases");
 			document.getElementById(testcase).remove();
+			
+			
+			renumberTestCases();
 		} else {
 			alert("You must have at least one testcase!");
 		}
 
 	};
-
-    function languageSelect() {
-      const language = document.getElementById('languages');
-
-      // languages.push(language.value);
-      $('#language-list').append("<div class='language' name=" + language.value + ">" + language.options[language.selectedIndex].label + "</div>");
-      language.selectedIndex = 0;
-    }
 	
+	function renumberTestCases(){
+		
+		var testcases = document.getElementsByClassName("test-case");
+		tcs = [];
+		for (testcase of testcases) {
+			const input = $("#"+testcase.id).find("."+"input").val();
+			const args = $("#"+testcase.id).find("."+"args").val();
+			const output = $("#"+testcase.id).find("." + "output").val();
+			const short_fb = $("#"+testcase.id).find("."+"shortFeedback").val();
+			const long_fb = $('#'+testcase.id).find("." + "longFeedback").val();
+			const weight = $('#' + testcase.id).find("." + "weight").val();
+			const extra_credit = $('#' + testcase.id).find("." + "extra-credit").prop("checked");
+			const tc = {"input": input, "args": args, "output": output, "weight": weight, "short_response": short_fb, "long_response": long_fb, "extra_credit": extra_credit ? "true" : "false"};
+			tcs.push(tc);
+		}
+		
+		currentNum = 0;
+		testCases = 0;	
+		
+		$('#testcase-cards .testcase-card').each( function() {
+			
+			if(!$(this).hasClass('testCardAdder')){
+				$(this).remove();
+			}		
+		});
+		
+		for(tc of tcs){
+			
+			addTestCase(
+				tc.input,
+				tc.args,
+				tc.output,
+				tc.weight,
+				tc.extra_credit == "true",
+				tc.short_response,
+				tc.long_response,
+			);
+		}
+	}
+	
+	/* function to make the data and send a post with all of the stuff 
+	necessary to generate the output for the current testcases */
+	function genOutput(){
+		
+		// Create a FormData object
+		var submitData = new FormData();
+
+		// validate that fields are filled in
+		var language = $('#languageSelect option:selected').val();
+		var languageText = $('#languageSelect option:selected').text();
+		var main_class = $('#main_class_input').val();
+		var package_name = $('#package_name_input').val();
+
+		if(languageText == 'Java' && main_class == '') {
+			
+			setInvalid($('#main_class_input'));
+			return false;
+			
+		} else if(languageText != 'Java'){
+
+			main_class = "";
+			package_name = "";
+		}
+		setValid($('#main_class_input'));
+
+		var editor = ace.edit("output-generator-editor");
+		editor.$blockScrolling = Infinity;				
+		
+		var generatorText = editor.getValue();
+		
+		submitData.append('assignmentId', {{(problem ? problem.assignment.id : assignment.id)}}),
+
+		submitData.append('language', language);
+		submitData.append('main_class', main_class);
+		submitData.append('package_name', package_name);
+		submitData.append('ACE', generatorText);
+
+		if(getExtension($('#output-generator-form #file').val()) == "zip"){
+
+			var file = $('#output-generator-form #file').prop('files')[0];
+			if(file){
+				submitData.append('file', file);
+			}
+		}
+		
+		/* build the testcase array */
+		var testcases = document.getElementsByClassName("test-case");
+		tcs = [];
+		for (testcase of testcases) {
+			const input = $("#"+testcase.id).find("."+"input").val();
+			const args = $("#"+testcase.id).find("."+"args").val();
+			const tc = {"input": input, "args": args, "output": "", "weight": 1, "short_response": "", "long_response": "", "extra_credit": "false"};
+			tcs.push(tc);
+		}
+		
+		console.log(JSON.stringify(tcs));		
+		submitData.append('testcases', JSON.stringify(tcs));
+		
+		$('#generator-loading-container').show();
+		$('#generator-button').hide();
+		
+		$.ajax({
+			type: "POST",
+			url: "{{path('generate')}}",
+			data: submitData,
+			processData: false,
+			contentType: false,
+			success: function(data){
+
+				console.log(data);
+				
+				// save the testcase data to the output textboxes
+				count = 0;
+				$(".test-case").each(function() {
+					
+					$(this).find('.output').val(data['testcases'][count]);
+					count++;		
+				});
+				
+				$('#generator-loading-container').hide();
+				$('#generator-button').show();				
+				alert("Output generated for " + data['testcases'].length + " testcases");
+			},
+			error: function(data){
+				alert(data['responseText']);
+				console.log(data['responseText']);
+				
+				$('#generator-loading-container').hide();
+				$('#generator-button').show();
+			}
+		});
+	}
+	
+	/* function to send a post request with all of the info needed to create a new problem */
 	function newProb(){
 		const name = document.getElementById('name').value;
 		const description = document.getElementById('description').value;
@@ -460,10 +1179,25 @@
 		const displayTestcase = document.getElementById('display-testcase').checked;
 		const extraDisplay = document.getElementById('display-extra').checked;
 
-		const children = $("#language-list .language");
+		var customValidatorText = "";
+		
+		if(document.getElementById('use-custom').checked){
+			var customValidatorEditor = ace.edit("custom-validator-editor");
+			customValidatorText = customValidatorEditor.getValue();				
+		}
+		
+		const children = $("#language-container .language-tab");
 		languages = [];
 		for (var i = 0; i < children.length; i++) {
-			languages.push(children.eq(i).attr('name'));
+			
+			const elem = children.eq(i);
+			
+			const id = elem.find('.language-data')[0].id;
+			const comp_options = elem.find('.compile-options').val();
+			const def_code = elem.find('.default-code').val();
+			
+			const lang = {"id": id, "compiler_options": comp_options, "default_code": def_code};
+			languages.push(lang);
 		}
 
 
@@ -472,18 +1206,28 @@
 		tcs = [];
 		for (testcase of testcases) {
 			const input = $("#"+testcase.id).find("."+"input").val();
+			const args = $("#"+testcase.id).find("."+"args").val();
 			const output = $("#"+testcase.id).find("." + "output").val();
 			const short_fb = $("#"+testcase.id).find("."+"shortFeedback").val();
 			const long_fb = $('#'+testcase.id).find("." + "longFeedback").val();
 			const weight = $('#' + testcase.id).find("." + "weight").val();
 			const extra_credit = $('#' + testcase.id).find("." + "extra-credit").prop("checked");
-			const tc = {"input": input, "output": output, "weight": weight, "short_response": short_fb, "long_response": long_fb, "extra_credit": extra_credit ? "true" : "false"};
+			const tc = {"input": input, "args": args, "output": output, "weight": weight, "short_response": short_fb, "long_response": long_fb, "extra_credit": extra_credit ? "true" : "false"};
 			tcs.push(tc);
 		}
 		
 		console.log(tcs);
-	  
-	  
+		
+		linked_probs = [];
+		linked_probs_raw = $("#linked_probs").val().split(",");
+		for(var i = 0; i<linked_probs_raw.length; i++){
+		
+			if(linked_probs_raw[i].trim().length > 0){
+				linked_probs.push(linked_probs_raw[i].trim());
+			}
+		}
+		console.log(linked_probs);
+		
 		var path = "{{path('problem_modify')}}";
 		$.post(path, {
 			"assignmentId": {{(problem ? problem.assignment.id : assignment.id)}},
@@ -493,13 +1237,16 @@
 			"time_limit": timeLimit,
 			"weight": weight,
 			"languages": languages,
-			// "grading_method": gm,
+			
 			"is_extra_credit": extraCredit,
 
 			"total_attempts": totalAttempts, // must be a non-negative integer - 0 means unlimited
 			"attempts_before_penalty": attemptsBeforePen, // must be less than totalAttempts
 			"penalty_per_attempt": penPerAttempt, // decimal between 0.00 and 1.00
 
+			"linked_probs": linked_probs,
+			
+			"custom_validator": customValidatorText,
 
 			"stop_on_first_fail": stopFail ? "true" : "false", // checkbox
 			"response_level": responseLevel, // dropdown with [None, Short, Long]
@@ -516,8 +1263,83 @@
 		
 		}, "json")
 		.fail(function(data) {
-			alert(data['responseText']);
+			alert(data['responseText']);					
+			$('#save-btn').prop('disabled', false);	
 		});
     }
+	
 	</script>
+	
+	<script>
+	
+	/* used to decide if both the validator and 
+	generator card should be closed at one */
+	function collapseCardValidator(){
+		
+		var w = $('#validator-card').css('width');
+		w = parseInt(w.substring(0, w.length-2));
+		var ml = $('#validator-card').css('margin-left');
+		ml = parseInt(ml.substring(0, ml.length-2));
+		var mr = $('#validator-card').css('margin-right');
+		mr = parseInt(mr.substring(0, mr.length-2));
+		var pl = $('#validator-card').css('padding-left');
+		pl = parseInt(pl.substring(0, pl.length-2));
+		var pr = $('#validator-card').css('padding-right');
+		pr = parseInt(pr.substring(0, pr.length-2));
+		
+		var pw = $('#validator-card').parent().css('width');
+		pw = parseInt(pw.substring(0, pw.length-2));
+		
+		var width = (w+ml+mr+pl+pr);
+		
+		console.log(width);
+		console.log(pw);
+		
+		if(width < pw-10 || width > pw+10){
+			collapseCard('generator-options');
+		}		
+		
+		if(collapseCard('validator-options')){		
+			$('#generator-card').css("flex-grow", 8.33);
+		} else {
+			$('#generator-card').css("flex-grow", 12);
+		}
+	}
+	
+	function collapseCardGenerator(){
+		
+		var w = $('#generator-card').css('width');
+		w = parseInt(w.substring(0, w.length-2));
+		var ml = $('#generator-card').css('margin-left');
+		ml = parseInt(ml.substring(0, ml.length-2));
+		var mr = $('#generator-card').css('margin-right');
+		mr = parseInt(mr.substring(0, mr.length-2));
+		var pl = $('#generator-card').css('padding-left');
+		pl = parseInt(pl.substring(0, pl.length-2));
+		var pr = $('#generator-card').css('padding-right');
+		pr = parseInt(pr.substring(0, pr.length-2));
+		
+		var pw = $('#generator-card').parent().css('width');
+		pw = parseInt(pw.substring(0, pw.length-2));
+		
+		var width = (w+ml+mr+pl+pr);
+		
+		console.log(width);
+		console.log(pw);
+		
+		if(width < pw-10 || width > pw+10){
+			collapseCard('validator-options');
+		}
+		
+		if(collapseCard('generator-options')){		
+			$('#generator-card').css("flex-grow", 8.33);
+		} else {
+			$('#generator-card').css("flex-grow", 12);
+		}
+	}
+	
+	</script>
+	
+			
+		
 {% endblock %}

@@ -1,0 +1,87 @@
+<script type="text/javascript" src="{{ asset('bundles/goswebsocket/js/gos_web_socket_client.js') }}"></script>
+<script type="text/javascript" src="{{ asset('bundles/goswebsocket/js/vendor/autobahn.min.js') }}"></script>
+<script type="text/javascript" src="{{ asset('js/toastr/toastr.js')}}"></script>
+
+<link rel="stylesheet" href="{{ asset('styles/toastr.css')}}">
+
+<script>
+  var sessionGlob = undefined;
+  window.onload = function() {
+    toastr.options.progressBar = true;
+    toastr.options.timeOut = 60000;
+    toastr.options.extendedTimeOut = 120000
+    toastr.options.positionClass = "toast-bottom-full-width";
+
+    var webSocket = WS.connect("{{socket_domain ~ ':' ~ socket_port ~ '/'}}");
+    console.log("Establishing Websocket...");
+
+    webSocket.on("socket/connect", function(session){
+        //session is an Autobahn JS WAMP session.
+      console.log("SUCCESSFULLY CONNECTED");
+      session.subscribe("appbundle/channel", function(uri, payload){
+        try {
+          const data = JSON.parse(payload);
+          console.log(data);
+          console.log("DID it work?")
+          handleMessage(data["msg"], data["type"], data["submissionId"]);
+        } catch(e) {
+
+        }
+      });
+  
+      sessionGlob = session;
+    })
+
+    webSocket.on("socket/disconnect", function(error){
+        //error provides us with some insight into the disconnection: error.reason and error.code
+
+        console.log("Disconnected for " + error.reason + " with code " + error.code);
+    })
+  }
+
+    function sendQuestion(msg){ 
+        sessionGlob.publish("appbundle/channel", {contestId: "{{section.id}}",  scope: "question", recipients: null, msg: msg});
+    }
+
+    function sendGlobal(msg) {
+      sessionGlob.publish("appbundle/channel", {contestId: "{{section.id}}", scope: "global", recipients: null, msg: msg});
+    }
+
+    function sendSpecific(msg, recipients) {
+        sessionGlob.publish("appbundle/channel", {contestId: "{{section.id}}", scope: "userSpecific", recipients: recipients, msg: msg});
+    }
+
+    function handleMessage(message, type, submissionId) {
+      console.log("Handling Message of type: " + type + "...");
+
+      message = message.replace(/\n|\r\n|\r/g, "<br/>");
+
+      console.log("New Message:" + message);
+
+      switch(type) {
+        case "notice":
+          console.log("NOTICE");
+          toastr.info(message);
+          break;
+        case "question":
+          console.log("QUESTION");
+          toastr.info(message);
+          break;
+        case "reject":
+          console.log("REJECT");
+          const route = "{{path('problem_result', 'RESULT')}}" + submissionId;
+          console.log(route);
+          toastr.error("<a href='" + route + "'><div styles='display: inline-block'>" + message + "<div></a>");
+          break;
+        case "updateData":
+          if (typeof socketScoreboardUpdate === "function") {
+            console.log("UPDATING PAGE");
+            socketScoreboardUpdate();
+          }
+          if (typeof socketRefreshJudging === "function") {
+            console.log("UPDATING PAGE");
+            socketRefreshJudging();
+          }
+      }
+    }
+</script>

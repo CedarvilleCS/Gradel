@@ -9,3 +9,8 @@
 # submit:
 #     path:     /submit
 #     defaults: { _controller: AppBundle:Submit:submit }
+
+appbundle_topic: 
+  channel: appbundle/channel
+  handler:
+    callback: 'appbundle.topic'

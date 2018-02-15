@@ -23,13 +23,17 @@ class Assignment implements JsonSerializable{
 			call_user_func_array(array($this,$f),$a);
 		} else if($i != 0) {
 			throw new Exception('ERROR: '.get_class($this).' constructor does not accept '.$i.' arguments');
+		} else {
+			$this->freeze_override = false;
+			$this->freeze_override_time = null;
 		}
 		
 		$this->problems = new ArrayCollection();
 		$this->teams = new ArrayCollection();
+		$this->queries = new ArrayCollection();
 	}
 	
-	public function __construct9($sect, $nm, $desc, $start, $end, $cutoff, $wght, $grade, $extra){
+	public function __construct9($sect, $nm, $desc, $start, $end, $cutoff, $wght, $pen, $extra){
 		$this->section = $sect;
 		$this->name = $nm;
 		$this->description = $desc;
@@ -38,7 +42,75 @@ class Assignment implements JsonSerializable{
 		$this->cutoff_time = $cutoff;
 		$this->weight = $wght;
 		$this->is_extra_credit = $extra;
-		$this->gradingmethod = $grade;
+		$this->penalty_per_day = $pen;
+		
+		$this->freeze_time = null;
+		$this->freeze_override = false;
+		$this->freeze_override_time = null;
+	}
+	
+	public function __construct10($sect, $nm, $desc, $start, $end, $cutoff, $pen1, $pen2, $pen3, $pen4){
+		$this->section = $sect;
+		$this->name = $nm;
+		$this->description = $desc;
+		$this->start_time = $start;
+		$this->end_time = $end;
+		$this->cutoff_time = $cutoff;
+		
+		$this->weight = 1;
+		$this->is_extra_credit = false;
+		$this->penalty_per_day = 0;
+		
+		$this->penalty_per_wrong_answer = $pen1;
+		$this->penalty_per_compile_error = $pen2;
+		$this->penalty_per_time_limit = $pen3;
+		$this->penalty_per_runtime_error = $pen4;
+		
+		$this->freeze_time = null;
+		$this->freeze_override = false;
+		$this->freeze_override_time = null;
+	}
+	
+	# clone method override
+	public function __clone(){
+		
+		if($this->id){
+			$this->id = null;
+			
+			# clone the problems
+			$problemsClone = new ArrayCollection();
+			
+			foreach($this->problems as $problem){
+				$problemClone = clone $problem;
+				$problemClone->assignment = $this;
+				
+				$problemsClone->add($problemClone);
+			}
+			$this->problems = $problemsClone;
+		}
+	}
+	
+	public function isOpened(){
+		
+		$currTime = new \DateTime("now");
+		
+		return $this->start_time <= $currTime && $this->section->isActive();
+		
+	}
+	
+	public function isActive(){
+		
+		$currTime = new \DateTime("now");
+		
+		return $this->start_time <= $currTime && $currTime < $this->end_time;
+	}
+	
+	public function isFrozen(){
+		
+		$currTime = new \DateTime("now");
+		
+		// either the freeze time is in the past or the override is set with a time
+		return ((!$this->freeze_override && $this->freeze_time < $currTime) || ($this->freeze_override && isset($this->freeze_override_time)));		
 	}
 	
 	/** 
@@ -49,7 +121,8 @@ class Assignment implements JsonSerializable{
 	public $id;
 
 	/**
-	* @ORM\OneToMany(targetEntity="Problem", mappedBy="assignment")
+	* @ORM\OneToMany(targetEntity="Problem", mappedBy="assignment", cascade={"persist"})
+	* @ORM\OrderBy({"weight" = "ASC", "name" = "ASC"});
 	*/
 	public $problems;
 
@@ -65,14 +138,16 @@ class Assignment implements JsonSerializable{
 	public $name;
 
 	/**
-	* @ORM\Column(type="blob")
+	* @ORM\Column(type="text")
 	*/
 	public $description;
-	
-	public function deblobinateDescription(){			
-		return stream_get_contents($this->description);
-	}
 
+	/**
+	* @ORM\OneToMany(targetEntity="Query", mappedBy="assignment", cascade={"persist"})
+	* @ORM\OrderBy({"timestamp" = "ASC"});
+	*/
+	public $queries;
+	
 	/**
 	* @ORM\Column(type="datetime")
 	*/
@@ -89,10 +164,9 @@ class Assignment implements JsonSerializable{
 	public $cutoff_time;
 
 	/**
-	* @ORM\ManyToOne(targetEntity="AssignmentGradingMethod")
-	* @ORM\JoinColumn(name="assignmentgradingmethod_id", referencedColumnName="id", nullable=false)
+	* @ORM\Column(type="decimal", precision=12, scale=8, nullable=true)
 	*/
-	public $gradingmethod;
+	public $penalty_per_day;
 	
 	/**
 	* @ORM\Column(type="integer")
@@ -105,14 +179,52 @@ class Assignment implements JsonSerializable{
 	public $is_extra_credit;
 	
 	/**
-	* @ORM\OneToMany(targetEntity="Team", mappedBy="assignment")
+	* @ORM\OneToMany(targetEntity="Team", mappedBy="assignment", cascade={"persist"}, orphanRemoval=true)
 	*/
 	public $teams;
+	
+	
+	// Contest-Specific Information
+	/**
+	* @ORM\Column(type="datetime", nullable=true)
+	*/
+	public $freeze_time;
+	
+	/**
+	* @ORM\Column(type="datetime", nullable=true)
+	*/
+	public $freeze_override_time;
+	
+	/**
+	* @ORM\Column(type="boolean")
+	*/
+	public $freeze_override;
+	
+	/**
+	* @ORM\Column(type="integer", nullable=true)
+	*/
+	public $penalty_per_wrong_answer;
+	
+	/**
+	* @ORM\Column(type="integer", nullable=true)
+	*/
+	public $penalty_per_compile_error;
+	
+	/**
+	* @ORM\Column(type="integer", nullable=true)
+	*/
+	public $penalty_per_time_limit;
+	
+	/**
+	* @ORM\Column(type="integer", nullable=true)
+	*/
+	public $penalty_per_runtime_error;	
 	
 	public function jsonSerialize(){
 		return [
 			'name' => $this->name,			
 			'weight' => $this->weight,
+			'teams' => $this->teams->toArray(),
 		];
 	}
 }

@@ -14,7 +14,6 @@ use AppBundle\Entity\UserSectionRole;
 use AppBundle\Entity\Testcase;
 use AppBundle\Entity\Submission;
 use AppBundle\Entity\Language;
-use AppBundle\Entity\AssignmentGradingMethod;
 use AppBundle\Entity\Feedback;
 use AppBundle\Entity\TestcaseResult;
 
@@ -22,6 +21,10 @@ use \DateTime;
 
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\Config\Definition\Exception\Exception;
+
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 
 class Grader  {
 	
@@ -36,10 +39,9 @@ class Grader  {
 		$this->em = $em;		
 	}
 	
-	public function isTeaching($user, $section){
-		
-		$role = $this->em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Teaches'));		
-		
+	
+	private function isRole($user, $section, $role){
+
 		$qb = $this->em->createQueryBuilder();
 		$qb->select('usr')
 			->from('AppBundle\Entity\UserSectionRole', 'usr')
@@ -53,9 +55,38 @@ class Grader  {
 		$query = $qb->getQuery();
 		$usr = $query->getOneOrNullResult();
 		
-		return $usr->section == $section;		
+		return isset($usr);
+	}	
+	
+	public function isTeaching($user, $section){
+		
+		$role = $this->em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Teaches'));		
+		
+		return $this->isRole($user, $section, $role);
 	}
 	
+	public function isTaking($user, $section){
+		
+		$role = $this->em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));		
+		
+		return $this->isRole($user, $section, $role);		
+	}
+		
+	public function isHelping($user, $section){
+		
+		$role = $this->em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Helps'));		
+		
+		return $this->isRole($user, $section, $role);	
+	}
+	
+	public function isJudging($user, $section){
+		
+		$role = $this->em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Judges'));		
+		
+		return $this->isRole($user, $section, $role);		
+	}
+	
+		
 	public function isOnTeam($user, $assignment, $team){
 		return $team == $this->getTeam($user, $assignment);
 	}
@@ -70,14 +101,14 @@ class Grader  {
 				->setParameter(1, $assignment);
 				
 		$query_team = $qb_teams->getQuery();
-		$team_entities = $query_team->getResult();	
+		$team_entities = $query_team->getResult();
 		
 		# loop over all the teams for this assignment and figure out which team the user is a part of
-		$team = null;		
+		$team = null;
 		
-		foreach($team_entities as $tm){		
-			foreach($tm->users as $us){	
-				if($user->id == $us->id){
+		foreach($team_entities as $tm) {
+			foreach($tm->users as $us) {
+				if($user->id == $us->id) {
 					$team = $tm;
 				}
 			}
@@ -98,6 +129,22 @@ class Grader  {
 			->andWhere('s.team = ?2')
 			->setParameter(1, $problem)
 			->setParameter(2, $team)
+			->orderBy('s.timestamp', 'ASC');
+			
+		$subs_query = $qb_subs->getQuery();
+		$subs = $subs_query->getResult();
+				
+		return count($subs);
+	}
+	
+	public function getProbTotalAttempts($problem){	
+		
+		# array of all submissions
+		$qb_subs = $this->em->createQueryBuilder();
+		$qb_subs->select('s')
+			->from('AppBundle\Entity\Submission', 's')
+			->where('s.problem = ?1')
+			->setParameter(1, $problem)
 			->orderBy('s.timestamp', 'ASC');
 			
 		$subs_query = $qb_subs->getQuery();
@@ -191,24 +238,8 @@ class Grader  {
 		}
 		
 		$grades['total_testcases'] = $total_normal_testcases;	
+
 		$grades['total_extra_testcases'] = $total_testcases - $total_normal_testcases;
-			
-				
-		# array of all submissions
-		$qb_subs = $this->em->createQueryBuilder();
-		$qb_subs->select('s')
-			->from('AppBundle\Entity\Submission', 's')
-			->where('s.problem = ?1')
-			->andWhere('s.team = ?2')
-			->setParameter(1, $problem)
-			->setParameter(2, $team)
-			->orderBy('s.timestamp', 'ASC');
-			
-		$subs_query = $qb_subs->getQuery();
-		$subs = $subs_query->getResult();
-			
-		$grades['all_submissions'] = $subs;	
-		
 		$attempts = $this->getNumAttempts($user, $problem);				
 		$grades['attempts'] = $attempts;		
 		
@@ -224,9 +255,7 @@ class Grader  {
 			$passed_extra_testcases = 0;
 			foreach($accepted_sub->testcaseresults as $tcr){
 				if($tcr->is_correct){
-					
 					if($tcr->testcase->is_extra_credit){
-						
 						$passed_extra_testcases++;
 					} else {
 						$passed_testcases++;
@@ -338,7 +367,7 @@ class Grader  {
 			$num_days_over = 1+(int)$most_recent_sub->diff($assignment->end_time)->format('%a');
 		}
 	
-		$assignment_percentage_adj = max($assignment_percentage - $num_days_over*$assignment->gradingmethod->penalty_per_day, 0);
+		$assignment_percentage_adj = max($assignment_percentage - $num_days_over*$assignment->penalty_per_day, 0);
 		$grade['percentage_adj'] = $assignment_percentage_adj;
 
 		return $grade;
@@ -442,7 +471,6 @@ class Grader  {
 		
 		$problem = $submission->problem;
 		
-		$stop_on_first_fail = $problem->stop_on_first_fail;
 		$response_level = $problem->response_level;
 		$display_testcaseresults = $problem->display_testcaseresults;
 		$testcase_output_level = $problem->testcase_output_level;
@@ -450,12 +478,12 @@ class Grader  {
 		
 		$feedback = [];	
 		
-		$feedback['stop_on_first_fail'] = $stop_on_first_fail;
 		$feedback['display_markers'] = $display_testcaseresults;
 		$feedback['extra_testcases_display'] = $extra_testcases_display;
 		$feedback['response'] = [];
 		$feedback['input'] = [];
-		$feedback['output'] = [];		
+		$feedback['output'] = [];
+		$feedback['runtime'] = [];
 		
 		foreach($submission->testcaseresults as $tcr){
 
@@ -465,45 +493,425 @@ class Grader  {
 			
 			if($tcr->testcase->feedback != null && !$tcr->is_correct && $response_level == "Short"){
 				
-				$resp = trim($tcr->testcase->feedback->deblobinateShortResponse());
+				$resp = trim($tcr->testcase->feedback->short_response);
 				
 				if($resp != ""){
 					$feedback['response'][$tcr->testcase->seq_num] = $resp;
 				}
 			} else if($tcr->testcase->feedback != null && !$tcr->is_correct && $response_level == "Long"){
 				
-				$resp = trim($tcr->testcase->feedback->deblobinateLongResponse());
+				$resp = trim($tcr->testcase->feedback->long_response);
 				
 				if($resp != ""){
 					$feedback['response'][$tcr->testcase->seq_num] = $resp;
 				}
 			}
 			
-			if($testcase_output_level == "Output"){
-				$feedback['output'][$tcr->testcase->seq_num] = $tcr->testcase->deblobinateCorrectOutput();
-			} else if($testcase_output_level == "Both"){
-				$feedback['output'][$tcr->testcase->seq_num] = $tcr->testcase->deblobinateCorrectOutput();
-				$feedback['input'][$tcr->testcase->seq_num] = $tcr->testcase->deblobinateInput();
+			if($tcr->runtime_error){
+				$feedback['runtime'][$tcr->testcase->seq_num] = $tcr->runtime_output;
 			}
 			
-			if(!$tcr->is_correct && $stop_on_first_fail){
-				break;
+			$feedback['time'][$tcr->testcase->seq_num] = $tcr->execution_time;
+			
+			if($testcase_output_level == "Output"){
+				$feedback['output'][$tcr->testcase->seq_num] = $tcr->testcase->correct_output;
+			} else if($testcase_output_level == "Both"){
+				
+				$feedback['output'][$tcr->testcase->seq_num] = $tcr->testcase->correct_output;
+				
+				if(isset($tcr->testcase->input)){
+					$feedback['input'][$tcr->testcase->seq_num] = $tcr->testcase->input;
+				}
+				
+				if(isset($tcr->testcase->command_line_input)){
+					$feedback['command_line'][$tcr->testcase->seq_num] = $tcr->testcase->command_line_input;
+				}
 			}
+
 		}
 			
 		$feedback['response'] = array_unique($feedback['response']);
 		
 		return $feedback;		
 	}
+		
+	public function isAcceptedSubmission($submission, $previous){
+		
+		$count = 0;
+		foreach($submission->testcaseresults->toArray() as $tcr){
+			if($tcr->is_correct){
+				$count++;
+			}
+		}
+		
+		// take the new solution if it is 100% no matter wha
+		$total_testcases = count($submission->problem->testcases);
+		
+		if($count == $total_testcases){
+			#echo "This new testcase solves all of the testcases!";
+			return true;
+		}
+		// choose higher percentage if they both have percentages
+		else if($previous && $submission->percentage > $previous->percentage){
+			#echo "This new one has a higher percentage!";
+			return true;
+		}
+		else {
+			#echo "Only change if the old one isn't set";
+			return $previous == null;
+		}
+		
+	}
+	
+	
+	
+	# Contest Grading Methods
+	public function getProblemScore($team, $problem, $elevatedUser){
+		
+		// return an array that contains these values:
+		// num_attempts, time (in minutes) of submission
+		// has_solved/not_solved, penalty_points_raw (not counting correct), 
+		// penalty_points (including correct submission time)
+		
+		$score = [];
+		
+		if($elevatedUser){
+			$time_max = $problem->assignment->section->end_time;
+		} else {
+			
+			// if the override is set to less than the current time, use that as the max time
+			if($problem->assignment->freeze_override 
+				&& $problem->assignment->freeze_override_time 
+				&& $problem->assignment->freeze_override_time < $problem->assignment->freeze_time){
+					
+				$time_max = $problem->assignment->freeze_override_time;
+			} 
+			// if the override is set but no time, there is no max time
+			else if($problem->assignment->freeze_override) {
+				$time_max = $problem->assignment->section->end_time;
+			} 
+			// normal scenario
+			else {
+				$time_max = $problem->assignment->freeze_time;
+			}
+		}
+		
+		// get submissions
+		$qb_subs = $this->em->createQueryBuilder();
+		$qb_subs->select('s')
+			->from('AppBundle\Entity\Submission', 's')
+			->where('s.problem = ?1')
+			->andWhere('s.team = ?2')
+			->andWhere('s.pending_status = ?3')
+			->andWhere('s.is_completed = ?4')
+			->andWhere('s.timestamp <= ?5')
+			->setParameter(1, $problem)
+			->setParameter(2, $team)
+			->setParameter(3, 2)
+			->setParameter(4, true)
+			->setParameter(5, $time_max)
+			->orderBy('s.timestamp', 'ASC');
+			
+		$subs_query = $qb_subs->getQuery();
+		$subs = $subs_query->getResult();
+		
+		
+		// get number of attempts
+		// get penalty points raw
+		$num_attempts = 0;
+		$penalty_points_raw = 0;
+		$correct_sub = null;
+		
+		foreach($subs as $sub){
+			
+			
+			$num_attempts++;
+			if($sub->isCorrect()){
+				
+				$correct_sub = $sub;
+				break;
+			}
+			
+			if($sub->wrong_override){
+				$pen_type_val = $sub->problem->assignment->penalty_per_wrong_answer;
+			}
+			// compile error
+			else if($sub->compiler_error){
+				$pen_type_val = $sub->problem->assignment->penalty_per_compile_error;
+			}
+			// runtime error
+			else if($sub->runtime_error){
+				$pen_type_val = $sub->problem->assignment->penalty_per_runtime_error;
+			}
+			// time limit
+			else if($sub->exceeded_time_limit){
+				$pen_type_val = $sub->problem->assignment->penalty_per_time_limit;
+			}
+			// wrong answer
+			else {
+				$pen_type_val = $sub->problem->assignment->penalty_per_wrong_answer;
+			}
+			$penalty_points_raw += $pen_type_val;
+		}
+		
+		$score['num_attempts'] = $num_attempts;
+		
+		
+		// get time of sub
+		// get correctness
+		if(isset($correct_sub)){
+			
+			// time
+			$contest_start = $problem->assignment->start_time;
+			$sub_time = $correct_sub->timestamp;
+			
+			$time_diff = $sub_time->getTimestamp() - $contest_start->getTimestamp();
+
+			$is_correct = true;
+			$time_of_sub = max((int) ceil($time_diff / 60), 0);
+					
+			$score['penalty_points_raw'] = $penalty_points_raw;			
+			$score['penalty_points'] = $time_of_sub + $penalty_points_raw;
+			
+		} else {
+			
+			$is_correct = false;
+			$time_of_sub = -1;	
+
+			$score['penalty_points_raw'] = -1;
+			$score['penalty_points'] = -1;
+		}
+		
+		$score['correct'] = $is_correct;
+		$score['time'] = $time_of_sub;
+		
+		
+		
+		return $score;
+	}
+	
+	public function getTeamScore($team, $elevatedUser){
+		
+		// returns an array of some pertinent information:
+		// num_correct, total_penalty, array of subtimes, array of penalties
+		
+		$problems = $team->assignment->problems->toArray();
+		
+		$scores = [];
+		
+		foreach($problems as $problem){			
+			$scores[] = $this->getProblemScore($team, $problem, $elevatedUser);			
+		}
+		
+		$num_correct = 0;
+		$total_penalty = 0;
+		$times = [];
+		$penalties = [];
+		$raw_penalties = [];
+		$results = [];
+		$attempts = [];
+		
+		foreach($scores as $scr){
+			
+			$results[] = $scr['correct'];
+			
+			if($scr['correct']){
+				
+				$num_correct++;
+				$total_penalty += $scr['penalty_points'];
+			}
+			
+			$penalties[] = $scr['penalty_points'];
+			$raw_penalties[] = $scr['penalty_points_raw'];
+			$times[] = $scr['time'];	
+			$attempts[] = $scr['num_attempts'];
+		}
+		
+		$score = [];
+		
+		$score['team_id'] = $team->id;
+		$score['team_name'] = $team->name;
+		$score['num_correct'] = $num_correct;
+		$score['total_penalty'] = $total_penalty;
+		$score['results'] = $results; // boolean array of yes/no solved per problem
+		$score['penalties'] = $penalties; // int array of penalties per problem
+		$score['raw_penalties'] = $raw_penalties; // int array of penalties per problem without  
+		$score['times'] = $times;
+		$score['attempts'] = $attempts; // integer array of attempts per problem
+		$score['rank'] = -1;
+		
+		return $score;
+	}
+	
+	public function getLeaderboard($user, $assignment, $normal_user){
+		
+		
+		$teams = $assignment->teams->toArray();
+		
+		$user_team = $this->getTeam($user, $assignment);
+		
+		$scores = [];
+		
+		
+		
+		if( is_object($user) ){
+			
+			$elevatedUser = ($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $this->isJudging($user, $assignment->section)) && !$normal_user;
+		
+		} else {
+			
+			$elevatedUser = false;			
+		}
+		
+		foreach($teams as $team){
+			
+			$elevatedTeam = $elevatedUser;			
+			$scores[] = $this->getTeamScore($team, $elevatedTeam);
+		}
+		
+		// sort the scores into the proper order
+		usort($scores, array($this, 'compareTeamScoresNames'));
+		
+		$prevScore = null;
+		$rank = 0;
+		
+		$count = 0;
+		$user_index = -1;
+		foreach($scores as &$scr){
+			
+			if($scr['team_id'] == $user_team->id){
+				$user_index = $count;
+			}
+			$count++;
+			
+			if($prevScore && $this->compareTeamScores($prevScore, $scr) == 0){
+				$rank = $prevRank;
+			} else {
+				$rank++;
+			}
+			
+			$scr['rank'] = $rank;
+			
+			$prevRank = $rank;
+			$prevScore = $scr;
+		}
+		
+		$leaderboard['scores'] = $scores;
+		$leaderboard['index'] = $user_index;
+		
+		
+		$attempts_per_problem_count = [];
+		$correct_submissions_per_problem_count = [];
+		
+		$probIndex = 0;
+		// loop through each problem 
+		foreach ($assignment->problems as $prob) {
+			
+			$correct_submissions_per_problem_count[$probIndex] = 0;
+			$attempts_per_problem_count[$probIndex] = 0;
+			
+			foreach($scores as $team_score){
+				
+				$prob_correct_maybe = $team_score["results"];
+				$ps = $prob_correct_maybe[$probIndex];
+				
+				if ( $ps == true) {
+					$correct_submissions_per_problem_count[$probIndex]++;
+				}
+				
+				$att = $team_score["attempts"];
+				$attempts_per_problem_count[$probIndex] += $att[$probIndex];
+				
+			}
+			
+			$probIndex++;
+		}
+		
+		$leaderboard['attempts_per_problem_count'] = $attempts_per_problem_count;
+		$leaderboard['correct_submissions_per_problem_count'] = $correct_submissions_per_problem_count;
+		
+		
+		return $leaderboard;
+	}
+	
+	private static function compareTeamScoresNames($a, $b){
+				
+		// compares two teams with the following tiebreakers:
+		// 1) team with most correct submissions
+		// 2) team with the fewest penalty points
+		// 3) team with the quickest final submission, 2nd-to-last submission, ...
+		
+		if($a['num_correct'] == $b['num_correct']){
+		
+			if($a['total_penalty'] == $b['total_penalty']){
+				
+				$a_times = $a['times'];
+				$b_times = $b['times'];
+				
+				rsort($a_times);
+				rsort($b_times);
+				
+				// go through the times from max to min
+				for($i=0; $i<count($a_times); $i++){
+					
+					if($a_times[$i] != $b_times[$i]){						
+						return ($a_times[$i] > $b_times[$i]) ? -1 : 1;												
+					}
+				}
+				
+				// they are equal
+				return strcmp($a['team_name'], $b['team_name']);
+				
+			} else {
+				
+				return ($a['total_penalty'] < $b['total_penalty']) ? -1 : 1;				
+			}
+			
+		} else {
+			
+			return ($a['num_correct'] > $b['num_correct']) ? -1 : 1;
+		}
+		
+	}
+	
+	private static function compareTeamScores($a, $b){	
+		
+		// compares two teams with the following tiebreakers:
+		// 1) team with most correct submissions
+		// 2) team with the fewest penalty points
+		// 3) team with the quickest final submission, 2nd-to-last submission, ...
+		
+		if($a['num_correct'] == $b['num_correct']){
+		
+			if($a['total_penalty'] == $b['total_penalty']){
+				
+				$a_times = $a['times'];
+				$b_times = $b['times'];
+				
+				rsort($a_times);
+				rsort($b_times);
+				
+				// go through the times from max to min
+				for($i=0; $i<count($a_times); $i++){
+					
+					if($a_times[$i] != $b_times[$i]){						
+						return ($a_times[$i] > $b_times[$i]) ? -1 : 1;												
+					}
+				}
+				
+				// they are equal
+				return 0;
+				
+			} else {
+				
+				return ($a['total_penalty'] < $b['total_penalty']) ? -1 : 1;				
+			}
+			
+		} else {
+			
+			return ($a['num_correct'] > $b['num_correct']) ? -1 : 1;
+		}
+	}	
 }
-
-
-
-
-
-
-
-
-
 
 ?>
