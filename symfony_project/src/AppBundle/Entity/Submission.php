@@ -153,7 +153,7 @@ class Submission implements JsonSerializable {
 		}
 		
 		if($this->isError()){
-			return true;
+			return false;
 		}
 		
 		return $passed_tcs == $tcs;
