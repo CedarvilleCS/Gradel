@@ -145,7 +145,7 @@
 						
 						{% for sub in recent_submissions %}
 						
-							{% is loop.index0 < 30 %}
+							{% if loop.index0 < 30 %}
 						
 							{% if sub.isCorrect %}
 								<div style="color: green">
