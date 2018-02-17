@@ -213,13 +213,15 @@
 		
 		var contest_started = false;
 	
+		var firstTime = false;
+	
 		var pollAJAX;
 		var judgAJAX;
 		var clarAJAX;
 
-		var time = {{"now"|date('U')}} - {{current_contest.start_time|date('U')}}; // current seconds into the contest
+		var time = Math.floor(Date.now()/1000) - {{current_contest.start_time|date('U')}}; // current seconds into the contest
+		var starttime = {{current_contest.start_time|date('U')}} - Math.floor(Date.now()/1000); // current seconds until the contest
 		var total = {{current_contest.end_time|date('U')}} - {{current_contest.start_time|date('U')}};
-		var starttime = {{current_contest.start_time|date('U')}} - {{"now"|date('U')}}; // current seconds until the contest
 		
 		
 		$(window).unload(function() {			
@@ -761,9 +763,16 @@
 			
 			$('#clarification-form').keypress(function(e) {
 				if (e.keyCode == $.ui.keyCode.ENTER) {
-					 updateClarification("answer", "local");
-					 clarificationMessageDialog.dialog( "close" );
-					 e.preventDefault();
+				
+					if(firstTime){
+				
+						updateClarification("answer", "local");
+						clarificationMessageDialog.dialog( "close" );
+					 
+					}
+					
+					e.preventDefault();
+					firstTime = false;
 				}
 			});
 			
@@ -779,7 +788,10 @@
 			
 				var clar_id = $(this).attr('id');
 				$('#clarification-form').val(clar_id);
-				clarificationMessageDialog.dialog("open");				
+				clarificationMessageDialog.dialog("open");	
+			
+				firstTime = true;
+				
 			});
 			
 			/* CUSTOM FORMATTING MESSAGE */
