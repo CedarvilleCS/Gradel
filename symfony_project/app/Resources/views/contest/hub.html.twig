@@ -127,7 +127,10 @@
 				<h2 style="margin: 0px")">Clarifications
 				</h2>
 				
+				{% if not current_contest.post_contest %}
 				<div id="clarification-button" style="top: 15px; right: 15px">Ask for Clarification</div>
+				{% endif %}
+				
 			</div>
 		
 			<div id="questionsCard2" class="card-contents">

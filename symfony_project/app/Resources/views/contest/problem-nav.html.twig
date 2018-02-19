@@ -114,7 +114,7 @@
 		</a>
 		{% endif %}
 		
-		{% if app.request.attributes.get('_route') == "contest" %}			
+		{% if app.request.attributes.get('_route') == "contest" and not current_contest.post_contest %}			
 			<div onclick="showOptions()" class="btn btn-center drop" style="">See Other Contests</div>
 			<div class="dropdown">
 				<div id="all-contests" class="dropdown-content">

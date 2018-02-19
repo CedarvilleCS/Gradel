@@ -102,7 +102,8 @@ class ContestPagesController extends Controller {
 			$contest_open = false;
 		}
 		
-		//Tim's gonna be mad at this, but idk what normal user is supposed to be
+		// Tim's gonna be mad at this, but idk what normal user is supposed to be
+		/* *is mad* */
 		$leaderboard = $grader->getLeaderboard($user, $current, true);
 		
 		return $this->render('contest/hub.html.twig', [
