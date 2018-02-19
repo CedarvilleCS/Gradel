@@ -48,7 +48,7 @@
 			</div>
 		</div>
 		
-		<div class="card">
+		<div class="card" id="claimed-card">
 			<div class="btn-close">
 				<h2 class="card-title">Your Reviews <small class="card-subtitle"> <i> Review them! </i> </small> </h2>
 				<div id="stats-marker"> <img id="stats-marker-icon" src="{{ asset('bargraph.png') }}"> </div>
@@ -59,19 +59,19 @@
 				
 			</div>
 		
-			<div id="queue-container" class="card-contents">
+			<div id="queue-container" class="card-contents scrolly">
 				
 				
 			</div>	
 		</div>
 		
-		<div class="card">
+		<div class="card" id="submissions-card">
 		
 			<div class="btn-close">
 				<h2 class="card-title">Submission Queue  <small class="card-subtitle"> <i> Double-click to claim </i> </small>  </h2>
 			</div>
 		
-			<div id="submissions-container" class="card-contents">
+			<div id="submissions-container" class="card-contents scrolly">
 				
 			</div>		
 		</div>
@@ -213,13 +213,15 @@
 		
 		var contest_started = false;
 	
+		var firstTime = false;
+	
 		var pollAJAX;
 		var judgAJAX;
 		var clarAJAX;
 
-		var time = {{"now"|date('U')}} - {{current_contest.start_time|date('U')}}; // current seconds into the contest
+		var time = Math.floor(Date.now()/1000) - {{current_contest.start_time|date('U')}}; // current seconds into the contest
+		var starttime = {{current_contest.start_time|date('U')}} - Math.floor(Date.now()/1000); // current seconds until the contest
 		var total = {{current_contest.end_time|date('U')}} - {{current_contest.start_time|date('U')}};
-		var starttime = {{current_contest.start_time|date('U')}} - {{"now"|date('U')}}; // current seconds until the contest
 		
 		
 		$(window).unload(function() {			
@@ -761,9 +763,16 @@
 			
 			$('#clarification-form').keypress(function(e) {
 				if (e.keyCode == $.ui.keyCode.ENTER) {
-					 updateClarification("answer", "local");
-					 clarificationMessageDialog.dialog( "close" );
-					 e.preventDefault();
+				
+					if(firstTime){
+				
+						updateClarification("answer", "local");
+						clarificationMessageDialog.dialog( "close" );
+					 
+					}
+					
+					e.preventDefault();
+					firstTime = false;
 				}
 			});
 			
@@ -779,7 +788,10 @@
 			
 				var clar_id = $(this).attr('id');
 				$('#clarification-form').val(clar_id);
-				clarificationMessageDialog.dialog("open");				
+				clarificationMessageDialog.dialog("open");	
+			
+				firstTime = true;
+				
 			});
 			
 			/* CUSTOM FORMATTING MESSAGE */
@@ -1043,7 +1055,9 @@
 		}
 		
 		function addClaimed(submissions){
-			return addSubmissions(submissions, "claimIt");
+			var thing = addSubmissions(submissions, "claimIt");
+			
+			return thing;
 		}
 		
 		function addSubmissions(submissions, claimIt){			
@@ -1134,9 +1148,14 @@
 				$('#queue-container .submission').not('.found').remove();
 				$('#queue-container .submission').removeClass('found');
 				$('#queue-container .submission').removeClass('queued');
+				
+				$('#claimed-card .card-title .card-subtitle').html("<i> Review them! (" + $('#queue-container .submission').size() + ") </i>");
+				
 			} else {
 				$('#submissions-container .submission').not('.found').remove();
 				$('#submissions-container .submission').removeClass('found');
+				
+				$('#submissions-card .card-title .card-subtitle').html("<i> Double-click to claim (" + $('#submissions-container .submission').size() + ") </i>");
 			}
 		}
 		

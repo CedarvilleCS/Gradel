@@ -50,8 +50,9 @@ ol {
 }
 
 .topnav .navbuttons {
-     float: right;
- 	height: 100%;
+    float: right;
+ 	height: 50px;	
+    box-sizing: border-box;
 }
 .topnav #logo {
     float: left;
@@ -188,11 +189,6 @@ a.preview {
 .topnav a.active {
     background-color: #4CAF50;
     color: white;
-}
-
-.topnav .navbuttons {
-    float: right;
- 	height: 100%;
 }
 
 nav.nav-left {

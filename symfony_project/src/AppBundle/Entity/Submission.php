@@ -127,6 +127,11 @@ class Submission implements JsonSerializable {
 		$this->is_completed = false;
 	}
 	
+	public function isError(){
+	
+		return $this->compiler_error || $this->runtime_error || $this->exceeded_time_limit;		
+	}
+	
 	public function isCorrect($raw){
 		
 		$tcs = 0;
@@ -145,6 +150,10 @@ class Submission implements JsonSerializable {
 			
 			if($this->correct_override) return true;		
 			if($this->wrong_override) return false;
+		}
+		
+		if($this->isError()){
+			return false;
 		}
 		
 		return $passed_tcs == $tcs;

@@ -5,6 +5,22 @@
 		{# logout button #}
 		<a href="{{path('user_logout')}}" class="navbuttons">Logout</a>
 
+		{# useful links for contest #}
+		{% if "contest" in app.request.attributes.get('_route') %}
+		<div id="doc-button" class="navbuttons"> Documentation
+		
+		</div>
+		
+		
+		<div id="doc-links" style="display: none">
+			<a href="https://docs.oracle.com/javase/7/docs/api/" class="navbuttons"> Java </a>
+			<a href="http://www.cplusplus.com/doc/tutorial/" class="navbuttons"> C++ </a>		
+		</div>
+	
+		
+		{% endif %}
+		
+		
 		{# admin button #}
 		{% if is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN")%}
 			<a href="{{path('courses')}}" class="navbuttons">Courses</a>
@@ -42,6 +58,9 @@
 </div>
 
 
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
 <script>
 	// Script to redirect to the selected user
 	function setImpersonate(){
@@ -52,5 +71,27 @@
 		} else{
 			console.log("NO");
 		}
-	}
+	}	
+	
+	$('#doc-links').hide();
+	
+	$('#doc-links').css('left', $('#doc-button').offset().left);
+			
+	$(window).click(function(event) {		
+		
+		if(event.target.id != "doc-button" && event.target.id != "doc-links"){
+			$('#doc-links').hide();
+		}
+	});
+	
+	$('#doc-button').click( function() {
+			
+		if($('#doc-links').is(':hidden')){
+			$('#doc-links').show();
+			
+		} else {
+			$('#doc-links').hide();
+		}
+	
+	});
 </script>

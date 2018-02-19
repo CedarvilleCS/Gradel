@@ -902,7 +902,7 @@ class ContestPostController extends Controller {
 			if($postData['type'] == "wrong"){
 				
 				// override the submission to wrong
-				if($submission->isCorrect(true)){
+				if($submission->isCorrect(true) || $submission->isError()){
 					
 					$submission->wrong_override = true;				
 					$submission->correct_override = false;
@@ -941,6 +941,11 @@ class ContestPostController extends Controller {
 					false
 				);
 				
+			} else if($postData['type'] == "unoverride"){
+				
+				$submission->wrong_override = false;
+				$submission->correct_override = false;
+				
 			} else if($postData['type'] == "delete"){
 					
 				// delete the submission
@@ -968,7 +973,6 @@ class ContestPostController extends Controller {
 					true,
 					$submission->id
 				);
-				
 						
 			} else if($postData['type'] == "message"){
 				

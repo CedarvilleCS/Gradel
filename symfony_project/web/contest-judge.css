@@ -1,16 +1,27 @@
 /* JUDGING CSS */
+.card {
+	padding: 10px;
+	margin: 15px;
+}
+
 #submissions-container {
 	display: block;	
+	max-height: 340px;
 }
 
 #queue-container {
-	min-height: 100px;
+	min-height: 240px;
+	max-height: 240px;
+}
+
+.scrolly {
+	overflow-y: auto;
 }
 
 .scrolly::-webkit-scrollbar-track
 {
 	margin-right: 10px;
-	background: #71BA62;
+	background: transparent;
 	cursor: pointer;
 }
 
@@ -21,6 +32,7 @@
 	width: 12px;
 	background-color: #F5F5F5;
 }
+
 
 #recent-reviews, #recent-clarifications, #stats {
 	height: 200px;
@@ -64,9 +76,9 @@
 #stats-marker-hover{
 	
 	height: 80px;
-	width: 250px;
+	width: 350px;
 	top: 50px;
-  right: 45px;
+        right: 45px;
 	background: #71BA62;
 	border: 3pt solid grey;
 	display: none;
@@ -93,6 +105,7 @@
 	flex-direction: row;
 	justify-content: space-between;
   min-height: 15px;
+	text-align: center;
 }
 
 .review {
@@ -154,6 +167,8 @@
 }
 
 .submission {
+	
+	width: calc(100% - 15px);
 	
 	min-height: 65px;
 	padding: 5px;
