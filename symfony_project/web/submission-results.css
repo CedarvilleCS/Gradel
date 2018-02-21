@@ -3,7 +3,6 @@
 	flex-direction: row; 
 	justify-content: space-between;	
 	
-	min-height: 300px;
 }
 
 #testcase-markers-container{
@@ -137,3 +136,16 @@ textarea{
     font-family: monospace;
     font-size: 10pt;
 }
+
+#compiler-output{
+	max-height: 200px;
+}
+
+#input-textarea {
+	height: auto;
+}
+
+#command-line-textarea{
+	height: auto;
+}
+	

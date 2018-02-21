@@ -254,6 +254,8 @@
 
 						$('#student-csv').val(atob(file["contents"]));
 						$('#studentCSVForm').hide();
+						
+						addCommas('student-csv');
 
 					},
 					error:			function(xhr, textStatus, errorThrown) {
@@ -289,6 +291,8 @@
 
 						$('#teacher-csv').val(atob(file["contents"]));
 						$('#teacherCSVForm').hide();
+						
+						addCommas('teacher-csv');
 
 					},
 					error:			function(xhr, textStatus, errorThrown) {
@@ -419,6 +423,16 @@
 			// reset the dropdown to black
 			$('option:selected', teacherPicker).remove();
 			teacherPicker.val(0);
+		}
+		
+		function addCommas(csvID) {
+			
+			var csv = $('#' + csvID);
+			
+			csv.val(csv.val().replace(/,|,\n/g, '\n'));
+			csv.val(csv.val().replace(/\n/g, ',\n'));
+			
+			return;			
 		}
 
 	</script>

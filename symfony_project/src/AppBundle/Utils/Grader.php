@@ -478,13 +478,20 @@ class Grader  {
 		
 		$feedback = [];	
 		
+		// boolean for displaying individual testcase results
 		$feedback['display_markers'] = $display_testcaseresults;
+		// boolean for displaying individual extra credit testcase results
 		$feedback['extra_testcases_display'] = $extra_testcases_display;
+		// array of short/long feedback
 		$feedback['response'] = [];
+		// array of input for testcases
 		$feedback['input'] = [];
+		// array of output for testcases
 		$feedback['output'] = [];
+		// array of runtime for testcases
 		$feedback['runtime'] = [];
 		
+		// loop through the results
 		foreach($submission->testcaseresults as $tcr){
 
 			if($tcr->testcase->is_extra_credit && !$extra_testcases_display){
@@ -507,10 +514,6 @@ class Grader  {
 				}
 			}
 			
-			if($tcr->runtime_error){
-				$feedback['runtime'][$tcr->testcase->seq_num] = $tcr->runtime_output;
-			}
-			
 			$feedback['time'][$tcr->testcase->seq_num] = $tcr->execution_time;
 			
 			if($testcase_output_level == "Output"){
@@ -530,7 +533,9 @@ class Grader  {
 
 		}
 			
-		$feedback['response'] = array_unique($feedback['response']);
+		if(!$feedback['display_markers']){
+			$feedback['response'] = array_unique($feedback['response']);
+		}
 		
 		return $feedback;		
 	}
