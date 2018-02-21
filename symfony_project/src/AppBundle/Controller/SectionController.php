@@ -132,16 +132,13 @@ class SectionController extends Controller {
 
 				// echo json_encode($allprobs);
 
-
-				
-
-				// query for all submissions
-				$qb_submissions = $em->createQueryBuilder();
-		 		$qb_submissions->select('s')
-						->from('AppBundle\Entity\Submission', 's')
-						->where('s.problem IN (?1)')
-						->orderBy('s.timestamp', 'DESC')
-						->setParameter(1, $allprobs);
+			// query for all submissions
+			$qb_submissions = $em->createQueryBuilder();
+			$qb_submissions->select('s')
+					->from('AppBundle\Entity\Submission', 's')
+					->where('s.problem IN (?1)')
+					->orderBy('s.timestamp', 'DESC')
+					->setParameter(1, $allprobs);
 
 			$qb_submissions = $em->createQueryBuilder();
 			$qb_submissions->select('s')
@@ -150,26 +147,23 @@ class SectionController extends Controller {
 					->orderBy('s.timestamp', 'DESC')
 					->setParameter(1, $allprobs);
 
-				// echo "<br><br><br>submissions:";
-				// echo json_encode($submissions);
+			
+			// query for accepted submissions
+			$qb_accsub = $em->createQueryBuilder();
+			$qb_accsub->select('s')
+				->from('AppBundle\Entity\Submission', 's')
+				->where('s.user = ?1')
+				->andWhere('s.problem IN (?2)')
+				->andWhere('s.is_accepted = true')
+				->setParameter(1, $user)
+				->setParameter(2, $allprobs);        
+					
+			$sub_query = $qb_accsub->getQuery();
+			$best_submission = $sub_query->getResult();
 
-
-				// FIXME: only works for unique results
-				// query for accepted submissions
-				// $qb_accsub = $em->createQueryBuilder();
-				// $qb_accsub->select('s')
-				//    ->from('AppBundle\Entity\Submission', 's')
-				//    ->where('s.user = ?1')
-				//    ->andWhere('s.problem IN (?2)')
-				//    ->andWhere('s.is_accepted = true')
-				//    ->setParameter(1, $user)
-				//    ->setParameter(2, $allprobs);        
-						   
-				// $sub_query = $qb_accsub->getQuery();
-				// $best_submission = $sub_query->getOneOrNullResult();
-
-				// echo "<br>best submission:";
-				// echo(json_encode($best_submission));
+			// echo "<br>best submission:";
+			// echo(json_encode($best_submission));
+			
 			$submission_query = $qb_submissions->getQuery();
 			$submissions = $submission_query->getResult();
 
