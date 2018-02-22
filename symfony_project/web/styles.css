@@ -439,3 +439,13 @@ ins {
 	border-radius: 10px;
 	background-color: rgba(140, 140, 140, 0.9);
 }
+
+::selection {
+    background: rgba(165, 228, 93, 0.555);
+}
+::-moz-selection { 
+    background: rgba(165, 228, 93, 0.555);
+}
+/* background: #4c8fa2;
+color: rgb(233, 232, 232); */
+
