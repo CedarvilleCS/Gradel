@@ -163,6 +163,25 @@ class SectionController extends Controller {
 
 			// echo "<br>best submission:";
 			// echo(json_encode($best_submission));
+
+
+			// TODO: fix this query to do what it should and implement it here.
+			// select submission.id, problem_id, name, username, first_name, last_name, is_accepted, assignment_id from problem
+			// left outer join submission
+			// on submission.problem_id = problem.id
+			// left outer join user
+			// on submission.user_id = user.id
+			// where is_accepted = true or is_accepted is null
+			
+			// union
+			
+			// select submission.id, problem_id, name, username, first_name, last_name, is_accepted, assignment_id from problem
+			// right outer join submission
+			// on submission.problem_id = problem.id
+			// right outer join user
+			// on submission.user_id = user.id
+			// where is_accepted = true or is_accepted is null
+
 			
 			$submission_query = $qb_submissions->getQuery();
 			$submissions = $submission_query->getResult();
