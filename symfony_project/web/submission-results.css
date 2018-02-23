@@ -116,7 +116,7 @@ ul{
 	padding: 3px;
 	box-shadow: none;
 	border: 1pt solid grey;
-	height: calc(100% - 35px);
+	height: 100%;
 	width: 100%;
 	
 	border-radius: 2px;

@@ -475,6 +475,7 @@ class Grader  {
 		$display_testcaseresults = $problem->display_testcaseresults;
 		$testcase_output_level = $problem->testcase_output_level;
 		$extra_testcases_display = $problem->extra_testcases_display;		
+		$stop_on_first_fail = $problem->stop_on_first_fail;
 		
 		$feedback = [];	
 		
@@ -482,18 +483,34 @@ class Grader  {
 		$feedback['display_markers'] = $display_testcaseresults;
 		// boolean for displaying individual extra credit testcase results
 		$feedback['extra_testcases_display'] = $extra_testcases_display;
+		// boolean for stopping on the first failure
+		$feedback['stop_on_first_fail'] = $stop_on_first_fail;
+		
+		
+		// boolean for show input for testcases
+		$feedback['show_input'] = false;
+		// boolean for show output for testcases
+		$feedback['show_output'] = false;
+		
 		// array of short/long feedback
 		$feedback['response'] = [];
-		// array of input for testcases
-		$feedback['input'] = [];
-		// array of output for testcases
-		$feedback['output'] = [];
-		// array of runtime for testcases
-		$feedback['runtime'] = [];
+		
+			
+		if($testcase_output_level == "Output"){
+			$feedback['show_output'] = true;
+			
+		} else if($testcase_output_level == "Both"){
+			$feedback['show_output'] = true;
+			$feedback['show_input'] = true;
+		}
+		
+		$feedback['highlights'] = [];
+		$highlights = [];
 		
 		// loop through the results
 		foreach($submission->testcaseresults as $tcr){
 
+		
 			if($tcr->testcase->is_extra_credit && !$extra_testcases_display){
 				continue;
 			}
@@ -514,24 +531,45 @@ class Grader  {
 				}
 			}
 			
-			$feedback['time'][$tcr->testcase->seq_num] = $tcr->execution_time;
 			
-			if($testcase_output_level == "Output"){
-				$feedback['output'][$tcr->testcase->seq_num] = $tcr->testcase->correct_output;
-			} else if($testcase_output_level == "Both"){
+			if(!$tcr->is_correct){
 				
-				$feedback['output'][$tcr->testcase->seq_num] = $tcr->testcase->correct_output;
+				$index = -1;
+				$indexEnd = -1;
 				
-				if(isset($tcr->testcase->input)){
-					$feedback['input'][$tcr->testcase->seq_num] = $tcr->testcase->input;
+				$exp = $tcr->testcase->correct_output;
+				$usr = $tcr->std_output;
+				
+				$broken = false;
+				
+				for($i=0; $i<strlen($exp); $i++){
+					
+					
+					if(!$broken && $i < strlen($usr) && $exp[$i] != $usr[$i]){
+						$index = $i;
+						$broken = true;
+					}
+					else if($broken && $i < strlen($usr) && $exp[$i] == $usr[$i]){
+						$indexEnd = $i;
+						break;
+					}
+					else if($i >= strlen($usr)){
+						break;
+					}
+					
 				}
 				
-				if(isset($tcr->testcase->command_line_input)){
-					$feedback['command_line'][$tcr->testcase->seq_num] = $tcr->testcase->command_line_input;
+				if($indexEnd == -1){
+					$indexEnd = strlen($usr)-1;
 				}
-			}
 
+				$highlights[] = ['id' => $tcr->id, 'index' => $index, 'indexEnd' => $indexEnd];
+			}
 		}
+		
+		//die(json_encode($highlights));
+		
+		$feedback['highlights'] = $highlights;
 			
 		if(!$feedback['display_markers']){
 			$feedback['response'] = array_unique($feedback['response']);

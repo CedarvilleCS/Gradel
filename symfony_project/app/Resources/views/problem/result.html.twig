@@ -38,6 +38,7 @@ The grader was not passed from the controller.
 			<div id="submissionOverview" class="card-contents">
 				<h3 style="margin-top: 2px; margin-bottom: 2px">
 					RESULT: 
+										
 					{% if submission.isCorrect() %}						
 						<span style="color:green">CORRECT!</span>
 						
@@ -81,17 +82,12 @@ The grader was not passed from the controller.
 				{% endif %}
 				
 				</div>
-					
-				<!--span style="word-wrap: break-word"> {{feedback|json_encode}} </span-->
-				
-				
-				
-				
+									
 				<div id="feedback-holder">
 					{% if feedback.display_markers and not submission.compiler_error and not submission.questionable_behavior and submission.testcaseresults|length > 0%}
 					<div id="testcase-markers-container">
 						<h3>TESTCASES:</h3>				
-							{% if feedback.output|length > 0 %}
+							{% if feedback.show_output and submission.testcaseresults|length > 0 %}
 							<div id="testcase-markers">
 								<ul>
 									{% set failed = false %}
@@ -121,50 +117,60 @@ The grader was not passed from the controller.
 									{% endfor %}
 								</ul>
 								
+								{% set failed = false %}
+								
 								{% for tcr in submission.testcaseresults %}
 								
-									
+									{% if not failed or not feedback.stop_on_first_fail %}
 									{% if not tcr.testcase.is_extra_credit or feedback.extra_testcases_display %}
+									
+									{% if not tcr.is_correct %}
+										{% set failed = true %}
+									{% endif %}
 									
 									<div id="testcase-tab-{{tcr.id}}">
 										<div class="testcase-data">
-											{% if feedback.input[tcr.testcase.seq_num] or feedback.command_line[tcr.testcase.seq_num] %}
+											{% if feedback.show_input %}
 											<div id="testcase-input">
+											
 												
-												{% if feedback.input[tcr.testcase.seq_num] %}
+												{% if tcr.testcase.input %}
+												
 												<div>
 													<div class="testcase-data-heading">Input:</div>
-													<textarea {{(feedback.command_line[tcr.testcase.seq_num]) ? "id='input-textarea'" : "" }} disabled>{{feedback.input[tcr.testcase.seq_num]}}</textarea>
+													<textarea {{(tcr.testcase.command_line_input) ? "id='input-textarea'" : "" }} disabled>{{tcr.testcase.input}}</textarea>
 												</div>
 												{% endif %}
 												
-												{% if feedback.command_line[tcr.testcase.seq_num] %}
+												{% if tcr.testcase.command_line_input %}
 												<div>
 													<div class="testcase-data-heading">Command-Line Arguments:</div>
-													<textarea  {% if feedback.input[tcr.testcase.seq_num] %} id="command-line-textarea" {% endif %} disabled>{{feedback.command_line[tcr.testcase.seq_num]}}</textarea>
+													<textarea  {{(tcr.testcase.input) ? "id='command-line-textarea'" : "" }} disabled>{{tcr.testcase.command_line_input}}</textarea>
 												</div>
 												{% endif %}
 												
-											</div>	
+											</div>
 											{% endif %}
 											
 											
-											
-											<div id="testcase-outputexp">
+											{% if tcr.testcase.correct_output and feedback.show_output %}
+											<div id="testcase-outputexp" {{(feedback.show_input) ? "" : "style='width:50%'"}}>
 												<div class="testcase-data-heading">Expected Output:</div>
-												<textarea disabled>{{feedback.output[tcr.testcase.seq_num]}}</textarea>
+												<textarea disabled>{{tcr.testcase.correct_output}}</textarea>
 											</div>
+											{% endif %}
 											
-											<div id="testcase-outputyrs">
+											
+											<div id="testcase-outputyrs" {{(feedback.show_input) ? "" : "style='width:50%'"}}>
 											{% if not tcr.runtime_error %}
 											
 												<div class="testcase-data-heading">Your Standard Output:</div>
-												<textarea disabled>{{submission.testcaseresults[loop.index0].std_output}}</textarea>
+												<textarea id="{{tcr.id}}" disabled>{{tcr.std_output}}</textarea>
 												
 											{% else %}
 											
 												<div class="testcase-data-heading">Your Runtime Output:</div>
-												<textarea disabled>{{submission.testcaseresults[loop.index0].runtime_output}}</textarea>													
+												<textarea disabled>{{tcr.runtime_output}}</textarea>													
 												
 											{% endif %}
 											</div>
@@ -172,11 +178,12 @@ The grader was not passed from the controller.
 									</div>
 									
 									{% endif %}
+									{% endif %}
 								
 								{% endfor %}
 						
 							</div>
-							<i style="color: red"><small>Note that expected output may contain regex patterns that could match an variety of strings.</small></i>							
+							<i style="color: red"><small>Note that expected output may contain regex patterns that could match a variety of strings.</small></i>							
 							{% else %}
 							<div id="testcase-markers-no-out">
 								{% for tcr in submission.testcaseresults %}						
@@ -184,7 +191,7 @@ The grader was not passed from the controller.
 									{% if not tcr.testcase.is_extra_credit or feedback.extra_testcases_display %}
 									
 									{% if tcr.is_correct %}
-										<span style="color:green; font-size: 20px;"> &#x2713;</span> 				
+										<span style="color: green; font-size: 20px;"> &#x2713;</span> 				
 									{% else %}
 										<span style="color:red; font-size: 20px;"> &#x2718;</span>
 									{% endif %}
@@ -235,6 +242,7 @@ Submission was a ZIP file{% endif %}</div>
 
 {% block stylesheets %}
 	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+	<link rel="stylesheet" href="{{ asset('jquery.highlighttextarea.css') }}">
 	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
 	
 	<link rel="stylesheet" href="{{ asset('styles.css') }}" />
@@ -248,6 +256,8 @@ Submission was a ZIP file{% endif %}</div>
     <!-- JQuery -->
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+	
+	<script src="{{ asset('js/jquery.highlighttextarea.js') }}" type="text/javascript" charset="utf-8"></script>
 	<script src="{{ asset('src-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>	
 	
 	<script src="{{ asset('js/cards.js') }}" type="text/javascript" charset="utf-8"></script>
@@ -297,6 +307,31 @@ Submission was a ZIP file{% endif %}</div>
 			$(this).html(addReturnKey($(this).html()));
 			
 		});
+		
+		// add highlighting for wrong text 
+		$('.testcase-data textarea').highlightWithinTextarea({
+			highlight: false
+		});
+		
+		{% for highlights in feedback.highlights %}
+		
+		{% if highlights.index == -1 %}
+			
+			$('#{{highlights['id']}}').text(" ");
+			
+			$('#{{highlights['id']}}').highlightWithinTextarea({
+				highlight: [0, 1]
+			});
+		
+		{% else %}
+		
+		$('#{{highlights['id']}}').highlightWithinTextarea({
+			highlight: [{{highlights.index}}, {{highlights.indexEnd}}]
+		});
+		
+		{% endif %}
+		
+		{% endfor %}
 	});
 	
 	

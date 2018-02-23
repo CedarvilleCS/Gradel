@@ -354,10 +354,6 @@ class SectionController extends Controller {
 			return $this->returnForbiddenResponse("You are not a user.");
 		}
 
-		# only super users and admins can make/edit a section
-		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN")){
-			return $this->returnForbiddenResponse("You do not have permission to make a section.");
-		}
 
 		# see which fields were included
 		$postData = $request->request->all();
@@ -380,8 +376,14 @@ class SectionController extends Controller {
 
 		# create new section
 		if($postData['section'] == 0){
+			
+			# only super users and admins can make/edit a section
+			if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN")){
+				return $this->returnForbiddenResponse("You do not have permission to make a section.");
+			}
+			
 			$section = new Section();
-		} else {
+		} else if(isset($postData['section'])) {
 
 			if(!isset($postData['section']) || !($postData['section'] > 0)){
 				die("SECTION ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
@@ -391,6 +393,15 @@ class SectionController extends Controller {
 			if(!$section){
 				return $this->returnForbiddenResponse("Section ".$postData['section']." does not exist");
 			}
+			
+			$grader = new Grader($em);
+			# only super users and admins can make/edit a section
+			if(! ($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isTeaching($user, $section)) ){
+				return $this->returnForbiddenResponse("You do not have permission to edit this section.");
+			}			
+			
+		} else {
+			return $this->returnForbiddenResponse("section not provided");
 		}
 
 		# get the course
