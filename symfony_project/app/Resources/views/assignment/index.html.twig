@@ -6,6 +6,25 @@
 	<link rel="icon" type="image/x-icon" href="{{ asset('logo.png') }}" />
 {% endblock %}
 
+
+{% block stylesheets %}
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
+	
+    <link rel="stylesheet" href="{{ asset('styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('card.css') }}" />
+	
+    <link rel="stylesheet" href="{{ asset('submit.css') }}" />
+	
+    <link rel="stylesheet" href="{{ asset('markdown-styles.css') }}" />
+
+	<style>
+		#submissionButton:hover {
+			cursor:pointer;
+		}
+	</style>
+{% endblock %}
+
+
 {% block body %}
 
 {# markdown #}
@@ -73,7 +92,7 @@ var markdownText = converter.makeHtml("{{problem.description|e('js')}}");
 				
 
 {# the ACE editor text area #}
-				
+				<div id="editor-container">
 <div id="editor">{% if trial != null and trial.filename|split('.')|last != 'zip' %}
 {{ trial.deblobinateFile()|nl2br }}{% elseif trial != null %}
 Uploaded file was a ZIP file<br>
@@ -81,8 +100,11 @@ We are not able to repopulate zip files at this time.<br>
 Please re-upload it!
 {% endif %}
 </div>
+<div id="editor-handle"> </div>
+				</div>
+				
 <div id="trial-status" style="font-style: italic; font-size:0.8em; color: grey;">&nbsp;</div>
-				<br/>
+				<br>
 
 				{# display the form or not #}
 				{% set open = (problem.assignment.start_time|date('U') < "now"|date('U') and problem.assignment.cutoff_time|date('U') > "now"|date('U')) %}
@@ -149,8 +171,7 @@ Please re-upload it!
 							{% endif %}
 							
 							<li><a href="{{path('problem_result', {'submission_id': sub.id})}}">
-								[{{sub.problem.name}}] 
-									{% if sub.team.users|length > 1 %}
+								{% if sub.team.users|length > 1 %}
 										{
 										{% for user in sub.team.users %}
 											
@@ -159,9 +180,9 @@ Please re-upload it!
 											, 
 											{% endif%}
 										{% endfor %}
-										}
+										} - 
 									{% endif %}
-									- {{sub.timestamp|date('F d, Y  \\a\\t  h:i:s')}} ({{sub.language.name}})
+									{{sub.timestamp|date('F d, Y  \\a\\t  h:i:s')}} ({{sub.language.name}})
 							</a> </li>
 						
 							</div>
@@ -183,29 +204,15 @@ Please re-upload it!
 </body>
 {% endblock %}
 
-
-{% block stylesheets %}
-	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
-	
-    <link rel="stylesheet" href="{{ asset('styles.css') }}" />
-    <link rel="stylesheet" href="{{ asset('card.css') }}" />
-	
-    <link rel="stylesheet" href="{{ asset('submit.css') }}" />
-	
-    <link rel="stylesheet" href="{{ asset('markdown-styles.css') }}" />
-
-	<style>
-		#submissionButton:hover {
-			cursor:pointer;
-		}
-	</style>
-{% endblock %}
-
 {% block scripts %}
     <!-- JQuery -->
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+	
+	<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+	
 	<script src="{{ asset('src-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>
+	
 	<script src="{{ asset('js/validation.js') }}"></script>
 		
 	{# asynchronous file upload #}
@@ -243,8 +250,8 @@ Please re-upload it!
 			var ext = getExtension(filename);
 			var language = getLanguage(filename);
 
-			if(!language){
-				language = $('#languageSelect option:selected').text();
+			if(!language){				
+				return false;
 			}
 
 			setLanguage(language);
@@ -254,6 +261,8 @@ Please re-upload it!
 
 			// toggle the java inputs
 			toggleJavaInputs(language == "Java", ext == "zip");
+			
+			return true;
 		}
 
 		function setLanguage(language){
@@ -307,6 +316,7 @@ Please re-upload it!
 				editor.setValue(default_code[language], -1);
 				saved_code = default_code[language];
 			}
+			
 			editor.getSession().setMode("ace/mode/" + ace_modes[language]);
 		}
 
@@ -356,7 +366,9 @@ Please re-upload it!
 				name: "replace",
 				bindKey: {win: "Ctrl-S", mac: "Command-S"},
 				exec: function(editor) {
-					updateTrial();
+					if($('#trial-status').text() != "Code saved."){
+						updateTrial();
+					}
 				}
 			});
 			
@@ -377,10 +389,48 @@ Please re-upload it!
 			$('#languageSelect').change();			
 			{% endif %}
 			
+			var origWidthContainer = $('#editor-container').width();
+			var origWidthEditor = $('#editor').width();
+			
+			$('#editor-container').resizable({
+				
+				handles: {
+					's': '#editor-handle',				
+				},
+				minHeight: 150,
+				start: function(event, ui){						
+					$('#editor-handle').css('background', '#bbbbbb');
+				},
+				resize: function(event, ui){
+										
+					$('#editor-container').width(origWidthContainer);
+					$('#editor').width(origWidthEditor);
+					
+					editor.resize();
+					$('#trial-status').text("Height: " + $(this).height() + "px");
+									
+				},
+				stop: function(){
+					//updateTrial();
+					$('#trial-status').text("Unsaved changes...");	
+					$('#editor-handle').css('background', '#e8e8e8');
+				},
+				alsoResize: "#editor",
+			});	
+
+			
+			{% if trial %}
+			
+			{% if trial.editor_height > 0 %}
+			$('#editor').height({{trial.editor_height}});
+			{% endif %}
+			
+			{% endif %}
 			
 			if(trialId == 0){
 				updateTrial();
 			}
+			
 		});
 		
 		
@@ -412,16 +462,48 @@ Please re-upload it!
 					var file = responseText['files'][0];
 			
 					console.log(responseText);
-					setLanguageFromFilename(file['name']);
 					
 					var editor = ace.edit("editor");
 					editor.$blockScrolling = Infinity;
 					editor.setValue(atob(file['contents']));
 					
+					if(!setLanguageFromFilename(file['name'])){
+										
+						var deter = hljs.highlightAuto(editor.getValue(), ["python", "cpp", "java", "php"]);
+						var lang = deter.language;
+						
+						if(deter.second_best){
+							var second = deter.second_best.language;
+						}
+						
+						console.log(lang);
+						console.log(second);
+						
+						var language = "";
+						
+						if(second == "java"){
+							language = "Java";
+						} else if(second == "python"){ 
+							language = "Python 3";
+						} else {
+							
+							if(lang == "cpp"){
+								language = "C++";
+							} else if(lang == "python"){
+								language = "Python 3";
+							} else if(lang == "php"){
+								language = "PHP";
+							} else if(lang == "java"){
+								language = "Java";
+							}
+						}
+						
+						setLanguage(language);						
+					}
+					
 					updateAceCode();
-
-					updateTrial(responseText);						
-									
+					updateTrial(responseText);	
+														
 				},
 				error:			function(xhr, textStatus, errorThrown) {
 					console.log(xhr);						
@@ -447,6 +529,7 @@ Please re-upload it!
 			var main_class = $('#main_class_input').val();
 			var package_name = $('#package_name_input').val();
 			var show_description = !($("#markdown-collapser").text() == "Show Description");
+			var editor_height = $('#editor').height();
 			
 			var editor = ace.edit("editor");
 			editor.$blockScrolling = Infinity;				
@@ -459,6 +542,7 @@ Please re-upload it!
 			formData.append('main_class', main_class);
 			formData.append('package_name', package_name);
 			formData.append('show_description', show_description);
+			formData.append('editor_height', editor_height);
 			formData.append('ACE', ACE);
 
 			if(getExtension($('#submissionUploadForm #file').val()) == "zip"){

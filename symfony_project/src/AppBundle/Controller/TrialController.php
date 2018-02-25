@@ -107,6 +107,7 @@ class TrialController extends Controller {
 		
 		$trial->last_edit_time = new \DateTime('now');
 		$trial->show_description = $postData["show_description"] != "false";
+		$trial->editor_height = (is_numeric($postData["editor_height"])) ? $postData["editor_height"] : 0;
 				
 		# get filename and information
 		$filename = null;
@@ -147,6 +148,21 @@ class TrialController extends Controller {
 		return $response;
 	}
 	
+	public function quickAction(Request $request){
+				
+		$response = $this->forward('AppBundle\Controller\TrialController::trialModifyAction');
+		
+		if($response->getStatusCode() == Response::HTTP_OK){
+					
+			return $this->forward('AppBundle\Controller\CompilationController::submitAction', [
+				'trialId' => json_decode($response->getContent())->trial_id,
+			]);
+			
+			
+		} else {			
+			return $response;	
+		}		
+	}
 	
 	private function returnForbiddenResponse($message){		
 		$response = new Response($message);

@@ -531,7 +531,7 @@ class Grader  {
 				}
 			}
 			
-			
+			// 
 			if(!$tcr->is_correct){
 				
 				$index = -1;
@@ -541,29 +541,51 @@ class Grader  {
 				$usr = $tcr->std_output;
 				
 				$broken = false;
+				$finished = false;
 				
-				for($i=0; $i<strlen($exp); $i++){
+				$ranges = [];
+				
+				$exp = str_replace("\n", "A\n", $exp);
+				$usr = str_replace("\n", "A\n", $usr);
+								
+				if(strlen($usr) == 0){
+					$ranges[] = ['index' => -1, 'indexEnd' => -1];
+				}
+				
+				for($i=0; $i<strlen($exp) && $i<strlen($usr); $i++){
 					
 					
-					if(!$broken && $i < strlen($usr) && $exp[$i] != $usr[$i]){
+					if(!$broken && $exp[$i] != $usr[$i]){
+						
 						$index = $i;
 						$broken = true;
 					}
-					else if($broken && $i < strlen($usr) && $exp[$i] == $usr[$i]){
+					else if($broken && $exp[$i] == $usr[$i]){
 						$indexEnd = $i;
-						break;
-					}
-					else if($i >= strlen($usr)){
-						break;
+						
+						
+						$finished = true;
+						$broken = false;
+					}					
+					
+					
+					if($finished || ($broken && $i == strlen($usr)-1) || ($i != strlen($usr)-1 && $i == strlen($exp)-1) ){
+															
+						$finished = false;
+						
+						if($indexEnd == -1){
+							$indexEnd = strlen($usr)-1;
+						}
+
+						$ranges[] = ['index' => $index, 'indexEnd' => $indexEnd];
+						
+						$index = $indexEnd + 1;
+						$indexEnd = -1;
 					}
 					
 				}
 				
-				if($indexEnd == -1){
-					$indexEnd = strlen($usr)-1;
-				}
-
-				$highlights[] = ['id' => $tcr->id, 'index' => $index, 'indexEnd' => $indexEnd];
+				$highlights[] = ['id' => $tcr->id, 'ranges' => $ranges];
 			}
 		}
 		

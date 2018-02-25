@@ -12,8 +12,10 @@
 	
 	<link rel="stylesheet" href="{{ asset('styles.css') }}" />
 	<link rel="stylesheet" href="{{ asset('card.css') }}" />
+	
 	<link rel="stylesheet" href="{{ asset('contest.css') }}" />
 	<link rel="stylesheet" href="{{ asset('contest-hub.css') }}" />
+	
 	<link rel="stylesheet" href="{{ asset('submission-results.css') }}">
 	<link rel="stylesheet" href="{{ asset('contest-results.css') }}">
 {% endblock %}
@@ -96,7 +98,7 @@
 					<textarea disabled id='compiler-output'>{{submission.compiler_output}}</textarea>
 				{% endif %}
 				
-				{% if not submission.compiler_output and elevatedUser %}
+				{% if not submission.compiler_error and elevatedUser %}
 				
 				<div class="marker-container">				
 		
@@ -145,15 +147,36 @@
 				</div>
 				
 				<h2 style="">SUBMITTED CODE</h2>				
-				<a style="padding:10px;" class="btn btn-center" href="{{path('contest_problem', {'contestId': submission.problem.assignment.section.id, 'roundId': submission.problem.assignment.id, 'problemId': submission.problem.id, 'submissionId': submission.id} )}}">
-					Edit and Resubmit
-				</a>
 				
-<div id="editor" style="height: 550px; margin-top: 18px;">{% if submission.filename|split('.')|last != 'zip' %}
+				<div style="display: flex; justify-content: space-between; margin-right: 25px;">
+
+					<div id="loading-container" style="display:none;">
+						<img id="loadingGif" style="height: 60px" src="{{asset('beoload.gif')}}" alt="Loading..."/>
+						<h3 style="margin: 0px"> Resubmitting Code... </h3>
+					</div>
+				
+					<div id="full-edit-btn" style="margin-bottom: 5px">
+						Return and Review
+					</div>
+					
+					<div id="quick-edit-btn" style="margin-bottom: 5px">
+						Quick Resubmit
+					</div>
+				
+				</div>
+				
+<div id="editor">{% if submission.filename|split('.')|last != 'zip' %}
 {{ submission.deblobinateSubmittedFile()|nl2br }}{% else %}
 Submission was a ZIP file{% endif %}</div>
 				
 				<h3 style="margin-top: 10px; margin-bottom: 0px">Submission ID: {{submission.id}}</h3>
+								
+				
+				<div id="loading-container" style="display:none;">
+					<img id="loadingGif" style="height: 60px" src="{{asset('beoload.gif')}}" alt="Loading..."/>
+					<h3 style="margin: 0px"> Resubmitting Code... </h3>
+				</div>
+				
 			</div>
 		</div>
 		
@@ -199,14 +222,12 @@ Submission was a ZIP file{% endif %}</div>
     <!-- JQuery -->
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+	
 	<script src="{{ asset('src-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>	
+	
 	<script src="{{ asset('js/unicode_return.js') }}" type="text/javascript" charset="utf-8"></script>	
 	
 	<script>
-	
-	$(window).unload(function() {
-		
-	});
 	
 	$(document).ready( function() {
 	
@@ -218,8 +239,8 @@ Submission was a ZIP file{% endif %}</div>
 		{% endif %}
 		
 		var editor = ace.edit("editor");
-		editor.setTheme("ace/theme/xcode");	
-		editor.setReadOnly(true);
+		editor.setTheme("ace/theme/xcode");
+		editor.getSession().setMode("ace/mode/" + "{{ace_mode}}");
 		
 		
 		$('.marker').off('mouseover');
@@ -232,10 +253,27 @@ Submission was a ZIP file{% endif %}</div>
 			$(this).find('.marker-hover').hide();			
 		});
 		
-		$('.marker .marker-hover textarea').each(function(){
-			
+		$('.marker .marker-hover textarea').each(function(){			
 			$(this).text(addReturnKey($(this).text()));			
 		});
+		
+		
+		// quick edit button
+		$('#quick-edit-btn').button().click( function() {
+			quickSubmit();		
+		});
+		
+		$('#quick-edit-btn').button('disable');
+		
+		editor.getSession().on('change', function() {
+			$('#quick-edit-btn').button('enable');
+			$('#edit-note').show();
+		});
+						
+		$('#full-edit-btn').button().click( function() {
+			window.location = "{{path('contest_problem', {'contestId': submission.problem.assignment.section.id, 'roundId': submission.problem.assignment.id, 'problemId': submission.problem.id, 'submissionId': submission.id} )}}";
+		});
+		
 	});
 	
 	
@@ -452,6 +490,52 @@ Submission was a ZIP file{% endif %}</div>
 		});
 		
 		return true;
+	}
+	
+	function quickSubmit(){
+		
+		$('#quick-edit-btn').hide();
+		$('#full-edit-btn').hide();
+		
+		$('#loading-container').show();
+	
+		// Create a FormData object
+		var formData = new FormData();
+		
+		var editor = ace.edit("editor");
+		editor.$blockScrolling = Infinity;
+		
+
+		var ACE = editor.getValue();		
+		
+		formData.append('problem_id', {{submission.problem.id}});
+		formData.append('language', "{{submission.language.id}}");
+		formData.append('main_class', "{{submission.main_class_name}}");
+		formData.append('package_name', "{{submission.package_name}}");
+		formData.append('ACE', ACE);
+		
+		$.ajax({
+			type: "POST",
+			url: "{{path('temp_trial_submit')}}",
+			data: formData,
+			processData: false,
+			contentType: false,
+			success: function(data){
+
+				console.log(data);
+				window.location = data["redirect_url"];
+			},
+			error: function(data){
+				alert(data['responseText']);
+				console.log(data['responseText']);
+			},
+			done: function(){
+				$('#loading-container').hide();
+				$('#quick-edit-btn').show();
+				$('#full-edit-btn').show();
+			}
+		});
+		
 	}
 	
 	</script>

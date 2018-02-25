@@ -800,6 +800,17 @@
 				e.preventDefault();
 			}
 		});
+		
+		$( "#testcase-cards" ).sortable({
+			placeholder: "testcase-card card colored",
+			revert: false,
+			scroll: true,
+			cursor: "move",
+			
+			stop: function() {
+				renumberTestCases();
+			}
+		});
 
 	});
 

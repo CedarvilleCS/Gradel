@@ -1,16 +1,23 @@
-{% extends 'base.html.twig' %}
-
 {% block title %}
-	Gradel | Submission {{submission.id}}
+	<title>Gradel | Submission {{submission.id}}</title>
+	<link rel="icon" type="image/x-icon" href="{{ asset('logo.png') }}" />
 {% endblock %}
 
+
+{% block stylesheets %}
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+	<link rel="stylesheet" href="{{ asset('jquery.highlighttextarea.css') }}">
+	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
+	
+	<link rel="stylesheet" href="{{ asset('styles.css') }}" />
+	<link rel="stylesheet" href="{{ asset('card.css') }}" />
+	
+	<link rel="stylesheet" href="{{ asset('submission-results.css') }}">
+{% endblock %}
+
+
+
 {% block body %}
-
-{% if grader is not defined %}
-
-The grader was not passed from the controller.
-
-{% else %}
 
 {% set grades = grader.getProblemGrade(app.user, submission.problem) %}
 
@@ -80,13 +87,12 @@ The grader was not passed from the controller.
 					<h2> COMPILER OUTPUT </h2>
 					<textarea disabled id='compiler-output'>{{submission.compiler_output}}</textarea>
 				{% endif %}
-				
 				</div>
 									
 				<div id="feedback-holder">
 					{% if feedback.display_markers and not submission.compiler_error and not submission.questionable_behavior and submission.testcaseresults|length > 0%}
 					<div id="testcase-markers-container">
-						<h3>TESTCASES:</h3>				
+						<h3 style="margin-bottom: 4px">TESTCASES:</h3>				
 							{% if feedback.show_output and submission.testcaseresults|length > 0 %}
 							<div id="testcase-markers">
 								<ul>
@@ -216,18 +222,39 @@ The grader was not passed from the controller.
 				</div>
 				
 				<h2 style="">SUBMITTED CODE</h2>
-				<a style="padding:10px" class="btn btn-center" href="{{path('assignment', {'sectionId': submission.problem.assignment.section.id, 'assignmentId': submission.problem.assignment.id, 'problemId': submission.problem.id} )}}">
-					Edit and Resubmit
-				</a>
-				<br/>
-				<br/>
-
 				
+				<div style="display: flex; justify-content: space-between; margin-right: 25px;">
+
+					<div id="loading-container" style="display:none;">
+						<img id="loadingGif" style="height: 60px" src="{{asset('beoload.gif')}}" alt="Loading..."/>
+						<h3 style="margin: 0px"> Resubmitting Code... </h3>
+					</div>
+				
+					<div id="full-edit-btn" style="margin-bottom: 5px">
+						Return and Review
+					</div>
+					
+					<div id="quick-edit-btn" style="margin-bottom: 5px">
+						Quick Resubmit
+					</div>
+				
+				</div>
+				
+				
+				<div id='edit-note' style='display: none'> <small style="color: red; font-style: italics"> Note that editing and resubmitting this code will override your saved code on the problem page </small> </div>
+								
 <div id="editor">{% if submission.filename|split('.')|last != 'zip' %}
 {{ submission.deblobinateSubmittedFile()|nl2br }}{% else %}
 Submission was a ZIP file{% endif %}</div>
 				
 				<h3 style="margin-top: 10px; margin-bottom: 0px">Submission ID: {{submission.id}}</h3>
+				
+				
+				<div id="loading-container" style="display:none;">
+					<img id="loadingGif" style="height: 60px" src="{{asset('beoload.gif')}}" alt="Loading..."/>
+					<h3 style="margin: 0px"> Resubmitting Code... </h3>
+				</div>
+				
 			</div>
 		</div>
 		
@@ -235,21 +262,6 @@ Submission was a ZIP file{% endif %}</div>
 	
 	</body>
 	
-{% endif %}
-
-	
-{% endblock %}
-
-{% block stylesheets %}
-	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-	<link rel="stylesheet" href="{{ asset('jquery.highlighttextarea.css') }}">
-	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
-	
-	<link rel="stylesheet" href="{{ asset('styles.css') }}" />
-	<link rel="stylesheet" href="{{ asset('card.css') }}" />
-	
-	<link rel="stylesheet" href="{{ asset('submission-results.css') }}">
-
 {% endblock %}
 
 {% block javascripts %}
@@ -298,14 +310,12 @@ Submission was a ZIP file{% endif %}</div>
 		{% endif %}
 		
 		var editor = ace.edit("editor");
-		editor.setTheme("ace/theme/xcode");	
-		editor.setReadOnly(true);
+		editor.setTheme("ace/theme/xcode");
+		editor.getSession().setMode("ace/mode/" + "{{ace_mode}}");
 		
 		
-		$('.testcase-data textarea').each(function () {
-			
-			$(this).html(addReturnKey($(this).html()));
-			
+		$('.testcase-data textarea').each(function () {			
+			$(this).html(addReturnKey($(this).html()));			
 		});
 		
 		// add highlighting for wrong text 
@@ -313,26 +323,99 @@ Submission was a ZIP file{% endif %}</div>
 			highlight: false
 		});
 		
+		
+		// quick edit button
+		$('#quick-edit-btn').button().click( function() {
+			quickSubmit();		
+		});
+		
+		$('#quick-edit-btn').button('disable');
+		
+		editor.getSession().on('change', function() {
+			$('#quick-edit-btn').button('enable');
+			$('#edit-note').show();
+		});
+						
+		$('#full-edit-btn').button().click( function() {
+			window.location = "{{path('assignment', {'sectionId': submission.problem.assignment.section.id, 'assignmentId': submission.problem.assignment.id, 'problemId': submission.problem.id, 'submissionId': submission.id} )}}";
+		});
+		 
+		
 		{% for highlights in feedback.highlights %}
 		
-		{% if highlights.index == -1 %}
+		
+		{% if highlights.ranges|length == 1 and highlights.ranges[0].index == -1 %}
 			
-			$('#{{highlights['id']}}').text(" ");
+			var txt = $('#{{highlights['id']}}').text();
+			
+			$('#{{highlights['id']}}').text(txt+" ");
 			
 			$('#{{highlights['id']}}').highlightWithinTextarea({
-				highlight: [0, 1]
+				highlight: [txt.length, txt.length+1]
 			});
 		
 		{% else %}
 		
+			var ranges = [];
+			
+			{% for range in highlights.ranges %}
+			ranges.push([{{range.index}}, {{range.indexEnd}}]);
+			{% endfor %}
+		
 		$('#{{highlights['id']}}').highlightWithinTextarea({
-			highlight: [{{highlights.index}}, {{highlights.indexEnd}}]
+			highlight: ranges
 		});
 		
 		{% endif %}
 		
 		{% endfor %}
-	});
+	});	
+	
+	function quickSubmit(){
+		
+		$('#quick-edit-btn').hide();
+		$('#full-edit-btn').hide();
+		
+		$('#loading-container').show();
+	
+		// Create a FormData object
+		var formData = new FormData();
+		
+		var editor = ace.edit("editor");
+		editor.$blockScrolling = Infinity;
+		
+
+		var ACE = editor.getValue();		
+		
+		formData.append('problem_id', {{submission.problem.id}});
+		formData.append('language', "{{submission.language.id}}");
+		formData.append('main_class', "{{submission.main_class_name}}");
+		formData.append('package_name', "{{submission.package_name}}");
+		formData.append('ACE', ACE);
+		
+		$.ajax({
+			type: "POST",
+			url: "{{path('temp_trial_submit')}}",
+			data: formData,
+			processData: false,
+			contentType: false,
+			success: function(data){
+
+				console.log(data);
+				window.location = data["redirect_url"];
+			},
+			error: function(data){
+				alert(data['responseText']);
+				console.log(data['responseText']);
+			},
+			done: function(){
+				$('#loading-container').hide();
+				$('#quick-edit-btn').show();
+				$('#full-edit-btn').show();
+			}
+		});
+		
+	}
 	
 	
 	</script>

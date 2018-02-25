@@ -1,6 +1,9 @@
 <?php
 
 namespace AppBundle\Entity;
+
+use JsonSerializable;
+
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Config\Definition\Exception\Exception;
@@ -9,7 +12,7 @@ use Symfony\Component\Config\Definition\Exception\Exception;
 *@ORM\Entity
 *@ORM\Table(name="trial")
 **/
-class Trial {	
+class Trial implements JsonSerializable {	
 	
 	public function __construct(){
 		
@@ -23,7 +26,7 @@ class Trial {
 		}
 	}
 	
-	public function __construct9($prob, $user, $file, $name, $language, $main, $package, $edit_time, $show){
+	public function __construct10($prob, $user, $file, $name, $language, $main, $package, $edit_time, $show, $hght){
 	
 		$this->problem = $prob;
 		$this->user = $user;
@@ -35,6 +38,7 @@ class Trial {
 		$this->last_edit_time = $edit_time;
 		
 		$this->show_description = $show;
+		$this->editor_height = $hght;
 		
 	}
 
@@ -62,9 +66,15 @@ class Trial {
 	*/
 	public $file;
 	
-	public function deblobinateFile(){			
+	public function deblobinateFile(){
+		
 		$val = stream_get_contents($this->file);
 		rewind($this->file);
+		
+		if($val == false){
+			return $this->file;
+		}
+		
 		return $val;
 	}
 	
@@ -98,6 +108,28 @@ class Trial {
 	*@ORM\Column(type="boolean")
 	*/
 	public $show_description;
+	
+	/**
+	*@ORM\Column(type="integer")
+	*/
+	public $editor_height;
+	
+		
+	public function jsonSerialize(){
+		return [
+			'id' => $this->id,
+			'user' => $this->user,						
+			'problem' => $this->problem,
+						
+			'filename' => $this->filename,
+			'language' => $this->language->name,
+			'main_class' => $this->main_class,
+			'package_name' => $this->package_name,
+			
+			'editor_height' => $this->editor_height,
+			'show_description' => $this->show_description,
+		];
+	}
 }
 
 
