@@ -62,7 +62,10 @@ var markdownText = converter.makeHtml("{{problem.description|e('js')}}");
 {% if elevatedUser or (contest_open and problem.assignment.cutoff_time|date('U') > "now"|date('U')) %}
 				
 				<div class="markdown-container">
+					
+					{% if not current_contest.post_contest %}
 					<div id="clarification-button">Ask for Clarification</div>				
+					{% endif %}
 					
 					<div id="markdown-header"><h1>{{problem.name}}</h1></div>
 					<div id="markdown"></div>

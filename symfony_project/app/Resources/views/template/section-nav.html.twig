@@ -45,17 +45,24 @@
 				<a href="{{path('section', {'sectionId':section.id})}}">				
 				
 					<li class="sidebar list-item">
-						<span class="preview">{{section.course.name}}
-							<br/><small>
+						<span class="preview">
+						
+						{% if not section.course.is_contest %}
+							{{section.course.name}}
+								<br/><small>
+								{{section.name}}
+
+								{% if grades[section.id]['percentage_adj'] > 0 %}
+
+									{{(grades[section.id]['percentage_adj']*100)|number_format(1, '.') ~ '%'}}
+
+								{% endif %}
+
+								</small>							
+						{% else %}
 							{{section.name}}
-
-							{% if grades[section.id]['percentage_adj'] > 0 %}
-
-								{{(grades[section.id]['percentage_adj']*100)|number_format(1, '.') ~ '%'}}
-
-							{% endif %}
-
-							</small>
+						{% endif %}
+						
 						</span>
 
 					{% if app.user in section_teachers or is_granted("ROLE_SUPER") %}

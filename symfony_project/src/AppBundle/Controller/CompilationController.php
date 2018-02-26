@@ -331,8 +331,8 @@ class CompilationController extends Controller {
 		
 		if($submission->problem->assignment->section->course->is_contest){
 		
-		
-			if( $grader->getTeam($user, $submission->problem->assignment) && !($solvedAllTestcases || $submission->compiler_error || $submission->exceeded_time_limit || $submission->runtime_error) ){
+			// if it is not post contest, the grader is on a team, and it was not a correct submission
+			if( !$submission->problem->assignment->post_contest && $grader->getTeam($user, $submission->problem->assignment) && !($solvedAllTestcases || $submission->compiler_error || $submission->exceeded_time_limit || $submission->runtime_error) ){
 				
 				$submission->pending_status = 0;			
 			}
