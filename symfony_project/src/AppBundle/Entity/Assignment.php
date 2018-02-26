@@ -198,12 +198,12 @@ class Assignment implements JsonSerializable{
 	public $freeze_override_time;
 	
 	/**
-	* @ORM\Column(type="boolean")
+	* @ORM\Column(type="boolean", nullable=true)
 	*/
 	public $freeze_override;
 	
 	/**
-	* @ORM\Column(type="boolean")
+	* @ORM\Column(type="boolean", nullable=true)
 	*/
 	public $post_contest;
 	
