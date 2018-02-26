@@ -22,4 +22,4 @@
 /web/build/images/glyphicons-*
 save_pid.txt
 socket.log
-
+/web/contest_images/
