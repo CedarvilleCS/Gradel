@@ -67,7 +67,8 @@ textarea {
 }
 
 #editor { 
-    width: calc(100% - 50px);
+    width: calc(100% - 25px);
+    /* width: 100%; */
     height: 300px;
     border: 2px solid grey;
     padding: 10px;
@@ -79,18 +80,22 @@ textarea {
 	margin-top: 10px;
 }
 
-#markdown-collapser{
-	width: calc(100% - 27px);
-	background: lightgrey;
-	height: 25px;
-	margin-top: 10px;
-	margin-bottom: 10px;
-	
-	text-align: center;
-	line-height: 25px;
-	font-weight: bold;
-	color: white;
-	font-size: 10pt;
-	
-	cursor: pointer;
+
+
+/* tabs */
+.testcase-data{
+	width: 100%;
+	padding: 0px;
+	margin: 0px;
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+    padding: 0px;
+    height: 380px;
+}
+
+.testcase-data-heading{
+	height: 30px;
+	line-height: 30px;
+	padding-right: 3px;
 }
