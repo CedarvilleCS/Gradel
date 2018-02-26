@@ -1,4 +1,0 @@
-appbundle_topic: 
-  channel: appbundle/channel
-  handler:
-    callback: 'appbundle.topic'
