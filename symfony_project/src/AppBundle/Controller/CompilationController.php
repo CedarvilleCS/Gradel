@@ -38,7 +38,7 @@ use Psr\Log\LoggerInterface;
 class CompilationController extends Controller {	
 	
 	/* submit */
-	public function submitAction(Request $request) {
+	public function submitAction(Request $request, $trialId=0) {
 				
 		# entity manager
 		$em = $this->getDoctrine()->getManager();		
@@ -61,6 +61,10 @@ class CompilationController extends Controller {
 		# POST DATA
 		$postData = $request->request->all();
 		$trial_id = $postData['trial_id'];
+		
+		if($trial_id == null){
+			$trial_id = $trialId;
+		}
 		
 		# get the current trial
 		$trial = $em->find("AppBundle\Entity\Trial", $trial_id);
@@ -115,7 +119,7 @@ class CompilationController extends Controller {
 		$language = $trial->language;
 		
 		if(!isset($submitted_filename) || trim($submitted_filename) == ""){
-			return $this->returnForbiddenResponse("Filename was not provided. Contact a systems administrator");
+			return $this->returnForbiddenResponse("Filename was not provided. Contact a systems administrator -");
 		}
 		
 		# check main class and package name for validity
@@ -331,8 +335,8 @@ class CompilationController extends Controller {
 		
 		if($submission->problem->assignment->section->course->is_contest){
 		
-		
-			if( $grader->getTeam($user, $submission->problem->assignment) && !($solvedAllTestcases || $submission->compiler_error || $submission->exceeded_time_limit || $submission->runtime_error) ){
+			// if it is not post contest, the grader is on a team, and it was not a correct submission
+			if( !$submission->problem->assignment->post_contest && $grader->getTeam($user, $submission->problem->assignment) && !($solvedAllTestcases || $submission->compiler_error || $submission->exceeded_time_limit || $submission->runtime_error) ){
 				
 				$submission->pending_status = 0;			
 			}

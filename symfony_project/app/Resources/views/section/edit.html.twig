@@ -89,7 +89,7 @@
 								<option value="-1"></option>
 								{% for u in users %}
 									<option value="{{u.email}}">
-									{{u.getLastName() ~ ", " ~ u.getFirstName()}}
+									{{u.getFirstName() ~ " " ~ u.getLastName()}}
 									</option>
 								{% endfor %}
 							</select>
@@ -129,7 +129,7 @@
 							<option value="-1"></option>
 							{% for i in instructors %}
 								<option value="{{i.email}}">
-								{{i.getLastName() ~ ", " ~ i.getFirstName()}}
+								{{i.getFirstName() ~ " " ~ i.getLastName()}}
 								</option>
 							{% endfor %}
 						</select>
@@ -254,6 +254,8 @@
 
 						$('#student-csv').val(atob(file["contents"]));
 						$('#studentCSVForm').hide();
+						
+						addCommas('student-csv');
 
 					},
 					error:			function(xhr, textStatus, errorThrown) {
@@ -289,6 +291,8 @@
 
 						$('#teacher-csv').val(atob(file["contents"]));
 						$('#teacherCSVForm').hide();
+						
+						addCommas('teacher-csv');
 
 					},
 					error:			function(xhr, textStatus, errorThrown) {
@@ -420,6 +424,17 @@
 			$('option:selected', teacherPicker).remove();
 			teacherPicker.val(0);
 		}
+		
+		function addCommas(csvID) {
+			
+			var csv = $('#' + csvID);
+			
+			csv.val(csv.val().replace(/,/g, '\n'));
+			csv.val(csv.val().replace(/(\n)+/g, '\n'));
+			csv.val(csv.val().replace(/\n/g, ',\n'));
+			
+			return;			
+		}
 
 	</script>
 
@@ -442,14 +457,12 @@
 
 		// set the teachers csv
 		{% for std in section_teacher_roles %}
-		$('#teacher-picker').val("{{std.user.email}}");
-		updateTeacherCSV();
+		$('#teacher-csv').append("{{std.user.email}}"+",\n");		
 		{% endfor %}
 
 		// set the students csv
 		{% for std in section_taker_roles %}
-		$('#student-picker').val("{{std.user.email}}");
-		updateStudentCSV();
+		$('#student-csv').append("{{std.user.email}}"+",\n");	
 		{% endfor %}
 
 		// set the starting date

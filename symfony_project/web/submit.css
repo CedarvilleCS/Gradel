@@ -69,10 +69,25 @@ textarea {
 #editor { 
     width: calc(100% - 50px);
     height: 300px;
-    border: 2px solid grey;
+    border-top: 2px solid grey;	
+    border-right: 2px solid grey;
+    border-left: 2px solid grey;
+	border-bottom: 1px solid grey;
+	
     padding: 10px;
     font-family: monospace;
     font-size: 10pt;
+}
+
+#editor-handle {
+	width: calc(100% - 30px); 
+	height: 12px; 
+	background: #e8e8e8;
+	cursor: s-resize;
+	
+	border-left: 2px solid grey;
+	border-right: 2px solid grey;
+	border-bottom: 2px solid grey;
 }
 
 #submissionForm{
@@ -93,4 +108,13 @@ textarea {
 	font-size: 10pt;
 	
 	cursor: pointer;
+}
+
+#markdown-collapser:hover{
+	background: grey;
+}
+
+/* handle on the bottom */
+.ui-resizable-s {
+    height: 30px;	
 }

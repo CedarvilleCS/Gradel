@@ -20,6 +20,6 @@
 /web/bundles/
 /web/build/fonts/glyphicons-*
 /web/build/images/glyphicons-*
-./save_pid.txt
-./socket.log
-
+save_pid.txt
+socket.log
+/web/contest_images/

@@ -23,6 +23,11 @@
 	
 }
 
+.colored {
+	background: #92d884;
+	min-height: 100px;
+}
+
 .contest-card {
 	max-width: calc(25% - 61px) !important;
 	min-width: calc(25% - 61px) !important;
@@ -52,7 +57,7 @@
 	flex-wrap: wrap;
 	justify-content: flex-start;
 	
-  margin-right: 20px;
+	margin-right: 20px;
 	margin-left: 20px;
 }
 

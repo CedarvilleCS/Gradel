@@ -1,6 +1,10 @@
 {% block leaderboard_html %}
 <div class="card" id="leaderboard-card" style="flex-grow: 12; padding: 5px; padding-top: 10px; height: max-content;">
 	
+	{% if app.request.attributes.get('_route') == "contest" %}
+	<div id="leaderboard-heading"> <h2> LEADERBOARD </h2> </div>
+	{% endif %}
+	
 	<div id="leaderboard-container" class="card-contents" style="margin-top: 0;">
 		<table id="leaderboard">
 		

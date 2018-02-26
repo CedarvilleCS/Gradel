@@ -101,11 +101,11 @@
 						</small>
 						
 						{% if elevatedUser %}
-						<object>
+						<!-- <object>
 							<a title="Delete assignment" href="{{path('assignment_delete', {'sectionId': assig.section.id, 'assignmentId': assig.id})}}">
 								<img class="small-icon" id="right-icon" src="{{ asset('whitetrash.png') }}">
 							</a>
-						</object>
+						</object> -->
 						<object>
 							<a title="Edit assignment" href="{{path('assignment_edit', {'sectionId': assig.section.id, 'assignmentId': assig.id})}}">
 								<img class="small-icon" src="{{ asset('edit.png') }}">

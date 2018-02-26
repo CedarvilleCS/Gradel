@@ -110,12 +110,12 @@
 		var scoreboardPollAJAX;
 		var freezeAJAX;
 		
-		var time = {{"now"|date('U')}} - {{current_contest.start_time|date('U')}}; // current seconds into the contest
+		var time = Math.floor(Date.now()/1000) - {{current_contest.start_time|date('U')}}; // current seconds into the contest
+		var starttime = {{current_contest.start_time|date('U')}} - Math.floor(Date.now()/1000); // current seconds until the contest
 		var total = {{current_contest.end_time|date('U')}} - {{current_contest.start_time|date('U')}};
 		var freeze = {{current_contest.freeze_time|date('U')}} - {{current_contest.start_time|date('U')}};
-		var starttime = {{current_contest.start_time|date('U')}} - {{"now"|date('U')}}; // current seconds until the contest
 		
-		var frozen = {{("now"|date('U') >= current_contest.freeze_time|date('U')) ? 'true' : 'false'}};
+		var frozen = (Math.floor(Date.now()/1000) >= {{current_contest.freeze_time|date('U')}}) ? 'true' : 'false';
 		var visual_frozen = false;
 		var visual_unfrozen = false;
 		
@@ -268,6 +268,12 @@
 					$('#time-left').text(hours+":"+minutes+":"+seconds+" left");
 				} else {
 					$('#time-left').text(hours+":"+minutes+":"+seconds+" until start");
+				}
+				
+				
+				
+				if (starttime == 0) {
+					window.location.reload();
 				}
 				
 			}

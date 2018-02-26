@@ -35,12 +35,28 @@ class UploadController extends Controller {
 		Returns 1 on success
 	*/
 	public function getContentsAction(Request $request){
-	
-		if(!$_FILES["file"]){
-			return $this->returnForbiddenResponse("A file from the input with name='file' was not provided.");
+
+		if(!isset($_FILES['file']['error']) || is_array($_FILES['file']['error'])) {
+			return $this->returnForbiddenResponse('File must be smaller than 1Mb.');
+		}
+		
+		switch ($_FILES['file']['error']) {
+			case UPLOAD_ERR_OK:
+				break;
+			case UPLOAD_ERR_NO_FILE:
+				return $this->returnForbiddenResponse('No file sent.');
+			case UPLOAD_ERR_INI_SIZE:
+			case UPLOAD_ERR_FORM_SIZE:
+				return $this->returnForbiddenResponse('File must be smaller than 1Mb.');
+			default:
+				return $this->returnForbiddenResponse('Unknown errors.');
 		}
 		
 		$file = $_FILES["file"];
+		
+		if($file['size'] > 1024*1024){
+			return $this->returnForbiddenResponse('File must be smaller than 1Mb.');
+		}
 		
 		$web_dir = $this->get('kernel')->getProjectDir()."/";
         $uploader = new Uploader($web_dir);
@@ -198,9 +214,12 @@ class UploadController extends Controller {
 
 			$file = $files->get('file');
 
-			if($file->getClientSize() > 1048576){
+			if($file->getClientSize() > 1024*1024){
 				return $this->returnForbiddenResponse("FILE GIVEN IS TOO LARGE");
-			}			
+			}
+			else if($file->getClientSize() <= 0){
+				return $this->returnForbiddenResponse("FILE GIVEN IS EMPTY");
+			}		
 			
 			$data = null;
 			$uploadResp = $this->fileUpload($data, $problem_id, $postData, $file);
@@ -211,9 +230,12 @@ class UploadController extends Controller {
 			
 		} else if(isset($postData["ACE"]) && trim($postData["ACE"]) != ""){
 			
-			if(strlen($postData["ACE"]) > 1048576){
+			if(strlen($postData["ACE"]) > 1024*1024){
 				return $this->returnForbiddenResponse("UPLOADED CODE IS TOO LONG");
-			}	
+			}
+			else if(strlen($postData["ACE"]) <= 0){
+				return $this->returnForbiddenResponse("UPLOADED CODE IS EMPTY");
+			}
 			
 			$data = null;
 			$uploadResp = $this->aceUpload($data, $problem_id, $postData);
