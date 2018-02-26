@@ -66,8 +66,10 @@ class TrialController extends Controller {
 			
 			$file = $files->get('file');
 			
-			if($file->getClientSize() > 1048576){
-				return $this->returnForbiddenResponse("Given file is too large");
+			if($file->getClientSize() > 1024*1204){
+				return $this->returnForbiddenResponse("Given file must be smaller than 1Mb.");
+			} else if($file->getClientSize() <= 0){
+				return $this->returnForbiddenResponse("Given file is empty.");
 			}
 			$target_file = $uploader->uploadSubmissionFile($file, $user, $problem);
 			
@@ -80,6 +82,12 @@ class TrialController extends Controller {
 		} else if(isset($postData['ACE'])){
 			
 			$file = $postData['ACE'];
+			
+			if(strlen($file) > 1024*1024){
+				return $this->returnForbiddenResponse("Uploaded code must be smaller than 1Mb.");
+			} else if(strlen($file) <= 0){
+				return $this->returnForbiddenResponse("Uploaded code is empty.");
+			}
 			
 		} else {			
 			return $this->returnForbiddenResponse("File or ACE editor content was not provided");			
