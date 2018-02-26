@@ -22,15 +22,6 @@ services:
         exclude: '../../src/AppBundle/{Entity,Repository,Tests,Grading}'
 
 
-    # pdo:
-    #     class: PDO
-    #     arguments:
-    #         # dsn: mysql:host=%database_host%;port=%database_port%;dbname=%database_name%
-    #         # user: %database_user%
-    #         # password: %database_password%
-    #     calls:
-    #         - [ setAttribute, [3, 2] ] # \PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION
-
     session.handler.pdo:
         class:     Symfony\Component\HttpFoundation\Session\Storage\Handler\PdoSessionHandler
         arguments: 
@@ -52,11 +43,6 @@ services:
         # Change the class according to the location of the FOSUBUserProvider class
         class: AppBundle\Entity\FOSUBUserProvider
         arguments: ["@fos_user.user_manager", {google: google_id}]
-            # Inject as first argument the user_manager of FOSUserBundle
-            #user_manager: "@fos_user.user_manager"
-            # An object/array with the registered Social Media from config.yml
-            #user_response:
-                #google: google_id 
         
         
     # add more services, or override services that need manual wiring
