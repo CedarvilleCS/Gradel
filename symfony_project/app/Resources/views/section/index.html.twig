@@ -135,59 +135,8 @@
 			<div id="recentSubs" class="card-contents">
 					
 				<div>   
-					<ul>
+					<ul id="submissions-list">
 
-					{% if recent_submissions|length == 0 %}
-						<li> No recent submissions </li>
-					{% else %}
-						
-						{% for sub in recent_submissions %}
-						
-							{% if loop.index0 < 30 %}
-						
-							{% if sub.isCorrect %}
-								<div style="color: green">
-							{% else %}
-								
-								<div style="color: red">
-							{% endif %}
-							
-							<li><a href="{{path('problem_result', {'submission_id': sub.id})}}">
-								<i>{{sub.problem.assignment.name}}:</i> {{sub.problem.name}} ({{sub.language.name}})
-								
-									{% if sub.team.users|length <= 1 or (not is_granted("ROLE_ADMIN") and not is_granted("ROLE_SUPER") and not grader.isTeaching(user, section)) %}
-										{{sub.user.getFirstName}} {{sub.user.getLastName}} 
-									{% else %}
-										{
-										{% for user in sub.team.users %}
-											
-											{{user.getLastName}}
-											{% if not loop.last %}
-											, 
-											{% endif%}
-										{% endfor %}
-										}
-									{% endif %}
-
-								- {{sub.timestamp|date('M d  \\a\\t  h:i:s A')}}
-							</a> </li>
-							</div>
-							
-							{% endif %}
-							
-						{% endfor %}
-					{% endif %}
-
-					{% if accepted_submissions|length > 0 %}
-						{{ accepted_submissions|length}} submissions exist.
-						{# FIXME: non-unique result error #}
-						{# {{ accepted_submissions[0] }} #}
-						{# {% for sub in accepted_submissions %}
-							<li><a href="{{path('problem_result', {'submission_id': sub.id})}}">
-								<i>{{sub.problem.assignment.name}}:</i> {{sub.problem.name}} ({{sub.language.name}})</i>
-							</a></li>
-						{% endfor %} #}
-					{% endif %}
 					</ul>
 				</div>
 			</div>
@@ -215,7 +164,11 @@
 
 		var table = [];
 		var selecton = "";
-
+		
+		var submissions = JSON.parse("{{submissions|json_encode|e('js')}}");
+		
+		console.log(submissions);
+		
 		$( document ).ready(function() {
 
 			var counter = 0;
@@ -285,12 +238,10 @@
 		});
 
 		function initializeGradeTable(index) {
-			console.log("grade table " + index);
 			$("#studentInfoAssignment").html(selection + table[index]);
 		}
 		function gradeTable() {
 			index = $('#assignmentSelect').val();
-			console.log("grade table without index" + index);
 			$("#studentInfoAssignment").html(selection + table[index]);
 		}
 	

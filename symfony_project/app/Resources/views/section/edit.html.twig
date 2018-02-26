@@ -180,17 +180,20 @@
 			toContest[{{course.id}}] = {% if course.is_contest %} true {% else %} false {% endif %};
 			{% endfor %}
 			
-			$('#course').change( function() {
-				
-				
+			$('#course').change( function() {		
 				
 				if(toContest[$(this).val()]){
 					window.location = "{{ path('contest_edit', {'contestId': 0, 'courseId': ''} ) }}"+$(this).val();	
 				}
 				
 			});
-		
-			$('#year').val("{{'now'|date('Y')}}");
+			
+			$('#semester').change( function() {
+				
+				setDateStuff($('#year').val(), $(this).val());
+				
+			});
+			
 
 			$('#startdatepicker').datepicker({
 				showAnim: "slideDown",
@@ -210,6 +213,10 @@
 			populateForm();
 			{% else %}
 			//collapseCard('additionalOptions');
+			
+			// guess the dates
+			setDateStuff({{now|date('Y')}},{{now|date('m')}});
+			
 			{% endif %}
 
 			{% if section is not null %}
@@ -229,165 +236,167 @@
 			});
 			{% endif %}
 
-			{# Student CSV Upload #}
-			// submit the form if the file upload is changed
-			$('#studentCSVForm #file').change( function(data) {
-				$('#studentCSVForm').submit();
+			
+		});
+		
+		{# Student CSV Upload #}
+		// submit the form if the file upload is changed
+		$('#studentCSVForm #file').change( function(data) {
+			$('#studentCSVForm').submit();
+		});
+
+		// overwrite the normal submit to call the ajaxsubmit
+		// asynchronous script to handle the submission form upload
+		$('#studentCSVForm').submit(function() {
+			$(this).ajaxSubmit({
+
+				beforeSubmit: 	function(formData, jqForm, options){
+
+					/* CLIENT-SIDE VALIDATION */
+					console.log("THIS IS WHERE I AM");
+					return true;
+
+				},
+				success:		function(responseText, statusText, xhr, $form) {
+
+					var file = responseText['files'][0];
+					console.log(responseText);
+
+					$('#student-csv').val(atob(file["contents"]));
+					$('#studentCSVForm').hide();
+					
+					addCommas('student-csv');
+
+				},
+				error:			function(xhr, textStatus, errorThrown) {
+					console.log(xhr);
+					alert(xhr['responseText']);
+				}
 			});
 
-			// overwrite the normal submit to call the ajaxsubmit
-			// asynchronous script to handle the submission form upload
-			$('#studentCSVForm').submit(function() {
-				$(this).ajaxSubmit({
+			return false;
+		});
 
-					beforeSubmit: 	function(formData, jqForm, options){
+		{# Teacher CSV Upload #}
+		// submit the form if the file upload is changed
+		$('#teacherCSVForm #file').change( function(data) {
+			$('#teacherCSVForm').submit();
+		});
 
-						/* CLIENT-SIDE VALIDATION */
-						console.log("THIS IS WHERE I AM");
-						return true;
+		// overwrite the normal submit to call the ajaxsubmit
+		// asynchronous script to handle the submission form upload
+		$('#teacherCSVForm').submit(function() {
+			$(this).ajaxSubmit({
 
-					},
-					success:		function(responseText, statusText, xhr, $form) {
+				beforeSubmit: 	function(formData, jqForm, options){
 
-						var file = responseText['files'][0];
-						console.log(responseText);
+					/* CLIENT-SIDE VALIDATION */
+					return true;
 
-						$('#student-csv').val(atob(file["contents"]));
-						$('#studentCSVForm').hide();
-						
-						addCommas('student-csv');
+				},
+				success:		function(responseText, statusText, xhr, $form) {
 
-					},
-					error:			function(xhr, textStatus, errorThrown) {
-						console.log(xhr);
-						alert(xhr['responseText']);
-					}
-				});
+					var file = responseText['files'][0];
+					console.log(responseText);
 
+					$('#teacher-csv').val(atob(file["contents"]));
+					$('#teacherCSVForm').hide();
+					
+					addCommas('teacher-csv');
+
+				},
+				error:			function(xhr, textStatus, errorThrown) {
+					console.log(xhr);
+					alert(xhr['responseText']);
+				}
+			});
+
+			return false;
+		});
+
+		{# Save Button #}
+		$('#save-btn').on('click', function(){
+
+			/* Client-Side Validation */
+			// section name
+			if ($.trim($('#name').val())  === '') {
+				setInvalid($('#name'));
 				return false;
-			});
+			} else {
+				setValid($('#name'));
+			}
 
-			{# Teacher CSV Upload #}
-			// submit the form if the file upload is changed
-			$('#teacherCSVForm #file').change( function(data) {
-				$('#teacherCSVForm').submit();
-			});
-
-			// overwrite the normal submit to call the ajaxsubmit
-			// asynchronous script to handle the submission form upload
-			$('#teacherCSVForm').submit(function() {
-				$(this).ajaxSubmit({
-
-					beforeSubmit: 	function(formData, jqForm, options){
-
-						/* CLIENT-SIDE VALIDATION */
-						return true;
-
-					},
-					success:		function(responseText, statusText, xhr, $form) {
-
-						var file = responseText['files'][0];
-						console.log(responseText);
-
-						$('#teacher-csv').val(atob(file["contents"]));
-						$('#teacherCSVForm').hide();
-						
-						addCommas('teacher-csv');
-
-					},
-					error:			function(xhr, textStatus, errorThrown) {
-						console.log(xhr);
-						alert(xhr['responseText']);
-					}
-				});
-
+			// make sure that if one date is provided, the other one is too
+			if ($('#enddatepicker').val() == '' && $('#startdatepicker').val() != '' || $('#enddatepicker').val() != '' && $('#startdatepicker').val() == ''){
+				setInvalid($('#startdatepicker'));
+				setInvalid($('#enddatepicker'));
 				return false;
-			});
+			} else {
+				setValid($('#startdatepicker'));
+				setValid($('#enddatepicker'));
+			}
 
-			{# Save Button #}
-			$('#save-btn').on('click', function(){
+			// make sure that the dates make sense if they provided them
+			if ($('#enddatepicker').datepicker('getDate') < $('#startdatepicker').datepicker('getDate')){
+				setInvalid($('#enddatepicker'));
+				return false;
+			} else {
+				setValid($('#enddatepicker'));
+			}
 
-				/* Client-Side Validation */
-				// section name
-				if ($.trim($('#name').val())  === '') {
-					setInvalid($('#name'));
-					return false;
-				} else {
-					setValid($('#name'));
-				}
+			/* Array of Teachers */
+			var teachers = document.getElementById('teacher-csv').value.split(",");
+			for(var i=0; i<teachers.length; i++){
+				teachers[i] = teachers[i].replace(/\n/g, '');
+				teachers[i] = teachers[i].replace(/ /g, '');
+			}
+			teachers.pop(); // remove the blank last element
 
-				// make sure that if one date is provided, the other one is too
-				if ($('#enddatepicker').val() == '' && $('#startdatepicker').val() != '' || $('#enddatepicker').val() != '' && $('#startdatepicker').val() == ''){
-					setInvalid($('#startdatepicker'));
-					setInvalid($('#enddatepicker'));
-					return false;
-				} else {
-					setValid($('#startdatepicker'));
-					setValid($('#enddatepicker'));
-				}
+			/* Array of Students */
+			var students = document.getElementById('student-csv').value.split(",");
+			for(var i=0; i<students.length; i++){
+				students[i] = students[i].replace(/\n/g, '');
+				students[i] = students[i].replace(/ /g, '');
+			}
+			students.pop(); // remove the blank last element
 
-				// make sure that the dates make sense if they provided them
-				if ($('#enddatepicker').datepicker('getDate') < $('#startdatepicker').datepicker('getDate')){
-					setInvalid($('#enddatepicker'));
-					return false;
-				} else {
-					setValid($('#enddatepicker'));
-				}
+			// check to see if this button is allowed to be pressed
+			if($(this).prop('disabled')){
+				return false;
+			} else {
+				$(this).prop('disabled', true);
+			}
 
-				/* Array of Teachers */
-				var teachers = document.getElementById('teacher-csv').value.split(",");
-				for(var i=0; i<teachers.length; i++){
-					teachers[i] = teachers[i].replace(/\n/g, '');
-					teachers[i] = teachers[i].replace(/ /g, '');
-				}
-				teachers.pop(); // remove the blank last element
+			/* Post to the Symfony Route */
+			$.post( "{{path('section_modify')}}", {
+				name: $.trim($('#name').val()),
+				course: $('#course').val(),
+				semester: $('#semester').val(),
+				year: $('#year').val(),
+				teachers: JSON.stringify(teachers),
+				students: JSON.stringify(students),
+				start_time: $('#startdatepicker').val(),
+				end_time: $('#enddatepicker').val(),
+				section: {% if section is not null %} {{section.id}} {% else %} 0 {% endif %}
 
-				/* Array of Students */
-				var students = document.getElementById('student-csv').value.split(",");
-				for(var i=0; i<students.length; i++){
-					students[i] = students[i].replace(/\n/g, '');
-					students[i] = students[i].replace(/ /g, '');
-				}
-				students.pop(); // remove the blank last element
+			}, function(data) {
+				console.log(data);
 
-				// check to see if this button is allowed to be pressed
-				if($(this).prop('disabled')){
-					return false;
-				} else {
-					$(this).prop('disabled', true);
-				}
+				window.location = data["redirect_url"];
+			}).fail(function(data) {
 
-				/* Post to the Symfony Route */
-				$.post( "{{path('section_modify')}}", {
-					name: $.trim($('#name').val()),
-					course: $('#course').val(),
-					semester: $('#semester').val(),
-					year: $('#year').val(),
-					teachers: JSON.stringify(teachers),
-					students: JSON.stringify(students),
-					start_time: $('#startdatepicker').val(),
-					end_time: $('#enddatepicker').val(),
-					section: {% if section is not null %} {{section.id}} {% else %} 0 {% endif %}
-
-				}, function(data) {
-					console.log(data);
-
-					window.location = data["redirect_url"];
-				}).fail(function(data) {
-
-					alert(data["responseText"]);
-					$(this).prop('disabled', false);
-				});
-			});
-
-			$('#student-picker').on('change', function(){
-				updateStudentCSV();
-			});
-
-			$('#teacher-picker').on('change', function(){
-				updateTeacherCSV();
+				alert(data["responseText"]);
+				$(this).prop('disabled', false);
 			});
 		});
+
+		$('#student-picker').on('change', function(){
+			updateStudentCSV();
+		});
+
+		$('#teacher-picker').on('change', function(){
+				updateTeacherCSV();
+			});
 
 		function updateStudentCSV() {
 
@@ -434,6 +443,34 @@
 			csv.val(csv.val().replace(/\n/g, ',\n'));
 			
 			return;			
+		}
+		
+		function setDateStuff(year, month){
+			
+			$('#year').val(year);
+				
+			if(month <= 5 || month == "Spring"){
+				
+				$('#startdatepicker').val('01/01/'+year);				
+				$('#enddatepicker').val('05/10/'+year);
+				
+				$('#semester').val("Spring");
+				
+			} else if(month <= 7 || month == "Summer"){
+				
+				$('#startdatepicker').val('05/10/'+year);				
+				$('#enddatepicker').val('08/01/'+year);
+				
+				$('#semester').val("Summer");
+				
+			} else {
+				
+				$('#startdatepicker').val('08/01/'+year);				
+				$('#enddatepicker').val('12/31/'+year);
+				
+				$('#semester').val("Fall");			
+				
+			}
 		}
 
 	</script>
