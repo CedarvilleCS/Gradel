@@ -92,7 +92,6 @@ class SectionController extends Controller {
 				$section_judges[] = $usr->user;
 			}
 		}
-
 		
 		# GET FUTURE ASSIGNMENTS
 		$twoweeks_date = new DateTime();
@@ -215,7 +214,7 @@ class SectionController extends Controller {
 			'recent_submissions' => $submissions,
 
 			'accepted_submissions' => $best_submission,
-
+			'user_impersonators' => $section_takers,
 			'section_takers' => $section_takers,
 			'section_teachers' => $section_teachers,
 			'section_helpers' => $section_helpers,
