@@ -1,16 +1,23 @@
-{% extends 'base.html.twig' %}
-
 {% block title %}
-	Gradel | Submission {{submission.id}}
+	<title>Gradel | Submission {{submission.id}}</title>
+	<link rel="icon" type="image/x-icon" href="{{ asset('logo.png') }}" />
 {% endblock %}
 
+
+{% block stylesheets %}
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+	<link rel="stylesheet" href="{{ asset('jquery.highlighttextarea.css') }}">
+	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
+	
+	<link rel="stylesheet" href="{{ asset('styles.css') }}" />
+	<link rel="stylesheet" href="{{ asset('card.css') }}" />
+	
+	<link rel="stylesheet" href="{{ asset('submission-results.css') }}">
+{% endblock %}
+
+
+
 {% block body %}
-
-{% if grader is not defined %}
-
-The grader was not passed from the controller.
-
-{% else %}
 
 {% set grades = grader.getProblemGrade(app.user, submission.problem) %}
 
@@ -38,6 +45,7 @@ The grader was not passed from the controller.
 			<div id="submissionOverview" class="card-contents">
 				<h3 style="margin-top: 2px; margin-bottom: 2px">
 					RESULT: 
+										
 					{% if submission.isCorrect() %}						
 						<span style="color:green">CORRECT!</span>
 						
@@ -79,18 +87,13 @@ The grader was not passed from the controller.
 					<h2> COMPILER OUTPUT </h2>
 					<textarea disabled id='compiler-output'>{{submission.compiler_output}}</textarea>
 				{% endif %}
-				
 				</div>
-					
-				<!--span style="word-wrap: break-word"> {{feedback|json_encode}} </span-->
-				
-				
-				
-				{% if feedback.display_markers and not submission.compiler_error and not submission.questionable_behavior and submission.testcaseresults|length > 0%}
+									
 				<div id="feedback-holder">
+					{% if feedback.display_markers and not submission.compiler_error and not submission.questionable_behavior and submission.testcaseresults|length > 0%}
 					<div id="testcase-markers-container">
-						<h3>TESTCASES:</h3>				
-							{% if feedback.output|length > 0 %}
+						<h3 style="margin-bottom: 4px">TESTCASES:</h3>				
+							{% if feedback.show_output and submission.testcaseresults|length > 0 %}
 							<div id="testcase-markers">
 								<ul>
 									{% set failed = false %}
@@ -120,66 +123,73 @@ The grader was not passed from the controller.
 									{% endfor %}
 								</ul>
 								
+								{% set failed = false %}
+								
 								{% for tcr in submission.testcaseresults %}
 								
-									{% if not tcr.runtime_error %}
-										{% if not tcr.testcase.is_extra_credit or feedback.extra_testcases_display %}
-										
-										<div id="testcase-tab-{{tcr.id}}">
-											<div class="testcase-data">
-												{% if feedback.input[tcr.testcase.seq_num] or feedback.command_line[tcr.testcase.seq_num] %}
-												<div id="testcase-input">
-													
-													{% if feedback.input[tcr.testcase.seq_num] %}
-													<div>
-														<div class="testcase-data-heading">Input:</div>
-														<textarea {{(feedback.input[tcr.testcase.seq_num]) ? "id='input-textarea'" : "" }} disabled>{{feedback.input[tcr.testcase.seq_num]}}</textarea>
-													</div>
-													{% endif %}
-													
-													{% if feedback.command_line[tcr.testcase.seq_num] %}
-													<div>
-														<div class="testcase-data-heading">Command-Line Arguments:</div>
-														<textarea  {% if feedback.command_line[tcr.testcase.seq_num] %} id="command-line-textarea" {% endif %} disabled>{{feedback.command_line[tcr.testcase.seq_num]}}</textarea>
-													</div>
-													{% endif %}
-													
-												</div>	
+									{% if not failed or not feedback.stop_on_first_fail %}
+									{% if not tcr.testcase.is_extra_credit or feedback.extra_testcases_display %}
+									
+									{% if not tcr.is_correct %}
+										{% set failed = true %}
+									{% endif %}
+									
+									<div id="testcase-tab-{{tcr.id}}">
+										<div class="testcase-data">
+											{% if feedback.show_input %}
+											<div id="testcase-input">
+											
+												
+												{% if tcr.testcase.input %}
+												
+												<div>
+													<div class="testcase-data-heading">Input:</div>
+													<textarea {{(tcr.testcase.command_line_input) ? "id='input-textarea'" : "" }} disabled>{{tcr.testcase.input}}</textarea>
+												</div>
 												{% endif %}
 												
-												
-												
-												<div id="testcase-outputexp">
-													<div class="testcase-data-heading">Expected Output:</div>
-													<textarea disabled>{{feedback.output[tcr.testcase.seq_num]}}</textarea>
+												{% if tcr.testcase.command_line_input %}
+												<div>
+													<div class="testcase-data-heading">Command-Line Arguments:</div>
+													<textarea  {{(tcr.testcase.input) ? "id='command-line-textarea'" : "" }} disabled>{{tcr.testcase.command_line_input}}</textarea>
 												</div>
+												{% endif %}
 												
-												<div id="testcase-outputyrs">
-													<div class="testcase-data-heading">Your Output:</div>
-													<textarea disabled>{{submission.testcaseresults[loop.index0].std_output}}</textarea>
-												</div>
+											</div>
+											{% endif %}
+											
+											
+											{% if tcr.testcase.correct_output and feedback.show_output %}
+											<div id="testcase-outputexp" {{(feedback.show_input) ? "" : "style='width:50%'"}}>
+												<div class="testcase-data-heading">Expected Output:</div>
+												<textarea disabled>{{tcr.testcase.correct_output}}</textarea>
+											</div>
+											{% endif %}
+											
+											
+											<div id="testcase-outputyrs" {{(feedback.show_input) ? "" : "style='width:50%'"}}>
+											{% if not tcr.runtime_error %}
+											
+												<div class="testcase-data-heading">Your Standard Output:</div>
+												<textarea id="{{tcr.id}}" disabled>{{tcr.std_output}}</textarea>
+												
+											{% else %}
+											
+												<div class="testcase-data-heading">Your Runtime Output:</div>
+												<textarea disabled>{{tcr.runtime_output}}</textarea>													
+												
+											{% endif %}
 											</div>
 										</div>
-										
-										{% endif %}
-									{% else %}
+									</div>
 									
-										<div id="testcase-tab-{{tcr.id}}">
-											<div class="testcase-data">
-												<div id="testcase-outputexp" style="width: 100%">
-													<div class="testcase-data-heading">Runtime Output:</div>
-													<textarea disabled>{{feedback.runtime[tcr.testcase.seq_num]}}</textarea>
-												</div>
-											
-											</div>
-										</div>								
-									
+									{% endif %}
 									{% endif %}
 								
 								{% endfor %}
 						
 							</div>
-							<i style="color: red"><small>Note that expected output may contain regex patterns that could match an variety of strings.</small></i>							
+							<i style="color: red"><small>Note that expected output may contain regex patterns that could match a variety of strings.</small></i>							
 							{% else %}
 							<div id="testcase-markers-no-out">
 								{% for tcr in submission.testcaseresults %}						
@@ -187,7 +197,7 @@ The grader was not passed from the controller.
 									{% if not tcr.testcase.is_extra_credit or feedback.extra_testcases_display %}
 									
 									{% if tcr.is_correct %}
-										<span style="color:green; font-size: 20px;"> &#x2713;</span> 				
+										<span style="color: green; font-size: 20px;"> &#x2713;</span> 				
 									{% else %}
 										<span style="color:red; font-size: 20px;"> &#x2718;</span>
 									{% endif %}
@@ -199,35 +209,52 @@ The grader was not passed from the controller.
 							</div>		
 							{% endif %}
 					</div>
+					{% endif %}
 					
 					{% if feedback.response|length > 0 %}
 					<div id="feedback"> 
 						<h3> TIPS: </h3>
-						<ul>
-						{% for response in feedback.response %}
-							<li>{{response}}</li>
-						{% endfor %}
-					
-					{% endif %}
+						<ul id="tips-list">
+						
 						</ul>
 					</div>
+					{% endif %}
 				</div>
 				
-				{% endif %}
-				
 				<h2 style="">SUBMITTED CODE</h2>
-				<a style="padding:10px" class="btn btn-center" href="{{path('assignment', {'sectionId': submission.problem.assignment.section.id, 'assignmentId': submission.problem.assignment.id, 'problemId': submission.problem.id} )}}">
-					Edit and Resubmit
-				</a>
-				<br/>
-				<br/>
-
 				
+				<div style="display: flex; justify-content: space-between; margin-right: 25px;">
+
+					<div id="loading-container" style="display:none;">
+						<img id="loadingGif" style="height: 60px" src="{{asset('beoload.gif')}}" alt="Loading..."/>
+						<h3 style="margin: 0px"> Resubmitting Code... </h3>
+					</div>
+				
+					<div id="full-edit-btn" style="margin-bottom: 5px">
+						Return and Review
+					</div>
+					
+					<div id="quick-edit-btn" style="margin-bottom: 5px">
+						Quick Resubmit
+					</div>
+				
+				</div>
+				
+				
+				<div id='edit-note' style='display: none'> <small style="color: red; font-style: italics"> Note that editing and resubmitting this code will override your saved code on the problem page </small> </div>
+								
 <div id="editor">{% if submission.filename|split('.')|last != 'zip' %}
 {{ submission.deblobinateSubmittedFile()|nl2br }}{% else %}
 Submission was a ZIP file{% endif %}</div>
 				
 				<h3 style="margin-top: 10px; margin-bottom: 0px">Submission ID: {{submission.id}}</h3>
+				
+				
+				<div id="loading-container" style="display:none;">
+					<img id="loadingGif" style="height: 60px" src="{{asset('beoload.gif')}}" alt="Loading..."/>
+					<h3 style="margin: 0px"> Resubmitting Code... </h3>
+				</div>
+				
 			</div>
 		</div>
 		
@@ -235,36 +262,46 @@ Submission was a ZIP file{% endif %}</div>
 	
 	</body>
 	
-{% endif %}
-
-	
-{% endblock %}
-
-{% block stylesheets %}
-	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
-	
-	<link rel="stylesheet" href="{{ asset('styles.css') }}" />
-	<link rel="stylesheet" href="{{ asset('card.css') }}" />
-	
-	<link rel="stylesheet" href="{{ asset('submission-results.css') }}">
-
 {% endblock %}
 
 {% block javascripts %}
     <!-- JQuery -->
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+	
+	<script src="{{ asset('js/jquery.highlighttextarea.js') }}" type="text/javascript" charset="utf-8"></script>
 	<script src="{{ asset('src-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>	
 	
+	<script src="{{ asset('js/cards.js') }}" type="text/javascript" charset="utf-8"></script>
 	<script src="{{ asset('js/unicode_return.js') }}" type="text/javascript" charset="utf-8"></script>
 	
 	<script>
 	
+	var feedback = JSON.parse("{{feedback.response|json_encode|e('js')}}");
+	
 	$(document).ready( function() {
 	
-		$('#testcase-markers').tabs();
-
+		{% if feedback.display_markers %}
+		$('#testcase-markers').tabs({
+			
+			activate: function(event, ui) {
+			
+				var seq_num = 1+$(this).tabs("option", "active");				
+				$('#tips-list').html("<li>" + escapeHTML(feedback[seq_num]) + "</li>");
+			}			
+		});
+		
+		$('#tips-list').html("<li>" + escapeHTML(feedback[1]) + "<li>");
+		
+		{% else %}
+		
+			{% for resp in feedback.response %}
+			$('#tips-list').append("<li>" + "{{resp|e('js')}}" + "</li>");
+			{% endfor %}
+		
+		{% endif %}
+		
+		
 		{% if submission.compiler_output %}
 		
 		var a = $('#compiler-output').html();
@@ -273,16 +310,112 @@ Submission was a ZIP file{% endif %}</div>
 		{% endif %}
 		
 		var editor = ace.edit("editor");
-		editor.setTheme("ace/theme/xcode");	
-		editor.setReadOnly(true);
+		editor.setTheme("ace/theme/xcode");
+		editor.getSession().setMode("ace/mode/" + "{{ace_mode}}");
 		
 		
-		$('.testcase-data textarea').each(function () {
-			
-			$(this).html(addReturnKey($(this).html()));
-			
+		$('.testcase-data textarea').each(function () {			
+			$(this).html(addReturnKey($(this).html()));			
 		});
-	});
+		
+		// add highlighting for wrong text 
+		$('.testcase-data textarea').highlightWithinTextarea({
+			highlight: false
+		});
+		
+		
+		// quick edit button
+		$('#quick-edit-btn').button().click( function() {
+			quickSubmit();		
+		});
+		
+		$('#quick-edit-btn').button('disable');
+		
+		editor.getSession().on('change', function() {
+			$('#quick-edit-btn').button('enable');
+			$('#edit-note').show();
+		});
+						
+		$('#full-edit-btn').button().click( function() {
+			window.location = "{{path('assignment', {'sectionId': submission.problem.assignment.section.id, 'assignmentId': submission.problem.assignment.id, 'problemId': submission.problem.id, 'submissionId': submission.id} )}}";
+		});
+		 
+		
+		{% for highlights in feedback.highlights %}
+		
+		
+		{% if highlights.ranges|length == 1 and highlights.ranges[0].index == -1 %}
+			
+			var txt = $('#{{highlights['id']}}').text();
+			
+			$('#{{highlights['id']}}').text(txt+" ");
+			
+			$('#{{highlights['id']}}').highlightWithinTextarea({
+				highlight: [txt.length, txt.length+1]
+			});
+		
+		{% else %}
+		
+			var ranges = [];
+			
+			{% for range in highlights.ranges %}
+			ranges.push([{{range.index}}, {{range.indexEnd}}]);
+			{% endfor %}
+		
+		$('#{{highlights['id']}}').highlightWithinTextarea({
+			highlight: ranges
+		});
+		
+		{% endif %}
+		
+		{% endfor %}
+	});	
+	
+	function quickSubmit(){
+		
+		$('#quick-edit-btn').hide();
+		$('#full-edit-btn').hide();
+		
+		$('#loading-container').show();
+	
+		// Create a FormData object
+		var formData = new FormData();
+		
+		var editor = ace.edit("editor");
+		editor.$blockScrolling = Infinity;
+		
+
+		var ACE = editor.getValue();		
+		
+		formData.append('problem_id', {{submission.problem.id}});
+		formData.append('language', "{{submission.language.id}}");
+		formData.append('main_class', "{{submission.main_class_name}}");
+		formData.append('package_name', "{{submission.package_name}}");
+		formData.append('ACE', ACE);
+		
+		$.ajax({
+			type: "POST",
+			url: "{{path('temp_trial_submit')}}",
+			data: formData,
+			processData: false,
+			contentType: false,
+			success: function(data){
+
+				console.log(data);
+				window.location = data["redirect_url"];
+			},
+			error: function(data){
+				alert(data['responseText']);
+				console.log(data['responseText']);
+			},
+			done: function(){
+				$('#loading-container').hide();
+				$('#quick-edit-btn').show();
+				$('#full-edit-btn').show();
+			}
+		});
+		
+	}
 	
 	
 	</script>

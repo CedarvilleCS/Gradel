@@ -66,8 +66,10 @@ class TrialController extends Controller {
 			
 			$file = $files->get('file');
 			
-			if($file->getClientSize() > 1048576){
-				return $this->returnForbiddenResponse("Given file is too large");
+			if($file->getClientSize() > 1024*1204){
+				return $this->returnForbiddenResponse("Given file must be smaller than 1Mb.");
+			} else if($file->getClientSize() <= 0){
+				return $this->returnForbiddenResponse("Given file is empty.");
 			}
 			$target_file = $uploader->uploadSubmissionFile($file, $user, $problem);
 			
@@ -80,6 +82,12 @@ class TrialController extends Controller {
 		} else if(isset($postData['ACE'])){
 			
 			$file = $postData['ACE'];
+			
+			if(strlen($file) > 1024*1024){
+				return $this->returnForbiddenResponse("Uploaded code must be smaller than 1Mb.");
+			} else if(strlen($file) <= 0){
+				return $this->returnForbiddenResponse("Uploaded code is empty.");
+			}
 			
 		} else {			
 			return $this->returnForbiddenResponse("File or ACE editor content was not provided");			
@@ -107,6 +115,7 @@ class TrialController extends Controller {
 		
 		$trial->last_edit_time = new \DateTime('now');
 		$trial->show_description = $postData["show_description"] != "false";
+		$trial->editor_height = (is_numeric($postData["editor_height"])) ? $postData["editor_height"] : 0;
 				
 		# get filename and information
 		$filename = null;
@@ -147,6 +156,21 @@ class TrialController extends Controller {
 		return $response;
 	}
 	
+	public function quickAction(Request $request){
+				
+		$response = $this->forward('AppBundle\Controller\TrialController::trialModifyAction');
+		
+		if($response->getStatusCode() == Response::HTTP_OK){
+					
+			return $this->forward('AppBundle\Controller\CompilationController::submitAction', [
+				'trialId' => json_decode($response->getContent())->trial_id,
+			]);
+			
+			
+		} else {			
+			return $response;	
+		}		
+	}
 	
 	private function returnForbiddenResponse($message){		
 		$response = new Response($message);

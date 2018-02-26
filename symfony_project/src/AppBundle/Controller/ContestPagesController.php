@@ -280,8 +280,7 @@ class ContestPagesController extends Controller {
 			$trial->package_name = $submission->package_name;
 			$trial->last_edit_time = new \DateTime("now");
 		}
-		
-								
+										
 		return $this->render('contest/problem.html.twig', [
 			'user' => $user,
 			'team' => $team,
@@ -543,6 +542,8 @@ class ContestPagesController extends Controller {
 			return $this->returnForbiddenResponse("PERMISSION DENIED");
 		}
 		
+		$ace_mode = $submission->language->ace_mode;
+		
 		return $this->render('contest/result.html.twig', [
 		
 			'user' => $user,
@@ -551,6 +552,8 @@ class ContestPagesController extends Controller {
 			'problem' => $problem,
 			'current_contest' => $assignment,
 			'submission' => $submission,
+			
+			'ace_mode' => $ace_mode,
 			
 			'contest_open' => true,
 		

@@ -560,28 +560,22 @@ class ProblemController extends Controller {
 				}				
 			}		
 		}
-		
-		# get the usersectionrole
-		$qb_usr = $em->createQueryBuilder();
-		$qb_usr->select('usr')
-			->from('AppBundle\Entity\UserSectionRole', 'usr')
-			->where('usr.user = ?1')
-			->andWhere('usr.section = ?2')
-			->setParameter(1, $user)
-			->setParameter(2, $submission->problem->assignment->section);
-			
-		$usr_query = $qb_usr->getQuery();
-		$usersectionrole = $usr_query->getOneOrNullResult();
+				
+		$ace_mode = $submission->language->ace_mode;
 
 		return $this->render('problem/result.html.twig', [
+		
 			'section' => $submission->problem->assignment->section,
 			'assignment' => $submission->problem->assignment,
 			'problem' => $submission->problem,
 			'submission' => $submission,
+			
 			'grader' => new Grader($em),
+			
 			'result_page' => true,
 			'feedback' => $feedback,
-			'usersectionrole' => $usersectionrole,
+
+			'ace_mode' => $ace_mode,				
 			
 			'diff_nums' => $diff_nums,
 		]);

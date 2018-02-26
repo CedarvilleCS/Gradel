@@ -230,11 +230,19 @@ professorsection:
     path: "/professor/section/{userId}/{sectionId}"
     defaults: {_controller: AppBundle:Professorsection:professorsection}
 
+
+temp_trial_submit:
+    path: '/quick_submit/{trialId}'
+    defaults:
+        _controller: AppBundle:Trial:quick
+        trialId: 0
+    methods: [POST]
+    
+    
 submit:
     path: '/submit'
     defaults:
         _controller:    AppBundle:Compilation:submit
-    methods: [POST]
 
 generate:
     path: '/generate'
