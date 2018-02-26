@@ -562,6 +562,24 @@ class ProblemController extends Controller {
 		}
 				
 		$ace_mode = $submission->language->ace_mode;
+		
+		$qb_user = $em->createQueryBuilder();
+		$qb_user->select('usr')
+			->from('AppBundle\Entity\UserSectionRole', 'usr')
+			->where('usr.section = ?1')
+			->setParameter(1, $submission->problem->assignment->section);
+
+		$user_query = $qb_user->getQuery();
+		$usersectionroles = $user_query->getResult();
+
+		$section_takers = [];
+
+		foreach($usersectionroles as $usr){
+			if($usr->role->role_name == "Takes"){
+				$section_takers[] = $usr->user;
+			}
+		}
+		
 
 		return $this->render('problem/result.html.twig', [
 		
@@ -569,7 +587,7 @@ class ProblemController extends Controller {
 			'assignment' => $submission->problem->assignment,
 			'problem' => $submission->problem,
 			'submission' => $submission,
-			
+			'user_impersonators' => $section_takers,
 			'grader' => new Grader($em),
 			
 			'result_page' => true,
