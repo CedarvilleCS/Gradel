@@ -121,28 +121,13 @@ class SectionController extends Controller {
 			}
 		}
 
-			$grader = new Grader($em);
+		$grader = new Grader($em);
+		$elevatedUser = $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isTeaching($user, $section_entity) || $grader->isJudging($user, $section_entity);
 
-			if($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isTeaching($user, $section_entity) || $grader->isJudging($user, $section_entity)){
-				
-				// echo json_encode($user);
-				// echo "<br/>";
-				// echo json_encode($problem_entity);
-				// echo "<br/>";
+		// get all the submissions
+		if($elevatedUser){
 
-				// echo json_encode($allprobs);
-
-
-				
-
-				// query for all submissions
-				$qb_submissions = $em->createQueryBuilder();
-		 		$qb_submissions->select('s')
-						->from('AppBundle\Entity\Submission', 's')
-						->where('s.problem IN (?1)')
-						->orderBy('s.timestamp', 'DESC')
-						->setParameter(1, $allprobs);
-
+			// query for all submissions
 			$qb_submissions = $em->createQueryBuilder();
 			$qb_submissions->select('s')
 					->from('AppBundle\Entity\Submission', 's')
@@ -153,7 +138,10 @@ class SectionController extends Controller {
 			$submission_query = $qb_submissions->getQuery();
 			$submissions = $submission_query->getResult();
 
-		} else {
+		}
+		// get just the user's submissions for his teams
+		else {
+			
 			$teams = [];
 
 			foreach($section_entity->assignments as $asgn){
@@ -173,6 +161,7 @@ class SectionController extends Controller {
 			$submissions = $submission_query->getResult();
 		}
 		
+		// get the grades for the assignments
 		$grades = [];
 		$subs = [];
 		foreach($section_takers as $section_taker){
@@ -197,30 +186,28 @@ class SectionController extends Controller {
 					$correct_sub_ids[$assig->id][$prob->id]=$submission->id;
 					
 				}
-			}
-			$subs[$section_taker->id] = $correct_sub_ids;
-			
+			}			
+			$subs[$section_taker->id] = $correct_sub_ids;			
 		}
 		
 		
 		return $this->render('section/index.html.twig', [
 			'section' => $section_entity,
 			'grader' => new Grader($em),
+			
 			'user' => $user,
 			'grades' => $grades,
 			'user_assig_prob_sub' => $subs,
 			'assignments' => $assignments,
 			'future_assigs' => $future_assig,
 
-			'recent_submissions' => $submissions,
-
-			'accepted_submissions' => $best_submission,
+			'submissions' => $submissions,
 
 			'section_takers' => $section_takers,
 			'section_teachers' => $section_teachers,
 			'section_helpers' => $section_helpers,
-			]);
-		}
+		]);
+	}
 
     public function editSectionAction($sectionId) {
 
