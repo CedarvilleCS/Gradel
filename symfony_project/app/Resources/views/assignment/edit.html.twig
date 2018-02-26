@@ -206,24 +206,27 @@
 			
 			/* Client-Side Field Validation */
 			
-			// assignment name
-			validateMessage($("#name"), $("#delete-warning"), "This assignment must have a name<br><br>");
-			// assignment open time
-			validateMessage($("#opendatepicker"), $("#delete-warning"), "You must assign a start date<br><br>");
-			// assignment close time
-			validateMessage($("#closedatepicker"), $("#delete-warning"), "You must assign a close date<br><br>");
-
 			$('#save-btn').on('click', function(){
+				
+				$('#delete-warning').html("");
 				
 				// compare dates
 				if ($('#closedatepicker').datepicker('getDate') < $('#opendatepicker').datepicker('getDate')){
 					setInvalid($('#closedatepicker'));
 					setInvalid($('#opendatepicker'));
 					$('#delete-warning').append("Close date must be after open date<br><br>");
+					return false;
+				} else {
+					setValid($('#closedatepicker'));
+					setValid($('#opendatepicker'));
 				}
+				
 				if ($('#cutoffdatepicker').val() != '' && $('#cutoffdatepicker').datepicker('getDate') < $('#closedatepicker').datepicker('getDate')){
 					setInvalid($('#cutoffdatepicker'));
 					$('#delete-warning').append("Cutoff date must be after close date<br><br>");
+					return false;
+				} else {
+					setValid($('#cutoffdatepicker'));
 				}
 				
 				// weight
