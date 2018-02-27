@@ -37,6 +37,11 @@
 	display: flex;
 	flex-direction: column;
 	justify-content: space-between;
+	height: calc(100% - 2px);
+}
+
+#testcase-outputexp{
+	height: calc(100% - 35px);
 }
 
 #testcase-tab{
