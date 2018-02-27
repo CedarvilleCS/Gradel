@@ -4,6 +4,12 @@
 <link rel="icon" type="image/x-icon" href="{{ asset('logo.png') }}" />
 {% endblock %}
 
+{% block stylesheets %}
+	<link rel="stylesheet" href="{{ asset('styles.css') }}" />
+	<link rel="stylesheet" href="{{ asset('card.css') }}" />
+	
+	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
+{% endblock %}
 
 {% block body %}
 
@@ -197,12 +203,7 @@
 
 {% endblock %}
 
-{% block stylesheets %}
-	<link rel="stylesheet" href="{{ asset('styles.css') }}" />
-	<link rel="stylesheet" href="{{ asset('card.css') }}" />
-	
-	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
-{% endblock %}
+
 
 
 {% block scripts %}
@@ -319,26 +320,33 @@
 		function generateGradeCSVSection() {
 			var gradesCSV = "Name, User, ";
 			{% for asgn in assignments %}
-				gradesCSV += "Problems Correct, Total Problems, Grade, ";
+				gradesCSV += "{{asgn.name}}";
+				gradesCSV += ", ";
 			{% endfor %}
-
+				gradesCSV += "Total";
 			gradesCSV += "\n";
-
+			
 			{% for user in section_takers %}
-				
+				var sumTotal = 0;
 				gradesCSV += '{{user.getFirstName()}} {{user.getLastName()}}, ';
 				gradesCSV += '{{user }}, ';
-
+				var i = 0;
 				{% for asgn in assignments %}
-
+					i += 1;
 					var correct = parseFloat("{{grades[user.id][asgn.id]['num_correct_problems']}}");
 					var total = parseFloat("{{grades[user.id][asgn.id]['num_problems']}}");
-					var percent = correct/total;
+					var percent = correct/total * 100;
 
-					gradesCSV += correct + ', ' + total + ', ' + percent + ', '; 
+					sumTotal += percent;
+					
+					gradesCSV += percent + ', '; 
+					
+					
 
 				{% endfor %}
+				gradesCSV += sumTotal/i;
 				gradesCSV += "\n";
+				
 			{% endfor %}
 
 			return gradesCSV;
