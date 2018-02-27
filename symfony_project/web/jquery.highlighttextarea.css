@@ -50,7 +50,6 @@
 
 .hwt-content mark {
 	padding: 0 !important;
-	color: black;
-	background-color: #ff4c4c;
-	font-weight: bold;
+	color: transparent;
+	background-color: pink;
 }

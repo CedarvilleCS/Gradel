@@ -301,7 +301,7 @@ Please re-upload it!
 
 		function updateAceCode(){
 
-			var default_code = JSON.parse('{{ default_code|json_encode|replace({'\\':'\\\\'})|raw }}');
+			var default_code = JSON.parse('{{ default_code|json_encode|e("js") }}');
 			var ace_modes = JSON.parse('{{ ace_modes|json_encode|raw }}');
 
 			var editor = ace.edit("editor");

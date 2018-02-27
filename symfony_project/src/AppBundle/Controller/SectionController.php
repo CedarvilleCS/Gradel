@@ -120,28 +120,13 @@ class SectionController extends Controller {
 			}
 		}
 
-			$grader = new Grader($em);
+		$grader = new Grader($em);
+		$elevatedUser = $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isTeaching($user, $section_entity) || $grader->isJudging($user, $section_entity);
 
-			if($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isTeaching($user, $section_entity) || $grader->isJudging($user, $section_entity)){
-				
-				// echo json_encode($user);
-				// echo "<br/>";
-				// echo json_encode($problem_entity);
-				// echo "<br/>";
+		// get all the submissions
+		if($elevatedUser){
 
-				// echo json_encode($allprobs);
-
-
-				
-
-				// query for all submissions
-				$qb_submissions = $em->createQueryBuilder();
-		 		$qb_submissions->select('s')
-						->from('AppBundle\Entity\Submission', 's')
-						->where('s.problem IN (?1)')
-						->orderBy('s.timestamp', 'DESC')
-						->setParameter(1, $allprobs);
-
+			// query for all submissions
 			$qb_submissions = $em->createQueryBuilder();
 			$qb_submissions->select('s')
 					->from('AppBundle\Entity\Submission', 's')
@@ -149,29 +134,46 @@ class SectionController extends Controller {
 					->orderBy('s.timestamp', 'DESC')
 					->setParameter(1, $allprobs);
 
-			$submission_query = $qb_submissions->getQuery();
-			$submissions = $submission_query->getResult();
+			//$submission_query = $qb_submissions->getQuery();
+			//$submissions = $submission_query->getResult();
 
-		} else {
+		}
+		// get just the user's submissions for his teams
+		else {
+			
 			$teams = [];
 
 			foreach($section_entity->assignments as $asgn){
 				$teams[] = $grader->getTeam($user, $asgn);
 			}
+			
+			foreach($teams as $tm){
 
-			$qb_submissions = $em->createQueryBuilder();
-			$qb_submissions->select('s')
-					->from('AppBundle\Entity\Submission', 's')
-					->where('s.problem IN (?1)')
-					->andWhere('s.team IN (?2)')
-					->orderBy('s.timestamp', 'DESC')
-					->setParameter(1, $allprobs)
-					->setParameter(2, $teams);
+				foreach($allprobs as $prob){
+			
+					$qb_submissions = $em->createQueryBuilder();
+					$qb_submissions->select('s')
+						->from('AppBundle\Entity\Submission', 's')
+						->where('s.problem = ?1')
+						->andWhere('s.team = ?2')
+						->orderBy('s.timestamp', 'DESC')
+						->setParameter(1, $prob)
+						->setParameter(2, $tm)
+						->setMaxResults(1);
 
-			$submission_query = $qb_submissions->getQuery();
-			$submissions = $submission_query->getResult();
+					$submission_query = $qb_submissions->getQuery();
+					$sub = $submission_query->getOneOrNullResult();
+					
+					if($sub){
+						$submissions[] = $sub;
+					}
+				}				
+			}
+
+			
 		}
 		
+		// get the grades for the assignments
 		$grades = [];
 		$subs = [];
 		foreach($section_takers as $section_taker){
@@ -196,30 +198,31 @@ class SectionController extends Controller {
 					$correct_sub_ids[$assig->id][$prob->id]=$submission->id;
 					
 				}
-			}
-			$subs[$section_taker->id] = $correct_sub_ids;
-			
+			}			
+			$subs[$section_taker->id] = $correct_sub_ids;			
 		}
 		
 		
 		return $this->render('section/index.html.twig', [
 			'section' => $section_entity,
 			'grader' => new Grader($em),
+			
 			'user' => $user,
 			'grades' => $grades,
 			'user_assig_prob_sub' => $subs,
 			'assignments' => $assignments,
 			'future_assigs' => $future_assig,
 
-			'recent_submissions' => $submissions,
+			'submissions' => $submissions,
 
 			'accepted_submissions' => $best_submission,
 			'user_impersonators' => $section_takers,
+      
 			'section_takers' => $section_takers,
 			'section_teachers' => $section_teachers,
 			'section_helpers' => $section_helpers,
-			]);
-		}
+		]);
+	}
 
     public function editSectionAction($sectionId) {
 

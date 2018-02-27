@@ -336,11 +336,19 @@ class Submission implements JsonSerializable {
 	
 	public function jsonSerialize(){
 		return [
-			'team' => ($this->team) ? $this->team : ["name" => "NO TEAM"],			
 			'id' => $this->id,
-			'problem' => $this->problem,
+			
+			'team' => ($this->team) ? $this->team : ["name" => "NO TEAM"],
+			'user' => $this->user,
+						
+			'problem' => [ 
+				'id'=>$this->problem->id,
+				'name'=>$this->problem->name,
+				'assignment'=>$this->problem->assignment,
+			],
+			
 			'is_correct' => $this->isCorrect(),
-			'testcaseresults' => $this->testcaseresults->toArray(),
+						
 			'runtime_error' => $this->runtime_error,
 			'exceeded_time_limit' => $this->exceeded_time_limit,
 			'compiler_error' => $this->compiler_error,
