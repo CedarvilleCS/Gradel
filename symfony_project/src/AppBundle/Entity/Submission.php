@@ -146,7 +146,7 @@ class Submission implements JsonSerializable {
 			}			
 		}
 		
-		if(!$raw){
+		if(isset($raw) && !$raw){
 			
 			if($this->correct_override) return true;		
 			if($this->wrong_override) return false;
@@ -347,7 +347,7 @@ class Submission implements JsonSerializable {
 				'assignment'=>$this->problem->assignment,
 			],
 			
-			'is_correct' => $this->isCorrect(),
+			'is_correct' => $this->isCorrect(false),
 						
 			'runtime_error' => $this->runtime_error,
 			'exceeded_time_limit' => $this->exceeded_time_limit,

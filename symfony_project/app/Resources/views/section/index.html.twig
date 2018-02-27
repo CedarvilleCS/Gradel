@@ -5,6 +5,14 @@
 {% endblock %}
 
 
+{% block stylesheets %}
+	<link rel="stylesheet" href="{{ asset('styles.css') }}" />
+	<link rel="stylesheet" href="{{ asset('card.css') }}" />
+	
+	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
+{% endblock %}
+
+
 {% block body %}
 
 <body>        
@@ -148,14 +156,6 @@
 
 {% endblock %}
 
-{% block stylesheets %}
-	<link rel="stylesheet" href="{{ asset('styles.css') }}" />
-	<link rel="stylesheet" href="{{ asset('card.css') }}" />
-	
-	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
-{% endblock %}
-
-
 {% block scripts %}
 	<!-- JQuery -->
 	<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
@@ -167,7 +167,7 @@
 		var table = [];
 		var selecton = "";
 		
-		var submissions = JSON.parse("{{submissions|json_encode|e('js')}}");
+		var submissions = JSON.parse("{{submissions|e('js')}}");
 		
 		console.log(submissions);
 		
