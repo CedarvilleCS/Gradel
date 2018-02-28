@@ -80,7 +80,8 @@ class TrialController extends Controller {
 			}
 			
 		} else if(isset($postData['ACE'])){
-			
+
+			// make a zip file and set file = fopen(zip location)
 			$file = $postData['ACE'];
 			
 			if(strlen($file) > 1024*1024){

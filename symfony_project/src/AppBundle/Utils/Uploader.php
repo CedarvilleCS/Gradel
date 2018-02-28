@@ -19,6 +19,7 @@ use AppBundle\Entity\Feedback;
 use AppBundle\Entity\TestcaseResult;
 
 use \DateTime;
+use \ZipArchive;
 
 use Symfony\Component\Config\Definition\Exception\Exception;
 
