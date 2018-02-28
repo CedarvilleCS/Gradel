@@ -16,7 +16,7 @@ class Zipper  {
 		$za = new ZipArchive();		
 		
 		if($za->open($destination, ZipArchive::OVERWRITE) !== TRUE){
-			die("Unable to open zip file to save things to it.");
+			return "Unable to open zip file to save things to it.";
 		}
 		
 		$options = array('add_path' => './', 'remove_all_path' => TRUE);
@@ -32,9 +32,10 @@ class Zipper  {
 		*/
 		
 		if($za->close() !== TRUE){
-			die("Unable to close the zip file.");
+			return "Unable to close the zip file.";
 		}
 		
+		return TRUE;
 	}
 	
 	public function unzipFile($source, $destination){
@@ -42,7 +43,7 @@ class Zipper  {
 		$za = new ZipArchive();
 		
 		if($za->open($source) !== TRUE){
-			die("Unable to open the zip file for extraction");
+			return "Unable to open the zip file for extraction";
 		}
 		
 		/*
@@ -54,9 +55,11 @@ class Zipper  {
 		*/
 		
 		if($za->extractTo($destination) !== TRUE){
-			die("Unable to extract the zip");
+			return "Unable to extract the zip";
 		}
 		$za->close();
+		
+		return TRUE;
 	}
 	
 }

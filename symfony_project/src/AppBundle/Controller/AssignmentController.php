@@ -104,6 +104,7 @@ class AssignmentController extends Controller {
 			$ace_modes = [];
 			$filetypes = [];
 			foreach($problem_languages as $pl){
+				
 				$languages[] = $pl->language;
 				
 				$ace_modes[$pl->language->name] = $pl->language->ace_mode;
@@ -116,6 +117,7 @@ class AssignmentController extends Controller {
 					$default_code[$pl->language->name] = $pl->language->deblobinateDefaultCode();
 				}
 			}
+			
 		}
 		
 		$grader = new Grader($em);		

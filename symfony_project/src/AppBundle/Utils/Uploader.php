@@ -94,7 +94,30 @@ class Uploader  {
 			return null;		
 		}		
 	}	
+	
+	public function createFile($text, $user, $problem, $filename){
 		
+		$response = $generator->generateFilename($filename, $language, $main_class, $package_name, $problem_entity, $postData);
+		
+		if($response != 1){
+			return $response;
+		}		
+		
+		# save uploaded file to $web_dir.compilation/uploads/user_id/problem
+        $web_dir = $this->get('kernel')->getProjectDir()."/";
+        $uploader = new Uploader($web_dir);
+
+
+		$uploads_directory = $uploader->createUploadDirectory($user, $problem_entity);
+
+		if(!file_put_contents($uploads_directory . $filename, $postData["ACE"], FILE_USE_INCLUDE_PATH)){
+			 return "UNABLE TO MOVE THE ACE EDITOR CONTENTS";
+		}
+		
+		
+	}
+	
+	
 	/*
 		This function will take a trial and 
 		put the contents of the trial in a file and return the location

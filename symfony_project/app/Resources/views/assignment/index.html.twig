@@ -220,101 +220,133 @@ Please re-upload it!
 	<script src="http://malsup.github.com/jquery.form.js"></script>
 
 	{# markdown #}
-<script src="http://cdn.rawgit.com/showdownjs/showdown/1.8.6/dist/showdown.min.js"></script>
+	<script src="http://cdn.rawgit.com/showdownjs/showdown/1.8.6/dist/showdown.min.js"></script>
 
-<script>
-
-// markdown stuff
-var converter = new showdown.Converter();
-converter.setOption('tasklists', true);
-converter.setOption('backslashEscapesHTMLTags', true);
-converter.setOption('emoji', true);
-
-converter.setFlavor('github');
-var markdownText = converter.makeHtml("{{problem.description|e('js')}}");
-
-// ACE Session
-var editor = ace.edit("editor");
-var EditSession = ace.require("ace/edit_session").EditSession;
-var ace_sessions = [];
-ace_sessions[0] = new EditSession("session 0");
-{# editor.setSession(ace_sessions[0]); #}
-{# editor.setValue #}
-// ace_sessions[1] = new EditSession("session 1");
-{# var js = new EditSession("some js code");
-var css = new EditSession(["some", "css", "code here"]); #}
-// and then to load document into editor, just call
-// editor.setSession(js);
-// editor.setSession(ace_sessions[1]);
-editor.$blockScrolling = Infinity;
-
-editor.getSession().on('change', function() {	
-
-	second++;
-	if(second > 1){
-		$('#trial-status').text("Unsaved changes...");
-	}
+	<script>
 	
-	clearInterval(trialUpdateTimer);
-	trialUpdateTimer = setInterval(updateTrial, 5000);		
-});
+		var languages = JSON.parse("{{languages|json_encode|e('js')}}");
+		console.log(languages);
 
-editor.commands.addCommand({
-	name: "replace",
-	bindKey: {win: "Ctrl-S", mac: "Command-S"},
-	exec: function(editor) {
-		updateTrial();
-	}
-});
+		// markdown stuff
+		var converter = new showdown.Converter();
+		converter.setOption('tasklists', true);
+		converter.setOption('backslashEscapesHTMLTags', true);
+		converter.setOption('emoji', true);
 
-// set default stuff for the ace editor
-var editor = ace.edit("editor");
-editor.$blockScrolling = Infinity;
-editor.setTheme("ace/theme/xcode");
+		converter.setFlavor('github');
+		var markdownText = converter.makeHtml("{{problem.description|e('js')}}");
 
-editor.setSession(ace_sessions[0]);
+		// ACE Session
+		var editor = ace.edit("editor");
+		var EditSession = ace.require("ace/edit_session").EditSession;
+		var ace_sessions = [];
+		ace_sessions[0] = new EditSession("session 0");
+		{# editor.setSession(ace_sessions[0]); #}
+		{# editor.setValue #}
+		// ace_sessions[1] = new EditSession("session 1");
+		{# var js = new EditSession("some js code");
+		var css = new EditSession(["some", "css", "code here"]); #}
+		// and then to load document into editor, just call
+		// editor.setSession(js);
+		// editor.setSession(ace_sessions[1]);
+		editor.$blockScrolling = Infinity;
+
+		editor.getSession().on('change', function() {	
+
+			second++;
+			if(second > 1){
+				$('#trial-status').text("Unsaved changes...");
+			}
+			
+			clearInterval(trialUpdateTimer);
+			trialUpdateTimer = setInterval(updateTrial, 5000);		
+		});
+
+		editor.commands.addCommand({
+			name: "replace",
+			bindKey: {win: "Ctrl-S", mac: "Command-S"},
+			exec: function(editor) {
+				updateTrial();
+			}
+		});
+
+		// set default stuff for the ace editor
+		var editor = ace.edit("editor");
+		editor.$blockScrolling = Infinity;
+		editor.setTheme("ace/theme/xcode");
+
+		editor.setSession(ace_sessions[0]);
 
 
-$(document).ready( function() {
-	$('#file-markers').tabs();	
-	
-	$('.file-data textarea').each(function () {
+		$(document).ready( function() {
+			
+			$('.file-data textarea').each(function () {
+				
+				$(this).html(addReturnKey($(this).html()));
+				
+			});
+		});
+
 		
-		$(this).html(addReturnKey($(this).html()));
-		
-	});
-});
+		// file tabs
+		$('#add-file-button').button().click(function() {
 
-		
-// file tabs
-$('#add-file-button').button().click(function() {
+			var num_tabs = $("div#file-markers ul li").length + 1;
 
-	var num_tabs = $("div#file-markers ul li").length + 1;
+			$("div#file-markers ul").append(
+				"<li class='tabs' id='test-code-tab-user-" + num_tabs + "-marker'><a href='#test-code-tab-user-" + num_tabs + "'>" 
+					+ "<input class='tab-filename' readonly='true' ondblclick='this.readOnly=\"\";' onblur='this.readOnly=\"true\"' type='text' value='filename" + num_tabs + getFiletype() + "'></a>"
+					+ '<input type="hidden" name="ACE" id="ACE' + num_tabs + '">'
+					+ "</li>"
+			);
+			
+			$('#test-code-tab-user-' + num_tabs + '-marker').click(function() {
+				
+				$('.tabs').css('background', 'inherit');
+				$('.tabs').css('border-top', '1px solid grey');				
+				$('.tabs').css('border-left', '1px solid grey');				
+				$('.tabs').css('border-right', '1px solid grey');				
+				$('.tabs').css('border-bottom', 'inherit');
+				$('.tabs').find('input').css('color', 'black');
+				
+				$(this).css('background', '#71BA62');
+				$(this).css('border', '1px solid white');
+				$(this).find('input').css('color', 'white');
+				
+				editor.setSession(ace_sessions[num_tabs]);
+			});
+			
+			ace_sessions[num_tabs] = new EditSession("");
+			editor.setSession(ace_sessions[num_tabs]);
+			editor.setTheme("ace/theme/xcode");
+			updateAceCode();
+			setDefaultCode();
+		}); 
 
-	$("div#file-markers ul").append(
-		"<li class='tabs' id='test-code-tab-user-" + num_tabs + "-marker' onclick='editor.setSession(ace_sessions[" + num_tabs + "]);'><a href='#test-code-tab-user-" + num_tabs + "'>#" + num_tabs + "</a>"
-			+ '<input type="hidden" name="ACE" id="ACE' + num_tabs + '">'
-			+ "</li>"
-	);
-
-	ace_sessions[num_tabs] = new EditSession("");
-	editor.setSession(ace_sessions[num_tabs]);
-	editor.setTheme("ace/theme/xcode");
-	updateAceCode();
-	setDefaultCode();
-}); 
-
-$('#file-markers').tabs();
-var tabCount = $('#file-markers >ul >li').length;
+		$('#file-markers').tabs();
+		var tabCount = $('#file-markers >ul >li').length;
 
 
-if(tabCount < 1){
-	$('#add-file-button').click();
-	$( "#file-markers" ).tabs({ active: 0 });
-}
+		if(tabCount < 1){
+			$('#add-file-button').click();
+			$( "#file-markers" ).tabs({ active: 0 });
+		}
 
 		var saved_code = "";
 
+		function getFiletype(){
+			
+			var languageName = $('#languageSelect option:selected').text();
+			
+			for(var i=0; i<languages.length; i++){
+				
+				if(languageName == languages[i].name){
+					return languages[i].filetype;					
+				}
+			}
+			return "";
+		}
+		
 		function getLanguage(filename){
 
 			var filetypes = JSON.parse('{{ filetypes|json_encode|raw }}');
@@ -402,7 +434,7 @@ if(tabCount < 1){
 
 		function updateAceCode(){
 
-			console.log("--------------\nupdaceAceCode(): ");
+			//console.log("--------------\nupdaceAceCode(): ");
 
 			var default_code = JSON.parse('{{ default_code|json_encode|e("js") }}');
 			var ace_modes = JSON.parse('{{ ace_modes|json_encode|raw }}');
@@ -410,21 +442,21 @@ if(tabCount < 1){
 			editor.$blockScrolling = Infinity;
 			
 			language = $('#languageSelect option:selected').text();
-			console.log("language: " + language);
+			//console.log("language: " + language);
 			
 			if(saved_code !== editor.getValue()) {
 				editor.setValue(editor.getValue(), -1);
-				console.log("setValue");
+				//console.log("setValue");
 			} else {
 				// This sets the default code for the selected language.
 				editor.setValue(default_code[language], -1);
 				saved_code = default_code[language];
-				console.log("setting to default code");
+				//console.log("setting to default code");
 			}
 			
 			editor.getSession().setMode("ace/mode/" + ace_modes[language]);
 
-			console.log("ace updated");
+			//console.log("ace updated");
 			
 		}
 
@@ -435,7 +467,7 @@ if(tabCount < 1){
 			language = $('#languageSelect option:selected').text();
 			editor.setValue(default_code[language], -1);
 			saved_code = default_code[language];
-			console.log("setting to default code");
+			//console.log("setting to default code");
 			editor.getSession().setMode("ace/mode/" + ace_modes[language]);
 		}
 
@@ -663,9 +695,13 @@ if(tabCount < 1){
 			var ACE = [];
 			for (var i = 1; i < ace_sessions.length; i++) {
 				editor.setSession(ace_sessions[i]);
-				ACE[i] = editor.getValue();
+				
+				var val = editor.getValue();
+				var filename = $('#test-code-tab-user-' + i + '-marker').find('input').val();
+				
+				ACE.push({'filename': filename, 'content': val});
 			}
-			formData.append('ACE', ACE);
+			formData.append('ACE', JSON.stringify(ACE));
 
 			if(getExtension($('#submissionUploadForm #file').val()) == "zip"){
 
