@@ -92,7 +92,6 @@ class SectionController extends Controller {
 				$section_judges[] = $usr->user;
 			}
 		}
-
 		
 		# GET FUTURE ASSIGNMENTS
 		$twoweeks_date = new DateTime();
@@ -135,8 +134,8 @@ class SectionController extends Controller {
 					->orderBy('s.timestamp', 'DESC')
 					->setParameter(1, $allprobs);
 
-			$submission_query = $qb_submissions->getQuery();
-			$submissions = $submission_query->getResult();
+			//$submission_query = $qb_submissions->getQuery();
+			//$submissions = $submission_query->getResult();
 
 		}
 		// get just the user's submissions for his teams
@@ -147,18 +146,31 @@ class SectionController extends Controller {
 			foreach($section_entity->assignments as $asgn){
 				$teams[] = $grader->getTeam($user, $asgn);
 			}
+			
+			foreach($teams as $tm){
 
-			$qb_submissions = $em->createQueryBuilder();
-			$qb_submissions->select('s')
-					->from('AppBundle\Entity\Submission', 's')
-					->where('s.problem IN (?1)')
-					->andWhere('s.team IN (?2)')
-					->orderBy('s.timestamp', 'DESC')
-					->setParameter(1, $allprobs)
-					->setParameter(2, $teams);
+				foreach($allprobs as $prob){
+			
+					$qb_submissions = $em->createQueryBuilder();
+					$qb_submissions->select('s')
+						->from('AppBundle\Entity\Submission', 's')
+						->where('s.problem = ?1')
+						->andWhere('s.team = ?2')
+						->orderBy('s.timestamp', 'DESC')
+						->setParameter(1, $prob)
+						->setParameter(2, $tm)
+						->setMaxResults(1);
 
-			$submission_query = $qb_submissions->getQuery();
-			$submissions = $submission_query->getResult();
+					$submission_query = $qb_submissions->getQuery();
+					$sub = $submission_query->getOneOrNullResult();
+					
+					if($sub){
+						$submissions[] = $sub;
+					}
+				}				
+			}
+
+			
 		}
 		
 		// get the grades for the assignments
@@ -206,6 +218,9 @@ class SectionController extends Controller {
 
 			'submissions' => json_encode($submissions),
 
+			'accepted_submissions' => $best_submission,
+			'user_impersonators' => $section_takers,
+      
 			'section_takers' => $section_takers,
 			'section_teachers' => $section_teachers,
 			'section_helpers' => $section_helpers,

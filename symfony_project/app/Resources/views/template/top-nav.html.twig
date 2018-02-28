@@ -36,7 +36,19 @@
 					<option value="-">None</option>
 
 					{% for user in user_impersonators %}
-						<option value="{{ path('homepage', {'_switch_user': user.getEmail()}) }}">{{user.getFirstName()}} {{user.getLastName()}}</option>
+						{% if "section" in app.request.attributes.get('_route') %}
+							<option value="{{ path(app.request.attributes.get('_route'), {'_switch_user': user.getEmail(), 'sectionId': section.id}) }}">
+						{% elseif "assignment" in app.request.attributes.get('_route') %}
+							<option value="{{ path(app.request.attributes.get('_route'), {'_switch_user': user.getEmail(), 'sectionId': section.id, 'assignmentId': assignment.id}) }}">
+					    {% elseif "result" in app.request.attributes.get('_route') %}
+							<option value="{{ path(app.request.attributes.get('_route'), {'_switch_user': user.getEmail(), 'sectionId': section.id, 'assignmentId': assignment.id, 'problemId': problem.id, 'submission_id': submission.id}) }}">
+						{% elseif "problem" in app.request.attributes.get('_route') %}
+							<option value="{{ path(app.request.attributes.get('_route'), {'_switch_user': user.getEmail(), 'sectionId': section.id, 'assignmentId': assignment.id, 'problemId': problem.id}) }}">
+						{% else %}
+							<option value="{{ path('homepage', {'_switch_user': user.getEmail()}) }}">
+						{% endif %}
+							
+						{{user.getFirstName()}} {{user.getLastName()}}</option>
 					{% endfor %}
 				</select>
 			</div>
@@ -44,7 +56,12 @@
 		{% endif %}
 
 		{% if is_granted('ROLE_PREVIOUS_ADMIN') %}
-			<a href="{{ path('homepage', {'_switch_user': '_exit'}) }}" class="navbuttons">Exit Impersonation</a>
+			
+			{% if ("section" in app.request.attributes.get('_route')) or ("assignment" in app.request.attributes.get('_route')) or ("problem" in app.request.attributes.get('_route')) or ("result" in app.request.attributes.get('_route')) %}
+				<a href="{{ path('section', {'_switch_user': '_exit', 'sectionId': section.id}) }}" class="navbuttons">Exit Impersonation</a>
+			{% else %}
+				<a href="{{ path('homepage', {'_switch_user': '_exit'}) }}" class="navbuttons">Exit Impersonation</a>
+			{% endif %}
 		{% endif %}
 	
 	{% else %}

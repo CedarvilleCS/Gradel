@@ -4,6 +4,21 @@
 <link rel="icon" type="image/x-icon" href="{{ asset('logo.png') }}" />
 {% endblock %}
 
+{% block stylesheets %}
+	<link rel="stylesheet" href="{{ asset('styles.css') }}" />
+	<link rel="stylesheet" href="{{ asset('card.css') }}" />
+	
+	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
+{% endblock %}
+
+{% block stylesheets %}
+	<link rel="stylesheet" href="{{ asset('styles.css') }}" />
+	<link rel="stylesheet" href="{{ asset('card.css') }}" />
+	
+	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
+{% endblock %}
+
+
 
 {% block stylesheets %}
 	<link rel="stylesheet" href="{{ asset('styles.css') }}" />
@@ -17,9 +32,7 @@
 
 <body>        
 	{{ include('template/top-nav.html.twig') }}
-	
 	{{ include('template/assignment-nav.html.twig') }}
-
 	{{ include('template/path-nav.html.twig') }}
 
 	{# Main section #}
@@ -146,7 +159,52 @@
 					
 				<div>   
 					<ul id="submissions-list">
+						
+						{% if submissions|length == 0 %}
+							<li> No recent submissions </li>
+						{% else %}
+						
+							{% for sub in submissions %}
+							
+								{% if loop.index0 < 30 %}
+							
+								{% if sub.isCorrect %}
+									<div style="color: green">
+								{% else %}
+									
+									<div style="color: red">
+								{% endif %}
+								
+									<li><a href="{{path('problem_result', {'submission_id': sub.id})}}">
+										<i>{{sub.problem.assignment.name}}:</i> {{sub.problem.name}} ({{sub.language.name}})
+										
+											{% if sub.team.users|length <= 1 or (not is_granted("ROLE_ADMIN") and not is_granted("ROLE_SUPER") and not grader.isTeaching(user, section)) %}
+												{{sub.user.getFirstName}} {{sub.user.getLastName}} 
+											{% else %}
+												{
+												{% for user in sub.team.users %}
+													
+													{{user.getLastName}}
+													
+													{% if not loop.last %}
+														, 
+													{% endif%}
+												
+												{% endfor %}
+												
+												}
+												
+											{% endif %}
 
+										- {{sub.timestamp|date('M d  \\a\\t  h:i:s A')}}
+									</a> </li>
+									</div>
+							
+								{% endif %}
+							
+							{% endfor %}
+						{% endif %}
+						
 					</ul>
 				</div>
 			</div>
@@ -272,26 +330,33 @@
 		function generateGradeCSVSection() {
 			var gradesCSV = "Name, User, ";
 			{% for asgn in assignments %}
-				gradesCSV += "Problems Correct, Total Problems, Grade, ";
+				gradesCSV += "{{asgn.name}}";
+				gradesCSV += ", ";
 			{% endfor %}
-
+				gradesCSV += "Total";
 			gradesCSV += "\n";
-
+			
 			{% for user in section_takers %}
-				
+				var sumTotal = 0;
 				gradesCSV += '{{user.getFirstName()}} {{user.getLastName()}}, ';
 				gradesCSV += '{{user }}, ';
-
+				var i = 0;
 				{% for asgn in assignments %}
-
+					i += 1;
 					var correct = parseFloat("{{grades[user.id][asgn.id]['num_correct_problems']}}");
 					var total = parseFloat("{{grades[user.id][asgn.id]['num_problems']}}");
-					var percent = correct/total;
+					var percent = correct/total * 100;
 
-					gradesCSV += correct + ', ' + total + ', ' + percent + ', '; 
+					sumTotal += percent;
+					
+					gradesCSV += percent + ', '; 
+					
+					
 
 				{% endfor %}
+				gradesCSV += sumTotal/i;
 				gradesCSV += "\n";
+				
 			{% endfor %}
 
 			return gradesCSV;

@@ -241,6 +241,7 @@ class AssignmentController extends Controller {
 			'assignment' => $assignment_entity,
 			'problem' => $problem_entity,
 			'section_takers' => $section_takers,
+			'user_impersonators' => $section_takers,
 			'languages' => $languages,
 			'usersectionrole' => $usersectionrole,
 			'grader' => new Grader($em),
