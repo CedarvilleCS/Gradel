@@ -69,7 +69,7 @@ class Submission implements JsonSerializable {
 		$this->team = $tm;
 		$this->user = $user;
 		$this->timestamp = new \DateTime("now");
-		$this->is_accepted = false;
+		$this->best_submission = false;
 		#this->submitted_file
 		#this->log_directory
 		#this->filename

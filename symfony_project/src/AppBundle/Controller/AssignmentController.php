@@ -145,7 +145,7 @@ class AssignmentController extends Controller {
 			->from('AppBundle\Entity\Submission', 's')
 			->where($whereClause)
 			->andWhere('s.problem = ?2')
-			->andWhere('s.is_accepted = true')
+			->andWhere('s.best_submission = true')
 			->setParameter(1, $teamOrUser)
 			->setParameter(2, $problem_entity);		
 			
@@ -297,9 +297,8 @@ class AssignmentController extends Controller {
 			if(!$assignment || $section != $assignment->section){
 				die("Assignment does not exist or does not belong to given section");
 			}
-			
 		}
-		
+				
 		# get all the users taking the course
 		$takes_role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));
 		$builder = $em->createQueryBuilder();
@@ -321,29 +320,12 @@ class AssignmentController extends Controller {
 			
 			$students[] = $student;
 		}
-		
-		if($section->assignments->count() > 0){
 
-			$last_assignment = $section->assignments->last();
-			
-			$default_start_date = clone $last_assignment->end_time;
-			$default_end_date = clone $last_assignment->end_time;
-			
-			$default_start_date->add(new DateInterval('P1D'));
-			$default_end_date->add(new DateInterval('P10D'));
-
-			$default_name = "Homework #".($section->assignments->count()+1)."";
-		}
-		
 		return $this->render('assignment/edit.html.twig', [
 			"assignment" => $assignment,
 			"section" => $section,
 			"edit" => true,
 			"students" => $students,
-			
-			"default_name" => $default_name,
-			"default_start_date" => $default_start_date->format('m/d/Y')." 00:00",
-			"default_end_date" => $default_end_date->format('m/d/Y')." 11:59",
 		]);
     }
 
@@ -352,7 +334,7 @@ class AssignmentController extends Controller {
 		$em = $this->getDoctrine()->getManager();
 		
 		# get the assignment
-		if(!isset($assignmentId) || !($assignmentId > 0)){
+		if(!isset($assignmentId) || !($assigmentId > 0)){
 			die("ASSIGNMENT ID WAS NOT PROVIDED OR FORMATTED PROPERLY");
 		}
 		
