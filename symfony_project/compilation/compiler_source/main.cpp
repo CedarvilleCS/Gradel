@@ -227,7 +227,11 @@ int main(int argc, char** argv){
 	
 	/* STUDENT CODE EXECUTION */
 	// loop over testcases
+	
 	for(int i=1; i<=num_testcases; i++){
+		
+		string flag_touch = "touch flags/time_limit" + to_string(i);
+		system(flag_touch.c_str());
 		
 		cout << "\n\nLet's run the student's code against testcase " + to_string(i) << endl;
 	
@@ -318,7 +322,7 @@ int main(int argc, char** argv){
 	system("rm -rf student_code");
 	
 	// remove the reverse flag for timeout
-	system("rm flags/time_limit");
+	system("rm flags/time_limit*");
 	
 	system("chmod -R 777 /compilation");
 	system("chown -R www-data:www-data /compilation");
