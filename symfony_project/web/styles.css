@@ -109,6 +109,15 @@ ol {
 	position: absolute;
 }
 
+.info-icon {
+    cursor: pointer;
+	height: 17;
+	width: 17;
+	top: 5px;
+	float: right;
+	margin-left: 5px;
+}
+
 .test_case_delete {
 	padding: 2 2 2 2;
 	float: right;
