@@ -1,6 +1,10 @@
 {% block leaderboard_html %}
 <div class="card" id="leaderboard-card" style="flex-grow: 12; padding: 5px; padding-top: 10px; height: max-content;">
 	
+	{% if app.request.attributes.get('_route') == "contest" %}
+	<div id="leaderboard-heading"> <h2> LEADERBOARD </h2> </div>
+	{% endif %}
+	
 	<div id="leaderboard-container" class="card-contents" style="margin-top: 0;">
 		<table id="leaderboard">
 		
@@ -46,7 +50,7 @@
 		tableHTML += "<tr class='" + ((curr_user) ? "curr-user" : "") + "'>";
 		
 		tableHTML += "<td class='rank'>" + team.rank + "</td>";
-		tableHTML += "<td class='name'>" + team.team_name + "</td>";
+		tableHTML += "<td class='name'>" + escapeHTML(team.team_name) + "</td>";
 		tableHTML += "<td class='num-correct'>" + team.num_correct + "</td>";
 		tableHTML += "<td class='time'>" + team.total_penalty + "</td>";
 		

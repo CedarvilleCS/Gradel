@@ -145,7 +145,7 @@ class AssignmentController extends Controller {
 			->from('AppBundle\Entity\Submission', 's')
 			->where($whereClause)
 			->andWhere('s.problem = ?2')
-			->andWhere('s.is_accepted = true')
+			->andWhere('s.best_submission = true')
 			->setParameter(1, $teamOrUser)
 			->setParameter(2, $problem_entity);		
 			
@@ -204,7 +204,35 @@ class AssignmentController extends Controller {
 			$trial->package_name = $submission->package_name;
 			$trial->last_edit_time = new \DateTime("now");
 		}
-						
+		
+		# GET ALL USERS
+		$qb_user = $em->createQueryBuilder();
+		$qb_user->select('usr')
+			->from('AppBundle\Entity\UserSectionRole', 'usr')
+			->where('usr.section = ?1')
+			->setParameter(1, $section_entity);
+
+		$user_query = $qb_user->getQuery();
+		$usersectionroles = $user_query->getResult();
+
+		$section_takers = [];
+		$section_teachers = [];
+		$section_helpers = [];
+		$section_judges = [];
+
+		foreach($usersectionroles as $usr){
+			if($usr->role->role_name == "Takes"){
+				$section_takers[] = $usr->user;
+			} else if($usr->role->role_name == "Teaches"){
+				$section_teachers[] = $usr->user;
+			} else if($usr->role->role_name == "Helps"){
+				$section_helpers[] = $usr->user;
+			} else if($usr->role->role_num == "Judges"){
+				$section_judges[] = $usr->user;
+			}
+		}
+		
+		
 		
 		return $this->render('assignment/index.html.twig', [
 			'user' => $user,
@@ -212,13 +240,13 @@ class AssignmentController extends Controller {
 			'section' => $assignment_entity->section,
 			'assignment' => $assignment_entity,
 			'problem' => $problem_entity,
-
+			'section_takers' => $section_takers,
+			'user_impersonators' => $section_takers,
 			'languages' => $languages,
 			'usersectionrole' => $usersectionrole,
 			'grader' => new Grader($em),
-			
+			'grades' => $grades,
 			'attempts_remaining' => $attempts_remaining,
-			
 			'best_submission' => $best_submission,
 			'trial' => $trial,
 			'all_submissions' => $all_submissions,

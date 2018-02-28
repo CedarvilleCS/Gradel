@@ -47,6 +47,7 @@ class Assignment implements JsonSerializable{
 		$this->freeze_time = null;
 		$this->freeze_override = false;
 		$this->freeze_override_time = null;
+		$this->post_contest = null;
 	}
 	
 	public function __construct10($sect, $nm, $desc, $start, $end, $cutoff, $pen1, $pen2, $pen3, $pen4){
@@ -69,6 +70,7 @@ class Assignment implements JsonSerializable{
 		$this->freeze_time = null;
 		$this->freeze_override = false;
 		$this->freeze_override_time = null;
+		$this->post_contest = false;
 	}
 	
 	# clone method override
@@ -196,9 +198,14 @@ class Assignment implements JsonSerializable{
 	public $freeze_override_time;
 	
 	/**
-	* @ORM\Column(type="boolean")
+	* @ORM\Column(type="boolean", nullable=true)
 	*/
 	public $freeze_override;
+	
+	/**
+	* @ORM\Column(type="boolean", nullable=true)
+	*/
+	public $post_contest;
 	
 	/**
 	* @ORM\Column(type="integer", nullable=true)

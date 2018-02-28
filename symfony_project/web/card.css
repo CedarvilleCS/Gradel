@@ -1,12 +1,9 @@
 .card {
     background-color: white;
-    
 	margin: 20px;
 	margin-bottom: 5px;
     padding: 20px;
-    	
 	position: relative;
-	
     -webkit-box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
     -moz-box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
     box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
@@ -24,6 +21,11 @@
 	left: auto;
 	transform: none;
 	
+}
+
+.colored {
+	background: #92d884;
+	min-height: 100px;
 }
 
 .contest-card {
@@ -55,7 +57,7 @@
 	flex-wrap: wrap;
 	justify-content: flex-start;
 	
-  margin-right: 20px;
+	margin-right: 20px;
 	margin-left: 20px;
 }
 

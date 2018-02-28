@@ -37,7 +37,7 @@ class Submission implements JsonSerializable {
 		$this->team = $tm;
 		$this->user = $trial->user;
 		$this->timestamp = new \DateTime("now");
-		$this->is_accepted = false;
+		$this->best_submission = false;
 		$this->submitted_file = $trial->file;
 		#this->log_directory
 		$this->filename = $trial->filename;
@@ -69,7 +69,7 @@ class Submission implements JsonSerializable {
 		$this->team = $tm;
 		$this->user = $user;
 		$this->timestamp = new \DateTime("now");
-		$this->is_accepted = false;
+		$this->best_submission = false;
 		#this->submitted_file
 		#this->log_directory
 		#this->filename
@@ -100,7 +100,7 @@ class Submission implements JsonSerializable {
 		$this->user = $user;
 		$this->team = $tm;
 		$this->timestamp = $time;
-		$this->is_accepted = $acc;
+		$this->best_submission = $acc;
 		$this->submitted_file = $subm;
 		$this->log_directory = $log;
 		$this->filename = $filename;
@@ -127,6 +127,11 @@ class Submission implements JsonSerializable {
 		$this->is_completed = false;
 	}
 	
+	public function isError(){
+	
+		return $this->compiler_error || $this->runtime_error || $this->exceeded_time_limit;		
+	}
+	
 	public function isCorrect($raw){
 		
 		$tcs = 0;
@@ -141,10 +146,14 @@ class Submission implements JsonSerializable {
 			}			
 		}
 		
-		if(!$raw){
+		if(isset($raw) && !$raw){
 			
 			if($this->correct_override) return true;		
 			if($this->wrong_override) return false;
+		}
+		
+		if($this->isError()){
+			return false;
 		}
 		
 		return $passed_tcs == $tcs;
@@ -206,7 +215,7 @@ class Submission implements JsonSerializable {
 	/**
 	* @ORM\Column(type="boolean")
 	*/
-	public $is_accepted;
+	public $best_submission;
 	
 	/**
 	* @ORM\Column(type="boolean")
@@ -327,11 +336,19 @@ class Submission implements JsonSerializable {
 	
 	public function jsonSerialize(){
 		return [
-			'team' => ($this->team) ? $this->team : ["name" => "NO TEAM"],			
 			'id' => $this->id,
-			'problem' => $this->problem,
-			'is_correct' => $this->isCorrect(),
-			'testcaseresults' => $this->testcaseresults->toArray(),
+			
+			'team' => ($this->team) ? $this->team : ["name" => "NO TEAM"],
+			'user' => $this->user,
+						
+			'problem' => [ 
+				'id'=>$this->problem->id,
+				'name'=>$this->problem->name,
+				'assignment'=>$this->problem->assignment,
+			],
+			
+			'is_correct' => $this->isCorrect(false),
+						
 			'runtime_error' => $this->runtime_error,
 			'exceeded_time_limit' => $this->exceeded_time_limit,
 			'compiler_error' => $this->compiler_error,

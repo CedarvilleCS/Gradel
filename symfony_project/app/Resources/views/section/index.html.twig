@@ -4,14 +4,18 @@
 <link rel="icon" type="image/x-icon" href="{{ asset('logo.png') }}" />
 {% endblock %}
 
+{% block stylesheets %}
+	<link rel="stylesheet" href="{{ asset('styles.css') }}" />
+	<link rel="stylesheet" href="{{ asset('card.css') }}" />
+	
+	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
+{% endblock %}
 
 {% block body %}
 
 <body>        
 	{{ include('template/top-nav.html.twig') }}
-	
 	{{ include('template/assignment-nav.html.twig') }}
-
 	{{ include('template/path-nav.html.twig') }}
 
 	{# Main section #}
@@ -137,74 +141,53 @@
 			<div id="recentSubs" class="card-contents">
 					
 				<div>   
-					<ul>
-
-					{% if recent_submissions|length == 0 %}
-						<li> No recent submissions </li>
-					{% else %}
+					<ul id="submissions-list">
 						
-						{% for sub in recent_submissions %}
-						
-							{% if loop.index0 < 30 %}
-						
-							{% if sub.isCorrect %}
-								<div style="color: green">
-							{% else %}
-								
-								<div style="color: red">
-							{% endif %}
+						{% if submissions|length == 0 %}
+							<li> No recent submissions </li>
+						{% else %}
+												
+							{% for sub in submissions %}
 							
-							<li><a href="{{path('problem_result', {'submission_id': sub.id})}}">
-								<i>{{sub.problem.assignment.name}}:</i> {{sub.problem.name}} ({{sub.language.name}})
-								
-									{% if sub.team.users|length <= 1 or (not is_granted("ROLE_ADMIN") and not is_granted("ROLE_SUPER") and not grader.isTeaching(user, section)) %}
-										{{sub.user.getFirstName}} {{sub.user.getLastName}} 
-									{% else %}
-										{
-										{% for user in sub.team.users %}
-											
-											{{user.getLastName}}
-											{% if not loop.last %}
-											, 
-											{% endif%}
-										{% endfor %}
-										}
-									{% endif %}
-
-								- {{sub.timestamp|date('M d  \\a\\t  h:i:s A')}}
-							</a> </li>
-							</div>
+								{% if loop.index0 < 30 %}
 							
-							{% endif %}
-							
-						{% endfor %}
-					{% endif %}
-					{# +				"{% if problem.id %}" #}
-
-					 {# from below #}
-					{% for asgn in assignments %}
-						{% for sub in accepted_submissions %}
-							{% for user in section_takers %}
-								{% if accepted_submissions|length > 0 %}
-									<div style="color: purple;"> {# all duh purple subs #}
-										{{ accepted_submissions|length }}
-										{% if sub.problem.id == 7 %}
-											<p style="color: purple;">AAAAH</p>
-										{% endif %}
-										{# <script>console.log("{{ accepted_submissions.problem }}")</script>
-										<p style="color: purple;">{{ accepted_submissions["problem"]["id"] }}</p> #}
-										
-										<li><a href="{{path('problem_result', {'submission_id': sub.id})}}">
-											<i>{{sub.problem.assignment.name}}:</i> {{sub.problem.name}} ({{sub.language.name}})</i>
-										</a></li>
-									
-									</div> 
+								{% if sub.isCorrect %}
+									<div style="color: green">
 								{% else %}
-									<p style="color: purple;">accepted submissions do not exist</p> 
+									
+									<div style="color: red">
 								{% endif %}
+								
+									<li><a href="{{path('problem_result', {'submission_id': sub.id})}}">
+										<i>{{sub.problem.assignment.name}}:</i> {{sub.problem.name}} ({{sub.language.name}})
+										
+											{% if sub.team.users|length <= 1 or (not is_granted("ROLE_ADMIN") and not is_granted("ROLE_SUPER") and not grader.isTeaching(user, section)) %}
+												{{sub.user.getFirstName}} {{sub.user.getLastName}} 
+											{% else %}
+												{
+												{% for user in sub.team.users %}
+													
+													{{user.getLastName}}
+													
+													{% if not loop.last %}
+														, 
+													{% endif%}
+												
+												{% endfor %}
+												
+												}
+												
+											{% endif %}
+
+										- {{sub.timestamp|date('M d  \\a\\t  h:i:s A')}}
+									</a> </li>
+									</div>
+							
+								{% endif %}
+							
 							{% endfor %}
-						{% endfor %}
-					{% endfor %}
+						{% endif %}
+						
 					</ul>
 				</div>
 			</div>
@@ -213,14 +196,6 @@
 </body>
 
 {% endblock %}
-
-{% block stylesheets %}
-	<link rel="stylesheet" href="{{ asset('styles.css') }}" />
-	<link rel="stylesheet" href="{{ asset('card.css') }}" />
-	
-	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
-{% endblock %}
-
 
 {% block scripts %}
 	<!-- JQuery -->
@@ -232,7 +207,7 @@
 
 		var table = [];
 		var selecton = "";
-
+				
 		$( document ).ready(function() {
 
 			var counter = 0;
@@ -242,43 +217,48 @@
 			{% else %}
 			{# For each assignment #}
 			{% for asgn in assignments %}
-				{% for sub in accepted_submissions %}
-					table[counter] = "<h3 id='asgn" + counter + "'>{{asgn.name}}</h3>"
-							+	"<table>"
-							+		"<tr>"
-							+			"<th style='border-right: 1px solid black;'>&nbsp;</th>"
-							+			'<th colspan="' + "{{ grades[user.id][asgn.id]['num_problems'] }}"+ '"' + 'style="text-align: center;">Testcases Passed / Total</th>'
-							+		"</tr>"
-							+		"<tr>"
-							+			'<th style="text-align: left; border-bottom: 1px solid black; border-right: 1px solid black;">Student</th>'
-							+			"{% for problem in asgn.problems %}"
-							+				'<th style="text-align: left; border-bottom: 1px solid black;">{{ problem.name }}</th>'
-							+			"{% endfor %}"
-							+		"</tr>"
-							+		"{% for user in section_takers %}"
-							+			"<tr> <th>{{user.getFirstName()}} {{user.getLastName()}}</th>"	
-							+			"{# Loop through problems #}"
-							+			"{% for problem in asgn.problems %}"
-							+				"{# number of testcases passed, number of test cases failed #}"
-							+				"{# {{ grades|json_encode() }} #}"
-							+				"{% if grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] == grades[user.id][asgn.id]['problem_grades'][problem.id]['total_testcases'] %}"
-							+					'<td style="color:green; font-size: 20px">' + '<a href="' + "{{path('problem_result', {'submission_id': sub.id})}}" + '">' + "{{ grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] }}  / {{ grades[user.id][asgn.id]['problem_grades'][problem.id]['total_testcases'] }}</a></td>"
-							+				"{% elseif grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] != 0 %}"
-							+					'<a>' + '<td style="color:orange; font-size: 20px">'  + '<a href="' + "{{path('problem_result', {'submission_id': sub.id})}}" + '">' + "{{ grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] }}  / {{ grades[user.id][asgn.id]['problem_grades'][problem.id]['total_testcases'] }}</a></td>"
-							+				"{% else %}"
-							+					'<a>' + '<td style="color:red; font-size: 20px">' + '<a href="' + "{{path('problem_result', {'submission_id': sub.id})}}" + '">' + "{{ grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] }}  / {{ grades[user.id][asgn.id]['problem_grades'][problem.id]['total_testcases'] }}</a></td>"
-							+				"{% endif %}"									
-							+			"{% endfor %}"
-							+		"{% endfor %}"
-							+		"</table>"
-							+		"<br><br>"	
-							+		'<a id="download' + counter + '" download="{{ asgn.name }}.csv" onclick="' + "downloadAssgnGrades(" + counter + ", 'download" +  counter + "')" + '">'
-							+			'<div class="btn">Download Assignment Grades</div>'
-							+		"</a>";
-							counter += 1;
-
-							// TODO: order the accepted submissions by problem, loop through problems and submissions in nested loop
-				{% endfor %}
+				table[counter] = "<h3 id='asgn" + counter + "'>{{asgn.name}}</h3>"
+						+	"<table>"
+						+		"<tr>"
+						+			"<th style='border-right: 1px solid black;'>&nbsp;</th>"
+						+			'<th colspan="' + "{{ grades[user.id][asgn.id]['num_problems'] }}"+ '"' + 'style="text-align: center;">Testcases Passed / Total</th>'
+						+		"</tr>"
+						+		"<tr>"
+						+			'<th style="text-align: left; border-bottom: 1px solid black; border-right: 1px solid black;">Student</th>'
+						+			"{% for problem in asgn.problems %}"
+						+				'<th style="text-align: left; border-bottom: 1px solid black;">{{ problem.name }}</th>'
+						+			"{% endfor %}"
+						+		"</tr>"
+						+		"{% for user in section_takers %}"
+						+			"<tr> <th>{{user.getFirstName()}} {{user.getLastName()}}</th>"	
+						+			"{# Loop through problems #}"
+						+			"{% for problem in asgn.problems %}"
+						+				"{# number of testcases passed, number of test cases failed #}"
+						+				"{# {{ grades|json_encode() }} #}"
+						+				"{% if grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] == grades[user.id][asgn.id]['problem_grades'][problem.id]['total_testcases'] %}"
+						+'<td style="color:green; font-size: 20px"><a style="margin:0; width:100%; height:100%;" href=' 
+						+ "{{path('problem_result', {'submission_id': user_assig_prob_sub[user.id][asgn.id][problem.id]})}}"
+						+ '>' 
+						+ "{{ grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] }}  / {{ grades[user.id][asgn.id]['problem_grades'][problem.id]['total_testcases'] }}</a></td>"
+						+				"{% elseif grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] != 0 %}"
+						+					'<td style="color:orange; font-size: 20px"><a style="margin:0; width:100%; height:100%;" href=' 
+						+ "{{path('problem_result', {'submission_id': user_assig_prob_sub[user.id][asgn.id][problem.id]})}}"
+						+ '>' 
+						+ "{{ grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] }}  / {{ grades[user.id][asgn.id]['problem_grades'][problem.id]['total_testcases'] }}</a></td>"
+						+				"{% else %}"
+						+					'<td style="color:red; font-size: 20px"><a style="margin:0; width:100%; height:100%;" href=' 
+						+ "{{path('problem_result', {'submission_id': user_assig_prob_sub[user.id][asgn.id][problem.id]})}}"
+						+ '>' 
+						+ "{{ grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] }}  / {{ grades[user.id][asgn.id]['problem_grades'][problem.id]['total_testcases'] }}</a></td>"
+						+				"{% endif %}"									
+						+			"{% endfor %}"
+						+		"{% endfor %}"
+						+		"</table>"
+						+		"<br><br>"	
+						+		'<a id="download' + counter + '" download="{{ asgn.name }}.csv" onclick="' + "downloadAssgnGrades(" + counter + ", 'download" +  counter + "')" + '">'
+						+			'<div class="btn">Download Assignment Grades</div>'
+						+		"</a>";
+						counter += 1;
 			{% endfor %}
 			{% endif %}
 
@@ -303,12 +283,10 @@
 		});
 
 		function initializeGradeTable(index) {
-			console.log("grade table " + index);
 			$("#studentInfoAssignment").html(selection + table[index]);
 		}
 		function gradeTable() {
 			index = $('#assignmentSelect').val();
-			console.log("grade table without index" + index);
 			$("#studentInfoAssignment").html(selection + table[index]);
 		}
 	
@@ -337,26 +315,33 @@
 		function generateGradeCSVSection() {
 			var gradesCSV = "Name, User, ";
 			{% for asgn in assignments %}
-				gradesCSV += "Problems Correct, Total Problems, Grade, ";
+				gradesCSV += "{{asgn.name}}";
+				gradesCSV += ", ";
 			{% endfor %}
-
+				gradesCSV += "Total";
 			gradesCSV += "\n";
-
+			
 			{% for user in section_takers %}
-				
+				var sumTotal = 0;
 				gradesCSV += '{{user.getFirstName()}} {{user.getLastName()}}, ';
 				gradesCSV += '{{user }}, ';
-
+				var i = 0;
 				{% for asgn in assignments %}
-
+					i += 1;
 					var correct = parseFloat("{{grades[user.id][asgn.id]['num_correct_problems']}}");
 					var total = parseFloat("{{grades[user.id][asgn.id]['num_problems']}}");
-					var percent = correct/total;
+					var percent = correct/total * 100;
 
-					gradesCSV += correct + ', ' + total + ', ' + percent + ', '; 
+					sumTotal += percent;
+					
+					gradesCSV += percent + ', '; 
+					
+					
 
 				{% endfor %}
+				gradesCSV += sumTotal/i;
 				gradesCSV += "\n";
+				
 			{% endfor %}
 
 			return gradesCSV;

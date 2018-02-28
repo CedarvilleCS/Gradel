@@ -406,7 +406,9 @@ class Generator  {
 				->setParameter(2, $language);
 				
 		$pl_query = $pb_problang->getQuery();
-		$prob_lang = $pl_query->getOneOrNullResult();	
+		$prob_lang = $pl_query->getResult();	
+		
+		$prob_lang = $prob_lang[0];
 		
 		if(!isset($prob_lang)){
 			return "YOU CANNOT SUBMIT A SOLUTION FOR THE GIVEN LANGUAGE";

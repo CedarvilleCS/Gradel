@@ -92,7 +92,6 @@ class SectionController extends Controller {
 				$section_judges[] = $usr->user;
 			}
 		}
-
 		
 		# GET FUTURE ASSIGNMENTS
 		$twoweeks_date = new DateTime();
@@ -147,42 +146,6 @@ class SectionController extends Controller {
 					->orderBy('s.timestamp', 'DESC')
 					->setParameter(1, $allprobs);
 
-			
-			// query for accepted submissions
-			$qb_accsub = $em->createQueryBuilder();
-			$qb_accsub->select('s')
-				->from('AppBundle\Entity\Submission', 's')
-				->where('s.user = ?1')
-				->andWhere('s.problem IN (?2)')
-				->andWhere('s.is_accepted = true')
-				->setParameter(1, $user)
-				->setParameter(2, $allprobs);        
-					
-			$sub_query = $qb_accsub->getQuery();
-			$best_submission = $sub_query->getResult();
-
-			// echo "<br>best submission:";
-			// echo(json_encode($best_submission));
-
-
-			// TODO: fix this query to do what it should and implement it here.
-			// select submission.id, problem_id, name, username, first_name, last_name, is_accepted, assignment_id from problem
-			// left outer join submission
-			// on submission.problem_id = problem.id
-			// left outer join user
-			// on submission.user_id = user.id
-			// where is_accepted = true or is_accepted is null
-			
-			// union
-			
-			// select submission.id, problem_id, name, username, first_name, last_name, is_accepted, assignment_id from problem
-			// right outer join submission
-			// on submission.problem_id = problem.id
-			// right outer join user
-			// on submission.user_id = user.id
-			// where is_accepted = true or is_accepted is null
-
-			
 			$submission_query = $qb_submissions->getQuery();
 			$submissions = $submission_query->getResult();
 
@@ -207,27 +170,51 @@ class SectionController extends Controller {
 		}
 		
 		$grades = [];
+		$subs = [];
 		foreach($section_takers as $section_taker){
+			$correct_sub_ids = [];
 			$grades[$section_taker->id] = $grader->getAllAssignmentGrades($section_taker, $section_entity);
+			foreach ($assignments as $assig){
+				$probs = $assig->problems;
+				$team = $grader->getTeam($section_taker, $assig);
+				
+				foreach($probs as $prob){
+					
+					$qb_submissions = $em->createQueryBuilder();
+					$qb_submissions->select('s')
+							->from('AppBundle\Entity\Submission', 's')
+							->where('s.problem = (?1)')
+							->andWhere('s.team = (?2)')
+							->andWhere('s.best_submission = 1')
+							->setParameter(1, $prob)
+							->setParameter(2, $team);
+					$submission_query = $qb_submissions->getQuery();
+					$submission = $submission_query->getOneOrNullResult();
+					$correct_sub_ids[$assig->id][$prob->id]=$submission->id;
+					
+				}
+			}
+			$subs[$section_taker->id] = $correct_sub_ids;
+			
 		}
+		
 		
 		return $this->render('section/index.html.twig', [
 			'section' => $section_entity,
 			'grader' => new Grader($em),
 			'user' => $user,
-
-			'assignments' => $assignments,
 			'grades' => $grades,
-
+			'user_assig_prob_sub' => $subs,
+			'assignments' => $assignments,
 			'future_assigs' => $future_assig,
 
 			'recent_submissions' => $submissions,
 
-				'accepted_submissions' => $best_submission,
-
-				'section_takers' => $section_takers,
-				'section_teachers' => $section_teachers,
-				'section_helpers' => $section_helpers,
+			'accepted_submissions' => $best_submission,
+			'user_impersonators' => $section_takers,
+			'section_takers' => $section_takers,
+			'section_teachers' => $section_teachers,
+			'section_helpers' => $section_helpers,
 			]);
 		}
 
@@ -367,10 +354,6 @@ class SectionController extends Controller {
 			return $this->returnForbiddenResponse("You are not a user.");
 		}
 
-		# only super users and admins can make/edit a section
-		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN")){
-			return $this->returnForbiddenResponse("You do not have permission to make a section.");
-		}
 
 		# see which fields were included
 		$postData = $request->request->all();
@@ -393,8 +376,14 @@ class SectionController extends Controller {
 
 		# create new section
 		if($postData['section'] == 0){
+			
+			# only super users and admins can make/edit a section
+			if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN")){
+				return $this->returnForbiddenResponse("You do not have permission to make a section.");
+			}
+			
 			$section = new Section();
-		} else {
+		} else if(isset($postData['section'])) {
 
 			if(!isset($postData['section']) || !($postData['section'] > 0)){
 				die("SECTION ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
@@ -404,6 +393,15 @@ class SectionController extends Controller {
 			if(!$section){
 				return $this->returnForbiddenResponse("Section ".$postData['section']." does not exist");
 			}
+			
+			$grader = new Grader($em);
+			# only super users and admins can make/edit a section
+			if(! ($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isTeaching($user, $section)) ){
+				return $this->returnForbiddenResponse("You do not have permission to edit this section.");
+			}			
+			
+		} else {
+			return $this->returnForbiddenResponse("section not provided");
 		}
 
 		# get the course

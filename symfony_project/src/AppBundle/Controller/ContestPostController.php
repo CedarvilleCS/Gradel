@@ -902,7 +902,7 @@ class ContestPostController extends Controller {
 			if($postData['type'] == "wrong"){
 				
 				// override the submission to wrong
-				if($submission->isCorrect(true)){
+				if($submission->isCorrect(true) || $submission->isError()){
 					
 					$submission->wrong_override = true;				
 					$submission->correct_override = false;
@@ -915,7 +915,8 @@ class ContestPostController extends Controller {
 						$pusher->buildRejection($submission),
 						$pusher->getUsernamesFromTeam($submission->team),
 						$submission->problem->assignment->section->id,
-						true
+						true,
+						$submission->id
 					);
 				}
 				
@@ -940,6 +941,11 @@ class ContestPostController extends Controller {
 					false
 				);
 				
+			} else if($postData['type'] == "unoverride"){
+				
+				$submission->wrong_override = false;
+				$submission->correct_override = false;
+				
 			} else if($postData['type'] == "delete"){
 					
 				// delete the submission
@@ -951,7 +957,8 @@ class ContestPostController extends Controller {
 					$pusher->buildDeleteRejection($submission),
 					$pusher->getUsernamesFromTeam($submission->team),
 					$submission->problem->assignment->section->id,
-					true
+					true,
+					$submission->id
 				);
 					
 			} else if($postData['type'] == "formatting"){
@@ -963,9 +970,9 @@ class ContestPostController extends Controller {
 					$pusher->buildFormattingRejection($submission),
 					$pusher->getUsernamesFromTeam($submission->team),
 					$submission->problem->assignment->section->id,
-					true
+					true,
+					$submission->id
 				);
-				
 						
 			} else if($postData['type'] == "message"){
 				
@@ -982,7 +989,8 @@ class ContestPostController extends Controller {
 						$pusher->buildCustomRejection($submission),
 						$pusher->getUsernamesFromTeam($submission->team),
 						$submission->problem->assignment->section->id,
-						true
+						true,
+						$submission->id
 					);
 				}			
 							
@@ -1104,7 +1112,8 @@ class ContestPostController extends Controller {
 					$pusher->buildClarificationMessageFromQuery($query),
 					$pusher->getUsernamesFromTeam($query->asker),
 					$section->id,
-					false
+					false,
+					$submission->id
 				);
 			}
 

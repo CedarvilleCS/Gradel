@@ -6,7 +6,6 @@
 	<link rel="stylesheet" href="{{ asset('contest.css') }}" />
 	<link rel="stylesheet" href="{{ asset('contest-hub.css') }}" />
 	<link rel="stylesheet" href="{{ asset('contest-judge.css') }}" />
-	<link rel="stylesheet" href="{{ asset('judging-hub.css') }}" />
 	
 	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
 	
@@ -49,25 +48,30 @@
 			</div>
 		</div>
 		
-		<div class="card">
+		<div class="card" id="claimed-card">
 			<div class="btn-close">
 				<h2 class="card-title">Your Reviews <small class="card-subtitle"> <i> Review them! </i> </small> </h2>
+				<div id="stats-marker"> <img id="stats-marker-icon" src="{{ asset('bargraph.png') }}"> </div>
+				<div id="stats-marker-hover">
+					<p id="review_stats"></p>
+					<p id="clar_stats"></p>
+				</div>
 				
 			</div>
 		
-			<div id="queue-container" class="card-contents">
+			<div id="queue-container" class="card-contents scrolly">
 				
 				
 			</div>	
 		</div>
 		
-		<div class="card">
+		<div class="card" id="submissions-card">
 		
 			<div class="btn-close">
-				<h2 class="card-title">Submission Queue <small class="card-subtitle"> <i> Double-click to claim </i> </small> </h2>
+				<h2 class="card-title">Submission Queue  <small class="card-subtitle"> <i> Double-click to claim </i> </small>  </h2>
 			</div>
 		
-			<div id="submissions-container" class="card-contents">
+			<div id="submissions-container" class="card-contents scrolly">
 				
 			</div>		
 		</div>
@@ -86,7 +90,7 @@
 		<div class="card">
 			<div class="btn-close">
 				<h2 class="card-title">History </h2>	
-				{% if not contest_open %}
+				{% if not current_contest.isActive() %}
 					<div id="clear-submissions-button"> Clear Submissions </div>
 				{% endif %}
 				<div id="clear-clarifications-button"> Clear Clarifications </div>
@@ -94,7 +98,7 @@
 
 			<div id="stats-container">
 
-					<div class="history-cat">
+					<div class="review-box">
 						<div style="display:inline-block; width: 100%">
 							<div>
 								<div id="previous-review-label"> Previous Reviews </div>
@@ -105,23 +109,16 @@
 							</div>
 						</div>
             
-						<div id="recent-reviews">
+						<div class="scrolly" id="recent-reviews">
 						</div>
 					</div>
 				
-					<div class="history-cat">
+					<div class="clar-box">
 						<div class="history-label"> Previous Clarifications </div>
 						<div id="recent-clarifications">
 						</div>
 					</div>
 
-					<div class="history-cat">
-						<div class="history-label"> Stats</div>
-						<div id="stats">
-							<p id="review_stats"></p>
-							<p id="clar_stats"></p>
-						</div>
-					</div>
 				</div>	
 		</div>
 					
@@ -216,13 +213,15 @@
 		
 		var contest_started = false;
 	
+		var firstTime = false;
+	
 		var pollAJAX;
 		var judgAJAX;
 		var clarAJAX;
 
-		var time = {{"now"|date('U')}} - {{current_contest.start_time|date('U')}}; // current seconds into the contest
+		var time = Math.floor(Date.now()/1000) - {{current_contest.start_time|date('U')}}; // current seconds into the contest
+		var starttime = {{current_contest.start_time|date('U')}} - Math.floor(Date.now()/1000); // current seconds until the contest
 		var total = {{current_contest.end_time|date('U')}} - {{current_contest.start_time|date('U')}};
-		var starttime = {{current_contest.start_time|date('U')}} - {{"now"|date('U')}}; // current seconds until the contest
 		
 		
 		$(window).unload(function() {			
@@ -602,6 +601,16 @@
 				$(this).find('.marker-hover').hide();			
 			});
 			
+			$('#stats-marker').off('mouseover');
+			$('#stats-marker').on('mouseover', function() {	
+				$('#stats-marker-hover').show().css('display', 'inline-block');			
+			});
+			
+			$('#stats-marker').off('mouseout');
+			$('#stats-marker').on('mouseout', function() {	
+				$('#stats-marker-hover').hide();			
+			});
+			
 			$('.button').off('mousedown');
 			$('.button').off('mouseup');
 			$('.button')
@@ -752,6 +761,21 @@
 			  }
 			});
 			
+			$('#clarification-form').keypress(function(e) {
+				if (e.keyCode == $.ui.keyCode.ENTER) {
+				
+					if(firstTime){
+				
+						updateClarification("answer", "local");
+						clarificationMessageDialog.dialog( "close" );
+					 
+					}
+					
+					e.preventDefault();
+					firstTime = false;
+				}
+			});
+			
 			clarificationMessageDialog.find("form").off( "submit");
 			clarificationMessageForm = clarificationMessageDialog.find( "form" ).on( "submit", function( event ) {				
 				event.preventDefault();
@@ -764,7 +788,10 @@
 			
 				var clar_id = $(this).attr('id');
 				$('#clarification-form').val(clar_id);
-				clarificationMessageDialog.dialog("open");				
+				clarificationMessageDialog.dialog("open");	
+			
+				firstTime = true;
+				
 			});
 			
 			/* CUSTOM FORMATTING MESSAGE */
@@ -933,10 +960,12 @@
 					continue;	
 				}
 				
-				var probAssignName = "[" + clarification.asker.	name + "] - " + ((clarification['problem']) ? "[" + clarification['problem']['name'] + "]" : "[General]");
+				var clarName = ((clarification.asker) ? escapeHTML(clarification.asker.name) : 'Judge Submitted');
+				var problemName = ((clarification['problem']) ? "[" + clarification['problem']['name'] + "]" : "[General]");
+				var probAssignName = "[" + clarName + "] - " + problemName;
 				
 				var clarificationHTML = `<div class="clarification found" id="` + clarification['id'] + `">` + 
-											`<div class="name">` + probAssignName + `</div><div class="question">` + clarification['question'] + `</div>` +
+											`<div class="name">` + probAssignName + `</div><div class="question">` + escapeHTML(clarification['question']) + `</div>` +
 										`</div>`;
 				
 				$('#clarifications-container').append(clarificationHTML);				
@@ -969,7 +998,7 @@
 				}
 				
 				
-				var reviewHTML = `<a href="{{path('contest', {'contestId': current_contest.section.id, 'roundId': current_contest.id})}}/problem/` + rev.problem.id + `/result/` + rev.id + `"> <div class="review ` + ((rev.is_correct) ? "correct" : "wrong") + `" id="` + rev.id + `"> ` + `<div>` + rev.id + `) ` + escapeHTML(rev.problem.name.substring(0,1)) + ` - <small>` + escapeHTML(rev.team.name) + `</small></div><div style="display: none">` + escapeHTML(rev.problem.name) + `" " `+((rev.is_correct) ? "correct" : "wrong") +`</div><div><small> Reviewer: ` + escapeHTML(name) + `</small></div>` + `</div> </a>`;
+				var reviewHTML = `<a href="{{path('contest', {'contestId': current_contest.section.id, 'roundId': current_contest.id})}}/problem/` + rev.problem.id + `/result/` + rev.id + `"> <div class="review ` + ((rev.is_correct) ? "correct" : "wrong") + `" id="` + rev.id + `"> ` + `<div>` + rev.id + `) ` + escapeHTML(rev.problem.name.substring(0,1)) + ` - ` + escapeHTML(rev.team.name) + `</div><div style="display: none">` + escapeHTML(rev.problem.name) + `" " `+((rev.is_correct) ? "correct" : "wrong") +`</div><div> Reviewer: ` + escapeHTML(name) + `</div>` + `</div> </a>`;
 				
 				$('#recent-reviews').append(reviewHTML);
 				
@@ -979,8 +1008,8 @@
 				if (reviews[i]['reviewer'] != null && reviews[i]['reviewer'].email == '{{app.user}}') { 
 					user_reviewed++;
 				}
-				$("#review_stats").text("You have made " + user_reviewed + " of " + reviews.length +  " reviews.");
 				
+				$("#review_stats").text("You have made " + user_reviewed + " of " + reviews.length +  " reviews.");
 
 			}			
 			
@@ -1016,8 +1045,9 @@
 				if (clars[i]['answerer'] != null && clars[i]['answerer'].email == '{{app.user}}') { 
 					user_clarifications++;
 				}
-				$("#clar_stats").text("You have given " + user_clarifications + " of " + clars.length +  " clarifications.");
+				console.log(user_clarifications + "sadasd");
 				
+				$("#clar_stats").text("You have made " + user_clarifications + " of " + clars.length +  " clarifications.");
 			}
 			
 			return newOne;
@@ -1025,7 +1055,9 @@
 		}
 		
 		function addClaimed(submissions){
-			return addSubmissions(submissions, "claimIt");
+			var thing = addSubmissions(submissions, "claimIt");
+			
+			return thing;
 		}
 		
 		function addSubmissions(submissions, claimIt){			
@@ -1116,9 +1148,14 @@
 				$('#queue-container .submission').not('.found').remove();
 				$('#queue-container .submission').removeClass('found');
 				$('#queue-container .submission').removeClass('queued');
+				
+				$('#claimed-card .card-title .card-subtitle').html("<i> Review them! (" + $('#queue-container .submission').size() + ") </i>");
+				
 			} else {
 				$('#submissions-container .submission').not('.found').remove();
 				$('#submissions-container .submission').removeClass('found');
+				
+				$('#submissions-card .card-title .card-subtitle').html("<i> Double-click to claim (" + $('#submissions-container .submission').size() + ") </i>");
 			}
 		}
 		

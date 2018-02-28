@@ -38,7 +38,7 @@ use Psr\Log\LoggerInterface;
 class CompilationController extends Controller {	
 	
 	/* submit */
-	public function submitAction(Request $request) {
+	public function submitAction(Request $request, $trialId=0) {
 				
 		# entity manager
 		$em = $this->getDoctrine()->getManager();		
@@ -62,6 +62,10 @@ class CompilationController extends Controller {
 		$postData = $request->request->all();
 		$trial_id = $postData['trial_id'];
 		
+		if($trial_id == null){
+			$trial_id = $trialId;
+		}
+		
 		# get the current trial
 		$trial = $em->find("AppBundle\Entity\Trial", $trial_id);
 		
@@ -79,11 +83,12 @@ class CompilationController extends Controller {
 		# get the type of submission				
 		$team = null;
 		
-		if(!$grader->isTeaching($user, $trial->problem->assignment->section) && !$grader->isJudging($user, $trial->problem->assignment->section)){
+		// if you are taking, we need to get the team and the number of attempts
+		if( $grader->isTaking($user, $problem->assignment->section) ){
 
 			# get the current team
 			$team = $grader->getTeam($user, $problem->assignment);		
-			if(!$team && !$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN")){
+			if( !($team || $elevatedUser) ){
 				return $this->returnForbiddenResponse("YOU ARE NOT ON A TEAM OR TEACHING FOR THIS ASSIGNMENT");
 			}
 		
@@ -101,6 +106,10 @@ class CompilationController extends Controller {
 			if(!$elevatedUser && $problem->total_attempts > 0 && $curr_attempts >= $problem->total_attempts){
 				return $this->returnForbiddenResponse("ALREADY REACHED MAX ATTEMPTS FOR PROBLEM AT ".$curr_attempts." ATTEMPTS");
 			}
+		} else if( !$elevatedUser ){
+			
+			return $this->returnForbiddenResponse("YOU ARE NOT PERMITTED TO SUBMIT FOR THIS PROBLEM");
+			
 		}
 		
 		$submitted_filename = $uploader->createSubmissionFile($trial);
@@ -110,7 +119,7 @@ class CompilationController extends Controller {
 		$language = $trial->language;
 		
 		if(!isset($submitted_filename) || trim($submitted_filename) == ""){
-			return $this->returnForbiddenResponse("Filename was not provided. Contact a systems administrator");
+			return $this->returnForbiddenResponse("Filename was not provided. Contact a systems administrator -");
 		}
 		
 		# check main class and package name for validity
@@ -305,7 +314,7 @@ class CompilationController extends Controller {
 			->from('AppBundle\Entity\Submission', 's')
 			->where('s.problem = ?1')
 			->andWhere($whereClause)
-			->andWhere('s.is_accepted = true')
+			->andWhere('s.best_submission = true')
 			->setParameter(1, $problem)
 			->setParameter(2, $teamOrUser);
 				
@@ -314,10 +323,10 @@ class CompilationController extends Controller {
 		
 		# determine if the new submission is the best one yet
 		if($grader->isAcceptedSubmission($submission, $prev_accepted_sol)){
-			$submission->is_accepted = true;
+			$submission->best_submission = true;
 			
 			if($prev_accepted_sol){
-				$prev_accepted_sol->is_accepted = false;
+				$prev_accepted_sol->best_submission = false;
 				$em->persist($prev_accepted_sol);
 			}
 		}
@@ -326,8 +335,8 @@ class CompilationController extends Controller {
 		
 		if($submission->problem->assignment->section->course->is_contest){
 		
-		
-			if( $grader->getTeam($user, $submission->problem->assignment) && !($solvedAllTestcases || $submission->compiler_error || $submission->exceeded_time_limit || $submission->runtime_error) ){
+			// if it is not post contest, the grader is on a team, and it was not a correct submission
+			if( !$submission->problem->assignment->post_contest && $grader->getTeam($user, $submission->problem->assignment) && !($solvedAllTestcases || $submission->compiler_error || $submission->exceeded_time_limit || $submission->runtime_error) ){
 				
 				$submission->pending_status = 0;			
 			}

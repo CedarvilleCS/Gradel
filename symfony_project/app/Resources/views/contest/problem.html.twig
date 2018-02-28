@@ -53,7 +53,7 @@ var markdownText = converter.makeHtml("{{problem.description|e('js')}}");
 	
 	{{ include('contest/problem-nav.html.twig') }}
 
-    <section id="main">
+    <section id="main" class="scrolly">
 
 		<div class="card" style="padding-top: 2px">
 						
@@ -62,7 +62,10 @@ var markdownText = converter.makeHtml("{{problem.description|e('js')}}");
 {% if elevatedUser or (contest_open and problem.assignment.cutoff_time|date('U') > "now"|date('U')) %}
 				
 				<div class="markdown-container">
+					
+					{% if not current_contest.post_contest %}
 					<div id="clarification-button">Ask for Clarification</div>				
+					{% endif %}
 					
 					<div id="markdown-header"><h1>{{problem.name}}</h1></div>
 					<div id="markdown"></div>
@@ -91,7 +94,7 @@ var markdownText = converter.makeHtml("{{problem.description|e('js')}}");
 				{% endif %}
 	
 {# the ACE editor text area #}
-				
+				<div id="editor-container">			
 <div id="editor">{% if trial != null and trial.filename|split('.')|last != 'zip' %}
 {{ trial.deblobinateFile()|nl2br }}{% elseif trial != null %}
 Uploaded file was a ZIP file<br>
@@ -99,7 +102,9 @@ We are not able to repopulate zip files at this time.<br>
 Please re-upload it!
 {% endif %}
 </div>
-
+<div id="editor-handle"> </div>
+				</div>
+				
 <div id="trial-status" style="font-style: italic; font-size:0.8em; color: grey;">&nbsp;</div>
 				<br>
 
@@ -107,7 +112,7 @@ Please re-upload it!
 				
 					{# file upload#}
 					<form id="submissionUploadForm" action="{{path('get_contents')}}" method="post">
-						<input type="file" name="file" id="file" value="Upload File">
+						<input type="file" accept=".zip,.c,.cpp,.java,.php,.py" name="file" id="file" value="Upload File">
 					</form>
 
 					{# Language selection and hidden field to submit ACE contents #}
@@ -409,11 +414,6 @@ Please re-upload it!
 		var trialUpdateTimer = null;
 		var trialId = {{(trial) ? trial.id : "0"}};
 		var second = 0;
-		
-		$(window).unload(function() {
-			
-		});
-
 	
 		$(document).ready(function() {
 			
@@ -464,6 +464,37 @@ Please re-upload it!
 			$('#languageSelect').change();			
 			{% endif %}
 			
+			
+			
+			var origWidthContainer = $('#editor-container').width();
+			var origWidthEditor = $('#editor').width();
+			
+			$('#editor-container').resizable({
+				
+				handles: {
+					's': '#editor-handle',				
+				},
+				minHeight: 150,
+				start: function(event, ui){						
+					$('#editor-handle').css('background', '#bbbbbb');
+				},
+				resize: function(event, ui){
+										
+					$('#editor-container').width(origWidthContainer);
+					$('#editor').width(origWidthEditor);
+					
+					editor.resize();
+					$('#trial-status').text("Height: " + $(this).height() + "px");
+									
+				},
+				stop: function(){
+					//updateTrial();
+					$('#trial-status').text("Unsaved changes...");	
+					$('#editor-handle').css('background', '#e8e8e8');
+				},
+				alsoResize: "#editor",
+			});	
+						
 			/* QUESTION ASKER */
 			clarificationDialog = $("#clarification-form").dialog({
 				autoOpen: false,
@@ -556,7 +587,7 @@ Please re-upload it!
 				}).keyup();
 				
 				$("div#test-code-markers").tabs("refresh");				
-			});  
+			}); 
 			
 			$('#generate-output-button').click(function() {
 				
@@ -573,6 +604,14 @@ Please re-upload it!
 				$('#add-testcase-button').click();
 				$( "#test-code-markers" ).tabs({ active: 0 });
 			}
+			
+			{% if trial %}
+			
+			{% if trial.editor_height > 0 %}
+			$('#editor').height({{trial.editor_height}});
+			{% endif %}
+			
+			{% endif %}
 			
 			
 			if(trialId == 0){
@@ -704,6 +743,7 @@ Please re-upload it!
 			var main_class = $('#main_class_input').val();
 			var package_name = $('#package_name_input').val();
 			var show_description = !($("#markdown-collapser").text() == "Show Description");
+			var editor_height = $('#editor').height();
 			
 			var editor = ace.edit("editor");
 			editor.$blockScrolling = Infinity;				
@@ -716,6 +756,7 @@ Please re-upload it!
 			formData.append('main_class', main_class);
 			formData.append('package_name', package_name);
 			formData.append('show_description', show_description);
+			formData.append('editor_height', editor_height);
 			formData.append('ACE', ACE);
 
 			if(getExtension($('#submissionUploadForm #file').val()) == "zip"){

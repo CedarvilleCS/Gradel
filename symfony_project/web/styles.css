@@ -50,8 +50,9 @@ ol {
 }
 
 .topnav .navbuttons {
-     float: right;
- 	height: 100%;
+    float: right;
+ 	height: 50px;	
+    box-sizing: border-box;
 }
 .topnav #logo {
     float: left;
@@ -190,11 +191,6 @@ a.preview {
     color: white;
 }
 
-.topnav .navbuttons {
-    float: right;
- 	height: 100%;
-}
-
 nav.nav-left {
     float: left;
     position: fixed;
@@ -264,7 +260,6 @@ nav.nav-left > ol > a > li:hover {
 	cursor: pointer;
 }
 
-
 .back-button{
 
 	height: 30px;
@@ -280,12 +275,12 @@ nav.nav-left > ol > a > li:hover {
 	background-color: #FF5A49;
 }
 
-
 i {
     -webkit-transition:all 300ms ease-in 0s;
     -moz-transition: all 300ms ease-in 0s;
     -o-transition: all 300ms ease-in 0s;
-    transition: all 300ms ease-in 0s;}
+    transition: all 300ms ease-in 0s;
+}
 
 .ui-state-active i {
     color: #ACD4CE;
@@ -297,8 +292,7 @@ i {
 }
 
 ::-webkit-scrollbar {
-    display: none;
-	
+    display: none;	
 }
 
 

@@ -104,6 +104,7 @@ class AppBundleTopic implements TopicInterface
             }
             
             $contestId = $event["contestId"];
+            $submissionId = $event["submissionId"];
             $scope = $event["scope"];
             $recipients = $event["recipients"];
             $msg = $event["msg"];
@@ -144,7 +145,7 @@ class AppBundleTopic implements TopicInterface
                     }
                     else {
                         $finalScope = $scope == "userSpecificReject" ? "reject" : "notice";
-                        $message = $this->buildMessage($msg, $finalScope);
+                        $message = $this->buildMessage($msg, $finalScope, $submissionId);
                         dump("Sending message: " . $message . "to specific users...");
                         $this->broadcastMessage($recipients, $topic, $users, $message);
                     }
@@ -152,7 +153,7 @@ class AppBundleTopic implements TopicInterface
                 else if ($scope == "question") {
                     dump("Searching for admins...");
                     $message = $this->buildMessage($msg, "notice");
-                    $recipients = $this->getJudgeList($users);
+                    $recipients = $this->getJudgeList($users, $section);
                     $this->broadcastMessage($recipients, $topic, $users, $message);
                 }
                 else {
@@ -189,7 +190,7 @@ class AppBundleTopic implements TopicInterface
         }
     }
 
-    public function getJudgeList($users) {
+    public function getJudgeList($users, $section) {
         $recipients = [];
         foreach($users as $u) {
             $potJudge = $this->em->find("AppBundle\Entity\User", $u['client']->getID());
@@ -200,8 +201,8 @@ class AppBundleTopic implements TopicInterface
         return $recipients;
     }
 
-    public function buildMessage($msg, $type) {
-        return '{"msg": "' . $msg . '", "type": "'. $type . '"}';
+    public function buildMessage($msg, $type, $submissionId = -1) {
+        return '{"msg": "' . $msg . '", "type": "'. $type . '", "submissionId": "' . $submissionId . '"}';
     }
 
 
