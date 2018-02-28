@@ -32,7 +32,7 @@ class SectionController extends Controller {
     public function sectionAction($sectionId) {
 
 		$em = $this->getDoctrine()->getManager();
-
+		
 		$user = $this->get('security.token_storage')->getToken()->getUser();
 		
 
@@ -195,7 +195,10 @@ class SectionController extends Controller {
 							->setParameter(2, $team);
 					$submission_query = $qb_submissions->getQuery();
 					$submission = $submission_query->getOneOrNullResult();
-					$correct_sub_ids[$assig->id][$prob->id]=$submission->id;
+					
+					if(isset($assig) && isset($prob) && isset($submission)){
+						$correct_sub_ids[$assig->id][$prob->id]=$submission->id;
+					}
 					
 				}
 			}			
@@ -213,7 +216,7 @@ class SectionController extends Controller {
 			'assignments' => $assignments,
 			'future_assigs' => $future_assig,
 
-			'submissions' => $submissions,
+			'submissions' => json_encode($submissions),
 
 			'accepted_submissions' => $best_submission,
 			'user_impersonators' => $section_takers,
