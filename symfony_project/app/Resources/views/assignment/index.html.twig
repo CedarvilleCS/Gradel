@@ -78,7 +78,7 @@
 {# the ACE editor text area #}
 
 <div id="add-file-button"> Add File </div>
-<div id="test-code-markers">
+<div id="file-markers">
 	<ul>
 	</ul>
 </div>
@@ -262,9 +262,9 @@ editor.setSession(ace_sessions[0]);
 
 
 $(document).ready( function() {
-	$('#testcase-markers').tabs();	
+	$('#file-markers').tabs();	
 	
-	$('.testcase-data textarea').each(function () {
+	$('.file-data textarea').each(function () {
 		
 		$(this).html(addReturnKey($(this).html()));
 		
@@ -272,31 +272,31 @@ $(document).ready( function() {
 });
 
 		
-// test code marker tabs
+// file tabs
 $('#add-file-button').button().click(function() {
 
-	var num_tabs = $("div#test-code-markers ul li").length + 1;
+	var num_tabs = $("div#file-markers ul li").length + 1;
 
-	$("div#test-code-markers ul").append(
-		"<li id='test-code-tab-user-" + num_tabs + "-marker' onclick='editor.setSession(ace_sessions[" + num_tabs + "])';><a href='#test-code-tab-user-" + num_tabs + "'>#" + num_tabs + "</a></li>"
+	$("div#file-markers ul").append(
+		"<li class='tabs' id='test-code-tab-user-" + num_tabs + "-marker' onclick='editor.setSession(ace_sessions[" + num_tabs + "]);'><a href='#test-code-tab-user-" + num_tabs + "'>#" + num_tabs + "</a>"
+			+ '<input type="hidden" name="ACE" id="ACE' + num_tabs + '">'
+			+ "</li>"
 	);
 
 	ace_sessions[num_tabs] = new EditSession("");
 	editor.setSession(ace_sessions[num_tabs]);
 	editor.setTheme("ace/theme/xcode");
-	// setLanguage();
 	updateAceCode();
 	setDefaultCode();
-	// editor.setSession(ace_sessions[0]);
 }); 
 
-$('#test-code-markers').tabs();
-var tabCount = $('#test-code-markers >ul >li').length;
+$('#file-markers').tabs();
+var tabCount = $('#file-markers >ul >li').length;
 
 
 if(tabCount < 1){
 	$('#add-file-button').click();
-	$( "#test-code-markers" ).tabs({ active: 0 });
+	$( "#file-markers" ).tabs({ active: 0 });
 }
 
 		var saved_code = "";
@@ -554,10 +554,13 @@ if(tabCount < 1){
 			var show_description = !($("#markdown-collapser").text() == "Show Description");
 			
 			var editor = ace.edit("editor");
-			editor.$blockScrolling = Infinity;				
+			editor.$blockScrolling = Infinity;
+
+			// TODO: create a loop through the editors
+
 			$("#ACE").val(editor.getValue());
 
-			var ACE = $('#ACE').val();		
+			var ACE = $('#ACE').val();	
 			
 			formData.append('problem_id', {{problem.id}});
 			formData.append('language', language);

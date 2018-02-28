@@ -82,20 +82,12 @@ textarea {
 
 
 
-/* tabs */
-.testcase-data{
-	width: 100%;
-	padding: 0px;
-	margin: 0px;
-	display: flex;
-	flex-direction: row;
-	justify-content: flex-start;
-    padding: 0px;
-    height: 380px;
-}
 
-.testcase-data-heading{
-	height: 30px;
-	line-height: 30px;
-	padding-right: 3px;
+.tabs {
+    padding: 10px;
+    width: 50px;
+    border: 1px solid grey;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    text-align: center;
 }
