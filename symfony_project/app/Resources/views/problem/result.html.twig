@@ -139,21 +139,22 @@
 											{% if feedback.show_input %}
 											<div id="testcase-input">
 											
-												
+												<div style="height: 100%">
 												{% if tcr.testcase.input %}
 												
-												<div>
+												<div {{(tcr.testcase.command_line_input) ? "style='height:50%'" : ""}}>
 													<div class="testcase-data-heading">Input:</div>
 													<textarea {{(tcr.testcase.command_line_input) ? "id='input-textarea'" : "" }} disabled>{{tcr.testcase.input}}</textarea>
 												</div>
 												{% endif %}
 												
 												{% if tcr.testcase.command_line_input %}
-												<div>
+												<div {{(tcr.testcase.input) ? "style='height:50%'" : ""}}>
 													<div class="testcase-data-heading">Command-Line Arguments:</div>
 													<textarea  {{(tcr.testcase.input) ? "id='command-line-textarea'" : "" }} disabled>{{tcr.testcase.command_line_input}}</textarea>
 												</div>
 												{% endif %}
+												</div>
 												
 											</div>
 											{% endif %}
@@ -290,6 +291,17 @@ Submission was a ZIP file{% endif %}</div>
 				$('#tips-list').html("<li>" + escapeHTML(feedback[seq_num]) + "</li>");
 			}			
 		});
+		
+		$('#testcase-markers').resizable({
+			maxHeight: 650,
+			maxWidth: 1100,
+			minHeight: 250,
+			minWidth: 400,
+			alsoResize: "#testcase-markers-container"
+		});
+		
+		$('#testcase-markers').css('height', '250');
+		$('#testcase-markers').css('width', '400');
 		
 		$('#tips-list').html("<li>" + escapeHTML(feedback[1]) + "<li>");
 		

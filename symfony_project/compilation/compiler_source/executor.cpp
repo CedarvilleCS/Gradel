@@ -157,8 +157,11 @@ run_info run_code(string language, string program_name, int testcase_num){
 	system(chmod_time_cmd.c_str());	
 
 	log_output += ("The program ran in " + to_string(runtime) + "ms.\n");
-	
+	log_output += ("The student code returned...\n" + student_output + "\n...\n");
 	// save user output
+	string touch_usr_output = "touch user_output/" + to_string(testcase_num) + ".out";
+	system(touch_usr_output.c_str());
+	
 	string userfile = "user_output/" + to_string(testcase_num) + ".out";
 	ofstream user_output_file(userfile);
 	user_output_file << student_output;

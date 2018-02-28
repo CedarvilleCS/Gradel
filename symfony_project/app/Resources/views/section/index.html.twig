@@ -11,7 +11,6 @@
 	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
 {% endblock %}
 
-
 {% block body %}
 
 <body>        
@@ -147,7 +146,7 @@
 						{% if submissions|length == 0 %}
 							<li> No recent submissions </li>
 						{% else %}
-						
+												
 							{% for sub in submissions %}
 							
 								{% if loop.index0 < 30 %}
@@ -209,7 +208,7 @@
 		var table = [];
 		var selecton = "";
 		
-		var submissions = JSON.parse("{{submissions|json_encode|e('js')}}");
+		var submissions = JSON.parse("{{submissions|e('js')}}");
 		
 		console.log(submissions);
 		

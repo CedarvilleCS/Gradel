@@ -357,7 +357,11 @@ class Grader  {
 		$most_recent_sub = null;
 		foreach($problem_grades as $pg){
 			
-			if(!$most_recent_sub || $most_recent_sub < $pg['accepted_submission']->timestamp){
+			if(! (isset($pg) && isset($pg['accepted_submission']) && isset($pg['accepted_submission']->timestamp)) ){
+				continue;
+			}
+			
+			if(!isset($most_recent_sub) || isset($most_recent_sub) && $most_recent_sub < $pg['accepted_submission']->timestamp){
 				$most_recent_sub = $pg['accepted_submission']->timestamp;
 			}
 		}
