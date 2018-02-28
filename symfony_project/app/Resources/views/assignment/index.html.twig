@@ -6,7 +6,6 @@
 	<link rel="icon" type="image/x-icon" href="{{ asset('logo.png') }}" />
 {% endblock %}
 
-
 {% block stylesheets %}
 	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
 	
@@ -30,18 +29,11 @@
 {# markdown #}
 <script src="http://cdn.rawgit.com/showdownjs/showdown/1.8.6/dist/showdown.min.js"></script>
 
-<script>
-
-// markdown stuff
-var converter = new showdown.Converter();
-converter.setOption('tasklists', true);
-converter.setOption('backslashEscapesHTMLTags', true);
-converter.setOption('emoji', true);
-
-converter.setFlavor('github');
-var markdownText = converter.makeHtml("{{problem.description|e('js')}}");
-
-</script>
+<style>
+		#submissionButton:hover {
+			cursor:pointer;
+		}
+</style>
 
 <body>
     {{ include('template/top-nav.html.twig') }}
@@ -92,7 +84,14 @@ var markdownText = converter.makeHtml("{{problem.description|e('js')}}");
 				
 
 {# the ACE editor text area #}
-				<div id="editor-container">
+
+<div id="add-file-button"> Add File </div>
+<div id="file-markers">
+	<ul>
+	</ul>
+</div>
+
+<div id="editor-container">
 <div id="editor">{% if trial != null and trial.filename|split('.')|last != 'zip' %}
 {{ trial.deblobinateFile()|nl2br }}{% elseif trial != null %}
 Uploaded file was a ZIP file<br>
@@ -207,6 +206,8 @@ Please re-upload it!
 {% block scripts %}
     <!-- JQuery -->
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+	<script src="{{ asset('js/unicode_return.js') }}" type="text/javascript" charset="utf-8"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 	
 	<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
@@ -217,9 +218,101 @@ Please re-upload it!
 		
 	{# asynchronous file upload #}
 	<script src="http://malsup.github.com/jquery.form.js"></script>
-	{# markdown #}
 
-	<script>
+	{# markdown #}
+<script src="http://cdn.rawgit.com/showdownjs/showdown/1.8.6/dist/showdown.min.js"></script>
+
+<script>
+
+// markdown stuff
+var converter = new showdown.Converter();
+converter.setOption('tasklists', true);
+converter.setOption('backslashEscapesHTMLTags', true);
+converter.setOption('emoji', true);
+
+converter.setFlavor('github');
+var markdownText = converter.makeHtml("{{problem.description|e('js')}}");
+
+// ACE Session
+var editor = ace.edit("editor");
+var EditSession = ace.require("ace/edit_session").EditSession;
+var ace_sessions = [];
+ace_sessions[0] = new EditSession("session 0");
+{# editor.setSession(ace_sessions[0]); #}
+{# editor.setValue #}
+// ace_sessions[1] = new EditSession("session 1");
+{# var js = new EditSession("some js code");
+var css = new EditSession(["some", "css", "code here"]); #}
+// and then to load document into editor, just call
+// editor.setSession(js);
+// editor.setSession(ace_sessions[1]);
+editor.$blockScrolling = Infinity;
+
+editor.getSession().on('change', function() {	
+
+	second++;
+	if(second > 1){
+		$('#trial-status').text("Unsaved changes...");
+	}
+	
+	clearInterval(trialUpdateTimer);
+	trialUpdateTimer = setInterval(updateTrial, 5000);		
+});
+
+editor.commands.addCommand({
+	name: "replace",
+	bindKey: {win: "Ctrl-S", mac: "Command-S"},
+	exec: function(editor) {
+		updateTrial();
+	}
+});
+
+// set default stuff for the ace editor
+var editor = ace.edit("editor");
+editor.$blockScrolling = Infinity;
+editor.setTheme("ace/theme/xcode");
+
+editor.setSession(ace_sessions[0]);
+
+
+$(document).ready( function() {
+	$('#file-markers').tabs();	
+	
+	$('.file-data textarea').each(function () {
+		
+		$(this).html(addReturnKey($(this).html()));
+		
+	});
+});
+
+		
+// file tabs
+$('#add-file-button').button().click(function() {
+
+	var num_tabs = $("div#file-markers ul li").length + 1;
+
+	$("div#file-markers ul").append(
+		"<li class='tabs' id='test-code-tab-user-" + num_tabs + "-marker' onclick='editor.setSession(ace_sessions[" + num_tabs + "]);'><a href='#test-code-tab-user-" + num_tabs + "'>#" + num_tabs + "</a>"
+			+ '<input type="hidden" name="ACE" id="ACE' + num_tabs + '">'
+			+ "</li>"
+	);
+
+	ace_sessions[num_tabs] = new EditSession("");
+	editor.setSession(ace_sessions[num_tabs]);
+	editor.setTheme("ace/theme/xcode");
+	updateAceCode();
+	setDefaultCode();
+}); 
+
+$('#file-markers').tabs();
+var tabCount = $('#file-markers >ul >li').length;
+
+
+if(tabCount < 1){
+	$('#add-file-button').click();
+	$( "#file-markers" ).tabs({ active: 0 });
+}
+
 		var saved_code = "";
 
 		function getLanguage(filename){
@@ -267,6 +360,9 @@ Please re-upload it!
 
 		function setLanguage(language){
 
+			var editor = ace.edit("editor");
+			editor.$blockScrolling = Infinity;
+
 			// set the language selector
 			var selectObject = document.getElementById('languageSelect');
 			for(var i=0; i<selectObject.length; i++){
@@ -276,9 +372,14 @@ Please re-upload it!
 				}
 			}
 
-			var editor = ace.edit("editor");
-			editor.$blockScrolling = Infinity;
-			updateAceCode();
+			// Update the language for all files
+			var current_session = editor.getSession();
+			for(var i = 1; i < ace_sessions.length; i++) {
+				editor.setSession(ace_sessions[i]);
+				updateAceCode();
+			}
+			editor.setSession(current_session);
+			
 
 			// toggle the java inputs
 			var ext = getExtension($('#submissionUploadForm #file').val());
@@ -301,22 +402,40 @@ Please re-upload it!
 
 		function updateAceCode(){
 
+			console.log("--------------\nupdaceAceCode(): ");
+
 			var default_code = JSON.parse('{{ default_code|json_encode|e("js") }}');
 			var ace_modes = JSON.parse('{{ ace_modes|json_encode|raw }}');
-
-			var editor = ace.edit("editor");
+			
 			editor.$blockScrolling = Infinity;
 			
 			language = $('#languageSelect option:selected').text();
+			console.log("language: " + language);
 			
 			if(saved_code !== editor.getValue()) {
 				editor.setValue(editor.getValue(), -1);
+				console.log("setValue");
 			} else {
 				// This sets the default code for the selected language.
 				editor.setValue(default_code[language], -1);
 				saved_code = default_code[language];
+				console.log("setting to default code");
 			}
 			
+			editor.getSession().setMode("ace/mode/" + ace_modes[language]);
+
+			console.log("ace updated");
+			
+		}
+
+		// sets the default code for the selected language. used when adding a new file tab.
+		function setDefaultCode() {
+			var default_code = JSON.parse('{{ default_code|json_encode|replace({'\\':'\\\\'})|raw }}');
+			var ace_modes = JSON.parse('{{ ace_modes|json_encode|raw }}');
+			language = $('#languageSelect option:selected').text();
+			editor.setValue(default_code[language], -1);
+			saved_code = default_code[language];
+			console.log("setting to default code");
 			editor.getSession().setMode("ace/mode/" + ace_modes[language]);
 		}
 
@@ -530,12 +649,8 @@ Please re-upload it!
 			var package_name = $('#package_name_input').val();
 			var show_description = !($("#markdown-collapser").text() == "Show Description");
 			var editor_height = $('#editor').height();
-			
 			var editor = ace.edit("editor");
-			editor.$blockScrolling = Infinity;				
-			$("#ACE").val(editor.getValue());
-
-			var ACE = $('#ACE').val();		
+			editor.$blockScrolling = Infinity;			
 			
 			formData.append('problem_id', {{problem.id}});
 			formData.append('language', language);
@@ -543,6 +658,13 @@ Please re-upload it!
 			formData.append('package_name', package_name);
 			formData.append('show_description', show_description);
 			formData.append('editor_height', editor_height);
+
+			// loop through the editors
+			var ACE = [];
+			for (var i = 1; i < ace_sessions.length; i++) {
+				editor.setSession(ace_sessions[i]);
+				ACE[i] = editor.getValue();
+			}
 			formData.append('ACE', ACE);
 
 			if(getExtension($('#submissionUploadForm #file').val()) == "zip"){

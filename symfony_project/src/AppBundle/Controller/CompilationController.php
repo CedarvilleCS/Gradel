@@ -314,7 +314,7 @@ class CompilationController extends Controller {
 			->from('AppBundle\Entity\Submission', 's')
 			->where('s.problem = ?1')
 			->andWhere($whereClause)
-			->andWhere('s.is_accepted = true')
+			->andWhere('s.best_submission = true')
 			->setParameter(1, $problem)
 			->setParameter(2, $teamOrUser);
 				
@@ -323,10 +323,10 @@ class CompilationController extends Controller {
 		
 		# determine if the new submission is the best one yet
 		if($grader->isAcceptedSubmission($submission, $prev_accepted_sol)){
-			$submission->is_accepted = true;
+			$submission->best_submission = true;
 			
 			if($prev_accepted_sol){
-				$prev_accepted_sol->is_accepted = false;
+				$prev_accepted_sol->best_submission = false;
 				$em->persist($prev_accepted_sol);
 			}
 		}
