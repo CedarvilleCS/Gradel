@@ -35,10 +35,6 @@
 		}
 </style>
 
-{% endblock %}
-
-{% block body %}
-
 <body>
     {{ include('template/top-nav.html.twig') }}
 
@@ -244,7 +240,7 @@ var ace_sessions = [];
 ace_sessions[0] = new EditSession("session 0");
 {# editor.setSession(ace_sessions[0]); #}
 {# editor.setValue #}
-ace_sessions[1] = new EditSession("session 1");
+// ace_sessions[1] = new EditSession("session 1");
 {# var js = new EditSession("some js code");
 var css = new EditSession(["some", "css", "code here"]); #}
 // and then to load document into editor, just call
@@ -364,6 +360,9 @@ if(tabCount < 1){
 
 		function setLanguage(language){
 
+			var editor = ace.edit("editor");
+			editor.$blockScrolling = Infinity;
+
 			// set the language selector
 			var selectObject = document.getElementById('languageSelect');
 			for(var i=0; i<selectObject.length; i++){
@@ -373,9 +372,14 @@ if(tabCount < 1){
 				}
 			}
 
-			var editor = ace.edit("editor");
-			editor.$blockScrolling = Infinity;
-			updateAceCode();
+			// Update the language for all files
+			var current_session = editor.getSession();
+			for(var i = 1; i < ace_sessions.length; i++) {
+				editor.setSession(ace_sessions[i]);
+				updateAceCode();
+			}
+			editor.setSession(current_session);
+			
 
 			// toggle the java inputs
 			var ext = getExtension($('#submissionUploadForm #file').val());
@@ -645,15 +649,8 @@ if(tabCount < 1){
 			var package_name = $('#package_name_input').val();
 			var show_description = !($("#markdown-collapser").text() == "Show Description");
 			var editor_height = $('#editor').height();
-			
 			var editor = ace.edit("editor");
-			editor.$blockScrolling = Infinity;
-
-			// TODO: create a loop through the editors
-
-			$("#ACE").val(editor.getValue());
-
-			var ACE = $('#ACE').val();	
+			editor.$blockScrolling = Infinity;			
 			
 			formData.append('problem_id', {{problem.id}});
 			formData.append('language', language);
@@ -661,6 +658,13 @@ if(tabCount < 1){
 			formData.append('package_name', package_name);
 			formData.append('show_description', show_description);
 			formData.append('editor_height', editor_height);
+
+			// loop through the editors
+			var ACE = [];
+			for (var i = 1; i < ace_sessions.length; i++) {
+				editor.setSession(ace_sessions[i]);
+				ACE[i] = editor.getValue();
+			}
 			formData.append('ACE', ACE);
 
 			if(getExtension($('#submissionUploadForm #file').val()) == "zip"){
