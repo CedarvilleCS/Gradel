@@ -216,7 +216,7 @@ class SectionController extends Controller {
 			'assignments' => $assignments,
 			'future_assigs' => $future_assig,
 
-			'submissions' => json_encode($submissions),
+			'submissions' => $submissions,
 
 			'accepted_submissions' => $best_submission,
 			'user_impersonators' => $section_takers,
