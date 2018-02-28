@@ -215,7 +215,7 @@ class Grader  {
 			->from('AppBundle\Entity\Submission', 's')
 			->where('s.problem = ?1')
 			->andWhere('s.team = ?2')
-			->andWhere('s.is_accepted = true')
+			->andWhere('s.best_submission = true')
 			->setParameter(1, $problem)
 			->setParameter(2, $team);
 			

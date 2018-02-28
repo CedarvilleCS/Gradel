@@ -37,7 +37,7 @@ class Submission implements JsonSerializable {
 		$this->team = $tm;
 		$this->user = $trial->user;
 		$this->timestamp = new \DateTime("now");
-		$this->is_accepted = false;
+		$this->best_submission = false;
 		$this->submitted_file = $trial->file;
 		#this->log_directory
 		$this->filename = $trial->filename;
@@ -100,7 +100,7 @@ class Submission implements JsonSerializable {
 		$this->user = $user;
 		$this->team = $tm;
 		$this->timestamp = $time;
-		$this->is_accepted = $acc;
+		$this->best_submission = $acc;
 		$this->submitted_file = $subm;
 		$this->log_directory = $log;
 		$this->filename = $filename;
@@ -215,7 +215,7 @@ class Submission implements JsonSerializable {
 	/**
 	* @ORM\Column(type="boolean")
 	*/
-	public $is_accepted;
+	public $best_submission;
 	
 	/**
 	* @ORM\Column(type="boolean")

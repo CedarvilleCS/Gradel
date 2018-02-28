@@ -188,7 +188,7 @@ class SectionController extends Controller {
 							->from('AppBundle\Entity\Submission', 's')
 							->where('s.problem = (?1)')
 							->andWhere('s.team = (?2)')
-							->andWhere('s.best_submission = true')
+							->andWhere('s.best_submission = 1')
 							->setParameter(1, $prob)
 							->setParameter(2, $team);
 					$submission_query = $qb_submissions->getQuery();
