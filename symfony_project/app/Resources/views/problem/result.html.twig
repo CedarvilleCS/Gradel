@@ -94,7 +94,8 @@
 					<div id="testcase-markers-container">
 						<h3 style="margin-bottom: 4px">TESTCASES:</h3>				
 							{% if feedback.show_output and submission.testcaseresults|length > 0 %}
-							<div id="testcase-markers">
+							<small> <i> Note that this is resizable </i> </small>
+							<div id="testcase-markers">							
 								<ul>
 									{% set failed = false %}
 									{% for tcr in submission.testcaseresults %}						
@@ -292,16 +293,20 @@ Submission was a ZIP file{% endif %}</div>
 			}			
 		});
 		
+		var maxWidth = $('.card').width() - 10;
+		var maxHeight = 650;
+		
 		$('#testcase-markers').resizable({
-			maxHeight: 650,
-			maxWidth: 1100,
+			handles: "s, e, se",
+			maxHeight: maxHeight,
+			maxWidth: maxWidth,
 			minHeight: 250,
 			minWidth: 400,
 			alsoResize: "#testcase-markers-container"
 		});
 		
-		$('#testcase-markers').css('height', '250');
-		$('#testcase-markers').css('width', '400');
+		$('#testcase-markers').css('height', 400);
+		$('#testcase-markers').css('width', maxWidth);
 		
 		$('#tips-list').html("<li>" + escapeHTML(feedback[1]) + "<li>");
 		
