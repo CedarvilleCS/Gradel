@@ -8,6 +8,8 @@ use AppBundle\Entity\UserSectionRole;
 use AppBundle\Entity\Assignment;
 
 use AppBundle\Utils\Grader;
+use AppBundle\Utils\Uploader;
+use AppBundle\Utils\Zipper;
 
 use \DateTime;
 use \DateInterval;
@@ -21,7 +23,7 @@ use Symfony\Component\HttpFoundation\Request;
 class HomeController extends Controller {
 	
     public function homeAction() {
-			
+		
 		$em = $this->getDoctrine()->getManager();
 	  
 		$user = $this->get('security.token_storage')->getToken()->getUser();

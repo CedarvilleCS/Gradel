@@ -128,3 +128,22 @@ textarea {
 .ui-resizable-s {
     height: 30px;	
 }
+
+.ui-tabs .ui-tabs-nav li {
+	width: 100px;
+	cursor: pointer;
+}
+
+.ui-tabs li a .tab-filename{
+	background: transparent;
+	border: 0px solid black;
+	font-family: monospace;
+	color: black;
+	width: 100px;
+	outline: none;
+	
+}
+
+.ui-tabs li a .tab-filename::selection{
+	background: #ACCEF7;
+}
