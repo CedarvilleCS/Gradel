@@ -220,7 +220,7 @@ Please re-upload it!
 	<script src="http://malsup.github.com/jquery.form.js"></script>
 
 	{# markdown #}
-<script src="http://cdn.rawgit.com/showdownjs/showdown/1.8.6/dist/showdown.min.js"></script>
+	<script src="http://cdn.rawgit.com/showdownjs/showdown/1.8.6/dist/showdown.min.js"></script>
 
 <script>
 
@@ -238,14 +238,6 @@ var editor = ace.edit("editor");
 var EditSession = ace.require("ace/edit_session").EditSession;
 var ace_sessions = [];
 ace_sessions[0] = new EditSession("session 0");
-{# editor.setSession(ace_sessions[0]); #}
-{# editor.setValue #}
-// ace_sessions[1] = new EditSession("session 1");
-{# var js = new EditSession("some js code");
-var css = new EditSession(["some", "css", "code here"]); #}
-// and then to load document into editor, just call
-// editor.setSession(js);
-// editor.setSession(ace_sessions[1]);
 editor.$blockScrolling = Infinity;
 
 editor.getSession().on('change', function() {	
