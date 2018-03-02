@@ -14,6 +14,7 @@ use AppBundle\Entity\UserSectionRole;
 use AppBundle\Entity\Testcase;
 
 use AppBundle\Utils\Grader;
+use AppBundle\Utils\Zipper;
 
 use Psr\Log\LoggerInterface;
 
@@ -579,14 +580,16 @@ class ProblemController extends Controller {
 				$section_takers[] = $usr->user;
 			}
 		}
-		
-
+				
 		return $this->render('problem/result.html.twig', [
 		
 			'section' => $submission->problem->assignment->section,
 			'assignment' => $submission->problem->assignment,
 			'problem' => $submission->problem,
 			'submission' => $submission,
+			
+			'submission_contents' => $submission->getSubmissionFileContents(),
+			
 			'user_impersonators' => $section_takers,
 			'grader' => new Grader($em),
 			

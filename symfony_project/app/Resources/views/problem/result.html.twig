@@ -244,10 +244,23 @@
 				
 				
 				<div id='edit-note' style='display: none'> <small style="color: red; font-style: italics"> Note that editing and resubmitting this code will override your saved code on the problem page </small> </div>
-								
-<div id="editor">{% if submission.filename|split('.')|last != 'zip' %}
-{{ submission.deblobinateSubmittedFile()|nl2br }}{% else %}
-Submission was a ZIP file{% endif %}</div>
+
+				<div id="submission-textarea">
+					{# display submission file content #}
+					<ul>
+					{% for file in submission_contents %}
+						<li id="submitted-{{loop.index}}-tab"> <a href="#submitted-{{loop.index}}">
+						{{file.name}}
+						</a> </li>
+					{% endfor %}
+					</ul>
+					
+					{% for file in submission_contents %}
+						<div id="submitted-{{loop.index}}" >
+							<textarea id="submitted-{{loop.index}}-textarea" disabled style="height: 300px">asdfasdfas</textarea>						
+						</div>
+					{% endfor %}
+				</div>
 				
 				<h3 style="margin-top: 10px; margin-bottom: 0px">Submission ID: {{submission.id}}</h3>
 				
@@ -282,6 +295,16 @@ Submission was a ZIP file{% endif %}</div>
 	var feedback = JSON.parse("{{feedback.response|json_encode|e('js')}}");
 	
 	$(document).ready( function() {
+	
+		{% for file in submission_contents %}
+		try{
+			$("#submitted-{{loop.index}}-textarea").html(atob("{{file.contents|e('js')}}"));							
+		} catch(e){
+			$("#submitted-{{loop.index}}-textarea").html("{{file.contents|e('js')}}");			
+		}
+		{% endfor %}
+		
+		$('#submission-textarea').tabs();
 	
 		{% if feedback.display_markers %}
 		$('#testcase-markers').tabs({
@@ -326,10 +349,6 @@ Submission was a ZIP file{% endif %}</div>
 		
 		{% endif %}
 		
-		var editor = ace.edit("editor");
-		editor.setTheme("ace/theme/xcode");
-		editor.getSession().setMode("ace/mode/" + "{{ace_mode}}");
-		
 		
 		$('.testcase-data textarea').each(function () {			
 			$(this).html(addReturnKey($(this).html()));			
@@ -347,12 +366,7 @@ Submission was a ZIP file{% endif %}</div>
 		});
 		
 		$('#quick-edit-btn').button('disable');
-		
-		editor.getSession().on('change', function() {
-			$('#quick-edit-btn').button('enable');
-			$('#edit-note').show();
-		});
-						
+								
 		$('#full-edit-btn').button().click( function() {
 			window.location = "{{path('assignment', {'sectionId': submission.problem.assignment.section.id, 'assignmentId': submission.problem.assignment.id, 'problemId': submission.problem.id, 'submissionId': submission.id} )}}";
 		});
@@ -398,11 +412,11 @@ Submission was a ZIP file{% endif %}</div>
 		// Create a FormData object
 		var formData = new FormData();
 		
-		var editor = ace.edit("editor");
-		editor.$blockScrolling = Infinity;
+		//var editor = ace.edit("editor");
+		//editor.$blockScrolling = Infinity;
 		
 
-		var ACE = editor.getValue();		
+		var ACE = "GAH"; //editor.getValue();		
 		
 		formData.append('problem_id', {{submission.problem.id}});
 		formData.append('language', "{{submission.language.id}}");

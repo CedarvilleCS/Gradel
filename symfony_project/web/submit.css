@@ -81,7 +81,7 @@ textarea {
 }
 
 #editor-handle {
-	width: calc(100% - 30px); 
+	width: calc(100% - 5px); 
 	height: 12px; 
 	background: #e8e8e8;
 	cursor: s-resize;
@@ -97,7 +97,6 @@ textarea {
 
 .tabs {
     padding: 10px;
-    width: 50px;
     border: 1px solid grey;
     border-top-left-radius: 5px;
     border-top-right-radius: 5px;
@@ -129,9 +128,9 @@ textarea {
     height: 30px;	
 }
 
-.ui-tabs .ui-tabs-nav li {
-	width: 100px;
+.ui-tabs .ui-tabs-nav li, .ui-tabs .ui-tabs-nav li input{
 	cursor: pointer;
+	top: 4px;
 }
 
 .ui-tabs li a .tab-filename{
@@ -139,11 +138,26 @@ textarea {
 	border: 0px solid black;
 	font-family: monospace;
 	color: black;
-	width: 100px;
 	outline: none;
 	
 }
 
+.ui-tabs .ui-tabs-nav {
+	border: none;
+	background: transparent;
+	padding: 0px;
+}
+
+#file-markers {
+	border: none;
+	background: transparent;
+	padding: 0px;
+}
+
 .ui-tabs li a .tab-filename::selection{
-	background: #ACCEF7;
+	background: blue;
+}
+
+input[type=text] {
+	width: auto;
 }

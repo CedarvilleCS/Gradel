@@ -18,6 +18,10 @@ use AppBundle\Entity\Language;
 use AppBundle\Entity\Feedback;
 use AppBundle\Entity\TestcaseResult;
 
+
+use AppBundle\Utils\Zipper;
+
+
 use \DateTime;
 use \ZipArchive;
 
@@ -45,17 +49,29 @@ class Uploader  {
 	*/
 	public function getFileContents($file){
 
-		# Get the file contents and name
-		$fileContents = base64_encode(file_get_contents($file["tmp_name"]));
-		$fileName = basename($file["name"]);
 		
 				
 		if(pathinfo($file['name'], PATHINFO_EXTENSION) == 'zip'){
-			$fileContents = base64_encode("Zip file contents is meaningless");
-		}
+			
+			# ZIP
+			$zipper = new Zipper();
+			$contents = $zipper->getZipContents($file["tmp_name"]);
+			
+			if($contents === false){
+				return false;
+			}
+			
+			return $contents;				
+			
+		} else {
+			
+			# Get the file contents and name
+			$fileContents = base64_encode(file_get_contents($file["tmp_name"]));
+			$fileName = basename($file["name"]);
 
-		# return an array of the contents and name
-		return ["contents" => $fileContents, "name" => $fileName];
+			# return an array of the contents and name
+			return [["contents" => $fileContents, "name" => $fileName]];		
+		}
 	}
 	
 	/* 
