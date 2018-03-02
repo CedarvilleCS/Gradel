@@ -9,6 +9,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Config\Definition\Exception\Exception;
 
 use AppBundle\Entity\Trial;
+use AppBundle\Utils\Zipper;
 
 /**
 *@ORM\Entity
@@ -72,8 +73,7 @@ class Submission implements JsonSerializable {
 		$this->best_submission = false;
 		#this->submitted_file
 		#this->log_directory
-		#this->filename
-		$this->main_class_name = "";
+		#this->filename2
 		$this->package_name = "";
 		#this->compiler_output
 		$this->compiler_error = false;
@@ -227,10 +227,35 @@ class Submission implements JsonSerializable {
 	*/
 	public $submitted_file;
 	
-	public function deblobinateSubmittedFile(){			
+	public function deblobinateSubmittedFile(){	
 		$val = stream_get_contents($this->submitted_file);
 		rewind($this->submitted_file);
 		return $val;
+	}
+	
+	public function getSubmissionFileContents(){
+				
+		// get the contents of a submission file
+		$temp = tmpfile();
+		$temp_filename = stream_get_meta_data($temp)['uri'];
+		
+		if(file_put_contents($temp_filename, $this->submitted_file) === FALSE){
+			return false;			
+		}
+		
+		$zipper = new Zipper();		
+		$contents = $zipper->getZipContents($temp_filename);
+		
+		if($contents === false){
+					
+			fseek($temp, 0);
+			
+			return [['name'=>$this->filename, 'contents'=>fread($temp, filesize($temp_filename))]];
+		}
+		
+		fclose($temp);
+
+		return $contents;
 	}
 	
 	/**

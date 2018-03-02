@@ -1,0 +1,298 @@
+{% set result_page = ("result" in app.request.attributes.get('_route')) %}
+
+
+{% block editor_html %}
+
+	<div id="file-markers">
+		<ul>
+		</ul>
+	</div>
+
+	<div id="editor-container">
+		<div id="editor"></div>
+		<div id="editor-handle"> </div>
+	</div>
+
+{% endblock %}
+
+{% block editor_javascript %}
+
+	// set default stuff for the ace editor
+	var editor = ace.edit("editor");
+	editor.$blockScrolling = Infinity;
+	editor.setTheme("ace/theme/xcode");
+	
+	/* MULTIPLE EDITOR TAB OPTIONS */
+	// ACE Session
+	var EditSession = ace.require("ace/edit_session").EditSession;
+	var ace_sessions = [];	
+	var curr_session;
+
+	// not working
+	{% if not result_page %}
+	editor.commands.addCommand({
+		name: "replace",
+		bindKey: {win: "Ctrl-S", mac: "Command-S"},
+		exec: function() {
+			updateTrial();
+		}
+	});
+	{% endif %}
+	
+	// file tabs
+	$('#file-markers').tabs();	
+	var tabCount = $('#file-markers >ul >li').length;
+	if(tabCount < 1){
+		addAceSession();
+		$( "#file-markers" ).tabs({ active: 0 });
+	}
+	
+	function addAddFileButton(){
+		
+		$("#file-markers ul").append(
+			"<li class='tabs' id='add-file-button' style='margin: 8px 0px; padding: 4px 10px; top: 7px'> &#xff0b; </li>"
+		);
+		
+		$('#add-file-button').click(function() {
+			addAceSession();
+		}); 
+		
+		$('#trial-status').text('Unsaved changes...');
+	}
+	
+	function removeAddFileButton(){
+		$('#add-file-button').remove();
+	}
+	
+	function populateSessions(files){
+		
+		clearAceSessions();					
+		for(var i=0; i<files.length; i++){
+			
+			addAceSession();
+			
+			editor.setSession(ace_sessions[i+1]);
+			
+			try{
+				editor.setValue(atob(files[i]['contents']), -1);
+			} catch(e) {
+				editor.setValue(files[i]['contents'], -1);
+			}
+			
+			$('#test-code-tab-user-'+(i+1)+'-marker').find('a input').val(files[i]['name']);
+			$('#test-code-tab-user-'+(i+1)+'-marker').find('a input').attr('size', Math.max(5, files[i]['name'].length));
+		}
+	}
+	
+	function clearAceSessions(){
+		ace_sessions = [];
+		
+		$('#file-markers ul li').remove();			
+	}
+	
+	function removeAceSession(index){
+		
+		{% if not result_page %}
+		removeAddFileButton();	
+		{% endif %}
+		
+		var num_tabs = $("#file-markers ul li").length;
+		
+		if(num_tabs == 1){
+			$('#trial-status').text("Cannot remove file");
+		
+			addAddFileButton();
+			return;
+		}
+		
+		$('.tabs').off('click');
+		$('.tabs').off('contextmenu');
+		$('.tabs').off('change');
+		
+		$('#test-code-tab-user-' + index + '-marker').remove();
+		
+		var temp_sessions = [];
+		var mod = 0;
+		var found = false;
+		
+		for(var i=1; i<ace_sessions.length; i++){
+			
+			if(i == index){
+				found = true;
+				continue;
+			}
+			
+			if(found){
+				mod = 1;
+			}
+			temp_sessions[i-mod] = ace_sessions[i];				
+		}
+		
+		ace_sessions = [];
+		ace_sessions = temp_sessions;
+		
+		$('.tabs').each( function(ind) {				
+			$(this).attr('id', 'test-code-tab-user-'+(ind+1)+'-marker');	
+
+			updateTabEvents($(this), ind+1);
+		});
+		
+		{% if not result_page %}
+		addAddFileButton();
+		{% endif %}
+		
+		{% if not result_page %}
+		updateTrial();
+		{% endif %}
+		
+		
+		if(curr_session == index){
+			curr_session = 1;
+			$('#test-code-tab-user-1-marker').click();
+		} else if(index <= curr_session) {
+			curr_session--;
+			editor.setSession(ace_sessions[curr_session]);
+		}
+	}
+	
+	function updateTabEvents(ui, ind){			
+					
+		ui.click(function(e) {
+			$('.tabs').css('background', 'inherit');
+			$('.tabs').css('border-top', '1px solid grey');				
+			$('.tabs').css('border-left', '1px solid grey');				
+			$('.tabs').css('border-right', '1px solid grey');				
+			$('.tabs').css('border-bottom', 'inherit');
+			$('.tabs').find('input').css('color', 'black');
+			
+			$(this).css('background', '#71BA62');
+			$(this).css('border', '1px solid white');
+			$(this).find('input').css('color', 'white');
+			
+			editor.setSession(ace_sessions[ind]);
+			curr_session = ind;
+		});
+		
+		{% if not result_page %}
+		ui.contextmenu(function(e) {
+			// right click
+			removeAceSession(ind);
+			return false;			
+		});	
+
+		ui.change(function(e) {
+			$(this).find('a input').attr('size', $(this).find('a input').val().length);		
+			updateTrial();			
+		});
+		{% endif %}
+	}
+	
+	function addAceSession(){
+		
+		removeAddFileButton();
+		var num_tabs = $("#file-markers ul li").length + 1;
+
+		$("#file-markers ul").append(
+			"<li class='tabs' id='test-code-tab-user-" + num_tabs + "-marker'><a href='#test-code-tab-user-" + num_tabs + "'>" 
+				+ "<input class='tab-filename' readonly='true' ondblclick='this.readOnly=\"\";' onblur='this.readOnly=\"true\"' type='text' value='filename" + num_tabs + ".file'></a>"
+				+ '<input type="hidden" name="ACE" id="ACE' + num_tabs + '">'
+				+ "</li>"
+		);
+		
+		$('#test-code-tab-user-'+num_tabs+'-marker').find('a input').attr('size', 14);
+		
+		updateTabEvents($('#test-code-tab-user-' + num_tabs + '-marker'), num_tabs);
+
+		var new_session = new EditSession("");			
+		ace_sessions[num_tabs] = new_session;
+		
+		$('#test-code-tab-user-' + num_tabs + '-marker').click();
+		editor.setTheme("ace/theme/xcode");
+		
+		{% if not result_page %}
+		updateAceCode();
+		setDefaultCode();
+		{% endif %}
+			
+		new_session.on('change', function() {	
+			
+			{% if not result_page %}
+				second++;
+				if(second > 1){
+					$('#trial-status').text("Unsaved changes...");
+				}
+			{% endif %}
+				
+			{% if not result_page %}
+			clearInterval(trialUpdateTimer);
+			trialUpdateTimer = setInterval(updateTrial, 5000);
+			{% endif %}
+			
+		});
+		
+		{% if not result_page %}
+		addAddFileButton();
+		{% endif %}
+	}
+	
+{% endblock %}
+
+
+{% block editor_setlanguage %}
+	
+	// Update the language for all files
+	var current_session = editor.getSession();
+	for(var i = 1; i < ace_sessions.length; i++) {
+		editor.setSession(ace_sessions[i]);
+		curr_session = i;
+		updateAceCode();
+	}
+	editor.setSession(current_session);			
+
+	
+{% endblock %}
+
+
+{% block editor_onready %}
+
+	{% if trial %}				
+	populateSessions(JSON.parse("{{trial.getFileContents()|json_encode|e('js')}}"));
+	{% endif %}
+	
+	{% if submission %}	
+	var files = JSON.parse("{{submission_contents|json_encode|e('js')}}");
+	console.log(files);
+	populateSessions(files);
+	
+	
+	
+	$('#quick-edit-btn').button('enable');
+	$('#edit-note').show();
+	
+	{% endif %}
+	
+	
+
+{% endblock %}
+
+{% block editor_onsubmission %}
+
+var files = responseText['files'];					
+populateSessions(files);
+
+{% endblock %}
+
+
+{% block editor_storecontentsinace %}
+
+	for (var i = 1; i < ace_sessions.length; i++) {
+		editor.setSession(ace_sessions[i]);
+		
+		var val = editor.getValue();
+		var filename = $('#test-code-tab-user-' + i + '-marker').find('input').val();
+		
+		ACE.push({'filename': filename, 'content': val});
+	}			
+	editor.setSession(ace_sessions[curr_session]);
+
+{% endblock %}

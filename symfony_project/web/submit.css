@@ -81,7 +81,7 @@ textarea {
 }
 
 #editor-handle {
-	width: calc(100% - 30px); 
+	width: calc(100% - 5px); 
 	height: 12px; 
 	background: #e8e8e8;
 	cursor: s-resize;
@@ -95,14 +95,6 @@ textarea {
 	margin-top: 10px;
 }
 
-.tabs {
-    padding: 10px;
-    width: 50px;
-    border: 1px solid grey;
-    border-top-left-radius: 5px;
-    border-top-right-radius: 5px;
-    text-align: center;
-}
 
 #markdown-collapser {
 	width: calc(100% - 27px);
@@ -129,21 +121,3 @@ textarea {
     height: 30px;	
 }
 
-.ui-tabs .ui-tabs-nav li {
-	width: 100px;
-	cursor: pointer;
-}
-
-.ui-tabs li a .tab-filename{
-	background: transparent;
-	border: 0px solid black;
-	font-family: monospace;
-	color: black;
-	width: 100px;
-	outline: none;
-	
-}
-
-.ui-tabs li a .tab-filename::selection{
-	background: #ACCEF7;
-}

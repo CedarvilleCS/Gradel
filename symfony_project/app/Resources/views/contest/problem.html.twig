@@ -451,19 +451,13 @@ Please re-upload it!
 			
 			// handle having a trial and displaying the description
 			{% if trial != null %}
-			
-			{% if elevatedUser or (problem.assignment.start_time|date('U') < "now"|date('U') and problem.assignment.cutoff_time|date('U') > "now"|date('U')) %}
-			setLanguageFromFilename("{{trial.filename}}");
-			{% endif %}
-	
-			{% if not trial.show_description %}
-			$("#markdown-collapser").click();
+		
+				{% if not trial.show_description %}
+				$("#markdown-collapser").click();
+				{% endif %}
 			{% endif %}
 			
-			{% else %}
-			$('#languageSelect').change();			
-			{% endif %}
-			
+			$('#languageSelect').change();		
 			
 			
 			var origWidthContainer = $('#editor-container').width();

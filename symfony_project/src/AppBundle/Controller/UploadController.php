@@ -62,13 +62,10 @@ class UploadController extends Controller {
         $uploader = new Uploader($web_dir);
 
 		$fileInfo = $uploader->getFileContents($file);
-
-		$responseData = [];		
-		$responseData[] = $fileInfo;
 		
 		$response = new Response(json_encode([
 			
-			'files' => $responseData,
+			'files' => $fileInfo,
 
 		]));
 
@@ -211,7 +208,7 @@ class UploadController extends Controller {
 		$files = $request->files;		
 		
 		if($files->get('file')){	
-
+		
 			$file = $files->get('file');
 
 			if($file->getClientSize() > 1024*1024){

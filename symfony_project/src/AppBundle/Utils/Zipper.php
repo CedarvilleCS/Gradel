@@ -62,6 +62,33 @@ class Zipper  {
 		return TRUE;
 	}
 	
+	public function getZipContents($source){
+		
+		$za = new ZipArchive();
+		
+		if($za->open($source) !== TRUE){
+			return false;
+		}
+		
+		$contents = [];
+		for($i = 0; $i<$za->numFiles; $i++){
+			
+			
+			$fileInfo = [];
+			$fileInfo['name'] = basename($za->statIndex($i)['name']);
+			$fileInfo['contents'] = base64_encode($za->getFromIndex($i));			
+						
+			if(strlen($fileInfo['contents']) > 0){
+				$contents[] = $fileInfo;
+			}
+		}
+		
+		$za->close();
+		
+		return $contents;
+		
+	}
+	
 }
 
 ?>
