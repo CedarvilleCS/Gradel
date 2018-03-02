@@ -70,6 +70,7 @@ class Trial implements JsonSerializable {
 	
 	public function deblobinateFile(){
 		
+		rewind($this->file);
 		$val = stream_get_contents($this->file);
 		rewind($this->file);
 		

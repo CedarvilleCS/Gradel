@@ -95,13 +95,6 @@ textarea {
 	margin-top: 10px;
 }
 
-.tabs {
-    padding: 10px;
-    border: 1px solid grey;
-    border-top-left-radius: 5px;
-    border-top-right-radius: 5px;
-    text-align: center;
-}
 
 #markdown-collapser {
 	width: calc(100% - 27px);
@@ -128,36 +121,3 @@ textarea {
     height: 30px;	
 }
 
-.ui-tabs .ui-tabs-nav li, .ui-tabs .ui-tabs-nav li input{
-	cursor: pointer;
-	top: 4px;
-}
-
-.ui-tabs li a .tab-filename{
-	background: transparent;
-	border: 0px solid black;
-	font-family: monospace;
-	color: black;
-	outline: none;
-	
-}
-
-.ui-tabs .ui-tabs-nav {
-	border: none;
-	background: transparent;
-	padding: 0px;
-}
-
-#file-markers {
-	border: none;
-	background: transparent;
-	padding: 0px;
-}
-
-.ui-tabs li a .tab-filename::selection{
-	background: blue;
-}
-
-input[type=text] {
-	width: auto;
-}

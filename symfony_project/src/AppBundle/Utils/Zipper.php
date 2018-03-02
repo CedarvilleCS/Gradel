@@ -73,10 +73,11 @@ class Zipper  {
 		$contents = [];
 		for($i = 0; $i<$za->numFiles; $i++){
 			
+			
 			$fileInfo = [];
 			$fileInfo['name'] = basename($za->statIndex($i)['name']);
 			$fileInfo['contents'] = base64_encode($za->getFromIndex($i));			
-			
+						
 			if(strlen($fileInfo['contents']) > 0){
 				$contents[] = $fileInfo;
 			}

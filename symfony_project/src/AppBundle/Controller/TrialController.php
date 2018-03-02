@@ -52,8 +52,7 @@ class TrialController extends Controller {
 		
 		# stores all of the data from the post
 		$postData = $request->request->all();	
-		$files = $request->files;
-		
+				
 		# get the problem
 		$problem_id = $postData['problem_id'];		
 		$problem = $em->find('AppBundle\Entity\Problem', $problem_id);
@@ -214,7 +213,7 @@ class TrialController extends Controller {
 	public function quickAction(Request $request){
 				
 		$response = $this->forward('AppBundle\Controller\TrialController::trialModifyAction');
-		
+				
 		if($response->getStatusCode() == Response::HTTP_OK){
 					
 			return $this->forward('AppBundle\Controller\CompilationController::submitAction', [

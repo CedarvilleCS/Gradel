@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="{{ asset('card.css') }}" />
 	
     <link rel="stylesheet" href="{{ asset('submit.css') }}" />
+    <link rel="stylesheet" href="{{ asset('sessions.css') }}" />
 	
     <link rel="stylesheet" href="{{ asset('markdown-styles.css') }}" />
 
@@ -82,24 +83,8 @@
 					<div id="markdown-collapser">Hide Description</div>
 				</div>
 				
-
-{# the ACE editor text area #}
-
-<div id="file-markers">
-	<ul>
-	</ul>
-</div>
-
-<div id="editor-container">
-<div id="editor">{% if trial != null and trial.filename|split('.')|last != 'zip' %}
-{{ trial.deblobinateFile()|nl2br }}{% elseif trial != null %}
-Uploaded file was a ZIP file<br>
-We are not able to repopulate zip files at this time.<br>
-Please re-upload it!
-{% endif %}
-</div>
-<div id="editor-handle"> </div>
-				</div>
+				{# the editor text area #}
+				{{ block('editor_html', 'ace/sessions.twig') }}
 
 				{# display the form or not #}
 				{% set open = (problem.assignment.start_time|date('U') < "now"|date('U') and problem.assignment.cutoff_time|date('U') > "now"|date('U')) %}
@@ -126,7 +111,6 @@ Please re-upload it!
 						</select>
 						<br>
 						<div id="mainClassInput" style="display:none"><label for="main_class">Main Class: </label><input type="text" name="main_class" id="main_class_input" value="{{(trial) ? trial.main_class}}"></div>
-						<div id="packgNameInput" style="display:none"><label for="package_name">Package Name: </label><input type="text" name="package_name" id="package_name_input" value="{{(trial) ? trial.package_name}}"></div>
 						<br/>
 						<input type="hidden" name="ACE" id="ACE">
 						<div class="btn" style="width: 100px" id="submissionButton"> Submit </div>
@@ -223,7 +207,9 @@ Please re-upload it!
 	<script>
 	
 		var languages = JSON.parse("{{languages|json_encode|e('js')}}");
-
+		var default_code = JSON.parse('{{ default_code|json_encode|e('js') }}');
+		var ace_modes = JSON.parse('{{ ace_modes|json_encode|e('js') }}');
+		
 		// markdown stuff
 		var converter = new showdown.Converter();
 		converter.setOption('tasklists', true);
@@ -233,211 +219,9 @@ Please re-upload it!
 		converter.setFlavor('github');
 		var markdownText = converter.makeHtml("{{problem.description|e('js')}}");
 
-		// set default stuff for the ace editor
-		var editor = ace.edit("editor");
-		editor.$blockScrolling = Infinity;
-		editor.setTheme("ace/theme/xcode");
-
+		{# template for multiple sessions #}
+		{{ block('editor_javascript', 'ace/sessions.twig') }}
 		
-		/* MULTIPLE EDITOR TAB OPTIONS */
-		// ACE Session
-		var EditSession = ace.require("ace/edit_session").EditSession;
-		var ace_sessions = [];	
-		var curr_session;
-
-		// not working
-		editor.commands.addCommand({
-			name: "replace",
-			bindKey: {win: "Ctrl-S", mac: "Command-S"},
-			exec: function() {
-				updateTrial();
-			}
-		});
-		
-		// file tabs
-		$('#file-markers').tabs();	
-		var tabCount = $('#file-markers >ul >li').length;
-		if(tabCount < 1){
-			addAceSession();
-			$( "#file-markers" ).tabs({ active: 0 });
-		}
-		
-		function addAddFileButton(){
-			
-			$("#file-markers ul").append(
-				"<li class='tabs' id='add-file-button' style='margin: 8px 0px; padding: 4px 10px; top: 7px'> &#xff0b; </li>"
-			);
-			
-			$('#add-file-button').click(function() {
-				addAceSession();
-			}); 
-			
-			$('#trial-status').text('Unsaved changes...');
-		}
-		
-		function removeAddFileButton(){
-			$('#add-file-button').remove();
-		}
-		
-		function populateSessions(files){
-			
-			clearAceSessions();					
-			for(var i=0; i<files.length; i++){
-				
-				addAceSession();
-				
-				editor.setSession(ace_sessions[i+1]);
-				
-				try{
-					editor.setValue(atob(files[i]['contents']), -1);
-				} catch(e) {
-					editor.setValue(files[i]['contents'], -1);
-				}
-				
-				$('#test-code-tab-user-'+(i+1)+'-marker').find('a input').val(files[i]['name']);
-				$('#test-code-tab-user-'+(i+1)+'-marker').find('a input').attr('size', Math.max(5, files[i]['name'].length));
-			}
-		}
-		
-		function clearAceSessions(){
-			ace_sessions = [];
-			
-			$('#file-markers ul li').remove();			
-		}
-		
-		function removeAceSession(index){
-			
-			removeAddFileButton();			
-			
-			var num_tabs = $("#file-markers ul li").length;
-			
-			if(num_tabs == 1){
-				$('#trial-status').text("Cannot remove file");
-			
-				addAddFileButton();
-				return;
-			}
-			
-			$('.tabs').off('click');
-			$('.tabs').off('contextmenu');
-			$('.tabs').off('change');
-			
-			$('#test-code-tab-user-' + index + '-marker').remove();
-			
-			var temp_sessions = [];
-			var mod = 0;
-			var found = false;
-			
-			for(var i=1; i<ace_sessions.length; i++){
-				
-				if(i == index){
-					found = true;
-					continue;
-				}
-				
-				if(found){
-					mod = 1;
-				}
-				temp_sessions[i-mod] = ace_sessions[i];				
-			}
-			
-			ace_sessions = [];
-			ace_sessions = temp_sessions;
-			
-			$('.tabs').each( function(ind) {				
-				$(this).attr('id', 'test-code-tab-user-'+(ind+1)+'-marker');	
-
-				updateTabEvents($(this), ind+1);
-			});
-			
-			addAddFileButton();
-			
-			updateTrial();
-			
-			
-			if(curr_session == index){
-				curr_session = 1;
-				$('#test-code-tab-user-1-marker').click();
-			} else if(index <= curr_session) {
-				curr_session--;
-				editor.setSession(ace_sessions[curr_session]);
-			}
-		}
-		
-		function updateTabEvents(ui, ind){			
-						
-			ui.click(function(e) {
-				$('.tabs').css('background', 'inherit');
-				$('.tabs').css('border-top', '1px solid grey');				
-				$('.tabs').css('border-left', '1px solid grey');				
-				$('.tabs').css('border-right', '1px solid grey');				
-				$('.tabs').css('border-bottom', 'inherit');
-				$('.tabs').find('input').css('color', 'black');
-				
-				$(this).css('background', '#71BA62');
-				$(this).css('border', '1px solid white');
-				$(this).find('input').css('color', 'white');
-				
-				editor.setSession(ace_sessions[ind]);
-				curr_session = ind;
-			});
-			
-			
-			ui.contextmenu(function(e) {
-				// right click
-				removeAceSession(ind);
-				return false;			
-			});	
-
-			ui.change(function(e) {
-				
-				$(this).find('a input').attr('size', $(this).find('a input').val().length);		
-				updateTrial();
-			});
-		}
-		
-		function addAceSession(){
-			
-			removeAddFileButton();
-			var num_tabs = $("#file-markers ul li").length + 1;
-
-			$("#file-markers ul").append(
-				"<li class='tabs' id='test-code-tab-user-" + num_tabs + "-marker'><a href='#test-code-tab-user-" + num_tabs + "'>" 
-					+ "<input class='tab-filename' readonly='true' ondblclick='this.readOnly=\"\";' onblur='this.readOnly=\"true\"' type='text' value='filename" + num_tabs + getFiletype() + "'></a>"
-					+ '<input type="hidden" name="ACE" id="ACE' + num_tabs + '">'
-					+ "</li>"
-			);
-			
-			$('#test-code-tab-user-'+num_tabs+'-marker').find('a input').attr('size', 14);
-			
-			updateTabEvents($('#test-code-tab-user-' + num_tabs + '-marker'), num_tabs);
-
-			var new_session = new EditSession("");			
-			ace_sessions[num_tabs] = new_session;
-			
-			$('#test-code-tab-user-' + num_tabs + '-marker').click();
-			editor.setTheme("ace/theme/xcode");
-			
-			updateAceCode();
-			setDefaultCode();
-				
-			new_session.on('change', function() {	
-
-				second++;
-				if(second > 1){
-					$('#trial-status').text("Unsaved changes...");
-				}
-				
-				clearInterval(trialUpdateTimer);
-				trialUpdateTimer = setInterval(updateTrial, 5000);		
-			});
-			
-			
-			addAddFileButton();
-		}
-
-
-		var saved_code = "";
 		function getFiletype(){
 			
 			var languageName = $('#languageSelect option:selected').text();
@@ -476,7 +260,6 @@ Please re-upload it!
 		function setLanguageFromFilename(filename){
 
 			var classname = getName(filename);
-			var ext = getExtension(filename);
 			var language = getLanguage(filename);
 
 			if(!language){				
@@ -489,7 +272,7 @@ Please re-upload it!
 			document.getElementById('main_class_input').value = classname;
 
 			// toggle the java inputs
-			toggleJavaInputs(language == "Java", ext == "zip");
+			toggleJavaInputs(language == "Java");
 			
 			return true;
 		}
@@ -505,66 +288,72 @@ Please re-upload it!
 				}
 			}
 
-			// Update the language for all files
-			var current_session = editor.getSession();
-			for(var i = 1; i < ace_sessions.length; i++) {
-				editor.setSession(ace_sessions[i]);
-				curr_session = i;
-				updateAceCode();
-			}
-			editor.setSession(current_session);
+			{# template for updating the sessions #}
+			{{ block('editor_setlanguage', 'ace/sessions.twig') }}
 			
-
 			// toggle the java inputs
-			var ext = getExtension($('#submissionUploadForm #file').val());
-			toggleJavaInputs(language == "Java", ext == "zip");
+			toggleJavaInputs(language == "Java");
 		}
 
-		function toggleJavaInputs(state1, state2){
+		function autoSetLanguage(){
+			
+			var deter = hljs.highlightAuto(editor.getValue(), ["python", "cpp", "java", "php"]);
+			var lang = deter.language;
+			
+			if(deter.second_best){
+				var second = deter.second_best.language;
+			}
+			
+			var language = "";
+			
+			if(second == "java"){
+				language = "Java";
+			} else if(second == "python"){ 
+				language = "Python 3";
+			} else {
+				
+				if(lang == "cpp"){
+					language = "C++";
+				} else if(lang == "python"){
+					language = "Python 3";
+				} else if(lang == "php"){
+					language = "PHP";
+				} else if(lang == "java"){
+					language = "Java";
+				}
+			}
+			
+			setLanguage(language);	
+		}
+		
+		function toggleJavaInputs(state1){
 
 			if(!state1){
 				document.getElementById('mainClassInput').style.display = 'none';
-				document.getElementById('packgNameInput').style.display = 'none';
-			} else if(state1 && !state2){
+			} else {
 				document.getElementById('mainClassInput').style.display = 'block';
-				document.getElementById('packgNameInput').style.display = 'none';
-			} else{
-				document.getElementById('mainClassInput').style.display = 'block';
-				document.getElementById('packgNameInput').style.display = 'block';
 			}
 		}
 
+		var saved_code = "";
 		function updateAceCode(){
-
-			//console.log("--------------\nupdaceAceCode(): ");
-
-			var default_code = JSON.parse('{{ default_code|json_encode|e("js") }}');
-			var ace_modes = JSON.parse('{{ ace_modes|json_encode|raw }}');
 						
 			language = $('#languageSelect option:selected').text();
-			//console.log("language: " + language);
 			
 			if(saved_code !== editor.getValue()) {
 				editor.setValue(editor.getValue(), -1);
-				//console.log("setValue");
 			} else {
 				// This sets the default code for the selected language.
 				editor.setValue(default_code[language], -1);
 				saved_code = default_code[language];
-				//console.log("setting to default code");
 			}
 			
-			editor.getSession().setMode("ace/mode/" + ace_modes[language]);
-
-			//console.log("ace updated");
-			
+			editor.getSession().setMode("ace/mode/" + ace_modes[language]);			
 		}
 
 		// sets the default code for the selected language. used when adding a new file tab.
 		function setDefaultCode() {
-			var default_code = JSON.parse('{{ default_code|json_encode|replace({'\\':'\\\\'})|raw }}');
-			var ace_modes = JSON.parse('{{ ace_modes|json_encode|raw }}');
-			
+				
 			language = $('#languageSelect option:selected').text();
 			
 			editor.setValue(default_code[language], -1);
@@ -580,37 +369,19 @@ Please re-upload it!
 		var trialUpdateTimer = null;
 		var trialId = {{(trial) ? trial.id : "0"}};
 		var second = 0;
-		
-		$("#markdown-collapser").click(function () {
 			
-			$collapser = $(this);
-			$content = $('#markdown');
-						
-			$collapser.text(function() {
-				return $content.is(":visible") ? "Show Description" : "Hide Description";
-			});
-			
-			$content.slideToggle(20, function() {});
-			
-			updateTrial();
-			
-		});
-	
 		$(document).ready(function() {
 			
 			$('#markdown').html(markdownText);
-								
-			$('.file-data textarea').each(function () {
-				
-				$(this).html(addReturnKey($(this).html()));
-				
-			});
-			
-			
+
 			{% if trial != null %}
 				
 				{% if not trial.show_description %}
 				$("#markdown-collapser").click();
+				{% endif %}
+				
+				{% if trial.editor_height > 0 %}
+				$('#editor').height({{trial.editor_height}});
 				{% endif %}
 
 			{% endif %}
@@ -646,21 +417,10 @@ Please re-upload it!
 				alsoResize: "#editor",
 			});	
 
-			
-			{% if trial %}
-			
-			populateSessions(JSON.parse("{{trial.getFileContents()|json_encode|e('js')}}"));
-			
-			
-			{% if trial.editor_height > 0 %}
-			$('#editor').height({{trial.editor_height}});
-			{% endif %}
-			
-			{% endif %}
-			
+			{# editor sessions twig #}
+			{{ block('editor_onready', 'ace/sessions.twig') }}
 		});
-		
-		
+				
 		// make the language dropdown change affect the code
 		$('#languageSelect').change( function(data) {
 
@@ -673,6 +433,20 @@ Please re-upload it!
 			$('#submissionUploadForm').submit();
 		});
 
+		$("#markdown-collapser").click(function () {
+			
+			$collapser = $(this);
+			$content = $('#markdown');
+						
+			$collapser.text(function() {
+				return $content.is(":visible") ? "Show Description" : "Hide Description";
+			});
+			
+			$content.slideToggle(20, function() {});
+			
+			updateTrial();			
+		});
+		
 		// overwrite the normal submit to call the ajaxsubmit
 		$('#submissionUploadForm').submit(function() {
 			
@@ -686,45 +460,16 @@ Please re-upload it!
 				},
 				success:		function(responseText, statusText, xhr, $form) {
 										
-					var files = responseText['files'];
 					var file = responseText['files'][0];
 			
 					console.log(responseText);
 					
-					populateSessions(files);					
+					{# editor get contents success #}
+					{{ block('editor_onsubmission', 'ace/sessions.twig') }}
 					
 					if(!setLanguageFromFilename(file['name']) && getExtension(file['name']) != 'zip'){
 										
-						var deter = hljs.highlightAuto(editor.getValue(), ["python", "cpp", "java", "php"]);
-						var lang = deter.language;
-						
-						if(deter.second_best){
-							var second = deter.second_best.language;
-						}
-						
-						console.log(lang);
-						console.log(second);
-						
-						var language = "";
-						
-						if(second == "java"){
-							language = "Java";
-						} else if(second == "python"){ 
-							language = "Python 3";
-						} else {
-							
-							if(lang == "cpp"){
-								language = "C++";
-							} else if(lang == "python"){
-								language = "Python 3";
-							} else if(lang == "php"){
-								language = "PHP";
-							} else if(lang == "java"){
-								language = "Java";
-							}
-						}
-						
-						setLanguage(language);						
+						autoSetLanguage();					
 					}
 					
 					updateAceCode();
@@ -753,10 +498,9 @@ Please re-upload it!
 
 			var language = $('#languageSelect option:selected').val();
 			var main_class = $('#main_class_input').val();
-			var package_name = $('#package_name_input').val();
+			var package_name = "";
 			var show_description = !($("#markdown-collapser").text() == "Show Description");
-			var editor_height = $('#editor').height();
-			
+			var editor_height = $('#editor').height();			
 			
 			formData.append('problem_id', {{problem.id}});
 			formData.append('language', language);
@@ -767,27 +511,9 @@ Please re-upload it!
 
 			// loop through the editors
 			var ACE = [];
-			for (var i = 1; i < ace_sessions.length; i++) {
-				editor.setSession(ace_sessions[i]);
-				
-				var val = editor.getValue();
-				var filename = $('#test-code-tab-user-' + i + '-marker').find('input').val();
-				
-				ACE.push({'filename': filename, 'content': val});
-			}
-			
-			editor.setSession(ace_sessions[curr_session]);
-			
+			{{ block('editor_storecontentsinace', 'ace/sessions.twig') }}		
 			formData.append('ACE', JSON.stringify(ACE));
 
-			if(getExtension($('#submissionUploadForm #file').val()) == "zip"){
-
-				var file = $('#submissionUploadForm #file').prop('files')[0];
-				if(file){
-					formData.append('file', file);
-				}
-			}
-			
 			$.ajax({
 				type: "POST",
 				url: "{{path('modify_trial')}}",
@@ -825,7 +551,7 @@ Please re-upload it!
 			var language = $('#languageSelect option:selected').val();
 			var languageText = $('#languageSelect option:selected').text();
 			var main_class = $('#main_class_input').val();
-			var package_name = $('#package_name_input').val();
+			var package_name = "";
 
 			if(languageText == 'Java' && main_class == '') {
 			
@@ -840,15 +566,6 @@ Please re-upload it!
 			setValid($('#main_class_input'));
 
 			formData.append('trial_id', trialId);
-
-			if(getExtension($('#submissionUploadForm #file').val()) == "zip"){
-
-				var file = $('#submissionUploadForm #file').prop('files')[0];
-
-				if(file){
-					formData.append('file', file);
-				}
-			}
 
 			$('#loading-container').show();
 			$('#submissionButton').hide();

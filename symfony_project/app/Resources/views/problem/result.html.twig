@@ -12,6 +12,8 @@
 	<link rel="stylesheet" href="{{ asset('styles.css') }}" />
 	<link rel="stylesheet" href="{{ asset('card.css') }}" />
 	
+	<link rel="stylesheet" href="{{ asset('sessions.css') }}" />
+	
 	<link rel="stylesheet" href="{{ asset('submission-results.css') }}">
 {% endblock %}
 
@@ -245,22 +247,8 @@
 				
 				<div id='edit-note' style='display: none'> <small style="color: red; font-style: italics"> Note that editing and resubmitting this code will override your saved code on the problem page </small> </div>
 
-				<div id="submission-textarea">
-					{# display submission file content #}
-					<ul>
-					{% for file in submission_contents %}
-						<li id="submitted-{{loop.index}}-tab"> <a href="#submitted-{{loop.index}}">
-						{{file.name}}
-						</a> </li>
-					{% endfor %}
-					</ul>
-					
-					{% for file in submission_contents %}
-						<div id="submitted-{{loop.index}}" >
-							<textarea id="submitted-{{loop.index}}-textarea" disabled style="height: 300px">asdfasdfas</textarea>						
-						</div>
-					{% endfor %}
-				</div>
+				{# the editor text area #}
+				{{ block('editor_html', 'ace/sessions.twig') }}
 				
 				<h3 style="margin-top: 10px; margin-bottom: 0px">Submission ID: {{submission.id}}</h3>
 				
@@ -292,19 +280,12 @@
 	
 	<script>
 	
+	{# template for multiple sessions #}
+	{{ block('editor_javascript', 'ace/sessions.twig') }}
+	
 	var feedback = JSON.parse("{{feedback.response|json_encode|e('js')}}");
 	
 	$(document).ready( function() {
-	
-		{% for file in submission_contents %}
-		try{
-			$("#submitted-{{loop.index}}-textarea").html(atob("{{file.contents|e('js')}}"));							
-		} catch(e){
-			$("#submitted-{{loop.index}}-textarea").html("{{file.contents|e('js')}}");			
-		}
-		{% endfor %}
-		
-		$('#submission-textarea').tabs();
 	
 		{% if feedback.display_markers %}
 		$('#testcase-markers').tabs({
@@ -375,31 +356,35 @@
 		{% for highlights in feedback.highlights %}
 		
 		
-		{% if highlights.ranges|length == 1 and highlights.ranges[0].index == -1 %}
+			{% if highlights.ranges|length == 1 and highlights.ranges[0].index == -1 %}
+				
+				var txt = $('#{{highlights['id']}}').text();
+				
+				$('#{{highlights['id']}}').text(txt+" ");
+				
+				$('#{{highlights['id']}}').highlightWithinTextarea({
+					highlight: [txt.length, txt.length+1]
+				});
 			
-			var txt = $('#{{highlights['id']}}').text();
+			{% else %}
 			
-			$('#{{highlights['id']}}').text(txt+" ");
+				var ranges = [];
+				
+				{% for range in highlights.ranges %}
+				ranges.push([{{range.index}}, {{range.indexEnd}}]);
+				{% endfor %}
 			
-			$('#{{highlights['id']}}').highlightWithinTextarea({
-				highlight: [txt.length, txt.length+1]
-			});
-		
-		{% else %}
-		
-			var ranges = [];
+				$('#{{highlights['id']}}').highlightWithinTextarea({
+					highlight: ranges
+				});
 			
-			{% for range in highlights.ranges %}
-			ranges.push([{{range.index}}, {{range.indexEnd}}]);
-			{% endfor %}
-		
-		$('#{{highlights['id']}}').highlightWithinTextarea({
-			highlight: ranges
-		});
-		
-		{% endif %}
+			{% endif %}
 		
 		{% endfor %}
+		
+		
+		{# editor sessions twig #}
+		{{ block('editor_onready', 'ace/sessions.twig') }}
 	});	
 	
 	function quickSubmit(){
@@ -412,17 +397,14 @@
 		// Create a FormData object
 		var formData = new FormData();
 		
-		//var editor = ace.edit("editor");
-		//editor.$blockScrolling = Infinity;
-		
-
-		var ACE = "GAH"; //editor.getValue();		
+		var ACE = [];
+		{{ block('editor_storecontentsinace', 'ace/sessions.twig') }}		
+		formData.append('ACE', JSON.stringify(ACE));
 		
 		formData.append('problem_id', {{submission.problem.id}});
 		formData.append('language', "{{submission.language.id}}");
 		formData.append('main_class', "{{submission.main_class_name}}");
 		formData.append('package_name', "{{submission.package_name}}");
-		formData.append('ACE', ACE);
 		
 		$.ajax({
 			type: "POST",
