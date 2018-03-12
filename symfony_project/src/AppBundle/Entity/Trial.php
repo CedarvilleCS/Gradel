@@ -8,6 +8,8 @@ use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Config\Definition\Exception\Exception;
 
+use AppBundle\Utils\Zipper;
+
 /**
 *@ORM\Entity
 *@ORM\Table(name="trial")
@@ -68,6 +70,7 @@ class Trial implements JsonSerializable {
 	
 	public function deblobinateFile(){
 		
+		rewind($this->file);
 		$val = stream_get_contents($this->file);
 		rewind($this->file);
 		
@@ -76,6 +79,31 @@ class Trial implements JsonSerializable {
 		}
 		
 		return $val;
+	}
+	
+		
+	public function getFileContents(){
+				
+		// get the contents of a submission file
+		$temp = tmpfile();
+		$temp_filename = stream_get_meta_data($temp)['uri'];
+		
+		if(file_put_contents($temp_filename, $this->file) === FALSE){
+			return false;			
+		}
+		
+		$zipper = new Zipper();		
+		$contents = $zipper->getZipContents($temp_filename);
+		
+		if($contents === false){
+			fseek($temp, 0);
+			
+			return [['name'=>$this->filename, 'contents'=>fread($temp, filesize($temp_filename))]];
+		}
+		
+		fclose($temp);
+
+		return $contents;
 	}
 	
 	/**

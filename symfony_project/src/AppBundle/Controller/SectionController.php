@@ -131,16 +131,13 @@ class SectionController extends Controller {
 
 				// echo json_encode($allprobs);
 
-
-				
-
-				// query for all submissions
-				$qb_submissions = $em->createQueryBuilder();
-		 		$qb_submissions->select('s')
-						->from('AppBundle\Entity\Submission', 's')
-						->where('s.problem IN (?1)')
-						->orderBy('s.timestamp', 'DESC')
-						->setParameter(1, $allprobs);
+			// query for all submissions
+			$qb_submissions = $em->createQueryBuilder();
+			$qb_submissions->select('s')
+					->from('AppBundle\Entity\Submission', 's')
+					->where('s.problem IN (?1)')
+					->orderBy('s.timestamp', 'DESC')
+					->setParameter(1, $allprobs);
 
 			$qb_submissions = $em->createQueryBuilder();
 			$qb_submissions->select('s')

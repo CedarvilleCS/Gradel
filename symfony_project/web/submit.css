@@ -67,7 +67,8 @@ textarea {
 }
 
 #editor { 
-    width: calc(100% - 50px);
+    width: calc(100% - 25px);
+    /* width: 100%; */
     height: 300px;
     border-top: 2px solid grey;	
     border-right: 2px solid grey;
@@ -80,7 +81,7 @@ textarea {
 }
 
 #editor-handle {
-	width: calc(100% - 30px); 
+	width: calc(100% - 5px); 
 	height: 12px; 
 	background: #e8e8e8;
 	cursor: s-resize;
@@ -94,7 +95,8 @@ textarea {
 	margin-top: 10px;
 }
 
-#markdown-collapser{
+
+#markdown-collapser {
 	width: calc(100% - 27px);
 	background: lightgrey;
 	height: 25px;
@@ -118,3 +120,4 @@ textarea {
 .ui-resizable-s {
     height: 30px;	
 }
+

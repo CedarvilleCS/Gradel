@@ -104,6 +104,7 @@ class AssignmentController extends Controller {
 			$ace_modes = [];
 			$filetypes = [];
 			foreach($problem_languages as $pl){
+				
 				$languages[] = $pl->language;
 				
 				$ace_modes[$pl->language->name] = $pl->language->ace_mode;
@@ -116,6 +117,7 @@ class AssignmentController extends Controller {
 					$default_code[$pl->language->name] = $pl->language->deblobinateDefaultCode();
 				}
 			}
+			
 		}
 		
 		$grader = new Grader($em);		
@@ -184,25 +186,28 @@ class AssignmentController extends Controller {
 			if($submission->user != $user || $submission->problem != $problem_entity){
 				die("You are not allowed to edit this submission on this problem!");
 			}
-			
+						
 			if(!$trial){
 				$trial = new Trial();
 				
 				$trial->user = $user;
-				$trial->problem = $problem_entity;
-				$trial->language = $submission->language;			
+				$trial->problem = $problem_entity;		
 				$trial->show_description = true;
 				
 				$em->persist($trial);
 			}
 			
-			$trial->file = $submission->submitted_file;
-						
+			$trial->file = $submission->submitted_file;						
 			
+			$trial->language = $submission->language;	
 			$trial->filename = $submission->filename;
 			$trial->main_class = $submission->main_class_name;
 			$trial->package_name = $submission->package_name;
 			$trial->last_edit_time = new \DateTime("now");
+			
+			$em->flush();
+			
+			return $this->redirectToRoute('assignment', ['sectionId' => $section_entity->id, 'assignmentId' => $assignment_entity->id, 'problemId' => $problem_entity->id]);
 		}
 		
 		# GET ALL USERS
@@ -230,8 +235,7 @@ class AssignmentController extends Controller {
 			} else if($usr->role->role_num == "Judges"){
 				$section_judges[] = $usr->user;
 			}
-		}
-		
+		}	
 		
 		
 		return $this->render('assignment/index.html.twig', [

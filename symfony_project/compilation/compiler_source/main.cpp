@@ -29,7 +29,7 @@ int main(int argc, char** argv){
 	string filename = "";
 	// (is_zipped)
 	// -z -!z
-	bool is_zipped = false;
+	bool is_zipped = true;
 	// (main_class)
 	// -M
 	string main_class = "";
@@ -166,6 +166,10 @@ int main(int argc, char** argv){
 		filename = "*.cpp";
 	} else if(is_zipped && language == "C"){
 		filename = "*.c";
+	} else if(is_zipped && language == "PHP"){
+		filename = "*.*";
+	} else if(is_zipped && (language == "Python2" || language == "Python3")){
+		filename = "*.*";
 	}
 		
 	// set a reverse flag for timeout

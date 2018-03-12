@@ -58,17 +58,17 @@ class Generator  {
 		}
 		
 		if(!isset($language_id) || !($language_id > 0)){
-			return "language id was not provided";
+			return "Language ID was not provided";
 		}
 		
 		$language = $this->em->find("AppBundle\Entity\Language", $language_id);
 		if(!$language){
-			 return "language with id ".$language_id." does not exist";
+			 return "Language with ID".$language_id." does not exist";
 		}
 		if($language->name == "Java"){
 
 			if((!isset($postData["main_class"]) || trim($postData["main_class"]) == "") && (!isset($postData["mainclass"]) || trim($postData["mainclass"]) == "")){
-				 return "main class is required";
+				 return "Main Class is required";
 			}
 			
 			$main_class = null;
