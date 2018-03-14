@@ -53,7 +53,12 @@
 					</tr>
 					<tr>
 					  <th colspan="4">
-						<label for="description">Description</label>
+						<div style="display: inline-block; position">
+							<label for="description">Description</label>
+							<a title="Click for a markdown tutorial" target="_blank" href="http://commonmark.org/help/">
+								<img class="info-icon" src="{{ asset('info.png') }}">
+							</a>
+						</div>
 						<textarea rows=20 id="description" name="description" class="problem_creation" type="text">{{problem.description}}</textarea>
 						
 						
