@@ -97,7 +97,7 @@
 						<h3 style="margin-bottom: 4px">TESTCASES:</h3>				
 							{% if feedback.show_output and submission.testcaseresults|length > 0 %}
 							<small> <i> Note that this is resizable </i> </small>
-							<div id="testcase-markers">							
+							<div id="testcase-markers" onresize="resized()">							
 								<ul>
 									{% set failed = false %}
 									{% for tcr in submission.testcaseresults %}						
@@ -310,7 +310,7 @@
 		});
 		
 		$('#testcase-markers').css('height', 400);
-		$('#testcase-markers').css('width', maxWidth);
+		// $('#testcase-markers').css('width', maxWidth);
 		
 		$('#tips-list').html("<li>" + escapeHTML(feedback[1]) + "<li>");
 		
@@ -387,6 +387,25 @@
 		{{ block('editor_onready', 'ace/sessions.twig') }}
 	});	
 	
+	function resized() {
+		//console.log("you changed the size!!");
+		var width = $("#testcase-markers").width();
+		var containerWidth = $("#feedback-holder").width();
+
+		console.log(containerWidth/(.75));
+
+		
+		if(width > containerWidth/1.25) { // drop the tips down when the width is big
+			$('#feedback-holder').css('display', 'block');
+			$('#testcase-markers-container').css('width', '100%');
+			$('#feedback').css('width', '100%');
+		} else if (width < containerWidth/1.25) {	// move them back
+			$('#feedback-holder').css('display', 'flex');
+			$('#testcase-markers-container').css('width', 'none');
+			$('#feedback').css('width', 'none');
+		}
+	}
+
 	function quickSubmit(){
 		
 		$('#quick-edit-btn').hide();
