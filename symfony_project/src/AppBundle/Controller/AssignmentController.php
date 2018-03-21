@@ -112,9 +112,9 @@ class AssignmentController extends Controller {
 				
 				// either get the default code from the problem or from the overall default
 				if($pl->default_code != null){
-					$default_code[$pl->language->name] = $pl->deblobinateDefaultCode();
+					$default_code[$pl->language->name] = 'HI'; //$pl->deblobinateDefaultCode();
 				} else{
-					$default_code[$pl->language->name] = $pl->language->deblobinateDefaultCode();
+					$default_code[$pl->language->name] = 'BYE'; //$pl->language->deblobinateDefaultCode();
 				}
 			}
 			

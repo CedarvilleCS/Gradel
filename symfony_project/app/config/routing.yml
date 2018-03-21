@@ -31,6 +31,12 @@ course_modify:
   methods: [POST]
 
 # section routes
+submission_search:
+  path: '/submission_search'
+  defaults:
+    _controller: AppBundle:Section:searchSubmissions
+  methods: [POST]
+
 section_edit:
   path: '/section/edit/{sectionId}'
   defaults:

@@ -127,6 +127,25 @@ class Submission implements JsonSerializable {
 		$this->is_completed = false;
 	}
 	
+	public function getResultString(){
+
+		if($this->isCorrect()){
+			return "Correct";
+		} 
+		else if($this->compiler_error) {
+			return "Incorrect - Compiler Error";
+		} 
+		else if($this->runtime_error) {
+			return "Incorrect - Runtime Error";
+		} 
+		else if($this->exceeded_time_limit) {
+			return "Incorrect - Exceeded Time Limit";
+		}
+		else {
+			return "Incorrect - Wrong Answer";
+		}
+	}
+
 	public function isError(){
 	
 		return $this->compiler_error || $this->runtime_error || $this->exceeded_time_limit;		
@@ -371,13 +390,18 @@ class Submission implements JsonSerializable {
 				'name'=>$this->problem->name,
 				'assignment'=>$this->problem->assignment,
 			],
+
+			'timestamp' => $this->timestamp,
 			
 			'is_correct' => $this->isCorrect(false),
+			'result_string' => $this->getResultString(),
 						
 			'runtime_error' => $this->runtime_error,
 			'exceeded_time_limit' => $this->exceeded_time_limit,
 			'compiler_error' => $this->compiler_error,
 			
+			'language' => $this->language,
+
 			'reviewer' => $this->reviewer,
 		];
 	}

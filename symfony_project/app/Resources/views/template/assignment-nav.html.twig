@@ -23,7 +23,7 @@
 		</li>
 		
 		{# past and present assignments #}
-		{% for assig in assignments %}
+		{% for assig in section.assignments %}
 
 			{% if assig.start_time|date('U') < "now"|date('U')  %}
 
@@ -86,7 +86,7 @@
 		
 		{# future assignments - not open yet #}
 		<ol>
-		{% for assig in assignments %}
+		{% for assig in section.assignments %}
 
 			{% if assig.start_time|date('U') > "now"|date("U") %}
 				{% if elevatedUser %}

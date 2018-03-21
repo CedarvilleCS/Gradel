@@ -78,8 +78,7 @@
 						</div>
 						<div id="language-container">
 							<ul>
-							</ul>							
-														
+							</ul>													
 						</div>
 					  </th>					 
 					</tr>
@@ -573,14 +572,14 @@
 						+ "<label for='compile-options-" + $(this)[0].id + "'> Compiler Options </label>"
 						+ "<input type='text' class='compile-options' id='compile-options-" + $(this)[0].id + "' name='compile-options'>"
 
-						+ "<label for='default-code" + $(this)[0].id + "'> Default Code </label>"
-						+ "<textarea class='default-code' id='default-code-" + $(this)[0].id + "'></textarea>"
+						+ "<label for='default-code-" + $(this)[0].id + "'> Default Code </label>"
+						+ "<input type='file' name='default-code-" + $(this)[0].id + "'>"
 						
 					+ "</div>"
 					
 				+ "</div>"				
 			);
-												
+											
 			$(this).remove();
 						
 			$("#language-container").tabs("refresh");
@@ -604,14 +603,18 @@
 		{% for l in languages %}
 			{% set found_l = null %}
 			{% set found_pl = null %}
+
 			{% for pl in problem.problem_languages %}
 				
 				{% if l == pl.language %}
 					{% set found_pl = pl %}
 					{% set found_l = l %}
 				{% endif %}									
+			
 			{% else %}								
+			
 				{% set found_l = l %}
+			
 			{% endfor %}
 		
 			{% if found_l is not null %}
@@ -1088,6 +1091,7 @@
 	
 	/* function to make the data and send a post with all of the stuff 
 	necessary to generate the output for the current testcases */
+	
 	function genOutput(){
 		
 		// Create a FormData object
@@ -1181,6 +1185,12 @@
 	
 	/* function to send a post request with all of the info needed to create a new problem */
 	function newProb(){
+
+		var formData = new FormData();
+
+		formData.append('assignmentId', {{(problem ? problem.assignment.id : assignment.id)}});
+		formData.append('problem', {{(problem ? problem.id : 0)}});
+
 		const name = document.getElementById('name').value;
 		const description = document.getElementById('description').value;
 		const weight = document.getElementById('weight').value;
@@ -1195,12 +1205,27 @@
 		const displayTestcase = document.getElementById('display-testcase').checked;
 		const extraDisplay = document.getElementById('display-extra').checked;
 
-		var customValidatorText = "";
-		
+		formData.append('name', name);
+		formData.append('description', description);
+		formData.append('weight', weight);
+		formData.append('time_limit', timeLimit);
+		formData.append('is_extra_credit', extraCredit);
+		formData.append('total_attempts', totalAttempts);
+		formData.append('attempts_before_penalty', attemptsBeforePen);
+		formData.append('penalty_per_attempt', penPerAttempt);
+		formData.append('stop_on_first_fail', stopFail);
+		formData.append('response_level', responseLevel);
+		formData.append('testcase_output_level', outputLevel);
+		formData.append('display_testcaseresults', displayTestcase);
+		formData.append('extra_testcases_display', extraDisplay);
+
+		var customValidatorText = "";		
 		if(document.getElementById('use-custom').checked){
 			var customValidatorEditor = ace.edit("custom-validator-editor");
 			customValidatorText = customValidatorEditor.getValue();				
 		}
+
+		formData.append('custom_validator', customValidatorText);
 		
 		const children = $("#language-container .language-tab");
 		languages = [];
@@ -1210,12 +1235,15 @@
 			
 			const id = elem.find('.language-data')[0].id;
 			const comp_options = elem.find('.compile-options').val();
-			const def_code = elem.find('.default-code').val();
+			const def_code = "";
 			
 			const lang = {"id": id, "compiler_options": comp_options, "default_code": def_code};
-			languages.push(lang);
+
+			languages.push(lang);	
 		}
 
+		console.log(languages);
+		formData.append('languages', JSON.stringify(languages));
 
 		/* build the testcase array */
 		var testcases = document.getElementsByClassName("test-case");
@@ -1229,10 +1257,11 @@
 			const weight = $('#' + testcase.id).find("." + "weight").val();
 			const extra_credit = $('#' + testcase.id).find("." + "extra-credit").prop("checked");
 			const tc = {"input": input, "args": args, "output": output, "weight": weight, "short_response": short_fb, "long_response": long_fb, "extra_credit": extra_credit ? "true" : "false"};
+			
 			tcs.push(tc);
 		}
-		
-		console.log(tcs);
+
+		formData.append('testcases', JSON.stringify(tcs));			
 		
 		linked_probs = [];
 		linked_probs_raw = $("#linked_probs").val().split(",");
@@ -1242,47 +1271,27 @@
 				linked_probs.push(linked_probs_raw[i].trim());
 			}
 		}
-		console.log(linked_probs);
+
+		formData.append('linked_probs', JSON.stringify(linked_probs));
 		
-		var path = "{{path('problem_modify')}}";
-		$.post(path, {
-			"assignmentId": {{(problem ? problem.assignment.id : assignment.id)}},
-			"problem": {{(problem ? problem.id : 0)}},
-			"name": name,
-			"description": description,
-			"time_limit": timeLimit,
-			"weight": weight,
-			"languages": languages,
+		$.ajax({
+			type: "POST",
+			url: "{{path('problem_modify')}}",
+			data: formData,
+			processData: false,
+			contentType: false,
 			
-			"is_extra_credit": extraCredit,
-
-			"total_attempts": totalAttempts, // must be a non-negative integer - 0 means unlimited
-			"attempts_before_penalty": attemptsBeforePen, // must be less than totalAttempts
-			"penalty_per_attempt": penPerAttempt, // decimal between 0.00 and 1.00
-
-			"linked_probs": linked_probs,
-			
-			"custom_validator": customValidatorText,
-
-			"stop_on_first_fail": stopFail ? "true" : "false", // checkbox
-			"response_level": responseLevel, // dropdown with [None, Short, Long]
-			"display_testcaseresults": displayTestcase ? "true" : "false", // checkbox
-			"testcase_output_level": outputLevel, // dropdown with [None, Output, Both]
-			"extra_testcases_display": extraDisplay ? "true" : "false", // checkbox
-
-			"testcases": tcs, // array of objects - see tcs for the fields
-
-		}, (data) => {
-			console.log(data);
+			success: function(data){
+				console.log(data);
 		
-			window.location = data['redirect_url'];
-		
-		}, "json")
-		.fail(function(data) {
-			alert(data['responseText']);					
-			$('#save-btn').prop('disabled', false);	
+				window.location = data['redirect_url'];
+			},
+			error: function(data){
+				alert(data['responseText']);					
+				$('#save-btn').prop('disabled', false);	
+			}
 		});
-    }
+	}
 	
 	</script>
 	

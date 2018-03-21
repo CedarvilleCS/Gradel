@@ -290,7 +290,8 @@ class ProblemController extends Controller {
 				$slave->master = null;
 			}
 			
-			foreach($postData['linked_probs'] as $link){
+			$decodedLinked = json_decode($postData['linked_probs']);
+			foreach($decodedLinked as $link){
 				
 				$linked = $em->find("AppBundle\Entity\Problem", $link);
 				
@@ -319,20 +320,19 @@ class ProblemController extends Controller {
 		}
 
 		$newProblemLanguages = [];
-		foreach($postData['languages'] as $l){
 
-			if(!is_array($l)){
-				return $this->returnForbiddenResponse("Language data is not formatted properly");
-			}
-			
-			if(!isset($l['id']) || !($l['id'] > 0)){				
+		$decodedLanguages = json_decode($postData['languages']);
+		foreach($decodedLanguages as $l){
+
+			//return $this->returnForbiddenResponse(var_dump($decodedLanguages));
+			if(!isset($l->id) || !($l->id > 0)){				
 				return $this->returnForbiddenResponse("You did not specify a language id");
 			}
 
-			$language = $em->find("AppBundle\Entity\Language", $l['id']);
+			$language = $em->find("AppBundle\Entity\Language", $l->id);
 
 			if(!$language){
-				return $this->returnForbiddenResponse("Provided language with id ".$l['id']." does not exist");
+				return $this->returnForbiddenResponse("Provided language with id ".$l->id." does not exist");
 			}
 
 			$problemLanguage = new ProblemLanguage();
@@ -341,20 +341,22 @@ class ProblemController extends Controller {
 			$problemLanguage->problem = $problem;
 			
 			// set compiler options and default code
-			if(isset($l['compiler_options']) && strlen($l['compiler_options']) > 0){
+			if(isset($l->compiler_options) && strlen($l->compiler_options) > 0){
 				
 				# check the compiler options for invalid characters
-				if(preg_match("/^[ A-Za-z0-9+=\-]+$/", $l['compiler_options']) != 1){
+				if(preg_match("/^[ A-Za-z0-9+=\-]+$/", $l->compiler_options) != 1){
 					return $this->returnForbiddenResponse("The compiler options provided has invalid characters");
 				}
 								
-				$problemLanguage->compilation_options = $l['compiler_options'];
+				$problemLanguage->compilation_options = $l->compiler_options;
 			}
 			
-			if(isset($l['default_code']) && strlen($l['default_code']) > 0){
+			if(isset($l->default_code) && strlen($l->default_code) > 0){
 				
-				$problemLanguage->default_code = $l['default_code'];
+				$problemLanguage->default_code = $l->default_code;
 			}
+
+			$problemLanguage->default_code = null;
 			
 			$newProblemLanguages[] = $problemLanguage;
 			$em->persist($problemLanguage);
@@ -371,7 +373,9 @@ class ProblemController extends Controller {
 		
 		$newTestcases = new ArrayCollection();
 		$count = 1;
-		foreach($postData['testcases'] as &$tc){
+
+		$decodedTestcases = json_decode($postData['testcases']);
+		foreach($decodedTestcases as &$tc){
 			
 			$tc = (array) $tc;
 			

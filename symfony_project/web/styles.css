@@ -127,6 +127,7 @@ ol {
 	position: absolute;
 }
 
+
 #right-icon {
 	padding: 2 2 2 2;
 	float: right;
@@ -303,7 +304,6 @@ i {
 ::-webkit-scrollbar {
     display: none;	
 }
-
 
 atable {
     font-family: arial, sans-serif;
