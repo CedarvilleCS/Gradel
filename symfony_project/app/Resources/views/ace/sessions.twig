@@ -255,10 +255,13 @@
 
 {% block editor_onready %}
 
+
 	{% if trial %}				
 	populateSessions(JSON.parse("{{trial.getFileContents()|json_encode|e('js')}}"));
+	{% else %}
+	populateSessions(JSON.parse("{{problem.problem_languages[0].getDefaultFileContents()|json_encode|e('js')}}"));	
 	{% endif %}
-	
+
 	{% if submission %}	
 	var files = JSON.parse("{{submission_contents|json_encode|e('js')}}");
 	console.log(files);

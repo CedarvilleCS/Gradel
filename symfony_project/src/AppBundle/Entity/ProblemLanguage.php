@@ -2,6 +2,8 @@
 
 namespace AppBundle\Entity;
 
+use AppBundle\Utils\Zipper;
+
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Config\Definition\Exception\Exception;
 
@@ -63,6 +65,35 @@ class ProblemLanguage{
 	*/
 	public $default_code;
 	
+	public function getDefaultFileContents(){
+
+		if($this->default_code == null){
+			return [['name'=>'filename'.$this->language->filetype, 'contents'=>'']];
+		}
+				
+		// get the contents of a submission file
+		$temp = tmpfile();
+		$temp_filename = stream_get_meta_data($temp)['uri'];
+		
+		if(file_put_contents($temp_filename, $this->default_code) === FALSE){
+			return false;			
+		}
+		
+		$zipper = new Zipper();		
+		$contents = $zipper->getZipContents($temp_filename);
+		
+		if($contents === false){
+			fseek($temp, 0);
+			
+			return [['name'=>'file'.$this->language->filetype, 'contents'=>fread($temp, filesize($temp_filename))]];
+		}
+		
+		fclose($temp);
+
+		return $contents;
+	}
+
+
 	public function deblobinateDefaultCode(){			
 		$val = stream_get_contents($this->default_code);
 		rewind($this->default_code);

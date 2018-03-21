@@ -150,6 +150,19 @@ class Section implements JsonSerializable{
 			'user_roles' => $this->user_roles->toArray(),
 		];
 	}
+
+	public function getAllProblems(){
+
+		$allProbs = [];
+
+		foreach($this->assignments->toArray() as $asgn){
+			foreach($asgn->problems->toArray() as $prob){
+				$allProbs[] = $prob;
+			}
+		}
+
+		return $allProbs;
+	}
 }
 
 ?>
