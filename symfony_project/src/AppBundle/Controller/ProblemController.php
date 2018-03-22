@@ -281,7 +281,15 @@ class ProblemController extends Controller {
 		$problem->response_level = $response_level;
 		$problem->display_testcaseresults = ($display_testcaseresults == "true");
 		$problem->testcase_output_level = $testcase_output_level;
-		$problem->extra_testcases_display = ($extra_testcases_display == "true");		
+		$problem->extra_testcases_display = ($extra_testcases_display == "true");	
+		
+		# allow adding files (tabs)
+		$allow_multiple = $postData['allow_multiple'];
+		$problem->allow_multiple = ($allow_multiple == "true");
+
+		# allow uploading files
+		$allow_upload = $postData['allow_upload'];
+		$problem->allow_upload = ($allow_upload == "true");
 		
 		# linked problems
 		if(!$problem->assignment->section->course->is_contest){
@@ -315,12 +323,14 @@ class ProblemController extends Controller {
 		
 		# go through the problemlanguages
 		# remove the old ones
+		$oldDefaultCode = [];
+
 		foreach($problem->problem_languages as $pl){
+			$oldDefaultCode[$pl->language->id] = $pl->default_code;
 			$em->remove($pl);
 		}
 
 		$newProblemLanguages = [];
-
 		$decodedLanguages = json_decode($postData['languages']);
 		foreach($decodedLanguages as $l){
 
@@ -356,13 +366,34 @@ class ProblemController extends Controller {
 				$problemLanguage->default_code = $l->default_code;
 			}
 
-			$problemLanguage->default_code = null;
+			// get the contents of the default code and save it to a file so we can save
+			$temp = tmpfile();
+			$temp_filename = stream_get_meta_data($temp)['uri'];
+		//	fclose($temp);
+
+			if($_FILES['file_'.$l->id]['tmp_name'] == null){
+
+				$problemLanguage->default_code = $oldDefaultCode[$l->id];
+
+			} else if (move_uploaded_file($_FILES['file_'.$l->id]['tmp_name'], $temp_filename)) {
+
+				$fh = fopen($temp_filename, "r");
+
+				if(!$fh){
+					return $this->returnForbiddenResponse('Cant open file.');
+				}
+
+				$problemLanguage->default_code = $fh;
+
+			} else { 
+				return $this->returnForbiddenResponse('Error saving default code.');
+			}
 			
 			$newProblemLanguages[] = $problemLanguage;
 			$em->persist($problemLanguage);
+
 		}
-		
-		
+
 		# testcases
 		# set the old testcases to null 
 		# (so they don't go away and can be accessed in the results page)

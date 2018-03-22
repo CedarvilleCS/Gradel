@@ -95,9 +95,12 @@
 						<div id="trial-status" style="font-style: italic; font-size:0.8em; color: grey;">&nbsp;</div>
 						
 						{# file upload#}
+						{% if problem.allow_upload %}
 						<form id="submissionUploadForm" action="{{path('get_contents')}}" method="post" style="margin-top: 5px">
 							<input type="file" accept=".zip,.c,.cpp,.java,.php,.py" name="file" id="file" value="Upload File" style="width: 180px">
 						</form>
+						{% endif %}
+
 					</div>
 					
 					{# Language selection and hidden field to submit ACE contents #}
@@ -113,7 +116,10 @@
 						<div id="mainClassInput" style="display:none"><label for="main_class">Main Class: </label><input type="text" name="main_class" id="main_class_input" value="{{(trial) ? trial.main_class}}"></div>
 						<br/>
 						<input type="hidden" name="ACE" id="ACE">
-						<div class="btn" style="width: 100px" id="submissionButton"> Submit </div>
+						<div style="display: flex; flex-direction: row; justify-content: space-between; width: 100%">
+							<div class="btn" style="width: 100px" id="submissionButton"> Submit </div>
+							<!--<div class="btn" style="width: 70px; font-size: 0.7em; line-height: 14px; background: red; cursor: pointer" id="clearButton"> Reset Code </div>-->
+						</div>
 						<div id="loading-container" style="display: none">
 							<img id="loadingGif" style="height: 60px" src="{{asset('beoload.gif')}}" alt="Loading..."/>
 							<h3 style="margin: 0px"> Submitting Code... </h3>
@@ -209,6 +215,13 @@
 		var languages = JSON.parse("{{languages|json_encode|e('js')}}");
 		{#var default_code = JSON.parse('{{ default_code|json_encode|e('js') }}');#}
 		var ace_modes = JSON.parse('{{ ace_modes|json_encode|e('js') }}');
+		var onloadValue = [];
+
+
+		var code_for_langs = [];
+		{% for problang in problem.problem_languages %}
+		code_for_langs['{{problang.language.name}}'] = JSON.parse("{{problang.getDefaultFileContents()|json_encode|e('js')}}");
+		{% endfor %}
 		
 		// markdown stuff
 		var converter = new showdown.Converter();
@@ -293,6 +306,8 @@
 			
 			// toggle the java inputs
 			toggleJavaInputs(language == "Java");
+
+			currLanguage = language;
 		}
 
 		function autoSetLanguage(){
@@ -335,33 +350,6 @@
 			}
 		}
 
-		var saved_code = "";
-		function updateAceCode(){
-						
-			language = $('#languageSelect option:selected').text();
-			
-			if(saved_code !== editor.getValue()) {
-				editor.setValue(editor.getValue(), -1);
-			} else {
-				// This sets the default code for the selected language.
-				//editor.setValue(default_code[language], -1);
-				//saved_code = default_code[language];
-			}
-			
-			editor.getSession().setMode("ace/mode/" + ace_modes[language]);			
-		}
-
-		// sets the default code for the selected language. used when adding a new file tab.
-		function setDefaultCode() {
-				
-			language = $('#languageSelect option:selected').text();
-			
-			//editor.setValue(default_code[language], -1);
-			//saved_code = default_code[language];
-			
-			editor.getSession().setMode("ace/mode/" + ace_modes[language]);
-		}
-
 	</script>
 
 	<script>
@@ -369,9 +357,15 @@
 		var trialUpdateTimer = null;
 		var trialId = {{(trial) ? trial.id : "0"}};
 		var second = 0;
-			
+		var codeUnchanged = {% if trial %} false {% else %} true {% endif %};
+
+		var currLanguage = "";
+
 		$(document).ready(function() {
 			
+			{# editor sessions twig #}
+			{{ block('editor_onready', 'ace/sessions.twig') }}
+
 			$('#markdown').html(markdownText);
 
 			{% if trial != null %}
@@ -416,9 +410,6 @@
 				},
 				alsoResize: "#editor",
 			});	
-
-			{# editor sessions twig #}
-			{{ block('editor_onready', 'ace/sessions.twig') }}
 		});
 				
 		// make the language dropdown change affect the code
@@ -448,6 +439,7 @@
 		});
 		
 		// overwrite the normal submit to call the ajaxsubmit
+		{% if problem.allow_upload %}
 		$('#submissionUploadForm').submit(function() {
 			
 			$(this).ajaxSubmit({
@@ -472,7 +464,6 @@
 						autoSetLanguage();					
 					}
 					
-					updateAceCode();
 					updateTrial(responseText);	
 														
 				},
@@ -484,6 +475,7 @@
 			
 			return false;
 		});
+		{% endif %}
 
 		$('#submissionButton').click( function() {			
 			updateTrial("submit");			
@@ -491,6 +483,13 @@
 				
 		function updateTrial(submitAfter){
 					
+			if(!codeUpdated() && submitAfter != "submit"){
+	
+				$('#trial-status').text("Nothing to save...");	
+				return;
+			}
+
+
 			clearInterval(trialUpdateTimer);	
 			
 			// Create a FormData object

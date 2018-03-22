@@ -225,8 +225,18 @@ class Problem implements JsonSerializable{
 	* @ORM\Column(type="boolean")
 	*/
 	public $extra_testcases_display;
+
+	/**
+	* @ORM\Column(type="boolean")
+	*/
+	public $allow_multiple;	
 	
-		
+	/**
+	* @ORM\Column(type="boolean")
+	*/
+	public $allow_upload;
+	
+	
 	public function jsonSerialize(){
 		return [
 			'id' => $this->id,

@@ -93,6 +93,23 @@
 					</tr>
 					<tr>
 					  <th colspan="1">
+					 	
+						<div id="allow-multiple-container" class="toggle-container">
+							<label for="allow-multiple" style="font-weight: bold">Allow Additional Files</label>
+							<label class="switch">
+								<input id="allow-multiple" type="checkbox" name="allow-multiple" {{(problem) ? ((problem.allow_multiple) ? "checked" : "") : "checked"}}>
+								<span class="slider round"></span>
+							</label>
+						</div>
+
+						<div id="allow-upload-container" class="toggle-container">
+							<label for="allow-upload" style="font-weight: bold">Allow Uploading Files</label>
+							<label class="switch">
+								<input id="allow-upload" type="checkbox" name="allow-upload" {{(problem) ? ((problem.allow_upload) ? "checked" : "") : "checked"}}>
+								<span class="slider round"></span>
+							</label>
+						</div>
+
 						{% if not problem.master %}
 						  
 							<label for="linked_probs">Slave Problems </label>
@@ -572,8 +589,8 @@
 						+ "<label for='compile-options-" + $(this)[0].id + "'> Compiler Options </label>"
 						+ "<input type='text' class='compile-options' id='compile-options-" + $(this)[0].id + "' name='compile-options'>"
 
-						+ "<label for='default-code-" + $(this)[0].id + "'> Default Code </label>"
-						+ "<input type='file' name='default-code-" + $(this)[0].id + "'>"
+						+ "</br><label for='default-code-" + $(this)[0].id + "'> Default Code </label> <small> </br> Leave this alone to keep using whatever the previous default code was </small></br>"
+						+ "<input type='file' class='default-code' name='default-code-" + $(this)[0].id + "'>"
 						
 					+ "</div>"
 					
@@ -619,8 +636,6 @@
 		
 			{% if found_l is not null %}
 				$('.language#{{found_l.id}}').click();
-				
-				$('#default-code-{{found_l.id}}').html("{{(found_pl.deblobinateDefaultCode) ? found_pl.deblobinateDefaultCode|e('js') : found_l.deblobinateDefaultCode|e('js')}}");
 				$('#language-container #language-tab-{{found_l.id}} .compile-options').val("{{found_pl.compilation_options}}");
 			{% endif %}
 			
@@ -1204,6 +1219,8 @@
 		const outputLevel = document.getElementById('output-level').value;
 		const displayTestcase = document.getElementById('display-testcase').checked;
 		const extraDisplay = document.getElementById('display-extra').checked;
+		const allowMultiple = document.getElementById('allow-multiple').checked;
+		const allowUpload = document.getElementById('allow-upload').checked;
 
 		formData.append('name', name);
 		formData.append('description', description);
@@ -1218,6 +1235,8 @@
 		formData.append('testcase_output_level', outputLevel);
 		formData.append('display_testcaseresults', displayTestcase);
 		formData.append('extra_testcases_display', extraDisplay);
+		formData.append('allow_multiple', allowMultiple);
+		formData.append('allow_upload', allowUpload);
 
 		var customValidatorText = "";		
 		if(document.getElementById('use-custom').checked){
@@ -1229,17 +1248,24 @@
 		
 		const children = $("#language-container .language-tab");
 		languages = [];
+
 		for (var i = 0; i < children.length; i++) {
 			
 			const elem = children.eq(i);
 			
 			const id = elem.find('.language-data')[0].id;
 			const comp_options = elem.find('.compile-options').val();
-			const def_code = "";
+			const def_code_file = elem.find('.default-code')[0].files[0];
 			
-			const lang = {"id": id, "compiler_options": comp_options, "default_code": def_code};
+			const lang = {"id": id, "compiler_options": comp_options, "default_code": ""};
 
 			languages.push(lang);	
+
+			if(def_code_file == null){
+				console.log(i);
+			}
+
+			formData.append('file_'+id, def_code_file);
 		}
 
 		console.log(languages);
