@@ -48,6 +48,10 @@
 	}
 	
 	function addAddFileButton(){
+
+		{% if not problem.allow_multiple %}
+		return;
+		{% endif %}
 		
 		$("#file-markers ul").append(
 			"<li class='tabs' id='add-file-button' style='margin: 8px 0px; padding: 4px 10px; top: 7px'> &#xff0b; </li>"
@@ -61,6 +65,11 @@
 	}
 	
 	function removeAddFileButton(){
+		
+		{% if not problem.allow_multiple %}
+		return;
+		{% endif %}
+
 		$('#add-file-button').remove();
 	}
 	
@@ -99,9 +108,9 @@
 		var num_tabs = $("#file-markers ul li").length;
 		
 		if(num_tabs == 1){
-			$('#trial-status').text("Cannot remove file");
-		
-			addAddFileButton();
+			populateSessions(code_for_langs[currLanguage]);
+			setLanguage(currLanguage);
+			$('#trial-status').text("Reset code to default code.");
 			return;
 		}
 		
@@ -192,12 +201,23 @@
 		removeAddFileButton();
 		var num_tabs = $("#file-markers ul li").length + 1;
 
+		{% if not result_page %}
 		$("#file-markers ul").append(
 			"<li class='tabs' id='test-code-tab-user-" + num_tabs + "-marker'><a href='#test-code-tab-user-" + num_tabs + "'>" 
-				+ "<input class='tab-filename' readonly='true' ondblclick='this.readOnly=\"\";' onblur='this.readOnly=\"true\"' type='text' value='filename" + num_tabs + ".file'></a>"
+				+ "<input class='tab-filename' readonly='true' {% if problem.allow_multiple %} ondblclick='this.readOnly=\"\";' onblur='this.readOnly=\"true\"' {% endif %} type='text' value='filename" + num_tabs + getFiletype() + "'></a>"
 				+ '<input type="hidden" name="ACE" id="ACE' + num_tabs + '">'
-				+ "</li>"
+			+ "</li>"
 		);
+		{% else %}
+		$("#file-markers ul").append(
+			"<li class='tabs' id='test-code-tab-user-" + num_tabs + "-marker'><a href='#test-code-tab-user-" + num_tabs + "'>" 
+				+ "<input class='tab-filename' readonly='true' {% if problem.allow_multiple %} ondblclick='this.readOnly=\"\";' onblur='this.readOnly=\"true\"' {% endif %} type='text' value='filename" + num_tabs + ".file'></a>"
+				+ '<input type="hidden" name="ACE" id="ACE' + num_tabs + '">'
+			+ "</li>"
+		);
+
+
+		{% endif %}
 		
 		$('#test-code-tab-user-'+num_tabs+'-marker').find('a input').attr('size', 14);
 		
@@ -208,11 +228,6 @@
 		
 		$('#test-code-tab-user-' + num_tabs + '-marker').click();
 		editor.setTheme("ace/theme/xcode");
-		
-		{% if not result_page %}
-		updateAceCode();
-		setDefaultCode();
-		{% endif %}
 			
 		new_session.on('change', function() {	
 			
@@ -226,26 +241,58 @@
 			{% if not result_page %}
 			clearInterval(trialUpdateTimer);
 			trialUpdateTimer = setInterval(updateTrial, 5000);
-			{% endif %}
-			
+			{% endif %}			
 		});
 		
 		{% if not result_page %}
 		addAddFileButton();
 		{% endif %}
 	}
+
+
+	function codeUpdated(){
+
+		var changed = false;
+
+		var current_session = editor.getSession();
+		for(var i = 1; i < ace_sessions.length; i++) {
+			editor.setSession(ace_sessions[i]);		
+			if(onloadValue[i] == null || editor.getSession().getValue() != onloadValue[i]){
+				changed = true;	
+			}
+			curr_session = i;
+		}
+		editor.setSession(current_session);	
+
+		return changed;
+
+	}
+
 	
 {% endblock %}
 
 
 {% block editor_setlanguage %}
+
+	// Update the language for all files	
 	
-	// Update the language for all files
+	if(!codeUpdated()){
+		populateSessions(code_for_langs[language]);
+
+		var current_session = editor.getSession();
+		for(var i = 1; i < ace_sessions.length; i++) {
+			editor.setSession(ace_sessions[i]);	
+			onloadValue[i] = editor.getSession().getValue();
+			curr_session = i;
+		}
+		editor.setSession(current_session);
+	}
+
 	var current_session = editor.getSession();
 	for(var i = 1; i < ace_sessions.length; i++) {
-		editor.setSession(ace_sessions[i]);
+		editor.setSession(ace_sessions[i]);		
+		editor.getSession().setMode("ace/mode/" + ace_modes[language]);
 		curr_session = i;
-		updateAceCode();
 	}
 	editor.setSession(current_session);			
 
@@ -255,11 +302,20 @@
 
 {% block editor_onready %}
 
-
 	{% if trial %}				
 	populateSessions(JSON.parse("{{trial.getFileContents()|json_encode|e('js')}}"));
-	{% else %}
-	populateSessions(JSON.parse("{{problem.problem_languages[0].getDefaultFileContents()|json_encode|e('js')}}"));	
+
+	{% elseif not result_page %}
+	populateSessions(code_for_langs[Object.keys(code_for_langs)[0]]);
+
+	var current_session = editor.getSession();
+	for(var i = 1; i < ace_sessions.length; i++) {
+		editor.setSession(ace_sessions[i]);	
+		onloadValue[i] = editor.getSession().getValue();
+		curr_session = i;
+	}
+	editor.setSession(current_session);		
+
 	{% endif %}
 
 	{% if submission %}	
