@@ -74,6 +74,7 @@ class Submission implements JsonSerializable {
 		#this->submitted_file
 		#this->log_directory
 		#this->filename2
+		$this->main_class_name = "";
 		$this->package_name = "";
 		#this->compiler_output
 		$this->compiler_error = false;

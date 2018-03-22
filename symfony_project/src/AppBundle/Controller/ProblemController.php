@@ -102,7 +102,9 @@ class ProblemController extends Controller {
 			'default_code' => $default_code,
 			'ace_modes' => $ace_modes,
 			'filetypes' => $filetypes,
-				
+			
+			'edit_route' => true, 
+
 			'recommendedSlaves' => $recommendedSlaves,
 		]);
     }
@@ -629,6 +631,7 @@ class ProblemController extends Controller {
 			'grader' => new Grader($em),
 			
 			'result_page' => true,
+			'result_route' => true, 
 			'feedback' => $feedback,
 
 			'ace_mode' => $ace_mode,				
