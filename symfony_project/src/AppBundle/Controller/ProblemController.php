@@ -78,16 +78,12 @@ class ProblemController extends Controller {
 			}
 		}
 		
-		$default_code = [];
 		$ace_modes = [];
 		$filetypes = [];
 		foreach($languages as $l){
 			
 			$ace_modes[$l->name] = $l->ace_mode;
 			$filetypes[str_replace(".", "", $l->filetype)] = $l->name;
-			
-			// either get the default code from the problem or from the overall default
-			$default_code[$l->name] = $l->deblobinateDefaultCode();
 		}
 		
 		$recommendedSlaves = [];
@@ -99,10 +95,11 @@ class ProblemController extends Controller {
 			'assignment' => $assignment,
 			'problem' => $problem,
 			
-			'default_code' => $default_code,
 			'ace_modes' => $ace_modes,
 			'filetypes' => $filetypes,
-				
+			
+			'edit_route' => true, 
+
 			'recommendedSlaves' => $recommendedSlaves,
 		]);
     }
@@ -192,8 +189,8 @@ class ProblemController extends Controller {
 
 		} else {
 
-			if(!is_numeric(trim($postData['weight'])) || (int)trim($postData['weight']) < 1){
-				return $this->returnForbiddenResponse("Weight provided is not valid - it must be greater than 0");
+			if(!is_numeric(trim($postData['weight'])) || (int)trim($postData['weight']) < 0){
+				return $this->returnForbiddenResponse("Weight provided is not valid - it must be non-negative");
 			}
 
 			if(!is_numeric(trim($postData['time_limit'])) || (int)trim($postData['time_limit']) < 1){
@@ -629,6 +626,7 @@ class ProblemController extends Controller {
 			'grader' => new Grader($em),
 			
 			'result_page' => true,
+			'result_route' => true, 
 			'feedback' => $feedback,
 
 			'ace_mode' => $ace_mode,				

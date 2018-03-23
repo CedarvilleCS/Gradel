@@ -229,12 +229,12 @@ class Problem implements JsonSerializable{
 	/**
 	* @ORM\Column(type="boolean")
 	*/
-	public $allow_multiple;	
+	public $allow_multiple = true;	
 	
 	/**
 	* @ORM\Column(type="boolean")
 	*/
-	public $allow_upload;
+	public $allow_upload = true;
 	
 	
 	public function jsonSerialize(){

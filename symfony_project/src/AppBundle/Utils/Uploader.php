@@ -155,6 +155,38 @@ class Uploader  {
 			return null;
 		}
 	}	
+
+
+	/*
+		This function will take a user, problem, filename, and file and 
+		put the contents in the upload directory for compiling
+	
+	*/
+	public function createGeneratorFile($user, $problem, $filename, $file){
+		
+		$target_directory = $this->createUploadDirectory($user, $problem);
+		$target_file = $target_directory.$filename;
+
+		$fp = fopen($target_file, 'w');
+
+		rewind($file);
+		$val = stream_get_contents($file);
+		rewind($file);
+		
+		# if the file is actually just text
+		if($val == false){			
+			return $file;
+		} 
+		# if the file writing worked
+		else if(fwrite($fp, $val)){
+			chmod($target_file, 0777);
+			return $filename;
+		}
+		# error 
+		else {
+			return null;
+		}		
+	}
 	
 }
 

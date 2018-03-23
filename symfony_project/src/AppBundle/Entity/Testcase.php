@@ -46,7 +46,7 @@ class Testcase implements JsonSerializable {
 			
 		} else {
 		  
-			if(!is_numeric(trim($data['weight'])) || (int)trim($data['weight']) < 1){
+			if(!is_numeric(trim($data['weight'])) || (int)trim($data['weight']) < 0){
 				throw new Exception("The provided testcase weight is not greater than 0");
 			}
 		  
