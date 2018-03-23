@@ -442,27 +442,6 @@
 		}
 	}
 
-	function updateAceCode(){
-
-		var default_code = JSON.parse('{{ default_code|json_encode|replace({'\\':'\\\\'})|raw }}');
-		var ace_modes = JSON.parse('{{ ace_modes|json_encode|raw }}');
-
-		var editor = ace.edit("output-generator-editor");
-		editor.$blockScrolling = Infinity;
-		
-		language = $('#languageSelect option:selected').text();
-		
-		if(saved_code !== editor.getValue()) {
-			editor.setValue(editor.getValue(), -1);
-		} else {
-			// This sets the default code for the selected language.
-			editor.setValue(default_code[language], -1);
-			saved_code = default_code[language];
-		}
-		editor.getSession().setMode("ace/mode/" + ace_modes[language]);
-		editor.resize(true);
-	}
-
   </script>
 
   <script>
@@ -706,7 +685,7 @@
 			
 			// weight
 			var wght = new Number($('#requiredFields #weight').val());
-			if($('#requiredFields #weight').val() === '' || ($('#requiredFields #weight').val() != '' && (wght < 1 || wght % 1 != 0))){						
+			if($('#requiredFields #weight').val() === '' || ($('#requiredFields #weight').val() != '' && (wght < 0 || wght % 1 != 0))){						
 				setInvalid($('#requiredFields #weight'));
 				return false;
 			} else {
@@ -775,7 +754,7 @@
 					setValid($(this).find('.output'));
 				}
 				
-				if(weight < 1 || weight % 1 != 0){
+				if(weight < 0 || weight % 1 != 0){
 					setInvalid($(this).find('.weight'));
 					testcases_valid = false;
 				} else {

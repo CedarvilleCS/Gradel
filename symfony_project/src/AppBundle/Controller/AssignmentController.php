@@ -100,7 +100,6 @@ class AssignmentController extends Controller {
 			$problem_languages = $problem_entity->problem_languages;
 
 			$languages = [];
-			$default_code = [];
 			$ace_modes = [];
 			$filetypes = [];
 			foreach($problem_languages as $pl){
@@ -109,13 +108,6 @@ class AssignmentController extends Controller {
 				
 				$ace_modes[$pl->language->name] = $pl->language->ace_mode;
 				$filetypes[str_replace(".", "", $pl->language->filetype)] = $pl->language->name;
-				
-				// either get the default code from the problem or from the overall default
-				if($pl->default_code != null){
-					$default_code[$pl->language->name] = 'HI'; //$pl->deblobinateDefaultCode();
-				} else{
-					$default_code[$pl->language->name] = 'BYE'; //$pl->language->deblobinateDefaultCode();
-				}
 			}
 			
 		}
@@ -255,7 +247,6 @@ class AssignmentController extends Controller {
 			'trial' => $trial,
 			'all_submissions' => $all_submissions,
 
-			'default_code' => $default_code,
 			'ace_modes' => $ace_modes,
 			'filetypes' => $filetypes,
 		]);
@@ -401,7 +392,7 @@ class AssignmentController extends Controller {
 			
 			# validate the weight if there is one
 			if(	is_numeric(trim($postData['weight'])) && 
-				((int)trim($postData['weight']) < 1 || $postData['weight'] % 1 != 0)){
+				((int)trim($postData['weight']) < 0 || $postData['weight'] % 1 != 0)){
 					
 				return $this->returnForbiddenResponse("The provided weight ".$postData['weight']." is not permitted.");
 			}

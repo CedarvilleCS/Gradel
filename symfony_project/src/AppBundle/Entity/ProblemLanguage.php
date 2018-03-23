@@ -68,7 +68,7 @@ class ProblemLanguage{
 	public function getDefaultFileContents(){
 
 		if($this->default_code == null){
-			return [['name'=>'filename'.$this->language->filetype, 'contents'=>'']];
+			return [['name'=>'Main'.$this->language->filetype, 'contents'=>$this->language->deblobinateDefaultCode()]];
 		}
 				
 		// get the contents of a submission file

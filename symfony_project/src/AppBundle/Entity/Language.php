@@ -62,7 +62,7 @@ class Language implements JsonSerializable{
 	public function deblobinateDefaultCode(){			
 		$val = stream_get_contents($this->default_code);
 		rewind($this->default_code);
-		
+				
 		return $val;
 	}
 	

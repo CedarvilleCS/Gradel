@@ -3,6 +3,19 @@
 <link rel="icon" type="image/x-icon" href="{{ asset('logo.png') }}" />
 {% endblock %}
 
+{% block stylesheets %}
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
+	<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/jquery-ui-timepicker-addon@1.6.3/dist/jquery-ui-timepicker-addon.css" />
+	
+    <link rel="stylesheet" href="{{ asset('styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('card.css') }}" />
+	
+	<link rel="stylesheet" href="{{ asset('team-creation.css') }}">
+	<link rel="stylesheet" href="{{ asset('custom-toggle.css') }}">
+	
+	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
+{% endblock %}
+
 
 {% block body %}
 
@@ -138,21 +151,6 @@
 
 {% endblock %}
 
-
-{% block stylesheets %}
-	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
-	<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/jquery-ui-timepicker-addon@1.6.3/dist/jquery-ui-timepicker-addon.css" />
-	
-    <link rel="stylesheet" href="{{ asset('styles.css') }}" />
-    <link rel="stylesheet" href="{{ asset('card.css') }}" />
-	
-	<link rel="stylesheet" href="{{ asset('team-creation.css') }}">
-	<link rel="stylesheet" href="{{ asset('custom-toggle.css') }}">
-	
-	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
-{% endblock %}
-
-
 {% block scripts %}
     <!-- JQuery -->
     <script src="//code.jquery.com/jquery-1.12.4.js"></script>
@@ -242,7 +240,7 @@
 				
 				// weight
 				var wght = new Number($('#weight').val());
-				if($('#weight').val() === '' || ($('#weight').val() != '' && (wght < 1 || wght % 1 != 0))){						
+				if($('#weight').val() === '' || ($('#weight').val() != '' && (wght < 0 || wght % 1 != 0))){						
 					setInvalid($('#weight'));
 					$('#delete-warning').append("Weight must be a positive integer<br><br>");
 					return false;
