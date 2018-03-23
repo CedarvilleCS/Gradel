@@ -124,7 +124,7 @@
 		<div class="card" style="flex-grow: 8; display: none;" id="clarification-card">
 			
 			<div class="btn-close">
-				<h2 style="margin: 0px")">Clarifications
+				<h2 style="margin: 0px">Clarifications
 				</h2>
 				
 				{% if not current_contest.post_contest %}
@@ -192,6 +192,13 @@
 						
 		});
 				
+		$( document ).tooltip({
+			track: true,
+			content: function(callback) {  
+				callback($(this).prop('title').replace(/\\n/g, '<br />')); 
+			}
+		});
+		
 		//var freeze 
 		$(document).ready( function() {
 		

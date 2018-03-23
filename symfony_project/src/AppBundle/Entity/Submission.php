@@ -383,13 +383,14 @@ class Submission implements JsonSerializable {
 		return [
 			'id' => $this->id,
 			
-			'team' => ($this->team) ? $this->team : ["name" => "NO TEAM"],
+			'team' => ($this->team) ? $this->team : ["name" => "NO TEAM", "member_string" => $this->user->getFullName()],
 			'user' => $this->user,
 						
 			'problem' => [ 
 				'id'=>$this->problem->id,
 				'name'=>$this->problem->name,
 				'assignment'=>$this->problem->assignment,
+				'testcases'=>$this->problem->testcases->toArray(),
 			],
 
 			'timestamp' => $this->timestamp,
@@ -404,6 +405,8 @@ class Submission implements JsonSerializable {
 			'language' => $this->language,
 
 			'reviewer' => $this->reviewer,
+
+			'testcaseresults' => $this->testcaseresults->toArray(),
 		];
 	}
 	

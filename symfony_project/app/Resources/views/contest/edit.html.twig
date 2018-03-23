@@ -27,8 +27,6 @@
 		{% endif %}
     </nav>
 
-	{# {{ include('template/path-nav.html.twig') }} #}
-
     {# Main section with the necessary variable#}
 	<section id="main" class="scrolly">
 
@@ -233,8 +231,8 @@
 		var name = (team != null) ? team.name : "Team Name";
 				
 		var newTeam = $("<div>", {"class": "team", "id": id});
-		newTeam.html("<input type='text' id='team-name' value='" + escapeHTML(name).replace(/'/g, "&#39") + "'>");
-		newTeam.droppable({
+		newTeam.html("<input type='text' id='team-name' value='" + escapeHTML(name).replace(/'/g, "&#39") + "'> <div class='container' style='min-height: 25px'> </div> <div class='workstation-number-container'>Workstation # <input id='workstation-number' name='value'></div>");
+		newTeam.find('.container').droppable({
 			accept: ".user",
 			drop: function(event, ui) {						
 				$(this).append($(ui.draggable));								
@@ -246,13 +244,19 @@
 			for(var i=0; i<team.users.length; i++){
 				var user = $($.parseHTML(getUserHtml(team.users[i])));
 				
-				newTeam.append(user);
+				newTeam.find('.container').append(user);
 			}
-		}		
-				
+		}				
+
+		newTeam.find('#workstation-number').spinner({
+			min: 1,
+			max: 99,
+		});
+
+		var newval = (team != null && team.workstation_number != null) ? team.workstation_number : $('.team').length+1; 
+		newTeam.find('#workstation-number').spinner('value', newval);
+
 		$('#team-picker').append(newTeam);
-		
-		
 		updateActions();
 	}
 	
@@ -303,13 +307,13 @@
 			return false;
 		});
 		
-		$('.team').droppable({
+		$('.team').find('.container').droppable({
 			accept: ".user",
 			drop: function(event, ui) {						
 				$(this).append($(ui.draggable));
 			}
 		});
-		
+
 		$('#team-pool').droppable({
 			accept: ".user",
 			drop: function(event, ui) {
@@ -331,40 +335,7 @@
 	<script>
 
 		$(document).ready(function() {
-
-			/* DATE TIME PICKERS */
-			$('#practice-start-date').datetimepicker({
-				showAnim: "slideDown",
-				selectOtherMonths: true,
-				showOtherMonths: true,
-				showButtonPanel: true,
-				timeFormat: "h:mm TT",
-			});
-			
-			$('#practice-end-date').datetimepicker({
-				showAnim: "slideDown",
-				selectOtherMonths: true,
-				showOtherMonths: true,
-				showButtonPanel: true,
-				timeFormat: "h:mm TT",
-			});
-
-			$('#actual-start-date').datetimepicker({
-				showAnim: "slideDown",
-				selectOtherMonths: true,
-				showOtherMonths: true,
-				showButtonPanel: true,
-				timeFormat: "h:mm TT",
-			});
-			
-			$('#actual-end-date').datetimepicker({
-				showAnim: "slideDown",
-				selectOtherMonths: true,
-				showOtherMonths: true,
-				showButtonPanel: true,
-				timeFormat: "h:mm TT",
-			});
-			
+	
 			// set the dates
 			var oldPracticeStartDate = $('#practice-start-date').datetimepicker('getDate');
 			
@@ -430,6 +401,39 @@
 			});
 			{% endif %}
 
+		});
+
+		/* DATE TIME PICKERS */
+		$('#practice-start-date').datetimepicker({
+			showAnim: "slideDown",
+			selectOtherMonths: true,
+			showOtherMonths: true,
+			showButtonPanel: true,
+			timeFormat: "h:mm TT",
+		});
+		
+		$('#practice-end-date').datetimepicker({
+			showAnim: "slideDown",
+			selectOtherMonths: true,
+			showOtherMonths: true,
+			showButtonPanel: true,
+			timeFormat: "h:mm TT",
+		});
+
+		$('#actual-start-date').datetimepicker({
+			showAnim: "slideDown",
+			selectOtherMonths: true,
+			showOtherMonths: true,
+			showButtonPanel: true,
+			timeFormat: "h:mm TT",
+		});
+		
+		$('#actual-end-date').datetimepicker({
+			showAnim: "slideDown",
+			selectOtherMonths: true,
+			showOtherMonths: true,
+			showButtonPanel: true,
+			timeFormat: "h:mm TT",
 		});
 		
 		
@@ -621,6 +625,8 @@
 			
 			// Array of Teams
 			teams = [];
+			var brokenTeams = false;
+
 			$('#team-picker .team').each( function() {
 				
 				var team = {};
@@ -629,11 +635,23 @@
 					
 				id = (id) ? id.split(",") : [0,0];
 				team.id = id;
+
+				var workstation_number = $(this).find('#workstation-number').spinner('value');
 			
+				if(workstation_number == null){
+					setInvalid($(this).find('#workstation-number'));
+					brokenTeams = true;
+				} else {
+					setValid($(this).find('#workstation-number'));
+				}
+
+				team.workstation_number = workstation_number;
+
 				console.log(id);
-			
+				console.log(team.workstation_number);
+
 				team.members = [];
-				$(this).children('.user').each(function(index2) {
+				$(this).find('.container').children('.user').each(function(index2) {
 					
 					var member = {};
 					member.id = $(this).prop('id');
@@ -643,7 +661,12 @@
 				});				
 				
 				teams.push(team);
-			});			
+			});		
+	
+			if(brokenTeams){
+				return;
+			}
+
 			//console.log(teams);
 			formData.append('teams', JSON.stringify(teams));
 			

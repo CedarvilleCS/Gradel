@@ -512,8 +512,7 @@ class ContestPostController extends Controller {
 			if(isset($team->id) && count($team->id) == 2 && isset($team->name) && isset($team->members) && count($team->members) > 0){
 				
 				// decide if new teams need to be made
-				if($team->id[0] != 0 && $team->id[1] != 0){
-				
+				if($team->id[0] != 0 && $team->id[1] != 0){				
 				
 					$teamPractice = $em->find('AppBundle\Entity\Team', $team->id[0]);					
 					if(!$teamPractice || $teamPractice->assignment != $practiceContest){
@@ -538,6 +537,9 @@ class ContestPostController extends Controller {
 				# set names
 				$teamPractice->name = $team->name;
 				$teamActual->name = $team->name;
+
+				$teamPractice->workstation_number = $team->workstation_number;
+				$teamActual->workstation_number = $team->workstation_number;
 				
 				$teamPractice->users->clear();
 				$teamActual->users->clear();
@@ -597,7 +599,7 @@ class ContestPostController extends Controller {
 				
 			} else {
 				
-				return $this->returnForbiddenResponse("Team not formatted properly");				
+				return $this->returnForbiddenResponse("Team not formatted properly: ".var_dump($team));				
 			}
 			
 		}		
@@ -1041,6 +1043,7 @@ class ContestPostController extends Controller {
 			$response->setStatusCode(Response::HTTP_OK);
 
 			$pusher->promptDataRefresh($contest->section->id);
+			
 			return $response;
 			
 		} 

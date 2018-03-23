@@ -31,7 +31,8 @@
 	
 	<section id="main">	
 		<div class="card">
-			<div style="display: flex; flex-direction: row; justify-content: space-between">
+			<div style="display: flex; flex-direction: column; justify-content: flex-start">
+				<h1 title="{{(submission.team) ? submission.team.getMemberString() : submission.user.getFullName()}}" style="font-size: 2em; margin: 0px">{{(submission.team) ? submission.team.name : submission.user.getFullName()}}</h1>
 				<h2 style="margin: 0px">{{submission.problem.name}}</h2>
 				
 				{% if elevatedUser %}
@@ -233,6 +234,13 @@
 
 	{# template for multiple sessions #}
 	{{ block('editor_javascript', 'ace/sessions.twig') }}
+
+	$( document ).tooltip({
+		track: true,
+		content: function(callback) {  
+			callback($(this).prop('title').replace(/\\n/g, '<br />')); 
+		}
+	});
 	
 	$(document).ready( function() {
 	

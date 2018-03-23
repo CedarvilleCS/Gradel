@@ -45,12 +45,13 @@
 	for(var i = 0; i<leaderboard.scores.length; i++){
 		
 		var team = leaderboard.scores[i];
+		console.log(team);
 		var curr_user = (i==leaderboard.index);
 
 		tableHTML += "<tr class='" + ((curr_user) ? "curr-user" : "") + "'>";
 		
 		tableHTML += "<td class='rank'>" + team.rank + "</td>";
-		tableHTML += "<td class='name'>" + escapeHTML(team.team_name) + "</td>";
+		tableHTML += "<td class='name' title='" + escapeHTML(team.member_string) + "' style='cursor: pointer'>" + escapeHTML(team.team_name) + "</td>";
 		tableHTML += "<td class='num-correct'>" + team.num_correct + "</td>";
 		tableHTML += "<td class='time'>" + team.total_penalty + "</td>";
 		

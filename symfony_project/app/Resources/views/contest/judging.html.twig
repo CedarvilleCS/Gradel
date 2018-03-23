@@ -92,8 +92,8 @@
 				<h2 class="card-title">History </h2>	
 				{% if not current_contest.isActive() %}
 					<div id="clear-submissions-button"> Clear Submissions </div>
+					<div id="clear-clarifications-button"> Clear Clarifications </div>
 				{% endif %}
-				<div id="clear-clarifications-button"> Clear Clarifications </div>
 			</div>
 
 			<div id="stats-container">
@@ -227,6 +227,13 @@
 		$(window).unload(function() {			
 
 		});		
+
+		$( document ).tooltip({
+			track: true,
+			content: function(callback) {  
+				callback($(this).prop('title').replace(/\\n/g, '<br />')); 
+			}
+		});
 		
 		//var freeze 
 		$(document).ready( function() {
@@ -557,8 +564,17 @@
 			
 				$('#recent-clarifications').animate({
 					scrollTop: $('#recent-clarifications').prop('scrollHeight'),
-				}, 0);				
+				}, 0);
 			}
+
+			$('#recent-clarifications .query').dblclick( function() {
+				$('#answer').val($(this).attr('data-answer'));
+				
+				$('#clarification-form').dialog('option', 'title', $(this).text());
+				var clar_id = $(this).attr('id');
+				$('#clarification-form').val(clar_id);
+				clarificationMessageDialog.dialog( "open" );
+			});
 		}
 				
 		function updateSubmissionQueue(data){
@@ -752,13 +768,24 @@
 						updateClarification("answer", "global");
 						clarificationMessageDialog.dialog( "close" );						
 					}, 
+					"Read the Question": function() {
+						$(this).find('#answer').val('Read the Question');
+						updateClarification("answer", "local");
+						clarificationMessageDialog.dialog( "close" );						
+					},
 					Cancel: function() {
 						clarificationMessageDialog.dialog( "close" );
 					}
 				},
-			  close: function() {
-				  clarificationMessageForm[0].reset();
-			  }
+				close: function() {
+					console.log('#' + $('#clarification-form').val());
+					if($('#recent-clarifications').find('#' + $('#clarification-form').val()).length > 0){
+
+						$('#recent-clarifications').find('#' + $('#clarification-form').val()).remove();
+					}
+
+					clarificationMessageForm[0].reset();
+				}
 			});
 			
 			$('#clarification-form').keypress(function(e) {
@@ -780,12 +807,13 @@
 			clarificationMessageForm = clarificationMessageDialog.find( "form" ).on( "submit", function( event ) {				
 				event.preventDefault();
 				updateClarification("answer");	
-				clarificationMessageDialog.dialog("close");		
+				clarificationMessageDialog.dialog("close");
 			});
 			
 			$('.clarification').off( 'dblclick' );
 			$('.clarification').dblclick( function() {
 			
+				$('#clarification-form').dialog('option', 'title', $(this).find('.name').text() + " " + $(this).find('.question').text());
 				var clar_id = $(this).attr('id');
 				$('#clarification-form').val(clar_id);
 				clarificationMessageDialog.dialog("open");	
@@ -998,7 +1026,7 @@
 				}
 				
 				
-				var reviewHTML = `<a href="{{path('contest', {'contestId': current_contest.section.id, 'roundId': current_contest.id})}}/problem/` + rev.problem.id + `/result/` + rev.id + `"> <div class="review ` + ((rev.is_correct) ? "correct" : "wrong") + `" id="` + rev.id + `"> ` + `<div>` + rev.id + `) ` + escapeHTML(rev.problem.name.substring(0,1)) + ` - ` + escapeHTML(rev.team.name) + `</div><div style="display: none">` + escapeHTML(rev.problem.name) + `" " `+((rev.is_correct) ? "correct" : "wrong") +`</div><div> Reviewer: ` + escapeHTML(name) + `</div>` + `</div> </a>`;
+				var reviewHTML = `<a href="{{path('contest', {'contestId': current_contest.section.id, 'roundId': current_contest.id})}}/problem/` + rev.problem.id + `/result/` + rev.id + `"> <div class="review ` + ((rev.is_correct) ? "correct" : "wrong") + `" id="` + rev.id + `"> ` + `<div title="` + escapeHTML("<b>" + rev.result_string + "</b>\\n" + rev.team.member_string) + `">` + rev.id + `) ` + escapeHTML(rev.problem.name.substring(0,1)) + ` - ` + escapeHTML(rev.team.name) + `</div><div style="display: none">` + escapeHTML(rev.problem.name) + `" " `+((rev.is_correct) ? "correct" : "wrong") +`</div><div> Reviewer: ` + escapeHTML(name) + `</div>` + `</div> </a>`;
 				
 				$('#recent-reviews').append(reviewHTML);
 				
@@ -1029,16 +1057,14 @@
 				var prevClars = $(str);
 				if(prevClars.length > 0) continue;
 				
-				newOne = true;
-				
-				
+				newOne = true;			
 				
 				var question = (clar.question) ? clar.question : "Judge Notice";
 				var answer = clar.answer;
 				
 				var name = (clar.problem) ? clar.problem.name.substring(0,1) : "~";
 				
-				var clarHTML = `<div class='query' id='` + clar.id + `' title="` + escapeHTML(answer) + `">` + `[` + escapeHTML(name) + `] ` + escapeHTML(question) + `</div>`;
+				var clarHTML = `<div class='query' id='` + clar.id + `' data-answer="` + escapeHTML(answer) + `" title="` + escapeHTML(answer) + `">` + `[` + escapeHTML(name) + `] ` + escapeHTML(question) + `</div>`;
 				$('#recent-clarifications').append(clarHTML);
 
 
@@ -1078,8 +1104,8 @@
 				var submissionHTML = `<div class="found queued submission ` + ((sub.is_correct) ? 'correct' : 'wrong') + `" id="` + sub.id + `">` +
 					`<div class="left-side">` +
 						`<div class="title">` + escapeHTML(sub.problem.name) + `</div>` +
-						`<div class="name">` + escapeHTML(sub.team.name) + `</div>` +
-						`<div class="results">` + ((sub.is_correct) ? 'Correct' : 'Wrong Answer') + `</div>` +
+						`<div class="name" title="` + escapeHTML(sub.team.member_string) + `" style="cursor: pointer">` + escapeHTML(sub.team.name) + `</div>` +
+						`<div class="results">` + sub.result_string + `</div>` +
 					`</div>` +
 					`<div class="middle-side">` +
 						`<div class="marker-container">`;
