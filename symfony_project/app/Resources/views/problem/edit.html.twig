@@ -1151,11 +1151,9 @@
 				console.log(data);
 				
 				// save the testcase data to the output textboxes
-				count = 0;
-				$(".test-case").each(function() {
+				$(".test-case").each(function(index) {
 					
-					$(this).find('.output').val(data['testcases'][count]);
-					count++;		
+					$(this).find('.output').val(data['testcases'][count]);	
 				});
 				
 				$('#generator-loading-container').hide();

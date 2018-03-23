@@ -318,15 +318,21 @@
 
 	{% endif %}
 
-	{% if submission %}	
-	var files = JSON.parse("{{submission_contents|json_encode|e('js')}}");
+	{% if result_route and submission %}	
+	var files = JSON.parse("{{submission.getSubmissionFileContents()|json_encode|e('js')}}");
 	console.log(files);
-	populateSessions(files);
-	
-	
+	populateSessions(files);	
 	
 	$('#quick-edit-btn').button('enable');
 	$('#edit-note').show();
+
+	var current_session = editor.getSession();
+	for(var i = 1; i < ace_sessions.length; i++) {
+		editor.setSession(ace_sessions[i]);		
+		editor.getSession().setMode("ace/mode/" + "{{submission.language.ace_mode}}");
+		curr_session = i;
+	}
+	editor.setSession(current_session);		
 	
 	{% endif %}
 	

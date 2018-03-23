@@ -417,6 +417,8 @@ class ContestPagesController extends Controller {
 			'current_contest' => $contest, 
 			
 			'problem' => $problem,
+
+			'edit_route' => true,
 			
 			'languages' => $languages, 
 			
@@ -556,6 +558,8 @@ class ContestPagesController extends Controller {
 			'ace_mode' => $ace_mode,
 			
 			'contest_open' => true,
+
+			'result_route' => true,
 		
 			'grader' => new Grader($em),
 		]);
