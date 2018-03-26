@@ -103,6 +103,8 @@
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 	<script src="{{ asset('js/cards.js') }}"></script>
 	
+	<script src="{{ asset('js/contest.js') }}"></script>
+	
 	<script>
 	
 		var contest_started = false;
@@ -124,18 +126,6 @@
 		
 		var hideFreezeButtonInterval;
 		var scrollPageInterval;
-		
-		$(window).unload(function() {
-						
-		});
-
-		
-		$( document ).tooltip({
-			track: true,
-			content: function(callback) { 
-				callback($(this).prop('title').replace(/\\n/g, '<br />')); 
-			}
-		});
 				
 		//var freeze 
 		$(document).ready( function() {

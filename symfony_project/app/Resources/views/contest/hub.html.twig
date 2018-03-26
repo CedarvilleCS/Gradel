@@ -167,6 +167,8 @@
 	<script src="{{ asset('js/cards.js') }}"></script>
 	<script src="{{ asset('js/validation.js') }}"></script>
 	
+	<script src="{{ asset('js/contest.js') }}"></script>
+	
 	<script>
 	
 		var scoreboardPollAJAX;
@@ -190,13 +192,6 @@
 		
 		$(window).unload(function() {
 						
-		});
-				
-		$( document ).tooltip({
-			track: true,
-			content: function(callback) {  
-				callback($(this).prop('title').replace(/\\n/g, '<br />')); 
-			}
 		});
 		
 		//var freeze 

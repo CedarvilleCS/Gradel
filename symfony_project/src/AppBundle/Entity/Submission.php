@@ -166,7 +166,7 @@ class Submission implements JsonSerializable {
 			}			
 		}
 		
-		if(isset($raw) && !$raw){
+		if(!isset($raw) || !$raw){
 			
 			if($this->correct_override) return true;		
 			if($this->wrong_override) return false;

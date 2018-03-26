@@ -128,30 +128,14 @@ class ContestPostController extends Controller {
 		# PROBLEM LANGUAGES
 		# remove the old ones
 		$problem->problem_languages->clear();
-		
-		// For now, default the contest languages to just be C++ and Java		
-		$languageCPP = $em->getRepository("AppBundle\Entity\Language")->findOneBy([
-			'name' => "C++",
-		]);
-		
-		$languageJAVA = $em->getRepository("AppBundle\Entity\Language")->findOneBy([
-			'name' => "Java",
-		]);
 
-		if(!$languageCPP && !$languageJAVA){
-			return $this->returnForbiddenResponse("languages could not be generated properly - this is Timothy's fault");
+		foreach($assignment->contest_languages->toArray() as $lang){
+			$pl = new ProblemLanguage();
+			$pl->problem = $problem;
+			$pl->language = $lang;
+
+			$problem->problem_languages->add($pl);
 		}
-
-		$problemLanguageCPP = new ProblemLanguage();
-		$problemLanguageJAVA = new ProblemLanguage();
-
-		$problemLanguageCPP->language = $languageCPP;
-		$problemLanguageCPP->problem = $problem;
-		$problemLanguageJAVA->language = $languageJAVA;
-		$problemLanguageJAVA->problem = $problem;
-		
-		$problem->problem_languages->add($problemLanguageCPP);
-		$problem->problem_languages->add($problemLanguageJAVA);
 		
 		# TESTCASES
 		# set the old testcases to null 
@@ -300,7 +284,62 @@ class ContestPostController extends Controller {
 			
 			$section->assignments->add($practiceContest);
 			$section->assignments->add($actualContest);
-		}		
+		}
+
+		// LANGUAGES
+		$languages = json_decode($postData['languages']);
+
+		if(count($languages) < 1){
+			return $this->returnForbiddenResponse("At least one language must be provided.");
+		}
+
+		$practiceContest->contest_languages->clear();
+		$actualContest->contest_languages->clear();
+
+		foreach($languages as $language_id){
+
+			if(!isset($language_id)){
+				return $this->returnForbiddenResponse("Langauge id must be provided");
+			}
+
+			$language = $em->find('AppBundle\Entity\Language', $language_id);
+
+			if(!$language){
+				return $this->returnForbiddenResponse("Could not find language with id: ".$language_id);
+			}
+
+			$practiceContest->contest_languages->add($language);
+			$actualContest->contest_languages->add($language);
+		}
+		
+		// reset the langauges for all of the problems that already exist
+		foreach($practiceContest->problems as &$prob){
+			$prob->problem_languages->clear();
+
+			foreach($practiceContest->contest_languages as $lang){
+				$pl = new ProblemLanguage();
+				$pl->problem = $prob;
+				$pl->language = $lang;
+
+				$prob->problem_languages->add($pl);
+			}
+
+			$em->persist($prob);
+		}
+
+		foreach($actualContest->problems as &$prob){
+			$prob->problem_languages->clear();
+
+			foreach($actualContest->contest_languages as $lang){
+				$pl = new ProblemLanguage();
+				$pl->problem = $prob;
+				$pl->language = $lang;
+
+				$prob->problem_languages->add($pl);
+			}
+
+			$em->persist($prob);
+		}
 
 		# NAME
 		if(!isset($postData['contest_name']) || trim($postData['contest_name']) == ""){
@@ -338,8 +377,7 @@ class ContestPostController extends Controller {
 		$actualContest->penalty_per_wrong_answer = (int)$penalty_per_wrong_answer;	
 		$actualContest->penalty_per_compile_error = (int)$penalty_per_compile_error;
 		$actualContest->penalty_per_time_limit = (int)$penalty_per_time_limit;
-		$actualContest->penalty_per_runtime_error = (int)$penalty_per_runtime_error;
-		
+		$actualContest->penalty_per_runtime_error = (int)$penalty_per_runtime_error;		
 		
 		
 		# TIMES
@@ -899,28 +937,13 @@ class ContestPostController extends Controller {
 			if($submission->pending_status > 1 && !$postData['override']){
 				return $this->returnForbiddenResponse("Submission has already been reviewed");
 			}
-						
+			
+			$override_wrong = false;
 			$reviewed = true;
 			if($postData['type'] == "wrong"){
-				
-				// override the submission to wrong
-				if($submission->isCorrect(true) || $submission->isError()){
-					
-					$submission->wrong_override = true;				
-					$submission->correct_override = false;
-				} else {
-					
-					$submission->wrong_override = false;
-					$submission->correct_override = false;
 
-					$pusher->pushUserSpecificMessage(
-						$pusher->buildRejection($submission),
-						$pusher->getUsernamesFromTeam($submission->team),
-						$submission->problem->assignment->section->id,
-						true,
-						$submission->id
-					);
-				}
+				$override_wrong = true;
+				
 				
 			} else if($postData['type'] == "correct"){
 				
@@ -964,6 +987,8 @@ class ContestPostController extends Controller {
 				);
 					
 			} else if($postData['type'] == "formatting"){
+				
+				$override_wrong = true;
 						
 				// add formatting message to submission
 				$submission->judge_message = "Formatting Error";
@@ -978,6 +1003,7 @@ class ContestPostController extends Controller {
 						
 			} else if($postData['type'] == "message"){
 				
+				$override_wrong = true;
 				$message = $postData['message'];
 				
 				// add custom message to submission
@@ -1019,6 +1045,31 @@ class ContestPostController extends Controller {
 				
 			} else {
 				return $this->returnForbiddenResponse("Type of judging command not allowed");
+			}
+
+			// do this if you need to override the submission to be wrong
+			// (since it is used in many of the cases above)
+			if($override_wrong){
+
+				// override the submission to wrong
+				if($submission->isCorrect(true) || $submission->isError()){
+					
+					$submission->wrong_override = true;				
+					$submission->correct_override = false;
+				} else {
+					
+					$submission->wrong_override = false;
+					$submission->correct_override = false;
+
+					$pusher->pushUserSpecificMessage(
+						$pusher->buildRejection($submission),
+						$pusher->getUsernamesFromTeam($submission->team),
+						$submission->problem->assignment->section->id,
+						true,
+						$submission->id
+					);
+				}
+
 			}
 
 			

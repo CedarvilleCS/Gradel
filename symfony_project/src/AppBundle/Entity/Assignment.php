@@ -31,6 +31,7 @@ class Assignment implements JsonSerializable{
 		$this->problems = new ArrayCollection();
 		$this->teams = new ArrayCollection();
 		$this->queries = new ArrayCollection();
+		$this->contest_languages = new ArrayCollection();
 	}
 	
 	public function __construct9($sect, $nm, $desc, $start, $end, $cutoff, $wght, $pen, $extra){
@@ -225,7 +226,17 @@ class Assignment implements JsonSerializable{
 	/**
 	* @ORM\Column(type="integer", nullable=true)
 	*/
-	public $penalty_per_runtime_error;	
+	public $penalty_per_runtime_error;
+
+	/**
+     * Many Users have Many Groups.
+     * @ORM\ManyToMany(targetEntity="Language")
+     * @ORM\JoinTable(name="contest_languages",
+     *      joinColumns={@ORM\JoinColumn(name="contest_id", referencedColumnName="id")},
+     *      inverseJoinColumns={@ORM\JoinColumn(name="language_id", referencedColumnName="id")}
+     *      )
+     */
+	public $contest_languages;
 	
 	public function jsonSerialize(){
 		return [

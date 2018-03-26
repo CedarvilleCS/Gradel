@@ -208,6 +208,8 @@
 	<script src="{{ asset('js/cards.js') }}"></script>
 	<script src="{{ asset('js/unicode_return.js') }}"></script>
 	
+	<script src="{{ asset('js/contest.js') }}"></script>	
+
 	<script>
 
 		
@@ -226,13 +228,6 @@
 		
 		$(window).unload(function() {			
 
-		});		
-
-		$( document ).tooltip({
-			track: true,
-			content: function(callback) {  
-				callback($(this).prop('title').replace(/\\n/g, '<br />')); 
-			}
 		});
 		
 		//var freeze 
@@ -310,15 +305,19 @@
 		}
 		
 		$('#review-filter-input').on('keyup', function() {
+			
 			var filter = document.getElementById('review-filter-input').value;
 			
 			$('.review').each(function( index ){
-				var html = $(this).text().toUpperCase();
-				console.log(html);
 				
-				var num = html.indexOf(filter.toUpperCase());
+				var rev = currReviews[$(this).attr('id')];
+
+				var search = rev.result_string + " " + rev.problem.name + " " + rev.language.name + " " + rev.team.name + " " + rev.team.member_string + " " + rev.reviewer.full_name;
+				search = search.toLowerCase();
+				
+				var num = search.indexOf(filter.toLowerCase());								
 				if (filter != '') {
-				  if (num > 0) {
+				  if (num >= 0) {
 					  this.style.display = "flex";
 				  } else {
 					  this.style.display = "none";
@@ -1004,13 +1003,17 @@
 		}
 		
 		var user_reviewed = 0;
+		var currReviews = [];
+
 		function addReviews(reviews){
 			
+			currReviews = [];
 			var newOne = false;
 			
 			for(var i=0; i < reviews.length; i++){
 			
 				var rev = reviews[i];
+				currReviews[rev.id] = rev;
 				
 				var str = '#recent-reviews #' + rev.id;
 				var prevSubs = $(str);
@@ -1038,7 +1041,6 @@
 				}
 				
 				$("#review_stats").text("You have made " + user_reviewed + " of " + reviews.length +  " reviews.");
-
 			}			
 			
 			return newOne;
@@ -1071,7 +1073,6 @@
 				if (clars[i]['answerer'] != null && clars[i]['answerer'].email == '{{app.user}}') { 
 					user_clarifications++;
 				}
-				console.log(user_clarifications + "sadasd");
 				
 				$("#clar_stats").text("You have made " + user_clarifications + " of " + clars.length +  " clarifications.");
 			}
@@ -1124,12 +1125,12 @@
 									
 										`<div>\n` +
 										`Expected Output:\n` +
-										`<textarea disabled>` + escapeHTML(addReturnKey(tcr.testcase.correct_output)) + ` </textarea>\n` +
+										`<textarea class="expected" disabled>` + escapeHTML(addReturnKey(tcr.testcase.correct_output)) + ` </textarea>\n` +
 										`</div>\n` +
 										
 										`<div>\n` +
 										`Their Output:\n` +
-										`<textarea disabled>` + escapeHTML(addReturnKey(tcr.std_output)) + `</textarea>\n` +
+										`<textarea class="theirs" disabled>` + escapeHTML(addReturnKey(tcr.std_output)) + `</textarea>\n` +
 										`</div>\n` +
 									
 									`</div>\n` +					
@@ -1183,6 +1184,14 @@
 				
 				$('#submissions-card .card-title .card-subtitle').html("<i> Double-click to claim (" + $('#submissions-container .submission').size() + ") </i>");
 			}
+
+			$('.expected').on('scroll', function () {
+				$(this).parent().parent().find('.theirs').scrollTop($(this).scrollTop());
+			});
+
+			$('.theirs').on('scroll', function () {
+				$(this).parent().parent().find('.expected').scrollTop($(this).scrollTop());
+			});
 		}
 		
 		

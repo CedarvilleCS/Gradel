@@ -488,6 +488,8 @@ class ContestPagesController extends Controller {
 			
 			return $this->returnForbiddenResponse("PERMISSION DENIED");
 		}
+
+		$languages = $em->getRepository("AppBundle\Entity\Language")->findAll();
 		
 		return $this->render('contest/edit.html.twig', [
 			'course' => $course,
@@ -496,6 +498,8 @@ class ContestPagesController extends Controller {
 			'freeze_diff_hours' => $freeze_diff_hours,
 			'freeze_diff_minutes' => $freeze_diff_minutes,
 			
+			'languages' => $languages,
+
 			'judges' => $judges,
 			
 			"elevatedUser" => $elevatedUser,

@@ -88,7 +88,7 @@ class Team implements JsonSerializable{
 
 			$first = false;
 		}
-
+		
 		return $str;
 	}
 	

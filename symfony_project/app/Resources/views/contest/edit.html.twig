@@ -3,6 +3,23 @@
 <link rel="icon" type="image/x-icon" href="{{ asset('logo.png') }}" />
 {% endblock %}
 
+{% block stylesheets %}
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+	<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/jquery-ui-timepicker-addon@1.6.3/dist/jquery-ui-timepicker-addon.css" />
+	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
+	
+    <link rel="stylesheet" href="{{ asset('styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('card.css') }}" />
+
+    <link rel="stylesheet" href="{{ asset('contest.css') }}" />
+    <link rel="stylesheet" href="{{ asset('contest-hub.css') }}" />
+
+	<link rel="stylesheet" href="{{ asset('contest-edit.css') }}" />
+	
+	<link rel="stylesheet" href="{{ asset('team-creation.css') }}">
+	<link rel="stylesheet" href="{{ asset('custom-toggle.css') }}">
+{% endblock %}
+
 
 {% block body %}
 
@@ -74,10 +91,22 @@
 								<label for="actual-end-date">End Time</label>
 								<input type="text" id="actual-end-date" style="width:160px; margin-right:20px">
 							</td> </tr>
-							
+
+				
+							<tr> <td>
+								<div><b> Languages </b></div>
+								<div id="language-pool">
+									{% for lang in languages %}
+									<div class="language {{(section is null and (lang.name == 'Java' or lang.name == 'C++')) ? 'ui-selected' : ''}}" id="{{lang.id}}">{{lang.name}}</div>
+									{% endfor %}
+								</div>
+							</td></tr>
+
 						</table>
 					</div>
 				</div>
+
+				
 			</div>
 			
 			{# Cards #}
@@ -171,22 +200,6 @@
 
 {% endblock %}
 
-
-{% block stylesheets %}
-	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-	<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/jquery-ui-timepicker-addon@1.6.3/dist/jquery-ui-timepicker-addon.css" />
-	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
-	
-    <link rel="stylesheet" href="{{ asset('styles.css') }}" />
-    <link rel="stylesheet" href="{{ asset('card.css') }}" />
-    <link rel="stylesheet" href="{{ asset('contest.css') }}" />
-    <link rel="stylesheet" href="{{ asset('contest-hub.css') }}" />
-	
-	<link rel="stylesheet" href="{{ asset('team-creation.css') }}">
-	<link rel="stylesheet" href="{{ asset('custom-toggle.css') }}">
-{% endblock %}
-
-
 {% block scripts %}
     <!-- JQuery -->
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
@@ -197,6 +210,8 @@
 	
 	<script src="{{ asset('js/cards.js') }}"></script>
 	<script src="{{ asset('js/validation.js') }}"></script>
+	
+	<script src="{{ asset('js/contest.js') }}"></script>
 
 	{# asynchronous file upload #}
 	<script src="http://malsup.github.com/jquery.form.js"></script>
@@ -204,7 +219,17 @@
 	{# javascript for team creation #}
 	<script>
 
-			
+
+	$('.language').click( function(){
+
+		if($(this).hasClass('ui-selected')){
+			$(this).removeClass('ui-selected');
+		} else {
+			$(this).addClass('ui-selected');
+		}
+
+	});
+
 	function getUserHtml(student){
 		
 		var id = (student.id) ? student.id : 0;
@@ -490,6 +515,20 @@
 			var practice_end_date = $('#practice-end-date').datepicker('getDate');
 			var actual_start_date = $('#actual-start-date').datepicker('getDate');
 			var actual_end_date = $('#actual-end-date').datepicker('getDate');
+
+			if(!practice_start_date || !practice_end_date || !actual_start_date || !actual_end_date){
+				setInvalid($('#practice-start-date'));
+				setInvalid($('#practice-end-date'));
+				setInvalid($('#actual-start-date'));
+				setInvalid($('#actual-end-date'));
+				$('#delete-warning').html("Every date must have a value");
+				return false;
+			} else {
+				setValid($('#practice-start-date'));
+				setValid($('#practice-end-date'));
+				setValid($('#actual-start-date'));
+				setValid($('#actual-end-date'));
+			}
 			
 			if(practice_start_date >= practice_end_date){
 				setInvalid($('#practice-start-date'));
@@ -608,6 +647,21 @@
 			
 			formData.append('freeze_minutes', freeze_minutes);
 			formData.append('freeze_hours', freeze_hours);
+
+			// Array of Languages
+			var languageArr = [];
+			$('#language-pool .ui-selected').each(function() {
+				languageArr.push($(this).attr('id'));
+			});		
+
+			if(languageArr.length < 1){
+				setInvalid($('#language-pool'));
+				$('#delete-warning').html("You must select at least one language");
+				return false;
+			} else {
+				setValid($('#language-pool'));
+			}
+			formData.append('languages', JSON.stringify(languageArr));
 						
 			// Array of Judges
 			judges = [];
@@ -760,6 +814,10 @@
 		
 		{% for judge in judges %}		
 		$('#judge-picker').append($($.parseHTML(getUserHtml(JSON.parse("{{judge.user|json_encode|e('js')}}")))));				
+		{% endfor %}
+
+		{% for lang in section.assignments[0].contest_languages %}
+		$('#language-pool #{{lang.id}}').addClass('ui-selected');
 		{% endfor %}
 		
 		updateActions();		

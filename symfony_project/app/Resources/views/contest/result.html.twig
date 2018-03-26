@@ -229,19 +229,14 @@
 	
 	<script src="{{ asset('js/unicode_return.js') }}" type="text/javascript" charset="utf-8"></script>	
 	
+	<script src="{{ asset('js/contest.js') }}"></script>
+	
 	<script>
 
 
 	{# template for multiple sessions #}
 	{{ block('editor_javascript', 'ace/sessions.twig') }}
 
-	$( document ).tooltip({
-		track: true,
-		content: function(callback) {  
-			callback($(this).prop('title').replace(/\\n/g, '<br />')); 
-		}
-	});
-	
 	$(document).ready( function() {
 	
 		{% if submission.compiler_output %}
