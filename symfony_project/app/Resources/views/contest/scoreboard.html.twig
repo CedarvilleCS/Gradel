@@ -117,7 +117,7 @@
 		var total = {{current_contest.end_time|date('U')}} - {{current_contest.start_time|date('U')}};
 		var freeze = {{current_contest.freeze_time|date('U')}} - {{current_contest.start_time|date('U')}};
 		
-		var frozen = (Math.floor(Date.now()/1000) >= {{current_contest.freeze_time|date('U')}}) ? 'true' : 'false';
+		var frozen = (Math.floor(Date.now()/1000) >= {{current_contest.freeze_time|date('U')}}) ? true : false;
 		var visual_frozen = false;
 		var visual_unfrozen = false;
 		

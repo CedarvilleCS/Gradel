@@ -130,9 +130,22 @@ class Submission implements JsonSerializable {
 	
 	public function getResultString(){
 
-		if($this->isCorrect()){
+		if($this->pending_status < 2){
+			return "Pending";
+		}
+		// if it passes all the testcases		
+		else if($this->isCorrect(true)){
+			
+			if($this->wrong_override){
+				return "Incorrect - Judge Overriden";
+			}
+
 			return "Correct";
-		} 
+		}
+		// if it didn't pass all testcases
+		else if($this->correct_override){
+			return "Correct - Judge Overriden";
+		}
 		else if($this->compiler_error) {
 			return "Incorrect - Compiler Error";
 		} 

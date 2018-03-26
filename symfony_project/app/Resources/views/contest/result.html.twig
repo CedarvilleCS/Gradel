@@ -54,39 +54,7 @@
 			
 			<div id="submissionOverview" class="card-contents">
 				<h3 style="margin-top: 2px; margin-bottom: 2px">
-					RESULT:
-					{% if submission.pending_status < 2 %}
-						<i> PENDING REVIEW </i>
-					{% elseif submission.isCorrect() %}						
-						<span style="color:green">
-							CORRECT!
-							
-							{% if not submission.isCorrect(true) %}
-							(Overriden by Judge)
-							{% endif %}
-						</span>
-							
-					{% else %}					
-						<span style="color:red">
-						
-						{% if submission.compiler_error %}
-						COMPILER ERROR!
-						{% elseif submission.exceeded_time_limit %}
-						TIME LIMIT EXCEEEDED!
-						{% elseif submission.runtime_error %}
-						RUNTIME ERROR!
-						{% else %}
-						WRONG ANSWER!
-						
-						{% if submission.isCorrect(true) %}
-						(Overriden by Judge)
-						{% endif %}
-						
-						{% endif %}	
-						
-						</span>	
-						
-					{% endif %}
+					RESULT: <span> {{submission.getResultString()}} </span>
 						
 					{% if submission.judge_message %}
 					<div> JUDGE MESSAGE: {{ submission.judge_message }} </div>

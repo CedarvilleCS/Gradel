@@ -46,36 +46,9 @@
 			
 			<div id="submissionOverview" class="card-contents">
 				<h3 style="margin-top: 2px; margin-bottom: 2px">
-					RESULT: 
-										
-					{% if submission.isCorrect() %}						
-						<span style="color:green">CORRECT!</span>
-						
-					{% else %}					
-						<span style="color:red">
-						{% if submission.compiler_error %}
-						COMPILER ERROR!
-						{% elseif submission.exceeded_time_limit %}
-						TIME LIMIT EXCEEEDED!
-						<br/>
-						
-						{% if submission.testcaseresults|length > 0 %}
-							{% for tcr in submission.testcaseresults %}
-								Runtime for input {{tcr.testcase.seq_num}}) {{tcr.execution_time/1000}}s
-								<br/>
-							{% endfor %}
-						{% else %}
-							Wall clock limit exceeded <br/>
-						{% endif %}
-						
-						{% elseif submission.runtime_error %}
-						RUNTIME ERROR!
-						{% else %}
-						WRONG ANSWER!
-						{% endif %}
-						</span>
-						
-					{% endif %}
+					RESULT: <span> {{submission.getResultString()}} </span>
+
+					
 				</h3>				
 				
 				
