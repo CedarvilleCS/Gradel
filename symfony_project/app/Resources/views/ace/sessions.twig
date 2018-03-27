@@ -22,6 +22,7 @@
 	/* MULTIPLE EDITOR TAB OPTIONS */
 	// ACE Session
 	var EditSession = ace.require("ace/edit_session").EditSession;
+	var UndoManager = ace.require("ace/undomanager").UndoManager;
 	var ace_sessions = [];	
 	var curr_session;
 
@@ -223,7 +224,8 @@
 		
 		updateTabEvents($('#test-code-tab-user-' + num_tabs + '-marker'), num_tabs);
 
-		var new_session = new EditSession("");			
+		var new_session = new EditSession("");	
+		new_session.setUndoManager( new UndoManager());		
 		ace_sessions[num_tabs] = new_session;
 		
 		$('#test-code-tab-user-' + num_tabs + '-marker').click();
@@ -335,8 +337,6 @@
 	editor.setSession(current_session);		
 	
 	{% endif %}
-	
-	
 
 {% endblock %}
 
