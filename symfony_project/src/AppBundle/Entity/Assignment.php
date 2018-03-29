@@ -232,8 +232,8 @@ class Assignment implements JsonSerializable{
      * Many Users have Many Groups.
      * @ORM\ManyToMany(targetEntity="Language")
      * @ORM\JoinTable(name="contest_languages",
-     *      joinColumns={@ORM\JoinColumn(name="contest_id", referencedColumnName="id")},
-     *      inverseJoinColumns={@ORM\JoinColumn(name="language_id", referencedColumnName="id")}
+     *      joinColumns={@ORM\JoinColumn(name="contest_id", referencedColumnName="id", onDelete="CASCADE")},
+     *      inverseJoinColumns={@ORM\JoinColumn(name="language_id", referencedColumnName="id", onDelete="CASCADE")}
      *      )
      */
 	public $contest_languages;
