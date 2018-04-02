@@ -74,7 +74,6 @@ class ContestPostController extends Controller {
 
 				$problem = new Problem();
 				$problem->assignment = $assignment;
-				//$em->persist($problem);
 
 			} else {
 				
@@ -128,30 +127,14 @@ class ContestPostController extends Controller {
 		# PROBLEM LANGUAGES
 		# remove the old ones
 		$problem->problem_languages->clear();
-		
-		// For now, default the contest languages to just be C++ and Java		
-		$languageCPP = $em->getRepository("AppBundle\Entity\Language")->findOneBy([
-			'name' => "C++",
-		]);
-		
-		$languageJAVA = $em->getRepository("AppBundle\Entity\Language")->findOneBy([
-			'name' => "Java",
-		]);
 
-		if(!$languageCPP && !$languageJAVA){
-			return $this->returnForbiddenResponse("languages could not be generated properly - this is Timothy's fault");
+		foreach($assignment->contest_languages->toArray() as $lang){
+			$pl = new ProblemLanguage();
+			$pl->problem = $problem;
+			$pl->language = $lang;
+
+			$problem->problem_languages->add($pl);
 		}
-
-		$problemLanguageCPP = new ProblemLanguage();
-		$problemLanguageJAVA = new ProblemLanguage();
-
-		$problemLanguageCPP->language = $languageCPP;
-		$problemLanguageCPP->problem = $problem;
-		$problemLanguageJAVA->language = $languageJAVA;
-		$problemLanguageJAVA->problem = $problem;
-		
-		$problem->problem_languages->add($problemLanguageCPP);
-		$problem->problem_languages->add($problemLanguageJAVA);
 		
 		# TESTCASES
 		# set the old testcases to null 
@@ -242,6 +225,8 @@ class ContestPostController extends Controller {
 		
 		$elevatedUser = $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN");				
 		
+		$contests = [];
+
 		# SECTION 		
 		if(!isset($postData['contestId'])){
 			
@@ -260,10 +245,7 @@ class ContestPostController extends Controller {
 			if( !($elevatedUser) ){
 				return $this->returnForbiddenResponse("PERMISSION DENIED");
 			}
-			
-			$practiceContest = $section->assignments[0];
-			$actualContest = $section->assignments[1];
-			
+						
 		} else {
 			
 			if( !($elevatedUser) ){
@@ -272,35 +254,158 @@ class ContestPostController extends Controller {
 
 			$section = new Section();
 			
-			$practiceContest = new Assignment();
-			$actualContest = new Assignment();	
-
 			# set up the section
 			$section->course = $course;
 			$section->semester = "";
 			$section->year = 0;
 			$section->is_public = false;
-			$section->is_deleted = false;			
+			$section->is_deleted = false;					
+		}
+
+
+		# CONTESTS
+		$contestsToRemove = [];
+		
+		foreach($section->assignments as $asgn){
+			$contestsToRemove[$asgn->id] = $asgn;	
+		};
+
+		$section->assignments->clear();
+
+		$postContests = (array) json_decode($postData['contests']);
+
+		if(count($postContests) < 1){
+			return $this->returnForbiddenResponse("Provided contests was empty");
+		}
+
+		foreach($postContests as $pc){
+
+			if($pc->id){
 			
-			# set up the practice contest
-			$practiceContest->section = $section;
-			$practiceContest->name = "Practice Contest";
-			$practiceContest->description = "This is the practice contest.";
-			$practiceContest->weight = 1;
-			$practiceContest->is_extra_credit = false;
-			$practiceContest->penalty_per_day = 0;
+				$contest = $em->find('AppBundle\Entity\Assignment', $pc->id);
+				if(!$contest || $contest->section != $section){
+					return $this->returnForbiddenResponse("Assignment does not exist.");
+				}
+
+			} else {
+
+				$contest = new Assignment();
+				$contest->section = $section;
+			}
+
+			$contest->name = $pc->name;
+			$contest->description = "";
+			$contest->weight = 1;
+			$contest->is_extra_credit = false;
+			$contest->penalty_per_day = 0;
+
+
+			# TIMES		
+			$unix_start = strtotime($pc->times[0]);			
+			if(!$unix_start){
+				return $this->returnForbiddenResponse("Provided start date is not valid");
+			}			
+			$start_date = new DateTime();
+			$start_date->setTimestamp($unix_start);
+
+			$unix_end = strtotime($pc->times[1]);			
+			if(!$unix_end){
+				return $this->returnForbiddenResponse("Provided end date is not valid");
+			}			
+			$end_date = new DateTime();
+			$end_date->setTimestamp($unix_end);
 			
-			# set up the actual contest
-			$actualContest->section = $section;
-			$actualContest->name = "Actual Contest";
-			$actualContest->description = "This is the actual contest.";
-			$actualContest->weight = 1;
-			$actualContest->is_extra_credit = false;
-			$actualContest->penalty_per_day = 0;
+			// validate the times
+			if($start_date >= $end_date){
+				return $this->returnForbiddenResponse("Provided times conflict with each other");
+			}
+						
+			// build the scoreboard freeze time
+			$freezeMins = trim($pc->min_freeze);
+			$freezeHours = trim($pc->hour_freeze);
 			
-			$section->assignments->add($practiceContest);
-			$section->assignments->add($actualContest);
-		}		
+			if(!is_numeric($freezeHours) || $freezeHours < 0 || $freezeHours != round($freezeHours)){
+				return $this->returnForbiddenResponse("Provided freeze hours is not valid");
+			}
+			
+			if(!is_numeric($freezeMins) || $freezeMins < 0 || $freezeMins != round($freezeMins)){
+				return $this->returnForbiddenResponse("Provided freeze minutes is not valid");
+			}
+			
+			$di = DateInterval::createFromDateString($freezeHours." hours + ".$freezeMins." minutes");
+			$freeze_date = clone $end_date;	
+			$freeze_date->sub($di);
+			
+			if(!$freeze_date){
+				return $this->returnForbiddenResponse("Calculated freeze date is not valid");
+			}
+			// set the freeze time to be the start time if the freeze time is extra long
+			else if($freeze_date < $start_date){
+				$freeze_date = clone $start_date;
+			}
+			
+			$contest->start_time = $start_date;
+			$contest->end_time = $end_date;
+			$contest->cutoff_time = $end_date;			
+			$contest->freeze_time = $freeze_date;
+
+			$contests[] = $contest;
+		}
+
+		foreach($contests as &$cntst){
+			unset($contestsToRemove[$cntst->id]);
+			$section->assignments->add($cntst);
+		}
+
+		$section->start_time = clone $contests[0]->start_time;
+		$section->start_time->sub(new DateInterval('P30D'));
+		
+		$section->end_time = clone $contests[count($contests)-1]->end_time;	
+		$section->end_time->add(new DateInterval('P14D'));
+
+		// LANGUAGES
+		$languages = json_decode($postData['languages']);
+		if(count($languages) < 1){
+			return $this->returnForbiddenResponse("At least one language must be provided.");
+		}
+
+		foreach($contests as &$cntst){
+			$cntst->contest_languages->clear();
+		}
+
+		foreach($languages as $language_id){
+
+			if(!isset($language_id)){
+				return $this->returnForbiddenResponse("Language id must be provided");
+			}
+
+			$language = $em->find('AppBundle\Entity\Language', $language_id);
+
+			if(!$language){
+				return $this->returnForbiddenResponse("Could not find language with id: ".$language_id);
+			}
+			
+			foreach($contests as &$cntst){
+				$cntst->contest_languages->add($language);
+			}
+		}
+
+		// reset the languages for all of the problems that already exist
+		foreach($contests as &$cntst){
+			foreach($cntst->problems as &$prob){
+				$prob->problem_languages->clear();
+	
+				foreach($cntst->contest_languages as $lang){
+					$pl = new ProblemLanguage();
+					$pl->problem = $prob;
+					$pl->language = $lang;
+	
+					$prob->problem_languages->add($pl);
+				}
+	
+				$em->persist($prob);
+			}
+		}
 
 		# NAME
 		if(!isset($postData['contest_name']) || trim($postData['contest_name']) == ""){
@@ -330,126 +435,17 @@ class ContestPostController extends Controller {
 			return $this->returnForbiddenResponse("The provided penalty_per_runtime_error ".$postData['penalty_per_runtime_error']." is not permitted.");
 		}
 
-		$practiceContest->penalty_per_wrong_answer = (int)$penalty_per_wrong_answer;	
-		$practiceContest->penalty_per_compile_error = (int)$penalty_per_compile_error;
-		$practiceContest->penalty_per_time_limit = (int)$penalty_per_time_limit;
-		$practiceContest->penalty_per_runtime_error = (int)$penalty_per_runtime_error;
-
-		$actualContest->penalty_per_wrong_answer = (int)$penalty_per_wrong_answer;	
-		$actualContest->penalty_per_compile_error = (int)$penalty_per_compile_error;
-		$actualContest->penalty_per_time_limit = (int)$penalty_per_time_limit;
-		$actualContest->penalty_per_runtime_error = (int)$penalty_per_runtime_error;
-		
-		
-		
-		# TIMES
-		
-		// practice start
-		$unix_practice_start = strtotime($postData['practice_start_date']);			
-		if(!$unix_practice_start){
-			return $this->returnForbiddenResponse("practice_start_date provided is not valid");
-		}
-		
-		$practice_start_date = new DateTime();
-		$practice_start_date->setTimestamp($unix_practice_start);
-		
-		// practice end
-		$unix_practice_end = strtotime($postData['practice_end_date']);			
-		if(!$unix_practice_end){
-			return $this->returnForbiddenResponse("practice_start_date provided is not valid");
-		}
-		
-		$practice_end_date = new DateTime();
-		$practice_end_date->setTimestamp($unix_practice_end);
-		
-		// actual start
-		$unix_actual_start = strtotime($postData['actual_start_date']);			
-		if(!$unix_actual_start){
-			return $this->returnForbiddenResponse("actual_start_date provided is not valid");
-		}
-		
-		$actual_start_date = new DateTime();
-		$actual_start_date->setTimestamp($unix_actual_start);
-		
-		// actual end
-		$unix_actual_end = strtotime($postData['actual_end_date']);			
-		if(!$unix_actual_end){
-			return $this->returnForbiddenResponse("actual_end_date provided is not valid");
-		}
-		
-		$actual_end_date = new DateTime();
-		$actual_end_date->setTimestamp($unix_actual_end);
-		
-		// validate the times
-		if($practice_start_date >= $practice_end_date){
-			return $this->returnForbiddenResponse("Practice start time must be before end time");
-		}
-		
-		if($actual_start_date >= $actual_end_date){
-			return $this->returnForbiddenResponse("Actual start time must be before end time");
-		}
-		
-		if($practice_end_date >= $actual_start_date){
-			return $this->returnForbiddenResponse("Contest times overlap");			
-		}
-				
-		
-		// get the scoreboard freeze time
-		$freezeHours = trim($postData['freeze_hours']);
-		$freezeMins = trim($postData['freeze_minutes']);
-		
-		if(!is_numeric($freezeHours) || $freezeHours < 0 || $freezeHours != round($freezeHours)){
-			return $this->returnForbiddenResponse("freeze_hours is not valid");
-		}
-		
-		if(!is_numeric($freezeMins) || $freezeMins < 0 || $freezeMins != round($freezeMins)){
-			return $this->returnForbiddenResponse("freeze_minutes is not valid");
-		}
-		
-		$di = DateInterval::createFromDateString($freezeHours." hours + ".$freezeMins." minutes");
-		
-		$actual_freeze_date = clone $actual_end_date;
-		$practice_freeze_date = clone $practice_end_date;
-		
-		# for now, don't allow freezing the scoreboard in the practice contest
-		$actual_freeze_date->sub($di);
-		//$practice_freeze_date->sub($di);
-		
-		if(!$actual_freeze_date || !$practice_freeze_date){
-			return $this->returnForbiddenResponse("Freeze date is not valid ");
-		}
-		
-		// set the freeze time to be the start time if the freeze time is extra long
-		if($actual_freeze_date < $actual_start_date){
-			$actual_freeze_date = clone $actual_start_date;
-		}
-		
-		if($practice_freeze_date < $practice_start_date){
-			$practice_freeze_date = clone $practice_start_date;
-		}
-		
-		$practiceContest->start_time = $practice_start_date;
-		$practiceContest->end_time = $practice_end_date;
-		$practiceContest->cutoff_time = $practice_end_date;			
-		$practiceContest->freeze_time = $practice_freeze_date;
-		
-		$actualContest->start_time = $actual_start_date;
-		$actualContest->end_time = $actual_end_date;
-		$actualContest->cutoff_time = $actual_end_date;		
-		$actualContest->freeze_time = $actual_freeze_date;
-		
-		
-		$section->start_time = clone $practice_start_date;
-		$section->start_time->sub(new DateInterval('P30D'));
-		
-		$section->end_time = clone $actual_end_date;	
-		$section->end_time->add(new DateInterval('P14D'));	
+		foreach($contests as &$cntst){
+			$cntst->penalty_per_wrong_answer = (int)$penalty_per_wrong_answer;	
+			$cntst->penalty_per_compile_error = (int)$penalty_per_compile_error;
+			$cntst->penalty_per_time_limit = (int)$penalty_per_time_limit;
+			$cntst->penalty_per_runtime_error = (int)$penalty_per_runtime_error;
+		}			
 		
 		# JUDGES
 		$section->user_roles->clear();	
 			
 		$judges = json_decode($postData['judges']);
-		$teams = json_decode($postData['teams']);
 		
 		$judgeRole = $em->getRepository("AppBundle\Entity\Role")->findOneBy([
 			'role_name' => 'Judges',
@@ -476,7 +472,8 @@ class ContestPostController extends Controller {
 					]);
 					
 					if(!$judgeUser){
-						$judgeUser = new User($judge->name, $judge->name);	
+						$judgeUser = new User($judge->name, $judge->name);
+						
 						$em->persist($judgeUser);
 					}
 					
@@ -497,159 +494,276 @@ class ContestPostController extends Controller {
 				return $this->returnForbiddenResponse("Judge not formatted properly");
 				
 			}			
-		}
+		}	
 		
+		# TEAMS		
 		$takeRole = $em->getRepository("AppBundle\Entity\Role")->findOneBy([
 			'role_name' => 'Takes',
-		]);		
+		]);	
+
+		$teams = json_decode($postData['teams']);			
 		
-		# TEAMS
-		$newPracticeTeams = new ArrayCollection();
-		$newActualTeams = new ArrayCollection();	
-		
+		$allMembers = [];
+
+		$newTeams = [];	
+		foreach($contests as $ct){
+			$newTeams[] = new ArrayCollection();
+		}
+
+		# TEAM CREATION
 		foreach($teams as $team){
+							
+			if( !(isset($team->id) && isset($team->name) && isset($team->members)) ){
+				return $this->returnForbiddenResponse("Team data was not formatted properly");
+			}
+
+			if(count($team->id) != count($contests)){
+				return $this->returnForbiddenResponse("Team does not have enough ids");
+			}
+
+			if(count($team->members) < 1){
+				return $this->returnForbiddenResponse("Team does not have enough members");
+			}
+
+			# GET AN ARRAY OF ALL MEMBERS
+			$members = [];
+			foreach($team->members as $member){
+
+				if(! (isset($member->id) && isset($member->name)) ){
+					return $this->returnForbiddenResponse("Member not formatted properly");	
+				}
 			
-			if(isset($team->id) && count($team->id) == 2 && isset($team->name) && isset($team->members) && count($team->members) > 0){
+				if($member->id == 0){
+			
+					// validate email
+
+					if( !filter_var($member->name, FILTER_VALIDATE_EMAIL) ) {								
 				
-				// decide if new teams need to be made
-				if($team->id[0] != 0 && $team->id[1] != 0){
-				
-				
-					$teamPractice = $em->find('AppBundle\Entity\Team', $team->id[0]);					
-					if(!$teamPractice || $teamPractice->assignment != $practiceContest){
-						return $this->returnForbiddenResponse("Unable to find team with id: ".$team->id[0]);
-					}
-					
-					$teamActual = $em->find('AppBundle\Entity\Team', $team->id[1]);					
-					if(!$teamActual || $teamActual->assignment != $actualContest){
-						return $this->returnForbiddenResponse("Unable to find team with id: ".$team->id[1]);
-					}
-				
-				
-				} else {
+						$member->name = $member->name."@cedarville.edu";
 						
-					$teamPractice = new Team();
-					$teamActual = new Team();	
-				}
-					
-				$teamPractice->assignment = $practiceContest;
-				$teamActual->assignment = $actualContest;
-				
-				# set names
-				$teamPractice->name = $team->name;
-				$teamActual->name = $team->name;
-				
-				$teamPractice->users->clear();
-				$teamActual->users->clear();
-				
-				# members
-				foreach($team->members as $member){
-					
-					if(isset($member->id) && isset($member->name)){
-						
-					
-						if($member->id == 0){
-					
-							// validate email
-							if( !filter_var($member->name, FILTER_VALIDATE_EMAIL) ) {
-								
-						
-								$member->name = $member->name."@cedarville.edu";
-								
-								if( !filter_var($member->name, FILTER_VALIDATE_EMAIL) ) {
-									return $this->returnForbiddenResponse("Email address ".$member->name." is not valid");
-								}
-							}
-							
-							$teamUser = $em->getRepository('AppBundle\Entity\User')->findOneBy([
-								'email' => $member->name,
-							]);
-							
-							if(!$teamUser){
-								$teamUser = new User($member->name, $member->name);	
-								$em->persist($teamUser);
-							}
-							
-						} else {
-							
-							$teamUser = $em->find('AppBundle\Entity\User', $member->id);
-							
-							if(!$teamUser){
-								return $this->returnForbiddenResponse("Unable to find user with id: ".$member->id);
-							}
+						if( !filter_var($member->name, FILTER_VALIDATE_EMAIL) ) {
+							return $this->returnForbiddenResponse("Email address ".$member->name." is not valid");
 						}
-						
-						$usr = new UserSectionRole($teamUser, $section, $takeRole);			
-						$section->user_roles->add($usr);
-						
-						$teamPractice->users->add($teamUser);
-						$teamActual->users->add($teamUser);
-						
-					} else {
-						
-						return $this->returnForbiddenResponse("Member not formatted properly");						
+					}
+					
+					$teamUser = $em->getRepository('AppBundle\Entity\User')->findOneBy([
+						'email' => $member->name,
+					]);
+
+					if($teamUser == null){
+						$teamUser = new User($member->name, $member->name);	
+						$em->persist($teamUser);
+					}
+					
+				} else {
+					
+					$teamUser = $em->find('AppBundle\Entity\User', $member->id);
+					
+					if(!$teamUser){
+						return $this->returnForbiddenResponse("Unable to find user with id: ".$member->id);
 					}
 				}
 				
+				$usr = new UserSectionRole($teamUser, $section, $takeRole);			
+				$section->user_roles->add($usr);
+
+				if($allMembers[$teamUser->getEmail()]){
+					return $this->returnForbiddenResponse("User ".$teamUser->getEmail()." cannot be on two teams");
+				}
+
+				$allMembers[$teamUser->getEmail()] = $teamUser;
+
+				$members[] = $teamUser;
+			}
+
+			# LOOP THROUGH EACH CONTEST AND ASSIGN MEMBERS
+			$count = 0;
+			foreach($team->id as $id){
+
+				if($id == 0){
+					
+					$tm = new Team();
+
+				} else {
 				
-				$newPracticeTeams->add($teamPractice);
-				$newActualTeams->add($teamActual);
+					$tm = $em->find('AppBundle\Entity\Team', $id);
+
+					if(!$tm || $tm->assignment != $contests[$count]){
+						return $this->returnForbiddenResponse("Unable to find team with id: ".$id);
+					}
+				}
+
+				$tm->assignment = $contests[$count];
+				$tm->name = $team->name;
+				$tm->workstation_number = $team->workstation_number;
+				$tm->users->clear();
 				
+				foreach($members as &$member){
+					$tm->users->add($member);
+				}
+
+				$newTeams[$count]->add($tm);
+
+				$count++;
+			}			
+		}
+
+		# POST-CONTEST CREATION
+		$lastEndDate = clone $contests[count($contests)-1]->end_time;
+		$firstStartDate = clone $contests[0]->start_time;
+		$firstEndDate = clone $contests[0]->end_time;
+
+		if(isset($postData['post_contest'])){
+			
+			$currTime = new \DateTime("now");
+			
+			if($postData['post_contest'] == 0 || $currTime <= $lastEndDate){
+
+				$post_contest = new Assignment();
+				$post_contest->section = $section;		
+
 			} else {
-				
-				return $this->returnForbiddenResponse("Team not formatted properly");				
+				$post_contest = $em->find('AppBundle\Entity\Assignment', intval($postData['post_contest']));
+				if(!$post_contest || $post_contest->section != $section){
+					return $this->returnForbiddenResponse("Post-contest assignment does not exist.");
+				}
 			}
 			
-		}		
-		
-		if($practiceContest->teams){
-			$practiceToRemove = clone $practiceContest->teams;
-		} else {
-			$practiceToRemove = new ArrayCollection();
+
+			$post_contest->post_contest = true;
+			$post_contest->name = "Post-Contest";
+			$post_contest->description = "";
+			$post_contest->weight = 1;
+			$post_contest->is_extra_credit = false;
+			$post_contest->penalty_per_day = 0;
+
+			$post_contest->start_time = clone $lastEndDate;			
+			$post_contest->end_time = clone $lastEndDate;
+			$post_contest->end_time->add(new DateInterval('P180D'));
+			$post_contest->cutoff_time = clone $lastEndDate;
+			$post_contest->cutoff_time->add(new DateInterval('P180D'));
+			$post_contest->freeze_time = clone $lastEndDate;
+			$post_contest->freeze_time->add(new DateInterval('P180D'));
+
+			unset($contestsToRemove[$post_contest->id]);
+			$em->persist($post_contest);	
 		}
-		
-		
-		if($actualContest->teams){			
-			$actualToRemove = clone $actualContest->teams;
-		} else {
-			$actualToRemove = new ArrayCollection();			
-		}
-		
-		# clear out and replace the teams 
-		foreach($practiceContest->teams as &$team){
-			$team->assignment = null;
-		}
-		foreach($actualContest->teams as &$team){
-			$team->assignment = null;
-		}		
-		
-		foreach($newPracticeTeams as &$team){
+
+		# PRE-CONTEST CREATION
+		if(isset($postData['pre_contest'])){
+
+			if($postData['pre_contest'] == 0){
+
+				$pre_contest = new Assignment();
+				$pre_contest->section = $section;		
+
+			} else {
+				$pre_contest = $em->find('AppBundle\Entity\Assignment', intval($postData['pre_contest']));
+				if(!$pre_contest || $pre_contest->section != $section){
+					return $this->returnForbiddenResponse("Pre-contest assignment does not exist.");
+				}
+			}
 			
-			$practiceToRemove->removeElement($team);
+			$pre_contest->pre_contest = true;
+			$pre_contest->name = "Pre-Contest";
+			$pre_contest->description = "";
+			$pre_contest->weight = 1;
+			$pre_contest->is_extra_credit = false;
+			$pre_contest->penalty_per_day = 0;
+
+			$pre_contest->start_time = clone $firstStartDate;	
+			$pre_contest->start_time->sub(new DateInterval('P7D'));		
+			$pre_contest->end_time = clone $firstEndDate;
+			$pre_contest->end_time->sub(new DateInterval('P0DT1H'));
+			$pre_contest->cutoff_time = clone $firstEndDate;
+			$pre_contest->cutoff_time->sub(new DateInterval('P0DT1H'));
+			$pre_contest->freeze_time = clone $firstEndDate;
+			$pre_contest->freeze_time->sub(new DateInterval('P0DT1H'));
 			
-			$team->assignment = $practiceContest;
-			$em->persist($team);
+
+			# PRE CONTEST LANGUAGES
+			$pre_contest->contest_languages->clear();
+			
+			foreach($languages as $language_id){
+				$language = $em->find('AppBundle\Entity\Language', $language_id);
+				$pre_contest->contest_languages->add($language);
+			}
+	
+			// reset the languages for all of the problems that already exist
+			foreach($pre_contest->problems as &$prob){
+				$prob->problem_languages->clear();
+	
+				foreach($pre_contest->contest_languages as $lang){
+					$pl = new ProblemLanguage();
+					$pl->problem = $prob;
+					$pl->language = $lang;
+	
+					$prob->problem_languages->add($pl);
+				}
+	
+				$em->persist($prob);
+			}
+
+
+			$toRemove = $pre_contest->teams->toArray();
+			$pre_contest->teams->clear();
+
+			foreach($allMembers as $email => $user){
+				$tm = new Team();
+
+				$tm->assignment = $pre_contest;
+				$tm->name = $user->getFullName();
+				$tm->workstation_number = 0;
+				
+				$tm->users->add($user);
+				
+				$pre_contest->teams->add($tm);
+			}
+
+			foreach($toRemove as &$team){
+				$em->remove($team);
+				$em->flush();
+			}
+
+			unset($contestsToRemove[$pre_contest->id]);
+			$em->persist($pre_contest);	
 		}
 		
-		foreach($newActualTeams as &$team){
-			
-			$actualToRemove->removeElement($team);
-			
-			$team->assignment = $actualContest;	
-			$em->persist($team);
-		}
 		
-		foreach($practiceToRemove as &$team){
-			$em->remove($team);
+		# DELETE OLD TEAMS AND CREATE (PERSIST) NEW ONES
+		$count = 0;
+		foreach($contests as &$cntst){
+			
+			if($cntst->teams){
+				$toRemove = clone $cntst->teams;
+			} else {
+				$toRemove = new ArrayCollection();
+			}
+
+
+			foreach($cntst->teams as &$team){
+				$team->assignment = null;
+			}
+
+			foreach($newTeams[$count] as &$team){
+				$toRemove->removeElement($team);
+
+				$team->assignment = $cntst;
+				$em->persist($team);
+			}
+
+			foreach($toRemove as &$team){
+				$em->remove($team);
+				$em->flush();
+			}
+
+			$count++;
+		}
+		foreach($contestsToRemove as &$cntst){
+			$em->remove($cntst);
 			$em->flush();
 		}
-		
-		foreach($actualToRemove as &$team){
-			$em->remove($team);
-			$em->flush();
-		}			
-		
-		
+
 		$em->persist($section);
 		$em->flush();			
 		
@@ -897,28 +1011,13 @@ class ContestPostController extends Controller {
 			if($submission->pending_status > 1 && !$postData['override']){
 				return $this->returnForbiddenResponse("Submission has already been reviewed");
 			}
-						
+			
+			$override_wrong = false;
 			$reviewed = true;
 			if($postData['type'] == "wrong"){
-				
-				// override the submission to wrong
-				if($submission->isCorrect(true) || $submission->isError()){
-					
-					$submission->wrong_override = true;				
-					$submission->correct_override = false;
-				} else {
-					
-					$submission->wrong_override = false;
-					$submission->correct_override = false;
 
-					$pusher->pushUserSpecificMessage(
-						$pusher->buildRejection($submission),
-						$pusher->getUsernamesFromTeam($submission->team),
-						$submission->problem->assignment->section->id,
-						true,
-						$submission->id
-					);
-				}
+				$override_wrong = true;
+				
 				
 			} else if($postData['type'] == "correct"){
 				
@@ -962,6 +1061,8 @@ class ContestPostController extends Controller {
 				);
 					
 			} else if($postData['type'] == "formatting"){
+				
+				$override_wrong = true;
 						
 				// add formatting message to submission
 				$submission->judge_message = "Formatting Error";
@@ -976,6 +1077,7 @@ class ContestPostController extends Controller {
 						
 			} else if($postData['type'] == "message"){
 				
+				$override_wrong = true;
 				$message = $postData['message'];
 				
 				// add custom message to submission
@@ -1019,6 +1121,31 @@ class ContestPostController extends Controller {
 				return $this->returnForbiddenResponse("Type of judging command not allowed");
 			}
 
+			// do this if you need to override the submission to be wrong
+			// (since it is used in many of the cases above)
+			if($override_wrong){
+
+				// override the submission to wrong
+				if($submission->isCorrect(true) || $submission->isError()){
+					
+					$submission->wrong_override = true;				
+					$submission->correct_override = false;
+				} else {
+					
+					$submission->wrong_override = false;
+					$submission->correct_override = false;
+
+					$pusher->pushUserSpecificMessage(
+						$pusher->buildRejection($submission),
+						$pusher->getUsernamesFromTeam($submission->team),
+						$submission->problem->assignment->section->id,
+						true,
+						$submission->id
+					);
+				}
+
+			}
+
 			
 			if($reviewed){
 				$submission->pending_status = 2;
@@ -1041,6 +1168,7 @@ class ContestPostController extends Controller {
 			$response->setStatusCode(Response::HTTP_OK);
 
 			$pusher->promptDataRefresh($contest->section->id);
+			
 			return $response;
 			
 		} 

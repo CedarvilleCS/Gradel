@@ -800,6 +800,7 @@ class Grader  {
 		
 		$score['team_id'] = $team->id;
 		$score['team_name'] = $team->name;
+		$score['member_string'] = $team->getMemberString();
 		$score['num_correct'] = $num_correct;
 		$score['total_penalty'] = $total_penalty;
 		$score['results'] = $results; // boolean array of yes/no solved per problem
@@ -819,9 +820,7 @@ class Grader  {
 		
 		$user_team = $this->getTeam($user, $assignment);
 		
-		$scores = [];
-		
-		
+		$scores = [];		
 		
 		if( is_object($user) ){
 			

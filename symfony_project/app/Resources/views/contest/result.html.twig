@@ -16,6 +16,8 @@
 	<link rel="stylesheet" href="{{ asset('contest.css') }}" />
 	<link rel="stylesheet" href="{{ asset('contest-hub.css') }}" />
 	
+	<link rel="stylesheet" href="{{ asset('sessions.css') }}" />
+	
 	<link rel="stylesheet" href="{{ asset('submission-results.css') }}">
 	<link rel="stylesheet" href="{{ asset('contest-results.css') }}">
 {% endblock %}
@@ -29,7 +31,8 @@
 	
 	<section id="main">	
 		<div class="card">
-			<div style="display: flex; flex-direction: row; justify-content: space-between">
+			<div style="display: flex; flex-direction: column; justify-content: flex-start">
+				<h1 title="{{(submission.team) ? submission.team.getMemberString() : submission.user.getFullName()}}" style="font-size: 2em; margin: 0px">{{(submission.team) ? submission.team.name : submission.user.getFullName()}}</h1>
 				<h2 style="margin: 0px">{{submission.problem.name}}</h2>
 				
 				{% if elevatedUser %}
@@ -51,39 +54,7 @@
 			
 			<div id="submissionOverview" class="card-contents">
 				<h3 style="margin-top: 2px; margin-bottom: 2px">
-					RESULT:
-					{% if submission.pending_status < 2 %}
-						<i> PENDING REVIEW </i>
-					{% elseif submission.isCorrect() %}						
-						<span style="color:green">
-							CORRECT!
-							
-							{% if not submission.isCorrect(true) %}
-							(Overriden by Judge)
-							{% endif %}
-						</span>
-							
-					{% else %}					
-						<span style="color:red">
-						
-						{% if submission.compiler_error %}
-						COMPILER ERROR!
-						{% elseif submission.exceeded_time_limit %}
-						TIME LIMIT EXCEEEDED!
-						{% elseif submission.runtime_error %}
-						RUNTIME ERROR!
-						{% else %}
-						WRONG ANSWER!
-						
-						{% if submission.isCorrect(true) %}
-						(Overriden by Judge)
-						{% endif %}
-						
-						{% endif %}	
-						
-						</span>	
-						
-					{% endif %}
+					RESULT: <span> {{submission.getResultString()}} </span>
 						
 					{% if submission.judge_message %}
 					<div> JUDGE MESSAGE: {{ submission.judge_message }} </div>
@@ -165,9 +136,8 @@
 				
 				</div>
 				
-<div id="editor">{% if submission.filename|split('.')|last != 'zip' %}
-{{ submission.deblobinateSubmittedFile()|nl2br }}{% else %}
-Submission was a ZIP file{% endif %}</div>
+				{# the editor text area #}
+				{{ block('editor_html', 'ace/sessions.twig') }}
 				
 				<h3 style="margin-top: 10px; margin-bottom: 0px">Submission ID: {{submission.id}}</h3>
 								
@@ -227,8 +197,14 @@ Submission was a ZIP file{% endif %}</div>
 	
 	<script src="{{ asset('js/unicode_return.js') }}" type="text/javascript" charset="utf-8"></script>	
 	
-	<script>
+	<script src="{{ asset('js/contest.js') }}"></script>
 	
+	<script>
+
+
+	{# template for multiple sessions #}
+	{{ block('editor_javascript', 'ace/sessions.twig') }}
+
 	$(document).ready( function() {
 	
 		{% if submission.compiler_output %}
@@ -274,6 +250,9 @@ Submission was a ZIP file{% endif %}</div>
 			window.location = "{{path('contest_problem', {'contestId': submission.problem.assignment.section.id, 'roundId': submission.problem.assignment.id, 'problemId': submission.problem.id, 'submissionId': submission.id} )}}";
 		});
 		
+
+		{# editor sessions twig #}
+		{{ block('editor_onready', 'ace/sessions.twig') }}
 	});
 	
 	
@@ -502,17 +481,14 @@ Submission was a ZIP file{% endif %}</div>
 		// Create a FormData object
 		var formData = new FormData();
 		
-		var editor = ace.edit("editor");
-		editor.$blockScrolling = Infinity;
-		
-
-		var ACE = editor.getValue();		
+		var ACE = [];
+		{{ block('editor_storecontentsinace', 'ace/sessions.twig') }}		
+		formData.append('ACE', JSON.stringify(ACE));
 		
 		formData.append('problem_id', {{submission.problem.id}});
 		formData.append('language', "{{submission.language.id}}");
 		formData.append('main_class', "{{submission.main_class_name}}");
 		formData.append('package_name', "{{submission.package_name}}");
-		formData.append('ACE', ACE);
 		
 		$.ajax({
 			type: "POST",

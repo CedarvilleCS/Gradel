@@ -82,74 +82,91 @@ class TrialController extends Controller {
 			
 		}*/
 		
-		if(!isset($postData['ACE'])){
-			return $this->returnForbiddenResponse("ACE editor content was not provided");						
-		}
-		
-		$aceData = json_decode($postData['ACE']);
-		
-		// make a temporary directory
-		$tempdir = null;
-		
-		while(!is_dir($tempdir)){
-			
-			$tempdir = tempnam(sys_get_temp_dir(),'');
-			
-			if (file_exists($tempdir)){
-				unlink($tempdir);
-			}
-			mkdir($tempdir);
-		}
-		$tempdir .= '/';
-				
-		$total_size = 0;
-		
-		$array_of_names = [];
-		
-		foreach($aceData as $aceDatum){
-			
-			if(strlen($aceDatum->content) <= 0){
-				return $this->returnForbiddenResponse('Your file cannot be empty');
-			}
-			
-			if(strlen($aceDatum->filename) <= 0){
-				return $this->returnForbiddenResponse('Your filename cannot be blank');
-			}
-			
-			if(preg_match('/^[a-zA-Z0-9-_]+\.[a-zA-Z]+$/', $aceDatum->filename) <= 0){
-				return $this->returnForbiddenResponse('Your filename is invalid');
-			}
-			
-			$aceContent = $aceDatum->content;
-			$filename = $aceDatum->filename;
 
-			
-			$total_size += strlen($aceContent);
+		if(!isset($_FILES['file'])){
 		
-			if($total_size > 1024*1024){
+			if(!isset($postData['ACE'])){
+				return $this->returnForbiddenResponse("ACE editor content was not provided");						
+			}
+			
+			$aceData = json_decode($postData['ACE']);
+			
+			// make a temporary directory
+			$tempdir = null;
+			
+			while(!is_dir($tempdir)){
+				
+				$tempdir = tempnam(sys_get_temp_dir(),'');
+				
+				if (file_exists($tempdir)){
+					unlink($tempdir);
+				}
+				mkdir($tempdir);
+			}
+			$tempdir .= '/';
+					
+			$total_size = 0;			
+			$array_of_names = [];
+			
+			if(count($aceData) < 1){
+				return $this->returnForbiddenResponse("ACE data cannot be empty");
+			}
+
+			foreach($aceData as $aceDatum){
+
+				//return $this->returnForbiddenResponse(json_encode($aceData));
+				
+				if(strlen($aceDatum->content) <= 0){
+					return $this->returnForbiddenResponse('Your file cannot be empty');
+				}
+				
+				if(strlen($aceDatum->filename) <= 0){
+					return $this->returnForbiddenResponse('Your filename cannot be blank');
+				}
+				
+				if(preg_match('/^[a-zA-Z0-9-_]+\.[a-zA-Z]+$/', $aceDatum->filename) <= 0){
+					return $this->returnForbiddenResponse('Your filename is invalid');
+				}
+				
+				$aceContent = $aceDatum->content;
+				$filename = $aceDatum->filename;
+
+				
+				$total_size += strlen($aceContent);
+			
+				if($total_size > 1024*1024){
+					return $this->returnForbiddenResponse("Uploaded code must be smaller than 1Mb total.");
+				}
+				
+				if(!file_put_contents($tempdir.$filename, $aceContent, FILE_USE_INCLUDE_PATH)){
+					return $this->returnForbiddenResponse("UNABLE TO MOVE THE ACE EDITOR CONTENTS");
+				}
+				
+			}
+			
+			$zipper = new Zipper();
+			$target_file = $tempdir."zippy.zip";
+			
+			$response = $zipper->zipFiles($tempdir, $target_file);
+				
+			if($response !== TRUE){
+				return $this->returnForbiddenResponse($response."");
+			}		
+			
+			// make a zip file and set file = fopen(zip location)
+			$file = fopen($target_file, 'r');
+			
+			if(!$file){
+				return $this->returnForbiddenResponse("Could not properly create file.");
+			}
+		} else {
+
+			if(filesize($_FILES['file']['tmp_name']) > 1024*1024){
 				return $this->returnForbiddenResponse("Uploaded code must be smaller than 1Mb total.");
 			}
-			
-			if(!file_put_contents($tempdir.$filename, $aceContent, FILE_USE_INCLUDE_PATH)){
-				 return $this->returnForbiddenResponse("UNABLE TO MOVE THE ACE EDITOR CONTENTS");
-			}
-			
-		}
-		
-		$zipper = new Zipper();
-		$target_file = $tempdir."zippy.zip";
-		
-		$response = $zipper->zipFiles($tempdir, $target_file);
-			
-		if($response !== TRUE){
-			return $this->returnForbiddenResponse($response."");
-		}		
-		
-		// make a zip file and set file = fopen(zip location)
-		$file = fopen($target_file, 'r');
-		
-		if(!$file){
-			return $this->returnForbiddenResponse("Could not properly create file.");
+
+			$file = fopen($_FILES['file']['tmp_name'], 'r');
+			$filename = "zippy.zip";
 		}
 		
 		# get the old trial or create a new one

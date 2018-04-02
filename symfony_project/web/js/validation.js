@@ -6,8 +6,8 @@ function setInvalid(element) {
 }
   
 function setValid(element) {
-	element.css('border', '2px solid #6C6E71');
-	element.css('background-color', 'transparent');
+	element.css('border', '');
+	element.css('background-color', '');
 }
   
   

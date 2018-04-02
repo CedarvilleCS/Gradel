@@ -94,7 +94,7 @@ class Section implements JsonSerializable{
 
 	/**
 	* @ORM\OneToMany(targetEntity="Assignment", mappedBy="section", cascade={"persist"})
-	* @ORM\OrderBy({"id" = "ASC"})
+	* @ORM\OrderBy({"start_time" = "ASC", "id" = "ASC"})
 	*/
 	public $assignments;
 	

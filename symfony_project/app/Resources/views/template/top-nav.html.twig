@@ -38,6 +38,8 @@
 					{% for user in user_impersonators %}
 						{% if "section" in app.request.attributes.get('_route') %}
 							<option value="{{ path(app.request.attributes.get('_route'), {'_switch_user': user.getEmail(), 'sectionId': section.id}) }}">
+						{% elseif "contest" in app.request.attributes.get('_route') %}
+							<option value="{{ path(app.request.attributes.get('_route'), {'_switch_user': user.getEmail(), 'contestId': section.id, 'roundId': current_contest.id}) }}">
 						{% elseif "assignment" in app.request.attributes.get('_route') %}
 							<option value="{{ path(app.request.attributes.get('_route'), {'_switch_user': user.getEmail(), 'sectionId': section.id, 'assignmentId': assignment.id}) }}">
 					    {% elseif "result" in app.request.attributes.get('_route') %}
@@ -57,8 +59,12 @@
 
 		{% if is_granted('ROLE_PREVIOUS_ADMIN') %}
 			
-			{% if ("section" in app.request.attributes.get('_route')) or ("assignment" in app.request.attributes.get('_route')) or ("problem" in app.request.attributes.get('_route')) or ("result" in app.request.attributes.get('_route')) %}
+			{% if ("section" in app.request.attributes.get('_route')) or ("contest" in app.request.attributes.get('_route')) or ("assignment" in app.request.attributes.get('_route')) or ("problem" in app.request.attributes.get('_route')) or ("result" in app.request.attributes.get('_route')) %}
+				{% if section.is_contest %}
+				<a href="{{ path('contest', {'_switch_user': '_exit', 'contestId': section.id}) }}" class="navbuttons">Exit Impersonation</a>
+				{% else %}
 				<a href="{{ path('section', {'_switch_user': '_exit', 'sectionId': section.id}) }}" class="navbuttons">Exit Impersonation</a>
+				{% endif %}
 			{% else %}
 				<a href="{{ path('homepage', {'_switch_user': '_exit'}) }}" class="navbuttons">Exit Impersonation</a>
 			{% endif %}
@@ -70,8 +76,8 @@
 	{% endif %}
 	
 	{# logo #}
-    <a href="{{path('homepage')}}" id="logo"><img src="{{asset('logo.png')}}" title= "Gradel, Gradel, Gradel, we made it out of code!" id="logo" alt="Gradel"></a>
-	<a href="{{path('homepage')}}" id="logoword"><img src="{{asset('gradel.png')}}" title= "Gradel, Gradel, Gradel, we made it out of code!" id="logoword" alt="Gradel"></a>
+    <a href="{{path('homepage')}}" id="logo"><img src="{{asset('logo.png')}}" title="Gradel, Gradel, Gradel, we made it out of code!" id="logo" alt="Gradel"></a>
+	<a href="{{path('homepage')}}" id="logoword"><img src="{{asset('gradel.png')}}" title="Gradel, Gradel, Gradel, we made it out of code!" id="logoword" alt="Gradel"></a>
 </div>
 
 

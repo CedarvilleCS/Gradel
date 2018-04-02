@@ -22,6 +22,7 @@
 	/* MULTIPLE EDITOR TAB OPTIONS */
 	// ACE Session
 	var EditSession = ace.require("ace/edit_session").EditSession;
+	var UndoManager = ace.require("ace/undomanager").UndoManager;
 	var ace_sessions = [];	
 	var curr_session;
 
@@ -46,7 +47,7 @@
 	
 	function addAddFileButton(){
 
-		{% if not problem.allow_multiple %}
+		{% if not edit_route and not problem.allow_multiple %}
 		return;
 		{% endif %}
 		
@@ -63,7 +64,7 @@
 	
 	function removeAddFileButton(){
 		
-		{% if not problem.allow_multiple %}
+		{% if not edit_route and not problem.allow_multiple %}
 		return;
 		{% endif %}
 
@@ -143,7 +144,7 @@
 			updateTabEvents($(this), ind+1);
 		});
 		
-		{% if not result_route and not edit_route %}
+		{% if not result_route %}
 		addAddFileButton();
 		{% endif %}
 		
@@ -152,12 +153,17 @@
 		{% endif %}
 		
 		
-		if(curr_session == index){
+		var found = false;
+		$('.tabs').each( function() {
+
+			if($(this).hasClass('selected-tab')){
+				found = true;
+			}
+		});
+		
+		if(!found){
 			curr_session = 1;
 			$('#test-code-tab-user-1-marker').click();
-		} else if(index <= curr_session) {
-			curr_session--;
-			editor.setSession(ace_sessions[curr_session]);
 		}
 	}
 	
@@ -169,11 +175,13 @@
 			$('.tabs').css('border-left', '1px solid grey');				
 			$('.tabs').css('border-right', '1px solid grey');				
 			$('.tabs').css('border-bottom', 'inherit');
-			$('.tabs').find('input').css('color', 'black');
+			$('.tabs').find('input').css('color', 'black');			
+			$('.tabs').removeClass('selected-tab');
 			
 			$(this).css('background', '#71BA62');
 			$(this).css('border', '1px solid white');
 			$(this).find('input').css('color', 'white');
+			$(this).addClass('selected-tab');
 			
 			editor.setSession(ace_sessions[ind]);
 			curr_session = ind;
@@ -223,7 +231,8 @@
 		
 		updateTabEvents($('#test-code-tab-user-' + num_tabs + '-marker'), num_tabs);
 
-		var new_session = new EditSession("");			
+		var new_session = new EditSession("");	
+		new_session.setUndoManager( new UndoManager());		
 		ace_sessions[num_tabs] = new_session;
 		
 		$('#test-code-tab-user-' + num_tabs + '-marker').click();
@@ -244,7 +253,7 @@
 			{% endif %}			
 		});
 		
-		{% if not result_route and not edit_route %}
+		{% if not result_route %}
 		addAddFileButton();
 		{% endif %}
 	}
@@ -318,19 +327,23 @@
 
 	{% endif %}
 
-	{% if submission %}	
-	var files = JSON.parse("{{submission_contents|json_encode|e('js')}}");
+	{% if result_route and submission %}	
+	var files = JSON.parse("{{submission.getSubmissionFileContents()|json_encode|e('js')}}");
 	console.log(files);
-	populateSessions(files);
-	
-	
+	populateSessions(files);	
 	
 	$('#quick-edit-btn').button('enable');
 	$('#edit-note').show();
+
+	var current_session = editor.getSession();
+	for(var i = 1; i < ace_sessions.length; i++) {
+		editor.setSession(ace_sessions[i]);		
+		editor.getSession().setMode("ace/mode/" + "{{submission.language.ace_mode}}");
+		curr_session = i;
+	}
+	editor.setSession(current_session);		
 	
 	{% endif %}
-	
-	
 
 {% endblock %}
 
