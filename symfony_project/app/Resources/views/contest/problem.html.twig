@@ -65,7 +65,7 @@ var markdownText = converter.makeHtml("{{problem.description|e('js')}}");
 				
 				<div class="markdown-container">
 					
-					{% if not current_contest.post_contest %}
+					{% if not current_contest.pre_contest and not current_contest.post_contest %}
 					<div id="clarification-button">Ask for Clarification</div>				
 					{% endif %}
 					

@@ -58,7 +58,7 @@
 		
 		<div class="card">
 
-			{% if elevatedUser %}
+			{% if elevatedUser and not current_contest.post_contest and not current_contest.pre_contest %}
 				<div id="scoreboard-button" style="position: absolute; right: 8px; top: 10px; height: 10px; line-height: 10px;"></div>
 				<div id="print-teams-button" style="position: absolute; right: 8px; top: 40px; height: 10px; line-height: 10px;">Print Teams List</div>
 			{% endif %}	
@@ -132,7 +132,7 @@
 				<h2 style="margin: 0px">Clarifications
 				</h2>
 				
-				{% if not current_contest.post_contest %}
+				{% if not current_contest.post_contest and not current_contest.pre_contest %}
 				<div id="clarification-button" style="top: 15px; right: 15px">Ask for Clarification</div>
 				{% endif %}
 				
