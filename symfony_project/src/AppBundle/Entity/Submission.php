@@ -192,6 +192,26 @@ class Submission implements JsonSerializable {
 		return $passed_tcs == $tcs;
 	}
 
+	# clone method override
+	public function __clone(){
+		
+		if($this->id){
+			$this->id = null;
+			
+			# clone the testcases
+			$testcaseresultsClone = new ArrayCollection();
+			
+			foreach($this->testcaseresults as $testcaseresult){
+				$testcaseresultClone = clone $testcaseresult;
+
+				$testcaseresultClone->submission = $this;				
+				$testcaseresultsClone->add($testcaseresultClone);
+			}
+			$this->testcaseresults = $testcaseresultsClone;
+		}
+		
+	}
+
 	/**
 	*@ORM\Column(type="integer")
 	*@ORM\Id
@@ -200,7 +220,7 @@ class Submission implements JsonSerializable {
 	public $id;
 
 	/**
-	* @ORM\OneToMany(targetEntity="TestcaseResult", mappedBy="submission")
+	* @ORM\OneToMany(targetEntity="TestcaseResult", mappedBy="submission", cascade={"persist"})
 	* @ORM\OrderBy({"testcase" = "ASC"})
 	*/
 	public $testcaseresults;

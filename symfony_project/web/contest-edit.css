@@ -24,7 +24,7 @@ input.start-date[type="text"], input.end-date[type="text"] {
     margin-right:10px;
 }
 
-input.hr-freeze[type="text"], input.min-freeze[type="text"]{
+input.hr-freeze[type="text"], input.min-freeze[type="text"], input.hr-end[type="text"], input.min-end[type="text"]{
     width:40px;
 }
 

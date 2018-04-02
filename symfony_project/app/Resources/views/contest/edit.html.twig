@@ -96,7 +96,7 @@
 
 							<div class="toggle-container">
 								<label class="switch" style="margin-right: 5px">
-									<input type="checkbox" id="has-post" name="has-post" checked>
+									<input type="checkbox" id="has-post" name="has-post">
 									<span class="slider round"></span>
 								</label>
 								<label><b> Post-Contest </b></label>
@@ -227,7 +227,7 @@
 	function getUserHtml(student){
 		
 		var id = (student.id) ? student.id : 0;
-		var userHTML = "<div class='user' id='"+id+"' contenteditable='false'>" + escapeHTML(student.full_name) + "</div>";		
+		var userHTML = "<div class='user' id='"+id+"'>" + escapeHTML(student.full_name) + "</div>";		
 		
 		return userHTML;
 	}
@@ -334,6 +334,9 @@
 								<label>Start At</label>
 								<input type='text' class='start-date'>
 
+								<!--<label>End After</label>
+								<input type="text" class='hr-end' value="5"> hrs <input type="text" class='min-end' value="00"> mins-->
+								
 								<label>End At</label>
 								<input type='text' class='end-date'>
 
@@ -418,18 +421,6 @@
 				
 				$('#judge-picker').css('min-height', $('#team-picker').height());
 			}
-		});
-		
-		$('.user').focusout(function() {
-			if($(this).text().trim() == ""){
-				$(this).remove();
-			}
-			$(this).attr('contentEditable', false);
-		});
-		
-		$('.user').dblclick(function() {
-			$(this).attr('contentEditable', true);
-			$(this).focus();
 		});
 		
 		$('.user').contextmenu(function(event) {
@@ -551,6 +542,7 @@
 		// make sure that the dates and individual contest info makes
 		var last_date = null;
 		var last_elem = null;
+		var brokenContest = false;
 		$('.contest-row').each( function() {
 
 			var id = $(this).attr('id');
@@ -560,6 +552,7 @@
 			if(name == null || name.trim() == ''){
 				setInvalid($(this).find('.contest-name'));
 				$('#delete-warning').html('Every contest must have a name');
+				brokenContest = true;
 				return false;
 			} else {
 				setValid($(this).find('.contest-name'));
@@ -572,6 +565,7 @@
 			if(!start_date || !end_date){
 				setInvalid($(this).find('.start-date, .end-date'));
 				$('#delete-warning').html('Every date must have a value');
+				brokenContest = true;
 				return false;
 			} else {
 				setValid($(this).find('.start-date, .end-date'));
@@ -580,6 +574,7 @@
 			if(start_date >= end_date){
 				setInvalid($(this).find('.start-date, .end-date'));
 				$('#delete-warning').html('Dates within the contest conflict with each other');
+				brokenContest = true;
 				return false;
 			} else {
 				setValid($(this).find('.start-date, .end-date'));
@@ -589,6 +584,7 @@
 				setInvalid($(this).find('.start-date'));
 				setInvalid(last_elem);
 				$('#delete-warning').html('Dates from two contests conflict with each other');
+				brokenContest = true;
 				return false;
 			} else {
 				setValid($(this).find('.start-date'));
@@ -604,6 +600,7 @@
 			if(isNaN(hour_freeze) || hour_freeze < 0){
 				setInvalid($(this).find('.hr-freeze'));
 				$('#delete-warning').html('Hours for scoreboard freezing must be a non-negative number');
+				brokenContest = true;
 				return false;
 			} else {
 				setValid($(this).find('.hr-freeze'));
@@ -612,6 +609,7 @@
 			if(isNaN(min_freeze) || min_freeze < 0){
 				setInvalid($(this).find('.min-freeze'));
 				$('#delete-warning').html('Minutes for scoreboard freezing must be a non-negative number.');
+				brokenContest = true;
 				return false;
 			} else {
 				setValid($(this).find('.min-freeze'));
@@ -628,6 +626,13 @@
 			last_elem = $(this).find('.end-date');
 		});
 
+		if(brokenContest){
+			return false;
+		}
+
+		console.log("Contests:");
+		console.log(contests);
+
 		if(contests.length < 1){
 			setInvalid($('#contests-container'));
 			$('#delete-warning').html('You need at least one contest.');
@@ -637,6 +642,14 @@
 		}
 
 		formData.append('contests', JSON.stringify(contests));
+
+		if($('#has-post').prop('checked')){
+			formData.append('post_contest', $('#has-post').attr('data-id'));
+		}
+
+		if($('#has-pre').prop('checked')){
+			formData.append('pre_contest', $('#has-pre').attr('data-id'));
+		}
 
 		// PENALTIES
 		// compilation error
@@ -754,6 +767,9 @@
 			return;
 		}
 
+		console.log("Teams:");
+		console.log(teams);
+
 		//console.log(teams);
 		formData.append('teams', JSON.stringify(teams));
 		
@@ -825,33 +841,61 @@
 		// set the name
 		$('#contest-name').val("{{section.name}}");
 		
+		$('#has-pre').attr('data-id', "0");
+		$('#has-post').attr('data-id', "0");
+
 		// set the contests info
 		{% for asgn in section.assignments %}
+
+			{% if not asgn.post_contest and not asgn.pre_contest %}
+
 			createContest(	{{asgn.id}},
 							"{{asgn.name}}", 
 							"{{asgn.start_time|date('m/d/Y h:i A')}}", 
 							"{{asgn.end_time|date('m/d/Y h:i A')}}",
-							1,
-							0);
+							"{{asgn.getFreezeHour()}}",
+							"{{asgn.getFreezeMinute()}}");
+			{% elseif asgn.post_contest %}
+			$('#has-post').prop('checked', true);
+			$('#has-post').attr('data-id', "{{asgn.id}}");
+			{% elseif asgn.pre_contest %}
+			$('#has-pre').prop('checked', true);
+			$('#has-pre').attr('data-id', "{{asgn.id}}");
+			{% endif %}
+
 		{% endfor %}
 				
-		// set penalties
-		$('#penalty-per-compile-error').val("{{section.assignments[0].penalty_per_compile_error}}");
-		$('#penalty-per-time-limit').val("{{section.assignments[0].penalty_per_time_limit}}");
-		$('#penalty-per-runtime-error').val("{{section.assignments[0].penalty_per_runtime_error}}");
-		$('#penalty-per-wrong-answer').val("{{section.assignments[0].penalty_per_wrong_answer}}");
-		
 		// set the teams
-		{% for team in section.assignments[0].teams %}
+		{% set created = false %}
+
+		{% for masterasgn in section.assignments %}
+		{% if not created and not masterasgn.post_contest and not masterasgn.pre_contest %}
+
+		// set penalties
+		$('#penalty-per-compile-error').val("{{masterasgn.penalty_per_compile_error}}");
+		$('#penalty-per-time-limit').val("{{masterasgn.penalty_per_time_limit}}");
+		$('#penalty-per-runtime-error').val("{{masterasgn.penalty_per_runtime_error}}");
+		$('#penalty-per-wrong-answer').val("{{masterasgn.penalty_per_wrong_answer}}");
+
+		{% set created = true %}
+		
+		{% for team in masterasgn.teams %}
 
 			var ids = [];
 			{% for asgn in section.assignments %}
+
+				{% if not asgn.post_contest and not asgn.pre_contest %}
 				ids.push({{asgn.teams[loop.parent.loop.index0].id}});
+				{% endif %}
+
 			{% endfor %}
 
 			createTeam(ids, JSON.parse("{{team|json_encode|e('js')}}"));
 
-		{% endfor %}	
+		{% endfor %}
+
+		{% endif %}
+		{% endfor %}
 		
 		{% for judge in judges %}		
 			$('#judge-picker').append($($.parseHTML(getUserHtml(JSON.parse("{{judge.user|json_encode|e('js')}}")))));				

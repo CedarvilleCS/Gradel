@@ -40,6 +40,21 @@ class Query {
 		$this->answer = $ans;
 		$this->timestamp = $time;
 	}
+
+	# clone override method
+	public function __clone(){
+		
+		if($this->id){
+			$this->id = null;
+
+			$this->problem = null;
+			$this->assignment = null;
+
+			$this->asker = null;
+			$this->answerer = null;
+		}
+
+	}
 	
 	/** 
 	* @ORM\Column(type="integer")

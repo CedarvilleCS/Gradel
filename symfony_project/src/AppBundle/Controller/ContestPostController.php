@@ -352,7 +352,6 @@ class ContestPostController extends Controller {
 			$contests[] = $contest;
 		}
 
-
 		foreach($contests as &$cntst){
 			unset($contestsToRemove[$cntst->id]);
 			$section->assignments->add($cntst);
@@ -503,7 +502,9 @@ class ContestPostController extends Controller {
 		]);	
 
 		$teams = json_decode($postData['teams']);			
-			
+		
+		$allMembers = [];
+
 		$newTeams = [];	
 		foreach($contests as $ct){
 			$newTeams[] = new ArrayCollection();
@@ -566,6 +567,12 @@ class ContestPostController extends Controller {
 				$usr = new UserSectionRole($teamUser, $section, $takeRole);			
 				$section->user_roles->add($usr);
 
+				if($allMembers[$teamUser->getEmail()]){
+					return $this->returnForbiddenResponse("User ".$teamUser->getEmail()." cannot be on two teams");
+				}
+
+				$allMembers[$teamUser->getEmail()] = $teamUser;
+
 				$members[] = $teamUser;
 			}
 
@@ -598,9 +605,130 @@ class ContestPostController extends Controller {
 				$newTeams[$count]->add($tm);
 
 				$count++;
+			}			
+		}
+
+		# POST-CONTEST CREATION
+		$lastEndDate = clone $contests[count($contests)-1]->end_time;
+		$firstStartDate = clone $contests[0]->start_time;
+		$firstEndDate = clone $contests[0]->end_time;
+
+		if(isset($postData['post_contest'])){
+			
+			$currTime = new \DateTime("now");
+			
+			if($postData['post_contest'] == 0 || $currTime <= $lastEndDate){
+
+				$post_contest = new Assignment();
+				$post_contest->section = $section;		
+
+			} else {
+				$post_contest = $em->find('AppBundle\Entity\Assignment', intval($postData['post_contest']));
+				if(!$post_contest || $post_contest->section != $section){
+					return $this->returnForbiddenResponse("Post-contest assignment does not exist.");
+				}
 			}
 			
-		}		
+
+			$post_contest->post_contest = true;
+			$post_contest->name = "Post-Contest";
+			$post_contest->description = "";
+			$post_contest->weight = 1;
+			$post_contest->is_extra_credit = false;
+			$post_contest->penalty_per_day = 0;
+
+			$post_contest->start_time = clone $lastEndDate;			
+			$post_contest->end_time = clone $lastEndDate;
+			$post_contest->end_time->add(new DateInterval('P180D'));
+			$post_contest->cutoff_time = clone $lastEndDate;
+			$post_contest->cutoff_time->add(new DateInterval('P180D'));
+			$post_contest->freeze_time = clone $lastEndDate;
+			$post_contest->freeze_time->add(new DateInterval('P180D'));
+
+			unset($contestsToRemove[$post_contest->id]);
+			$em->persist($post_contest);	
+		}
+
+		# PRE-CONTEST CREATION
+		if(isset($postData['pre_contest'])){
+
+			if($postData['pre_contest'] == 0){
+
+				$pre_contest = new Assignment();
+				$pre_contest->section = $section;		
+
+			} else {
+				$pre_contest = $em->find('AppBundle\Entity\Assignment', intval($postData['pre_contest']));
+				if(!$pre_contest || $pre_contest->section != $section){
+					return $this->returnForbiddenResponse("Pre-contest assignment does not exist.");
+				}
+			}
+			
+			$pre_contest->pre_contest = true;
+			$pre_contest->name = "Pre-Contest";
+			$pre_contest->description = "";
+			$pre_contest->weight = 1;
+			$pre_contest->is_extra_credit = false;
+			$pre_contest->penalty_per_day = 0;
+
+			$pre_contest->start_time = clone $firstStartDate;	
+			$pre_contest->start_time->sub(new DateInterval('P7D'));		
+			$pre_contest->end_time = clone $firstEndDate;
+			$pre_contest->end_time->sub(new DateInterval('P0DT1H'));
+			$pre_contest->cutoff_time = clone $firstEndDate;
+			$pre_contest->cutoff_time->sub(new DateInterval('P0DT1H'));
+			$pre_contest->freeze_time = clone $firstEndDate;
+			$pre_contest->freeze_time->sub(new DateInterval('P0DT1H'));
+			
+
+			# PRE CONTEST LANGUAGES
+			$pre_contest->contest_languages->clear();
+			
+			foreach($languages as $language_id){
+				$language = $em->find('AppBundle\Entity\Language', $language_id);
+				$pre_contest->contest_languages->add($language);
+			}
+	
+			// reset the languages for all of the problems that already exist
+			foreach($pre_contest->problems as &$prob){
+				$prob->problem_languages->clear();
+	
+				foreach($pre_contest->contest_languages as $lang){
+					$pl = new ProblemLanguage();
+					$pl->problem = $prob;
+					$pl->language = $lang;
+	
+					$prob->problem_languages->add($pl);
+				}
+	
+				$em->persist($prob);
+			}
+
+
+			$toRemove = $pre_contest->teams->toArray();
+			$pre_contest->teams->clear();
+
+			foreach($allMembers as $email => $user){
+				$tm = new Team();
+
+				$tm->assignment = $pre_contest;
+				$tm->name = $user->getFullName();
+				$tm->workstation_number = 0;
+				
+				$tm->users->add($user);
+				
+				$pre_contest->teams->add($tm);
+			}
+
+			foreach($toRemove as &$team){
+				$em->remove($team);
+				$em->flush();
+			}
+
+			unset($contestsToRemove[$pre_contest->id]);
+			$em->persist($pre_contest);	
+		}
+		
 		
 		# DELETE OLD TEAMS AND CREATE (PERSIST) NEW ONES
 		$count = 0;

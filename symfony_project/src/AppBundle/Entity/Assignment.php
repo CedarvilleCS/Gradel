@@ -97,7 +97,7 @@ class Assignment implements JsonSerializable{
 		
 		$currTime = new \DateTime("now");
 		
-		return $this->start_time <= $currTime && $this->section->isActive();
+		return $this->start_time <= $currTime;
 		
 	}
 	
@@ -114,6 +114,12 @@ class Assignment implements JsonSerializable{
 		
 		// either the freeze time is in the past or the override is set with a time
 		return ((!$this->freeze_override && $this->freeze_time < $currTime) || ($this->freeze_override && isset($this->freeze_override_time)));		
+	}
+
+	public function isFinished(){
+		$currTime = new \DateTime("now");
+
+		return $this->end_time < $currTime;
 	}
 	
 	/** 
@@ -179,7 +185,7 @@ class Assignment implements JsonSerializable{
 	/**
 	* @ORM\Column(type="boolean")
 	*/
-	public $is_extra_credit;
+	public $is_extra_credit = false;
 	
 	/**
 	* @ORM\OneToMany(targetEntity="Team", mappedBy="assignment", cascade={"persist"}, orphanRemoval=true)
@@ -192,41 +198,65 @@ class Assignment implements JsonSerializable{
 	* @ORM\Column(type="datetime", nullable=true)
 	*/
 	public $freeze_time;
+
+	public function getFreezeHour(){
+		$diff = $this->freeze_time->diff($this->end_time, true);
+		
+		$hours = $diff->days*24 + $diff->h;
+		return $hours;
+	}
+
+	public function getFreezeMinute(){
+		$diff = $this->freeze_time->diff($this->end_time, true);
+
+		$mins = $diff->i;
+		return $mins;
+	}
 	
 	/**
 	* @ORM\Column(type="datetime", nullable=true)
 	*/
-	public $freeze_override_time;
+	public $freeze_override_time = null;
 	
 	/**
 	* @ORM\Column(type="boolean", nullable=true)
 	*/
-	public $freeze_override;
+	public $freeze_override = false;
 	
 	/**
 	* @ORM\Column(type="boolean", nullable=true)
 	*/
-	public $post_contest;
+	public $post_contest = false;
+
+	/**
+	* @ORM\Column(type="boolean", nullable=true)
+	*/
+	public $pre_contest = false;
+
+	/**
+	* @ORM\Column(type="boolean", nullable=true) 
+	*/
+	public $is_cloned = false;
 	
 	/**
 	* @ORM\Column(type="integer", nullable=true)
 	*/
-	public $penalty_per_wrong_answer;
+	public $penalty_per_wrong_answer = 0;
 	
 	/**
 	* @ORM\Column(type="integer", nullable=true)
 	*/
-	public $penalty_per_compile_error;
+	public $penalty_per_compile_error = 0;
 	
 	/**
 	* @ORM\Column(type="integer", nullable=true)
 	*/
-	public $penalty_per_time_limit;
+	public $penalty_per_time_limit = 0;
 	
 	/**
 	* @ORM\Column(type="integer", nullable=true)
 	*/
-	public $penalty_per_runtime_error;
+	public $penalty_per_runtime_error = 0;
 
 	/**
      * Many Users have Many Groups.
