@@ -18,9 +18,6 @@
 	var editor = ace.edit("editor");
 	editor.$blockScrolling = Infinity;
 	editor.setTheme("ace/theme/xcode");
-
-	// FIXME: 
-	var scrollbar = new ScrollBar($("#editor-container"));
 	
 	/* MULTIPLE EDITOR TAB OPTIONS */
 	// ACE Session
@@ -234,8 +231,8 @@
 		
 		updateTabEvents($('#test-code-tab-user-' + num_tabs + '-marker'), num_tabs);
 
-		var new_session = new EditSession("");	
-		new_session.setUndoManager( new UndoManager());		
+		var new_session = new ace.EditSession("");
+		
 		ace_sessions[num_tabs] = new_session;
 		
 		$('#test-code-tab-user-' + num_tabs + '-marker').click();
