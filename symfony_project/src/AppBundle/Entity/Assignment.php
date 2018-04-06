@@ -192,6 +192,10 @@ class Assignment implements JsonSerializable{
 	*/
 	public $teams;
 	
+	/**
+    * @ORM\OneToOne(targetEntity="Leaderboard", inversedBy="contest")
+    */
+	public $leaderboard = null;
 	
 	// Contest-Specific Information
 	/**

@@ -32,8 +32,8 @@ class Grader  {
 	
 	public function __construct($em) {
 		
-		if(get_class($em) != "Doctrine\ORM\EntityManager"){
-			throw new Exception('The Grader class must be given a Doctrine\ORM\EntityManager but was given '.get_class($em));
+		if(stripos(get_class($em), "EntityManager") === FALSE){
+			throw new Exception('The Grader class must be given a EntityManager but was given '.get_class($em));
 		}
 		
 		$this->em = $em;		
@@ -759,7 +759,7 @@ class Grader  {
 		return $score;
 	}
 	
-	public function getTeamScore($team, $elevatedUser){
+	public function getTeamScore($team, $elevated){
 		
 		// returns an array of some pertinent information:
 		// num_correct, total_penalty, array of subtimes, array of penalties
@@ -769,7 +769,7 @@ class Grader  {
 		$scores = [];
 		
 		foreach($problems as $problem){			
-			$scores[] = $this->getProblemScore($team, $problem, $elevatedUser);			
+			$scores[] = $this->getProblemScore($team, $problem, $elevated);			
 		}
 		
 		$num_correct = 0;
@@ -811,6 +811,66 @@ class Grader  {
 		$score['rank'] = -1;
 		
 		return $score;
+	}
+
+	public function getLeaderboard2($contest, $elevated){
+		$teams = $contest->teams->toArray();
+
+		$scores = [];
+
+		foreach($teams as $team){
+			$scores[] = $this->getTeamScore($team, $elevated);
+		}
+
+		usort($scores, [$this, 'compareTeamScoresNames']);
+
+		$prevScore = null;	
+		$rank = 0;	
+		foreach($scores as &$scr){
+			
+			if($prevScore && $this->compareTeamScores($prevScore, $scr) == 0){
+				$rank = $prevRank;
+			} else {
+				$rank++;
+			}
+			
+			$scr['rank'] = $rank;
+			
+			$prevRank = $rank;
+			$prevScore = $scr;
+		}
+
+		$leaderboard['scores'] = $scores;
+		
+		
+		// get the attempts per problem for a summary
+		$attempts = [];
+		$correct = [];
+		
+		$index = 0;
+		foreach ($assignment->problems as $prob) {
+			
+			$correct[$index] = 0;
+			$attempts[$index] = 0;
+			
+			foreach($scores as $scr){
+				
+				// got the problem right
+				if ($scr["results"][$index] == true) {
+					$correct[$index]++;
+				}
+
+				// number of attempts
+				$attempts[$index] += $scr["attempts"][$index];				
+			}
+			
+			$index++;
+		}
+		
+		$leaderboard['attempts_per_problem_count'] = $attempts;
+		$leaderboard['correct_submissions_per_problem_count'] = $correct;		
+		
+		return $leaderboard;
 	}
 	
 	public function getLeaderboard($user, $assignment, $normal_user){

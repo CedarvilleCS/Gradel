@@ -243,12 +243,23 @@ temp_trial_submit:
         _controller: AppBundle:Trial:quick
         trialId: 0
     methods: [POST]
-    
+
+contest_temp_trial_submit:
+    path: '/contest_quick_submit/{trialId}'
+    defaults:
+        _controller: AppBundle:ContestCompilation:contestQuick
+        trialId: 0
+    methods: [POST]   
     
 submit:
     path: '/submit'
     defaults:
         _controller:    AppBundle:Compilation:submit
+
+contest_submit:
+    path: '/contest_submit'
+    defaults:
+        _controller:    AppBundle:ContestCompilation:contestSubmit
 
 generate:
     path: '/generate'

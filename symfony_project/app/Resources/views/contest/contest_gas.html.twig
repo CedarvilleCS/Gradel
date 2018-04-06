@@ -21,12 +21,14 @@
       session.subscribe("appbundle/channel", function(uri, payload){
         try {
           const data = JSON.parse(payload);
-          console.log(data);
-          console.log("DID it work?")
-          handleMessage(data["msg"], data["type"], data["submissionId"]);
-        } catch(e) {
 
+          console.log(data);
+
+
+        } catch(e) {
+          
         }
+
       });
   
       sessionGlob = session;

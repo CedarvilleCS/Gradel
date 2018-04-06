@@ -638,6 +638,7 @@ class ContestPostController extends Controller {
 			$post_contest->penalty_per_day = 0;
 
 			$post_contest->start_time = clone $lastEndDate;			
+			$post_contest->start_time->add(new DateInterval('P0DT1H'));			
 			$post_contest->end_time = clone $lastEndDate;
 			$post_contest->end_time->add(new DateInterval('P180D'));
 			$post_contest->cutoff_time = clone $lastEndDate;
@@ -767,12 +768,6 @@ class ContestPostController extends Controller {
 		$em->persist($section);
 		$em->flush();			
 		
-		
-		$pusher = new SocketPusher($this->container->get('gos_web_socket.wamp.pusher'));
-		$pusher->promptDataRefresh($section->id);	
-		
-		# CLEANUP 
-		
 		$url = $this->generateUrl('contest', ['contestId' => $section->id]);
 				
 		$response = new Response(json_encode([
@@ -788,7 +783,6 @@ class ContestPostController extends Controller {
 	}
 	
 	public function postQuestionAction(Request $request){
-		$pusher = new SocketPusher($this->container->get('gos_web_socket.wamp.pusher'));
 
 		$em = $this->getDoctrine()->getManager();		
 		$grader = new Grader($em);
@@ -851,8 +845,10 @@ class ContestPostController extends Controller {
 		$response->headers->set('Content-Type', 'application/json');
 		$response->setStatusCode(Response::HTTP_OK);
 
-
+		# SOCKET PUSHER
+		$pusher = new SocketPusher($this->container->get('gos_web_socket.wamp.pusher'), $em, $contest);
 		$pusher->promptDataRefresh($contest->section->id);
+
 		return $response;		
 	}
 		
@@ -940,12 +936,11 @@ class ContestPostController extends Controller {
 		} else {
 			return $this->returnForbiddenResponse("type provided ".$postData['type']." is not valid");
 		}
-		
-		
+				
 		$em->persist($contest);
 		$em->flush();
 				
-		$pusher = new SocketPusher($this->container->get('gos_web_socket.wamp.pusher'));
+		$pusher = new SocketPusher($this->container->get('gos_web_socket.wamp.pusher'), $em, $contest);
 		$pusher->promptDataRefresh($section->id);	
 		
 		$response = new Response(json_encode([
@@ -955,16 +950,18 @@ class ContestPostController extends Controller {
 					
 		$response->headers->set('Content-Type', 'application/json');
 		$response->setStatusCode(Response::HTTP_OK);
-		$pusher = new SocketPusher($this->container->get('gos_web_socket.wamp.pusher'));
+
+		# SOCKET PUSHER
+		$pusher = new SocketPusher($this->container->get('gos_web_socket.wamp.pusher'), $em, $contest);
 		$pusher->promptDataRefresh($contest->section->id);
-		return $response;		
+		
+		return $response;
 	}
 	
 	public function submissionJudgingAction(Request $request){
 		
 		$em = $this->getDoctrine()->getManager();		
 		$grader = new Grader($em);
-		$pusher = new SocketPusher($this->container->get('gos_web_socket.wamp.pusher'));
 
 		$user = $this->get('security.token_storage')->getToken()->getUser();
 		if(!$user){
@@ -990,6 +987,9 @@ class ContestPostController extends Controller {
 		if( !($elevatedUser) ){
 			return $this->returnForbiddenResponse("PERMISSION DENIED");
 		}
+
+		# SOCKET PUSHER
+		$pusher = new SocketPusher($this->container->get('gos_web_socket.wamp.pusher'), $em, $contest);
 		
 		
 		// for submission editing

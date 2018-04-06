@@ -822,7 +822,7 @@ var markdownText = converter.makeHtml("{{problem.description|e('js')}}");
 			
 			$.ajax({
 				type: "POST",
-				url: "{{path('submit')}}",
+				url: "{{path('contest_submit')}}",
 				data: formData,
 				processData: false,
 				contentType: false,

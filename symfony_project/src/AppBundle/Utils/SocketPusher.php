@@ -28,16 +28,47 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 
 class SocketPusher  {
 	
-	private $pusher;
-	
-	public function __construct($pusher) {
+	private $em;
+	private $pusher;	
+  private $contest;
+  
+	public function __construct($pusher, $em, $contest) {
     
-    if(get_class($pusher) != "Gos\Bundle\WebSocketBundle\Pusher\Wamp\WampPusher"){
-			throw new Exception('The Grader class must be given a Gos\Bundle\WebSocketBundle\Pusher\Wamp\WampPusher but was given '.get_class($pusher));
-		}
+    if(stripos(get_class($pusher), "WampPusher") === FALSE){
+			throw new Exception('The Socket Pusher class must be given a WampPusher but was given '.get_class($pusher));
+    }
 
+    if(stripos(get_class($em), "EntityManager") === FALSE){
+			throw new Exception('The Socket Pusher class must be given a EntityManager but was given '.get_class($em));
+    }   
+        
     $this->pusher = $pusher;
-	}
+    $this->em = $em;
+    $this->contest = $contest;
+  }
+  
+  public function sendScoreboardUpdates() {
+
+    # SEND TO THE PLEBS
+    $plebInfo = [
+      'scope' => 'global',
+      'recipients' => $this->getRegularUsers(),
+      'msg' => $this->contest->leaderboard->board,
+      'passKey' => 'gradeldb251',
+    ];
+
+    $this->pusher->push($plebInfo, 'appbundle_topic', ['username'=>'user1']);
+
+
+    # SEND TO THE KINGS
+    $elevatedInfo = [
+      'scope' => 'local',
+      'recipients' => $this->getElevatedUsers(),
+      'msg' => $this->contest->leaderboard->board_elevated,
+      'passKey' => 'gradeldb251',
+    ];
+
+  }
   
   public function pushGlobalMessage($msg, $contestId, $submissionId = -1) {
     $this->pusher->push([
@@ -73,47 +104,68 @@ class SocketPusher  {
       'appbundle_topic', ['username' => 'user1']);
   }
 
-  public function getUsernamesFromTeam($team) {
-    $recipients = [];
-    foreach($team->users as $user) {
-      array_push($recipients, $user->getUsername());
-    }
-    return $recipients;
-  }
+	public function getUsernamesFromTeam($team) {
+		
+		$recipients = [];
+		foreach($team->users as $user) {
+			$recipients[] = $user->getUsername();
+		}
 
-  public function buildRejection($submission) {
-    return "Your submission for " . htmlspecialchars($submission->problem->name) . " was <b>incorrect</b>.";
-  }
+		return $recipients;
+	}
 
-  public function buildAcceptance($submission) {
-    return "Your submission for " . htmlspecialchars($submission->problem->name) . " was <b>correct</b> (Judge Override).";
-  }
+	public function getRegularUsers(){
 
-  public function buildCustomRejection($submission) {
-    return "Your submission for " . htmlspecialchars($submission->problem->name) . " was <b>incorrect</b>. \\nJudge Message: " . htmlspecialchars($submission->judge_message);
-  }
+        $recipients = [];
 
-  public function buildFormattingRejection($submission) {
-    return "Your submission for " . htmlspecialchars($submission->problem->name) . " was <b>incorrect</b>. \\nJudge Message: Formatting Error";
-  }
+		$role = $this->em->getRepository('AppBundle\Entity\Role')->findBy(['role_name'=>'Takes']);
 
-  public function buildDeleteRejection($submission) {
-    return "Your submission for " . htmlspecialchars($submission->problem->name) . " was deleted";
-  }
+        foreach($this->contest->section->user_roles as $usr){
+			if($usr->role == $role){
+				$recipients[] = $usr->user;
+			}
+        }
 
-  public function buildClarificationMessageFromQuery($query) {
-    return $this->buildClarificationMessage($query->question, $query->answer, $query->problem->name);
-  }
+    	return $recipients;    
+	}	
+	  
+	public function getElevatedUsers(){
+		return [];
+	}
 
-  public function buildClarificationMessage($question, $answer, $name) {
-    if ($question == "") {
-      return "<b>Notice:</b> " . htmlspecialchars($answer);
-    }
-    else {
-      $problemName = $name ? "Question Concerning " . $name . ":" : "Question: ";
-      return "<b>" . htmlspecialchars($problemName) . "</b> " . htmlspecialchars($question) . "\\n<b>Answer:</b> " . htmlspecialchars($answer);
-    }
-  }
+	public function buildRejection($submission) {
+		return "Your submission for " . htmlspecialchars($submission->problem->name) . " was <b>incorrect</b>.";
+	}
+
+	public function buildAcceptance($submission) {
+		return "Your submission for " . htmlspecialchars($submission->problem->name) . " was <b>correct</b> (Judge Override).";
+	}
+
+	public function buildCustomRejection($submission) {
+		return "Your submission for " . htmlspecialchars($submission->problem->name) . " was <b>incorrect</b>. \\nJudge Message: " . htmlspecialchars($submission->judge_message);
+	}
+
+	public function buildFormattingRejection($submission) {
+		return "Your submission for " . htmlspecialchars($submission->problem->name) . " was <b>incorrect</b>. \\nJudge Message: Formatting Error";
+	}
+
+	public function buildDeleteRejection($submission) {
+		return "Your submission for " . htmlspecialchars($submission->problem->name) . " was deleted";
+	}
+
+	public function buildClarificationMessageFromQuery($query) {
+		return $this->buildClarificationMessage($query->question, $query->answer, $query->problem->name);
+	}
+
+	public function buildClarificationMessage($question, $answer, $name) {
+		if ($question == "") {
+			return "<b>Notice:</b> " . htmlspecialchars($answer);
+		}
+		else {
+			$problemName = $name ? "Question Concerning " . $name . ":" : "Question: ";
+			return "<b>" . htmlspecialchars($problemName) . "</b> " . htmlspecialchars($question) . "\\n<b>Answer:</b> " . htmlspecialchars($answer);
+		}
+	}
 }
 
 ?>
