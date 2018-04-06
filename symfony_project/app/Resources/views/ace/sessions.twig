@@ -21,11 +21,14 @@
 	var editor = ace.edit("editor");
 	editor.$blockScrolling = Infinity;
 	editor.setTheme("ace/theme/xcode");
+
+	// FIXME: 
+	var scrollbar = new ScrollBar($("#editor-container"));
 	
 	/* MULTIPLE EDITOR TAB OPTIONS */
 	// ACE Session
 	var EditSession = ace.require("ace/edit_session").EditSession;
-	var ace_sessions = [];	
+	var ace_sessions = [];
 	var curr_session;
 
 	// not working
