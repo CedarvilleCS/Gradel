@@ -50,6 +50,9 @@ framework:
     session:
         # https://symfony.com/doc/current/reference/configuration/framework.html#handler-id
         handler_id: session.handler.pdo
+        # set the session to last for a day
+        cookie_lifetime: 86400
+        gc_maxlifetime: 86400
         # save_path: '%kernel.project_dir%/var/sessions/%kernel.environment%'
     fragments: ~
     http_method_override: true

@@ -94,7 +94,7 @@ class Section implements JsonSerializable{
 
 	/**
 	* @ORM\OneToMany(targetEntity="Assignment", mappedBy="section", cascade={"persist"})
-	* @ORM\OrderBy({"id" = "ASC"})
+	* @ORM\OrderBy({"start_time" = "ASC", "id" = "ASC"})
 	*/
 	public $assignments;
 	
@@ -149,6 +149,19 @@ class Section implements JsonSerializable{
 			'assignments' => $this->assignments->toArray(),
 			'user_roles' => $this->user_roles->toArray(),
 		];
+	}
+
+	public function getAllProblems(){
+
+		$allProbs = [];
+
+		foreach($this->assignments->toArray() as $asgn){
+			foreach($asgn->problems->toArray() as $prob){
+				$allProbs[] = $prob;
+			}
+		}
+
+		return $allProbs;
 	}
 }
 

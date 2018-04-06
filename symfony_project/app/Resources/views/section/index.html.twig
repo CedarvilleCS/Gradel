@@ -5,6 +5,8 @@
 {% endblock %}
 
 {% block stylesheets %}
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
+
 	<link rel="stylesheet" href="{{ asset('styles.css') }}" />
 	<link rel="stylesheet" href="{{ asset('card.css') }}" />
 	
@@ -69,7 +71,7 @@
 					<table>
 						<tr>
 							<th style="text-align: left; border-bottom: 1px solid black; border-right: 1px solid black;">Student</th>
-							{% for asgn in assignments %}
+							{% for asgn in section.assignments %}
 							
 								<th style="border-bottom: 1px solid black">{{asgn.name}}</th>
 							
@@ -80,7 +82,7 @@
 														
 							<tr> <th>{{user.getFirstName()}} {{user.getLastName()}}</th>
 			  
-								{% for asgn in assignments %}
+								{% for asgn in section.assignments %}
 									
 									{% if grades[user.id][asgn.id]['num_correct_problems'] > 0 and grades[user.id][asgn.id]['num_correct_problems'] == grades[user.id][asgn.id]['num_problems'] %}
 									
@@ -129,64 +131,24 @@
 		
 		{# Recent Submissions Card #}	
 		<div class="card">
-			<div class="btn-close" onclick="collapseCard('recentSubs')">
-				<h2 style="margin: 0px">
-					
-					{% if not is_granted("ROLE_ADMIN") and not is_granted("ROLE_SUPER") and not grader.isTeaching(user, section) %}	
-					Your 
-					{% endif %}Recent Submissions					
-					<span style="float: right"><i class="fa fa-angle-down"></i></span>
-				</h2>
+			<div class="btn-close" style="display: flex; flex-direction: row; justify-content: space-between;">
+
+				<div>
+					<h2 style="margin: 0px;">Submissions</h2>
+					<i> Search using the box. Separate parameters with semicolons. </i>
+				</div>
+
+				<div>
+					<input id='sub-search-input' style='width: 300px'>
+					<span id='sub-search-btn' class='fa fa-search'></span>
+				</div>
 			</div>
 			<div id="recentSubs" class="card-contents">
 					
 				<div>   
-					<ul id="submissions-list">
+					<ul id="submissions-list" style="list-style: none">
 						
-						{% if submissions|length == 0 %}
-							<li> No recent submissions </li>
-						{% else %}
-												
-							{% for sub in submissions %}
-							
-								{% if loop.index0 < 30 %}
-							
-								{% if sub.isCorrect %}
-									<div style="color: green">
-								{% else %}
-									
-									<div style="color: red">
-								{% endif %}
-								
-									<li><a href="{{path('problem_result', {'submission_id': sub.id})}}">
-										<i>{{sub.problem.assignment.name}}:</i> {{sub.problem.name}} ({{sub.language.name}})
-										
-											{% if sub.team.users|length <= 1 or (not is_granted("ROLE_ADMIN") and not is_granted("ROLE_SUPER") and not grader.isTeaching(user, section)) %}
-												{{sub.user.getFirstName}} {{sub.user.getLastName}} 
-											{% else %}
-												{
-												{% for user in sub.team.users %}
-													
-													{{user.getLastName}}
-													
-													{% if not loop.last %}
-														, 
-													{% endif%}
-												
-												{% endfor %}
-												
-												}
-												
-											{% endif %}
-
-										- {{sub.timestamp|date('M d  \\a\\t  h:i:s A')}}
-									</a> </li>
-									</div>
-							
-								{% endif %}
-							
-							{% endfor %}
-						{% endif %}
+						<li> Search for some submissions </li>
 						
 					</ul>
 				</div>
@@ -212,11 +174,13 @@
 
 			var counter = 0;
 			
+			{% if is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") or grader.isTeaching(user, section) %}
+
 			{% if section_takers|length == 0 %}				
 			table[0] 		+=	"There are no students enrolled in this class";
 			{% else %}
 			{# For each assignment #}
-			{% for asgn in assignments %}
+			{% for asgn in section.assignments %}
 				table[counter] = "<h3 id='asgn" + counter + "'>{{asgn.name}}</h3>"
 						+	"<table>"
 						+		"<tr>"
@@ -262,11 +226,13 @@
 			{% endfor %}
 			{% endif %}
 
+			{% endif %}
+
 			// add it to the card
 			counter = 0;
 			selection = "Select an assignment: <select id='assignmentSelect' onchange='gradeTable()' style='height: 30px; font-size: 13px;'><option value='default'></option>";
 					// onclick='gradeTable(" + counter + ")
-			{% for asgn in assignments %}
+			{% for asgn in section.assignments %}
 				selection += "<option value=" + counter + ">{{ asgn.name }}</option>";
 				counter += 1;
 			{% endfor %}
@@ -276,10 +242,34 @@
 
 			// create a list of links and add to card
 			{# counter = 0;
-			{% for asgn in assignments %}
+			{% for asgn in section.assignments %}
 				$("#assignmentLinks").append("<a href='#asgn" + counter + "'>{{ asgn.name }}</a><br>");
 				counter += 1;
 			{% endfor %} #}
+
+			var search_suggestions =  JSON.parse("{{search_suggestions|json_encode|e('js')}}");
+
+			var auto_comp_suggs = [];
+			for(var i=0; i<search_suggestions.length; i++){
+				auto_comp_suggs.push(search_suggestions[i][0]);
+			}
+
+			$( "#sub-search-input" ).autocomplete({
+      			
+				  source: auto_comp_suggs
+
+    		}).data( "ui-autocomplete" )._renderItem = function( ul, item ) {
+            
+				var ind = auto_comp_suggs.indexOf(item.label);
+				var suggest = search_suggestions[ind][1];
+
+				var thing = $("<li>")
+					.append("<a>" + item.label + "<small><i> " + suggest + "</i></small></a>") 
+					.appendTo( ul );
+
+				return thing;
+        	};
+
 		});
 
 		function initializeGradeTable(index) {
@@ -314,7 +304,7 @@
 		// Generate a CSV list of the grades
 		function generateGradeCSVSection() {
 			var gradesCSV = "Name, User, ";
-			{% for asgn in assignments %}
+			{% for asgn in section.assignments %}
 				gradesCSV += "{{asgn.name}}";
 				gradesCSV += ", ";
 			{% endfor %}
@@ -326,7 +316,7 @@
 				gradesCSV += '{{user.getFirstName()}} {{user.getLastName()}}, ';
 				gradesCSV += '{{user }}, ';
 				var i = 0;
-				{% for asgn in assignments %}
+				{% for asgn in section.assignments %}
 					i += 1;
 					var correct = parseFloat("{{grades[user.id][asgn.id]['num_correct_problems']}}");
 					var total = parseFloat("{{grades[user.id][asgn.id]['num_problems']}}");
@@ -354,7 +344,7 @@
 			var gradesCSV = [];
 			var i = 0;
 			
-			{% for asgn in assignments %}
+			{% for asgn in section.assignments %}
 
 				gradesCSV[i] = " , ";
 
@@ -405,6 +395,88 @@
 
 		{% endif %}
 
+
+		$('#sub-search-btn').click(function() {
+			searchSubmissions($('#sub-search-input').val());		
+		});
+
+		$('#sub-search-input').on("keydown", function (e) {
+
+			if(e.keyCode == 13) {
+				searchSubmissions($('#sub-search-input').val());
+			}
+		});
+
+		function searchSubmissions(str){
+
+			if(str.trim() == "") return;
+
+			var formData = new FormData();
+			formData.append('val', str);
+			formData.append('id', {{section.id}})
+
+			$.ajax({
+				type: "POST",
+				url: "{{path('submission_search')}}",
+				data: formData,
+				processData: false,
+				contentType: false,
+				success: function(data){					
+					displaySubmissions(data['results']);					
+				},
+				error: function(data){
+		
+					if(data['responseText']){					
+						alert(data['responseText']);
+						console.log(data['responseText']);					
+					}				
+				}
+			});
+
+
+		}
+
+
+		displaySubmissions(JSON.parse("{{submissions|json_encode|e('js')}}"));
+
+		function displaySubmissions(data){
+				
+				$('#submissions-list').find('li').remove();
+
+				for(var i=0; i<data.length; i++){
+
+					var res = data[i];
+
+					var time = new Date(res.timestamp.date);
+					console.log(time.getDate());
+
+					var names = "";
+					if(res.team.users != null && res.team.users.length > 1){
+						
+						names = res.team.name;
+
+					} else {
+						names = res.user.full_name;
+					}
+
+					var timestrings = time.toLocaleString().split(',');
+					var language = res.language.name;
+
+					var resultStr = res.result_string.split('-');
+					resultStr = resultStr[resultStr.length-1];
+
+					var resultColor = (res.is_correct) ? "green" : "red";
+
+					var searchResult = "<li style='color: " + resultColor + "'><a href='{{path('problem_result', {'submission_id': ''})}}" +res.id + "'>" + res.id + " - [" + res.problem.name + "] <b>" + names + "<i> - " + resultStr + "</i></b></a></li>";
+
+					$('#submissions-list').append(searchResult);
+				}
+
+				if(data.length == 0){
+					$('#submissions-list').append('<li> There were no results. :( </li>');
+				}
+		
+		}
 
 	</script>
 

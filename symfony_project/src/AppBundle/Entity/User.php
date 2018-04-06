@@ -105,6 +105,14 @@ class User extends BaseUser implements JsonSerializable{
 		return $this->id;
 	}
 
+	public function getFullName(){
+		
+		$first_name = ($this->first_name) ? $this->first_name : $this->email;
+		$last_name = ($this->last_name) ? $this->last_name : "";
+
+		return trim($first_name." ".$last_name);
+	}
+
 	public function setFirstName($first_name) {
 		$this->first_name = $first_name;
 
@@ -164,7 +172,7 @@ class User extends BaseUser implements JsonSerializable{
 			'first_name' => $first_name,
 			'last_name' => $last_name,
 			'email' => $this->email,
-			'full_name' => trim($first_name." ".$last_name),
+			'full_name' => $this->getFullName(),
 		];
 	}
 }

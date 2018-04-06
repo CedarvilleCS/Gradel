@@ -78,8 +78,7 @@ class Problem implements JsonSerializable{
 			
 			
 			# clone the problem_languages
-			$plsClone = new ArrayCollection();
-			
+			$plsClone = new ArrayCollection();			
 			foreach($this->problem_languages as $pl){
 				$plClone = clone $pl;
 				$plClone->problem = $this;
@@ -88,12 +87,19 @@ class Problem implements JsonSerializable{
 			}
 			$this->problem_languages = $plsClone;
 			
+			# clone the queries
+			$queriesClone = new ArrayCollection();			
+			foreach($this->queries as $qry){
+				$qryClone = clone $qry;
+				$qryClone->problem = $this;
+				$qryClone->assignment = null;
+				
+				$queriesClone->add($qryClone);
+			}
+			$this->queries = $queriesClone;
 			
 			$this->slaves = new ArrayCollection();
-			$this->master = null;
-			
-			$this->version = 1;
-			$this->testcase_counts = [count($this->testcases)];
+			$this->master = null;			
 		}
 		
 	}
@@ -225,8 +231,18 @@ class Problem implements JsonSerializable{
 	* @ORM\Column(type="boolean")
 	*/
 	public $extra_testcases_display;
+
+	/**
+	* @ORM\Column(type="boolean")
+	*/
+	public $allow_multiple = true;	
 	
-		
+	/**
+	* @ORM\Column(type="boolean")
+	*/
+	public $allow_upload = true;
+	
+	
 	public function jsonSerialize(){
 		return [
 			'id' => $this->id,

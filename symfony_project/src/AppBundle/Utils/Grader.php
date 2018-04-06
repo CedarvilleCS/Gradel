@@ -32,8 +32,8 @@ class Grader  {
 	
 	public function __construct($em) {
 		
-		if(get_class($em) != "Doctrine\ORM\EntityManager"){
-			throw new Exception('The Grader class must be given a Doctrine\ORM\EntityManager but was given '.get_class($em));
+		if(stripos(get_class($em), "EntityManager") === FALSE){
+			throw new Exception('The Grader class must be given a EntityManager but was given '.get_class($em));
 		}
 		
 		$this->em = $em;		
@@ -800,6 +800,7 @@ class Grader  {
 		
 		$score['team_id'] = $team->id;
 		$score['team_name'] = $team->name;
+		$score['member_string'] = $team->getMemberString();
 		$score['num_correct'] = $num_correct;
 		$score['total_penalty'] = $total_penalty;
 		$score['results'] = $results; // boolean array of yes/no solved per problem
@@ -819,9 +820,7 @@ class Grader  {
 		
 		$user_team = $this->getTeam($user, $assignment);
 		
-		$scores = [];
-		
-		
+		$scores = [];		
 		
 		if( is_object($user) ){
 			

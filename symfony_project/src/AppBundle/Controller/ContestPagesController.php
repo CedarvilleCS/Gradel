@@ -91,7 +91,72 @@ class ContestPagesController extends Controller {
 	
 		if(!$current || $current->section != $section){
 			die("ROUND DOES NOT EXIST");
-		}	
+		}
+
+		// check to see if you need to populate the post contest
+		if($current->post_contest){
+
+			$previous = $allContests[count($allContests) - 2];
+			
+			if(!$current->is_cloned && $previous->isFinished()){
+					
+				$current->is_cloned = true;
+
+				# create problems
+				$newProbs = [];
+				$prevProbs = $previous->problems->toArray();
+				foreach($prevProbs as $prevProb){
+					
+					$prb = clone $prevProb;				
+					$prb->assignment = $current;
+
+					$em->persist($prb);
+
+					$newProbs[$prevProb->id] = $prb;
+				}				
+				
+				# create teams
+				$prevTeams = $previous->teams->toArray();
+				foreach($prevTeams as $prevTeam){
+
+					$prevSubs = $prevTeam->submissions->toArray();
+
+					foreach($prevTeam->users as $prevUser){
+
+						$tm = new Team();
+						$tm->assignment = $current;
+						$tm->name = $prevUser->getFullName();
+						$tm->workstation_number = 0;
+						$tm->users->add($prevUser);
+
+						$em->persist($tm);
+
+						foreach($prevSubs as $prevSub){
+							$sb = clone $prevSub;
+							$sb->problem = $newProbs[$sb->problem->id];
+							$sb->team = $tm;							
+
+							$em->persist($sb);
+						}
+					}
+				}
+			
+				# create queries/answers
+				$prevQueries = $previous->queries->toArray();
+				foreach($prevQueries as $prevQuery){
+
+					$qry = clone $prevQuery;
+					$qry->assignment = $current;
+
+					$current->queries->add($qry);
+				}
+
+				$em->persist($current);
+				$em->flush();
+
+				//return $this->returnForbiddenResponse(json_encode($current));
+			}
+		}
 		
 		$team = $grader->getTeam($user, $current);
 				
@@ -105,16 +170,37 @@ class ContestPagesController extends Controller {
 		// Tim's gonna be mad at this, but idk what normal user is supposed to be
 		/* *is mad* */
 		$leaderboard = $grader->getLeaderboard($user, $current, true);
+
+		# GET ALL USERS
+		$qb_user = $em->createQueryBuilder();
+		$qb_user->select('usr')
+			->from('AppBundle\Entity\UserSectionRole', 'usr')
+			->where('usr.section = ?1')
+			->setParameter(1, $section);
+
+		$user_query = $qb_user->getQuery();
+		$usersectionroles = $user_query->getResult();
+
+		$section_takers = [];
+		foreach($usersectionroles as $usr){
+			if($usr->role->role_name == "Takes"){
+				$section_takers[] = $usr->user;
+			} else if($usr->role->role_num == "Judges"){
+				$section_takers[] = $usr->user;
+			}
+		}
 		
 		return $this->render('contest/hub.html.twig', [
 			'user' => $user,
 			'team' => $team,
 			
 			'section' => $section,
+			
 			'leaderboard' => $leaderboard,
 			'grader' => $grader,		
-			'attempts_per_problem_count' => $attempts_per_problem_count,
-			'correct_submissions_per_problem_count' => $correct_submissions_per_problem_count,
+
+			'user_impersonators' => $section_takers,
+			
 			'current_contest' => $current,
 			
 			'contest_open' => $contest_open,
@@ -417,6 +503,8 @@ class ContestPagesController extends Controller {
 			'current_contest' => $contest, 
 			
 			'problem' => $problem,
+
+			'edit_route' => true,
 			
 			'languages' => $languages, 
 			
@@ -486,6 +574,8 @@ class ContestPagesController extends Controller {
 			
 			return $this->returnForbiddenResponse("PERMISSION DENIED");
 		}
+
+		$languages = $em->getRepository("AppBundle\Entity\Language")->findAll();
 		
 		return $this->render('contest/edit.html.twig', [
 			'course' => $course,
@@ -494,6 +584,8 @@ class ContestPagesController extends Controller {
 			'freeze_diff_hours' => $freeze_diff_hours,
 			'freeze_diff_minutes' => $freeze_diff_minutes,
 			
+			'languages' => $languages,
+
 			'judges' => $judges,
 			
 			"elevatedUser" => $elevatedUser,
@@ -551,11 +643,16 @@ class ContestPagesController extends Controller {
 		
 			'problem' => $problem,
 			'current_contest' => $assignment,
+
+			'section' => $assignment->section,
+
 			'submission' => $submission,
 			
 			'ace_mode' => $ace_mode,
 			
 			'contest_open' => true,
+
+			'result_route' => true,
 		
 			'grader' => new Grader($em),
 		]);

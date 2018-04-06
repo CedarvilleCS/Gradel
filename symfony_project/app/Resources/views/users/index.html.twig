@@ -1,0 +1,294 @@
+{% block head %}
+
+<title>Gradel{% if section != null %} | {{section.name}} {% endif %}</title>
+<link rel="icon" type="image/x-icon" href="{{ asset('logo.png') }}" />
+{% endblock %}
+
+{% set roleDefaults = ["ROLE_ADMIN", "ROLE_SUPER"] %}
+
+
+{% block stylesheets %}
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
+
+	<link rel="stylesheet" href="{{ asset('styles.css') }}" />
+	<link rel="stylesheet" href="{{ asset('card.css') }}" />
+	
+	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
+	<style>
+		s {
+			margin-left: 0px;
+			padding-left: 0px;
+		}
+
+		
+		.role-select {
+			height: 20px;
+			padding: 0;
+			min-width: 80px;
+			max-width: 80%;
+		}
+
+		.first-name-setter {
+			min-width: 140px;
+		}
+
+		.last-name-setter {
+			min-width: 140px;
+		}
+		
+		.username-setter {
+			min-width: 140px;
+		}
+
+		.roles {
+			min-width: 190px;
+		}
+
+		.role-name {
+			cursor: pointer;
+		}
+
+		.role-name:hover {
+			color: red;
+			text-decoration: line-through;
+		}
+
+		.delete {
+			display: inline-block;
+			padding-left: 15px;
+		}		
+	</style>
+{% endblock %}
+
+{% block body %}
+
+<body>        
+	{{ include('template/top-nav.html.twig') }}
+	{{ include('template/path-nav.html.twig') }}
+
+
+	<nav class="nav-left">
+		<a id="save-btn" class="btn"><div class="btn btn-center">Save</div></a>
+		
+    </nav>
+
+	{# Main section #}
+	<section id="main">
+		
+		{# Recent Submissions Card #}	
+		<div class="card">
+			<div class="btn-close" style="display: flex; flex-direction: row; justify-content: space-between;">
+
+				<div>
+					<h2 style="margin: 0px;">Find User</h2>
+					<i> Search using the box.</i>
+				</div>
+
+				<div>
+					<input id='myInput' onkeyup="myFunction()" style='width: 300px'>
+					<span id='sub-search-btn' class='fa fa-search'></span>
+				</div>
+			</div>
+			<div id="recentSubs" class="card-contents">
+					
+				<div>   
+					<table id="myTable">
+						<tr>
+							<th>ID</th>
+							<th>First Name</th>
+							<th>Last Name</th>
+							<th>Username</th>
+							<th>Role</th>
+						</th>
+						{% for u in users %}
+							<tr>
+								<td class="user-id">{{u.user.id}}</td>
+								<td class="first-name-setter">{{u.user.getFirstName()}}</td>
+								<td class="last-name-setter">{{u.user.getLastName()}}</td>
+								<td class="username-setter">{{u.user.getUsername()}}</td>
+								<td class = "roles">
+									<div class="role-name-container">
+										{% for r in u.user.getRoles() %}
+											{% if r != "ROLE_USER" %}
+												<div class="role-name">{{r}}</div>
+											{% endif %}
+										{% endfor %}
+									</div>
+									<select class="role-select">
+										{% for r in roleDefaults %}
+											{% if not (r in u.user.getRoles()) %}
+												<option class="option">{{r}}</option>
+											{% endif %}
+										{% endfor %}
+									</select>
+									<button class="role-adder">add</button>
+								</td>
+							</tr>
+						{% endfor %}
+					</table>
+				</div>
+			</div>
+		</div>
+	</section>
+</body>
+
+{% endblock %}
+
+{% block scripts %}
+	<!-- JQuery -->
+	<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+	<script src="{{ asset('js/cards.js') }}"></script>
+
+	<script>
+		var userActions = "{{userRoles}}";
+		userActions = JSON.parse(userActions.replace(/&quot;/g, "\""));
+	</script>
+
+	<script>
+		function myFunction() {
+			var input, filter, table, tr, td, td1, i;
+			input = document.getElementById("myInput");
+			filter = input.value.toUpperCase();
+			table = document.getElementById("myTable");
+			tr = table.getElementsByTagName("tr");
+			for (i = 0; i < tr.length; i++) {
+				td = tr[i].getElementsByTagName("td")[0];
+				td1 = tr[i].getElementsByTagName("td")[1];
+				td2 = tr[i].getElementsByTagName("td")[2];
+				td3 = tr[i].getElementsByTagName("td")[3];
+				var display = false;
+				if (td) {
+					if (td.innerHTML.toUpperCase().indexOf(filter) > -1) {
+						tr[i].style.display = "";
+						display = true;
+					}
+				}
+				
+				if (td1) {
+					if (td1.innerHTML.toUpperCase().indexOf(filter) > -1) {
+						tr[i].style.display = "";
+						display = true;
+					}
+				}
+
+				if (td2) {
+					if (td2.innerHTML.toUpperCase().indexOf(filter) > -1) {
+						tr[i].style.display = "";
+						display = true;
+					}
+				}
+
+				if (td3) {
+					if (td3.innerHTML.toUpperCase().indexOf(filter) > -1) {
+						tr[i].style.display = "";
+						display = true;
+					}
+				}
+
+				if (!display) {
+					tr[i].style.display = "none";
+				} 
+			}
+		}
+
+		$(".first-name-setter").dblclick((e) => {
+			e.preventDefault = true;
+			const name = e.target.innerHTML;
+			$(e.target).html("<input value='" + name + "'/>");
+			$(e.target).find("input").focus();
+			$(e.target).find("input").blur(() => {
+				userActions[$(e.target).siblings(".user-id").html()]["first"] = removeInput(e);
+			});
+			$(document).keypress((d) => {
+				if (d.which == 13) {
+					const input = $(e.target).find("input");
+					const newName = input.val();
+					userActions[$(e.target).siblings(".user-id").html()]["first"] = newName;
+					$(e.target).html(newName);
+				}
+			});
+		});
+
+		$(".last-name-setter").dblclick((e) => {
+			e.preventDefault = true;
+			const name = e.target.innerHTML;
+			$(e.target).html("<input value='" + name + "'/>");
+			$(e.target).find("input").focus();
+			$(e.target).find("input").blur(() => {
+				userActions[$(e.target).siblings(".user-id").html()]["last"] = removeInput(e);
+			});
+			$(document).keypress((d) => {
+				if (d.which == 13) {
+					const newName = $(e.target).find("input").val();
+					userActions[$(e.target).siblings(".user-id").html()]["last"] = newName;
+					$(e.target).html(newName);
+				}
+			});
+		});
+
+		$(".username-setter").dblclick((e) => {
+			e.preventDefault = true;
+			const name = e.target.innerHTML;
+			$(e.target).html("<input spellcheck='false' value='" + name + "'/>");
+			$(e.target).find("input").focus();
+			$(e.target).find("input").blur(() => {
+				userActions[$(e.target).siblings(".user-id").html()]["username"] = removeInput(e);
+			});
+			$(document).keypress((d) => {
+				if (d.which == 13) {
+					const newName = $(e.target).find("input").val();
+					userActions[$(e.target).siblings(".user-id").html()]["username"] = newName;
+					$(e.target).html(newName);
+				}
+			});
+		});
+
+		function removeInput(e) {
+			const newName = $(e.target).find("input").val();
+			$(e.target).html(newName);
+			return newName;
+		}
+
+		$("body").delegate(".role-name", "click", (e) => {
+			e.preventDefault = true;
+			const userID = $(e.target).closest(".roles").siblings(".user-id");
+			const sibling = $(e.target).parent().siblings(".role-select");
+			sibling.html(sibling.html() + "<option class='option'>" + $(e.target).html() + "</option>");
+			const index = userActions[userID.html()]["roles"].indexOf($(e.target).html());
+			userActions[userID.html()]["roles"].splice(index, 1);
+			$(e.target).remove();
+		});
+
+		$(".role-adder").click((e) => {
+			const userID = $(e.target).parent().siblings(".user-id").html();
+			const roleName = $(e.target).siblings(".role-select").val();
+			if (roleName == "ROLE_ADMIN" || roleName == "ROLE_SUPER") {
+				userActions[userID]["roles"].push(roleName);
+				const select = $(e.target)
+					.siblings(".role-select")
+					.children(":contains('" + roleName + "')");	
+				select.remove();
+				const nameContainer = $(e.target).siblings(".role-name-container");
+				nameContainer.html(nameContainer.html() + "<div class='role-name'>" + select.val() + "</div>");
+			}
+		});
+
+		$("#save-btn").click((e) => {
+			$.ajax({
+				type: "POST",
+				url: "{{path('user_edit')}}",
+				data: userActions,
+				success: (data) => {
+					console.log(data);
+				},
+				error: (data) => {
+					console.log(data);
+				}
+			})
+			window.location.reload();
+		});
+
+	</script>
+
+{% endblock %}

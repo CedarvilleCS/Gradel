@@ -41,17 +41,15 @@ class SectionController extends Controller {
 		}
 
 		# VALIDATION
-		$section_entity = $em->find('AppBundle\Entity\Section', $sectionId);
+		$section = $em->find('AppBundle\Entity\Section', $sectionId);
 
-		//$problem_entity =  $em->find('AppBundle\Entity\Problem', );
-
-		if(!$section_entity){
+		if(!$section){
 			die("SECTION DOES NOT EXIST!");
 		}
 		
 		# REDIRECT TO CONTEST PATH IF NEED BE
-		if($section_entity->course->is_contest){
-			return $this->redirectToRoute('contest', ['contestId' => $section_entity->id]);
+		if($section->course->is_contest){
+			return $this->redirectToRoute('contest', ['contestId' => $section->id]);
 		}
 		
 
@@ -61,7 +59,7 @@ class SectionController extends Controller {
 			->from('AppBundle\Entity\Assignment', 'a')
 			->where('a.section = ?1')
 			->orderBy('a.start_time', 'ASC')
-			->setParameter(1, $section_entity);
+			->setParameter(1, $section);
 
 		$query = $qb->getQuery();
 		$assignments = $query->getResult();
@@ -71,7 +69,7 @@ class SectionController extends Controller {
 		$qb_user->select('usr')
 			->from('AppBundle\Entity\UserSectionRole', 'usr')
 			->where('usr.section = ?1')
-			->setParameter(1, $section_entity);
+			->setParameter(1, $section);
 
 		$user_query = $qb_user->getQuery();
 		$usersectionroles = $user_query->getResult();
@@ -103,77 +101,43 @@ class SectionController extends Controller {
 				->where('a.section = ?1')
 				->andWhere('a.end_time > ?2')
 				->andWhere('a.end_time < ?3')
-				->setParameter(1, $section_entity)
+				->setParameter(1, $section)
 				->setParameter(2, new DateTime())
 				->setParameter(3, $twoweeks_date)
 				->orderBy('a.end_time', 'ASC');
 
 		$asgn_query = $qb_asgn->getQuery();
-		$future_assig = $asgn_query->getResult();
+		$future_assigs = $asgn_query->getResult();
 		
 		# GATHER SUBMISSIONS
 		# get all of the problems to get all of the submissions
 		$allprobs = [];
-		foreach($section_entity->assignments as $asgn){
+		foreach($section->assignments as $asgn){
 			foreach($asgn->problems as $prob){
 				$allprobs[] = $prob;
 			}
 		}
 
-			$grader = new Grader($em);
+		$grader = new Grader($em);
 
-			if($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isTeaching($user, $section_entity) || $grader->isJudging($user, $section_entity)){
-				
-				// echo json_encode($user);
-				// echo "<br/>";
-				// echo json_encode($problem_entity);
-				// echo "<br/>";
-
-				// echo json_encode($allprobs);
-
-			// query for all submissions
-			$qb_submissions = $em->createQueryBuilder();
-			$qb_submissions->select('s')
-					->from('AppBundle\Entity\Submission', 's')
-					->where('s.problem IN (?1)')
-					->orderBy('s.timestamp', 'DESC')
-					->setParameter(1, $allprobs);
-
-			$qb_submissions = $em->createQueryBuilder();
-			$qb_submissions->select('s')
-					->from('AppBundle\Entity\Submission', 's')
-					->where('s.problem IN (?1)')
-					->orderBy('s.timestamp', 'DESC')
-					->setParameter(1, $allprobs);
-
-			$submission_query = $qb_submissions->getQuery();
-			$submissions = $submission_query->getResult();
+		if($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isTeaching($user, $section) || $grader->isJudging($user, $section)){
+			
+			$submissions = [];
 
 		} else {
-			$teams = [];
-
-			foreach($section_entity->assignments as $asgn){
-				$teams[] = $grader->getTeam($user, $asgn);
-			}
-
-			$qb_submissions = $em->createQueryBuilder();
-			$qb_submissions->select('s')
-					->from('AppBundle\Entity\Submission', 's')
-					->where('s.problem IN (?1)')
-					->andWhere('s.team IN (?2)')
-					->orderBy('s.timestamp', 'DESC')
-					->setParameter(1, $allprobs)
-					->setParameter(2, $teams);
-
-			$submission_query = $qb_submissions->getQuery();
-			$submissions = $submission_query->getResult();
+			
+			$submissions = [];
 		}
 		
+		// get assignment grades for the student
 		$grades = [];
 		$subs = [];
 		foreach($section_takers as $section_taker){
+			
 			$correct_sub_ids = [];
-			$grades[$section_taker->id] = $grader->getAllAssignmentGrades($section_taker, $section_entity);
+			
+			$grades[$section_taker->id] = $grader->getAllAssignmentGrades($section_taker, $section);
+			
 			foreach ($assignments as $assig){
 				$probs = $assig->problems;
 				$team = $grader->getTeam($section_taker, $assig);
@@ -197,26 +161,89 @@ class SectionController extends Controller {
 			$subs[$section_taker->id] = $correct_sub_ids;
 			
 		}
-		
-		
+
+
+		// get the users most recent submissions (top 15)
+		$submissions = $em->createQueryBuilder()
+					->select('s')
+					->from('AppBundle\Entity\Submission', 's')
+					->where('s.user = (?1)')
+					->orderBy('s.id', 'DESC')
+					->setParameter(1, $user)
+					->setMaxResults(15)
+					->getQuery()
+					->getResult();
+
+		// array of arrays that contain a main text and a subtext that will be used for autocompleting searches
+		// ['Timothy Smith', 'timothyglensmith@cedarville.edu']
+		// ['Get the Sum', 'Homework #2']
+		// ['Wrong Answer', 'Incorrect']
+		$suggestions = [];
+
+		// get the users
+		foreach($section_takers as $taker){
+			$suggestions[] = [$taker->getFullName(), $taker->getEmail()];
+		}
+
+		// get the teachers
+		foreach($section_teachers as $teacher){
+			$suggestions[] = [$teacher->getFullName(), $teacher->getEmail()];
+		}
+
+		// get the helpers
+		foreach($section_helpers as $helper){
+			$suggestions[] = [$helper->getFullName(), $helper->getEmail()];
+		}
+
+		//  get the problems
+		foreach($allprobs as $prob){
+			$suggestions[] = [$prob->name, $prob->assignment->name];			
+		}
+
+		// get the assignments and teams
+		foreach($section->assignments as $assign){
+			$suggestions[] = [$assign->name, ''];			
+
+			foreach($assign->teams as $tm){
+
+				if($tm->users->count() > 1){
+					$suggestions[] = [$tm->name, ''];
+				}
+			}
+		}
+
+		// get the correct types
+		$suggestions[] = ['Correct', ''];
+		$suggestions[] = ['Incorrect', ''];
+		$suggestions[] = ['Wrong Answer', 'Incorrect'];
+		$suggestions[] = ['Runtime Error', 'Incorrect'];
+		$suggestions[] = ['Time Limit Error', 'Incorrect'];
+		$suggestions[] = ['Compile Error', 'Incorrect'];
+				
 		return $this->render('section/index.html.twig', [
-			'section' => $section_entity,
+			'section' => $section,
+			
 			'grader' => new Grader($em),
 			'user' => $user,
+			'team' => $team,
+
 			'grades' => $grades,
+
 			'user_assig_prob_sub' => $subs,
-			'assignments' => $assignments,
-			'future_assigs' => $future_assig,
 
-			'recent_submissions' => $submissions,
+			'submissions' => $submissions,
+			
+			'future_assigs' => $future_assigs,
 
-			'accepted_submissions' => $best_submission,
 			'user_impersonators' => $section_takers,
+
 			'section_takers' => $section_takers,
 			'section_teachers' => $section_teachers,
 			'section_helpers' => $section_helpers,
-			]);
-		}
+
+			'search_suggestions' => $suggestions,
+		]);
+	}
 
     public function editSectionAction($sectionId) {
 
@@ -562,6 +589,131 @@ class SectionController extends Controller {
 		}
 
 	}
+
+	public function searchSubmissionsAction(Request $request){
+
+
+		$em = $this->getDoctrine()->getManager();
+		$grader = new Grader($em);
+
+		# validate the current user
+		$user = $this->get('security.token_storage')->getToken()->getUser();
+		if(!$user){
+			return $this->returnForbiddenResponse("You are not a user.");
+		}
+
+		$elevatedUser = $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN");
+
+		# see which fields were included
+		$postData = $request->request->all();
+
+		if(!isset($postData['val']) || trim($postData['val']) == ''){
+			return $this->returnForbiddenResponse("val must be provided for searching");			
+		}
+
+		if(!isset($postData['id']) || trim($postData['id']) == ''){
+			return $this->returnForbiddenResponse("section id must be provided for searching");			
+		}
+
+		# VALIDATION
+		$searchVals = explode(';', $postData['val']);
+		$section = $em->find('AppBundle\Entity\Section', $postData['id']);
+		
+		if( !($grader->isTeaching($user, $section) || $grader->isTaking($user, $section) || $grader->isHelping($user, $section) || $elevatedUser) ){
+			return $this->returnForbiddenResponse("You are not allowed to search the submissions of this section");			
+		}
+
+		$elevatedQuery = '';
+		if($elevatedUser){
+			$elevatedQuery = ' OR 1=1';
+		}
+
+		$userTeams = $em->createQueryBuilder()
+						->select('t')
+						->from('AppBundle\Entity\Team', 't')
+						->where(':user MEMBER OF t.users')
+						->setParameter('user', $user)
+						->getQuery()
+						->getResult();
+
+		# redirect to the section page
+		$data = $em->createQueryBuilder()
+					->select('s')
+					->from('AppBundle\Entity\Submission', 's')
+					->where('s.problem IN (?1)')
+					->andWhere('s.team IN (?2)'.$elevatedQuery)
+					->orderBy('s.id', 'DESC')
+					->setMaxResults(100)
+					->setParameter(1, $section->getAllProblems())
+					->setParameter(2, $userTeams)
+					->getQuery()
+					->getResult();
+
+		foreach($searchVals as $searchVal){
+			
+			$searchVal = trim($searchVal);
+			$results = [];
+
+			foreach($data as $sub){
+
+				if( $sub->id == $searchVal){
+					$results[] = $sub;
+					continue;
+				}
+
+				if( stripos($sub->problem->assignment->name, $searchVal) !== FALSE){
+					$results[] = $sub;
+					continue;
+				}
+
+				if( stripos($sub->problem->name, $searchVal) !== FALSE){
+					$results[] = $sub;
+					continue;
+				}
+
+				if( stripos($sub->user->getFullName(), $searchVal) !== FALSE){
+					$results[] = $sub;
+					continue;
+				}
+
+				if( stripos($sub->user->getEmail(), $searchVal) !== FALSE){
+					$results[] = $sub;
+					continue;
+				}
+
+				$teamStr = $sub->team->name;
+				foreach($sub->team->users as $usr){
+					$teamStr .= ' '.$usr->getFullName().' '.$usr->getEmail();				
+				}
+				
+				if( stripos($teamStr, $searchVal) !== FALSE){
+					$results[] = $sub;
+					continue;	
+				}
+
+				if( $sub->isCorrect() && stripos("Correct", $searchVal) !== FALSE){
+					$results[] = $sub;
+					continue;				
+				} else if( stripos("Correct", $searchVal) !== FALSE ){
+					continue;
+				} else if( !$sub->isCorrect() && stripos($sub->getResultString(), $searchVal) !== FALSE){
+					$results[] = $sub;
+					continue;
+				}	
+
+			}
+
+			$data = $results;
+		}
+
+		$response = new Response(json_encode([
+			'results' => $results,		
+		]));
+		$response->headers->set('Content-Type', 'application/json');
+		$response->setStatusCode(Response::HTTP_OK);
+
+		return $response;
+	}	
 
 	private function returnForbiddenResponse($message){
 		$response = new Response($message);

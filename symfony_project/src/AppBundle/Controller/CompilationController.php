@@ -24,6 +24,7 @@ use AppBundle\Utils\Grader;
 use AppBundle\Utils\Generator;
 use AppBundle\Utils\SocketPusher;
 use AppBundle\Utils\Uploader;
+use AppBundle\Utils\Zipper;
 
 use \DateTime;
 
@@ -119,7 +120,7 @@ class CompilationController extends Controller {
 		$language = $trial->language;
 		
 		if(!isset($submitted_filename) || trim($submitted_filename) == ""){
-			return $this->returnForbiddenResponse("Filename was not provided. Contact a systems administrator -");
+			return $this->returnForbiddenResponse("UNABLE TO CREATE FILE");
 		}
 		
 		# check main class and package name for validity
@@ -130,12 +131,7 @@ class CompilationController extends Controller {
 		if(strlen($package_name) > 0 && preg_match("/^[a-zA-Z0-9_]+$/", $package_name) != 1){
 			return $this->returnForbiddenResponse("PACKAGE NAME MUST BE ONLY LETTERS, NUMBERS, OR UNDERSCORES");
 		}
-		
-		# check filename for validity
-		if(preg_match("/^[a-zA-Z0-9_\-]+\.[a-zA-Z0-9]+$/", $submitted_filename) != 1){
-			return $this->returnForbiddenResponse("SUBMITTED FILENAME IS NOT VALID");
-		}
-			
+
 		# INITIALIZE THE SUBMISSION
 		# create an entity for the current submission from the trial
 		$submission = new Submission($trial, $team);	
@@ -215,13 +211,8 @@ class CompilationController extends Controller {
 		# move the submitted file into the proper directory
 		shell_exec("mv ".$submitted_file_path." ".$student_code_dir."/");
 		
-		# query for the current filetype		
-		$extension = pathinfo($submitted_file_path, PATHINFO_EXTENSION);
-		
-		$is_zipped = false;
-		if($extension == "zip"){
-			$is_zipped = true;
-		};		
+		# the submission is always zipped now
+		$is_zipped = true;	
 		
 		# get the problem language entity from the problem and language
 		# store the compilation options from the problem language
@@ -237,9 +228,7 @@ class CompilationController extends Controller {
 															$package_name, 
 															$is_zipped, 
 															true);
-		
-		#return $this->returnForbiddenResponse($docker_options);
-		
+				
 		if($dockerOptGen != 1){
 			
 			$this->cleanUp($submission, null, $sub_dir, $uploads_dir);		
@@ -250,12 +239,7 @@ class CompilationController extends Controller {
 		$docker_time_limit = intval(count($problem->testcases) * ceil(floatval($problem->time_limit)/1000.0)) + 8 + rand(1,4);
 
 		$docker_script = $web_dir."compilation/dockercompiler.sh \"".$docker_options."\" ".$submission->id." ".$docker_time_limit;
-		
-		#return $this->returnForbiddenResponse($docker_script);
-		
 		$docker_output = shell_exec($docker_script);	
-		
-		//return $this->returnForbiddenResponse($docker_output);
 		
 		$docker_log_file = fopen($flags_dir."docker_log", "w");
 		if(!$docker_log_file){
@@ -264,9 +248,7 @@ class CompilationController extends Controller {
 		}
 		fwrite($docker_log_file, $docker_output);
 		fclose($docker_log_file);
-		
-		#return $this->returnForbiddenResponse($docker_output);
-		
+				
 		# PARSE FOR SUBMISSION		
 		$solvedAllTestcases = false;
 		$submissionGen = $generator->generateSubmission($submission, $problem, $solvedAllTestcases);
@@ -333,10 +315,9 @@ class CompilationController extends Controller {
 		// update pending status
 		$submission->pending_status = 2;
 		
-		if($submission->problem->assignment->section->course->is_contest){
-		
-			// if it is not post contest, the grader is on a team, and it was not a correct submission
-			if( !$submission->problem->assignment->post_contest && $grader->getTeam($user, $submission->problem->assignment) && !($solvedAllTestcases || $submission->compiler_error || $submission->exceeded_time_limit || $submission->runtime_error) ){
+		if($submission->problem->assignment->section->course->is_contest){		
+			// if it is not post contest or pre contest, the grader is on a team, and it was not a correct submission
+			if( !$submission->problem->assignment->post_contest && !$submission->problem->assignment->pre_contest && $grader->getTeam($user, $submission->problem->assignment) && !($solvedAllTestcases || $submission->compiler_error || $submission->exceeded_time_limit || $submission->runtime_error) ){
 				
 				$submission->pending_status = 0;			
 			}
@@ -355,7 +336,7 @@ class CompilationController extends Controller {
 			$pusher->promptDataRefresh($submission->problem->assignment->section->id);	
 		}
 		
-		//return $this->returnForbiddenResponse($submission->percentage."");		
+				
 		if($submission->problem->assignment->section->course->is_contest){
 			$url = $this->generateUrl('contest_result', [
 				'contestId' => $submission->problem->assignment->section->id,
@@ -388,30 +369,27 @@ class CompilationController extends Controller {
 		# gets the gradel/symfony_project directory
 		$web_dir = $this->get('kernel')->getProjectDir()."/";
 			
-		$generator = new Generator($em, $web_dir);		
+		$generator = new Generator($em, $web_dir);	
+		$uploader = new Uploader($web_dir);		
 		$grader = new Grader($em);
 						
 		# get the current user
-		$user= $this->get('security.token_storage')->getToken()->getUser();
-		
+		$user= $this->get('security.token_storage')->getToken()->getUser();		
 		if(!$user){
 			return $this->returnForbiddenResponse("USER DOES NOT EXIST");
 		}
 		
-		$postData = $request->request->all();
-		
+		$postData = $request->request->all();		
 		if(!isset($postData['assignmentId']) || !($postData['assignmentId'] > 0)){
 			return $this->returnForbiddenResponse("Assignment ID was not provided or not formatted properly");
 		}
 		
-		$assignment = $em->find("AppBundle\Entity\Assignment", $postData['assignmentId']);
-		
+		$assignment = $em->find("AppBundle\Entity\Assignment", $postData['assignmentId']);		
 		if(!$assignment){
 			return $this->returnForbiddenResponse("Assignment does not exist");
 		}
 		
-		$elevatedUser = $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isJudging($user, $assignment->section) || $grader->isTeaching($user, $assignment->section);
-		
+		$elevatedUser = $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isJudging($user, $assignment->section) || $grader->isTeaching($user, $assignment->section);		
 		if( !($elevatedUser || ($grader->isTaking($user, $assignment->section) && $assignment->isActive())) ){
 			return $this->returnForbiddenResponse("PERMISSION DENIED");
 		}
@@ -422,7 +400,7 @@ class CompilationController extends Controller {
 		$problem->name = "";
 		$problem->description = "";
 		$problem->weight = 1;
-		$problem->time_limit = 2000;
+		$problem->time_limit = 1000;
 		
 		$problem->is_extra_credit = false;
 		
@@ -435,10 +413,12 @@ class CompilationController extends Controller {
 		$problem->display_testcaseresults = true;
 		$problem->testcase_output_level = "";
 		$problem->extra_testcases_display = true;
+		$problem->allow_multiple = true;
+		$problem->allow_upload = true;
 		
 		$em->persist($problem);
 		
-		# instantiate the languages
+		# instantiate the problem languages
 		$qb = $em->createQueryBuilder();
 		$qb->select('l')
 			->from('AppBundle\Entity\Language', 'l')
@@ -456,8 +436,7 @@ class CompilationController extends Controller {
 		
 		# TESTCASES
 		$postData = $request->request->all();
-		$postTestcases = (array) json_decode($postData['testcases']);
-		
+		$postTestcases = (array) json_decode($postData['testcases']);		
 		if(!(count($postTestcases) >= 1)){
 			return $this->returnForbiddenResponse("No testcases given!");
 		}
@@ -488,30 +467,6 @@ class CompilationController extends Controller {
 		$em->persist($problem);		
 		$em->flush();
 							
-		# FILE UPLOAD
-		# upload the file via the UploadController
-		$response = $this->forward('AppBundle\Controller\UploadController::submitProblemUploadAction', array(
-			'problem_id'  => $problem->id,
-			'request' => $request,
-		));		
-		
-		$content = (array) json_decode($response->getContent())->data;	
-
-		//return $this->returnForbiddenResponse(json_encode($response->getContent()));
-		
-		if(!isset($content)){
-			return $response;
-		}		
-		
-		$submitted_filename = $content['submitted_filename'];
-		$language_id = $content['language_id'];
-		$main_class = $content['main_class'];
-		$package_name = $content['package_name'];
-		
-		if(!isset($submitted_filename) || trim($submitted_filename) == ""){
-			return $this->returnForbiddenResponse("Filename was not provided. Contact a systems administrator");
-		}
-
 		# INITIALIZE A SUBMISSION
 		# create an entity for the current submission
 		$submission = new Submission($problem, null, null);	
@@ -554,63 +509,138 @@ class CompilationController extends Controller {
 		shell_exec("mkdir -p ".$arg_file_dir);	
 		shell_exec("mkdir -p ".$user_output_dir);
 		
+		# GENERATE THE FILES
+		$aceData = json_decode($postData['ACE']);
+		
+		// make a temporary directory
+		$tempdir = null;
+		
+		while(!is_dir($tempdir)){
+			
+			$tempdir = tempnam(sys_get_temp_dir(),'');
+			
+			if (file_exists($tempdir)){
+				unlink($tempdir);
+			}
+			mkdir($tempdir);
+		}
+		$tempdir .= '/';
+				
+		$total_size = 0;
+		
+		$array_of_names = [];		
+		foreach($aceData as $aceDatum){
+			
+			if(strlen($aceDatum->content) <= 0){
+				return $this->returnForbiddenResponse('Your file cannot be empty');
+			}
+			
+			if(strlen($aceDatum->filename) <= 0){
+				return $this->returnForbiddenResponse('Your filename cannot be blank');
+			}
+			
+			if(preg_match('/^[a-zA-Z0-9-_]+\.[a-zA-Z]+$/', $aceDatum->filename) <= 0){
+				return $this->returnForbiddenResponse('Your filename is invalid');
+			}
+			
+			$aceContent = $aceDatum->content;
+			$filename = $aceDatum->filename;
+
+			
+			$total_size += strlen($aceContent);
+		
+			if($total_size > 1024*1024){
+				return $this->returnForbiddenResponse("Uploaded code must be smaller than 1Mb total.");
+			}
+			
+			if(!file_put_contents($tempdir.$filename, $aceContent, FILE_USE_INCLUDE_PATH)){
+				 return $this->returnForbiddenResponse("UNABLE TO MOVE THE ACE EDITOR CONTENTS");
+			}			
+		}
+		
+		$zipper = new Zipper();
+		$target_file = $tempdir."zippy.zip";
+		
+		$response = $zipper->zipFiles($tempdir, $target_file);
+			
+		if($response !== TRUE){
+			return $this->returnForbiddenResponse($response."");
+		}		
+		
+		// make a zip file and set file = fopen(zip location)
+		$file = fopen($target_file, 'r');		
+		if(!$file){
+			return $this->returnForbiddenResponse("Could not properly open file for moving.");
+		}
+		
 		# uploads directory 
 		# get the submitted file path
 		$uploads_dir = $web_dir."compilation/uploads/".$user->id."/".$problem->id."/";
-		$submitted_file_path = $uploads_dir.$submitted_filename;
-		
-		# save the input/output files to a temp folder by deblobinating them	
+		$submitted_file_path = $uploads_dir."zippy.zip";
+
+		# PUT THE ZIP FILE IN THE UPLOADS DIRECTORY
+		$submitted_filename = $uploader->createGeneratorFile($user, $problem, "zippy.zip", $file);
+		//return $this->returnForbiddenResponse(json_encode($submitted_filename));
+		if(!$submitted_filename){
+			$this->cleanUp($submission, $problem, $sub_dir, $uploads_dir);	
+			return $this->returnForbiddenResponse("Unable to create file for submission");
+		}
+
+		// move into docker area
+		shell_exec("mv ".$submitted_file_path." ".$student_code_dir."/");
+
+			# save the input/output files to a temp folder by deblobinating them	
 		$testcaseGen = $generator->generateTestcaseFiles($problem, $input_file_dir, $arg_file_dir, $output_file_dir);
-		
-		//return $this->returnForbiddenResponse(var_dump($submission->id));
-		//return $this->returnForbiddenResponse(var_dump($testcaseGen));
 		if($testcaseGen != 1){			
 			$this->cleanUp($submission, $problem, $sub_dir, $uploads_dir);	
 			return $this->returnForbiddenResponse($testcaseGen."");
 		}
-				
-		# SUBMISSION COMPILATION
-		# open the submitted file and prep for compilation
-		$submitted_file = fopen($submitted_file_path, "r");
-		if(!$submitted_file){
-			$this->cleanUp($submission, $problem, $sub_dir, $uploads_dir);
-			return $this->returnForbiddenResponse("Unable to open submitted file: ".$submitted_file_path." - contact a system admin");
-		}
-		$submission->language = $language;
-		$submission->submitted_file = $submitted_file;
-		$submission->filename = $submitted_filename;
-		
-		# move the file into the proper directory
-		shell_exec("mv ".$submitted_file_path." ".$student_code_dir."/");
-		
-		# query for the current filetype		
-		$extension = pathinfo($submitted_file_path, PATHINFO_EXTENSION);
-		
-		$is_zipped = false;
-		if($extension == "zip"){
-			$is_zipped = true;
-		};		
-		
-		# set the main class and package name
-		$submission->main_class_name = $main_class;
-		$submission->package_name = $package_name;
-				
+			
 		# get the current language
+		$language_id = $postData['language'];
 		if(!isset($language_id) || !($language_id > 0)){
+			$this->cleanUp($submission, $problem, $sub_dir, $uploads_dir);	
 			return $this->returnForbiddenResponse("PROBLEM ID WAS NOT PROVIDED PROPERLY");
 		}
 		
 		$language = $em->find("AppBundle\Entity\Language", $language_id);
-		//return null;
 		if(!$language){
 			$this->cleanUp($submission, $problem, $sub_dir, $uploads_dir);	
 			return $this->returnForbiddenResponse("Language with id ".$language_id." does not exist");
-		}				
+		}		
+		
+		# set the main class and package name
+		$main_class = $postData['main_class'];
+		$package_name = $postData['package_name'];
+				
+		# check main class and package name for validity
+		if(!isset($main_class) || strlen($main_class) > 0 && preg_match("/^[a-zA-Z0-9_]+$/", $main_class) != 1){
+			return $this->returnForbiddenResponse("MAIN CLASS MUST BE ONLY LETTERS, NUMBERS, OR UNDERSCORES");
+		}
+		
+		if(!isset($package_name) || strlen($package_name) > 0 && preg_match("/^[a-zA-Z0-9_]+$/", $package_name) != 1){
+			return $this->returnForbiddenResponse("PACKAGE NAME MUST BE ONLY LETTERS, NUMBERS, OR UNDERSCORES");
+		}
+
+		$submission->main_class_name = $main_class;
+		$submission->package_name = $package_name;
+		$submission->language = $language;
+		$submission->submitted_file = "unimportant";
+		$submission->filename = $submitted_filename;
+
+		$is_zipped = true;
 		
 		/* CREATE THE DOCKER CONTAINER */
 		// required fields
 		$docker_options = "";
-		$dockerOptGen = $generator->generateDockerOptions($docker_options, $language, $submitted_filename, $problem, $main_class, $package_name, $is_zipped, false);
+		$dockerOptGen = $generator->generateDockerOptions($docker_options, 
+															$language, 
+															$submitted_filename, 
+															$problem, 
+															$main_class, 
+															$package_name, 
+															$is_zipped, 
+															false);
 		
 		if($dockerOptGen != 1){			
 			$this->cleanUp($submission, $problem, $sub_dir, $uploads_dir);	
@@ -621,9 +651,6 @@ class CompilationController extends Controller {
 		$docker_time_limit = intval(count($problem->testcases) * ceil(floatval($problem->time_limit)/1000.0)) + 8 + rand(1,4);
 
 		$docker_script = $web_dir."compilation/dockercompiler.sh \"".$docker_options."\" ".$submission->id." ".$docker_time_limit;
-		
-		#return $this->returnForbiddenResponse($docker_script);
-		
 		$docker_output = shell_exec($docker_script);	
 		
 		$docker_log_file = fopen($flags_dir."docker_log", "w");
@@ -641,7 +668,7 @@ class CompilationController extends Controller {
 		$submissionGen = $generator->generateOutput($testcases, $submission, count($problem->testcases));
 			
 		if($submissionGen != 1) {
-			$this->cleanUp($submission, $problem, $sub_dir, $uploads_dir);
+		//	$this->cleanUp($submission, $problem, $sub_dir, $uploads_dir);
 			return $this->returnForbiddenResponse($submissionGen."");
 		}
 						

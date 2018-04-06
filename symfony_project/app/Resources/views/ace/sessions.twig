@@ -1,6 +1,3 @@
-{% set result_page = ("result" in app.request.attributes.get('_route')) %}
-
-
 {% block editor_html %}
 
 	<div id="file-markers">
@@ -28,11 +25,12 @@
 	/* MULTIPLE EDITOR TAB OPTIONS */
 	// ACE Session
 	var EditSession = ace.require("ace/edit_session").EditSession;
-	var ace_sessions = [];
+	var UndoManager = ace.require("ace/undomanager").UndoManager;
+	var ace_sessions = [];	
 	var curr_session;
 
 	// not working
-	{% if not result_page %}
+	{% if not result_route and not edit_route %}
 	editor.commands.addCommand({
 		name: "replace",
 		bindKey: {win: "Ctrl-S", mac: "Command-S"},
@@ -51,6 +49,10 @@
 	}
 	
 	function addAddFileButton(){
+
+		{% if not edit_route and not problem.allow_multiple %}
+		return;
+		{% endif %}
 		
 		$("#file-markers ul").append(
 			"<li class='tabs' id='add-file-button' style='margin: 8px 0px; padding: 4px 10px; top: 7px'> &#xff0b; </li>"
@@ -64,6 +66,11 @@
 	}
 	
 	function removeAddFileButton(){
+		
+		{% if not edit_route and not problem.allow_multiple %}
+		return;
+		{% endif %}
+
 		$('#add-file-button').remove();
 	}
 	
@@ -95,16 +102,16 @@
 	
 	function removeAceSession(index){
 		
-		{% if not result_page %}
+		{% if not result_route and not edit_route %}
 		removeAddFileButton();	
 		{% endif %}
 		
 		var num_tabs = $("#file-markers ul li").length;
 		
 		if(num_tabs == 1){
-			$('#trial-status').text("Cannot remove file");
-		
-			addAddFileButton();
+			populateSessions(code_for_langs[currLanguage]);
+			setLanguage(currLanguage);
+			$('#trial-status').text("Reset code to default code.");
 			return;
 		}
 		
@@ -140,21 +147,26 @@
 			updateTabEvents($(this), ind+1);
 		});
 		
-		{% if not result_page %}
+		{% if not result_route %}
 		addAddFileButton();
 		{% endif %}
 		
-		{% if not result_page %}
+		{% if not result_route and not edit_route %}
 		updateTrial();
 		{% endif %}
 		
 		
-		if(curr_session == index){
+		var found = false;
+		$('.tabs').each( function() {
+
+			if($(this).hasClass('selected-tab')){
+				found = true;
+			}
+		});
+		
+		if(!found){
 			curr_session = 1;
 			$('#test-code-tab-user-1-marker').click();
-		} else if(index <= curr_session) {
-			curr_session--;
-			editor.setSession(ace_sessions[curr_session]);
 		}
 	}
 	
@@ -166,17 +178,19 @@
 			$('.tabs').css('border-left', '1px solid grey');				
 			$('.tabs').css('border-right', '1px solid grey');				
 			$('.tabs').css('border-bottom', 'inherit');
-			$('.tabs').find('input').css('color', 'black');
+			$('.tabs').find('input').css('color', 'black');			
+			$('.tabs').removeClass('selected-tab');
 			
 			$(this).css('background', '#71BA62');
 			$(this).css('border', '1px solid white');
 			$(this).find('input').css('color', 'white');
+			$(this).addClass('selected-tab');
 			
 			editor.setSession(ace_sessions[ind]);
 			curr_session = ind;
 		});
 		
-		{% if not result_page %}
+		{% if not result_route and not edit_route %}
 		ui.contextmenu(function(e) {
 			// right click
 			removeAceSession(ind);
@@ -184,8 +198,11 @@
 		});	
 
 		ui.change(function(e) {
-			$(this).find('a input').attr('size', $(this).find('a input').val().length);		
+			$(this).find('a input').attr('size', $(this).find('a input').val().length);	
+
+			{% if not result_route and not edit_route %}
 			updateTrial();			
+			{% endif %}
 		});
 		{% endif %}
 	}
@@ -195,60 +212,99 @@
 		removeAddFileButton();
 		var num_tabs = $("#file-markers ul li").length + 1;
 
+		{% if not result_route and not edit_route %}
 		$("#file-markers ul").append(
 			"<li class='tabs' id='test-code-tab-user-" + num_tabs + "-marker'><a href='#test-code-tab-user-" + num_tabs + "'>" 
-				+ "<input class='tab-filename' readonly='true' ondblclick='this.readOnly=\"\";' onblur='this.readOnly=\"true\"' type='text' value='filename" + num_tabs + ".file'></a>"
+				+ "<input class='tab-filename' readonly='true' {% if problem.allow_multiple %} ondblclick='this.readOnly=\"\";' onblur='this.readOnly=\"true\"' {% endif %} type='text' value='filename" + num_tabs + getFiletype() + "'></a>"
 				+ '<input type="hidden" name="ACE" id="ACE' + num_tabs + '">'
-				+ "</li>"
+			+ "</li>"
 		);
+		{% else %}
+		$("#file-markers ul").append(
+			"<li class='tabs' id='test-code-tab-user-" + num_tabs + "-marker'><a href='#test-code-tab-user-" + num_tabs + "'>" 
+				+ "<input class='tab-filename' readonly='true' {% if problem.allow_multiple %} ondblclick='this.readOnly=\"\";' onblur='this.readOnly=\"true\"' {% endif %} type='text' value='filename" + num_tabs + ".file'></a>"
+				+ '<input type="hidden" name="ACE" id="ACE' + num_tabs + '">'
+			+ "</li>"
+		);
+
+
+		{% endif %}
 		
 		$('#test-code-tab-user-'+num_tabs+'-marker').find('a input').attr('size', 14);
 		
 		updateTabEvents($('#test-code-tab-user-' + num_tabs + '-marker'), num_tabs);
 
-		var new_session = new EditSession("");			
+		var new_session = new EditSession("");	
+		new_session.setUndoManager( new UndoManager());		
 		ace_sessions[num_tabs] = new_session;
 		
 		$('#test-code-tab-user-' + num_tabs + '-marker').click();
 		editor.setTheme("ace/theme/xcode");
-		
-		{% if not result_page %}
-		updateAceCode();
-		setDefaultCode();
-		{% endif %}
 			
 		new_session.on('change', function() {	
 			
-			{% if not result_page %}
+			{% if not result_route and not edit_route %}
 				second++;
 				if(second > 1){
 					$('#trial-status').text("Unsaved changes...");
 				}
 			{% endif %}
 				
-			{% if not result_page %}
+			{% if not result_route and not edit_route %}
 			clearInterval(trialUpdateTimer);
 			trialUpdateTimer = setInterval(updateTrial, 5000);
-			{% endif %}
-			
+			{% endif %}			
 		});
 		
-		{% if not result_page %}
+		{% if not result_route %}
 		addAddFileButton();
 		{% endif %}
 	}
+
+
+	function codeUpdated(){
+
+		var changed = false;
+
+		var current_session = editor.getSession();
+		for(var i = 1; i < ace_sessions.length; i++) {
+			editor.setSession(ace_sessions[i]);		
+			if(onloadValue[i] == null || editor.getSession().getValue() != onloadValue[i]){
+				changed = true;	
+			}
+			curr_session = i;
+		}
+		editor.setSession(current_session);	
+
+		return changed;
+
+	}
+
 	
 {% endblock %}
 
 
 {% block editor_setlanguage %}
+
+	// Update the language for all files	
 	
-	// Update the language for all files
+	if(!codeUpdated()){
+		populateSessions(code_for_langs[language]);
+
+		var current_session = editor.getSession();
+		for(var i = 1; i < ace_sessions.length; i++) {
+			editor.setSession(ace_sessions[i]);	
+			onloadValue[i] = editor.getSession().getValue();
+			curr_session = i;
+		}
+		editor.setSession(current_session);
+	}
+
 	var current_session = editor.getSession();
 	for(var i = 1; i < ace_sessions.length; i++) {
-		editor.setSession(ace_sessions[i]);
+		editor.setSession(ace_sessions[i]);		
+		editor.getSession().setMode("ace/mode/" + ace_modes[language]);
 		curr_session = i;
-		updateAceCode();
 	}
 	editor.setSession(current_session);			
 
@@ -260,21 +316,37 @@
 
 	{% if trial %}				
 	populateSessions(JSON.parse("{{trial.getFileContents()|json_encode|e('js')}}"));
+
+	{% elseif not result_route and not edit_route %}
+	populateSessions(code_for_langs[Object.keys(code_for_langs)[0]]);
+
+	var current_session = editor.getSession();
+	for(var i = 1; i < ace_sessions.length; i++) {
+		editor.setSession(ace_sessions[i]);	
+		onloadValue[i] = editor.getSession().getValue();
+		curr_session = i;
+	}
+	editor.setSession(current_session);		
+
 	{% endif %}
-	
-	{% if submission %}	
-	var files = JSON.parse("{{submission_contents|json_encode|e('js')}}");
+
+	{% if result_route and submission %}	
+	var files = JSON.parse("{{submission.getSubmissionFileContents()|json_encode|e('js')}}");
 	console.log(files);
-	populateSessions(files);
-	
-	
+	populateSessions(files);	
 	
 	$('#quick-edit-btn').button('enable');
 	$('#edit-note').show();
+
+	var current_session = editor.getSession();
+	for(var i = 1; i < ace_sessions.length; i++) {
+		editor.setSession(ace_sessions[i]);		
+		editor.getSession().setMode("ace/mode/" + "{{submission.language.ace_mode}}");
+		curr_session = i;
+	}
+	editor.setSession(current_session);		
 	
 	{% endif %}
-	
-	
 
 {% endblock %}
 

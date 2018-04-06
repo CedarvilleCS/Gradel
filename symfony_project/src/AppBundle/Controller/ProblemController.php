@@ -78,16 +78,12 @@ class ProblemController extends Controller {
 			}
 		}
 		
-		$default_code = [];
 		$ace_modes = [];
 		$filetypes = [];
 		foreach($languages as $l){
 			
 			$ace_modes[$l->name] = $l->ace_mode;
 			$filetypes[str_replace(".", "", $l->filetype)] = $l->name;
-			
-			// either get the default code from the problem or from the overall default
-			$default_code[$l->name] = $l->deblobinateDefaultCode();
 		}
 		
 		$recommendedSlaves = [];
@@ -99,10 +95,11 @@ class ProblemController extends Controller {
 			'assignment' => $assignment,
 			'problem' => $problem,
 			
-			'default_code' => $default_code,
 			'ace_modes' => $ace_modes,
 			'filetypes' => $filetypes,
-				
+			
+			'edit_route' => true, 
+
 			'recommendedSlaves' => $recommendedSlaves,
 		]);
     }
@@ -192,8 +189,8 @@ class ProblemController extends Controller {
 
 		} else {
 
-			if(!is_numeric(trim($postData['weight'])) || (int)trim($postData['weight']) < 1){
-				return $this->returnForbiddenResponse("Weight provided is not valid - it must be greater than 0");
+			if(!is_numeric(trim($postData['weight'])) || (int)trim($postData['weight']) < 0){
+				return $this->returnForbiddenResponse("Weight provided is not valid - it must be non-negative");
 			}
 
 			if(!is_numeric(trim($postData['time_limit'])) || (int)trim($postData['time_limit']) < 1){
@@ -281,7 +278,15 @@ class ProblemController extends Controller {
 		$problem->response_level = $response_level;
 		$problem->display_testcaseresults = ($display_testcaseresults == "true");
 		$problem->testcase_output_level = $testcase_output_level;
-		$problem->extra_testcases_display = ($extra_testcases_display == "true");		
+		$problem->extra_testcases_display = ($extra_testcases_display == "true");	
+		
+		# allow adding files (tabs)
+		$allow_multiple = $postData['allow_multiple'];
+		$problem->allow_multiple = ($allow_multiple == "true");
+
+		# allow uploading files
+		$allow_upload = $postData['allow_upload'];
+		$problem->allow_upload = ($allow_upload == "true");
 		
 		# linked problems
 		if(!$problem->assignment->section->course->is_contest){
@@ -290,7 +295,8 @@ class ProblemController extends Controller {
 				$slave->master = null;
 			}
 			
-			foreach($postData['linked_probs'] as $link){
+			$decodedLinked = json_decode($postData['linked_probs']);
+			foreach($decodedLinked as $link){
 				
 				$linked = $em->find("AppBundle\Entity\Problem", $link);
 				
@@ -314,25 +320,26 @@ class ProblemController extends Controller {
 		
 		# go through the problemlanguages
 		# remove the old ones
+		$oldDefaultCode = [];
+
 		foreach($problem->problem_languages as $pl){
+			$oldDefaultCode[$pl->language->id] = $pl->default_code;
 			$em->remove($pl);
 		}
 
 		$newProblemLanguages = [];
-		foreach($postData['languages'] as $l){
+		$decodedLanguages = json_decode($postData['languages']);
+		foreach($decodedLanguages as $l){
 
-			if(!is_array($l)){
-				return $this->returnForbiddenResponse("Language data is not formatted properly");
-			}
-			
-			if(!isset($l['id']) || !($l['id'] > 0)){				
+			//return $this->returnForbiddenResponse(var_dump($decodedLanguages));
+			if(!isset($l->id) || !($l->id > 0)){				
 				return $this->returnForbiddenResponse("You did not specify a language id");
 			}
 
-			$language = $em->find("AppBundle\Entity\Language", $l['id']);
+			$language = $em->find("AppBundle\Entity\Language", $l->id);
 
 			if(!$language){
-				return $this->returnForbiddenResponse("Provided language with id ".$l['id']." does not exist");
+				return $this->returnForbiddenResponse("Provided language with id ".$l->id." does not exist");
 			}
 
 			$problemLanguage = new ProblemLanguage();
@@ -341,26 +348,49 @@ class ProblemController extends Controller {
 			$problemLanguage->problem = $problem;
 			
 			// set compiler options and default code
-			if(isset($l['compiler_options']) && strlen($l['compiler_options']) > 0){
+			if(isset($l->compiler_options) && strlen($l->compiler_options) > 0){
 				
 				# check the compiler options for invalid characters
-				if(preg_match("/^[ A-Za-z0-9+=\-]+$/", $l['compiler_options']) != 1){
+				if(preg_match("/^[ A-Za-z0-9+=\-]+$/", $l->compiler_options) != 1){
 					return $this->returnForbiddenResponse("The compiler options provided has invalid characters");
 				}
 								
-				$problemLanguage->compilation_options = $l['compiler_options'];
+				$problemLanguage->compilation_options = $l->compiler_options;
 			}
 			
-			if(isset($l['default_code']) && strlen($l['default_code']) > 0){
+			if(isset($l->default_code) && strlen($l->default_code) > 0){
 				
-				$problemLanguage->default_code = $l['default_code'];
+				$problemLanguage->default_code = $l->default_code;
+			}
+
+			// get the contents of the default code and save it to a file so we can save
+			$temp = tmpfile();
+			$temp_filename = stream_get_meta_data($temp)['uri'];
+		//	fclose($temp);
+
+			if($_FILES['file_'.$l->id]['tmp_name'] == null){
+
+				$problemLanguage->default_code = $oldDefaultCode[$l->id];
+
+			} else if (move_uploaded_file($_FILES['file_'.$l->id]['tmp_name'], $temp_filename)) {
+
+				$fh = fopen($temp_filename, "r");
+
+				if(!$fh){
+					return $this->returnForbiddenResponse('Cant open file.');
+				}
+
+				$problemLanguage->default_code = $fh;
+
+			} else { 
+				return $this->returnForbiddenResponse('Error saving default code.');
 			}
 			
 			$newProblemLanguages[] = $problemLanguage;
 			$em->persist($problemLanguage);
+
 		}
-		
-		
+
 		# testcases
 		# set the old testcases to null 
 		# (so they don't go away and can be accessed in the results page)
@@ -371,7 +401,9 @@ class ProblemController extends Controller {
 		
 		$newTestcases = new ArrayCollection();
 		$count = 1;
-		foreach($postData['testcases'] as &$tc){
+
+		$decodedTestcases = json_decode($postData['testcases']);
+		foreach($decodedTestcases as &$tc){
 			
 			$tc = (array) $tc;
 			
@@ -587,13 +619,12 @@ class ProblemController extends Controller {
 			'assignment' => $submission->problem->assignment,
 			'problem' => $submission->problem,
 			'submission' => $submission,
-			
-			'submission_contents' => $submission->getSubmissionFileContents(),
-			
+						
 			'user_impersonators' => $section_takers,
 			'grader' => new Grader($em),
 			
 			'result_page' => true,
+			'result_route' => true, 
 			'feedback' => $feedback,
 
 			'ace_mode' => $ace_mode,				
