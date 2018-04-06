@@ -33,8 +33,8 @@ class Generator  {
 	
 	public function __construct($em, $web_dir) {
 		
-		if(get_class($em) != "Doctrine\ORM\EntityManager"){
-			throw new Exception('The Generator class must be given a Doctrine\ORM\EntityManager but was given '.get_class($em));
+		if(stripos(get_class($em), "EntityManager") === FALSE){
+			throw new Exception('The Generator class must be given a EntityManager but was given '.get_class($em));
 		}
 		
 		if(strlen($web_dir) < 1){

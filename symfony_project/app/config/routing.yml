@@ -7,6 +7,15 @@ alt_homepage:
     path:   '/'
     defaults: { _controller: AppBundle:Home:home}
 
+# user management routes
+users:
+  path: '/users'
+  defaults: {_controller: AppBundle:Users:users}
+
+user_edit:
+  path: '/user_edit'
+  defaults: {_controller: AppBundle:Users:edit}
+
 # course routes
 courses:
   path: '/courses'
