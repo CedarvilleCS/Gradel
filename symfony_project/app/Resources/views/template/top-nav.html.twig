@@ -26,6 +26,10 @@
 			<a href="{{path('courses')}}" class="navbuttons">Courses</a>
 		{% endif %}
 
+		{% if is_granted("ROLE_SUPER") %}
+			<a href="{{path('users')}}" class="navbuttons">Users</a>
+		{% endif %}
+
 
 		{# development user changer #}
 		{% if not is_granted('ROLE_PREVIOUS_ADMIN') and is_granted('ROLE_SUPER') and user_impersonators|length > 0 %}

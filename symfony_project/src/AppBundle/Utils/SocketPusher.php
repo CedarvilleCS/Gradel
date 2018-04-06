@@ -32,9 +32,9 @@ class SocketPusher  {
 	
 	public function __construct($pusher) {
     
-    if(get_class($pusher) != "Gos\Bundle\WebSocketBundle\Pusher\Wamp\WampPusher"){
-			throw new Exception('The Grader class must be given a Gos\Bundle\WebSocketBundle\Pusher\Wamp\WampPusher but was given '.get_class($pusher));
-		}
+    if(stripos(get_class($pusher), "WampPusher") === FALSE){
+			throw new Exception('The Socket Pusher class must be given a WampPusher but was given '.get_class($pusher));
+    }
 
     $this->pusher = $pusher;
 	}

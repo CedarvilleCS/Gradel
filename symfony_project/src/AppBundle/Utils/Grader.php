@@ -32,8 +32,8 @@ class Grader  {
 	
 	public function __construct($em) {
 		
-		if(get_class($em) != "Doctrine\ORM\EntityManager"){
-			throw new Exception('The Grader class must be given a Doctrine\ORM\EntityManager but was given '.get_class($em));
+		if(stripos(get_class($em), "EntityManager") === FALSE){
+			throw new Exception('The Grader class must be given a EntityManager but was given '.get_class($em));
 		}
 		
 		$this->em = $em;		
