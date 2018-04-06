@@ -443,6 +443,33 @@ ins {
 	background-color: rgba(140, 140, 140, 0.9);
 }
 
+
+
+.ace_scrollbar::-webkit-scrollbar-track
+{
+	margin-right: 5px;
+	background: transparent;
+	cursor: pointer;
+}
+
+.ace_scrollbar::-webkit-scrollbar
+{
+	cursor: pointer;
+	all:unset;
+	width: 6px;
+	background-color: #F5F5F5;
+}
+
+.ace_scrollbar::-webkit-scrollbar-thumb
+{
+	cursor: pointer;
+	all: unset;
+	border-radius: 10px;
+	background-color: rgba(140, 140, 140, 0.4);
+}
+
+
+
 ::selection {
     background: rgba(165, 228, 93, 0.555);
 }

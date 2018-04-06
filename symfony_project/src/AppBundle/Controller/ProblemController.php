@@ -619,9 +619,7 @@ class ProblemController extends Controller {
 			'assignment' => $submission->problem->assignment,
 			'problem' => $submission->problem,
 			'submission' => $submission,
-			
-			'submission_contents' => $submission->getSubmissionFileContents(),
-			
+						
 			'user_impersonators' => $section_takers,
 			'grader' => new Grader($em),
 			
