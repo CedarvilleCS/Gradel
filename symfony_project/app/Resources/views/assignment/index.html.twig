@@ -100,7 +100,7 @@
 							<input type="file" accept=".zip,.c,.cpp,.java,.php,.py" name="file" id="file" value="Upload File" style="width: 180px">
 						</form>
 						{% endif %}
-
+						
 					</div>
 					
 					{# Language selection and hidden field to submit ACE contents #}
@@ -116,10 +116,16 @@
 						<div id="mainClassInput" style="display:none"><label for="main_class">Main Class: </label><input type="text" name="main_class" id="main_class_input" value="{{(trial) ? trial.main_class}}"></div>
 						<br/>
 						<input type="hidden" name="ACE" id="ACE">
+
 						<div style="display: flex; flex-direction: row; justify-content: space-between; width: 100%">
 							<div class="btn" style="width: 100px" id="submissionButton"> Submit </div>
 							<!--<div class="btn" style="width: 70px; font-size: 0.7em; line-height: 14px; background: red; cursor: pointer" id="clearButton"> Reset Code </div>-->
+							{# Download the text from the ACE editor #}
+							<a id="download" download="code.cpp" onclick="downloadACECode();">
+								<div class="btn" style="width: 150px;">Download File</div>
+							</a>
 						</div>
+
 						<div id="loading-container" style="display: none">
 							<img id="loadingGif" style="height: 60px" src="{{asset('beoload.gif')}}" alt="Loading..."/>
 							<h3 style="margin: 0px"> Submitting Code... </h3>

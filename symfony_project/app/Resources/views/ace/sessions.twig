@@ -277,6 +277,41 @@
 
 	}
 
+	var languageName;
+	var languageExtension;
+	var textFile = null;
+	var filename;
+
+	function downloadACECode() {
+
+		var link = document.getElementById('download');
+		link.style.display = 'block';
+
+		// get the code from the editor
+		var code = editor.getValue();
+		link.href = makeTextFile(code);
+
+		// get the filename from the tab
+		filename = $(".selected-tab").find("a").find("input").val();
+
+		// set that as the filename
+		$("#download").attr( "download", filename);
+	}
+
+	// Create a text file from the given text
+	function makeTextFile(text) {
+		var data = new Blob([text], {type: 'text/plain'});
+	
+		// If we are replacing a previously generated file we need to
+		// manually revoke the object URL to avoid memory leaks.
+		if (textFile !== null) {
+			window.URL.revokeObjectURL(textFile);
+		}
+	
+		textFile = window.URL.createObjectURL(data);
+	
+		return textFile;
+	};
 	
 {% endblock %}
 
