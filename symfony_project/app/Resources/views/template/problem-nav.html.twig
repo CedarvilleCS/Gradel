@@ -34,7 +34,7 @@
 			{% if elevatedUser %}
 				<object>
 					<a title="Create problem" href={{path('problem_edit', {"sectionId": section.id, 'assignmentId': assignment.id})}}>
-						<img class="small-icon" id="add-icon" src="{{ asset('add_circle.png') }}">
+						<img class="small-icon" id="add-icon" src="{{ asset('images/add_circle.png') }}">
 					</a>
 				</object>
 			{% endif %}
@@ -82,7 +82,7 @@
 			{% if elevatedUser %}
 				<!--object>
 					<a title="Delete Problem" href="{{path('problem_delete', {'sectionId': prob.assignment.section.id, 'assignmentId': prob.assignment.id, 'problemId': prob.id})}}">
-						<img class="small-icon" id="right-icon" src="{{ asset('whitetrash.png') }}">
+						<img class="small-icon" id="right-icon" src="{{ asset('images/whitetrash.png') }}">
 					</a>
 				</object-->
 				<object>

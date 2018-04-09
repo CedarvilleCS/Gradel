@@ -3,7 +3,7 @@
 
 {% block head %}
 	<title>Gradel {% if problem != null %} | {{problem.assignment.name}} {% endif %}</title>
-	<link rel="icon" type="image/x-icon" href="{{ asset('logo.png') }}" />
+	<link rel="icon" type="image/x-icon" href="{{ asset('images/logo.png') }}" />
 {% endblock %}
 
 {% block stylesheets %}
@@ -127,7 +127,7 @@
 						</div>
 
 						<div id="loading-container" style="display: none">
-							<img id="loadingGif" style="height: 60px" src="{{asset('beoload.gif')}}" alt="Loading..."/>
+							<img id="loadingGif" style="height: 60px" src="{{asset('images/beoload.gif')}}" alt="Loading..."/>
 							<h3 style="margin: 0px"> Submitting Code... </h3>
 						</div>
 					</div>
