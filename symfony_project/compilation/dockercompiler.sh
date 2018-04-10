@@ -51,12 +51,12 @@ script_options="$program_options"
 
 container_name="gd$submission_id"
 
-echo "docker run --memory=4096m --ulimit nofile=128:128 --ulimit nproc=16:16 --name=$container_name -d \
+echo "docker run -m 2GB --ulimit nofile=128:128 --ulimit nproc=16:16 --name=$container_name -d \
 	$mount_all \
 	gradel \
 	/compilation/compiler $script_options"
 	
-echo $(docker run --memory=4096m --ulimit nofile=128:128 --ulimit nproc=16:16 --name=$container_name -d \
+echo $(docker run -m 2GB --ulimit nofile=128:128 --ulimit nproc=16:16 --name=$container_name -d \
 	$mount_all \
 	gradel \
 	/compilation/compiler $script_options)

@@ -197,6 +197,19 @@ class Assignment implements JsonSerializable{
     */
 	public $leaderboard = null;
 	
+	public function updateLeaderboard($grader){
+
+		# create new leaderboard
+		if(!$this->leaderboard){
+			$leaderboard = new Leaderboard();			
+			$leaderboard->contest = $this;
+			$this->leaderboard = $leaderboard;
+		}
+
+		$this->leaderboard->board = json_encode($grader->getLeaderboard2($this, false));
+		$this->leaderboard->board_elevated = json_encode($grader->getLeaderboard2($this, true));
+	}
+
 	// Contest-Specific Information
 	/**
 	* @ORM\Column(type="datetime", nullable=true)

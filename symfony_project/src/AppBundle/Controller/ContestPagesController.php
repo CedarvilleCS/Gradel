@@ -167,10 +167,6 @@ class ContestPagesController extends Controller {
 			$contest_open = false;
 		}
 		
-		// Tim's gonna be mad at this, but idk what normal user is supposed to be
-		/* *is mad* */
-		$leaderboard = $grader->getLeaderboard($user, $current, true);
-
 		# GET ALL USERS
 		$qb_user = $em->createQueryBuilder();
 		$qb_user->select('usr')
@@ -196,7 +192,6 @@ class ContestPagesController extends Controller {
 			
 			'section' => $section,
 			
-			'leaderboard' => $leaderboard,
 			'grader' => $grader,		
 
 			'user_impersonators' => $section_takers,

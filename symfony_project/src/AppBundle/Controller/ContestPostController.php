@@ -947,6 +947,12 @@ class ContestPostController extends Controller {
 		$response->headers->set('Content-Type', 'application/json');
 		$response->setStatusCode(Response::HTTP_OK);
 
+		// UPDATE LEADERBOARD
+		$contest->updateLeaderboard($grader);
+		$em->persist($contest);
+		$em->flush();
+
+
 		# SOCKET PUSHER
 		$pusher = new SocketPusher($this->container->get('gos_web_socket.wamp.pusher'), $em, $contest);
 
@@ -955,6 +961,7 @@ class ContestPostController extends Controller {
 		} else {
 			$pusher->sendUnfreeze();
 		}
+		$pusher->sendScoreboardUpdates();
 
 		return $response;
 	}
@@ -1137,22 +1144,11 @@ class ContestPostController extends Controller {
 
 			if($update){
 				// UPDATE LEADERBOARD
-				$leaderboard = $contest->leaderboard;
+				$contest->updateLeaderboard($grader);
 
-				# create new leaderboard
-				if(!$leaderboard){
-					$leaderboard = new Leaderboard();
-					
-					$leaderboard->contest = $contest;
-					$contest->leaderboard = $leaderboard;
-				}
-		
-				$leaderboard->board = json_encode($grader->getLeaderboard2($contest, false));
-				$leaderboard->board_elevated = json_encode($grader->getLeaderboard2($contest, true));
-		
-				$em->persist($leaderboard);
+				$em->persist($contest);
 				$em->flush();
-				
+
 				$pusher->sendScoreboardUpdates();
 			}
 			

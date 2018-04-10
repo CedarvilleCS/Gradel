@@ -78,20 +78,9 @@ class ContestCompilationController extends Controller {
         $contest = $submission->problem->assignment;
 
         // UPDATE LEADERBOARD
-        $leaderboard = $contest->leaderboard;
-
-        # create new leaderboard
-        if(!$leaderboard){
-            $leaderboard = new Leaderboard();
-            
-            $leaderboard->contest = $contest;
-            $contest->leaderboard = $leaderboard;
-        }
-
-        $leaderboard->board = json_encode($grader->getLeaderboard2($contest, false));
-        $leaderboard->board_elevated = json_encode($grader->getLeaderboard2($contest, true));
-
-        $em->persist($leaderboard);
+        $contest->updateLeaderboard($grader);
+        
+        $em->persist($contest);
         $em->flush();
         
         // SOCKET PUSHER UPDATE

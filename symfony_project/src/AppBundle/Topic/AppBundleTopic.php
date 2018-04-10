@@ -138,16 +138,19 @@ class AppBundleTopic implements TopicInterface
             
             // requesting scoreboard update
             if($type == "scoreboard"){
+            
+                if(isset($contest->leaderboard)){
 
-                if($contest->leaderboard){
-                  // send the scoreboard info 
-                  if($user->hasRole("ROLE_SUPER") || $grader->isJudging($user, $contest->section)){
-                    $leaderboard = $contest->leaderboard->getJSONElevatedBoard();
-                  } else {
-                    $leaderboard = $contest->leaderboard->getJSONBoard();
-                  }
+                    // send the scoreboard info 
+                    if($user->hasRole("ROLE_SUPER") || $grader->isJudging($user, $contest->section)){
+                        $leaderboard = $contest->leaderboard->getJSONElevatedBoard();
+                    } else {
+                        $leaderboard = $contest->leaderboard->getJSONBoard();
+                    }
 
-                  $this->broadcastMessage([$user->getUsername()], $topic, $this->buildMessage($leaderboard, 'scoreboard'));
+                    $this->broadcastMessage([$user->getUsername()], $topic, $this->buildMessage($leaderboard, 'scoreboard'));
+                } else {
+                    $this->broadcastMessage([$user->getUsername()], $topic, $this->buildMessage('[]', 'scoreboard'));
                 }
             } 
             // requesting contest start info
