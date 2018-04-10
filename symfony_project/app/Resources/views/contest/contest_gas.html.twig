@@ -6,41 +6,49 @@
 
 <script>
   var sessionGlob = undefined;
-  window.onload = function() {
-    toastr.options.progressBar = true;
-    toastr.options.timeOut = 60000;
-    toastr.options.extendedTimeOut = 120000
-    toastr.options.positionClass = "toast-bottom-full-width";
 
-    var webSocket = WS.connect("{{socket_domain ~ ':' ~ socket_port ~ '/'}}");
-    console.log("Establishing Websocket...");
+    window.onload = function() {
 
-    webSocket.on("socket/connect", function(session){
-        //session is an Autobahn JS WAMP session.
-      console.log("SUCCESSFULLY CONNECTED");
-      session.subscribe("appbundle/channel", function(uri, payload){
-        try {
-          const data = JSON.parse(payload);
+      toastr.options.progressBar = true;
+      toastr.options.timeOut = 60000;
+      toastr.options.extendedTimeOut = 120000
+      toastr.options.positionClass = "toast-bottom-full-width";
 
-          console.log(data);
+      var webSocket = WS.connect("{{socket_domain ~ ':' ~ socket_port ~ '/'}}");
+      console.log("Establishing Websocket...");
 
+      webSocket.on("socket/connect", function(session){
+          //session is an Autobahn JS WAMP session.
+        console.log("SUCCESSFULLY CONNECTED");
 
-        } catch(e) {
+        session.subscribe("appbundle/channel", function(uri, payload){
+          try {
+            
+            const data = JSON.parse(payload);
+            console.log(data);
           
-        }
+            handleMessage(data);
 
-      });
+          } catch(e) {
+
+          }
+
+        });
+    
+        sessionGlob = session;
+
+        requestScoreboard();
+        requestClarifications();
+        requestChecklist();        
+      })
+
+      webSocket.on("socket/disconnect", function(error){
+
+          //error provides us with some insight into the disconnection: error.reason and error.code
+          console.log("Disconnected for " + error.reason + " with code " + error.code);
+      })
+    }
   
-      sessionGlob = session;
-    })
-
-    webSocket.on("socket/disconnect", function(error){
-        //error provides us with some insight into the disconnection: error.reason and error.code
-
-        console.log("Disconnected for " + error.reason + " with code " + error.code);
-    })
-  }
-
     function sendQuestion(msg){ 
         sessionGlob.publish("appbundle/channel", {contestId: "{{section.id}}",  scope: "question", recipients: null, msg: msg});
     }
@@ -50,40 +58,106 @@
     }
 
     function sendSpecific(msg, recipients) {
-        sessionGlob.publish("appbundle/channel", {contestId: "{{section.id}}", scope: "userSpecific", recipients: recipients, msg: msg});
+      sessionGlob.publish("appbundle/channel", {contestId: "{{section.id}}", scope: "userSpecific", recipients: recipients, msg: msg});
     }
 
-    function handleMessage(message, type, submissionId) {
-      console.log("Handling Message of type: " + type + "...");
+    function requestScoreboard(){      
+      sessionGlob.publish("appbundle/channel", {'type': 'scoreboard', 'contestId': {{(current_contest) ? current_contest.id : section.assignments[0].id}}, 'passKey': 'upstream'});
+    }
 
-      message = message.replace(/\n|\r\n|\r/g, "<br/>");
+    function requestClarifications(){      
+      sessionGlob.publish("appbundle/channel", {'type': 'clarifications', 'contestId': {{(current_contest) ? current_contest.id : section.assignments[0].id}}, 'passKey': 'upstream'});
+    }
 
-      console.log("New Message:" + message);
+    function requestChecklist(){      
+      sessionGlob.publish("appbundle/channel", {'type': 'checklist', 'contestId': {{(current_contest) ? current_contest.id : section.assignments[0].id}}, 'passKey': 'upstream'});
+    }
+
+    function handleMessage(data) {
+      
+      type = data.type;
+      submissionId = data.submissionId;
+      message = data.msg;
+
+      //message = message.replace(/\n|\r\n|\r/g, "<br/>");
 
       switch(type) {
-        case "notice":
-          console.log("NOTICE");
-          toastr.info(message);
+        case "clarification":
+          console.log("CLARIFICATION");
+          
           break;
-        case "question":
-          console.log("QUESTION");
-          toastr.info(message);
+
+        case "scoreboard":
+          console.log("SCOREBOARD");          
+					
+          if(typeof updateScoreboard === "function"){
+            updateScoreboard(message);
+          }
+
           break;
+        
+        case "clarifications":
+          console.log("CLARIFICATIONS");
+
+          if(typeof updateClarifications === "function"){
+            updateClarifications(message);
+          }
+
+          break;
+
+        case "checklist":
+          console.log("CHECKLIST");
+
+          if(typeof updateChecklist === "function"){
+            updateChecklist(message);
+          }
+
+          break;
+
+        case "delete":
         case "reject":
-          console.log("REJECT");
-          const route = "{{path('problem_result', 'RESULT')}}" + submissionId;
+          console.log("REJECT or REJECT");
+
+          var route = "{{path('problem_result', 'RESULT')}}" + submissionId;
           console.log(route);
           toastr.error("<a href='" + route + "'><div styles='display: inline-block'>" + message + "<div></a>");
+
           break;
+
+        case "accept":
+          console.log("ACCEPT");
+
+          var route = "{{path('problem_result', 'RESULT')}}" + submissionId;
+          console.log(route);
+          toastr.info("<a href='" + route + "'><div styles='display: inline-block'>" + message + "<div></a>");
+
+          break;
+
+        case "refresh":
+          console.log("REFRESH");
+          //window.location.reload();
+
+          break;
+        
+        /*
         case "updateData":
           if (typeof socketScoreboardUpdate === "function") {
             console.log("UPDATING PAGE");
-            socketScoreboardUpdate();
+           // socketScoreboardUpdate();
           }
           if (typeof socketRefreshJudging === "function") {
             console.log("UPDATING PAGE");
-            socketRefreshJudging();
+           // socketRefreshJudging();
           }
+
+          break;
+        */
+
+        default:
+          console.log("ERROR");
+
+          break;
       }
-    }
+    } 
+
 </script>

@@ -35,12 +35,20 @@ class Leaderboard {
     /**
 	* @ORM\Column(type="text")
 	*/
-    public $board_elevated;
+	public $board_elevated = "[]";
+	
+	public function getJSONElevatedBoard(){
+		return json_decode($this->board_elevated, TRUE);
+	}
     
     /**
 	* @ORM\Column(type="text")
 	*/
-    public $board;
+	public $board = "[]";
+	
+	public function getJSONBoard(){
+		return json_decode($this->board, TRUE);
+	}
 
 }
 

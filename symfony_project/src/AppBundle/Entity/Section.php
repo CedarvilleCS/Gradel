@@ -83,6 +83,44 @@ class Section implements JsonSerializable{
 		$currTime = new \DateTime("now");
 		
 		return $this->start_time <= $currTime && $currTime < $this->end_time;
+  }
+  
+
+  public function getAllUsers(){
+
+    $users = [];
+
+    foreach($this->user_roles as $usr){
+      $users[] = $usr->user;
+    }
+
+    return $users;
+  }
+
+	public function getRegularUsers(){
+
+		$users = [];
+	
+		foreach($this->user_roles as $usr){
+		  if($usr->role->role_name == 'Takes'  && !$usr->user->hasRole("ROLE_SUPER")){
+			  $users[] = $usr->user;
+			}
+		}
+	
+		return $users;
+	}	
+		  
+	public function getElevatedUsers(){
+			
+		$users = [];
+
+    foreach($this->user_roles as $usr){
+      if($usr->role->role_name == 'Judges' || $usr->role->role_name == 'Teaches' || $usr->user->hasRole("ROLE_SUPER")){
+        $users[] = $usr->user;
+      }
+		}
+
+		return $users;  
 	}
 
 	/**
@@ -99,9 +137,9 @@ class Section implements JsonSerializable{
 	public $assignments;
 	
 	/**
-     * @ORM\OneToMany(targetEntity="UserSectionRole", mappedBy="section", cascade={"persist", "remove"}, orphanRemoval=true)
-     */
-    public $user_roles;
+  * @ORM\OneToMany(targetEntity="UserSectionRole", mappedBy="section", cascade={"persist", "remove"}, orphanRemoval=true)
+  */
+  public $user_roles;
 
 	/**
 	* @ORM\ManyToOne(targetEntity="Course", inversedBy="sections")

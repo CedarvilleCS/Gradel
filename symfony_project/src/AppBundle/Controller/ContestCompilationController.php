@@ -73,7 +73,7 @@ class ContestCompilationController extends Controller {
 
             $em->persist($submission);
             $em->flush();
-        }
+        } 
 
         $contest = $submission->problem->assignment;
 
@@ -95,8 +95,10 @@ class ContestCompilationController extends Controller {
         $em->flush();
         
         // SOCKET PUSHER UPDATE
-		$pusher = new SocketPusher($this->container->get('gos_web_socket.wamp.pusher'), $em, $contest);
-		$pusher->sendScoreboardUpdates();		
+        if($submission->pending_status != 0){        
+            $pusher = new SocketPusher($this->container->get('gos_web_socket.wamp.pusher'), $em, $contest);
+            $pusher->sendScoreboardUpdates();		
+        }
 				
         $url = $this->generateUrl('contest_result', [
             'contestId' => $submission->problem->assignment->section->id,

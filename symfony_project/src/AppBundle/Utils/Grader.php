@@ -814,6 +814,7 @@ class Grader  {
 	}
 
 	public function getLeaderboard2($contest, $elevated){
+		
 		$teams = $contest->teams->toArray();
 
 		$scores = [];
@@ -822,6 +823,31 @@ class Grader  {
 			$scores[] = $this->getTeamScore($team, $elevated);
 		}
 
+		// get the attempts per problem for a summary
+		$attempts = [];
+		$correct = [];
+
+		$index = 0;
+		foreach ($contest->problems as $prob) {
+			
+			$correct[$index] = 0;
+			$attempts[$index] = 0;
+			
+			foreach($scores as $scr){
+				
+				// got the problem right
+				if ($scr["results"][$index] == true) {
+					$correct[$index]++;
+				}
+
+				// number of attempts
+				$attempts[$index] += $scr["attempts"][$index];				
+			}		
+
+			$index++;
+		}
+
+		// sort the scores
 		usort($scores, [$this, 'compareTeamScoresNames']);
 
 		$prevScore = null;	
@@ -840,33 +866,8 @@ class Grader  {
 			$prevScore = $scr;
 		}
 
-		$leaderboard['scores'] = $scores;
-		
-		
-		// get the attempts per problem for a summary
-		$attempts = [];
-		$correct = [];
-		
-		$index = 0;
-		foreach ($assignment->problems as $prob) {
-			
-			$correct[$index] = 0;
-			$attempts[$index] = 0;
-			
-			foreach($scores as $scr){
-				
-				// got the problem right
-				if ($scr["results"][$index] == true) {
-					$correct[$index]++;
-				}
+		$leaderboard['scores'] = array_merge(array(), $scores);
 
-				// number of attempts
-				$attempts[$index] += $scr["attempts"][$index];				
-			}
-			
-			$index++;
-		}
-		
 		$leaderboard['attempts_per_problem_count'] = $attempts;
 		$leaderboard['correct_submissions_per_problem_count'] = $correct;		
 		

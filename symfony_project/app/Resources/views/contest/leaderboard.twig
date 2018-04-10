@@ -13,7 +13,6 @@
 </div>
 {% endblock %}
 
-
 {# this needs a leaderboard variable #}
 {% block leaderboard_tablecreation %}
 	var tableHTML = "";
@@ -45,7 +44,6 @@
 	for(var i = 0; i<leaderboard.scores.length; i++){
 		
 		var team = leaderboard.scores[i];
-		console.log(team);
 		var curr_user = (i==leaderboard.index);
 
 		tableHTML += "<tr class='" + ((curr_user) ? "curr-user" : "") + "'>";
@@ -89,4 +87,193 @@
 
 	$('#leaderboard').html(tableHTML);	
 	
+{% endblock %}
+
+
+
+{% block leaderboard_javascript %}
+
+	var contest_started = false;
+	var visual_frozen = false;
+	var visual_unfrozen = false;
+
+	var freeze_override = {{(current_contest.freeze_override and current_contest.freeze_override_time) ? "true" : "false"}};
+	var unfreeze_override = {{(current_contest.freeze_override and not current_contest.freeze_override_time) ? "true" : "false"}};
+		
+	var time = Math.floor(Date.now()/1000) - {{current_contest.start_time|date('U')}}; // current seconds into the contest
+	var starttime = {{current_contest.start_time|date('U')}} - Math.floor(Date.now()/1000); // current seconds until the contest
+	var total = {{current_contest.end_time|date('U')}} - {{current_contest.start_time|date('U')}};
+	var freeze = {{current_contest.freeze_time|date('U')}} - {{current_contest.start_time|date('U')}};
+	
+	var frozen = (Math.floor(Date.now()/1000) >= {{current_contest.freeze_time|date('U')}}) ? true : false;
+
+	$(document).ready( function() {
+			
+		/* set freeze text */
+		var buttonText = ((frozen && !unfreeze_override) || freeze_override) ? 'Unfreeze' : 'Freeze';
+		$('#scoreboard-button').html(buttonText);
+		
+		/* COUNTDOWN TIMER */
+		$('#progressbar').progressbar({
+			max: total, // total seconds in the contest
+			value: time	// current seconds into the contest		
+		});
+					
+		{% if elevatedUser %}
+		$('#scoreboard-button').button().click(function() {
+			postScoreboardUnfreeze();
+		});
+		{% endif %}
+		
+		/* LOOP */
+		setInterval(loopFunction, 1000);
+		loopFunction();
+	});
+
+		
+	/* UPDATE THE LEADERBOARD */
+	function updateScoreboard(leaderboard){
+		
+		{{ block('leaderboard_tablecreation', 'contest/leaderboard.twig') }}
+
+		/*
+		// freeze the scoreboard?
+		if(!visual_frozen && !unfreeze_override && (time >= freeze || freeze_override)){
+			
+			$('#progressbar-container').addClass('frozen');
+			
+			$('#leaderboard-heading').html("<h2> <span style='color:red'> <i>FROZEN</i> LEADERBOARD </span> </h2>");				
+			
+			$('#leaderboard-card').css('border', '2pt solid red');
+			visual_frozen = true;
+			visual_unfrozen = false;
+			
+			$('#scoreboard-button').html("Unfreeze");
+			
+		} else if(!visual_unfrozen && !freeze_override && (time < freeze || unfreeze_override)){
+			
+			$('#progressbar-container').removeClass('frozen');
+			
+			$('#leaderboard-heading').html("<h2> LEADERBOARD </h2>");			
+			
+			$('#leaderboard-card').css('border', 'initial');
+			visual_frozen = false;
+			visual_unfrozen = true;
+			
+			
+			$('#scoreboard-button').html("Freeze");				
+		}
+
+		// update frozen
+		if(time >= freeze){
+			frozen = true;
+		}
+		*/
+	}	
+
+	
+	/* LOOP FUNCTION THAT RUNS EVERY SECOND TO UPDATE THINGS */
+	function loopFunction(){
+		
+		// update the progress bar
+		$( "#progressbar" ).progressbar( "option", "value", time);
+		
+		if (starttime <= 0) {
+			time++;
+			var left = total-time;
+		} else {
+			starttime--;
+			// update the time left
+			var left = starttime;
+		}
+		
+		if(left <= 0){
+			
+			if(contest_started) {
+				$('#time-left').text("FINISHED");
+			} else {
+				$('#time-left').text("START");
+				contest_started = !contest_started;
+			}
+			
+		} else {
+			
+			var hours = parseInt(left/3600);
+			var minutes = parseInt((left - hours*3600)/60);
+			var seconds = (left - hours*3600 - minutes*60);
+			
+			hours = (hours < 10) ? "0"+hours : hours;
+			minutes = (minutes < 10) ? "0"+minutes : minutes;
+			seconds = (seconds < 10) ? "0"+seconds : seconds;
+			
+			
+			if (starttime <= 0) {
+				$('#time-left').text(hours+":"+minutes+":"+seconds+" left");
+			} else {
+				$('#time-left').text(hours+":"+minutes+":"+seconds+" until start");
+			}
+			
+			
+			
+			if (starttime == 0) {
+				window.location.reload();
+			}
+			
+		}
+	
+		if(time == freeze){
+		}
+	}
+
+	{% if elevatedUser %}
+	function postScoreboardUnfreeze(){
+		
+		var formData = new FormData();
+		
+		formData.append('contestId', {{current_contest.id}});
+		
+		if((frozen && !unfreeze_override) || freeze_override){
+			formData.append('type', 'unfreeze');				
+		} else {
+			formData.append('type', 'freeze');
+		}
+		
+		$.ajax({
+			type: "POST",
+			url: "{{path('judging_scoreboard')}}",
+			data: formData,
+			processData: false,
+			contentType: false,
+			async: true,
+			success: function(data){
+				//console.log(data);
+				
+				if(data['freeze'] == true){
+					freeze_override = true;
+					unfreeze_override = false;
+					
+					$('#scoreboard-button').html("Unfreeze");
+					
+				} else {
+					unfreeze_override = true;
+					freeze_override = false;
+					
+					$('#scoreboard-button').html("Freeze");
+				}
+				
+			},
+			error: function(data){
+	
+				if(data['responseText']){					
+					alert(data['responseText']);
+					console.log(data['responseText']);					
+				}
+			}
+		});
+		
+		
+		return true;
+	}
+	{% endif %}
+
 {% endblock %}

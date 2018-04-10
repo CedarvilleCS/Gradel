@@ -1,6 +1,9 @@
 <?php
 
 namespace AppBundle\Entity;
+
+use JsonSerializable;
+
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Config\Definition\Exception\Exception;
@@ -104,7 +107,7 @@ class Query {
 	* @ORM\Column(type="datetime")
 	*/
 	public $timestamp;
-	
+
 }
 
 ?>
