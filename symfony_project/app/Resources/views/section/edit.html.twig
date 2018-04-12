@@ -3,8 +3,25 @@
 <link rel="icon" type="image/x-icon" href="{{ asset('logo.png') }}" />
 {% endblock %}
 
-
 {% block body %}
+
+
+
+<style>
+  #feedback { font-size: 1.4em; }
+  #selectable-semester .ui-selecting { background: #9fd095; }
+  #selectable-semester .ui-selected { background: #71BA62;; color: white; }
+  #selectable-semester { list-style-type: none; margin: 0; padding: 0; width: 60%; }
+  #selectable-semester li { margin: 3px; padding: 0.4em; font-size: 14px; height: 18px; }
+
+  #selectable-year .ui-selecting { background: #9fd095; }
+  #selectable-year .ui-selected { background: #71BA62;; color: white; }
+  #selectable-year { list-style-type: none; margin: 0; padding: 0; width: 60%; }
+  #selectable-year li { margin: 3px; padding: 0.4em; font-size: 14px; height: 18px; }
+  </style>
+
+
+
 
 <body>
 	{{ include('template/top-nav.html.twig') }}
@@ -37,52 +54,81 @@
 	<section id="main">
 
 		{# Cards #}
-		<div class="card">
-			<div class="btn-close">
-				<h2 style="margin: 0px">
-				{% if section is not null %}
-					Edit {{section.name}}
-				{% else %}
-					New Section
-				{% endif %}
-				</h2>
+		
+		{# <div class="parallel-cards"> #}
+			<div class="card">
+				<div class="btn-close">
+					<h2 style="margin: 0px">
+					{% if section is not null %}
+						Edit {{section.name}}
+					{% else %}
+						New Section
+					{% endif %}
+					</h2>
+				</div>
+
+				<div id="requiredFields" class="card-contents">
+					<div>
+						<table>
+
+
+							<tr>
+
+								<th colspan>
+									<label for="course">Course</label>
+									<select name="course" id="course">
+									{% for course in courses %}
+										<option value="{{course.id}}" id="{{course.is_contest ? 'yes' : 'no'}}">{{course.name}}</option>
+									{% endfor %}
+									</select>
+								</th>
+
+								<th colspan>
+									<label for="name">Section Name</label>
+									<input id="name" name="name" type="text" value="">
+								</th>
+							</tr>
+							<tr> 
+
+								<th colspan>
+									<label>Semester</label>
+									<table>
+										<tr id="selectable-semester">
+											<th class="ui-widget-content">Fall</th>
+											<th class="ui-widget-content">Spring</th>
+											<th class="ui-widget-content">Summer</th>
+										</tr>
+									</table>
+								</th>
+
+								<th colspan>
+									<label>Year</label>
+									<table>
+										<tr id="selectable-year">
+										{% for yr in ("now"|date("Y"))-1..("now"|date("Y"))+3 %}
+											<th class="ui-widget-content">{{yr}}</th>
+										{% endfor %}
+										</tr>
+									</table>
+								</th>
+							</tr>
+
+							<tr> 
+								<th>
+									<label for="startdatepicker">Starting Date </label><input type="text" id="startdatepicker" style="width: 100px; margin-right: 20px">
+								</th>
+								<th>	
+									<label for="enddatepicker">Ending Date </label><input type="text" id="enddatepicker" style="width: 100px">
+								</th>
+							</tr>
+						</table>
+					</div>
+				</div>
 			</div>
 
-			<div id="requiredFields" class="card-contents">
-				<div>
+			<div class="card">
+				<div class="card-content">
 					<table>
-						<tr> <th colspan="3">
-							<label for="course">Course</label>
-							<select name="course" id="course">
-							{% for course in courses %}
-								<option value="{{course.id}}" id="{{course.is_contest ? 'yes' : 'no'}}">{{course.name}}</option>
-							{% endfor %}
-							</select>
-						</th> </tr>
-
-						<tr> <th colspan="3">
-							<label for="name">Section Name</label>
-							<input id="name" name="name" type="text" value="">
-						</th> </tr>
-
-						<tr> <th colspan="3">
-							<label>Semester</label>
-							<select id="semester">
-								<option>Fall</option>
-								<option>Spring</option>
-								<option>Summer</option>
-							</select>
-						</th> </tr>
-
-						<tr> <th colspan="3">
-							<label>Year</label>
-							<select id="year">
-							{% for yr in ("now"|date("Y"))-1..("now"|date("Y"))+3 %}
-								<option>{{yr}}</option>
-							{% endfor %}
-							</select>
-						</th> </tr>
-
 						<tr> <th>
 							<label>Add Student</label>
 							<select id="student-picker">
@@ -101,29 +147,14 @@
 
 							<textarea id="student-csv"></textarea>
 						</th> </tr>
-
 					</table>
 				</div>
 			</div>
-		</div>
 
-		<div class=card>
-			<div class="btn-close" onclick="collapseCard('additionalOptions')">
-				<h2 style="margin: 0px">Additional Options
-					<span style="float: right"><i class="fa fa-angle-down"></i></span>
-				</h2>
-			</div>
-
-			<div id="additionalOptions" class="card-contents">
-
-
-				<table>
-					<tr> <th>
-						<label for="startdatepicker">Starting Date </label><input type="text" id="startdatepicker" style="width: 100px; margin-right: 20px">
-						<label for="enddatepicker">Ending Date </label><input type="text" id="enddatepicker" style="width: 100px">
-					</th></tr>
-
-					<tr> <th>
+			<div class="card">
+				<div class="card-content">
+					<table>
+						<tr> <th>
 						<label>Add Instructor</label>
 						<select id="teacher-picker">
 							<option value="-1"></option>
@@ -141,9 +172,10 @@
 
 						<textarea id="teacher-csv"></textarea>
 					</th> </tr>
-				</table>
-			</div>
+					</table>
+				</div>
 		</div>
+
 	</section>
 </body>
 
@@ -156,6 +188,22 @@
 
 	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
+	<link rel="stylesheet" href="{{ asset('contest-edit.css') }}" />
+	<style>
+		select {
+			height: 20px;
+			width: 400px;
+			padding: 0px;
+		}
+
+		input {
+			padding: 0px;
+			height: 20px;
+		}
+
+
+
+	</style>
 
 {% endblock %}
 
@@ -172,8 +220,13 @@
 
 	<script>
 
+		
+
 		$(document).ready(function() {
 			
+			$(() => {$("#selectable-semester").selectable()});
+			$(() => {$("#selectable-year").selectable()});
+
 			var toContest = [];
 
 			{% for course in courses %}
@@ -371,8 +424,8 @@
 			$.post( "{{path('section_modify')}}", {
 				name: $.trim($('#name').val()),
 				course: $('#course').val(),
-				semester: $('#semester').val(),
-				year: $('#year').val(),
+				semester: $('#selectable-semester').children(".ui-selected").html(),
+				year: $('#selectable-year').children(".ui-selected").html(),
 				teachers: JSON.stringify(teachers),
 				students: JSON.stringify(students),
 				start_time: $('#startdatepicker').val(),
@@ -479,9 +532,21 @@
 	{% if section is not null %}
 	<script>
 	function populateForm(){
+		
+		for (const c of $('#selectable-semester').children()) {
+			if (c.innerHTML == "{{section.semester}}") {
+				$(c).addClass("ui-selected");
+			}
+		}
+
+		for (const c of $('#selectable-year').children()) {
+			if (c.innerHTML == "{{section.year}}") {
+				$(c).addClass("ui-selected");
+			}
+		}
 
 		// set the course
-		$('#course').val({{section.course.id}});
+		$('#course').val("{{section.course.id}}");
 
 		// set the name
 		$('#name').val("{{section.name}}");
