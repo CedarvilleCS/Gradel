@@ -3,19 +3,19 @@
 
 {% block head %}
 	<title>Gradel {% if problem != null %} | {{problem.assignment.name}} {% endif %}</title>
-	<link rel="icon" type="image/x-icon" href="{{ asset('logo.png') }}" />
+	<link rel="icon" type="image/x-icon" href="{{ asset('images/logo.png') }}" />
 {% endblock %}
 
 {% block stylesheets %}
 	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
 	
-    <link rel="stylesheet" href="{{ asset('styles.css') }}" />
-    <link rel="stylesheet" href="{{ asset('card.css') }}" />
+    <link rel="stylesheet" href="{{ asset('styles/styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('styles/card.css') }}" />
 	
-    <link rel="stylesheet" href="{{ asset('submit.css') }}" />
-    <link rel="stylesheet" href="{{ asset('sessions.css') }}" />
+    <link rel="stylesheet" href="{{ asset('styles/submit.css') }}" />
+    <link rel="stylesheet" href="{{ asset('styles/sessions.css') }}" />
 	
-    <link rel="stylesheet" href="{{ asset('markdown-styles.css') }}" />
+    {# <link rel="stylesheet" href="{{ asset('styles/markdown-styles/styles.css') }}" /> #}
 
 	<style>
 		#submissionButton:hover {
@@ -127,7 +127,7 @@
 						</div>
 
 						<div id="loading-container" style="display: none">
-							<img id="loadingGif" style="height: 60px" src="{{asset('beoload.gif')}}" alt="Loading..."/>
+							<img id="loadingGif" style="height: 60px" src="{{asset('images/beoload.gif')}}" alt="Loading..."/>
 							<h3 style="margin: 0px"> Submitting Code... </h3>
 						</div>
 					</div>
@@ -205,7 +205,7 @@
 	
 	<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
 	
-	<script src="{{ asset('src-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>
+	<script src="{{ asset('js/src-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>
 	
 	<script src="{{ asset('js/validation.js') }}"></script>
 		
