@@ -481,9 +481,16 @@
 			if($(this).is(':checked') ){
 				validatorEditor.$blockScrolling = Infinity;
 				validatorEditor.setTheme("ace/theme/xcode");
+				validatorEditor.container.style.pointerEvents = "auto";
+				validatorEditor.container.style.opacity = 1;
+				validatorEditor.renderer.setStyle("disabled", false);
 			} else{				
 				validatorEditor.$blockScrolling = Infinity;
-				validatorEditor.setTheme("ace/theme/solarized_dark");
+
+				validatorEditor.container.style.pointerEvents="none"
+				validatorEditor.container.style.opacity=0.5 // or use svg filter to make it gray
+				validatorEditor.renderer.setStyle("disabled", true)
+				validatorEditor.blur()
 			}
 		});		
 		$('#use-custom').change();
