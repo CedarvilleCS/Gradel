@@ -728,7 +728,7 @@ class ContestPostController extends Controller {
 			}
 
 			unset($contestsToRemove[$pre_contest->id]);
-			$em->persist($pre_contest);	
+			$em->persist($pre_contest);
 		}
 		
 		
@@ -772,6 +772,10 @@ class ContestPostController extends Controller {
 		foreach($section->assignments as &$asgn){
 			$asgn->updateLeaderboard($grader, $em);
 		}
+
+		# SOCKET PUSHER
+		$pusher = new SocketPusher($this->container->get('gos_web_socket.wamp.pusher'), $em, $contests[0]);
+		$pusher->sendPromptUpdate();
 		
 		$url = $this->generateUrl('contest', ['contestId' => $section->id]);
 				
@@ -966,7 +970,7 @@ class ContestPostController extends Controller {
 		} else {
 			$pusher->sendUnfreeze();
 		}
-		$pusher->sendScoreboardUpdates();
+		$pusher->sendScoreboardUpdates(true);
 
 		return $response;
 	}
@@ -1171,6 +1175,7 @@ class ContestPostController extends Controller {
 
 				if($postData['type'] != "delete"){
 					$pusher->sendGradedSubmission($submission);
+					$pusher->sendResultUpdate($submission);
 					$pusher->sendScoreboardUpdates();
 				}				
 

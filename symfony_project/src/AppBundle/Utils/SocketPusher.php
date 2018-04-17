@@ -49,10 +49,10 @@ class SocketPusher  {
   }
   
   /* SENDERS */
-  public function sendScoreboardUpdates() {
+  public function sendScoreboardUpdates($override = false) {
 
     # SEND TO THE PLEBS    
-    if(!$this->contest->isFrozen()){
+    if(!$this->contest->isFrozen() || $override){
 
       $plebUsers= $this->getUsernamesFromUsers($this->contest->section->getRegularUsers());
       
@@ -153,6 +153,21 @@ class SocketPusher  {
      $this->pusher->push($gradedSubInfo, 'appbundle_topic', ['username'=>'user1']); 
   }
 
+  public function sendResultUpdate($submission){
+    // list of people to send the clarification too
+    $users = $this->getUsernamesFromTeam($submission->team);
+
+    $resultInfo = [
+      'type' => 'result-update',
+      'recipients' => $users,
+      'msg' => $this->getSubmissionJSON($submission),
+      'passKey' => 'gradeldb251',
+      'contestId' => $this->contest->id,
+    ];
+
+    $this->pusher->push($resultInfo, 'appbundle_topic', ['username'=>'user1']);
+  }
+
   public function sendClarification($query) {
 
     // send to the judges
@@ -246,6 +261,18 @@ class SocketPusher  {
     $this->pusher->push($refreshInfo, 'appbundle_topic', ['username'=>'user1']); 
   }
 
+  public function sendPromptUpdate(){
+    $varInfo = [
+      'type' => 'check-vars',
+      'recipients' => $this->getUsernamesFromUsers($this->contest->section->getAllUsers()),
+      'msg' => null,
+      'passKey' => 'gradeldb251',
+      'contestId' => $this->contest->id,
+    ];
+
+    $this->pusher->push($varInfo, 'appbundle_topic', ['username'=>'user1']); 
+  }
+
   /* HELPERS */
 	public function getUsernamesFromTeam($team) {
 		
@@ -304,7 +331,19 @@ class SocketPusher  {
 			$problemName = $name ? "Question Concerning " . $name . ":" : "Question: ";
 			return "<b>" . htmlspecialchars($problemName) . "</b> " . htmlspecialchars($question) . "\\n<b>Answer:</b> " . htmlspecialchars($answer);
 		}
-	}
+  }
+  
+  public function getSubmissionJSON($submission){
+    
+    $sub = [];
+    
+    $sub['id'] = $submission->id;
+    $sub['result_string'] = $submission->getResultString();
+    $sub['is_correct'] = $submission->isCorrect();
+    $sub['judge_message'] = $submission->judge_message;
+    
+    return json_encode($sub);
+  }
 }
 
 ?>

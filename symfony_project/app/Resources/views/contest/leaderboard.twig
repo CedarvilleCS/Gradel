@@ -91,7 +91,7 @@
 	tableHTML += "<td><div class='empty-cell'></div></td>";
 
 
-	if(leaderboard.attempts != null) {
+	if(leaderboard.attempts_per_problem_count != null) {
 		for(var i=0; i<leaderboard.attempts_per_problem_count.length; i++){
 			tableHTML += "<td><div class='stats'>";
 			tableHTML += leaderboard.correct_submissions_per_problem_count[i]+ "/";
@@ -130,7 +130,7 @@
 	$(document).ready( function() {
 			
 		// freeze / unfreeze the scoreboard
-		if(frozen || freeze_override){
+		if((frozen && !unfreeze_override) || freeze_override){
 			freezeScoreboard();
 		} else {
 			unfreezeScoreboard();
@@ -260,6 +260,16 @@
 			// ask for start
 			requestStart();
 		}
+	}
+	
+	function updateLoopVars(data){
+		console.log(data);
+
+		starttime = data.start - Math.floor(Date.now()/1000);
+		total = data.end - data.start;
+		freeze = data.freeze - data.start;
+
+		time = Math.floor(Date.now()/1000) - data.start;
 	}
 
 	{% if elevatedUser %}

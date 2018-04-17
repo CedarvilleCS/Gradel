@@ -188,6 +188,17 @@ class AppBundleTopic implements TopicInterface
                 // else do nothing
 
             }
+            // requesting time variables
+            else if($type == "check-vars"){
+                
+                $times = [];
+
+                $times['start'] = $contest->start_time->format('U');
+                $times['end'] = $contest->end_time->format('U');
+                $times['freeze'] = $contest->freeze_time->format('U');
+
+                $this->broadcastMessage([$user->getUsername()], $topic, $this->buildMessage($times, 'vars'));
+            }
             // requesting clarifications
             else if($type == "clarifications"){
 
@@ -216,6 +227,29 @@ class AppBundleTopic implements TopicInterface
               $this->broadcastMessage([$user->getUsername()], $topic, $this->buildMessage($queries, 'clarifications'));
 
             }
+            // requesting list of problems
+            else if($type == "problem-nav"){
+                
+                $problems = [];
+
+                $elevated = $user->hasRole("ROLE_SUPER") || $grader->isJudging($user, $contest->section);
+              
+                $team = $grader->getTeam($user, $contest);
+
+                if($contest->isOpened() || $elevated){
+                    foreach($contest->problems as $prob){
+                        
+                        $problem = [];
+
+                        $problem['id'] = $prob->id;
+                        $problem['name'] = $prob->name;
+
+                        $problems[] = $problem;
+                    }
+                }
+
+                return $this->broadcastMessage([$user->getUsername()], $topic, $this->buildMessage($problems, 'problem-nav'));
+            }
             // requesting problems
             else if($type == "checklist"){
 
@@ -232,7 +266,7 @@ class AppBundleTopic implements TopicInterface
                   $problem = [];
 
                   if($team){
-                    $score = $grader->getProblemScore($team, $prob, $elevated);
+                    $score = $grader->getProblemScore($team, $prob, true);
                   } else {
                     $score = null;
                   }

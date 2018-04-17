@@ -67,4 +67,12 @@
       sessionGlob.publish("appbundle/channel", {'type': 'check-start', 'contestId': {{(current_contest) ? current_contest.id : section.assignments[0].id}}, 'passKey': 'upstream'});
     }
 
+    function requestProblems(){
+      sessionGlob.publish("appbundle/channel", {'type': 'problem-nav', 'contestId': {{(current_contest) ? current_contest.id : section.assignments[0].id}}, 'passKey': 'upstream'});
+    }
+
+    function requestVars(){
+      sessionGlob.publish("appbundle/channel", {'type': 'check-vars', 'contestId': {{(current_contest) ? current_contest.id : section.assignments[0].id}}, 'passKey': 'upstream'});
+    }
+
 </script>

@@ -153,17 +153,7 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.3.5/jspdf.debug.js"></script>
 	
 	<script>
-		
-		var time = Math.floor(Date.now()/1000) - {{current_contest.start_time|date('U')}}; // current seconds into the contest
-		var starttime = {{current_contest.start_time|date('U')}} - Math.floor(Date.now()/1000); // current seconds until the contest
-		var total = {{current_contest.end_time|date('U')}} - {{current_contest.start_time|date('U')}};
-		var freeze = {{current_contest.freeze_time|date('U')}} - {{current_contest.start_time|date('U')}};
-		
-		var frozen = (Math.floor(Date.now()/1000) >= {{current_contest.freeze_time|date('U')}}) ? true : false;
-		
-		var freeze_override = {{(current_contest.freeze_override and current_contest.freeze_override_time) ? "true" : "false"}};
-		var unfreeze_override = {{(current_contest.freeze_override and not current_contest.freeze_override_time) ? "true" : "false"}};
-		
+
 		$(window).unload(function() {
 						
 		});

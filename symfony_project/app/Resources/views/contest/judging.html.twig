@@ -593,6 +593,15 @@
 				
 			}				
 		}
+
+		function updateLoopVars(data){
+			console.log(data);
+
+			starttime = data.start - Math.floor(Date.now()/1000);
+			total = data.end - data.start;
+
+			time = Math.floor(Date.now()/1000) - data.start;
+		}
 		
 		function updateActions(){
 			

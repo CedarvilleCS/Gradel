@@ -4,6 +4,8 @@ function onConnectFunction(){
 	requestScoreboard();
 	requestClarifications();
 	requestChecklist();
+	requestVars();
+	requestProblems();
 } 
 
 function handleMessage(data) {
@@ -38,6 +40,10 @@ function handleMessage(data) {
 			if(typeof updateChecklist === "function"){
 				updateChecklist(message);
 			}
+			break;
+		
+		case "problem-nav":
+			console.log("PROBLEM NAV");
 
 			if(typeof updateProblemNav === "function"){
 				updateProblemNav(message);
@@ -45,11 +51,39 @@ function handleMessage(data) {
 
 			break;
 
+		case "check-vars":
+			console.log("CHECK VARS");
+
+			requestVars();
+
+			break;
+
+		case "vars":
+			console.log("VARS");
+
+			if(typeof updateLoopVars === "function"){
+				updateLoopVars(message);
+
+				if(time > 0){
+					requestStart();
+				} else {
+					requestChecklist();
+					requestScoreboard();
+					requestProblems();
+				}
+
+				unfreezeScoreboard();
+				requestFrozen();
+			}
+
+			break;			
+
 		case "start":
 			console.log("START");
 
 			requestScoreboard();
 			requestChecklist();  
+			requestProblems();
 
 			break;
 

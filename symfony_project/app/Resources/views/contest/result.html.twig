@@ -53,7 +53,8 @@
 			</div>
 			
 			<div id="submissionOverview" class="card-contents">
-				<h3 style="margin-top: 2px; margin-bottom: 2px; {{(submission.isCorrect()) ? 'color: green;' : 'color: red;'}}">
+				
+				<h3 id="submission-result" style="margin-top: 2px; margin-bottom: 2px; {{(submission.isCorrect()) ? 'color: green;' : 'color: red;'}}">
 
 					
 					RESULT: <span> {{submission.getResultString()}} </span>
@@ -195,6 +196,7 @@
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 	
+	<script src="{{ asset('js/cards.js') }}"></script>
 	<script src="{{ asset('src-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>	
 	
 	<script src="{{ asset('js/unicode_return.js') }}" type="text/javascript" charset="utf-8"></script>	
@@ -257,6 +259,24 @@
 		{{ block('editor_onready', 'ace/sessions.twig') }}
 	});
 	
+	function updateResult(submission){
+		
+		$('#submission-result').children().remove();
+
+		if(submission.is_correct){
+			$('#submission-result').css('color', 'green');
+		} else {
+			$('#submission-result').css('color', 'red');
+		}
+
+		var thing = "RESULT: <span>" + escapeHTML(submission.result_string) + "</span>";
+
+		if(submission.judge_message != null){
+			thing += "<div>JUDGE MESSAGE: " + escapeHTML(submission.judge_message) + "</div>";
+		}
+
+		$('#submission-result').html(thing);
+	}
 	
 	$('.button')
 		.mousedown(function() {
@@ -518,7 +538,7 @@
 	
 	</script>
 	{{ include('contest/gas/contest_gas.html.twig') }}
-	{{ include('contest/gas/contest_gas_normal.html.twig') }}
+	{{ include('contest/gas/contest_gas_result.html.twig') }}
 
 
 {% endblock %}
