@@ -1,0 +1,78 @@
+<script type="text/javascript" src="{{ asset('bundles/goswebsocket/js/gos_web_socket_client.js') }}"></script>
+<script type="text/javascript" src="{{ asset('bundles/goswebsocket/js/vendor/autobahn.min.js') }}"></script>
+<script type="text/javascript" src="{{ asset('js/toastr/toastr.js')}}"></script>
+	
+<link rel="stylesheet" href="{{ asset('styles/toastr.css')}}">
+
+<script>
+  var sessionGlob = undefined;
+
+    window.onload = function() {
+
+      toastr.options.progressBar = true;
+      toastr.options.timeOut = 60000;
+      toastr.options.extendedTimeOut = 120000
+      toastr.options.positionClass = "toast-bottom-full-width";
+
+      var webSocket = WS.connect("{{socket_domain ~ ':' ~ socket_port ~ '/'}}");
+      console.log("Establishing Websocket...");
+
+      webSocket.on("socket/connect", function(session){
+          //session is an Autobahn JS WAMP session.
+        console.log("SUCCESSFULLY CONNECTED");
+
+        session.subscribe("appbundle/channel", function(uri, payload){
+          try {
+            
+            const data = JSON.parse(payload);          
+            handleMessage(data);
+
+          } catch(e) {
+
+          }
+
+        });
+    
+        sessionGlob = session;
+
+        if(typeof onConnectFunction === "function"){
+          onConnectFunction();       
+        }
+      })
+
+      webSocket.on("socket/disconnect", function(error){
+
+          //error provides us with some insight into the disconnection: error.reason and error.code
+          console.log("Disconnected for " + error.reason + " with code " + error.code);
+      })
+    }
+
+    function requestScoreboard(){      
+      sessionGlob.publish("appbundle/channel", {'type': 'scoreboard', 'contestId': {{(current_contest) ? current_contest.id : section.assignments[0].id}}, 'passKey': 'upstream'});
+    }
+
+    function requestClarifications(){      
+      sessionGlob.publish("appbundle/channel", {'type': 'clarifications', 'contestId': {{(current_contest) ? current_contest.id : section.assignments[0].id}}, 'passKey': 'upstream'});
+    }
+
+    function requestChecklist(){      
+      sessionGlob.publish("appbundle/channel", {'type': 'checklist', 'contestId': {{(current_contest) ? current_contest.id : section.assignments[0].id}}, 'passKey': 'upstream'});
+    }
+
+    function requestFrozen(){
+      sessionGlob.publish("appbundle/channel", {'type': 'check-frozen', 'contestId': {{(current_contest) ? current_contest.id : section.assignments[0].id}}, 'passKey': 'upstream'});
+    }
+
+    function requestStart(){
+      sessionGlob.publish("appbundle/channel", {'type': 'check-start', 'contestId': {{(current_contest) ? current_contest.id : section.assignments[0].id}}, 'passKey': 'upstream'});
+    }
+
+    function requestProblems(){
+      sessionGlob.publish("appbundle/channel", {'type': 'problem-nav', 'contestId': {{(current_contest) ? current_contest.id : section.assignments[0].id}}, 'passKey': 'upstream'});
+    }
+
+    function requestVars(){
+      sessionGlob.publish("appbundle/channel", {'type': 'check-vars', 'contestId': {{(current_contest) ? current_contest.id : section.assignments[0].id}}, 'passKey': 'upstream'});
+    }
+
+</script>

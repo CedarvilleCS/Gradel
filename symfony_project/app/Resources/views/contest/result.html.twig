@@ -32,7 +32,7 @@
 	<section id="main">	
 		<div class="card">
 			<div style="display: flex; flex-direction: column; justify-content: flex-start">
-				<h1 title="{{(submission.team) ? submission.team.getMemberString() : submission.user.getFullName()}}" style="font-size: 2em; margin: 0px">{{(submission.team) ? submission.team.name : submission.user.getFullName()}}</h1>
+				<h1 title="{{(submission.team) ? submission.team.getMemberString() : submission.user.getFullName()}}" style="font-size: 2em; margin: 0px">Team: {{(submission.team) ? submission.team.name : submission.user.getFullName()}}</h1>
 				<h2 style="margin: 0px">{{submission.problem.name}}</h2>
 				
 				{% if elevatedUser %}
@@ -53,7 +53,10 @@
 			</div>
 			
 			<div id="submissionOverview" class="card-contents">
-				<h3 style="margin-top: 2px; margin-bottom: 2px">
+				
+				<h3 id="submission-result" style="margin-top: 2px; margin-bottom: 2px; {{(submission.isCorrect()) ? 'color: green;' : 'color: red;'}}">
+
+					
 					RESULT: <span> {{submission.getResultString()}} </span>
 						
 					{% if submission.judge_message %}
@@ -193,6 +196,7 @@
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 	
+	<script src="{{ asset('js/cards.js') }}"></script>
 	<script src="{{ asset('src-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>	
 	
 	<script src="{{ asset('js/unicode_return.js') }}" type="text/javascript" charset="utf-8"></script>	
@@ -255,6 +259,24 @@
 		{{ block('editor_onready', 'ace/sessions.twig') }}
 	});
 	
+	function updateResult(submission){
+		
+		$('#submission-result').children().remove();
+
+		if(submission.is_correct){
+			$('#submission-result').css('color', 'green');
+		} else {
+			$('#submission-result').css('color', 'red');
+		}
+
+		var thing = "RESULT: <span>" + escapeHTML(submission.result_string) + "</span>";
+
+		if(submission.judge_message != null){
+			thing += "<div>JUDGE MESSAGE: " + escapeHTML(submission.judge_message) + "</div>";
+		}
+
+		$('#submission-result').html(thing);
+	}
 	
 	$('.button')
 		.mousedown(function() {
@@ -456,7 +478,7 @@
 				
 				if(data['reviewed'] != null){						
 
-					window.location = "{{path('contest_judging', {'contestId': current_contest.section.id, 'roundId': current_contest.id})}}";
+					window.location.reload();
 					
 				} else {
 					alert("Error reviewing submission");						
@@ -492,7 +514,7 @@
 		
 		$.ajax({
 			type: "POST",
-			url: "{{path('temp_trial_submit')}}",
+			url: "{{path('contest_temp_trial_submit')}}",
 			data: formData,
 			processData: false,
 			contentType: false,
@@ -515,7 +537,8 @@
 	}
 	
 	</script>
-	{{ include('contest/contest_gas.html.twig') }}
+	{{ include('contest/gas/contest_gas.html.twig') }}
+	{{ include('contest/gas/contest_gas_result.html.twig') }}
 
 
 {% endblock %}

@@ -191,24 +191,6 @@ contest_modify:
     _controller: AppBundle:ContestPost:modifyContestPost
   methods: [POST]
   
-scoreboard_poll:
-  path: '/poll/scoreboard'
-  defaults:
-    _controller: AppBundle:ContestPolling:pollScoreboard
-  methods: [POST]
-  
-contest_poll:
-  path: '/poll/contest'
-  defaults:
-    _controller: AppBundle:ContestPolling:pollContest
-  methods: [POST]
-
-judging_poll:
-  path: '/poll/judging'
-  defaults:
-    _controller: AppBundle:ContestPolling:pollJudging
-  methods: [POST]
-  
 judging_modify:
   path: '/judging/submission'
   defaults:
@@ -252,12 +234,23 @@ temp_trial_submit:
         _controller: AppBundle:Trial:quick
         trialId: 0
     methods: [POST]
-    
+
+contest_temp_trial_submit:
+    path: '/contest_quick_submit/{trialId}'
+    defaults:
+        _controller: AppBundle:ContestCompilation:contestQuick
+        trialId: 0
+    methods: [POST]   
     
 submit:
     path: '/submit'
     defaults:
         _controller:    AppBundle:Compilation:submit
+
+contest_submit:
+    path: '/contest_submit'
+    defaults:
+        _controller:    AppBundle:ContestCompilation:contestSubmit
 
 generate:
     path: '/generate'
@@ -284,3 +277,8 @@ user_logout:
 user_login:
   path: '/user/login'
   defaults: {_controller: AppBundle:Login:index}
+
+
+chihuahua_spin:
+  path: 'spin'
+  defaults: {_controller: AppBundle:Hilarious:spin}

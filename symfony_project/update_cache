@@ -1,6 +1,10 @@
+./server_stop.sh
+
 sudo chmod -R 770 *
 sudo php bin/console cache:clear --env=prod
 sudo php bin/console cache:clear --env=dev
 
 sudo chown -R $USER .
 sudo chgrp -R 2018 .
+
+./server_start.sh

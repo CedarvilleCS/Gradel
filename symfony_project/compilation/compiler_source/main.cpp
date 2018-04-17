@@ -140,11 +140,22 @@ int main(int argc, char** argv){
 	if(is_zipped){
 		
 		// unzip the file
-		string unzip_cmd = "unzip student_code/" + filename + " -d student_code/";
-		int unzip_val = system(unzip_cmd.c_str());
+		string unzip_cmd = "unzip student_code/" + filename + " -d student_code/ 2>&1";
+		//int unzip_val = system(unzip_cmd.c_str());
+
+		FILE *unzip_file;
+		unzip_file = (FILE*)popen(unzip_cmd.c_str(), "r");
+		char c = 0;
+		string unzip_output = "";
 		
-		if(unzip_val != 0){
-			cout << "ERROR: file could not be unzipped\n";
+		// loop through the validator output
+		while(fread(&c, sizeof c, 1, unzip_file)){
+			unzip_output += c;
+		}		
+		int ret_val = pclose(unzip_file)/256;
+		
+		if(ret_val != 0){
+			cout << "ERROR: file could not be unzipped\nReturned " << ret_val << "\n" << unzip_output << endl;
 			system("touch flags/internal_error");
 			return 14;
 		}

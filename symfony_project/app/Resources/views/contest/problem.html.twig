@@ -115,13 +115,13 @@ var markdownText = converter.makeHtml("{{problem.description|e('js')}}");
 						<select id="languageSelect" name="language">
 							{% for lang in languages %}
 								{% if lang.name != "No Language Restriction" %}
-									<option value={{lang.id}}>{{lang.name}}</option>
+									<option value={{lang.id}} {{(trial and trial.language.id == lang.id) ? 'selected'}}>{{lang.name}}</option>
 								{% endif %}
 							{% endfor %}
 						</select>
 						<br>
-						<div id="mainClassInput" style="display:none"><label for="main_class">Main Class: </label><input type="text" name="main_class" id="main_class_input"></div>
-						<div id="packgNameInput" style="display:none"><label for="package_name">Package Name: </label><input type="text" name="package_name" id="package_name_input"></div>
+						<div id="mainClassInput" style="display:none"><label for="main_class">Main Class: </label><input type="text" name="main_class" id="main_class_input" value="{{trial.main_class}}"></div>
+						<div id="packgNameInput" style="display:none"><label for="package_name">Package Name: </label><input type="text" name="package_name" id="package_name_input" value="{{trial.package_name}}"></div>
 						<br/>
 						<input type="hidden" name="ACE" id="ACE">
 						<div class="btn" style="width: 100px" id="submissionButton"> Submit </div>
@@ -822,7 +822,7 @@ var markdownText = converter.makeHtml("{{problem.description|e('js')}}");
 			
 			$.ajax({
 				type: "POST",
-				url: "{{path('submit')}}",
+				url: "{{path('contest_submit')}}",
 				data: formData,
 				processData: false,
 				contentType: false,
@@ -939,6 +939,7 @@ var markdownText = converter.makeHtml("{{problem.description|e('js')}}");
 		}
 	
 	</script>
-	{{ include('contest/contest_gas.html.twig') }}
+	{{ include('contest/gas/contest_gas.html.twig') }}
+	{{ include('contest/gas/contest_gas_normal.html.twig') }}
 
 {% endblock %}
