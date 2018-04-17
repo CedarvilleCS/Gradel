@@ -1,10 +1,11 @@
 <?php
 
-namespace AppBundle\Topic   ;
+namespace AppBundle\Topic;
 
 use Gos\Bundle\WebSocketBundle\Topic\TopicInterface;
 use Gos\Bundle\WebSocketBundle\Client\ClientManipulatorInterface;
 use Gos\Bundle\WebSocketBundle\Client\ClientStorageInterface;
+
 use Ratchet\ConnectionInterface;
 use Ratchet\Wamp\Topic;
 use Gos\Bundle\WebSocketBundle\Router\WampRequest;
@@ -18,6 +19,19 @@ use Doctrine\Common\Collections\ArrayCollection;
 use AppBundle\Utils\Grader;
 use AppBundle\Entity\Section;
 use AppBundle\Entity\User;
+use AppBundle\Entity\Role;
+use AppBundle\Entity\Team;
+use AppBundle\Entity\Course;
+use AppBundle\Entity\Assignment;
+use AppBundle\Entity\Problem;
+use AppBundle\Entity\ProblemLanguage;
+use AppBundle\Entity\UserSectionRole;
+use AppBundle\Entity\Testcase;
+use AppBundle\Entity\Submission;
+use AppBundle\Entity\Language;
+use AppBundle\Entity\Feedback;
+use AppBundle\Entity\TestcaseResult;
+use AppBundle\Entity\Query;
 
 
 use Doctrine\ORM\EntityManager;
@@ -86,10 +100,12 @@ class AppBundleTopic implements TopicInterface
      */
     public function onPublish(ConnectionInterface $connection, Topic $topic, WampRequest $request, $event, array $exclude, array $eligible)
     {
+        $this->em->clear();
+        
         $user = $this->clientManipulator->getClient($connection);
 
         if (!is_array($event)){
-            $event = json_decode($event, true);
+           $event = json_decode($event, true);
         }
         dump($event);
 
@@ -125,8 +141,7 @@ class AppBundleTopic implements TopicInterface
                 return;
             }
 
-            // sending a scoreboard update
-            dump("Sending a scoreboard update");
+            // send the message
             $message = $this->buildMessage($msg, $type);
 
             $this->broadcastMessage($recipients, $topic, $message);
@@ -138,31 +153,39 @@ class AppBundleTopic implements TopicInterface
             
             // requesting scoreboard update
             if($type == "scoreboard"){
-            
-                if(isset($contest->leaderboard)){
-
-                    // send the scoreboard info 
-                    if($user->hasRole("ROLE_SUPER") || $grader->isJudging($user, $contest->section)){
-                        $leaderboard = $contest->leaderboard->getJSONElevatedBoard();
-                    } else {
-                        $leaderboard = $contest->leaderboard->getJSONBoard();
-                    }
-
-                    $this->broadcastMessage([$user->getUsername()], $topic, $this->buildMessage($leaderboard, 'scoreboard'));
+                
+              if($contest->leaderboard){
+                // send the scoreboard info 
+                if($user->hasRole("ROLE_SUPER") || $grader->isJudging($user, $contest->section)){
+                  $leaderboard = $contest->leaderboard->getJSONElevatedBoard();
                 } else {
-                    $this->broadcastMessage([$user->getUsername()], $topic, $this->buildMessage('[]', 'scoreboard'));
+                  $leaderboard = $contest->leaderboard->getJSONBoard();
                 }
+
+                $this->broadcastMessage([$user->getUsername()], $topic, $this->buildMessage($leaderboard, 'scoreboard')); 
+              }
             } 
-            // requesting contest start info
-            else if($type == "start"){
+            // requesting if contest has started
+            else if($type == "check-start"){
 
                 // see if the contest has started
+                if($contest->isOpened()){
+
+                    $contest->updateLeaderboard($grader, $this->em);
+
+                    $this->broadcastMessage([$user->getUsername()], $topic, $this->buildMessage(null, 'start'));
+                }
+                // else do nothing
 
             }
-            // requesting contest end info
-            else if($type == "end"){
+            // requesting if contest is frozen
+            else if($type == "check-frozen"){
 
-                // see if the contest has ended
+                // see if the contest is frozen
+                if($contest->isFrozen()){
+                    $this->broadcastMessage([$user->getUsername()], $topic, $this->buildMessage(null, 'freeze'));
+                }
+                // else do nothing
 
             }
             // requesting clarifications
@@ -203,32 +226,34 @@ class AppBundleTopic implements TopicInterface
               
               $team = $grader->getTeam($user, $contest);
 
-              foreach($contest->problems as $prob){
+              if($contest->isOpened() || $elevated){
+                foreach($contest->problems as $prob){
 
-                $problem = [];
+                  $problem = [];
 
-                if($team){
-                  $score = $grader->getProblemScore($team, $prob, $elevated);
-                } else {
-                  $score = null;
-                }
-
-                $problem['id'] = $prob->id;
-                $problem['name'] = $prob->name;
-
-                $problem['submission_status'] = "unattempted";
-                $problem['penattempt'] = "";
-
-                if(isset($score) && $score['num_attempts'] > 0){
-                  $problem['submission_status'] = "attempted";
-
-                  if($score['correct']){
-                    $problem['submission_status'] = "accepted";
-                    $problem['penattempt'] = $score['time']." + ".$score['penalty_points_raw'];
+                  if($team){
+                    $score = $grader->getProblemScore($team, $prob, $elevated);
+                  } else {
+                    $score = null;
                   }
+
+                  $problem['id'] = $prob->id;
+                  $problem['name'] = $prob->name;
+
+                  $problem['submission_status'] = "unattempted";
+                  $problem['penattempt'] = "";
+
+                  if(isset($score) && $score['num_attempts'] > 0){
+                    $problem['submission_status'] = "attempted";
+
+                    if($score['correct']){
+                        $problem['submission_status'] = "accepted";
+                        $problem['penattempt'] = $score['time']." + ".$score['penalty_points_raw'];
+                    }
+                  }
+                    
+                  $checklist[] = $problem;
                 }
-                
-                $checklist[] = $problem;
               }
               
               

@@ -814,7 +814,8 @@ class Grader  {
 	}
 
 	public function getLeaderboard2($contest, $elevated){
-		
+
+		$leaderboard = [];
 		$teams = $contest->teams->toArray();
 
 		$scores = [];
@@ -869,96 +870,9 @@ class Grader  {
 		$leaderboard['scores'] = array_merge(array(), $scores);
 
 		$leaderboard['attempts_per_problem_count'] = $attempts;
-		$leaderboard['correct_submissions_per_problem_count'] = $correct;		
+		$leaderboard['correct_submissions_per_problem_count'] = $correct;	
 		
-		return $leaderboard;
-	}
-	
-	public function getLeaderboard($user, $assignment, $normal_user){
-		
-		
-		$teams = $assignment->teams->toArray();
-		
-		$user_team = $this->getTeam($user, $assignment);
-		
-		$scores = [];		
-		
-		if( is_object($user) ){
-			
-			$elevatedUser = ($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $this->isJudging($user, $assignment->section)) && !$normal_user;
-		
-		} else {
-			
-			$elevatedUser = false;			
-		}
-		
-		foreach($teams as $team){
-			
-			$elevatedTeam = $elevatedUser;			
-			$scores[] = $this->getTeamScore($team, $elevatedTeam);
-		}
-		
-		// sort the scores into the proper order
-		usort($scores, array($this, 'compareTeamScoresNames'));
-		
-		$prevScore = null;
-		$rank = 0;
-		
-		$count = 0;
-		$user_index = -1;
-		foreach($scores as &$scr){
-			
-			if($scr['team_id'] == $user_team->id){
-				$user_index = $count;
-			}
-			$count++;
-			
-			if($prevScore && $this->compareTeamScores($prevScore, $scr) == 0){
-				$rank = $prevRank;
-			} else {
-				$rank++;
-			}
-			
-			$scr['rank'] = $rank;
-			
-			$prevRank = $rank;
-			$prevScore = $scr;
-		}
-		
-		$leaderboard['scores'] = $scores;
-		$leaderboard['index'] = $user_index;
-		
-		
-		$attempts_per_problem_count = [];
-		$correct_submissions_per_problem_count = [];
-		
-		$probIndex = 0;
-		// loop through each problem 
-		foreach ($assignment->problems as $prob) {
-			
-			$correct_submissions_per_problem_count[$probIndex] = 0;
-			$attempts_per_problem_count[$probIndex] = 0;
-			
-			foreach($scores as $team_score){
-				
-				$prob_correct_maybe = $team_score["results"];
-				$ps = $prob_correct_maybe[$probIndex];
-				
-				if ( $ps == true) {
-					$correct_submissions_per_problem_count[$probIndex]++;
-				}
-				
-				$att = $team_score["attempts"];
-				$attempts_per_problem_count[$probIndex] += $att[$probIndex];
-				
-			}
-			
-			$probIndex++;
-		}
-		
-		$leaderboard['attempts_per_problem_count'] = $attempts_per_problem_count;
-		$leaderboard['correct_submissions_per_problem_count'] = $correct_submissions_per_problem_count;
-		
+		$leaderboard['problems'] = $contest->getProblemData();
 		
 		return $leaderboard;
 	}

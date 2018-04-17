@@ -155,8 +155,11 @@ class Submission implements JsonSerializable {
 		else if($this->exceeded_time_limit) {
 			return "Incorrect - Exceeded Time Limit";
 		}
-		else {
+		else if($this->judge_message == null){
 			return "Incorrect - Wrong Answer";
+		} 
+		else {
+			return "Incorrect";
 		}
 	}
 
@@ -165,8 +168,8 @@ class Submission implements JsonSerializable {
 		return $this->compiler_error || $this->runtime_error || $this->exceeded_time_limit;		
 	}
 	
-	public function isCorrect($raw = true){
-		
+	public function isCorrect($raw = false){		
+
 		$tcs = 0;
 		$passed_tcs = 0;
 		
@@ -179,7 +182,7 @@ class Submission implements JsonSerializable {
 			}			
 		}
 		
-		if(!$raw){
+		if($raw != true){
 			
 			if($this->correct_override) return true;		
 			if($this->wrong_override) return false;
@@ -413,6 +416,7 @@ class Submission implements JsonSerializable {
 	
 	
 	public function jsonSerialize(){
+
 		return [
 			'id' => $this->id,
 			

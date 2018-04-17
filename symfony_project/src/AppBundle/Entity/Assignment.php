@@ -193,11 +193,11 @@ class Assignment implements JsonSerializable{
 	public $teams;
 	
 	/**
-    * @ORM\OneToOne(targetEntity="Leaderboard", inversedBy="contest")
+    * @ORM\OneToOne(targetEntity="Leaderboard", inversedBy="contest",cascade={"persist"})
     */
 	public $leaderboard = null;
 	
-	public function updateLeaderboard($grader){
+	public function updateLeaderboard($grader, $em){
 
 		# create new leaderboard
 		if(!$this->leaderboard){
@@ -208,6 +208,9 @@ class Assignment implements JsonSerializable{
 
 		$this->leaderboard->board = json_encode($grader->getLeaderboard2($this, false));
 		$this->leaderboard->board_elevated = json_encode($grader->getLeaderboard2($this, true));
+		
+        $em->persist($this);
+        $em->flush();
 	}
 
 	// Contest-Specific Information
@@ -291,6 +294,23 @@ class Assignment implements JsonSerializable{
 			'weight' => $this->weight,
 			'teams' => $this->teams->toArray(),
 		];
+	}
+
+	public function getProblemData(){
+		
+		$probs = [];
+
+		foreach($this->problems as $prob){
+
+			$newProb = [];
+
+			$newProb['id'] = $prob->id;
+			$newProb['name'] = substr($prob->name, 0, 1);
+
+			$probs[] = $newProb;
+		}
+
+		return $probs;
 	}
 }
 

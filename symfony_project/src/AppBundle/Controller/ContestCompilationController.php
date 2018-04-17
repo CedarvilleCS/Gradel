@@ -76,17 +76,19 @@ class ContestCompilationController extends Controller {
         } 
 
         $contest = $submission->problem->assignment;
-
-        // UPDATE LEADERBOARD
-        $contest->updateLeaderboard($grader);
-        
-        $em->persist($contest);
-        $em->flush();
         
         // SOCKET PUSHER UPDATE
-        if($submission->pending_status != 0){        
-            $pusher = new SocketPusher($this->container->get('gos_web_socket.wamp.pusher'), $em, $contest);
-            $pusher->sendScoreboardUpdates();		
+        $pusher = new SocketPusher($this->container->get('gos_web_socket.wamp.pusher'), $em, $contest);
+        if($submission->pending_status != 0){   
+            
+            // UPDATE LEADERBOARD
+            $contest->updateLeaderboard($grader, $em);
+            $pusher->sendGradedSubmission($submission);     
+            $pusher->sendScoreboardUpdates();
+            
+        } else {
+            // send the ungraded one to the judges for grading
+		    $pusher->sendNewSubmission($submission);
         }
 				
         $url = $this->generateUrl('contest_result', [

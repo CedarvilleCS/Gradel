@@ -1,0 +1,68 @@
+<script>
+
+function onConnectFunction(){
+	
+} 
+
+function handleMessage(data) {
+      
+    type = data.type;
+    submissionId = data.submissionId;
+    message = data.msg;
+
+    //message = message.replace(/\n|\r\n|\r/g, "<br/>");
+
+    switch(type) {
+
+		case "new-clarification":
+			//console.log("NEW CLARIFICATION");
+			message = JSON.parse(message);
+			addClarification(message);
+
+			break;
+
+		case "new-submission":
+			//console.log("NEW SUBMISSION");
+			message = JSON.parse(message);
+			addSubmission(message);
+
+			updateActions();
+
+			break;
+
+		case "claimed-submission":
+			//console.log("CLAIMED SUBMISSION");
+			removeSubmission(message);
+
+			updateActions();
+
+			break;
+
+		case "graded-submission":
+			//console.log("GRADED SUBMISSION");
+			message = JSON.parse(message);
+			addReview(message);
+
+			updateActions();
+
+			break;
+
+		case "answered-clarification":
+			//console.log("ANSWERED CLARIFICATION");
+			message = JSON.parse(message);
+			addAnswered(message);
+
+			break;
+
+		case "refresh":
+			//console.log("REFRESH");
+			window.location.reload();
+
+			break;
+
+		default:
+			break;
+		}
+} 
+
+</script>

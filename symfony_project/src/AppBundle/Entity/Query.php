@@ -12,7 +12,7 @@ use Symfony\Component\Config\Definition\Exception\Exception;
 *@ORM\Entity
 *@ORM\Table(name="query")
 **/
-class Query {
+class Query implements JsonSerializable{
 	
 	
 	public function __construct(){
@@ -108,6 +108,18 @@ class Query {
 	*/
 	public $timestamp;
 
+	public function jsonSerialize(){
+		return [
+			'id' => $this->id,
+			'problem' => $this->problem,
+			'assignment' => $this->assignment,
+			'question' => $this->question,
+			'asker' => $this->asker,
+			'answerer' => $this->answerer,
+			'answer'=> $this->answer,
+			'timestamp' => $this->timestamp,
+		];
+	}
 }
 
 ?>

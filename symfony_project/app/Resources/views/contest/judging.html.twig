@@ -22,8 +22,7 @@
 {% block body %}
 
 <body>        
-    {{ include('template/top-nav.html.twig') }}
-    
+    {{ include('template/top-nav.html.twig') }}    
 	{{ include('contest/problem-nav.html.twig') }}
 	
 	
@@ -212,260 +211,354 @@
 
 	<script>
 
-		
 		var contest_started = false;
 	
 		var firstTime = false;
 	
-		var pollAJAX;
-		var judgAJAX;
-		var clarAJAX;
-
 		var time = Math.floor(Date.now()/1000) - {{current_contest.start_time|date('U')}}; // current seconds into the contest
 		var starttime = {{current_contest.start_time|date('U')}} - Math.floor(Date.now()/1000); // current seconds until the contest
 		var total = {{current_contest.end_time|date('U')}} - {{current_contest.start_time|date('U')}};
+				
+		var user_reviewed = 0;
+		var user_clarifications = 0;
+		var currReviews = [];
 		
-		
-		$(window).unload(function() {			
-
-		});
-		
-		//var freeze 
 		$(document).ready( function() {
 					
 			$('#progressbar').progressbar({
 				max: total, // total seconds in the contest
 				value: time	// current seconds into the contest		
 			});
+
+
+		
+			// filter through the submissions in the finished div
+			$('#review-filter-input').on('keyup', function() {
+				
+				var filter = document.getElementById('review-filter-input').value;
+				
+				$('.review').each(function( index ){
+					
+					var rev = currReviews[$(this).attr('id')];
+
+					var search = rev.result_string + " " + rev.problem.name + " " + rev.language.name + " " + rev.team.name + " " + rev.team.member_string + " " + rev.reviewer.full_name;
+					search = search.toLowerCase();
+					
+					var num = search.indexOf(filter.toLowerCase());								
+					if (filter != '') {
+					if (num >= 0) {
+						this.style.display = "flex";
+					} else {
+						this.style.display = "none";
+					}			
+					}
+					else {  
+					this.style.display = "flex";
+					}
+				});
+			});
+
+			initializeDialogs();
 						
-			pollJudging();
+			populateSubmissions();
+			populateClarifications();
+						
 			setInterval(loopFunction, 1000);
 			loopFunction();					
 		});
 
-		/* FUNCTION TO HANDLE POST TO ANSWER QUESTION */
-		function updateClarification(type, scope){
-			
-			var id;
-			var formData = new FormData();
-			
-			formData.append('contestId', {{current_contest.id}});
-			
-			if(type == "answer"){
-				id = $('#clarification-form').val();
-				
-				answer = $('#answer').val();
-				formData.append('answer', answer);
-				
-				if(scope == "global"){
-					formData.append('global', true);
-				}
-			}
-			else if(type == "notice"){
-				id = 0;
-				notice = $('#notice').val();
-				formData.append('answer', notice);				
-			}
-			else {
-				return false;
-			}
-				
-			formData.append('clarificationId', id);
-			
-			clarAJAX = $.ajax({
-				type: "POST",
-				url: "{{path('judging_modify')}}",
-				data: formData,
-				processData: false,
-				contentType: false,
-				success: function(data){
-
-					console.log(data);
-					
-					if(data['id'] != null && data['answered']){					
-						
-						$('#clarifications-container #' + data['id']).remove();
-						clarificationMessageDialog.dialog("close");
-												
-					} else if(data['id'] != null){
-						
-						noticeMessageDialog.dialog("close");
-						
-					} else {
-						alert("Error answering question");		
+		/* function to create the listeners and jquery dialog boxes for the confirmation boxes */
+		function initializeDialogs(){
+			/* NOTICE POSTER */
+			noticeMessageDialog = $("#notice-form").dialog({
+				autoOpen: false,
+				modal: true,
+				width: "auto",
+				height: "auto",
+				buttons: {
+					"Post Notice": function () {
+						updateClarification("notice");	
+						noticeMessageDialog.dialog( "close" );					
+					}, 
+					Cancel: function() {
+						noticeMessageDialog.dialog( "close" );
 					}
 				},
-				error: function(data){
-					alert(data['responseText']);
-					console.log(data['responseText']);
+				close: function() {
+					noticeMessageForm[0].reset();
 				}
 			});
-			
-			return true;
-		}
-		
-		$('#review-filter-input').on('keyup', function() {
-			
-			var filter = document.getElementById('review-filter-input').value;
-			
-			$('.review').each(function( index ){
-				
-				var rev = currReviews[$(this).attr('id')];
 
-				var search = rev.result_string + " " + rev.problem.name + " " + rev.language.name + " " + rev.team.name + " " + rev.team.member_string + " " + rev.reviewer.full_name;
-				search = search.toLowerCase();
-				
-				var num = search.indexOf(filter.toLowerCase());								
-				if (filter != '') {
-				  if (num >= 0) {
-					  this.style.display = "flex";
-				  } else {
-					  this.style.display = "none";
-				  }			
-				}
-				else {  
-				  this.style.display = "flex";
-				}
-		   });
-		});
-
-		
-		function clearSubmissions() {
-			
-			var id;
-			var formData = new FormData();
-			
-			formData.append('contestId', {{current_contest.id}});
-			formData.append('type', 'clear-subs');
-			
-			clarAJAX = $.ajax({
-				type: "POST",
-				url: "{{path('judging_modify')}}",
-				data: formData,
-				processData: false,
-				contentType: false,
-				success: function(data){
-
-					console.log(data);
-					window.location.reload();
-				},
-				error: function(data){
-					alert(data['responseText']);
-					console.log(data['responseText']);
-				}
+			noticeMessageDialog.find("form").off( "submit");
+			noticeMessageForm = noticeMessageDialog.find( "form" ).on( "submit", function( event ) {				
+				event.preventDefault();
+				updateClarification("notice");	
+				noticeMessageDialog.dialog("close");		
 			});
 			
-			return true;			
-		}
-		
-		function clearClarifications() {
-			
-			var id;
-			var formData = new FormData();
-			
-			formData.append('contestId', {{current_contest.id}});
-			formData.append('type', 'clear-clars');
-			
-			clarAJAX = $.ajax({
-				type: "POST",
-				url: "{{path('judging_modify')}}",
-				data: formData,
-				processData: false,
-				contentType: false,
-				success: function(data){
-
-					console.log(data);
-					window.location.reload();
-				},
-				error: function(data){
-					alert(data['responseText']);
-					console.log(data['responseText']);
-				}
+			$('#notice-button').off('click');
+			$('#notice-button').button().on('click', function() {
+				
+				noticeMessageDialog.dialog("open");	
+				
 			});
 			
-			return true;			
-		}
-		
-		/* FUNCTION TO HANDLE POST TO UPDATE SUBMISSIONS */
-		function updateSubmission(type){	
 			
-			var id;
-			var formData = new FormData();
-			
-			formData.append('type', type);
-			formData.append('contestId', {{current_contest.id}});
-			
-			if(type == "message"){				
-				id = $('#custom-message-form').val();
-				message = $('#message').val();
-				customMessageDialog.dialog( "close" );
-				
-				formData.append('message', message);
-			} 
-			else if(type == "delete"){
-				id = $('#delete-form').val();
-				deleteDialog.dialog( "close" );				
-			}
-			else if(type == "correct"){
-				id = $('#correct-form').val();
-				correctDialog.dialog( "close" );
-			}
-			else if(type == "wrong"){
-				id = $('#wrong-form').val();
-				wrongDialog.dialog( "close" );
-			}
-			else if(type == "formatting"){			
-				id = $('#formatting-form').val();
-				formattingDialog.dialog( "close" );					
-			}
-			else if(type == "claimed"){
-				id = claimed_id;
-			}
-			else if(type == "unclaimed"){
-				id = claimed_id;			
-			}
-			else {
-				return false;
-			}
-			
-			formData.append('submissionId', id);
-			
-			judgAJAX = $.ajax({
-				type: "POST",
-				url: "{{path('judging_modify')}}",
-				data: formData,
-				processData: false,
-				contentType: false,
-				success: function(data){
-
-					console.log(data);
-					
-					if(data['reviewed'] != null){						
-
-						$('.submission#'+ data['id']).remove();
-						
-					} else {
-						alert("Error reviewing submission");						
+			/* CLEAR SUBMISSION POSTER */
+			clearSubsDialog = $("#clear-submissions-form").dialog({
+				autoOpen: false,
+				modal: true,
+				width: "auto",
+				height: "auto",
+				buttons: {
+					"Clear Submissions": function () {
+						clearSubmissions();
+						clearSubsDialog.dialog( "close" );				
+					}, 
+					Cancel: function() {
+						clearSubsDialog.dialog( "close" );
 					}
 				},
-				error: function(data){
-					alert(data['responseText']);
-					console.log(data['responseText']);
+				close: function() {
+					clearSubmissionsForm[0].reset();
 				}
 			});
 			
-			return true;
-		}
+			clearSubsDialog.find("form").off( "submit");
+			clearSubmissionsForm = clearSubsDialog.find( "form" ).on( "submit", function( event ) {				
+				event.preventDefault();
+				clearSubmissions();
+				clearSubsDialog.dialog("close");		
+			});
+						
+			$('#clear-submissions-button').off('click');
+			$('#clear-submissions-button').button().on('click', function() {
+				
+				clearSubsDialog.dialog("open");
+				
+			});
+			
+			/* CLEAR CLARIFICATION POSTER */
+			clearClarsDialog = $("#clear-clarifications-form").dialog({
+				autoOpen: false,
+				modal: true,
+				width: "auto",
+				height: "auto",
+				buttons: {
+					"Clear Clarifications": function () {
+						clearClarifications();
+						clearClarsDialog.dialog( "close" );				
+					}, 
+					Cancel: function() {
+						clearClarsDialog.dialog( "close" );
+					}
+				},
+				close: function() {
+					clearClarificationsForm[0].reset();
+				}
+			});
+			
+			clearClarsDialog.find("form").off( "submit");
+			clearClarificationsForm = clearClarsDialog.find( "form" ).on( "submit", function( event ) {				
+				event.preventDefault();
+				clearClarifications();
+				clearClarsDialog.dialog("close");		
+			});
+						
+			$('#clear-clarifications-button').off('click');
+			$('#clear-clarifications-button').button().on('click', function() {
+				
+				clearClarsDialog.dialog("open");
+				
+			});
+			
+			/* CLARIFICATION ANSWERER */
+			clarificationMessageDialog = $("#clarification-form").dialog({
+				autoOpen: false,
+				modal: true,
+				width: "auto",
+				height: "auto",
+				buttons: {
+					"Answer for User": function () {
+						updateClarification("answer", "local");
+						clarificationMessageDialog.dialog( "close" );						
+					}, 
+					"Answer Globally": function () {
+						updateClarification("answer", "global");
+						clarificationMessageDialog.dialog( "close" );						
+					}, 
+					"Read the Question": function() {
+						$(this).find('#answer').val('Read the Question');
+						updateClarification("answer", "local");
+						clarificationMessageDialog.dialog( "close" );						
+					},
+					Cancel: function() {
+						clarificationMessageDialog.dialog( "close" );
+					}
+				},
+				close: function() {
+					console.log('#' + $('#clarification-form').val());
+					clarificationMessageForm[0].reset();
+				}
+			});
+			
+			$('#clarification-form').keypress(function(e) {
+				if (e.keyCode == $.ui.keyCode.ENTER) {
+				
+					if(firstTime){
+				
+						updateClarification("answer", "local");
+						clarificationMessageDialog.dialog( "close" );
+						
+					}
+					
+					e.preventDefault();
+					firstTime = false;
+				}
+			});
+			
+			clarificationMessageDialog.find("form").off( "submit");
+			clarificationMessageForm = clarificationMessageDialog.find( "form" ).on( "submit", function( event ) {				
+				event.preventDefault();
+				updateClarification("answer");	
+				clarificationMessageDialog.dialog("close");
+			});
+
+			/* CUSTOM FORMATTING MESSAGE */
+			customMessageDialog = $("#custom-message-form").dialog({
+				autoOpen: false,
+				modal: true,
+				buttons: {
+					"Update Submission": function () {
+						updateSubmission("message");						
+					}, 
+					Cancel: function() {
+						customMessageDialog.dialog( "close" );
+					}
+				},
+				close: function() {
+					customMessageForm[0].reset();
+				}
+			});
+			
+			customMessageDialog.find("form").off( "submit");
+			customMessageForm = customMessageDialog.find( "form" ).on( "submit", function( event ) {
+				event.preventDefault();
+				updateSubmission("message");
+				customMessageDialog.dialog("close");
+			});
+
+			
+			/* DELETE MESSAGE */
+			deleteDialog = $( "#delete-form" ).dialog({
+				resizable: false,
+				modal: true,
+				autoOpen: false,
+				width: "auto",
+				height: "auto",
+				buttons: {
+					"Delete Submission": function() {
+						updateSubmission("delete");
+					},
+					Cancel: function() {
+						$( this ).dialog( "close" );
+					}
+				},
+			});
 		
-		/* FUNCTION TO HANDLE GETTING UPDATES FROM THE WEBSITE */
+			deleteDialog.find( "form" ).off( "submit" );
+			deleteForm = deleteDialog.find( "form" ).on( "submit", function( event ) {
+				event.preventDefault();
+				updateSubmission("delete");
+				deleteDialog.dialog("close");
+			});		
+			
+			/* CORRECT MESSAGE */
+			correctDialog = $( "#correct-form" ).dialog({
+				resizable: false,
+				modal: true,
+				autoOpen: false,
+				width: "auto",
+				height: "auto",
+				buttons: {
+					"Mark Correct": function() {
+						updateSubmission("correct");
+					},
+					Cancel: function() {
+						$( this ).dialog( "close" );
+					}
+				}
+			});
+			
+			correctDialog.find("form").off( "submit");
+			correctForm = correctDialog.find( "form" ).on( "submit", function( event ) {
+				event.preventDefault();
+				updateSubmission("correct");
+				correctDialog.dialog("close");
+			});
+
+			/* WRONG MESSAGE */
+			wrongDialog = $( "#wrong-form" ).dialog({
+				resizable: false,
+				modal: true,
+				autoOpen: false,
+				width: "auto",
+				height: "auto",
+				buttons: {
+					"Mark Wrong Answer": function() {
+						updateSubmission("wrong");
+					},
+					Cancel: function() {
+						$( this ).dialog( "close" );
+					}
+				}
+			});
+			
+			wrongDialog.find("form").off( "submit");
+			wrongForm = wrongDialog.find( "form" ).on( "submit", function( event ) {
+				event.preventDefault();
+				updateSubmission("wrong");
+				wrongDialog.dialog("close");
+			});
+
+			/* FORMATTING MESSAGE */
+			formattingDialog = $( "#formatting-form" ).dialog({
+				resizable: false,
+				modal: true,
+				autoOpen: false,
+				width: "auto",
+				height: "auto",
+				buttons: {
+					"Mark Wrong Formatting": function() {
+						updateSubmission("formatting");
+					},
+					Cancel: function() {
+						$( this ).dialog( "close" );
+					}
+				}
+			});
+			
+			formattingDialog.find("form").off( "submit");
+			formattingForm = formattingDialog.find( "form" ).on( "submit", function( event ) {
+				event.preventDefault();
+				updateSubmission("formatting");
+				formattingDialog.dialog("close");
+			});
+		}
+
+		/* FUNCTION TO HANDLE CHANGE THE PROGRESS BAR */
 		function loopFunction(){
-			
+
 			// update the progress bar
 			$( "#progressbar" ).progressbar( "option", "value", time);
 			
-			if (starttime <= 0) {
+			if (starttime < 0) {
 				time++;
 				var left = total-time;
+			} else if(starttime == 0){
+				starttime--;
+				time = 0;
+				var left = total;		
 			} else {
 				starttime--;
 				// update the time left
@@ -499,91 +592,6 @@
 				}
 				
 			}				
-			//console.log("Polling for updates...");
-		}
-				
-		function socketRefreshJudging() {
-			pollJudging();
-		}
-
-		function pollJudging(){
-		
-			var formData = new FormData();
-			
-			formData.append('contestId', {{current_contest.id}});
-
-			pollAJAX = $.ajax({
-				type: "POST",
-				url: "{{path('judging_poll')}}",
-				data: formData,
-				processData: false,
-				contentType: false,
-				success: function(data){
-
-					//console.log(data);
-					updateClarificationQueue(data);
-					updateSubmissionQueue(data);
-					updateReviewScroller(data);
-					updateClarificationScroller(data);
-					
-				},
-				error: function(data){
-					alert(data['responseText']);
-					console.log(data['responseText']);
-				}
-			});		
-		}
-		
-		function updateClarificationQueue(data){
-			
-			var questions = data['clarifications'];
-			
-			addClarifications(questions);
-			
-		}
-		
-		function updateReviewScroller(data){
-			
-			var reviews = data['reviewed_submissions'];			
-			if(addReviews(reviews)){
-				
-				$('#recent-reviews').stop();
-			
-				$('#recent-reviews').animate({
-					scrollTop: $('#recent-reviews').prop('scrollHeight'),
-				}, 0);
-			}
-		}
-
-		function updateClarificationScroller(data){
-			var clars = data['answered_clarifications'];
-
-			if(addAnswered(clars)){
-				
-				$('#recent-clarifications').stop();
-			
-				$('#recent-clarifications').animate({
-					scrollTop: $('#recent-clarifications').prop('scrollHeight'),
-				}, 0);
-			}
-
-			$('#recent-clarifications .query').dblclick( function() {
-				$('#answer').val($(this).attr('data-answer'));
-				
-				$('#clarification-form').dialog('option', 'title', $(this).text());
-				var clar_id = $(this).attr('id');
-				$('#clarification-form').val(clar_id);
-				clarificationMessageDialog.dialog( "open" );
-			});
-		}
-				
-		function updateSubmissionQueue(data){
-
-			addSubmissions(data['pending_submissions']);
-			addClaimed(data['claimed_submissions']);
-			$('.submission.queued .right-side, .submission.queued .middle-side').hide();
-
-			updateActions();
 		}
 		
 		function updateActions(){
@@ -594,14 +602,19 @@
 				
 				if($(this).hasClass('queued')){			
 					
+					$(this).removeClass('queued');
 					$(this).remove();
+					$('#queue-container').append($(this));
 					
+
+
 					claimed_id = $(this).attr('id');
 					updateSubmission("claimed");
+
 				} else {
 				
 					$(this).remove();
-					
+
 					claimed_id = $(this).attr('id');
 					updateSubmission("unclaimed");				
 				}
@@ -651,164 +664,7 @@
 					});
 				});
 
-			/* NOTICE POSTER */
-			noticeMessageDialog = $("#notice-form").dialog({
-				autoOpen: false,
-				modal: true,
-				width: "auto",
-				height: "auto",
-				buttons: {
-					"Post Notice": function () {
-						updateClarification("notice");						
-					}, 
-					Cancel: function() {
-						noticeMessageDialog.dialog( "close" );
-					}
-				},
-			  close: function() {
-				  noticeMessageForm[0].reset();
-			  }
-			});
-
-			noticeMessageDialog.find("form").off( "submit");
-			noticeMessageForm = noticeMessageDialog.find( "form" ).on( "submit", function( event ) {				
-				event.preventDefault();
-				updateClarification("notice");	
-				noticeMessageDialog.dialog("close");		
-			});
-			
-			$('#notice-button').off('click');
-			$('#notice-button').button().on('click', function() {
-				
-				noticeMessageDialog.dialog("open");	
-				
-			});
-			
-			
-			/* CLEAR SUBMISSION POSTER */
-			clearSubsDialog = $("#clear-submissions-form").dialog({
-				autoOpen: false,
-				modal: true,
-				width: "auto",
-				height: "auto",
-				buttons: {
-					"Clear Submissions": function () {
-						clearSubmissions();
-						clearSubsDialog.dialog( "close" );				
-					}, 
-					Cancel: function() {
-						clearSubsDialog.dialog( "close" );
-					}
-				},
-			  close: function() {
-				  clearSubmissionsForm[0].reset();
-			  }
-			});
-			
-			clearSubsDialog.find("form").off( "submit");
-			clearSubmissionsForm = clearSubsDialog.find( "form" ).on( "submit", function( event ) {				
-				event.preventDefault();
-				clearSubmissions();
-				clearSubsDialog.dialog("close");		
-			});
-						
-			$('#clear-submissions-button').off('click');
-			$('#clear-submissions-button').button().on('click', function() {
-				
-				clearSubsDialog.dialog("open");
-				
-			});
-			
-			/* CLEAR CLARIFICATION POSTER */
-			clearClarsDialog = $("#clear-clarifications-form").dialog({
-				autoOpen: false,
-				modal: true,
-				width: "auto",
-				height: "auto",
-				buttons: {
-					"Clear Clarifications": function () {
-						clearClarifications();
-						clearClarsDialog.dialog( "close" );				
-					}, 
-					Cancel: function() {
-						clearClarsDialog.dialog( "close" );
-					}
-				},
-			  close: function() {
-				  clearClarificationsForm[0].reset();
-			  }
-			});
-			
-			clearClarsDialog.find("form").off( "submit");
-			clearClarificationsForm = clearClarsDialog.find( "form" ).on( "submit", function( event ) {				
-				event.preventDefault();
-				clearClarifications();
-				clearClarsDialog.dialog("close");		
-			});
-						
-			$('#clear-clarifications-button').off('click');
-			$('#clear-clarifications-button').button().on('click', function() {
-				
-				clearClarsDialog.dialog("open");
-				
-			});
-			
-			/* CLARIFICATION ANSWERER */
-			clarificationMessageDialog = $("#clarification-form").dialog({
-				autoOpen: false,
-				modal: true,
-				width: "auto",
-				height: "auto",
-				buttons: {
-					"Answer for User": function () {
-						updateClarification("answer", "local");
-						clarificationMessageDialog.dialog( "close" );						
-					}, 
-					"Answer Globally": function () {
-						updateClarification("answer", "global");
-						clarificationMessageDialog.dialog( "close" );						
-					}, 
-					"Read the Question": function() {
-						$(this).find('#answer').val('Read the Question');
-						updateClarification("answer", "local");
-						clarificationMessageDialog.dialog( "close" );						
-					},
-					Cancel: function() {
-						clarificationMessageDialog.dialog( "close" );
-					}
-				},
-				close: function() {
-					console.log('#' + $('#clarification-form').val());
-					if($('#recent-clarifications').find('#' + $('#clarification-form').val()).length > 0){
-
-						$('#recent-clarifications').find('#' + $('#clarification-form').val()).remove();
-					}
-
-					clarificationMessageForm[0].reset();
-				}
-			});
-			
-			$('#clarification-form').keypress(function(e) {
-				if (e.keyCode == $.ui.keyCode.ENTER) {
-				
-					if(firstTime){
-				
-						updateClarification("answer", "local");
-						clarificationMessageDialog.dialog( "close" );
-					 
-					}
-					
-					e.preventDefault();
-					firstTime = false;
-				}
-			});
-			
-			clarificationMessageDialog.find("form").off( "submit");
-			clarificationMessageForm = clarificationMessageDialog.find( "form" ).on( "submit", function( event ) {				
-				event.preventDefault();
-				updateClarification("answer");	
-				clarificationMessageDialog.dialog("close");
-			});
+		
 			
 			$('.clarification').off( 'dblclick' );
 			$('.clarification').dblclick( function() {
@@ -818,32 +674,7 @@
 				$('#clarification-form').val(clar_id);
 				clarificationMessageDialog.dialog("open");	
 			
-				firstTime = true;
-				
-			});
-			
-			/* CUSTOM FORMATTING MESSAGE */
-			customMessageDialog = $("#custom-message-form").dialog({
-				autoOpen: false,
-				modal: true,
-				buttons: {
-					"Update Submission": function () {
-						updateSubmission("message");						
-					}, 
-					Cancel: function() {
-						customMessageDialog.dialog( "close" );
-					}
-				},
-			  close: function() {
-				  customMessageForm[0].reset();
-			  }
-			});
-			
-			customMessageDialog.find("form").off( "submit");
-			customMessageForm = customMessageDialog.find( "form" ).on( "submit", function( event ) {
-				event.preventDefault();
-				updateSubmission("message");
-				customMessageDialog.dialog("close");
+				firstTime = true;				
 			});
 			
 			$( ".custom-buttom" ).on( "click", function() {
@@ -852,338 +683,149 @@
 				customMessageDialog.dialog("open");
 			});
 						
-			/* DELETE MESSAGE */
-			deleteDialog = $( "#delete-form" ).dialog({
-				resizable: false,
-				modal: true,
-				autoOpen: false,
-				width: "auto",
-				height: "auto",
-				buttons: {
-					"Delete Submission": function() {
-						updateSubmission("delete");
-					},
-					Cancel: function() {
-						$( this ).dialog( "close" );
-					}
-				},
-			});
-		
-			deleteDialog.find( "form" ).off( "submit" );
-			deleteForm = deleteDialog.find( "form" ).on( "submit", function( event ) {
-				event.preventDefault();
-				updateSubmission("delete");
-				deleteDialog.dialog("close");
-			});			
-		
 			$( ".delete-button" ).on( "click", function() {
 				var sub_id = $(this).attr('id');
 				$('#delete-form').val(sub_id);
 				deleteDialog.dialog("open");
 			});
 			
-			/* CORRECT MESSAGE */
-			correctDialog = $( "#correct-form" ).dialog({
-				resizable: false,
-				modal: true,
-				autoOpen: false,
-				width: "auto",
-				height: "auto",
-				buttons: {
-					"Mark Correct": function() {
-						updateSubmission("correct");
-					},
-					Cancel: function() {
-						$( this ).dialog( "close" );
-					}
-				}
-			});
-			
-			correctDialog.find("form").off( "submit");
-			correctForm = correctDialog.find( "form" ).on( "submit", function( event ) {
-				event.preventDefault();
-				updateSubmission("correct");
-				correctDialog.dialog("close");
-			});
-			
 			$( ".correct-button" ).on( "click", function() {
 				var sub_id = $(this).attr('id');
 				$('#correct-form').val(sub_id);
 				correctDialog.dialog("open");
-			});
-
-			/* WRONG MESSAGE */
-			wrongDialog = $( "#wrong-form" ).dialog({
-				resizable: false,
-				modal: true,
-				autoOpen: false,
-				width: "auto",
-				height: "auto",
-				buttons: {
-					"Mark Wrong Answer": function() {
-						updateSubmission("wrong");
-					},
-					Cancel: function() {
-						$( this ).dialog( "close" );
-					}
-				}
-			});
-			
-			wrongDialog.find("form").off( "submit");
-			wrongForm = wrongDialog.find( "form" ).on( "submit", function( event ) {
-				event.preventDefault();
-				updateSubmission("wrong");
-				wrongDialog.dialog("close");
-			});
+			});			
 						
 			$( ".wrong-button" ).on( "click", function() {
 				var sub_id = $(this).attr('id');
 				$('#wrong-form').val(sub_id);
 				wrongDialog.dialog("open");
-			});
-			
-			/* FORMATTING MESSAGE */
-			formattingDialog = $( "#formatting-form" ).dialog({
-				resizable: false,
-				modal: true,
-				autoOpen: false,
-				width: "auto",
-				height: "auto",
-				buttons: {
-					"Mark Wrong Formatting": function() {
-						updateSubmission("formatting");
-					},
-					Cancel: function() {
-						$( this ).dialog( "close" );
-					}
-				}
-			});
-			
-			formattingDialog.find("form").off( "submit");
-			formattingForm = formattingDialog.find( "form" ).on( "submit", function( event ) {
-				event.preventDefault();
-				updateSubmission("formatting");
-				formattingDialog.dialog("close");
-			});
+			});			
 			
 			$( ".formatting-button" ).on( "click", function() {
 				var sub_id = $(this).attr('id');
 				$('#formatting-form').val(sub_id);
 				formattingDialog.dialog("open");
 			});
-			
-		}
-		
-		function addClarifications(clarifications){
-			
-			for(var i=0; i<clarifications.length; i++){			
-				
-				var clarification = clarifications[i];
-				
-				var str = '#clarifications-container #' + clarification.id;
-				var prevClars = $(str);
-				
-				if(prevClars.length > 0){
-					prevClars.addClass('found');					
-					continue;	
-				}
-				
-				var clarName = ((clarification.asker) ? escapeHTML(clarification.asker.name) : 'Judge Submitted');
-				var problemName = ((clarification['problem']) ? "[" + clarification['problem']['name'] + "]" : "[General]");
-				var probAssignName = "[" + clarName + "] - " + problemName;
-				
-				var clarificationHTML = `<div class="clarification found" id="` + clarification['id'] + `">` + 
-											`<div class="name">` + probAssignName + `</div><div class="question">` + escapeHTML(clarification['question']) + `</div>` +
-										`</div>`;
-				
-				$('#clarifications-container').append(clarificationHTML);				
-			}
-			
-			$('#clarifications-container .clarification').not('.found').remove();
-			$('#clarifications-container .found').removeClass('found');		
-		}
-		
-		var user_reviewed = 0;
-		var currReviews = [];
 
-		function addReviews(reviews){
+			$('#claimed-card .card-title .card-subtitle').html("<i> Review them! (" + $('#queue-container .submission').size() + ") </i>");				
+			$('#submissions-card .card-title .card-subtitle').html("<i> Double-click to claim (" + $('#submissions-container .submission').size() + ") </i>");			
 			
-			currReviews = [];
-			var newOne = false;
-			
-			for(var i=0; i < reviews.length; i++){
-			
-				var rev = reviews[i];
-				currReviews[rev.id] = rev;
+			$('#recent-clarifications .query').dblclick( function() {
+				$('#answer').val($(this).attr('data-answer'));
 				
-				var str = '#recent-reviews #' + rev.id;
-				var prevSubs = $(str);
-				if(prevSubs.length > 0) continue;
-				
-				newOne = true;
-				
-				var name;
-				if(rev.reviewer == null){
-					name = "No Review";
-				} else {
-					name = rev.reviewer.first_name;
-				}
-				
-				
-				var reviewHTML = `<a href="{{path('contest', {'contestId': current_contest.section.id, 'roundId': current_contest.id})}}/problem/` + rev.problem.id + `/result/` + rev.id + `"> <div class="review ` + ((rev.is_correct) ? "correct" : "wrong") + `" id="` + rev.id + `"> ` + `<div title="` + escapeHTML("<b>" + rev.result_string + "</b>\\n" + rev.team.member_string) + `">` + rev.id + `) ` + escapeHTML(rev.problem.name.substring(0,1)) + ` - ` + escapeHTML(rev.team.name) + `</div><div style="display: none">` + escapeHTML(rev.problem.name) + `" " `+((rev.is_correct) ? "correct" : "wrong") +`</div><div> Reviewer: ` + escapeHTML(name) + `</div>` + `</div> </a>`;
-				
-				$('#recent-reviews').append(reviewHTML);
-				
-				console.log(reviews[i]);
-				
-				// review stats
-				if (reviews[i]['reviewer'] != null && reviews[i]['reviewer'].email == '{{app.user}}') { 
-					user_reviewed++;
-				}
-				
-				$("#review_stats").text("You have made " + user_reviewed + " of " + reviews.length +  " reviews.");
-			}			
-			
-			return newOne;
+				$('#clarification-form').dialog('option', 'title', $(this).text());
+				var clar_id = $(this).attr('id');
+				$('#clarification-form').val(clar_id);
+				clarificationMessageDialog.dialog( "open" );
+			});
 		}
-		
-		var user_clarifications = 0;
-		function addAnswered(clars){
-			
-			var newOne = false;
-			
-			for(var i=0; i < clars.length; i++){
-				
-				var clar = clars[i];
-				
-				var str = '#recent-clarifications #' + clar.id;
-				var prevClars = $(str);
-				if(prevClars.length > 0) continue;
-				
-				newOne = true;			
-				
-				var question = (clar.question) ? clar.question : "Judge Notice";
-				var answer = clar.answer;
-				
-				var name = (clar.problem) ? clar.problem.name.substring(0,1) : "~";
-				
-				var clarHTML = `<div class='query' id='` + clar.id + `' data-answer="` + escapeHTML(answer) + `" title="` + escapeHTML(answer) + `">` + `[` + escapeHTML(name) + `] ` + escapeHTML(question) + `</div>`;
-				$('#recent-clarifications').append(clarHTML);
 
 
-				if (clars[i]['answerer'] != null && clars[i]['answerer'].email == '{{app.user}}') { 
-					user_clarifications++;
-				}
-				
-				$("#clar_stats").text("You have made " + user_clarifications + " of " + clars.length +  " clarifications.");
-			}
+		/* INITIALIZING FUNCTION THAT WILL DISPLAY ALL THE SUBMISSIONS */
+		function populateSubmissions(){
+
+			var pending_subs = JSON.parse("{{ pending_subs | json_encode | e('js') }}");
+			var claimed_subs = JSON.parse("{{ claimed_subs | json_encode | e('js') }}");
+			var finished_subs = JSON.parse("{{ finished_subs | json_encode | e('js') }}");
+
+			addSubmissions(pending_subs);
+			addClaimed(claimed_subs);
+			addReviews(finished_subs);
 			
-			return newOne;
-			
+			updateActions();
+		}
+
+		function removeSubmission(id){
+			$('#submissions-container #' + id).remove();
+			updateActions();
 		}
 		
+		// adds submissions to the claimed queue, leveraging the other functions
 		function addClaimed(submissions){
-			var thing = addSubmissions(submissions, "claimIt");
-			
+			var thing = addSubmissions(submissions, "claimIt");			
 			return thing;
 		}
+
+		// adds a single submission to the containers
+		// claimIt decides whether to add it to the claimed queue or the other queue
+		function addSubmission(sub, claimIt){
 		
-		function addSubmissions(submissions, claimIt){			
-			
-			for(var i=0; i<submissions.length; i++){				
-				
-				var sub = submissions[i];				
-				
-				var str = (claimIt == "claimIt") ? '#queue-container #' + sub.id : '#submissions-container #' + sub.id;
-				
-				var prevSubs = $(str);
-				
-				if(prevSubs.length > 0){
-					prevSubs.addClass('found');					
-					continue;
-				}
-				
-				var submissionHTML = `<div class="found queued submission ` + ((sub.is_correct) ? 'correct' : 'wrong') + `" id="` + sub.id + `">` +
-					`<div class="left-side">` +
-						`<div class="title">` + escapeHTML(sub.problem.name) + `</div>` +
-						`<div class="name" title="` + escapeHTML(sub.team.member_string) + `" style="cursor: pointer">` + escapeHTML(sub.team.name) + `</div>` +
-						`<div class="results">` + sub.result_string + `</div>` +
-					`</div>` +
-					`<div class="middle-side">` +
-						`<div class="marker-container">`;
-							
-							var middleStuff = "";
-							for(var j=0; j<sub.testcaseresults.length; j++){
-								
-								var tcr = sub.testcaseresults[j];
-								
-								middleStuff += `<div class="marker ` + ((tcr.is_correct) ? 'correct' : 'wrong') + `">\n` + 
-								
-								
-									((tcr.is_correct) ? '&#x2713;\n' : '&#x2718;\n') +
-									
-									`<div class="marker-hover">\n` +
-									
-										`<div>\n` +
-										`Expected Output:\n` +
-										`<textarea class="expected" disabled>` + escapeHTML(addReturnKey(tcr.testcase.correct_output)) + ` </textarea>\n` +
-										`</div>\n` +
-										
-										`<div>\n` +
-										`Their Output:\n` +
-										`<textarea class="theirs" disabled>` + escapeHTML(addReturnKey(tcr.std_output)) + `</textarea>\n` +
-										`</div>\n` +
-									
-									`</div>\n` +					
-								`</div>\n`;
-							
-							}
-							
-							for(var k=sub.testcaseresults.length; k < sub.problem.testcases.length; k++){
-								middleStuff += `<div class="marker untested">`  + '&#63;\n' + `<div class="marker-hover" id="untested">\n` + `Untested.` +`</div>\n`+`</div>\n`;
-							}
-							
-							
-				submissionHTML += middleStuff;
-				
-				submissionHTML += `</div>` +
-					`</div>` +
-					
-					`<div class="right-side">` +
-					
-						`<div class="main-options">` +
-							`<div class="button formatting-button" title="Mark as Formatting Error" id="` + sub.id + `">&#x270F;</div>` +
-							`<div class="button wrong-button" title="Mark as Incorrect" id="` + sub.id + `">&#x2718;</div>` +
-						`</div>` +
+			var submissionHTML = `<div class="queued submission ` + ((sub.is_correct) ? 'correct' : 'wrong') + `" id="` + sub.id + `">` +
+				`<div class="left-side">` +
+					`<div class="title">` + escapeHTML(sub.problem.name) + `</div>` +
+					`<div class="name" title="` + escapeHTML(sub.team.member_string) + `" style="cursor: pointer">` + escapeHTML(sub.team.name) + `</div>` +
+					`<div class="results">` + sub.result_string + `</div>` +
+				`</div>` +
+				`<div class="middle-side">` +
+					`<div class="marker-container">`;
 						
-						`<div class="additional-options">` +
-							`<div class="button correct-button" title="Mark as Correct" id="` + sub.id + `">&#x2713;</div>` +
-							`<div class="button custom-buttom" title="Return Custom Message" id="` + sub.id + `">&#x1f589;</div>` +
-							`<div class="button delete-button" title="Delete Submission" id="` + sub.id + `">&#x1F5D1;</div>` +
-						`</div>` +
-										
-					`</div>` +
-				`</div>`;
+						var middleStuff = "";
+						for(var j=0; j<sub.testcaseresults.length; j++){
+							
+							var tcr = sub.testcaseresults[j];
+							
+							middleStuff += `<div class="marker ` + ((tcr.is_correct) ? 'correct' : 'wrong') + `">\n` + 
+							
+							
+								((tcr.is_correct) ? '&#x2713;\n' : '&#x2718;\n') +
+								
+								`<div class="marker-hover">\n` +
+								
+									`<div>\n` +
+									`Expected Output:\n` +
+									`<textarea class="expected" disabled>` + escapeHTML(addReturnKey(tcr.testcase.correct_output)) + ` </textarea>\n` +
+									`</div>\n` +
+									
+									`<div>\n` +
+									`Their Output:\n` +
+									`<textarea class="theirs" disabled>` + escapeHTML(addReturnKey(tcr.std_output)) + `</textarea>\n` +
+									`</div>\n` +
+								
+								`</div>\n` +					
+							`</div>\n`;
+						
+						}
+						
+						for(var k=sub.testcaseresults.length; k < sub.problem.testcases.length; k++){
+							middleStuff += `<div class="marker untested">`  + '&#63;\n' + `<div class="marker-hover" id="untested">\n` + `Untested.` +`</div>\n`+`</div>\n`;
+						}
+						
+						
+			submissionHTML += middleStuff;
+			
+			submissionHTML += `</div>` +
+				`</div>` +
 				
-				if(claimIt == "claimIt"){
-					$('#queue-container').append(submissionHTML);
-				} else {
-					$('#submissions-container').append(submissionHTML);
-				}
-			}
+				`<div class="right-side">` +
+				
+					`<div class="main-options">` +
+						`<div class="button formatting-button" title="Mark as Formatting Error" id="` + sub.id + `">&#x270F;</div>` +
+						`<div class="button wrong-button" title="Mark as Incorrect" id="` + sub.id + `">&#x2718;</div>` +
+					`</div>` +
+					
+					`<div class="additional-options">` +
+						`<div class="button correct-button" title="Mark as Correct" id="` + sub.id + `">&#x2713;</div>` +
+						`<div class="button custom-buttom" title="Return Custom Message" id="` + sub.id + `">&#x1f589;</div>` +
+						`<div class="button delete-button" title="Delete Submission" id="` + sub.id + `">&#x1F5D1;</div>` +
+					`</div>` +
+									
+				`</div>` +
+			`</div>`;
 			
 			if(claimIt == "claimIt"){
-				$('#queue-container .submission').not('.found').remove();
-				$('#queue-container .submission').removeClass('found');
-				$('#queue-container .submission').removeClass('queued');
-				
-				$('#claimed-card .card-title .card-subtitle').html("<i> Review them! (" + $('#queue-container .submission').size() + ") </i>");
-				
+				$('#queue-container').append(submissionHTML);
 			} else {
-				$('#submissions-container .submission').not('.found').remove();
-				$('#submissions-container .submission').removeClass('found');
-				
-				$('#submissions-card .card-title .card-subtitle').html("<i> Double-click to claim (" + $('#submissions-container .submission').size() + ") </i>");
+				$('#submissions-container').append(submissionHTML);
+			}
+			
+			$('#queue-container .submission').removeClass('queued');
+		}
+		
+		// loops over a lot of submissions and put them
+		function addSubmissions(submissions, claimIt){			
+			
+			for(var i=0; i<submissions.length; i++){
+				addSubmission(submissions[i], claimIt);
 			}
 
 			$('.expected').on('scroll', function () {
@@ -1194,10 +836,277 @@
 				$(this).parent().parent().find('.expected').scrollTop($(this).scrollTop());
 			});
 		}
+				
+		function addReview(rev){
+			
+			currReviews[rev.id] = rev;
+			
+			var name;
+			if(rev.reviewer == null){
+				name = "No Review";
+			} else {
+				name = rev.reviewer.first_name;
+			}
+			
+			
+			var reviewHTML = `<a href="{{path('contest', {'contestId': current_contest.section.id, 'roundId': current_contest.id})}}/problem/` + rev.problem.id + `/result/` + rev.id + `"> <div class="review ` + ((rev.is_correct) ? "correct" : "wrong") + `" id="` + rev.id + `"> ` + `<div title="` + escapeHTML("<b>" + rev.result_string + "</b>\\n" + rev.team.member_string) + `">` + rev.id + `) ` + escapeHTML(rev.problem.name.substring(0,1)) + ` - ` + escapeHTML(rev.team.name) + `</div><div style="display: none">` + escapeHTML(rev.problem.name) + `" " `+((rev.is_correct) ? "correct" : "wrong") +`</div><div> Reviewer: ` + escapeHTML(name) + `</div>` + `</div> </a>`;
+			
+			$('#recent-reviews').append(reviewHTML);
+						
+			// review stats
+			if (rev.reviewer != null && rev.reviewer.email == '{{app.user}}') { 
+				user_reviewed++;
+			}
+			
+			$("#review_stats").text("You have made " + user_reviewed + " of " + $('.review').length +  " reviews.");
+		}
+
+		// loops over a lot of graded submissions
+		function addReviews(reviews){
+			
+			currReviews = [];			
+			for(var i=0; i < reviews.length; i++){			
+				addReview(reviews[i]);
+			}
+		}
+		
+		/* INITIALIZING FUNCTION THAT WILL DISPLAY ALL THE SUBMISSIONS */
+		function populateClarifications(){
+
+			var pending_clars = JSON.parse("{{ pending_clars | json_encode | e('js') }}");
+			var finished_clars = JSON.parse("{{ finished_clars | json_encode | e('js') }}");
+
+			addClarifications(pending_clars);
+			addAnswereds(finished_clars);
+
+			updateActions();
+		}
+		
+		function addClarification(clarification){
+				
+			var clarName = ((clarification.asker) ? escapeHTML(clarification.asker.name) : 'Judge Submitted');
+			var problemName = ((clarification.problem) ? "[" + clarification.problem.name + "]" : "[General]");
+			var probAssignName = "[" + clarName + "] - " + problemName;
+			
+			var clarificationHTML = `<div class="clarification found" id="` + clarification.id + `">` + 
+										`<div class="name">` + probAssignName + `</div><div class="question">` + escapeHTML(clarification.question) + `</div>` +
+									`</div>`;
+			
+			$('#clarifications-container').append(clarificationHTML);
+
+			
+			updateActions();
+		}
+
+		function addClarifications(clarifications){
+			
+			for(var i=0; i<clarifications.length; i++){				
+				addClarification(clarifications[i]);			
+			}			
+		}
+		
+		function addAnswered(clarification){
+
+			$('#recent-clarifications #'+clarification.id).remove();
+
+			var question = (clarification.question) ? clarification.question : "Judge Notice";
+			var answer = clarification.answer;
+			
+			var name = (clarification.problem) ? clarification.problem.name.substring(0,1) : "~";
+			
+			var clarHTML = `<div class='query' id='` + clarification.id + `' data-answer="` + escapeHTML(answer) + `" title="` + escapeHTML(answer) + `">` + `[` + escapeHTML(name) + `] ` + escapeHTML(question) + `</div>`;
+			$('#recent-clarifications').append(clarHTML);
+			
+			if (clarification.answerer != null && clarification.answerer.email == '{{app.user}}') { 
+				user_clarifications++;
+			}
+			
+			$("#clar_stats").text("You have made " + user_clarifications + " of " + $('.query').length +  " clarifications.");
+			
+			updateActions();
+		}
+
+		function addAnswereds(clarifications){
+			
+			for(var i=0; i < clarifications.length; i++){								
+				addAnswered(clarifications[i]);
+			}			
+		}
+		
+		/* FUNCTION TO HANDLE POST TO UPDATE SUBMISSIONS */
+		function updateSubmission(type){	
+			
+			var id;
+			var formData = new FormData();
+			
+			formData.append('type', type);
+			formData.append('contestId', {{current_contest.id}});
+			
+			if(type == "message"){				
+				id = $('#custom-message-form').val();
+				message = $('#message').val();
+				customMessageDialog.dialog( "close" );
+				
+				formData.append('message', message);
+			} 
+			else if(type == "delete"){
+				id = $('#delete-form').val();
+				deleteDialog.dialog( "close" );				
+			}
+			else if(type == "correct"){
+				id = $('#correct-form').val();
+				correctDialog.dialog( "close" );
+			}
+			else if(type == "wrong"){
+				id = $('#wrong-form').val();
+				wrongDialog.dialog( "close" );
+			}
+			else if(type == "formatting"){			
+				id = $('#formatting-form').val();
+				formattingDialog.dialog( "close" );					
+			}
+			else if(type == "claimed"){
+				id = claimed_id;
+			}
+			else if(type == "unclaimed"){
+				id = claimed_id;			
+			}
+			else {
+				return false;
+			}
+			
+			formData.append('submissionId', id);	
+
+			$.ajax({
+				type: "POST",
+				url: "{{path('judging_modify')}}",
+				data: formData,
+				processData: false,
+				contentType: false,
+				success: function(){					
+					if(type != "claimed" && type != "unclaimed"){				
+						$('#queue-container #' + id).remove();
+					}		
+				},
+				error: function(data){
+					alert(data['responseText']);
+					console.log(data['responseText']);
+				}
+			});
+			
+			return true;
+		}
+
+		/* FUNCTION TO HANDLE POST TO ANSWER QUESTION */
+		function updateClarification(type, scope){
+			
+			var id;
+			var formData = new FormData();
+			
+			formData.append('contestId', {{current_contest.id}});
+			
+			if(type == "answer"){
+				id = $('#clarification-form').val();
+				
+				answer = $('#answer').val();
+				formData.append('answer', answer);
+				
+				if(scope == "global"){
+					formData.append('global', true);
+				}
+			}
+			else if(type == "notice"){
+				id = 0;
+				notice = $('#notice').val();
+				formData.append('answer', notice);				
+			}
+			else {
+				return false;
+			}
+				
+			formData.append('clarificationId', id);
+			
+			$.ajax({
+				type: "POST",
+				url: "{{path('judging_modify')}}",
+				data: formData,
+				processData: false,
+				contentType: false,
+				success: function() {
+					$('#clarifications-container #'+id).remove();			
+				},
+				error: function(data){
+					alert(data['responseText']);
+					console.log(data['responseText']);
+				}
+			});
+			
+			return true;
+		}
+		
+		/* FUNCTION TO HANDLE POST TO DELETE ALL SUBMISSIONS FOR THE CONTEST */
+		function clearSubmissions() {
+			
+			var id;
+			var formData = new FormData();
+			
+			formData.append('contestId', {{current_contest.id}});
+			formData.append('type', 'clear-subs');
+			
+			$.ajax({
+				type: "POST",
+				url: "{{path('judging_modify')}}",
+				data: formData,
+				processData: false,
+				contentType: false,
+				success: function(data){
+
+					console.log(data);
+					window.location.reload();
+				},
+				error: function(data){
+					alert(data['responseText']);
+					console.log(data['responseText']);
+				}
+			});
+			
+			return true;			
+		}
+		
+		/* FUNCTION TO HANDLE POST TO DELETE ALL CLARIFICATIONS FOR THE CONTEST */
+		function clearClarifications() {
+			
+			var id;
+			var formData = new FormData();
+			
+			formData.append('contestId', {{current_contest.id}});
+			formData.append('type', 'clear-clars');
+			
+			$.ajax({
+				type: "POST",
+				url: "{{path('judging_modify')}}",
+				data: formData,
+				processData: false,
+				contentType: false,
+				success: function(data){
+
+					console.log(data);
+					window.location.reload();
+				},
+				error: function(data){
+					alert(data['responseText']);
+					console.log(data['responseText']);
+				}
+			});
+			
+			return true;			
+		}
+		
 		
 		
 	</script>
-	{{ include('contest/contest_gas.html.twig') }}
+	{{ include('contest/gas/contest_gas.html.twig') }}
+	{{ include('contest/gas/contest_gas_judge.html.twig') }}
 	
 {% endblock %}
 

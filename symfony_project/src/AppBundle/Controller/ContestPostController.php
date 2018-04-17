@@ -182,6 +182,9 @@ class ContestPostController extends Controller {
 		
 		$em->persist($problem);		
 		$em->flush();		
+
+		// update the leaderboard
+		$assignment->updateLeaderboard($grader, $em);
 		
 		$url = $this->generateUrl('contest_problem', ['contestId' => $problem->assignment->section->id, 'roundId' => $problem->assignment->id, 'problemId' => $problem->id]);
 				
@@ -765,6 +768,10 @@ class ContestPostController extends Controller {
 
 		$em->persist($section);
 		$em->flush();			
+
+		foreach($section->assignments as &$asgn){
+			$asgn->updateLeaderboard($grader, $em);
+		}
 		
 		$url = $this->generateUrl('contest', ['contestId' => $section->id]);
 				
@@ -780,6 +787,7 @@ class ContestPostController extends Controller {
 		return $response;	
 	}
 	
+	// this is called when a user wants to ask a question
 	public function postQuestionAction(Request $request){
 
 		$em = $this->getDoctrine()->getManager();		
@@ -845,7 +853,7 @@ class ContestPostController extends Controller {
 
 		# SOCKET PUSHER
 		$pusher = new SocketPusher($this->container->get('gos_web_socket.wamp.pusher'), $em, $contest);
-		$pusher->sendRefresh();
+		$pusher->sendNewClarification($query);
 
 		return $response;		
 	}
@@ -948,10 +956,7 @@ class ContestPostController extends Controller {
 		$response->setStatusCode(Response::HTTP_OK);
 
 		// UPDATE LEADERBOARD
-		$contest->updateLeaderboard($grader);
-		$em->persist($contest);
-		$em->flush();
-
+		$contest->updateLeaderboard($grader, $em);
 
 		# SOCKET PUSHER
 		$pusher = new SocketPusher($this->container->get('gos_web_socket.wamp.pusher'), $em, $contest);
@@ -1023,12 +1028,16 @@ class ContestPostController extends Controller {
 			$update = true;
 			$override_wrong = false;
 			$reviewed = true;
+
+			// saying the submission was incorrect
 			if($postData['type'] == "wrong"){
 
 				$override_wrong = true;
 				
 				
-			} else if($postData['type'] == "correct"){
+			}
+			// saying the submission was correct
+			else if($postData['type'] == "correct"){
 				
 				// override the submission to correct
 				if($submission->isCorrect(true)){
@@ -1042,24 +1051,31 @@ class ContestPostController extends Controller {
 					$submission->correct_override = true;					
 				}
 
-				$pusher->sendAcceptance($submission);
+				//$pusher->sendAcceptance($submission);
+
 				
-			} else if($postData['type'] == "delete"){
+			} 
+			// saying the submission was deleted
+			else if($postData['type'] == "delete"){
 					
 				// delete the submission
 				$subId = $submission->id;
 				$em->remove($submission);
 
-				$pusher->sendDelete($submission);
+				//$pusher->sendDelete($submission);
 					
-			} else if($postData['type'] == "formatting"){
+			}
+			// saying the submisison was a formatting error
+			else if($postData['type'] == "formatting"){
 				
 				$override_wrong = true;
 						
 				// add formatting message to submission
 				$submission->judge_message = "Formatting Error";
 						
-			} else if($postData['type'] == "message"){
+			}
+			// saying the submission was a custom judge message error
+			else if($postData['type'] == "message"){
 				
 				$override_wrong = true;
 				$message = $postData['message'];
@@ -1071,7 +1087,9 @@ class ContestPostController extends Controller {
 					$submission->judge_message = trim($postData['message']);
 				}	
 							
-			} else if($postData['type'] == "claimed"){
+			}
+			// claiming the submission
+			else if($postData['type'] == "claimed"){
 				
 				$reviewed = false;			
 				
@@ -1082,8 +1100,13 @@ class ContestPostController extends Controller {
 				$submission->pending_status = 1;
 
 				$update = false;
+
+				// let the judges know this one has been claimed
+				$pusher->sendClaimedSubmission($submission->id);
 				
-			} else if($postData['type'] == "unclaimed"){
+			}
+			// unclaiming the submission
+			else if($postData['type'] == "unclaimed"){
 				
 				$reviewed = false;			
 				
@@ -1093,8 +1116,10 @@ class ContestPostController extends Controller {
 				
 				$submission->pending_status = 0;
 
-				$update = false;
+				$update = false;	
 				
+				// let the other judges know this submission is back on the market
+				$pusher->sendNewSubmission($submission);
 				
 			} else {
 				return $this->returnForbiddenResponse("Type of judging command not allowed");
@@ -1115,8 +1140,8 @@ class ContestPostController extends Controller {
 					$submission->correct_override = false;
 				}
 
-
-				$pusher->sendRejection($submission);
+				// let the team know their submission was rejected
+				//$pusher->sendRejection($submission);
 			}
 
 			
@@ -1140,22 +1165,31 @@ class ContestPostController extends Controller {
 			$response->headers->set('Content-Type', 'application/json');
 			$response->setStatusCode(Response::HTTP_OK);
 
-			$pusher->sendRefresh();
-
 			if($update){
-				// UPDATE LEADERBOARD
-				$contest->updateLeaderboard($grader);
+				// UPDATE LEADERBOARD            	
+				$contest->updateLeaderboard($grader, $em);
 
-				$em->persist($contest);
-				$em->flush();
+				if($postData['type'] != "delete"){
+					$pusher->sendGradedSubmission($submission);
+					$pusher->sendScoreboardUpdates();
+				}				
 
-				$pusher->sendScoreboardUpdates();
+				if($postData['type'] == "delete"){
+					$type = "delete";
+				} 
+				else if($postData['type'] != "correct"){
+					$type = "reject";
+				} 
+				else {
+					$type = "accept";
+				}
+
+				$pusher->sendResponse($submission, $type);
 			}
 			
 			return $response;
 			
 		} 
-
 		// for clarification editing
 		else if(isset($postData['clarificationId'])){
 			
@@ -1219,6 +1253,7 @@ class ContestPostController extends Controller {
 			return $response;
 						
 		}
+		// for removing all submissions
 		else if($postData['type'] == 'clear-subs'){
 			
 			if($contest->isActive()){
@@ -1238,11 +1273,14 @@ class ContestPostController extends Controller {
 			]));
 				
 			
+			$contest->updateLeaderboard($grader, $em);
+
 			$response->headers->set('Content-Type', 'application/json');
 			$response->setStatusCode(Response::HTTP_OK);
 
 			return $response; 		
 		}
+		// for removing all clarifications
 		else if($postData['type'] == 'clear-clars'){
 			
 			if($contest->isActive()){
@@ -1263,6 +1301,8 @@ class ContestPostController extends Controller {
 			$response = new Response(json_encode([
 				'good' => true,
 			]));
+
+			$contest->updateLeaderboard($grader, $em);
 						
 			$response->headers->set('Content-Type', 'application/json');
 			$response->setStatusCode(Response::HTTP_OK);

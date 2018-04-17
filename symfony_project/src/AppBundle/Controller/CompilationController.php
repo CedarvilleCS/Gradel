@@ -238,7 +238,7 @@ class CompilationController extends Controller {
 		}
 		
 		# RUN THE DOCKER COMPILATION
-		$docker_time_limit = intval(count($problem->testcases) * ceil(floatval($problem->time_limit)/1000.0)) + 8 + rand(1,4);
+		$docker_time_limit = intval(count($problem->testcases) * ceil(floatval($problem->time_limit)/1000.0)) + 120;
 
 		$docker_script = $web_dir."compilation/dockercompiler.sh \"".$docker_options."\" ".$submission->id." ".$docker_time_limit;
 		$docker_output = shell_exec($docker_script);	
@@ -300,10 +300,11 @@ class CompilationController extends Controller {
 			->andWhere($whereClause)
 			->andWhere('s.best_submission = true')
 			->setParameter(1, $problem)
-			->setParameter(2, $teamOrUser);
+			->setParameter(2, $teamOrUser)
+			->orderBy('s.timestamp', 'DESC');
 				
 		$acc_query = $qb_accepted->getQuery();
-		$prev_accepted_sol = $acc_query->getOneOrNullResult();
+		$prev_accepted_sol = $acc_query->getResult()[0];
 		
 		# determine if the new submission is the best one yet
 		if($grader->isAcceptedSubmission($submission, $prev_accepted_sol)){
@@ -628,7 +629,7 @@ class CompilationController extends Controller {
 		}
 		
 		# RUN THE DOCKER COMPILATION
-		$docker_time_limit = intval(count($problem->testcases) * ceil(floatval($problem->time_limit)/1000.0)) + 8 + rand(1,4);
+		$docker_time_limit = intval(count($problem->testcases) * ceil(floatval($problem->time_limit)/1000.0)) + 40;
 
 		$docker_script = $web_dir."compilation/dockercompiler.sh \"".$docker_options."\" ".$submission->id." ".$docker_time_limit;
 		$docker_output = shell_exec($docker_script);	
@@ -681,7 +682,7 @@ class CompilationController extends Controller {
 		}
 		
 		if(isset($sub_dir)){
-			shell_exec("rm -rf ".$sub_dir);
+			//shell_exec("rm -rf ".$sub_dir);
 		}
 		
 		if(isset($uploads_dir)){

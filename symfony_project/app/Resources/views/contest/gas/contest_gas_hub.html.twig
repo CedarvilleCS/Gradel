@@ -1,0 +1,123 @@
+<script>
+
+function onConnectFunction(){
+	requestScoreboard();
+	requestClarifications();
+	requestChecklist();
+} 
+
+function handleMessage(data) {
+      
+    type = data.type;
+    submissionId = data.submissionId;
+    message = data.msg;
+
+    switch(type) {
+
+		case "scoreboard":
+			console.log("SCOREBOARD");          
+					
+			if(typeof updateScoreboard === "function"){
+				updateScoreboard(message);
+			}
+
+			break;
+		
+		case "clarifications":
+			console.log("CLARIFICATIONS");
+
+			if(typeof updateClarifications === "function"){
+				updateClarifications(message);
+			}
+
+			break;
+
+		case "checklist":
+			console.log("CHECKLIST");
+
+			if(typeof updateChecklist === "function"){
+				updateChecklist(message);
+			}
+
+			if(typeof updateProblemNav === "function"){
+				updateProblemNav(message);
+			}
+
+			break;
+
+		case "start":
+			console.log("START");
+
+			requestScoreboard();
+			requestChecklist();  
+
+			break;
+
+		case "freeze":
+			console.log("FREEZE");
+
+			freezeScoreboard();
+
+			break;
+
+		case "unfreeze":
+			console.log("UNFREEZE");
+
+			unfreezeScoreboard();
+
+			break;
+
+		
+		case "clarification":
+			console.log("CLARIFICATION");
+
+			text = message.replace(/\\n/g, "<br/>");
+			toastr.warning(text);
+			
+			break;
+
+		case "refresh":
+			console.log("REFRESH");
+			window.location.reload();
+
+			break;
+			
+		case "delete":
+			console.log("DELETE");
+
+    		text = message.message.replace(/\\n/g, "<br/>");
+					
+			toastr.error("<div styles='display: inline-block'>" + text + "<div>");
+
+			break;
+
+		case "reject":
+			console.log("REJECT");
+
+    		text = message.message.replace(/\\n/g, "<br/>");
+			submissionId = message.id;
+
+			var route = "{{path('problem_result', 'RESULT')}}" + submissionId;
+			
+			toastr.error("<a href='" + route + "'><div styles='display: inline-block'>" + text + "<div></a>");
+
+			break;
+
+		case "accept":
+			console.log("ACCEPT");
+
+    		text = message.message.replace(/\\n/g, "<br/>");
+			submissionId = message.id;
+
+			var route = "{{path('problem_result', 'RESULT')}}" + submissionId;
+
+			toastr.info("<a href='" + route + "'><div styles='display: inline-block'>" + text + "<div></a>");
+
+			break;
+
+		default:
+			break;
+		}
+} 
+
+</script>

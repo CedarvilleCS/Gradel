@@ -81,8 +81,7 @@ class ContestPagesController extends Controller {
 			// if all the contest are past, get the final one
 			if(!$current){
 				$current = $allContests[count($allContests)-1];
-			}
-			
+			}			
 		}
 		// use the round provided
 		else {			
@@ -151,6 +150,8 @@ class ContestPagesController extends Controller {
 					$current->queries->add($qry);
 				}
 
+				$current->updateLeaderboard($grader, $em);
+
 				$em->persist($current);
 				$em->flush();
 
@@ -168,23 +169,7 @@ class ContestPagesController extends Controller {
 		}
 		
 		# GET ALL USERS
-		$qb_user = $em->createQueryBuilder();
-		$qb_user->select('usr')
-			->from('AppBundle\Entity\UserSectionRole', 'usr')
-			->where('usr.section = ?1')
-			->setParameter(1, $section);
-
-		$user_query = $qb_user->getQuery();
-		$usersectionroles = $user_query->getResult();
-
-		$section_takers = [];
-		foreach($usersectionroles as $usr){
-			if($usr->role->role_name == "Takes"){
-				$section_takers[] = $usr->user;
-			} else if($usr->role->role_num == "Judges"){
-				$section_takers[] = $usr->user;
-			}
-		}
+		$section_takers = $section->getAllUsers();
 		
 		return $this->render('contest/hub.html.twig', [
 			'user' => $user,
@@ -197,8 +182,6 @@ class ContestPagesController extends Controller {
 			'user_impersonators' => $section_takers,
 			
 			'current_contest' => $current,
-			
-			'contest_open' => $contest_open,
 			
 			'contests' => $allContests,
 			'elevatedUser' => $elevatedUser,
@@ -417,6 +400,72 @@ class ContestPagesController extends Controller {
 			
 			return $this->returnForbiddenResponse("PERMISSION DENIED");
 		}
+
+		# get the pending submissions
+		$qb_pending = $em->createQueryBuilder();
+		$qb_pending->select('s')
+			->from('AppBundle\Entity\Submission', 's')
+			->where('s.problem IN (?1)')
+			->andWhere('s.pending_status = ?2')
+			->andWhere('s.is_completed = ?3')
+			->orderBy('s.timestamp', 'ASC')
+			->setParameter(1, $current->problems->toArray())
+			->setParameter(2, 0)
+			->setParameter(3, true);
+		$pending_subs = $qb_pending->getQuery()->getResult();
+				
+		$qb_finished = $em->createQueryBuilder();
+		$qb_finished->select('s')
+			->from('AppBundle\Entity\Submission', 's')
+			->where('s.problem IN (?1)')
+			->andWhere('s.pending_status = ?2')
+			->andWhere('s.is_completed = ?3')
+			->andWhere('s.team IS NOT NULL')
+			->orderBy('s.timestamp', 'ASC')
+			->setParameter(1, $current->problems->toArray())
+			->setParameter(2, 2)
+			->setParameter(3, true);
+		$finished_subs = $qb_finished->getQuery()->getResult();
+		
+		# get user's claimed subs
+		$qb_claimed = $em->createQueryBuilder();
+		$qb_claimed->select('s')
+			->from('AppBundle\Entity\Submission', 's')
+			->where('s.problem IN (?1)')
+			->andWhere('s.pending_status = ?2')
+			->andWhere('s.reviewer = ?3')
+			->andWhere('s.is_completed = ?4')
+			->orderBy('s.timestamp', 'ASC')
+			->setParameter(1, $current->problems->toArray())
+			->setParameter(2, 1)
+			->setParameter(3, $user)
+			->setParameter(4, true);
+		$claimed_subs = $qb_claimed->getQuery()->getResult();
+
+		# get the queries for the contest
+		$qb_clars = $em->createQueryBuilder();
+		$qb_clars->select('s')
+			->from('AppBundle\Entity\Query', 's')
+			->where('s.problem IN (?1)')
+			->orWhere('s.assignment IN (?2)')
+			->andWhere('s.answer IS NULL')
+			->orderBy('s.timestamp', 'ASC')
+			->setParameter(1, $current->problems->toArray())
+			->setParameter(2, $current);
+		$clarifications = $qb_clars->getQuery()->getResult();
+		
+		// get the answered queries for the contest
+		$qb_ans = $em->createQueryBuilder();
+		$qb_ans->select('s')
+			->from('AppBundle\Entity\Query', 's')
+			->where('s.problem IN (?1)')
+			->orWhere('s.assignment IN (?2)')
+			->andWhere('s.answer IS NOT NULL')
+			->orderBy('s.timestamp', 'ASC')
+			->setParameter(1, $current->problems->toArray())
+			->setParameter(2, $current);
+		$answered_clarifications = $qb_ans->getQuery()->getResult();
+
 		
 		return $this->render('contest/judging.html.twig', [
 			'section' => $section,
@@ -430,7 +479,13 @@ class ContestPagesController extends Controller {
 			
 			'contest_open' => true,
 			
-			'pending_submissions' => $pending_submissions,
+			'pending_subs' => $pending_subs,
+			'claimed_subs' => $claimed_subs,
+			'finished_subs' => $finished_subs,
+
+			'pending_clars' => $clarifications,
+			'finished_clars' => $answered_clarifications,
+
 
 			'section_takers' => $section_takers,
 			'section_judges' => $section_judges,

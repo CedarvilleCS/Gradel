@@ -16,6 +16,7 @@ use AppBundle\Entity\Submission;
 use AppBundle\Entity\Language;
 use AppBundle\Entity\Feedback;
 use AppBundle\Entity\TestcaseResult;
+use AppBundle\Entity\Query;
 
 use \DateTime;
 
@@ -51,20 +52,22 @@ class SocketPusher  {
   public function sendScoreboardUpdates() {
 
     # SEND TO THE PLEBS    
-    $plebUsers= $this->getUsernamesFromUsers($this->contest->section->getRegularUsers());
-    
-    if(count($plebUsers) >= 1){
-      $plebInfo = [
-        'type' => 'scoreboard',
-        'recipients' => $plebUsers,
-        'msg' => $this->contest->leaderboard->getJSONBoard(),
-        'passKey' => 'gradeldb251',
-        'contestId' => $this->contest->id,
-      ];
+    if(!$this->contest->isFrozen()){
 
-      $this->pusher->push($plebInfo, 'appbundle_topic', ['username'=>'user1']);
+      $plebUsers= $this->getUsernamesFromUsers($this->contest->section->getRegularUsers());
+      
+      if(count($plebUsers) >= 1){
+        $plebInfo = [
+          'type' => 'scoreboard',
+          'recipients' => $plebUsers,
+          'msg' => $this->contest->leaderboard->getJSONBoard(),
+          'passKey' => 'gradeldb251',
+          'contestId' => $this->contest->id,
+        ];
+
+        $this->pusher->push($plebInfo, 'appbundle_topic', ['username'=>'user1']);
+      }
     }
-    
 
     # SEND TO THE KINGS     
     $kingUsers = $this->getUsernamesFromUsers($this->contest->section->getElevatedUsers());
@@ -82,9 +85,92 @@ class SocketPusher  {
       $this->pusher->push($elevatedInfo, 'appbundle_topic', ['username'=>'user1']);
     }
   }
-  
+
+  // sends clarification to judges for answering
+  public function sendNewClarification($query) {
+        
+    // list of people to send the clarification too
+    $judges = $this->getUsernamesFromUsers($this->contest->section->getJudgeUsers());
+
+    $newClarInfo = [
+      'type' => 'new-clarification',
+      'recipients' => $judges,
+      'msg' => json_encode($query),
+      'passKey' => 'gradeldb251',
+      'contestId' => $this->contest->id,
+    ];
+
+    $this->pusher->push($newClarInfo, 'appbundle_topic', ['username'=>'user1']); 
+  }
+
+  // sends submissions to the judges for grading 
+  public function sendNewSubmission($submission) {
+        
+    // list of people to send the clarification too
+    $judges = $this->getUsernamesFromUsers($this->contest->section->getJudgeUsers());
+
+    $newSubInfo = [
+      'type' => 'new-submission',
+      'recipients' => $judges,
+      'msg' => json_encode($submission),
+      'passKey' => 'gradeldb251',
+      'contestId' => $this->contest->id,
+    ];
+
+    $this->pusher->push($newSubInfo, 'appbundle_topic', ['username'=>'user1']); 
+  }
+
+  public function sendClaimedSubmission($submissionId){
+
+    // list of people to send the clarification too
+    $judges = $this->getUsernamesFromUsers($this->contest->section->getJudgeUsers());
+
+    $claimedSubInfo = [
+      'type' => 'claimed-submission',
+      'recipients' => $judges,
+      'msg' => $submissionId,
+      'passKey' => 'gradeldb251',
+      'contestId' => $this->contest->id,
+    ];
+
+    $this->pusher->push($claimedSubInfo, 'appbundle_topic', ['username'=>'user1']); 
+
+  }
+
+  public function sendGradedSubmission($submission){
+     
+    // list of people to send the clarification too
+     $judges = $this->getUsernamesFromUsers($this->contest->section->getJudgeUsers());
+
+     $gradedSubInfo = [
+       'type' => 'graded-submission',
+       'recipients' => $judges,
+       'msg' => json_encode($submission),
+       'passKey' => 'gradeldb251',
+       'contestId' => $this->contest->id,
+     ];
+ 
+     $this->pusher->push($gradedSubInfo, 'appbundle_topic', ['username'=>'user1']); 
+  }
+
   public function sendClarification($query) {
 
+    // send to the judges
+    // list of people to send the clarification too
+    $judges = $this->getUsernamesFromUsers($this->contest->section->getJudgeUsers());
+
+    $ansClarInfo = [
+      'type' => 'answered-clarification',
+      'recipients' => $judges,
+      'msg' => json_encode($query),
+      'passKey' => 'gradeldb251',
+      'contestId' => $this->contest->id,
+    ];
+
+    $this->pusher->push($ansClarInfo, 'appbundle_topic', ['username'=>'user1']); 
+
+
+    // send to the normal people
     // whether to send this query to everyone
     $global = !isset($query->asker);
     
@@ -110,43 +196,17 @@ class SocketPusher  {
     $this->pusher->push($clarificationInfo, 'appbundle_topic', ['username'=>'user1']);
   }
 
-  public function sendRejection($submission){
+  public function sendResponse($submission, $type){
 
-    $rejectInfo = [
-      'type' => 'reject',
+    $info = [
+      'type' => $type,
       'recipients' => $this->getUsernamesFromTeam($submission->team),
-      'msg' => $this->buildRejection($submission),
+      'msg' => $this->buildResponse($submission, $type),
       'passKey' => 'gradeldb251',
       'contestId' => $this->contest->id,
     ];
 
-    $this->pusher->push($rejectInfo, 'appbundle_topic', ['username'=>'user1']);
-  }
-
-  public function sendAcceptance($submission){
-
-    $acceptanceInfo = [
-      'type' => 'accept',
-      'recipients' => $this->getUsernamesFromTeam($submission->team),
-      'msg' => $this->buildAcceptance($submission),
-      'passKey' => 'gradeldb251',
-      'contestId' => $this->contest->id,
-    ];
-
-    $this->pusher->push($acceptanceInfo, 'appbundle_topic', ['username'=>'user1']);    
-  }
-
-  public function sendDelete($submission){
-
-    $deleteInfo = [
-      'type' => 'delete',
-      'recipients' => $this->getUsernamesFromTeam($submission->team),
-      'msg' => $this->buildDelete($submission),
-      'passKey' => 'gradeldb251',
-      'contestId' => $this->contest->id,
-    ];
-
-    $this->pusher->push($deleteInfo, 'appbundle_topic', ['username'=>'user1']); 
+    $this->pusher->push($info, 'appbundle_topic', ['username'=>'user1']);
   }
 
   public function sendRefresh(){
@@ -207,22 +267,30 @@ class SocketPusher  {
     return $names;
   }
 
-	public function buildRejection($submission) {
+  public function buildResponse($submission, $type){
 
+    $id = $submission->id;
+
+    $custom = "";
     if($submission->judge_message && $submission->judge_message != ""){
-      $custom = " \\nJudge Message: " . htmlspecialchars($submission->judge_message);
+      $custom = "\\nJudge Message: ".htmlspecialchars($submission->judge_message);
     }
 
-		return "Your submission for " . htmlspecialchars($submission->problem->name) . " was <b>incorrect</b>.".$custom;
-	}
+    $result = $submission->getResultString();
+    
+    $message = "Your submission for ".htmlspecialchars($submission->problem->name);
 
-	public function buildAcceptance($submission) {
-		return "Your submission for " . htmlspecialchars($submission->problem->name) . " was <b>correct</b> (Judge Override).";
-	}
+    if($type != "delete"){
+      $message .= " was judged <b>".$result."</b>.".$custom;
+    } else {
+      $message .= " was <b> deleted </b>";
+    }
 
-	public function buildDelete($submission) {
-		return "Your submission for " . htmlspecialchars($submission->problem->name) . " was deleted";
-	}
+    return [
+      'id' => $id,
+      'message' => $message,
+    ];
+  }
 
 	public function buildClarificationMessageFromQuery($query) {
 		return $this->buildClarificationMessage($query->question, $query->answer, $query->problem->name);

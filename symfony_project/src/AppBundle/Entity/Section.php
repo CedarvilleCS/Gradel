@@ -114,13 +114,26 @@ class Section implements JsonSerializable{
 			
 		$users = [];
 
-    foreach($this->user_roles as $usr){
-      if($usr->role->role_name == 'Judges' || $usr->role->role_name == 'Teaches' || $usr->user->hasRole("ROLE_SUPER")){
-        $users[] = $usr->user;
-      }
+		foreach($this->user_roles as $usr){
+			if($usr->role->role_name == 'Judges' || $usr->role->role_name == 'Teaches' || $usr->user->hasRole("ROLE_SUPER")){
+				$users[] = $usr->user;
+			}
 		}
 
 		return $users;  
+	}
+
+	public function getJudgeUsers(){
+
+		$judges = [];
+
+		foreach($this->user_roles as $usr){
+			if($usr->role->role_name == 'Judges'){
+				$judges[] = $usr->user;
+			}
+		}
+
+		return $judges;
 	}
 
 	/**

@@ -86,8 +86,6 @@
 		<div class="parallel-cards">	
 		
 			{{ block('leaderboard_html', 'contest/leaderboard.twig') }}
-			
-			{% if contest_open %}
 				
 			<div class="card" id="problems-card" style="flex-grow: 6; height: max-content;">
 				
@@ -102,14 +100,12 @@
 					</table>
 				</div>
 			</div>
-			
-			{% endif %}
 		
 		</div>
 		
 		
 		
-		<div class="card" style="flex-grow: 8; display: none;" id="clarification-card">
+		<div class="card" style="flex-grow: 8;" id="clarification-card">
 			
 			<div class="btn-close">
 				<h2 style="margin: 0px">Clarifications
@@ -143,9 +139,6 @@
 </body>
 
 {% endblock %}
-
-
-
 
 {% block scripts %}
     
@@ -276,8 +269,8 @@
 				var trHTML = `
 				
 				<tr class="` + problem.submission_status + `" onclick="window.location='{{path('contest_problem', {'contestId': current_contest.section.id, 'roundId': current_contest.id, 'problemId': ''})}}` + problem.id + `'">
-					<td class="name ` + ((i == checklist.length-1) ? 'last-row' : '') + `"><div>` + problem.name + `</div></td>
-					<td class="penalties ` + ((i == checklist.length-1) ? 'last-row' : '') + `"><div>` + problem.penattempt + `</div></td>
+					<td class="name ` + ((i == checklist.length-1) ? 'last-row' : '') + `"><div>` + escapeHTML(problem.name) + `</div></td>
+					<td class="penalties ` + ((i == checklist.length-1) ? 'last-row' : '') + `"><div>` + escapeHTML(problem.penattempt) + `</div></td>
 					<td class="checkbox ` + ((i == checklist.length-1) ? 'last-row' : '') + `" style="text-align: right; padding-right: 25px">
 					` + ((problem.submission_status == 'accepted') ? "<div style='color: green'> &#x2713; </div>" : (problem.submission_status == 'attempted') ? "<div style='color: red'> &#x2718; </div>" : "") + `
 					</td>
@@ -286,6 +279,10 @@
 				`;
 
 				$('#problems').append(trHTML);
+			}
+
+			if(checklist.length == 0){
+				$('#problems').append('<tr class="unattempted"> <td class="name last-row"><div> Problems are not available </div></td></tr>');
 			}
 		
 		}
@@ -323,13 +320,6 @@
 			
 			
 			$('#questionsCard').html(clarHTML);
-			
-			if(clarifications.length > 0){
-				$('#clarification-card').show();
-			} else {
-				$('#clarification-card').hide();
-			}
-			
 		}
 			
 		function postClarification(){
@@ -372,7 +362,8 @@
 		
 
 	</script>
-	{{ include('contest/contest_gas.html.twig') }}
+	{{ include('contest/gas/contest_gas.html.twig') }}
+	{{ include('contest/gas/contest_gas_hub.html.twig') }}
 
 {% endblock %}
 

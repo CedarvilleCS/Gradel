@@ -32,7 +32,7 @@
 	<section id="main">	
 		<div class="card">
 			<div style="display: flex; flex-direction: column; justify-content: flex-start">
-				<h1 title="{{(submission.team) ? submission.team.getMemberString() : submission.user.getFullName()}}" style="font-size: 2em; margin: 0px">{{(submission.team) ? submission.team.name : submission.user.getFullName()}}</h1>
+				<h1 title="{{(submission.team) ? submission.team.getMemberString() : submission.user.getFullName()}}" style="font-size: 2em; margin: 0px">Team: {{(submission.team) ? submission.team.name : submission.user.getFullName()}}</h1>
 				<h2 style="margin: 0px">{{submission.problem.name}}</h2>
 				
 				{% if elevatedUser %}
@@ -53,7 +53,9 @@
 			</div>
 			
 			<div id="submissionOverview" class="card-contents">
-				<h3 style="margin-top: 2px; margin-bottom: 2px">
+				<h3 style="margin-top: 2px; margin-bottom: 2px; {{(submission.isCorrect()) ? 'color: green;' : 'color: red;'}}">
+
+					
 					RESULT: <span> {{submission.getResultString()}} </span>
 						
 					{% if submission.judge_message %}
@@ -456,7 +458,7 @@
 				
 				if(data['reviewed'] != null){						
 
-					window.location = "{{path('contest_judging', {'contestId': current_contest.section.id, 'roundId': current_contest.id})}}";
+					window.location.reload();
 					
 				} else {
 					alert("Error reviewing submission");						
@@ -515,7 +517,8 @@
 	}
 	
 	</script>
-	{{ include('contest/contest_gas.html.twig') }}
+	{{ include('contest/gas/contest_gas.html.twig') }}
+	{{ include('contest/gas/contest_gas_normal.html.twig') }}
 
 
 {% endblock %}
