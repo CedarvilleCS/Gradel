@@ -223,7 +223,7 @@ class Submission implements JsonSerializable {
 	public $id;
 
 	/**
-	* @ORM\OneToMany(targetEntity="TestcaseResult", mappedBy="submission", casecase={"persist"}, fetch="EXTRA_LAZY")
+	* @ORM\OneToMany(targetEntity="TestcaseResult", mappedBy="submission", cascade={"persist"}, fetch="EXTRA_LAZY")
 	* @ORM\OrderBy({"testcase" = "ASC"})
 	*/
 	public $testcaseresults;
