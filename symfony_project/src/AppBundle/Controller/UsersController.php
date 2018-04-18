@@ -34,7 +34,7 @@ class UsersController extends Controller {
 	public function usersAction() {
 
 		$em = $this->getDoctrine()->getManager();
-		$usr = $em->getRepository("AppBundle\Entity\UserSectionRole")->findBy([], ['user' => 'ASC']);
+		$usr = $em->getRepository("AppBundle\Entity\User")->findAll();
 		$roles = $em->getRepository("AppBundle\Entity\Role")->findAll();
 
 		$client = $this->get('security.token_storage')->getToken()->getUser();
@@ -53,11 +53,11 @@ class UsersController extends Controller {
 		
 		$userRoles = array();
 		foreach ($usr as $u) {
-			$userRoles[$u->user->id] = array(
-				"username" => $u->user->getUsername(),
-				"first" => $u->user->getFirstName(),
-				"last" => $u->user->getLastName(),
-				"roles" => $u->user->getRoles()
+			$userRoles[$u->id] = array(
+				"username" => $u->getUsername(),
+				"first" => $u->getFirstName(),
+				"last" => $u->getLastName(),
+				"roles" => $u->getRoles()
 			);
 		}
 
