@@ -16,7 +16,7 @@
 			{% if elevatedUser %}
 				<object>
 					<a title="Create assignment" href={{path('assignment_edit', {'sectionId': section.id})}}>
-						<img class="small-icon" id="add-icon" src="{{ asset('add_circle.png') }}">
+						<img class="small-icon" id="add-icon" src="{{ asset('images/add_circle.png') }}">
 					</a>
 				</object>
 			{% endif %}
@@ -58,12 +58,12 @@
 					{% if elevatedUser %}
 						<!--object>
 							<a title="Delete assignment" href="{{path('assignment_delete', {'sectionId': assig.section.id, 'assignmentId': assig.id})}}">
-								<img class="small-icon" id="right-icon" src="{{ asset('whitetrash.png') }}">
+								<img class="small-icon" id="right-icon" src="{{ asset('images/whitetrash.png') }}">
 							</a>
 						</object-->
 						<object>
 							<a title="Edit assignment" href="{{path('assignment_edit', {'sectionId': assig.section.id, 'assignmentId': assig.id})}}">
-								<img class="small-icon" id="right-icon" src="{{ asset('edit.png') }}">
+								<img class="small-icon" id="right-icon" src="{{ asset('images/edit.png') }}">
 							</a>
 
 						</object>
@@ -103,12 +103,12 @@
 						{% if elevatedUser %}
 						<!-- <object>
 							<a title="Delete assignment" href="{{path('assignment_delete', {'sectionId': assig.section.id, 'assignmentId': assig.id})}}">
-								<img class="small-icon" id="right-icon" src="{{ asset('whitetrash.png') }}">
+								<img class="small-icon" id="right-icon" src="{{ asset('images/whitetrash.png') }}">
 							</a>
 						</object> -->
 						<object>
 							<a title="Edit assignment" href="{{path('assignment_edit', {'sectionId': assig.section.id, 'assignmentId': assig.id})}}">
-								<img class="small-icon" src="{{ asset('edit.png') }}">
+								<img class="small-icon" src="{{ asset('images/edit.png') }}">
 							</a>
 
 						</object>

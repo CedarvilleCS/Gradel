@@ -1,14 +1,14 @@
 {% block head %}
 
 <title>Gradel{% if section != null %} | {{section.name}} {% endif %}</title>
-<link rel="icon" type="image/x-icon" href="{{ asset('logo.png') }}" />
+<link rel="icon" type="image/x-icon" href="{{ asset('images/logo.png') }}" />
 {% endblock %}
 
 {% block stylesheets %}
 	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
 
-	<link rel="stylesheet" href="{{ asset('styles.css') }}" />
-	<link rel="stylesheet" href="{{ asset('card.css') }}" />
+	<link rel="stylesheet" href="{{ asset('styles/styles.css') }}" />
+	<link rel="stylesheet" href="{{ asset('styles/card.css') }}" />
 	
 	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
 {% endblock %}
@@ -309,7 +309,7 @@
 				gradesCSV += ", ";
 			{% endfor %}
 				gradesCSV += "Total";
-			gradesCSV += "\n";
+				gradesCSV += "\n";
 			
 			{% for user in section_takers %}
 				var sumTotal = 0;
@@ -318,11 +318,7 @@
 				var i = 0;
 				{% for asgn in section.assignments %}
 					i += 1;
-					var correct = parseFloat("{{grades[user.id][asgn.id]['num_correct_problems']}}");
-					var total = parseFloat("{{grades[user.id][asgn.id]['num_problems']}}");
-					var percent = correct/total * 100;
-
-					sumTotal += percent;
+					const percent = {{this.getAssignmentGrade(user, asgn)}};
 					
 					gradesCSV += percent + ', '; 
 					
@@ -366,7 +362,7 @@
 						var right = parseFloat("{{ grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] }}");
 						var total = parseFloat("{{ grades[user.id][asgn.id]['problem_grades'][problem.id]['total_testcases'] }}");
 						
-						gradesCSV[i] += right + ", " + total + ", " + right/total + ", ";
+						gradesCSV[i] += right + ", " + total + ", " + {{grader.getProblemGrade(user, problem)}} + ", ";
 
 					{% endfor %}
 
@@ -381,16 +377,21 @@
 
 		// Download the CSV of grades when the download button is clicked
 		var download = document.getElementById('download');	
-		download.addEventListener('click', function () {
-			var link = document.getElementById('download');
-			link.href = makeTextFile(generateGradeCSVSection());
-			link.style.display = 'block';
-		}, false);
+		if(download != null){
+			download.addEventListener('click', function () {
+				var link = document.getElementById('download');
+				link.href = makeTextFile(generateGradeCSVSection());
+				link.style.display = 'block';
+			}, false);
+		}
 
 		function downloadAssgnGrades(index, id) {
 			var link = document.getElementById(id);
-			link.href = makeTextFile(generateGradeCSVAssignment(index));
-			link.style.display = 'block';
+
+			if(link != null){
+				link.href = makeTextFile(generateGradeCSVAssignment(index));
+				link.style.display = 'block';
+			}
 		}
 
 		{% endif %}

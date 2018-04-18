@@ -1,6 +1,21 @@
 {% block head %}
 <title>Gradel | Edit Assignment</title>
-<link rel="icon" type="image/x-icon" href="{{ asset('logo.png') }}" />
+<link rel="icon" type="image/x-icon" href="{{ asset('images/logo.png') }}" />
+{% endblock %}
+
+{% block stylesheets %}
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
+	<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/jquery-ui-timepicker-addon@1.6.3/dist/jquery-ui-timepicker-addon.css" />
+	
+    <link rel="stylesheet" href="{{ asset('styles/styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('styles/card.css') }}" />
+	
+	<link rel="stylesheet" href="{{ asset('styles/team-creation.css') }}">
+	<link rel="stylesheet" href="{{ asset('styles/custom-toggle.css') }}">
+
+	<link rel="stylesheet" href="{{ asset('styles/toastr.css')}}">
+	
+	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
 {% endblock %}
 
 
@@ -12,14 +27,22 @@
     {# Left Nav for Assignment Edit #}
 	<nav class="nav-left">
 		<a id="save-btn" class="btn"><div class="btn btn-center">Save</div></a>
+
+		<div class="btn btn-center" id="cancel-btn">Cancel</div>
 		
 		{% if assignment is not null %}
-		<a id="delete-btn" class="btn"><div class="btn btn-center btn-delete">Delete</div></a>
-		
+		<a id="delete-btn" class="btn"><div class="btn btn-center btn-delete">Delete</div></a>		
 		{% endif %}
+		
 		<ol style="padding-top: 0px">
 			<li id="delete-warning" style="padding-top: 0px"></li>
 		</ol>
+
+		{% if assignment is not null %}
+		<a id="subs-btn" class="btn"><div class="btn btn-center btn-delete">Clear Submissions</div></a>	
+		<a id="trials-btn" class="btn"><div class="btn btn-center btn-delete">Clear Saved Code</div></a>		
+		{% endif %}
+
     </nav>
 	
 	{{ include('template/path-nav.html.twig') }}
@@ -138,21 +161,6 @@
 
 {% endblock %}
 
-
-{% block stylesheets %}
-	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
-	<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/jquery-ui-timepicker-addon@1.6.3/dist/jquery-ui-timepicker-addon.css" />
-	
-    <link rel="stylesheet" href="{{ asset('styles.css') }}" />
-    <link rel="stylesheet" href="{{ asset('card.css') }}" />
-	
-	<link rel="stylesheet" href="{{ asset('team-creation.css') }}">
-	<link rel="stylesheet" href="{{ asset('custom-toggle.css') }}">
-	
-	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
-{% endblock %}
-
-
 {% block scripts %}
     <!-- JQuery -->
     <script src="//code.jquery.com/jquery-1.12.4.js"></script>
@@ -161,6 +169,8 @@
 	<script src="//cdn.jsdelivr.net/npm/jquery-ui-timepicker-addon@1.6.3/dist/jquery-ui-sliderAccess.js"></script>
 	<script src="//cdn.jsdelivr.net/npm/jquery-ui-timepicker-addon@1.6.3/dist/jquery-ui-timepicker-addon.js"></script>
 	
+	<script type="text/javascript" src="{{ asset('js/toastr/toastr.js')}}"></script>
+
 	<script src="{{ asset('js/cards.js') }}"></script>		
 	<script src="{{ asset('js/validation.js') }}"></script>
 	
@@ -213,10 +223,67 @@
 			
 				warned++;
 			});
-			{% endif %}			
+
+			$('#subs-btn').on('click', function(){
+
+				$(this).hide();
+						
+				var formData = new FormData();
+				formData.append('assignment', {{assignment.id}});
+								
+				/* AJAX POST */
+				$.ajax({
+					type: "POST",
+					url: "{{path('assignment_clearsubs')}}",
+					data: formData,
+					processData: false,
+					contentType: false,
+					async: true,
+					success: function(data){
+						console.log(data);
+						toastr.info(data.result + " submissions deleted successfully");
+					},
+					error: function(data){
+						console.log(data['responseText']);
+						toastr.warning("Could not delete submissions");
+						$('#subs-btn').show();
+					}
+				});
+
+			});
+
+			$('#trials-btn').on('click', function(){
+
+				$(this).hide();
+						
+				var formData = new FormData();
+				formData.append('assignment', {{assignment.id}});
+								
+				/* AJAX POST */
+				$.ajax({
+					type: "POST",
+					url: "{{path('assignment_cleartrials')}}",
+					data: formData,
+					processData: false,
+					contentType: false,
+					async: true,
+					success: function(data){
+						console.log(data);
+						toastr.info("Saved code deleted successfully");
+					},
+					error: function(data){
+						console.log(data['responseText']);
+						toastr.warning("Saved code could not be deleted");
+						$('#trials-btn').show();
+					}
+				});
+
+			});
+
+			{% endif %}
 			
-			/* Client-Side Field Validation */
 			
+			/* Client-Side Field Validation */			
 			$('#save-btn').on('click', function(){
 				
 				$('#delete-warning').html("");
@@ -242,7 +309,7 @@
 				
 				// weight
 				var wght = new Number($('#weight').val());
-				if($('#weight').val() === '' || ($('#weight').val() != '' && (wght < 1 || wght % 1 != 0))){						
+				if($('#weight').val() === '' || ($('#weight').val() != '' && (wght < 0 || wght % 1 != 0))){						
 					setInvalid($('#weight'));
 					$('#delete-warning').append("Weight must be a positive integer<br><br>");
 					return false;
@@ -315,6 +382,10 @@
 					alert(data["responseText"]);					
 					$('#save-btn').prop('disabled', false);				
 				});				
+			});
+
+			$('#cancel-btn').click(() => {
+				window.history.back();
 			});
 		});
 
@@ -522,7 +593,7 @@
 			$('.team #team-name').hide();
 		}	
 	}
-	
+
 	</script>
 		
 		

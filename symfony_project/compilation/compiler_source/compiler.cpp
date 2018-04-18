@@ -39,7 +39,7 @@ compile_info compile_code(string language, string compiler_options, string filen
 		string java_file_path = java_file_name + ".java";
 		
 		compiled_filename = "compiled_code/" + java_file_name + ".class";
-		program_name = "java -cp compiled_code " + java_file_name;
+		program_name = "java -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=1 -cp compiled_code " + java_file_name;
 		
 		// move into the directory for java to handle packages
 		compile_cmd = "cd student_code/ && javac " + compiler_options + " -d ../compiled_code/ " + java_file_path + " 2>&1 && cd ../";

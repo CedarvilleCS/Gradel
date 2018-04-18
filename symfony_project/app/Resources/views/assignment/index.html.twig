@@ -3,19 +3,19 @@
 
 {% block head %}
 	<title>Gradel {% if problem != null %} | {{problem.assignment.name}} {% endif %}</title>
-	<link rel="icon" type="image/x-icon" href="{{ asset('logo.png') }}" />
+	<link rel="icon" type="image/x-icon" href="{{ asset('images/logo.png') }}" />
 {% endblock %}
 
 {% block stylesheets %}
 	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
 	
-    <link rel="stylesheet" href="{{ asset('styles.css') }}" />
-    <link rel="stylesheet" href="{{ asset('card.css') }}" />
+    <link rel="stylesheet" href="{{ asset('styles/styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('styles/card.css') }}" />
 	
-    <link rel="stylesheet" href="{{ asset('submit.css') }}" />
-    <link rel="stylesheet" href="{{ asset('sessions.css') }}" />
+    <link rel="stylesheet" href="{{ asset('styles/submit.css') }}" />
+    <link rel="stylesheet" href="{{ asset('styles/sessions.css') }}" />
 	
-    <link rel="stylesheet" href="{{ asset('markdown-styles.css') }}" />
+    {# <link rel="stylesheet" href="{{ asset('styles/markdown-styles/styles.css') }}" /> #}
 
 	<style>
 		#submissionButton:hover {
@@ -100,7 +100,7 @@
 							<input type="file" accept=".zip,.c,.cpp,.java,.php,.py" name="file" id="file" value="Upload File" style="width: 180px">
 						</form>
 						{% endif %}
-
+						
 					</div>
 					
 					{# Language selection and hidden field to submit ACE contents #}
@@ -116,12 +116,18 @@
 						<div id="mainClassInput" style="display:none"><label for="main_class">Main Class: </label><input type="text" name="main_class" id="main_class_input" value="{{(trial) ? trial.main_class}}"></div>
 						<br/>
 						<input type="hidden" name="ACE" id="ACE">
+
 						<div style="display: flex; flex-direction: row; justify-content: space-between; width: 100%">
 							<div class="btn" style="width: 100px" id="submissionButton"> Submit </div>
 							<!--<div class="btn" style="width: 70px; font-size: 0.7em; line-height: 14px; background: red; cursor: pointer" id="clearButton"> Reset Code </div>-->
+							{# Download the text from the ACE editor #}
+							<a id="download" download="code.cpp" onclick="downloadACECode();">
+								<div class="btn" style="width: 150px;">Download File</div>
+							</a>
 						</div>
+
 						<div id="loading-container" style="display: none">
-							<img id="loadingGif" style="height: 60px" src="{{asset('beoload.gif')}}" alt="Loading..."/>
+							<img id="loadingGif" style="height: 60px" src="{{asset('images/beoload.gif')}}" alt="Loading..."/>
 							<h3 style="margin: 0px"> Submitting Code... </h3>
 						</div>
 					</div>
@@ -196,11 +202,10 @@
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 	<script src="{{ asset('js/unicode_return.js') }}" type="text/javascript" charset="utf-8"></script>
-    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 	
 	<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
 	
-	<script src="{{ asset('src-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>
+	<script src="{{ asset('js/src-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>
 	
 	<script src="{{ asset('js/validation.js') }}"></script>
 		
@@ -213,7 +218,7 @@
 	<script>
 	
 		var languages = JSON.parse("{{languages|json_encode|e('js')}}");
-		{#var default_code = JSON.parse('{{ default_code|json_encode|e('js') }}');#}
+		
 		var ace_modes = JSON.parse('{{ ace_modes|json_encode|e('js') }}');
 		var onloadValue = [];
 
@@ -477,7 +482,8 @@
 		});
 		{% endif %}
 
-		$('#submissionButton').click( function() {			
+		$('#submissionButton').click( function() {	
+			$('#download').hide();
 			updateTrial("submit");			
 		});
 				

@@ -492,11 +492,14 @@ class SectionController extends Controller {
 		$students = array_unique(json_decode($postData['students']));
 
 		foreach ($students as $student) {
-
-				if (!filter_var($student, FILTER_VALIDATE_EMAIL)) {
-					return $this->returnForbiddenResponse("Provided student email address ".$student." is not valid");
-				}
+			if (!filter_var($student, FILTER_VALIDATE_EMAIL)) {
+				return $this->returnForbiddenResponse("Provided student email address ".$student." is not valid");
 			}
+
+			if (in_array($student, $teachers)) {
+				return $this->returnForbiddenResponse("Cannot add " . $student . " as a student. He/she already teaches this section!");
+			}
+		}
 
 		# vallidate teacher csv
 		$teachers = array_unique(json_decode($postData['teachers']));
@@ -506,8 +509,13 @@ class SectionController extends Controller {
 			if(!filter_var($teacher, FILTER_VALIDATE_EMAIL)) {
 				return $this->returnForbiddenResponse("Provided teacher email address ".$teacher." is not valid");
 			}
+
+			if (in_array($teacher, $students)) {
+				return $this->returnForbiddenResponse("Cannot add " .$teacher . "as a student. He/she already teaches this section!");
+			}
 		}
 
+		$oldUsers = [];
 
 		if($postData['section'] == 0 && count(json_decode($postData['teachers'])) == 0){
 
@@ -520,6 +528,8 @@ class SectionController extends Controller {
 
 			foreach($section->user_roles as $ur){
 				$em->remove($ur);
+
+				$oldUsers[$ur->user->id] = $ur->user;
 			}
 
 			$em->flush();
@@ -533,6 +543,8 @@ class SectionController extends Controller {
 			if (!filter_var($student, FILTER_VALIDATE_EMAIL)) {
 				return $this->returnForbiddenResponse("Provided student email address ".$student." is not valid");
 			}
+			
+			
 
 			$stud_user = $em->getRepository('AppBundle\Entity\User')->findOneBy(array('email' => $student));
 
@@ -543,6 +555,8 @@ class SectionController extends Controller {
 
 			$usr = new UserSectionRole($stud_user, $section, $takes_role);
 			$em->persist($usr);
+
+			unset($oldUsers[$stud_user->id]);
 		}
 
 		# add the teachers from the teachers array
@@ -554,16 +568,41 @@ class SectionController extends Controller {
 				return $this->returnForbiddenResponse("Provided teacher email address ".$teacher." is not valid");
 			}
 
+
+
 			$teach_user = $em->getRepository('AppBundle\Entity\User')->findOneBy(array('email'=>$teacher));
 
 			if(!$teach_user){
 				return $this->returnForbiddenResponse("Teacher with email ".$teacher." does not exist!");
 			}
 
+			if ($grader->isTaking($teach_user, $section)) {
+				return $this->returnForbiddenResponse($student . " is already teaching this course!");
+			}
+
 			$usr = new UserSectionRole($teach_user, $section, $teaches_role);
 			$em->persist($usr);
+
+			unset($oldUsers[$stud_user->id]);
 		}
 
+
+		foreach($oldUsers as $oldUser){
+
+			foreach($section->assignments as $asgn){
+				foreach($asgn->teams as &$team){	
+
+					$team->users->removeElement($oldUser);
+
+					if($team->users->count() == 0){
+						$em->remove($team);
+					} else {
+						$em->persist($team);
+					}
+				}
+			}
+
+		}
 
 		$em->flush();
 

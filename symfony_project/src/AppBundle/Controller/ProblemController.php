@@ -78,16 +78,12 @@ class ProblemController extends Controller {
 			}
 		}
 		
-		$default_code = [];
 		$ace_modes = [];
 		$filetypes = [];
 		foreach($languages as $l){
 			
 			$ace_modes[$l->name] = $l->ace_mode;
 			$filetypes[str_replace(".", "", $l->filetype)] = $l->name;
-			
-			// either get the default code from the problem or from the overall default
-			$default_code[$l->name] = $l->deblobinateDefaultCode();
 		}
 		
 		$recommendedSlaves = [];
@@ -99,10 +95,11 @@ class ProblemController extends Controller {
 			'assignment' => $assignment,
 			'problem' => $problem,
 			
-			'default_code' => $default_code,
 			'ace_modes' => $ace_modes,
 			'filetypes' => $filetypes,
-				
+			
+			'edit_route' => true, 
+
 			'recommendedSlaves' => $recommendedSlaves,
 		]);
     }
@@ -192,8 +189,8 @@ class ProblemController extends Controller {
 
 		} else {
 
-			if(!is_numeric(trim($postData['weight'])) || (int)trim($postData['weight']) < 1){
-				return $this->returnForbiddenResponse("Weight provided is not valid - it must be greater than 0");
+			if(!is_numeric(trim($postData['weight'])) || (int)trim($postData['weight']) < 0){
+				return $this->returnForbiddenResponse("Weight provided is not valid - it must be non-negative");
 			}
 
 			if(!is_numeric(trim($postData['time_limit'])) || (int)trim($postData['time_limit']) < 1){
@@ -562,40 +559,6 @@ class ProblemController extends Controller {
 
 		$grader = new Grader($em);
 		$feedback = $grader->getFeedback($submission);
-		
-		if(!$submission->isCorrect()){
-			
-			$diff_nums = [];
-			
-			foreach($submission->testcaseresults as $tcr){
-				
-				if($tcr->is_correct){
-					
-					$diff_nums[] = -1;
-					
-				} else {
-					
-					$exp = $tcr->testcase->correct_output;
-					$user = $tcr->std_output;
-					$c = strlen($exp);
-					
-					$highlight = -1;
-					for ($e = 0; $e < $c; $e++) {
-						if($user[$e] != $exp[$e]){
-							$highlight_val = $e;
-							break;
-						}
-						
-						if($e == $c-1){
-							$highlight_val = $e+1;
-						}
-					}
-					
-					$diff_nums[] = $highlight_val;
-					
-				}				
-			}		
-		}
 				
 		$ace_mode = $submission->language->ace_mode;
 		
@@ -622,18 +585,15 @@ class ProblemController extends Controller {
 			'assignment' => $submission->problem->assignment,
 			'problem' => $submission->problem,
 			'submission' => $submission,
-			
-			'submission_contents' => $submission->getSubmissionFileContents(),
-			
+						
 			'user_impersonators' => $section_takers,
 			'grader' => new Grader($em),
 			
 			'result_page' => true,
+			'result_route' => true, 
 			'feedback' => $feedback,
 
-			'ace_mode' => $ace_mode,				
-			
-			'diff_nums' => $diff_nums,
+			'ace_mode' => $ace_mode,
 		]);
 	}
 	

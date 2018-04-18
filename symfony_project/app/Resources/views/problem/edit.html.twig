@@ -1,6 +1,6 @@
 {% block head %}
 <title>Gradel</title>
-<link rel="icon" type="image/x-icon" href="{{ asset('logo.png') }}" />
+<link rel="icon" type="image/x-icon" href="{{ asset('images/logo.png') }}"/>
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 {% endblock %}
@@ -13,6 +13,8 @@
   {# Left Nav Bar #}
   <nav class="nav-left">
 		<div class="btn btn-center" id="save-btn">Save</div>
+
+		<div class="btn btn-center" id="cancel-btn">Cancel</div>
 	  
 		{% if problem is not null %}
 			<a id="delete-btn" class="btn"><div class="btn btn-center btn-delete">Delete</div></a>
@@ -56,7 +58,7 @@
 						<div style="display: inline-block; position">
 							<label for="description">Description</label>
 							<a title="Click for a markdown tutorial" target="_blank" href="http://commonmark.org/help/">
-								<img class="info-icon" src="{{ asset('info.png') }}">
+								<img class="info-icon" src="{{ asset('images/info.png') }}">
 							</a>
 						</div>
 						<textarea rows=20 id="description" name="description" class="problem_creation" type="text">{{problem.description}}</textarea>
@@ -275,8 +277,12 @@
 				<p>Enter in a solution for this problem to generate output.</p>
 			
 				{# the ACE editor text area #}
+				<!--
 				<div id="output-generator-editor" class="ace-container"></div>
-				<br/>
+				<br/> 
+				-->
+
+				{{ block('editor_html', 'ace/sessions.twig') }}
 
 				{# file upload#}
 				<form id="output-generator-form" action="{{path('get_contents')}}" method="post">
@@ -299,7 +305,7 @@
 					<br/>
 					<div class="btn" style="width: 300px" id="generator-button"> Generate </div>
 					<div id="generator-loading-container" style="display: none">
-						<img id="generator-loading-gif" style="height: 60px" src="{{asset('beoload.gif')}}" alt="Loading..."/>
+						<img id="generator-loading-gif" style="height: 60px" src="{{asset('images/beoload.gif')}}" alt="Loading..."/>
 						<h3 style="margin: 0px"> Generating Output... </h3>
 					</div>
 				</div>
@@ -321,14 +327,18 @@
 	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
 	
-    <link rel="stylesheet" href="{{ asset('styles.css') }}" />
-    <link rel="stylesheet" href="{{ asset('card.css') }}" />
-    <link rel="stylesheet" href="{{ asset('custom-toggle.css') }}" />
-    <link rel="stylesheet" href="{{ asset('problem-creation.css') }}" />
+    <link rel="stylesheet" href="{{ asset('styles/styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('styles/card.css') }}" />
+
+    <link rel="stylesheet" href="{{ asset('styles/submit.css') }}" />
+    <link rel="stylesheet" href="{{ asset('styles/sessions.css') }}" />
+
+    <link rel="stylesheet" href="{{ asset('styles/custom-toggle.css') }}" />
+    <link rel="stylesheet" href="{{ asset('styles/problem-creation.css') }}" />
 	
 	<style type="text/css">
 		.testCardAdder:hover {
-			background: url("{{asset('testcase-blur-grbg.png')}}") no-repeat;
+			background: url("{{asset('images/testcase-blur-grbg.png')}}") no-repeat;
 			background-size: 100% 100%;
 			background-position: center center;
 		}
@@ -341,13 +351,22 @@
   <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
   <script src="http://malsup.github.com/jquery.form.js"></script>
   
-  <script src="{{ asset('src-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>	
+  <script src="{{ asset('js/src-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>	
   
   <script src="{{ asset('js/cards.js') }}"></script>	
   <script src="{{ asset('js/validation.js') }}"></script>
   
   
   <script>
+
+	var languages = JSON.parse("{{languages|json_encode|e('js')}}");
+	var ace_modes = JSON.parse('{{ ace_modes|json_encode|e('js') }}');
+	var onloadValue = [];
+
+
+	{{ block('editor_javascript', 'ace/sessions.twig') }}
+
+
 	/* OUTPUT GENERATOR FUNCTIONS */
 	var saved_code = "";
 
@@ -403,9 +422,8 @@
 			}
 		}
 
-		var editor = ace.edit("output-generator-editor");
-		editor.$blockScrolling = Infinity;
-		updateAceCode();
+		
+		{{ block('editor_setlanguage', 'ace/sessions.twig') }}
 
 		// toggle the java inputs
 		var ext = getExtension($('#output-generator-form #file').val());
@@ -424,27 +442,6 @@
 			document.getElementById('mainClassInput').style.display = 'block';
 			document.getElementById('packgNameInput').style.display = 'block';
 		}
-	}
-
-	function updateAceCode(){
-
-		var default_code = JSON.parse('{{ default_code|json_encode|replace({'\\':'\\\\'})|raw }}');
-		var ace_modes = JSON.parse('{{ ace_modes|json_encode|raw }}');
-
-		var editor = ace.edit("output-generator-editor");
-		editor.$blockScrolling = Infinity;
-		
-		language = $('#languageSelect option:selected').text();
-		
-		if(saved_code !== editor.getValue()) {
-			editor.setValue(editor.getValue(), -1);
-		} else {
-			// This sets the default code for the selected language.
-			editor.setValue(default_code[language], -1);
-			saved_code = default_code[language];
-		}
-		editor.getSession().setMode("ace/mode/" + ace_modes[language]);
-		editor.resize(true);
 	}
 
   </script>
@@ -486,26 +483,19 @@
 			if($(this).is(':checked') ){
 				validatorEditor.$blockScrolling = Infinity;
 				validatorEditor.setTheme("ace/theme/xcode");
+				validatorEditor.container.style.pointerEvents = "auto";
+				validatorEditor.container.style.opacity = 1;
+				validatorEditor.renderer.setStyle("disabled", false);
 			} else{				
 				validatorEditor.$blockScrolling = Infinity;
-				validatorEditor.setTheme("ace/theme/solarized_dark");
+
+				validatorEditor.container.style.pointerEvents="none"
+				validatorEditor.container.style.opacity=0.5 // or use svg filter to make it gray
+				validatorEditor.renderer.setStyle("disabled", true)
+				validatorEditor.blur()
 			}
 		});		
 		$('#use-custom').change();
-		
-		/* OUTPUT GENERATOR ACE EDITOR */
-		
-		var generatorEditor = ace.edit("output-generator-editor");
-		generatorEditor.$blockScrolling = Infinity;
-		generatorEditor.setTheme("ace/theme/xcode");
-		generatorEditor.resize();
-				
-		// make the language dropdown change affect the code
-		$('#languageSelect').change( function(data) {
-			var language = $('#languageSelect option:selected').text();
-			setLanguage(language);
-		});
-		$('#languageSelect').change();
 		
 		$('#output-generator-form').submit(function(e) {
 				
@@ -520,15 +510,11 @@
 				success:		function(responseText, statusText, xhr, $form) {
 					
 					var file = responseText['files'][0];
+
+					{{ block('editor_onsubmission', 'ace/sessions.twig') }}	
 			
 					console.log(responseText);
 					setLanguageFromFilename(file['name']);
-					
-					var editor = ace.edit("output-generator-editor");
-					editor.$blockScrolling = Infinity;
-					editor.setValue(atob(file['contents']));
-					
-					updateAceCode();		
 									
 				},
 				error:			function(xhr, textStatus, errorThrown) {
@@ -708,7 +694,7 @@
 			
 			// weight
 			var wght = new Number($('#requiredFields #weight').val());
-			if($('#requiredFields #weight').val() === '' || ($('#requiredFields #weight').val() != '' && (wght < 1 || wght % 1 != 0))){						
+			if($('#requiredFields #weight').val() === '' || ($('#requiredFields #weight').val() != '' && (wght < 0 || wght % 1 != 0))){						
 				setInvalid($('#requiredFields #weight'));
 				return false;
 			} else {
@@ -777,7 +763,7 @@
 					setValid($(this).find('.output'));
 				}
 				
-				if(weight < 1 || weight % 1 != 0){
+				if(weight < 0 || weight % 1 != 0){
 					setInvalid($(this).find('.weight'));
 					testcases_valid = false;
 				} else {
@@ -799,6 +785,10 @@
 			/* Post the Problem */
 			newProb();		
 		
+		});
+
+		$('#cancel-btn').click(() => {
+			window.history.back();
 		});
 		
 		/* allow tabs in textareas */
@@ -837,6 +827,12 @@
 
 	});
 
+	// make the language dropdown change affect the code
+	$('#languageSelect').change( function(data) {
+
+		var language = $('#languageSelect option:selected').text();
+		setLanguage(language);
+	});
 
     function addTestCase(input, args, output, weight, extraCredit, short, long) {
 		
@@ -852,7 +848,7 @@
 				<h2 style="margin: 0px">`+formalName+`</h2>
 				<object>
 						<a title="Delete assignment" id="closeButton" onclick="deleteTestCase(&quot;`+div_name+`&quot;)")}}">
-							<img class="test_case_delete" id="right-icon" src="{{ asset('trash.png') }}">
+							<img class="test_case_delete" id="right-icon" src="{{ asset('images/trash.png') }}">
 						</a>
 				</object>
 			</div>
@@ -950,7 +946,7 @@
 		addTestCardButton.addClass('testcase-card');
 		addTestCardButton.addClass('card');
 		addTestCardButton.addClass('testCardAdder');
-		addTestCardButton.append('<img id="add-button" src="{{asset('big_add_circle.png')}}">');
+		addTestCardButton.append('<img id="add-button" src="{{asset('images/big_add_circle.png')}}">');
 		
 		addTestCardButton.click(function() {
 			addTestCase();
@@ -1129,26 +1125,17 @@
 			package_name = "";
 		}
 		setValid($('#main_class_input'));
-
-		var editor = ace.edit("output-generator-editor");
-		editor.$blockScrolling = Infinity;				
-		
-		var generatorText = editor.getValue();
 		
 		submitData.append('assignmentId', {{(problem ? problem.assignment.id : assignment.id)}}),
 
 		submitData.append('language', language);
 		submitData.append('main_class', main_class);
 		submitData.append('package_name', package_name);
-		submitData.append('ACE', generatorText);
 
-		if(getExtension($('#output-generator-form #file').val()) == "zip"){
-
-			var file = $('#output-generator-form #file').prop('files')[0];
-			if(file){
-				submitData.append('file', file);
-			}
-		}
+		// loop through the editors
+		var ACE = [];
+		{{ block('editor_storecontentsinace', 'ace/sessions.twig') }}		
+		submitData.append('ACE', JSON.stringify(ACE));
 		
 		/* build the testcase array */
 		var testcases = document.getElementsByClassName("test-case");
@@ -1177,11 +1164,9 @@
 				console.log(data);
 				
 				// save the testcase data to the output textboxes
-				count = 0;
-				$(".test-case").each(function() {
+				$(".test-case").each(function(index) {
 					
-					$(this).find('.output').val(data['testcases'][count]);
-					count++;		
+					$(this).find('.output').val(data['testcases'][index]);	
 				});
 				
 				$('#generator-loading-container').hide();
@@ -1247,7 +1232,7 @@
 		formData.append('custom_validator', customValidatorText);
 		
 		const children = $("#language-container .language-tab");
-		languages = [];
+		var languagesSubmit = [];
 
 		for (var i = 0; i < children.length; i++) {
 			
@@ -1259,7 +1244,7 @@
 			
 			const lang = {"id": id, "compiler_options": comp_options, "default_code": ""};
 
-			languages.push(lang);	
+			languagesSubmit.push(lang);	
 
 			if(def_code_file == null){
 				console.log(i);
@@ -1269,7 +1254,7 @@
 		}
 
 		console.log(languages);
-		formData.append('languages', JSON.stringify(languages));
+		formData.append('languages', JSON.stringify(languagesSubmit));
 
 		/* build the testcase array */
 		var testcases = document.getElementsByClassName("test-case");

@@ -74,6 +74,7 @@ class Submission implements JsonSerializable {
 		#this->submitted_file
 		#this->log_directory
 		#this->filename2
+		$this->main_class_name = "";
 		$this->package_name = "";
 		#this->compiler_output
 		$this->compiler_error = false;
@@ -129,9 +130,22 @@ class Submission implements JsonSerializable {
 	
 	public function getResultString(){
 
-		if($this->isCorrect()){
+		if($this->pending_status < 2){
+			return "Pending";
+		}
+		// if it passes all the testcases		
+		else if($this->isCorrect(true)){
+			
+			if($this->wrong_override){
+				return "Incorrect - Judge Overriden";
+			}
+
 			return "Correct";
-		} 
+		}
+		// if it didn't pass all testcases
+		else if($this->correct_override){
+			return "Correct - Judge Overriden";
+		}
 		else if($this->compiler_error) {
 			return "Incorrect - Compiler Error";
 		} 
@@ -141,8 +155,11 @@ class Submission implements JsonSerializable {
 		else if($this->exceeded_time_limit) {
 			return "Incorrect - Exceeded Time Limit";
 		}
-		else {
+		else if($this->judge_message == null){
 			return "Incorrect - Wrong Answer";
+		} 
+		else {
+			return "Incorrect";
 		}
 	}
 
@@ -151,8 +168,8 @@ class Submission implements JsonSerializable {
 		return $this->compiler_error || $this->runtime_error || $this->exceeded_time_limit;		
 	}
 	
-	public function isCorrect($raw){
-		
+	public function isCorrect($raw = false){		
+
 		$tcs = 0;
 		$passed_tcs = 0;
 		
@@ -165,7 +182,7 @@ class Submission implements JsonSerializable {
 			}			
 		}
 		
-		if(isset($raw) && !$raw){
+		if($raw != true){
 			
 			if($this->correct_override) return true;		
 			if($this->wrong_override) return false;
@@ -178,6 +195,26 @@ class Submission implements JsonSerializable {
 		return $passed_tcs == $tcs;
 	}
 
+	# clone method override
+	public function __clone(){
+		
+		if($this->id){
+			$this->id = null;
+			
+			# clone the testcases
+			$testcaseresultsClone = new ArrayCollection();
+			
+			foreach($this->testcaseresults as $testcaseresult){
+				$testcaseresultClone = clone $testcaseresult;
+
+				$testcaseresultClone->submission = $this;				
+				$testcaseresultsClone->add($testcaseresultClone);
+			}
+			$this->testcaseresults = $testcaseresultsClone;
+		}
+		
+	}
+
 	/**
 	*@ORM\Column(type="integer")
 	*@ORM\Id
@@ -186,7 +223,7 @@ class Submission implements JsonSerializable {
 	public $id;
 
 	/**
-	* @ORM\OneToMany(targetEntity="TestcaseResult", mappedBy="submission", fetch="EXTRA_LAZY")
+	* @ORM\OneToMany(targetEntity="TestcaseResult", mappedBy="submission", casecase={"persist"}, fetch="EXTRA_LAZY")
 	* @ORM\OrderBy({"testcase" = "ASC"})
 	*/
 	public $testcaseresults;
@@ -379,16 +416,18 @@ class Submission implements JsonSerializable {
 	
 	
 	public function jsonSerialize(){
+
 		return [
 			'id' => $this->id,
 			
-			'team' => ($this->team) ? $this->team : ["name" => "NO TEAM"],
+			'team' => ($this->team) ? $this->team : ["name" => "NO TEAM", "member_string" => $this->user->getFullName()],
 			'user' => $this->user,
 						
 			'problem' => [ 
 				'id'=>$this->problem->id,
 				'name'=>$this->problem->name,
 				'assignment'=>$this->problem->assignment,
+				'testcases'=>$this->problem->testcases->toArray(),
 			],
 
 			'timestamp' => $this->timestamp,
@@ -403,6 +442,8 @@ class Submission implements JsonSerializable {
 			'language' => $this->language,
 
 			'reviewer' => $this->reviewer,
+
+			'testcaseresults' => $this->testcaseresults->toArray(),
 		];
 	}
 	
