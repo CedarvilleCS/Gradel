@@ -34,6 +34,8 @@
     <nav class="nav-left">
 		<a id="save-btn" class="btn"><div class="btn btn-center">Save</div></a>
 
+		<a id="cancel-btn" class="btn"><div class="btn btn-center">Cancel</div></a>
+
 		{% if section is not null %}
 		<a id="delete-btn" class="btn"><div class="btn btn-center btn-delete">{% if section.is_deleted %} Reinstate {% else %} Delete {% endif %}</div></a>
 
@@ -797,6 +799,10 @@
 			}
 		});
 	});
+
+	$('#cancel-btn').on('click', () => {
+		window.history.back();
+	})
 
 	</script>
 
