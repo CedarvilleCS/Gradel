@@ -27,6 +27,8 @@
     {# Left Nav for Assignment Edit #}
 	<nav class="nav-left">
 		<a id="save-btn" class="btn"><div class="btn btn-center">Save</div></a>
+
+		<div class="btn btn-center" id="cancel-btn">Cancel</div>
 		
 		{% if assignment is not null %}
 		<a id="delete-btn" class="btn"><div class="btn btn-center btn-delete">Delete</div></a>		
@@ -380,6 +382,10 @@
 					alert(data["responseText"]);					
 					$('#save-btn').prop('disabled', false);				
 				});				
+			});
+
+			$('#cancel-btn').click(() => {
+				window.history.back();
 			});
 		});
 

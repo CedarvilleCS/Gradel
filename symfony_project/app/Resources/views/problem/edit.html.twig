@@ -13,6 +13,8 @@
   {# Left Nav Bar #}
   <nav class="nav-left">
 		<div class="btn btn-center" id="save-btn">Save</div>
+
+		<div class="btn btn-center" id="cancel-btn">Cancel</div>
 	  
 		{% if problem is not null %}
 			<a id="delete-btn" class="btn"><div class="btn btn-center btn-delete">Delete</div></a>
@@ -783,6 +785,10 @@
 			/* Post the Problem */
 			newProb();		
 		
+		});
+
+		$('#cancel-btn').click(() => {
+			window.history.back();
 		});
 		
 		/* allow tabs in textareas */
