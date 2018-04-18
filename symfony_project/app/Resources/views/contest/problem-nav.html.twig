@@ -59,7 +59,7 @@
 				{% if elevatedUser %}
 				<object>
 					<a title="Create problem" href="{{path('contest_problem_edit', {'contestId': current_contest.section.id, 'roundId': current_contest.id})}}">
-						<img class="small-icon" id="add-icon" src="{{asset('add_circle.png')}}">
+						<img class="small-icon" id="add-icon" src="{{asset('images/add_circle.png')}}">
 					</a>
 				</object>			
 				{% endif %}
@@ -88,7 +88,7 @@
 					{% if elevatedUser %}
 						<object>
 							<a title="Edit problem" href="{{path('contest_problem_edit', {'contestId': prob.assignment.section.id, 'roundId': prob.assignment.id, 'problemId': prob.id})}}">
-								<img class="small-icon" id="right-icon" src="{{ asset('edit.png') }}">
+								<img class="small-icon" id="right-icon" src="{{ asset('images/edit.png') }}">
 							</a>
 						</object>
 					{% endif %}

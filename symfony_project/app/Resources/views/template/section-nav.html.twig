@@ -18,7 +18,7 @@
 			<object>
 				{# figure out a way to switch it around if it is a contest section #}
 				<a title="Create Section" href={{path('section_edit')}}>
-					<img class="small-icon" id="add-icon" src="{{ asset('add_circle.png') }}">
+					<img class="small-icon" id="add-icon" src="{{ asset('images/add_circle.png') }}">
 				</a>
 			</object>
 		{% endif %}
@@ -68,7 +68,7 @@
 					{% if app.user in section_teachers or is_granted("ROLE_SUPER") %}
 						<object>
 							<a title="Edit Section" href="{{path('section_edit', {'sectionId': section.id})}}">
-								<img class="small-icon" id="right-icon" src="{{ asset('edit.png') }}">
+								<img class="small-icon" id="right-icon" src="{{ asset('images/edit.png') }}">
 							</a>
 
 						</object>
@@ -95,7 +95,7 @@
 					</span>
 					<object>
 						<a title="Edit Section" href="{{path('section_edit', {'sectionId': section.id})}}">
-							<img class="small-icon" id="right-icon" src="{{ asset('edit.png') }}">
+							<img class="small-icon" id="right-icon" src="{{ asset('images/edit.png') }}">
 						</a>
 					</object>
 

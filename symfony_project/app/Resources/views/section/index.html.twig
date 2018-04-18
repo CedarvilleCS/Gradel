@@ -1,14 +1,14 @@
 {% block head %}
 
 <title>Gradel{% if section != null %} | {{section.name}} {% endif %}</title>
-<link rel="icon" type="image/x-icon" href="{{ asset('logo.png') }}" />
+<link rel="icon" type="image/x-icon" href="{{ asset('images/logo.png') }}" />
 {% endblock %}
 
 {% block stylesheets %}
 	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
 
-	<link rel="stylesheet" href="{{ asset('styles.css') }}" />
-	<link rel="stylesheet" href="{{ asset('card.css') }}" />
+	<link rel="stylesheet" href="{{ asset('styles/styles.css') }}" />
+	<link rel="stylesheet" href="{{ asset('styles/card.css') }}" />
 	
 	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
 {% endblock %}

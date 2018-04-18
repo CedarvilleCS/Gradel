@@ -1,20 +1,20 @@
 {% block title %}
 	<title>Gradel | Submission {{submission.id}}</title>
-	<link rel="icon" type="image/x-icon" href="{{ asset('logo.png') }}" />
+	<link rel="icon" type="image/x-icon" href="{{ asset('images/logo.png') }}" />
 {% endblock %}
 
 
 {% block stylesheets %}
 	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-	<link rel="stylesheet" href="{{ asset('jquery.highlighttextarea.css') }}">
+	<link rel="stylesheet" href="{{ asset('styles/jquery.highlighttextarea.css') }}">
 	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
 	
-	<link rel="stylesheet" href="{{ asset('styles.css') }}" />
-	<link rel="stylesheet" href="{{ asset('card.css') }}" />
+	<link rel="stylesheet" href="{{ asset('styles/styles.css') }}" />
+	<link rel="stylesheet" href="{{ asset('styles/card.css') }}" />
 	
-	<link rel="stylesheet" href="{{ asset('sessions.css') }}" />
+	<link rel="stylesheet" href="{{ asset('styles/sessions.css') }}" />
 	
-	<link rel="stylesheet" href="{{ asset('submission-results.css') }}">
+	<link rel="stylesheet" href="{{ asset('styles/submission-results.css') }}">
 {% endblock %}
 
 
@@ -39,7 +39,7 @@
 				
 				{% if is_granted("ROLE_SUPER") or grader.isTeaching(app.user, submission.problem.assignment.section) %}
 				<a title="Delete Submission" href="{{path('result_delete', {'submission_id': submission.id})}}">
-					<img src="{{ asset('trash.png') }}">
+					<img src="{{ asset('images/trash.png') }}">
 				</a>
 				{% endif %}
 			</div>
@@ -203,7 +203,7 @@
 				<div style="display: flex; justify-content: space-between; margin-right: 25px;">
 
 					<div id="loading-container" style="display:none;">
-						<img id="loadingGif" style="height: 60px" src="{{asset('beoload.gif')}}" alt="Loading..."/>
+						<img id="loadingGif" style="height: 60px" src="{{asset('images/beoload.gif')}}" alt="Loading..."/>
 						<h3 style="margin: 0px"> Resubmitting Code... </h3>
 					</div>
 				
@@ -227,7 +227,7 @@
 				
 				
 				<div id="loading-container" style="display:none;">
-					<img id="loadingGif" style="height: 60px" src="{{asset('beoload.gif')}}" alt="Loading..."/>
+					<img id="loadingGif" style="height: 60px" src="{{asset('images/beoload.gif')}}" alt="Loading..."/>
 					<h3 style="margin: 0px"> Resubmitting Code... </h3>
 				</div>
 				
@@ -246,7 +246,7 @@
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 	
 	<script src="{{ asset('js/jquery.highlighttextarea.js') }}" type="text/javascript" charset="utf-8"></script>
-	<script src="{{ asset('src-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>	
+	<script src="{{ asset('js/src-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>	
 	
 	<script src="{{ asset('js/cards.js') }}" type="text/javascript" charset="utf-8"></script>
 	<script src="{{ asset('js/unicode_return.js') }}" type="text/javascript" charset="utf-8"></script>
