@@ -1,10 +1,11 @@
 <?php
 
-namespace AppBundle\Topic   ;
+namespace AppBundle\Topic;
 
 use Gos\Bundle\WebSocketBundle\Topic\TopicInterface;
 use Gos\Bundle\WebSocketBundle\Client\ClientManipulatorInterface;
 use Gos\Bundle\WebSocketBundle\Client\ClientStorageInterface;
+
 use Ratchet\ConnectionInterface;
 use Ratchet\Wamp\Topic;
 use Gos\Bundle\WebSocketBundle\Router\WampRequest;
@@ -14,9 +15,23 @@ use FOS\UserBundle\Model\User as BaseUser;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Config\Definition\Exception\Exception;
 use Doctrine\Common\Collections\ArrayCollection;
+
 use AppBundle\Utils\Grader;
 use AppBundle\Entity\Section;
 use AppBundle\Entity\User;
+use AppBundle\Entity\Role;
+use AppBundle\Entity\Team;
+use AppBundle\Entity\Course;
+use AppBundle\Entity\Assignment;
+use AppBundle\Entity\Problem;
+use AppBundle\Entity\ProblemLanguage;
+use AppBundle\Entity\UserSectionRole;
+use AppBundle\Entity\Testcase;
+use AppBundle\Entity\Submission;
+use AppBundle\Entity\Language;
+use AppBundle\Entity\Feedback;
+use AppBundle\Entity\TestcaseResult;
+use AppBundle\Entity\Query;
 
 
 use Doctrine\ORM\EntityManager;
@@ -51,7 +66,7 @@ class AppBundleTopic implements TopicInterface
 
         $this->numUsers += 1;
 
-        $topic->broadcast(['msg' => $this->numUsers . ' total users']);
+        //$topic->broadcast(['msg' => $this->numUsers . ' total users']);
         
     }
 
@@ -67,7 +82,8 @@ class AppBundleTopic implements TopicInterface
     {
         //this will broadcast the message to ALL subscribers of this topic.
         $this->numUsers -= 1;
-        $topic->broadcast(['msg' => $connection->resourceId . " has left " . $topic->getId()]);
+
+        //$topic->broadcast(['msg' => $connection->resourceId . " has left " . $topic->getId()]);
     }
 
 
@@ -84,125 +100,240 @@ class AppBundleTopic implements TopicInterface
      */
     public function onPublish(ConnectionInterface $connection, Topic $topic, WampRequest $request, $event, array $exclude, array $eligible)
     {
-        dump("USER:" . $this->clientManipulator->getClient($connection));
-        $isNotController = is_object($this->clientManipulator->getClient($connection));
-        $key = "null";
-        if (is_array($event) != true) {
-            $event = json_decode($event, true);
+        $this->em->clear();
+        
+        $user = $this->clientManipulator->getClient($connection);
+
+        if (!is_array($event)){
+           $event = json_decode($event, true);
         }
         dump($event);
-        if (array_key_exists("passKey", $event)){
-            $key = $event["passKey"];
+
+
+        $contestId = $event["contestId"];
+
+        if(!isset($contestId)){
+            dump("No contest id was provided!");
+            return;
         }
 
-        if ($isNotController || $key == "gradeldb251") {
-            dump($event);
-            $users = $this->clientManipulator->getAll($topic);
-            $user = $this->clientManipulator->getClient($connection);
-            if ($isNotController) {
-                $emUser = $this->em->find('AppBundle\Entity\User', $user->getID());
-            }
-            
-            $contestId = $event["contestId"];
-            $submissionId = $event["submissionId"];
-            $scope = $event["scope"];
+        $contest = $this->em->find('AppBundle\Entity\Assignment', $contestId);
+
+        if(!$contest){
+            dump("Contest does not exist!");
+            return;
+        }
+
+        $grader = new Grader($this->em);
+
+        if( !($grader->isTaking($user, $contest) || $grader->isJudging($user, $contest) || $user->hasRole("ROLE_SUPER")) ){
+            dump("Not allowed to access this");
+            return;
+        }
+
+        $type = $event['type'];
+        $key = $event["passKey"];
+
+        // for inter-controller communication
+        if(isset($key) && $key == "gradeldb251"){
+
             $recipients = $event["recipients"];
             $msg = $event["msg"];
 
-            $section = $this->em->find('AppBundle\Entity\Section', $contestId);
 
-            // Look at the scope of the message and check user priveleges
-            // Send message to all individuals who are allowed
-            dump("Checking Scope and privleges...");
-            $grader = new Grader($this->em);
-            if ($msg == null) {
-                exit("Required to provide message!");
+            if(!is_array($recipients) || count($recipients) < 1){
+                dump("No recipients were provided! Returning...");
+                return;
             }
-            if ($section->isActive() == true) {
+
+            // send the message
+            $message = $this->buildMessage($msg, $type);
+
+            $this->broadcastMessage($recipients, $topic, $message);
+        } 
+        // for responses from a connection
+        else if(is_object($user)){
+
+            # switch based on type
+            
+            // requesting scoreboard update
+            if($type == "scoreboard"){
                 
-                // Determine User Status
-                $elevatedUser = false;
-                if ($isNotController){
-                    $elevatedUser = $grader->isJudging($emUser, $section) || $emUser->hasRole("ROLE_SUPER") || $emUser->hasRole("ROLE_ADMIN");
-                }
-                else {
-                    $elevatedUser = ($key == "gradeldb251");
+              if($contest->leaderboard){
+                // send the scoreboard info 
+                if($user->hasRole("ROLE_SUPER") || $grader->isJudging($user, $contest->section)){
+                  $leaderboard = $contest->leaderboard->getJSONElevatedBoard();
+                } else {
+                  $leaderboard = $contest->leaderboard->getJSONBoard();
                 }
 
-                // Send correct message
-                if ($scope == "global" && $elevatedUser == true) {
-                    dump("Sending a message to everyone...");
-                    $message = $this->buildMessage($msg, "notice");
-                    $this->broadcastMessage(null, $topic, $users, $message);
+                $this->broadcastMessage([$user->getUsername()], $topic, $this->buildMessage($leaderboard, 'scoreboard')); 
+              }
+            } 
+            // requesting if contest has started
+            else if($type == "check-start"){
+
+                // see if the contest has started
+                if($contest->isOpened()){
+
+                    $contest->updateLeaderboard($grader, $this->em);
+
+                    $this->broadcastMessage([$user->getUsername()], $topic, $this->buildMessage(null, 'start'));
                 }
-                else if ($scope == "pageUpdate" && $elevatedUser == true) {
-                    $message = $this->buildMessage("null", "updateData");
-                    $this->broadcastMessage(null, $topic, $users, $message);
-                }
-                else if (($scope == "userSpecificReject" || $scope = "userSpecificClarify") && $elevatedUser == true) {
-                    if ($recipients == null) {
-                        dump("Required to provide recipients!");
-                    }
-                    else {
-                        $finalScope = $scope == "userSpecificReject" ? "reject" : "notice";
-                        $message = $this->buildMessage($msg, $finalScope, $submissionId);
-                        dump("Sending message: " . $message . "to specific users...");
-                        $this->broadcastMessage($recipients, $topic, $users, $message);
-                    }
-                }
-                else if ($scope == "question") {
-                    dump("Searching for admins...");
-                    $message = $this->buildMessage($msg, "notice");
-                    $recipients = $this->getJudgeList($users, $section);
-                    $this->broadcastMessage($recipients, $topic, $users, $message);
-                }
-                else {
-                    dump("No Scope Match Found!!");
-                }
+                // else do nothing
+
             }
+            // requesting if contest is frozen
+            else if($type == "check-frozen"){
 
+                // see if the contest is frozen
+                if($contest->isFrozen()){
+                    $this->broadcastMessage([$user->getUsername()], $topic, $this->buildMessage(null, 'freeze'));
+                }
+                // else do nothing
+
+            }
+            // requesting time variables
+            else if($type == "check-vars"){
+                
+                $times = [];
+
+                $times['start'] = $contest->start_time->format('U');
+                $times['end'] = $contest->end_time->format('U');
+                $times['freeze'] = $contest->freeze_time->format('U');
+
+                $this->broadcastMessage([$user->getUsername()], $topic, $this->buildMessage($times, 'vars'));
+            }
+            // requesting clarifications
+            else if($type == "clarifications"){
+
+              				
+              # get the queries
+              if($grader->isJudging($user, $contest->section) || $user->hasRole("ROLE_SUPER")){
+                $extra_query = "OR 1=1";
+                $team = null;
+              } else {
+                $extra_query = "";
+                $team = $grader->getTeam($user, $contest);
+              }
+
+              // send the clarifications
+              $qb_queries = $this->em->createQueryBuilder();
+              $qb_queries->select('q')
+                ->from('AppBundle\Entity\Query', 'q')
+                ->where('q.assignment = (?1)')
+                ->andWhere('q.asker = ?2 OR q.asker IS NULL '.$extra_query)
+                ->orderBy('q.timestamp', 'ASC')
+                ->setParameter(1, $contest)
+                ->setParameter(2, $team);
+              $query_query = $qb_queries->getQuery();
+              $queries = $query_query->getResult();
+
+              $this->broadcastMessage([$user->getUsername()], $topic, $this->buildMessage($queries, 'clarifications'));
+
+            }
+            // requesting list of problems
+            else if($type == "problem-nav"){
+                
+                $problems = [];
+
+                $elevated = $user->hasRole("ROLE_SUPER") || $grader->isJudging($user, $contest->section);
+              
+                $team = $grader->getTeam($user, $contest);
+
+                if($contest->isOpened() || $elevated){
+                    foreach($contest->problems as $prob){
+                        
+                        $problem = [];
+
+                        $problem['id'] = $prob->id;
+                        $problem['name'] = $prob->name;
+
+                        $problems[] = $problem;
+                    }
+                }
+
+                return $this->broadcastMessage([$user->getUsername()], $topic, $this->buildMessage($problems, 'problem-nav'));
+            }
+            // requesting problems
+            else if($type == "checklist"){
+
+              // send a list of problems
+              $checklist = [];
+             
+              $elevated = $user->hasRole("ROLE_SUPER") || $grader->isJudging($user, $contest->section);
+              
+              $team = $grader->getTeam($user, $contest);
+
+              if($contest->isOpened() || $elevated){
+                foreach($contest->problems as $prob){
+
+                  $problem = [];
+
+                  if($team){
+                    $score = $grader->getProblemScore($team, $prob, true);
+                  } else {
+                    $score = null;
+                  }
+
+                  $problem['id'] = $prob->id;
+                  $problem['name'] = $prob->name;
+
+                  $problem['submission_status'] = "unattempted";
+                  $problem['penattempt'] = "";
+
+                  if(isset($score) && $score['num_attempts'] > 0){
+                    $problem['submission_status'] = "attempted";
+
+                    if($score['correct']){
+                        $problem['submission_status'] = "accepted";
+                        $problem['penattempt'] = $score['time']." + ".$score['penalty_points_raw'];
+                    }
+                  }
+                    
+                  $checklist[] = $problem;
+                }
+              }
+              
+              
+              return $this->broadcastMessage([$user->getUsername()], $topic, $this->buildMessage($checklist, 'checklist'));
+            }
+            // error
+            else {
+              // error
+            }
         }
-
-        // Search users that the message should go to (correct contest, group[student | admin | allStudents])
-
-        // broadcast to only the correct users
-
-
     }
 
-    public function broadcastMessage($recipients, $topic, $users, $message) {
-        $nonGlobal = count($recipients) > 0;
-        if ($users != null) {
-            foreach($users as $u) {
-                if ($nonGlobal) {
-                    $person = $this->em->find("AppBundle\Entity\User", $u['client']->getID());                
-                    if (in_array($person->getUsername(), $recipients)) {
-                        dump("Sending to " . $person->getUsername());
-                        dump($message);
-                        $topic->broadcast($message, array(), array($u['connection']->WAMP->sessionId));
-                    }
-                } 
-                else {
-                    dump("Sending global message to user...");
-                    $topic->broadcast($message, array(), array($u['connection']->WAMP->sessionId));
-                }
-            }
-        }
-    }
+    public function broadcastMessage($recipients, $topic, $message) {
 
-    public function getJudgeList($users, $section) {
-        $recipients = [];
+        $users = $this->clientManipulator->getAll($topic);
+
         foreach($users as $u) {
-            $potJudge = $this->em->find("AppBundle\Entity\User", $u['client']->getID());
-            if ($grader->isJudging($potJudge, $section)) {
-                array_push($potJudge->getUsername());
+            
+            $person = $this->em->find("AppBundle\Entity\User", $u['client']->getID());          
+
+            if (in_array($person->getUsername(), $recipients)) {
+
+                dump("Sending meassage to ".$person->getUsername());
+                $topic->broadcast($message, [], [$u['connection']->WAMP->sessionId]);
+
             }
-        }
-        return $recipients;
+        } 
     }
 
     public function buildMessage($msg, $type, $submissionId = -1) {
-        return '{"msg": "' . $msg . '", "type": "'. $type . '", "submissionId": "' . $submissionId . '"}';
+       
+        $message = [];
+       
+        $message['msg'] = $msg;
+        $message['type'] = $type;
+        
+        if($submissionId > 0){
+            $message['submissionId'] = $submissionId;
+        }
+
+        return json_encode($message);
     }
 
 

@@ -513,6 +513,7 @@ class SectionController extends Controller {
 			}
 		}
 
+		$oldUsers = [];
 
 		if($postData['section'] == 0 && count(json_decode($postData['teachers'])) == 0){
 
@@ -525,6 +526,8 @@ class SectionController extends Controller {
 
 			foreach($section->user_roles as $ur){
 				$em->remove($ur);
+
+				$oldUsers[$ur->user->id] = $ur->user;
 			}
 
 			$em->flush();
@@ -550,6 +553,8 @@ class SectionController extends Controller {
 
 			$usr = new UserSectionRole($stud_user, $section, $takes_role);
 			$em->persist($usr);
+
+			unset($oldUsers[$stud_user->id]);
 		}
 
 		# add the teachers from the teachers array
@@ -575,8 +580,27 @@ class SectionController extends Controller {
 
 			$usr = new UserSectionRole($teach_user, $section, $teaches_role);
 			$em->persist($usr);
+
+			unset($oldUsers[$stud_user->id]);
 		}
 
+
+		foreach($oldUsers as $oldUser){
+
+			foreach($section->assignments as $asgn){
+				foreach($asgn->teams as &$team){	
+
+					$team->users->removeElement($oldUser);
+
+					if($team->users->count() == 0){
+						$em->remove($team);
+					} else {
+						$em->persist($team);
+					}
+				}
+			}
+
+		}
 
 		$em->flush();
 

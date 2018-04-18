@@ -377,16 +377,21 @@
 
 		// Download the CSV of grades when the download button is clicked
 		var download = document.getElementById('download');	
-		download.addEventListener('click', function () {
-			var link = document.getElementById('download');
-			link.href = makeTextFile(generateGradeCSVSection());
-			link.style.display = 'block';
-		}, false);
+		if(download != null){
+			download.addEventListener('click', function () {
+				var link = document.getElementById('download');
+				link.href = makeTextFile(generateGradeCSVSection());
+				link.style.display = 'block';
+			}, false);
+		}
 
 		function downloadAssgnGrades(index, id) {
 			var link = document.getElementById(id);
-			link.href = makeTextFile(generateGradeCSVAssignment(index));
-			link.style.display = 'block';
+
+			if(link != null){
+				link.href = makeTextFile(generateGradeCSVAssignment(index));
+				link.style.display = 'block';
+			}
 		}
 
 		{% endif %}

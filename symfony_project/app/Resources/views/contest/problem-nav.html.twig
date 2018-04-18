@@ -65,9 +65,11 @@
 				{% endif %}
 				
 			</li>		
-					
-			{% if contest_open %}
-						
+			
+
+			<div id="problems-nav">		
+			{% if current_contest.isOpened() or elevatedUser %}
+
 				{% for prob in current_contest.problems %}
 
 				<a href="{{path("contest_problem", {'contestId': prob.assignment.section.id, 'roundId': prob.assignment.id, 'problemId': prob.id})}}">
@@ -93,18 +95,17 @@
 					
 				</li>
 				</a>
-				
-				{% else %}
-				
-				<li class="sidebar list-item"> No problems in this contest </li>			
-				
+								
 				{% endfor %}
-			
+
 			{% else %}
 			
 			<li> Problems are not available right now </li>			
 			
 			{% endif %}
+			
+
+			</div>
 			
 		</ol>
 		
@@ -171,6 +172,48 @@
 			}
 		}
 	}
+
+
+	function updateProblemNav(problems){
+
+		$('#problems-nav').children().remove();
+
+		for(var i=0; i<problems.length; i++){
+			
+			problem = problems[i];
+
+			var navHTML = `
+
+			<a href="{{path("contest_problem", {'contestId': current_contest.section.id, 'roundId': current_contest.id, 'problemId': ''})}}` + problem.id + `">
+			<li class="sidebar list-item">					
+				
+					<span class="preview">
+						<div class="{% if elevatedUser %}sidebar-text{% endif %}">` + escapeHTML(problem.name) + `</div>
+					</span>
+
+					{% if elevatedUser %}
+						<object>
+							<a title="Edit problem" href="{{path('contest_problem_edit', {'contestId': current_contest.section.id, 'roundId': current_contest.id, 'problemId': ''})}}` + problem.id + `">
+								<img class="small-icon" id="right-icon" src="{{ asset('edit.png') }}">
+							</a>
+						</object>
+					{% endif %}
+					
+			</li>
+			</a>`;
+
+			$('#problems-nav').append(navHTML);
+		}
+
+		
+		if(problems.length == 0){
+			$('#problems-nav').append('<a><li class="sidebar list-item"> <span class="preview"> Problems are not available </span></li></a>');
+		}
+	
+
+
+	}
+
 	</script>
-	{{ include('contest/contest_gas.html.twig') }}
+	
 {% endblock %}

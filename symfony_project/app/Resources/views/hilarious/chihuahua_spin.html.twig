@@ -1,0 +1,62 @@
+<html>
+
+<head>
+<title> Chihuahua Spin! </title>
+</head>
+
+<style>
+
+    body{
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+    }
+
+    #chihuahua{
+        height: 700px;
+        width: 700px;
+    }
+
+    #text-holder{
+        font-family: Arial, sans-serif;
+        font-size: 1.5em;
+        text-align: center;
+        width: 700px;
+        line-height: 2em;
+    }
+
+</style>
+
+
+<body>
+    <img id="chihuahua" src="{{asset('reverse.gif')}}" alt="SPIN BOY SPIN">
+    <div id="text-holder">
+        Chihuahua has rolled up <span id="spin"> 0 spins </span> of bubble wrap!
+        <br/>
+        He is a protected boy.
+    </div>
+</body>
+
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+<script>
+$(window).ready(function (){
+
+
+    var spins = 0;
+    setInterval(function () {
+
+        var image = new Image();
+        image.src = "{{asset('reverse.gif')}}";
+
+        $('#chihuahua').attr('src', image.src);
+
+        spins = spins + 1;
+        $("#spin").text(spins + " spin" + (spins != 1 ? "s" : ""));
+    }, 4200);
+});
+</script>
+
+</html
