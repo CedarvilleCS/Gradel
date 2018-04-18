@@ -131,6 +131,19 @@ assignment_modify:
     _controller: AppBundle:Assignment:modifyPost
   methods: [POST]
 
+assignment_clearsubs:
+  path: '/modify/assignment/clearsubs'
+  defaults:
+    _controller: AppBundle:Assignment:clearSubmissions
+  methods: [POST]
+
+assignment_cleartrials:
+  path: '/modify/assignment/cleartrials'
+  defaults:
+    _controller: AppBundle:Assignment:clearTrials
+  methods: [POST]
+
+
   
 # CONTEST ROUTES
 contest_result:

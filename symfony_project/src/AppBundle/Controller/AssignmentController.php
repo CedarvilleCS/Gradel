@@ -371,7 +371,7 @@ class AssignmentController extends Controller {
 		# get the current section
 		# get the assignment
 		if(!isset($postData['section']) || !($postData['section'] > 0)){
-			die("SECTION ID WAS NOT PROVIDED OR FORMATTED PROPERLY");
+			return $this->returnForbiddenResponse("SECTION ID WAS NOT PROVIDED OR FORMATTED PROPERLY");
 		}
 		
 		$section = $em->find('AppBundle\Entity\Section', $postData['section']);		
@@ -594,7 +594,112 @@ class AssignmentController extends Controller {
 		$response->setStatusCode(Response::HTTP_OK);
 		
 		return $response;
-    }
+	}
+	
+	public function clearSubmissionsAction(Request $request){
+
+		$em = $this->getDoctrine()->getManager();
+				
+		# validate the current user
+		$user = $this->get('security.token_storage')->getToken()->getUser();
+		if(!$user){			
+			return $this->returnForbiddenResponse("You are not a user.");
+		}
+		
+		# see which fields were included
+		$postData = $request->request->all();
+		
+		# get the current section
+		# get the assignment
+		if(!isset($postData['assignment'])){
+			return $this->returnForbiddenResponse("Assignment ID was not provided");
+		}
+		
+		$assignment = $em->find('AppBundle\Entity\Assignment', $postData['assignment']);		
+		if(!$assignment){
+			return $this->returnForbiddenResponse("Section ".$postData['assignment']." does not exist");
+		}
+
+		$section = $assignment->section;
+		
+		# only super users/admins/teacher can make/edit an assignment
+		$grader = new Grader($em);		
+		if( !($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isTeaching($user, $section) || $grader->isJudging($user, $section)) ){			
+			return $this->returnForbiddenResponse("You do not have permission to do this.");
+		}
+
+		// delete all submission but keep all of the trials
+		$qb = $em->createQueryBuilder();
+		$qb->delete('AppBundle\Entity\Submission', 's');
+		$qb->where('s.problem IN (?1)');
+		$qb->setParameter(1, $assignment->problems->toArray());
+
+		$result = $qb->getQuery()->getResult();
+
+		$em->flush();
+
+		$response = new Response(json_encode([
+			"result" => $result,
+		]));
+
+		$response->headers->set('Content-Type', 'application/json');
+		$response->setStatusCode(Response::HTTP_OK);
+		
+		return $response;				
+	}
+
+	public function clearTrialsAction(Request $request){
+
+		$em = $this->getDoctrine()->getManager();
+				
+		# validate the current user
+		$user = $this->get('security.token_storage')->getToken()->getUser();
+		if(!$user){			
+			return $this->returnForbiddenResponse("You are not a user.");
+		}
+		
+		# see which fields were included
+		$postData = $request->request->all();
+		
+		# get the current section
+		# get the assignment
+		if(!isset($postData['assignment'])){
+			return $this->returnForbiddenResponse("Assignment ID was not provided");
+		}
+		
+		$assignment = $em->find('AppBundle\Entity\Assignment', $postData['assignment']);		
+		if(!$assignment){
+			return $this->returnForbiddenResponse("Section ".$postData['assignment']." does not exist");
+		}
+
+		$section = $assignment->section;
+		
+		# only super users/admins/teacher can make/edit an assignment
+		$grader = new Grader($em);		
+		if( !($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isTeaching($user, $section) || $grader->isJudging($user, $section)) ){			
+			return $this->returnForbiddenResponse("You do not have permission to do this.");
+		}
+
+		// delete all submission but keep all of the trials
+		$qb = $em->createQueryBuilder();
+		$qb->delete('AppBundle\Entity\Trial', 't');
+		$qb->where('t.problem IN (?1)');
+		$qb->setParameter(1, $assignment->problems->toArray());
+
+		$result = $qb->getQuery()->getResult();
+
+		$em->flush();
+
+		$response = new Response(json_encode([
+			"result" => $result,
+		]));
+
+		$response->headers->set('Content-Type', 'application/json');
+		$response->setStatusCode(Response::HTTP_OK);
+		
+		return $response;				
+	}
+	
 	
 	private function returnForbiddenResponse($message){		
 		$response = new Response($message);

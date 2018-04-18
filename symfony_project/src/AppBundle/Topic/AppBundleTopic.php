@@ -126,6 +126,11 @@ class AppBundleTopic implements TopicInterface
 
         $grader = new Grader($this->em);
 
+        if( !($grader->isTaking($user, $contest) || $grader->isJudging($user, $contest) || $user->hasRole("ROLE_SUPER")) ){
+            dump("Not allowed to access this");
+            return;
+        }
+
         $type = $event['type'];
         $key = $event["passKey"];
 
