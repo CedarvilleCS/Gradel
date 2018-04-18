@@ -10,7 +10,7 @@
 			{% if is_granted("ROLE_ADMIN") or is_granted("ROLE_SUPER") %}
 				<object>
 					<a title="Create Course" href={{path('course_edit')}}>
-						<img class="small-icon" id="add-icon" src="{{ asset('add_circle.png') }}">
+						<img class="small-icon" id="add-icon" src="{{ asset('images/add_circle.png') }}">
 					</a>
 				</object>
 			{% endif %}
@@ -26,7 +26,7 @@
 					
 					<!-- <object>
 						 <a title="Delete Course" href="{{path('course_delete', {'courseId': course.id})}}">
-							<img class="small-icon" id="right-icon" src="{{ asset('whitetrash.png') }}">
+							<img class="small-icon" id="right-icon" src="{{ asset('images/whitetrash.png') }}">
 						</a>
 					</object> -->
 				</li>
@@ -47,7 +47,7 @@
 					<span class="preview">{{course.name}}</span>	
 					<object>
 						<a title="Open Course" href="{{path('course_delete', {'courseId': course.id})}}">
-							<img class="small-icon" style="right: -1" id="right-icon" src="{{ asset('whitetrash.png') }}">
+							<img class="small-icon" style="right: -1" id="right-icon" src="{{ asset('images/whitetrash.png') }}">
 						</a>
 					</object>
 				</li>
