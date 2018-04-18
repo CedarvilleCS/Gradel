@@ -559,40 +559,6 @@ class ProblemController extends Controller {
 
 		$grader = new Grader($em);
 		$feedback = $grader->getFeedback($submission);
-		
-		if(!$submission->isCorrect()){
-			
-			$diff_nums = [];
-			
-			foreach($submission->testcaseresults as $tcr){
-				
-				if($tcr->is_correct){
-					
-					$diff_nums[] = -1;
-					
-				} else {
-					
-					$exp = $tcr->testcase->correct_output;
-					$user = $tcr->std_output;
-					$c = strlen($exp);
-					
-					$highlight = -1;
-					for ($e = 0; $e < $c; $e++) {
-						if($user[$e] != $exp[$e]){
-							$highlight_val = $e;
-							break;
-						}
-						
-						if($e == $c-1){
-							$highlight_val = $e+1;
-						}
-					}
-					
-					$diff_nums[] = $highlight_val;
-					
-				}				
-			}		
-		}
 				
 		$ace_mode = $submission->language->ace_mode;
 		
@@ -627,9 +593,7 @@ class ProblemController extends Controller {
 			'result_route' => true, 
 			'feedback' => $feedback,
 
-			'ace_mode' => $ace_mode,				
-			
-			'diff_nums' => $diff_nums,
+			'ace_mode' => $ace_mode,
 		]);
 	}
 	

@@ -564,7 +564,12 @@ class Grader  {
 						$index = $i;
 						$broken = true;
 					}
-					else if($broken && $exp[$i] == $usr[$i]){
+					else if($broken && ($exp[$i] == $usr[$i] || ($exp[$i] == "A" && $exp[$i+1] == "\n") || ($usr[$i] == "A" && $usr[$i+1] == "\n"))){
+
+						if(($exp[$i] == "A" && $exp[$i+1] == "\n") || ($usr[$i] == "A" && $usr[$i+1] == "\n")){
+							$i++;
+						}
+						
 						$indexEnd = $i;
 						
 						
@@ -590,6 +595,8 @@ class Grader  {
 				}
 				
 				$highlights[] = ['id' => $tcr->id, 'ranges' => $ranges];
+
+				//die(json_encode($highlights));
 			}
 		}
 		
