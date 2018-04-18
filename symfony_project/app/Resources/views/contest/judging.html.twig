@@ -996,6 +996,7 @@
 					if(type != "claimed" && type != "unclaimed"){				
 						$('#queue-container #' + id).remove();
 					}		
+					updateActions();
 				},
 				error: function(data){
 					alert(data['responseText']);
@@ -1042,7 +1043,8 @@
 				processData: false,
 				contentType: false,
 				success: function() {
-					$('#clarifications-container #'+id).remove();			
+					$('#clarifications-container #'+id).remove();	
+					updateActions();		
 				},
 				error: function(data){
 					alert(data['responseText']);

@@ -68,7 +68,7 @@
 			
 
 			<div id="problems-nav">		
-			{% if current_contest.isOpened() %}
+			{% if current_contest.isOpened() or elevatedUser %}
 
 				{% for prob in current_contest.problems %}
 
