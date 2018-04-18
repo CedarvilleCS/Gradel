@@ -411,6 +411,9 @@
 
 			if(str.trim() == "") return;
 
+			$('#submissions-list').children().remove();
+			$('#submissions-list').append("<li> Searching for submissions... </li>");
+
 			var formData = new FormData();
 			formData.append('val', str);
 			formData.append('id', {{section.id}})
@@ -428,12 +431,10 @@
 		
 					if(data['responseText']){					
 						alert(data['responseText']);
-						console.log(data['responseText']);					
+						console.log(JSON.parse(data['responseText']));					
 					}				
 				}
 			});
-
-
 		}
 
 
@@ -448,7 +449,6 @@
 					var res = data[i];
 
 					var time = new Date(res.timestamp.date);
-					console.log(time.getDate());
 
 					var names = "";
 					if(res.team.users != null && res.team.users.length > 1){

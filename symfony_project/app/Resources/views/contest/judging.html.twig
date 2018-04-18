@@ -1085,6 +1085,9 @@
 						`<div class="marker-container">`;
 							
 							var middleStuff = "";
+							
+							if(sub.testcaseresults == null) continue;
+							
 							for(var j=0; j<sub.testcaseresults.length; j++){
 								
 								var tcr = sub.testcaseresults[j];

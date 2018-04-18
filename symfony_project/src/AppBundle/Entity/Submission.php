@@ -186,7 +186,7 @@ class Submission implements JsonSerializable {
 	public $id;
 
 	/**
-	* @ORM\OneToMany(targetEntity="TestcaseResult", mappedBy="submission")
+	* @ORM\OneToMany(targetEntity="TestcaseResult", mappedBy="submission", fetch="EXTRA_LAZY")
 	* @ORM\OrderBy({"testcase" = "ASC"})
 	*/
 	public $testcaseresults;
@@ -204,7 +204,7 @@ class Submission implements JsonSerializable {
 	}
 	
 	/**
-     * @ORM\ManyToOne(targetEntity="Problem")
+     * @ORM\ManyToOne(targetEntity="Problem", fetch="EXTRA_LAZY")
      * @ORM\JoinColumn(name="problem_id", referencedColumnName="id", nullable=false, onDelete="CASCADE")
      */
 	public $problem;
@@ -215,13 +215,13 @@ class Submission implements JsonSerializable {
 	public $version;
 	
 	/**
-     * @ORM\ManyToOne(targetEntity="Team", inversedBy="submissions")
+     * @ORM\ManyToOne(targetEntity="Team", inversedBy="submissions", fetch="EXTRA_LAZY")
      * @ORM\JoinColumn(name="team_id", referencedColumnName="id", nullable=true, onDelete="CASCADE")
      */
 	public $team;
 	
 	/**
-     * @ORM\ManyToOne(targetEntity="User")
+     * @ORM\ManyToOne(targetEntity="User", fetch="EXTRA_LAZY")
      * @ORM\JoinColumn(name="user_id", referencedColumnName="id", nullable=true, onDelete="CASCADE")
      */
 	public $user;

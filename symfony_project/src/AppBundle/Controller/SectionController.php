@@ -25,6 +25,8 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 
+use Doctrine\ORM\Tools\Pagination\Paginator;
+
 use Psr\Log\LoggerInterface;
 
 class SectionController extends Controller {
@@ -636,25 +638,25 @@ class SectionController extends Controller {
 						->getQuery()
 						->getResult();
 
-		# redirect to the section page
-		$data = $em->createQueryBuilder()
-					->select('s')
-					->from('AppBundle\Entity\Submission', 's')
-					->where('s.problem IN (?1)')
-					->andWhere('s.team IN (?2)'.$elevatedQuery)
-					->orderBy('s.id', 'DESC')
-					->setMaxResults(100)
-					->setParameter(1, $section->getAllProblems())
-					->setParameter(2, $userTeams)
-					->getQuery()
-					->getResult();
+		$data_query = $em->createQueryBuilder()
+				->select('s')
+				->from('AppBundle\Entity\Submission', 's')
+				->where('s.problem IN (?1)')
+				->andWhere('s.team IN (?2)'.$elevatedQuery)
+				->orderBy('s.id', 'DESC')
+				->setParameter(1, $section->getAllProblems())
+				->setParameter(2, $userTeams)
+				->getQuery();
 
-		foreach($searchVals as $searchVal){
+		$results = [];
+
+		foreach($searchVals as $searchVal){					
 			
 			$searchVal = trim($searchVal);
-			$results = [];
+			
+			$paginator = new Paginator($data_query, true);
 
-			foreach($data as $sub){
+			foreach($paginator as $sub){
 
 				if( $sub->id == $searchVal){
 					$results[] = $sub;
@@ -701,9 +703,8 @@ class SectionController extends Controller {
 					continue;
 				}	
 
+				$em->clear();
 			}
-
-			$data = $results;
 		}
 
 		$response = new Response(json_encode([
