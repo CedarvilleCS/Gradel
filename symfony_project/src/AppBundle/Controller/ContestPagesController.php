@@ -97,7 +97,8 @@ class ContestPagesController extends Controller {
 
 			$previous = $allContests[count($allContests) - 2];
 			
-			if(!$current->is_cloned && $previous->isFinished() && $current->isActive()){
+
+			if(!$current->is_cloned && isset($previous) && $previous->isFinished() && $current->isActive()){
 					
 				$current->is_cloned = true;
 

@@ -104,11 +104,16 @@ class AppBundleTopic implements TopicInterface
         
         $user = $this->clientManipulator->getClient($connection);
 
+        if(isset($user->id)){
+            $user = $this->em->find('AppBundle\Entity\User', $user->id);
+        } else {
+            dump("Unable to get user");
+            return;
+        }
+
         if (!is_array($event)){
            $event = json_decode($event, true);
         }
-        dump($event);
-
 
         $contestId = $event["contestId"];
 
@@ -126,7 +131,7 @@ class AppBundleTopic implements TopicInterface
 
         $grader = new Grader($this->em);
 
-        if( !($grader->isTaking($user, $contest) || $grader->isJudging($user, $contest) || $user->hasRole("ROLE_SUPER")) ){
+        if( !isset($user) || !method_exists($user, 'hasRole') || !($grader->isTaking($user, $contest) || $grader->isJudging($user, $contest) || $user->hasRole("ROLE_SUPER")) ){
             dump("Not allowed to access this");
             return;
         }
@@ -339,16 +344,7 @@ class AppBundleTopic implements TopicInterface
 
     public function onPush(Topic $topic, WampRequest $request, $data, $provider)
     {
-        dump("Doing a push");
-        dump ("REQUEST");
-        dump($request);
-        dump("END REQUEST");
-        dump("DATA");
-        dump($data);
-        dump("END DATA");
-        dump("PROVIDER");
-        dump($provider);
-        dump("END PROVIDER");
+        dump("Pushing");
     }
 
     /**
