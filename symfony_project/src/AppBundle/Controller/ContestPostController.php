@@ -300,7 +300,6 @@ class ContestPostController extends Controller {
 			$contest->is_extra_credit = false;
 			$contest->penalty_per_day = 0;
 
-
 			# TIMES		
 			$unix_start = strtotime($pc->times[0]);			
 			if(!$unix_start){
@@ -769,8 +768,11 @@ class ContestPostController extends Controller {
 		}
 
 		$em->persist($section);
-		$em->flush();			
+		$em->flush();		
+		$em->clear();	
 
+		# update the leaderboards 
+		$section = $em->find('AppBundle\Entity\Section', $section->id);
 		foreach($section->assignments as &$asgn){
 			$asgn->updateLeaderboard($grader, $em);
 		}

@@ -329,7 +329,7 @@ class AssignmentController extends Controller {
 		$em = $this->getDoctrine()->getManager();
 		
 		# get the assignment
-		if(!isset($assignmentId) || !($assigmentId > 0)){
+		if(!isset($assignmentId) || !($assignmentId > 0)){
 			die("ASSIGNMENT ID WAS NOT PROVIDED OR FORMATTED PROPERLY");
 		}
 		
