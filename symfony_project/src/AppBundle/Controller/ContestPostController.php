@@ -647,6 +647,8 @@ class ContestPostController extends Controller {
 			$post_contest->freeze_time = clone $lastEndDate;
 			$post_contest->freeze_time->add(new DateInterval('P180D'));
 
+			$section->end_time = clone $post_contest->end_time;
+
 			unset($contestsToRemove[$post_contest->id]);
 			$em->persist($post_contest);	
 		}
