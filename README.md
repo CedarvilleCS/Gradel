@@ -1,5 +1,5 @@
 # Gradel Setup Instructions
-_This guide assumes that you have a LAMP stack set up. If you don't, following [these instructions](http://howtoubuntu.org/how-to-install-lamp-on-ubuntu). There's only about five steps that are needed._
+_This guide assumes that you have a LAMP stack set up. If you don't, follow [these instructions](http://howtoubuntu.org/how-to-install-lamp-on-ubuntu). There's only about five steps that are needed._
 
 You may also want to set the ServerName for use in some of the later steps. Adding `ServerName localhost` in `/etc/apache2/apache2.conf` will work.
 
