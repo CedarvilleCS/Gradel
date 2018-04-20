@@ -1,6 +1,6 @@
 {% block head %}
 <title>Gradel</title>
-<link rel="icon" type="image/x-icon" href="{{ asset('logo.png') }}"/>
+<link rel="icon" type="image/x-icon" href="{{ asset('images/logo.png') }}"/>
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 {% endblock %}
@@ -56,7 +56,7 @@
 						<div style="display: inline-block; position">
 							<label for="description">Description</label>
 							<a title="Click for a markdown tutorial" target="_blank" href="http://commonmark.org/help/">
-								<img class="info-icon" src="{{ asset('info.png') }}">
+								<img class="info-icon" src="{{ asset('images/info.png') }}">
 							</a>
 						</div>
 						<textarea rows=20 id="description" name="description" class="problem_creation" type="text">{{problem.description}}</textarea>
@@ -303,7 +303,7 @@
 					<br/>
 					<div class="btn" style="width: 300px" id="generator-button"> Generate </div>
 					<div id="generator-loading-container" style="display: none">
-						<img id="generator-loading-gif" style="height: 60px" src="{{asset('beoload.gif')}}" alt="Loading..."/>
+						<img id="generator-loading-gif" style="height: 60px" src="{{asset('images/beoload.gif')}}" alt="Loading..."/>
 						<h3 style="margin: 0px"> Generating Output... </h3>
 					</div>
 				</div>
@@ -325,18 +325,18 @@
 	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
 	
-    <link rel="stylesheet" href="{{ asset('styles.css') }}" />
-    <link rel="stylesheet" href="{{ asset('card.css') }}" />
+    <link rel="stylesheet" href="{{ asset('styles/styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('styles/card.css') }}" />
 
-    <link rel="stylesheet" href="{{ asset('submit.css') }}" />
-    <link rel="stylesheet" href="{{ asset('sessions.css') }}" />
+    <link rel="stylesheet" href="{{ asset('styles/submit.css') }}" />
+    <link rel="stylesheet" href="{{ asset('styles/sessions.css') }}" />
 
-    <link rel="stylesheet" href="{{ asset('custom-toggle.css') }}" />
-    <link rel="stylesheet" href="{{ asset('problem-creation.css') }}" />
+    <link rel="stylesheet" href="{{ asset('styles/custom-toggle.css') }}" />
+    <link rel="stylesheet" href="{{ asset('styles/problem-creation.css') }}" />
 	
 	<style type="text/css">
 		.testCardAdder:hover {
-			background: url("{{asset('testcase-blur-grbg.png')}}") no-repeat;
+			background: url("{{asset('images/testcase-blur-grbg.png')}}") no-repeat;
 			background-size: 100% 100%;
 			background-position: center center;
 		}
@@ -349,7 +349,7 @@
   <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
   <script src="http://malsup.github.com/jquery.form.js"></script>
   
-  <script src="{{ asset('src-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>	
+  <script src="{{ asset('js/src-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>	
   
   <script src="{{ asset('js/cards.js') }}"></script>	
   <script src="{{ asset('js/validation.js') }}"></script>
@@ -835,7 +835,7 @@
 				<h2 style="margin: 0px">`+formalName+`</h2>
 				<object>
 						<a title="Delete assignment" id="closeButton" onclick="deleteTestCase(&quot;`+div_name+`&quot;)")}}">
-							<img class="test_case_delete" id="right-icon" src="{{ asset('trash.png') }}">
+							<img class="test_case_delete" id="right-icon" src="{{ asset('images/trash.png') }}">
 						</a>
 				</object>
 			</div>
@@ -933,7 +933,7 @@
 		addTestCardButton.addClass('testcase-card');
 		addTestCardButton.addClass('card');
 		addTestCardButton.addClass('testCardAdder');
-		addTestCardButton.append('<img id="add-button" src="{{asset('big_add_circle.png')}}">');
+		addTestCardButton.append('<img id="add-button" src="{{asset('images/big_add_circle.png')}}">');
 		
 		addTestCardButton.click(function() {
 			addTestCase();

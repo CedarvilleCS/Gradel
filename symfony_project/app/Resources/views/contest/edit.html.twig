@@ -1,6 +1,6 @@
 {% block head %}
 <title>Gradel | Edit Contest</title>
-<link rel="icon" type="image/x-icon" href="{{ asset('logo.png') }}" />
+<link rel="icon" type="image/x-icon" href="{{ asset('images/logo.png') }}" />
 {% endblock %}
 
 {% block stylesheets %}
@@ -8,16 +8,16 @@
 	<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/jquery-ui-timepicker-addon@1.6.3/dist/jquery-ui-timepicker-addon.css" />
 	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
 	
-    <link rel="stylesheet" href="{{ asset('styles.css') }}" />
-    <link rel="stylesheet" href="{{ asset('card.css') }}" />
+    <link rel="stylesheet" href="{{ asset('styles/styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('styles/card.css') }}" />
 
-    <link rel="stylesheet" href="{{ asset('contest.css') }}" />
-    <link rel="stylesheet" href="{{ asset('contest-hub.css') }}" />
+    <link rel="stylesheet" href="{{ asset('styles/contest.css') }}" />
+    <link rel="stylesheet" href="{{ asset('styles/contest-hub.css') }}" />
 
-	<link rel="stylesheet" href="{{ asset('contest-edit.css') }}" />
+	<link rel="stylesheet" href="{{ asset('styles/contest-edit.css') }}" />
 	
-	<link rel="stylesheet" href="{{ asset('team-creation.css') }}">
-	<link rel="stylesheet" href="{{ asset('custom-toggle.css') }}">
+	<link rel="stylesheet" href="{{ asset('styles/team-creation.css') }}">
+	<link rel="stylesheet" href="{{ asset('styles/custom-toggle.css') }}">
 {% endblock %}
 
 
@@ -37,8 +37,8 @@
 		{% if section is not null %}
 		<a id="delete-btn" class="btn"><div class="btn btn-center btn-delete">{% if section.is_deleted %} Reinstate {% else %} Delete {% endif %}</div></a>
 
-		<ol style="padding-top: 0px">
-			<li id="delete-warning" style="padding-top: 0px"></li>
+		<ol>
+			<li id="delete-warning"></li>
 		</ol>
 
 		{% endif %}
@@ -160,8 +160,8 @@
 				</form>
 				
 				<input id="new-user-input" name="new-user-input" value="Add a new user by email...">
-				<div id="new-user-button" style="">
-					<img src="{{asset('add.png')}}" style="height: 26px">
+				<div id="new-user-button">
+					<img src="{{asset('images/add.png')}}" style="height: 26px">
 				</div>
 				
 			</div>
@@ -172,12 +172,12 @@
 						<div id="team-pool"></div>		
 	
 						<div style="display: flex; flex-direction: row; flex-grow: 1">
-							<div style="background: #EEEEEE; padding: 5px;">
+							<div class="team-creation-box">
 								<h3 style="margin: 0px">Judges</h3>
 								<div id="judge-picker"></div>
 							</div>
 						
-							<div style="background: #EEEEEE; padding: 5px; flex-grow: 3">
+							<div class="team-creation-box" style="flex-grow: 3">
 								<h3 style="margin: 0px">Teams</h3>
 								<div id="team-picker"></div>
 								
@@ -327,7 +327,7 @@
 		newContestHtml.append(	`<input class='contest-name' value="` + escapeHTML(name) + `">
 
 								<div class="delete-contest-btn">
-									<img src="{{asset('trash.png')}}">
+									<img src="{{asset('images/trash.png')}}">
 								</div>
 
 

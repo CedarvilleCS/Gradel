@@ -1,10 +1,10 @@
 {% block stylesheets %}
 	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
 	
-    <link rel="stylesheet" href="{{ asset('styles.css') }}" />
-    <link rel="stylesheet" href="{{ asset('card.css') }}" />
-    <link rel="stylesheet" href="{{ asset('contest.css') }}" />
-    <link rel="stylesheet" href="{{ asset('contest-hub.css') }}" />
+    <link rel="stylesheet" href="{{ asset('styles/styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('styles/card.css') }}" />
+    <link rel="stylesheet" href="{{ asset('styles/contest.css') }}" />
+    <link rel="stylesheet" href="{{ asset('styles/contest-hub.css') }}" />
 	
 	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
 	
@@ -41,7 +41,7 @@
 {% block head %}
 
 <title>Contest Scoreboard</title>
-<link rel="icon" type="image/x-icon" href="{{ asset('logo.png') }}" />
+<link rel="icon" type="image/x-icon" href="{{ asset('images/logo.png') }}" />
 {% endblock %}
 
 
@@ -57,7 +57,7 @@
 			<div id="contest-heading" style="display:inline-block; width: 100%">
 				<h1 style=" margin: 0;">{{current_contest.section.name}}</h1> 
 				<a style="position: absolute; top: 25px; left: 8px; height:46px; width:46px" title="Back to Contest" href="{{path('contest', {'contestId': current_contest.section.id, 'roundId': current_contest.id})}}">
-					<img style="z-index: 10; height:30px; width: 30px;" src="{{ asset('back arrow.png') }}" >
+					<img style="z-index: 10; height:30px; width: 30px;" src="{{ asset('images/back arrow.png') }}" >
 				</a>
 				
 			{% if elevatedUser %}

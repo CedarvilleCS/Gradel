@@ -99,10 +99,23 @@ input.hr-freeze[type="text"], input.min-freeze[type="text"], input.hr-end[type="
     width: 200px;
 
 }
-.contest-name{
+.contest-name {
     font-weight: bold;
     display: block;
     border: none;
     border-bottom: 1px solid grey;
     font-size: 16px;
+}
+
+ol {
+    padding-top: 0px;
+}
+
+li {
+    padding-top: 0px;
+} 
+
+.team-creation-box {
+    background: #EEEEEE;
+    padding: 5px;
 }
