@@ -1,6 +1,9 @@
 <?php
 
 namespace AppBundle\Entity;
+
+use JsonSerializable;
+
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Config\Definition\Exception\Exception;
@@ -9,7 +12,7 @@ use Symfony\Component\Config\Definition\Exception\Exception;
 *@ORM\Entity
 *@ORM\Table(name="query")
 **/
-class Query {
+class Query implements JsonSerializable{
 	
 	
 	public function __construct(){
@@ -104,7 +107,19 @@ class Query {
 	* @ORM\Column(type="datetime")
 	*/
 	public $timestamp;
-	
+
+	public function jsonSerialize(){
+		return [
+			'id' => $this->id,
+			'problem' => $this->problem,
+			'assignment' => $this->assignment,
+			'question' => $this->question,
+			'asker' => $this->asker,
+			'answerer' => $this->answerer,
+			'answer'=> $this->answer,
+			'timestamp' => $this->timestamp,
+		];
+	}
 }
 
 ?>

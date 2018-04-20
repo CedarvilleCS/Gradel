@@ -102,13 +102,13 @@
 						</th>
 						{% for u in users %}
 							<tr>
-								<td class="user-id">{{u.user.id}}</td>
-								<td class="first-name-setter">{{u.user.getFirstName()}}</td>
-								<td class="last-name-setter">{{u.user.getLastName()}}</td>
-								<td class="username-setter">{{u.user.getUsername()}}</td>
+								<td class="user-id">{{u.id}}</td>
+								<td class="first-name-setter">{{u.getFirstName()}}</td>
+								<td class="last-name-setter">{{u.getLastName()}}</td>
+								<td class="username-setter">{{u.getUsername()}}</td>
 								<td class = "roles">
 									<div class="role-name-container">
-										{% for r in u.user.getRoles() %}
+										{% for r in u.getRoles() %}
 											{% if r != "ROLE_USER" %}
 												<div class="role-name">{{r}}</div>
 											{% endif %}
@@ -116,7 +116,7 @@
 									</div>
 									<select class="role-select">
 										{% for r in roleDefaults %}
-											{% if not (r in u.user.getRoles()) %}
+											{% if not (r in u.getRoles()) %}
 												<option class="option">{{r}}</option>
 											{% endif %}
 										{% endfor %}

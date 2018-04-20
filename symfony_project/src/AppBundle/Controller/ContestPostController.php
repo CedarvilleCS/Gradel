@@ -96,7 +96,6 @@ class ContestPostController extends Controller {
 		$problem->attempts_before_penalty = 0;
 		$problem->penalty_per_attempt = 0;
 		$problem->stop_on_first_fail = false;
-		//$problem->stop_on_first_fail = true;
 		$problem->response_level = "None";
 		$problem->display_testcaseresults = false;
 		$problem->testcase_output_level = "None";
@@ -112,8 +111,7 @@ class ContestPostController extends Controller {
 	
 		} else {
 	
-			return $this->returnForbiddenResponse("name and description need to be provided");
-		
+			return $this->returnForbiddenResponse("name and description need to be provided");		
 		}
 		
 		# TIME LIMIT
@@ -184,6 +182,9 @@ class ContestPostController extends Controller {
 		
 		$em->persist($problem);		
 		$em->flush();		
+
+		// update the leaderboard
+		$assignment->updateLeaderboard($grader, $em);
 		
 		$url = $this->generateUrl('contest_problem', ['contestId' => $problem->assignment->section->id, 'roundId' => $problem->assignment->id, 'problemId' => $problem->id]);
 				
@@ -638,12 +639,15 @@ class ContestPostController extends Controller {
 			$post_contest->penalty_per_day = 0;
 
 			$post_contest->start_time = clone $lastEndDate;			
+			$post_contest->start_time->add(new DateInterval('P0DT1H'));			
 			$post_contest->end_time = clone $lastEndDate;
 			$post_contest->end_time->add(new DateInterval('P180D'));
 			$post_contest->cutoff_time = clone $lastEndDate;
 			$post_contest->cutoff_time->add(new DateInterval('P180D'));
 			$post_contest->freeze_time = clone $lastEndDate;
 			$post_contest->freeze_time->add(new DateInterval('P180D'));
+
+			$section->end_time = clone $post_contest->end_time;
 
 			unset($contestsToRemove[$post_contest->id]);
 			$em->persist($post_contest);	
@@ -726,7 +730,7 @@ class ContestPostController extends Controller {
 			}
 
 			unset($contestsToRemove[$pre_contest->id]);
-			$em->persist($pre_contest);	
+			$em->persist($pre_contest);
 		}
 		
 		
@@ -766,12 +770,14 @@ class ContestPostController extends Controller {
 
 		$em->persist($section);
 		$em->flush();			
-		
-		
-		$pusher = new SocketPusher($this->container->get('gos_web_socket.wamp.pusher'));
-		$pusher->promptDataRefresh($section->id);	
-		
-		# CLEANUP 
+
+		foreach($section->assignments as &$asgn){
+			$asgn->updateLeaderboard($grader, $em);
+		}
+
+		# SOCKET PUSHER
+		$pusher = new SocketPusher($this->container->get('gos_web_socket.wamp.pusher'), $em, $contests[0]);
+		$pusher->sendPromptUpdate();
 		
 		$url = $this->generateUrl('contest', ['contestId' => $section->id]);
 				
@@ -787,8 +793,8 @@ class ContestPostController extends Controller {
 		return $response;	
 	}
 	
+	// this is called when a user wants to ask a question
 	public function postQuestionAction(Request $request){
-		$pusher = new SocketPusher($this->container->get('gos_web_socket.wamp.pusher'));
 
 		$em = $this->getDoctrine()->getManager();		
 		$grader = new Grader($em);
@@ -851,8 +857,10 @@ class ContestPostController extends Controller {
 		$response->headers->set('Content-Type', 'application/json');
 		$response->setStatusCode(Response::HTTP_OK);
 
+		# SOCKET PUSHER
+		$pusher = new SocketPusher($this->container->get('gos_web_socket.wamp.pusher'), $em, $contest);
+		$pusher->sendNewClarification($query);
 
-		$pusher->promptDataRefresh($contest->section->id);
 		return $response;		
 	}
 		
@@ -913,6 +921,7 @@ class ContestPostController extends Controller {
 			}
 			
 			$shouldFreeze = true;
+
 		} else if($postData['type'] == "unfreeze"){
 			
 			// scoreboard is naturally frozen
@@ -940,14 +949,10 @@ class ContestPostController extends Controller {
 		} else {
 			return $this->returnForbiddenResponse("type provided ".$postData['type']." is not valid");
 		}
-		
-		
+				
 		$em->persist($contest);
 		$em->flush();
-				
-		$pusher = new SocketPusher($this->container->get('gos_web_socket.wamp.pusher'));
-		$pusher->promptDataRefresh($section->id);	
-		
+
 		$response = new Response(json_encode([
 			'id' => $contest->id,
 			'freeze' => $shouldFreeze,
@@ -955,16 +960,27 @@ class ContestPostController extends Controller {
 					
 		$response->headers->set('Content-Type', 'application/json');
 		$response->setStatusCode(Response::HTTP_OK);
-		$pusher = new SocketPusher($this->container->get('gos_web_socket.wamp.pusher'));
-		$pusher->promptDataRefresh($contest->section->id);
-		return $response;		
+
+		// UPDATE LEADERBOARD
+		$contest->updateLeaderboard($grader, $em);
+
+		# SOCKET PUSHER
+		$pusher = new SocketPusher($this->container->get('gos_web_socket.wamp.pusher'), $em, $contest);
+
+		if($shouldFreeze){
+			$pusher->sendFreeze();
+		} else {
+			$pusher->sendUnfreeze();
+		}
+		$pusher->sendScoreboardUpdates(true);
+
+		return $response;
 	}
 	
 	public function submissionJudgingAction(Request $request){
 		
 		$em = $this->getDoctrine()->getManager();		
 		$grader = new Grader($em);
-		$pusher = new SocketPusher($this->container->get('gos_web_socket.wamp.pusher'));
 
 		$user = $this->get('security.token_storage')->getToken()->getUser();
 		if(!$user){
@@ -990,6 +1006,9 @@ class ContestPostController extends Controller {
 		if( !($elevatedUser) ){
 			return $this->returnForbiddenResponse("PERMISSION DENIED");
 		}
+
+		# SOCKET PUSHER
+		$pusher = new SocketPusher($this->container->get('gos_web_socket.wamp.pusher'), $em, $contest);
 		
 		
 		// for submission editing
@@ -1012,14 +1031,19 @@ class ContestPostController extends Controller {
 				return $this->returnForbiddenResponse("Submission has already been reviewed");
 			}
 			
+			$update = true;
 			$override_wrong = false;
 			$reviewed = true;
+
+			// saying the submission was incorrect
 			if($postData['type'] == "wrong"){
 
 				$override_wrong = true;
 				
 				
-			} else if($postData['type'] == "correct"){
+			}
+			// saying the submission was correct
+			else if($postData['type'] == "correct"){
 				
 				// override the submission to correct
 				if($submission->isCorrect(true)){
@@ -1033,49 +1057,31 @@ class ContestPostController extends Controller {
 					$submission->correct_override = true;					
 				}
 
-				$pusher->pushUserSpecificMessage(
-					$pusher->buildAcceptance($submission),
-					$pusher->getUsernamesFromTeam($submission->team),
-					$submission->problem->assignment->section->id,
-					false
-				);
+				//$pusher->sendAcceptance($submission);
+
 				
-			} else if($postData['type'] == "unoverride"){
-				
-				$submission->wrong_override = false;
-				$submission->correct_override = false;
-				
-			} else if($postData['type'] == "delete"){
+			} 
+			// saying the submission was deleted
+			else if($postData['type'] == "delete"){
 					
 				// delete the submission
 				$subId = $submission->id;
 				$em->remove($submission);
 
-				// show card
-				$pusher->pushUserSpecificMessage(
-					$pusher->buildDeleteRejection($submission),
-					$pusher->getUsernamesFromTeam($submission->team),
-					$submission->problem->assignment->section->id,
-					true,
-					$submission->id
-				);
+				//$pusher->sendDelete($submission);
 					
-			} else if($postData['type'] == "formatting"){
+			}
+			// saying the submisison was a formatting error
+			else if($postData['type'] == "formatting"){
 				
 				$override_wrong = true;
 						
 				// add formatting message to submission
 				$submission->judge_message = "Formatting Error";
-				// show card
-				$pusher->pushUserSpecificMessage(
-					$pusher->buildFormattingRejection($submission),
-					$pusher->getUsernamesFromTeam($submission->team),
-					$submission->problem->assignment->section->id,
-					true,
-					$submission->id
-				);
 						
-			} else if($postData['type'] == "message"){
+			}
+			// saying the submission was a custom judge message error
+			else if($postData['type'] == "message"){
 				
 				$override_wrong = true;
 				$message = $postData['message'];
@@ -1085,18 +1091,11 @@ class ContestPostController extends Controller {
 					$submission->judge_message = NULL;
 				} else {
 					$submission->judge_message = trim($postData['message']);
-
-					// show card
-					$pusher->pushUserSpecificMessage(
-						$pusher->buildCustomRejection($submission),
-						$pusher->getUsernamesFromTeam($submission->team),
-						$submission->problem->assignment->section->id,
-						true,
-						$submission->id
-					);
-				}			
+				}	
 							
-			} else if($postData['type'] == "claimed"){
+			}
+			// claiming the submission
+			else if($postData['type'] == "claimed"){
 				
 				$reviewed = false;			
 				
@@ -1105,8 +1104,15 @@ class ContestPostController extends Controller {
 				}	
 				
 				$submission->pending_status = 1;
+
+				$update = false;
+
+				// let the judges know this one has been claimed
+				$pusher->sendClaimedSubmission($submission->id);
 				
-			} else if($postData['type'] == "unclaimed"){
+			}
+			// unclaiming the submission
+			else if($postData['type'] == "unclaimed"){
 				
 				$reviewed = false;			
 				
@@ -1115,7 +1121,11 @@ class ContestPostController extends Controller {
 				}	
 				
 				$submission->pending_status = 0;
+
+				$update = false;	
 				
+				// let the other judges know this submission is back on the market
+				$pusher->sendNewSubmission($submission);
 				
 			} else {
 				return $this->returnForbiddenResponse("Type of judging command not allowed");
@@ -1134,16 +1144,10 @@ class ContestPostController extends Controller {
 					
 					$submission->wrong_override = false;
 					$submission->correct_override = false;
-
-					$pusher->pushUserSpecificMessage(
-						$pusher->buildRejection($submission),
-						$pusher->getUsernamesFromTeam($submission->team),
-						$submission->problem->assignment->section->id,
-						true,
-						$submission->id
-					);
 				}
 
+				// let the team know their submission was rejected
+				//$pusher->sendRejection($submission);
 			}
 
 			
@@ -1167,7 +1171,28 @@ class ContestPostController extends Controller {
 			$response->headers->set('Content-Type', 'application/json');
 			$response->setStatusCode(Response::HTTP_OK);
 
-			$pusher->promptDataRefresh($contest->section->id);
+			if($update){
+				// UPDATE LEADERBOARD            	
+				$contest->updateLeaderboard($grader, $em);
+
+				if($postData['type'] != "delete"){
+					$pusher->sendGradedSubmission($submission);
+					$pusher->sendResultUpdate($submission);
+					$pusher->sendScoreboardUpdates();
+				}				
+
+				if($postData['type'] == "delete"){
+					$type = "delete";
+				} 
+				else if($postData['type'] != "correct"){
+					$type = "reject";
+				} 
+				else {
+					$type = "accept";
+				}
+
+				$pusher->sendResponse($submission, $type);
+			}
 			
 			return $response;
 			
@@ -1229,26 +1254,13 @@ class ContestPostController extends Controller {
 			$response->headers->set('Content-Type', 'application/json');
 			$response->setStatusCode(Response::HTTP_OK);
 
-			if ($query->asker->users == null) {
-				$pusher->pushGlobalMessage(
-					$pusher->buildClarificationMessageFromQuery($query),
-					$section->id
-				);
-			}
-			else {
-				$pusher->pushUserSpecificMessage(
-					$pusher->buildClarificationMessageFromQuery($query),
-					$pusher->getUsernamesFromTeam($query->asker),
-					$section->id,
-					false,
-					$submission->id
-				);
-			}
+			# push a clarification message
+			$pusher->sendClarification($query);
 
-			$pusher->promptDataRefresh($contest->section->id);
 			return $response;
 						
 		}
+		// for removing all submissions
 		else if($postData['type'] == 'clear-subs'){
 			
 			if($contest->isActive()){
@@ -1268,11 +1280,14 @@ class ContestPostController extends Controller {
 			]));
 				
 			
+			$contest->updateLeaderboard($grader, $em);
+
 			$response->headers->set('Content-Type', 'application/json');
 			$response->setStatusCode(Response::HTTP_OK);
 
 			return $response; 		
 		}
+		// for removing all clarifications
 		else if($postData['type'] == 'clear-clars'){
 			
 			if($contest->isActive()){
@@ -1293,12 +1308,12 @@ class ContestPostController extends Controller {
 			$response = new Response(json_encode([
 				'good' => true,
 			]));
-				
-			
+
+			$contest->updateLeaderboard($grader, $em);
+						
 			$response->headers->set('Content-Type', 'application/json');
 			$response->setStatusCode(Response::HTTP_OK);
 			
-			$pusher->promptDataRefresh($contest->section->id);
 			return $response;
 			
 		}

@@ -247,7 +247,6 @@ class Problem implements JsonSerializable{
 		return [
 			'id' => $this->id,
 			'name' => $this->name,
-			'testcases' => $this->testcases->toArray(),
 		];
 	}
 }
