@@ -181,6 +181,25 @@ sudo docker build --tag=gradel:latest ./.
 cd ..
 ```
 
+### Configure the Web Socket to Restart on Reboot
+
+*Note: An unnamed developer destroyed joseph because he accidentally `chmod 770`'d the entire file structure recursively. Be careful with this step!!!*
+
+We can add a script to the startup directory so that the socket will start on reboot. To do this:
+`cd /etc/init.d`
+Create a new file named socket_server.sh and add:
+```
+cd /var/www/gradel/symfony_project
+./update_cache
+cd /etc/init.d/
+```
+Then run:
+```
+sudo chmod +x socket_server.sh
+sudo socket_server.sh defaults
+```
+This allows the script to be run as a script on reboot
+
 ### Cleanup
 
 And we will update all of these apache changes with `sudo service apache2 restart`
