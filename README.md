@@ -196,7 +196,7 @@ cd /etc/init.d/
 Then run:
 ```
 sudo chmod +x socket_server.sh
-sudo socket_server.sh defaults
+sudo update-rc.d socket_server.sh defaults
 ```
 This allows the script to be run as a script on reboot
 
