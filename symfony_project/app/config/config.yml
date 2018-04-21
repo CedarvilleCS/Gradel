@@ -36,6 +36,8 @@ framework:
     #esi: ~
     #translator: { fallbacks: ['%locale%'] }
     secret: '%secret%'
+    assets:
+        version: "0.9"
     router:
         resource: '%kernel.project_dir%/app/config/routing.yml'
         strict_requirements: ~
