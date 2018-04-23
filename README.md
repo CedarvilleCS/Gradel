@@ -200,6 +200,10 @@ sudo update-rc.d socket_server.sh defaults
 ```
 This allows the script to be run as a script on reboot
 
+### JS Caching
+
+When adding new JS code, you must be careful of versioning. Chrome is aggressive about caching files client side. To assure that the user gets the most updated file, increment the `framework.assets.version` field.
+
 ### Cleanup
 
 And we will update all of these apache changes with `sudo service apache2 restart`
