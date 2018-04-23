@@ -33,3 +33,7 @@
 	box-shadow: none;
 	
 }
+
+#submissionButton:hover {
+	cursor:pointer;
+}
