@@ -194,6 +194,9 @@
 	min-width: 98%;
 	cursor: pointer;
 }
+.queued.submission .right-side, .queued.submission .middle-side{
+	display: none;
+}
 
 .left-side{
 	padding-left: 5px; 

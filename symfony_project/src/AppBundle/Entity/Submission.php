@@ -155,8 +155,11 @@ class Submission implements JsonSerializable {
 		else if($this->exceeded_time_limit) {
 			return "Incorrect - Exceeded Time Limit";
 		}
-		else {
+		else if($this->judge_message == null){
 			return "Incorrect - Wrong Answer";
+		} 
+		else {
+			return "Incorrect";
 		}
 	}
 
@@ -165,8 +168,8 @@ class Submission implements JsonSerializable {
 		return $this->compiler_error || $this->runtime_error || $this->exceeded_time_limit;		
 	}
 	
-	public function isCorrect($raw){
-		
+	public function isCorrect($raw = false){		
+
 		$tcs = 0;
 		$passed_tcs = 0;
 		
@@ -179,7 +182,7 @@ class Submission implements JsonSerializable {
 			}			
 		}
 		
-		if(!isset($raw) || !$raw){
+		if($raw != true){
 			
 			if($this->correct_override) return true;		
 			if($this->wrong_override) return false;
@@ -220,7 +223,7 @@ class Submission implements JsonSerializable {
 	public $id;
 
 	/**
-	* @ORM\OneToMany(targetEntity="TestcaseResult", mappedBy="submission", cascade={"persist"})
+	* @ORM\OneToMany(targetEntity="TestcaseResult", mappedBy="submission", cascade={"persist"}, fetch="EXTRA_LAZY")
 	* @ORM\OrderBy({"testcase" = "ASC"})
 	*/
 	public $testcaseresults;
@@ -238,7 +241,7 @@ class Submission implements JsonSerializable {
 	}
 	
 	/**
-     * @ORM\ManyToOne(targetEntity="Problem")
+     * @ORM\ManyToOne(targetEntity="Problem", fetch="EXTRA_LAZY")
      * @ORM\JoinColumn(name="problem_id", referencedColumnName="id", nullable=false, onDelete="CASCADE")
      */
 	public $problem;
@@ -249,13 +252,13 @@ class Submission implements JsonSerializable {
 	public $version;
 	
 	/**
-     * @ORM\ManyToOne(targetEntity="Team", inversedBy="submissions")
+     * @ORM\ManyToOne(targetEntity="Team", inversedBy="submissions", fetch="EXTRA_LAZY")
      * @ORM\JoinColumn(name="team_id", referencedColumnName="id", nullable=true, onDelete="CASCADE")
      */
 	public $team;
 	
 	/**
-     * @ORM\ManyToOne(targetEntity="User")
+     * @ORM\ManyToOne(targetEntity="User", fetch="EXTRA_LAZY")
      * @ORM\JoinColumn(name="user_id", referencedColumnName="id", nullable=true, onDelete="CASCADE")
      */
 	public $user;
@@ -413,6 +416,7 @@ class Submission implements JsonSerializable {
 	
 	
 	public function jsonSerialize(){
+
 		return [
 			'id' => $this->id,
 			

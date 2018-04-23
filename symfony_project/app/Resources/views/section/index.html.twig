@@ -377,16 +377,21 @@
 
 		// Download the CSV of grades when the download button is clicked
 		var download = document.getElementById('download');	
-		download.addEventListener('click', function () {
-			var link = document.getElementById('download');
-			link.href = makeTextFile(generateGradeCSVSection());
-			link.style.display = 'block';
-		}, false);
+		if(download != null){
+			download.addEventListener('click', function () {
+				var link = document.getElementById('download');
+				link.href = makeTextFile(generateGradeCSVSection());
+				link.style.display = 'block';
+			}, false);
+		}
 
 		function downloadAssgnGrades(index, id) {
 			var link = document.getElementById(id);
-			link.href = makeTextFile(generateGradeCSVAssignment(index));
-			link.style.display = 'block';
+
+			if(link != null){
+				link.href = makeTextFile(generateGradeCSVAssignment(index));
+				link.style.display = 'block';
+			}
 		}
 
 		{% endif %}
@@ -407,6 +412,9 @@
 
 			if(str.trim() == "") return;
 
+			$('#submissions-list').children().remove();
+			$('#submissions-list').append("<li> Searching for submissions... </li>");
+
 			var formData = new FormData();
 			formData.append('val', str);
 			formData.append('id', {{section.id}})
@@ -424,12 +432,10 @@
 		
 					if(data['responseText']){					
 						alert(data['responseText']);
-						console.log(data['responseText']);					
+						console.log(JSON.parse(data['responseText']));					
 					}				
 				}
 			});
-
-
 		}
 
 
@@ -444,7 +450,6 @@
 					var res = data[i];
 
 					var time = new Date(res.timestamp.date);
-					console.log(time.getDate());
 
 					var names = "";
 					if(res.team.users != null && res.team.users.length > 1){

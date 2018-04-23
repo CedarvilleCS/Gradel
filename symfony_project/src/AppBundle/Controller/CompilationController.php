@@ -39,7 +39,7 @@ use Psr\Log\LoggerInterface;
 class CompilationController extends Controller {	
 	
 	/* submit */
-	public function submitAction(Request $request, $trialId=0) {
+	public function submitAction(Request $request, $trialId=0, $forwarded="") {
 				
 		# entity manager
 		$em = $this->getDoctrine()->getManager();		
@@ -75,8 +75,10 @@ class CompilationController extends Controller {
 		}
 		
 		$problem = $trial->problem;
-	
-		//return $this->returnForbiddenResponse($trial->id."");
+
+		if($problem->assignment->section->course->is_contest && $forwarded != "secret_code"){
+			return $this->returnForbiddenResponse("You are not allow to run this controller");
+		}
 	
 		# validation
 		$elevatedUser = ($grader->isTeaching($user, $problem->assignment->section) || $grader->isJudging($user, $problem->assignment->section) || $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN"));
@@ -236,7 +238,7 @@ class CompilationController extends Controller {
 		}
 		
 		# RUN THE DOCKER COMPILATION
-		$docker_time_limit = intval(count($problem->testcases) * ceil(floatval($problem->time_limit)/1000.0)) + 8 + rand(1,4);
+		$docker_time_limit = intval(count($problem->testcases) * ceil(floatval($problem->time_limit)/1000.0)) + 120;
 
 		$docker_script = $web_dir."compilation/dockercompiler.sh \"".$docker_options."\" ".$submission->id." ".$docker_time_limit;
 		$docker_output = shell_exec($docker_script);	
@@ -298,10 +300,11 @@ class CompilationController extends Controller {
 			->andWhere($whereClause)
 			->andWhere('s.best_submission = true')
 			->setParameter(1, $problem)
-			->setParameter(2, $teamOrUser);
+			->setParameter(2, $teamOrUser)
+			->orderBy('s.timestamp', 'DESC');
 				
 		$acc_query = $qb_accepted->getQuery();
-		$prev_accepted_sol = $acc_query->getOneOrNullResult();
+		$prev_accepted_sol = $acc_query->getResult()[0];
 		
 		# determine if the new submission is the best one yet
 		if($grader->isAcceptedSubmission($submission, $prev_accepted_sol)){
@@ -314,14 +317,6 @@ class CompilationController extends Controller {
 		}
 		// update pending status
 		$submission->pending_status = 2;
-		
-		if($submission->problem->assignment->section->course->is_contest){		
-			// if it is not post contest or pre contest, the grader is on a team, and it was not a correct submission
-			if( !$submission->problem->assignment->post_contest && !$submission->problem->assignment->pre_contest && $grader->getTeam($user, $submission->problem->assignment) && !($solvedAllTestcases || $submission->compiler_error || $submission->exceeded_time_limit || $submission->runtime_error) ){
-				
-				$submission->pending_status = 0;			
-			}
-		}
 
 		# complete the submission
 		$submission->is_completed = true;
@@ -330,28 +325,14 @@ class CompilationController extends Controller {
 		$em->persist($submission);
 		$em->flush();
 
-		// always refresh on submit!
-		if($submission->problem->assignment->section->course->is_contest){
-			$pusher = new SocketPusher($this->container->get('gos_web_socket.wamp.pusher'));
-			$pusher->promptDataRefresh($submission->problem->assignment->section->id);	
-		}
-		
-				
-		if($submission->problem->assignment->section->course->is_contest){
-			$url = $this->generateUrl('contest_result', [
-				'contestId' => $submission->problem->assignment->section->id,
-				'roundId' => $submission->problem->assignment->id,
-				'problemId' => $submission->problem->id,
-				'resultId' => $submission->id
-			]);
-		} else {
-			$url = $this->generateUrl('problem_result', [
-				'submission_id' => $submission->id
-			]);
-		}
-		
+	
+		$url = $this->generateUrl('problem_result', [
+			'submission_id' => $submission->id
+		]);
+	
 		$response = new Response(json_encode([		
-			'redirect_url' => $url,			
+			'redirect_url' => $url,	
+			'submission_id' => $submission->id,		
 		]));
 		
 		$response->headers->set('Content-Type', 'application/json');
@@ -648,7 +629,7 @@ class CompilationController extends Controller {
 		}
 		
 		# RUN THE DOCKER COMPILATION
-		$docker_time_limit = intval(count($problem->testcases) * ceil(floatval($problem->time_limit)/1000.0)) + 8 + rand(1,4);
+		$docker_time_limit = intval(count($problem->testcases) * ceil(floatval($problem->time_limit)/1000.0)) + 40;
 
 		$docker_script = $web_dir."compilation/dockercompiler.sh \"".$docker_options."\" ".$submission->id." ".$docker_time_limit;
 		$docker_output = shell_exec($docker_script);	
@@ -701,7 +682,7 @@ class CompilationController extends Controller {
 		}
 		
 		if(isset($sub_dir)){
-			shell_exec("rm -rf ".$sub_dir);
+			//shell_exec("rm -rf ".$sub_dir);
 		}
 		
 		if(isset($uploads_dir)){

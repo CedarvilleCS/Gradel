@@ -676,11 +676,9 @@
 				console.log(data);
 				
 				// save the testcase data to the output textboxes
-				count = 0;
-				$(".test-case").each(function() {
+				$(".test-case").each(function(index) {
 					
-					$(this).find('.output').val(addReturnKey(data['testcases'][count]));
-					count++;		
+					$(this).find('.output').val(addReturnKey(data['testcases'][index]));
 				});
 				
 				$('#generator-loading-container').hide();
@@ -743,6 +741,9 @@
     }
 	
 	</script>
+	
+	{{ include('contest/gas/contest_gas.html.twig') }}
+	{{ include('contest/gas/contest_gas_normal.html.twig') }}
 			
 		
 {% endblock %}

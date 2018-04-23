@@ -95,7 +95,7 @@ class Team implements JsonSerializable{
 	public function jsonSerialize(){
 		return [
 			'name' => $this->name,			
-			'users' => $this->users->toArray(),
+			'users' => ($this->users) ? $this->users->toArray() : [],
 			'id' => $this->id,
 			'workstation_number' => $this->workstation_number,
 			'member_string' => $this->getMemberString(),
