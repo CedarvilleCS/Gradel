@@ -307,6 +307,14 @@ class AssignmentController extends Controller {
 			$sections[] = $section;
 		}
 
+		usort($assignments, function($a, $b){
+			return strcmp($a->section->name, $b->section->name);
+		});
+
+		usort($sections, function($a, $b){
+			return strcmp($a->name, $b->name);
+		});
+
 		return $this->render('assignment/edit.html.twig', [
 			
 			"assignment" => $assignment,

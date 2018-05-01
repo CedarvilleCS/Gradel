@@ -185,9 +185,9 @@ class CompilationController extends Controller {
 		$testcaseGen = $generator->generateTestcaseFiles($problem, $input_file_dir, $arg_file_dir, $output_file_dir);
 
 		if($testcaseGen != 1){
-			
-			$this->cleanUp($submission, null, $sub_dir, $uploads_dir);	
-			return $this->returnForbiddenResponse($testcaseGen."");
+			$id = $submission->id;			
+			$this->cleanUp($submission, null, null, $uploads_dir);	
+			return $this->returnForbiddenResponse($testcaseGen."\nContact a system admin!\nGive them this submission ID: ".$id);
 		}		
 		
 		# CUSTOM VALIDATOR
@@ -200,9 +200,10 @@ class CompilationController extends Controller {
 			
 			// overwrite the custom_validate.cpp file
 			$custom_validator_file = fopen($custom_validator_dir."custom_validate.cpp", "w");
-			if(!$custom_validator_file){				
-				$this->cleanUp($submission, null, $sub_dir, $uploads_dir);		
-				return $this->returnForbiddenResponse("Unable to open custom validator file for writing - contact a system admin");
+			if(!$custom_validator_file){	
+				$id = $submission->id;		
+				$this->cleanUp($submission, null, null, $uploads_dir);		
+				return $this->returnForbiddenResponse("Unable to open custom validator file for writing.\nContact a system admin!\nGive them this submission ID: ".$id);
 			}
 			fwrite($custom_validator_file, $validate_file);
 			fclose($custom_validator_file);
@@ -231,10 +232,10 @@ class CompilationController extends Controller {
 															$is_zipped, 
 															true);
 				
-		if($dockerOptGen != 1){
-			
-			$this->cleanUp($submission, null, $sub_dir, $uploads_dir);		
-			return $this->returnForbiddenResponse($dockerOptGen."");
+		if($dockerOptGen != 1){			
+			$id = $submission->id;
+			$this->cleanUp($submission, null, null, $uploads_dir);		
+			return $this->returnForbiddenResponse($dockerOptGen.".\nContact a system admin!\nGive them this submission ID: ".$id);
 		}
 		
 		# RUN THE DOCKER COMPILATION
@@ -245,8 +246,9 @@ class CompilationController extends Controller {
 		
 		$docker_log_file = fopen($flags_dir."docker_log", "w");
 		if(!$docker_log_file){
-			$this->cleanUp($submission, null, $sub_dir, $uploads_dir);		
-			return $this->returnForbiddenResponse("Cannot create docker_script.log - contact a system admin");
+			$id = $submission->id;
+			$this->cleanUp($submission, null, null, $uploads_dir);		
+			return $this->returnForbiddenResponse("Cannot create docker_script.log.\nContact a system admin!\nGive them this submission ID: ".$id);
 		}
 		fwrite($docker_log_file, $docker_output);
 		fclose($docker_log_file);
@@ -256,28 +258,31 @@ class CompilationController extends Controller {
 		$submissionGen = $generator->generateSubmission($submission, $problem, $solvedAllTestcases);
 		
 		if($submissionGen != 1){
-			
-			$this->cleanUp($submission, null, $sub_dir, $uploads_dir);		
-			return $this->returnForbiddenResponse($submissionGen."");
+			$id = $submission->id;
+			$this->cleanUp($submission, null, null, $uploads_dir);		
+			return $this->returnForbiddenResponse($submissionGen.".\nContact a system admin!\nGive them this submission ID: ".$id);
 		}
 		
 		# ZIP DIRECTORY FOR DATABASE		
 		if(!chdir($sub_dir)){
-			$this->cleanUp($submission, null, $sub_dir, $uploads_dir);	
-			return $this->returnForbiddenResponse("Cannot switch directories - contact a system admin");
+			$id = $submission->id;
+			$this->cleanUp($submission, null, null, $uploads_dir);	
+			return $this->returnForbiddenResponse("Cannot switch directories for zipping.\nContact a system admin!\nGive them this submission ID: ".$id);
 		}
 		
 		shell_exec("zip -r ".$sub_dir."log.zip *");
 		
 		if(!chdir($web_dir)){
-			$this->cleanUp($submission, null, $sub_dir, $uploads_dir);	
-			return $this->returnForbiddenResponse("Cannot switch directories - contact a system admin");
+			$id = $submission->id;
+			$this->cleanUp($submission, null, null, $uploads_dir);	
+			return $this->returnForbiddenResponse("Cannot switch directories after zipping.\nContact a system admin!\nGive them this submission ID: ".$id);
 		}
 		
 		$zip_file = fopen($sub_dir."log.zip", "r");
 		if(!$zip_file){
-			$this->cleanUp($submission, null, $sub_dir, $uploads_dir);	
-			return $this->returnForbiddenResponse("Cannot open log zip file for reading - contact a system admin");
+			$id = $submission->id;
+			$this->cleanUp($submission, null, null, $uploads_dir);	
+			return $this->returnForbiddenResponse("Cannot open log zip file for reading.\nContact a system admin!\nGive them this submission ID: ".$id);
 		}
 		$submission->log_directory = $zip_file;
 		
@@ -563,8 +568,9 @@ class CompilationController extends Controller {
 		$submitted_filename = $uploader->createGeneratorFile($user, $problem, "zippy.zip", $file);
 		//return $this->returnForbiddenResponse(json_encode($submitted_filename));
 		if(!$submitted_filename){
-			$this->cleanUp($submission, $problem, $sub_dir, $uploads_dir);	
-			return $this->returnForbiddenResponse("Unable to create file for submission");
+			$id = $submission->id;
+			$this->cleanUp($submission, $problem, null, $uploads_dir);	
+			return $this->returnForbiddenResponse("Unable to create file for submission.\nContact a system admin!\nGive them this submission ID: ".$id);
 		}
 
 		// move into docker area
@@ -572,22 +578,25 @@ class CompilationController extends Controller {
 
 			# save the input/output files to a temp folder by deblobinating them	
 		$testcaseGen = $generator->generateTestcaseFiles($problem, $input_file_dir, $arg_file_dir, $output_file_dir);
-		if($testcaseGen != 1){			
-			$this->cleanUp($submission, $problem, $sub_dir, $uploads_dir);	
-			return $this->returnForbiddenResponse($testcaseGen."");
+		if($testcaseGen != 1){
+			$id = $submission->id;		
+			$this->cleanUp($submission, $problem, null, $uploads_dir);	
+			return $this->returnForbiddenResponse($testcaseGen.".\nContact a system admin!\nGive them this submission ID: ".$id);
 		}
 			
 		# get the current language
 		$language_id = $postData['language'];
 		if(!isset($language_id) || !($language_id > 0)){
-			$this->cleanUp($submission, $problem, $sub_dir, $uploads_dir);	
-			return $this->returnForbiddenResponse("PROBLEM ID WAS NOT PROVIDED PROPERLY");
+			$id = $submission->id;
+			$this->cleanUp($submission, $problem, null, $uploads_dir);	
+			return $this->returnForbiddenResponse("PROBLEM ID WAS NOT PROVIDED PROPERLY.\nContact a system admin!\nGive them this submission ID: ".$id);
 		}
 		
 		$language = $em->find("AppBundle\Entity\Language", $language_id);
 		if(!$language){
-			$this->cleanUp($submission, $problem, $sub_dir, $uploads_dir);	
-			return $this->returnForbiddenResponse("Language with id ".$language_id." does not exist");
+			$id = $submission->id;
+			$this->cleanUp($submission, $problem, null, $uploads_dir);	
+			return $this->returnForbiddenResponse("Language with id ".$language_id." does not exist.\nContact a system admin!\nGive them this submission ID: ".$id);
 		}		
 		
 		# set the main class and package name
@@ -596,11 +605,15 @@ class CompilationController extends Controller {
 				
 		# check main class and package name for validity
 		if(!isset($main_class) || strlen($main_class) > 0 && preg_match("/^[a-zA-Z0-9_]+$/", $main_class) != 1){
-			return $this->returnForbiddenResponse("MAIN CLASS MUST BE ONLY LETTERS, NUMBERS, OR UNDERSCORES");
+			$id = $submission->id;
+			$this->cleanUp($submission, $problem, null, $uploads_dir);	
+			return $this->returnForbiddenResponse("MAIN CLASS MUST BE ONLY LETTERS, NUMBERS, OR UNDERSCORES.\nIf you think you did this right, contact a system admin!\nGive them this submission ID: ".$id);
 		}
 		
 		if(!isset($package_name) || strlen($package_name) > 0 && preg_match("/^[a-zA-Z0-9_]+$/", $package_name) != 1){
-			return $this->returnForbiddenResponse("PACKAGE NAME MUST BE ONLY LETTERS, NUMBERS, OR UNDERSCORES");
+			$id = $submission->id;
+			$this->cleanUp($submission, $problem, null, $uploads_dir);	
+			return $this->returnForbiddenResponse("PACKAGE NAME MUST BE ONLY LETTERS, NUMBERS, OR UNDERSCORES.\nIf you think you did this right, contact a system admin!\nGive them this submission ID: ".$id);
 		}
 
 		$submission->main_class_name = $main_class;
@@ -623,9 +636,10 @@ class CompilationController extends Controller {
 															$is_zipped, 
 															false);
 		
-		if($dockerOptGen != 1){			
-			$this->cleanUp($submission, $problem, $sub_dir, $uploads_dir);	
-			return $this->returnForbiddenResponse($dockerOptGen."");
+		if($dockerOptGen != 1){		
+			$id = $submission->id;	
+			$this->cleanUp($submission, $problem, null, $uploads_dir);	
+			return $this->returnForbiddenResponse($dockerOptGen.".\nContact a system admin!\nGive them this submission ID ".$id);
 		}
 		
 		# RUN THE DOCKER COMPILATION
@@ -636,8 +650,9 @@ class CompilationController extends Controller {
 		
 		$docker_log_file = fopen($flags_dir."docker_log", "w");
 		if(!$docker_log_file){
-			$this->cleanUp($submission, $problem, $sub_dir, $uploads_dir);
-			return $this->returnForbiddenResponse("Cannot open docker_script.log - contact a system admin");
+			$id = $submission->id;
+			$this->cleanUp($submission, $problem, null, $uploads_dir);
+			return $this->returnForbiddenResponse("Cannot open docker_script.log.\nContact a system admin!\nGive them this submission ID: ".$id);
 		}
 		fwrite($docker_log_file, $docker_output);
 		fclose($docker_log_file);
@@ -649,8 +664,9 @@ class CompilationController extends Controller {
 		$submissionGen = $generator->generateOutput($testcases, $submission, count($problem->testcases));
 			
 		if($submissionGen != 1) {
-		//	$this->cleanUp($submission, $problem, $sub_dir, $uploads_dir);
-			return $this->returnForbiddenResponse($submissionGen."");
+			$id = $submission->id;
+			$this->cleanUp($submission, $problem, null, $uploads_dir);
+			return $this->returnForbiddenResponse($submissionGen.".\nContact a system admin!\nGive them this submission ID: ".$id);
 		}
 						
 		# REMOVE TEMPORARY FOLDERS AND DATABASES
@@ -682,7 +698,7 @@ class CompilationController extends Controller {
 		}
 		
 		if(isset($sub_dir)){
-			//shell_exec("rm -rf ".$sub_dir);
+			shell_exec("rm -rf ".$sub_dir);
 		}
 		
 		if(isset($uploads_dir)){

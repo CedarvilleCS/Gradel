@@ -42,9 +42,13 @@
 						{% set oldDate = newDate %}
 						
 						<div style="margin-left: 20px">
-							<small>{{asgn.section.name}}</small>
 							
 							<a href="{{path('assignment', {'sectionId':asgn.section.id, 'assignmentId':asgn.id})}}">
+								
+								<small>
+								{{asgn.section.name}}{% for slv in asgn.section.slaves %}, {{slv.name}}{% endfor %}
+								</small>
+							
 								{{asgn.name}}
 							</a>		
 							

@@ -233,6 +233,8 @@
 								<span class="slider round"></span>
 							</label>
 						</div>
+						<small id="use-custom-warning" style="color: red"></small>
+						
 						
 						<div id="custom-validator-editor" style="height:490px" class="ace-container">{% if problem.custom_validator %}{{ problem.deblobinateCustomValidator()|nl2br }}{% endif %}</div>
 					</div>
@@ -463,6 +465,8 @@
 				validatorEditor.container.style.pointerEvents = "auto";
 				validatorEditor.container.style.opacity = 1;
 				validatorEditor.renderer.setStyle("disabled", false);
+				
+				$('#use-custom-warning').html("<i> Note: If this won't compile, you will get an internal server error when submitting code. Make sure to test your custom validator!</i>"); 
 			} else{				
 				validatorEditor.$blockScrolling = Infinity;
 
@@ -470,6 +474,8 @@
 				validatorEditor.container.style.opacity=0.5 // or use svg filter to make it gray
 				validatorEditor.renderer.setStyle("disabled", true)
 				validatorEditor.blur()
+
+				$('#use-custom-warning').html("");
 			}
 		});		
 		$('#use-custom').change();
