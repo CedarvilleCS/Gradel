@@ -82,7 +82,9 @@ ol {
     color: white;
     border: none;
     text-align: center;
-	padding-top: 12px;
+    padding-top: 12px;
+    
+    cursor: pointer;
 }
 
 .btn-delete {

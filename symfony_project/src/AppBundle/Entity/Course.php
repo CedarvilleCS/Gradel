@@ -54,11 +54,6 @@ class Course{
 	*/
 	public $is_deleted = false;
 	
-	/**
-	* @ORM\Column(type="boolean")
-	*/
-	public $is_public = false;
-	
 	public static function cmp($a, $b){
 		
 		if($a->code == ''){

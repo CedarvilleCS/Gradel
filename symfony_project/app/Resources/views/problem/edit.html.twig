@@ -111,29 +111,6 @@
 								<span class="slider round"></span>
 							</label>
 						</div>
-
-						{% if not problem.master %}
-						  
-							<label for="linked_probs">Slave Problems </label>
-							<input type="text" id="linked_probs" style="width: 200px" value="{% for slave in problem.slaves %}{{slave.id}}{{(loop.last)?'':',&nbsp;'}}{% endfor %}">
-							<div id="recommended-slaves" style="margin-top:15px">
-								Recommended Slaves
-								<ul>
-									{% set noreco = true %}
-									{% for recommended in recommendedSlaves %}
-									
-									{% if recommended != problem and recommended not in problem.slaves %}
-									{% set noreco = false %}
-									<li> <a href="{{path('assignment', {'problemId': recommended.id, 'assignmentId': recommended.assignment.id, 'sectionId': recommended.assignment.section.id})}}"> {{recommended.id}} - <i>{{recommended.assignment.section.name}}</i> <small>{{recommended.name}}</small> </a> </li>
-									
-									{% endif %}
-									
-									{% endfor %}
-									
-									{{ (noreco) ? '<li>None to recommend</li>' : '' }}
-								</ul>
-							</div>
-						{% endif %}
 					  
 					  </th>
 					</tr>
@@ -1273,18 +1250,7 @@
 		}
 
 		formData.append('testcases', JSON.stringify(tcs));			
-		
-		linked_probs = [];
-		linked_probs_raw = $("#linked_probs").val().split(",");
-		for(var i = 0; i<linked_probs_raw.length; i++){
-		
-			if(linked_probs_raw[i].trim().length > 0){
-				linked_probs.push(linked_probs_raw[i].trim());
-			}
-		}
-
-		formData.append('linked_probs', JSON.stringify(linked_probs));
-		
+				
 		$.ajax({
 			type: "POST",
 			url: "{{path('problem_modify')}}",

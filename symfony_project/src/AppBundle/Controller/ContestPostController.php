@@ -100,8 +100,6 @@ class ContestPostController extends Controller {
 		$problem->display_testcaseresults = false;
 		$problem->testcase_output_level = "None";
 		$problem->extra_testcases_display = false;	
-		$problem->slaves = new ArrayCollection();
-		$problem->master = null;	
 
 		# NAME AND DESCRIPTION
 		if(isset($postData['name']) && trim($postData['name']) != "" && isset($postData['description']) && trim($postData['description']) != ""){
@@ -259,7 +257,6 @@ class ContestPostController extends Controller {
 			$section->course = $course;
 			$section->semester = "";
 			$section->year = 0;
-			$section->is_public = false;
 			$section->is_deleted = false;					
 		}
 

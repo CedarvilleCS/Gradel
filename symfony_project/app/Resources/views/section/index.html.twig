@@ -318,7 +318,7 @@
 				var i = 0;
 				{% for asgn in section.assignments %}
 					i += 1;
-					const percent = {{this.getAssignmentGrade(user, asgn)}};
+					const percent = {{this.getAssignmentGrade(user, asgn) ? this.getAssignmentGrade(user, asgn) : 0}};
 					
 					gradesCSV += percent + ', '; 
 					
@@ -362,7 +362,7 @@
 						var right = parseFloat("{{ grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] }}");
 						var total = parseFloat("{{ grades[user.id][asgn.id]['problem_grades'][problem.id]['total_testcases'] }}");
 						
-						gradesCSV[i] += right + ", " + total + ", " + {{grader.getProblemGrade(user, problem)}} + ", ";
+						gradesCSV[i] += right + ", " + total + ", " + {{grader.getProblemGrade(user, problem) ? grader.getProblemGrade(user, problem) : 0}} + ", ";
 
 					{% endfor %}
 

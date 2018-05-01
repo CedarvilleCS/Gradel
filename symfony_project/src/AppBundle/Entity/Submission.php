@@ -130,7 +130,7 @@ class Submission implements JsonSerializable {
 	
 	public function getResultString(){
 
-		if($this->pending_status < 2){
+		if($this->pending_status < 2 && $this->problem->assignment->section->course->is_contest){
 			return "Pending";
 		}
 		// if it passes all the testcases		

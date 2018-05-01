@@ -104,13 +104,6 @@ class AppBundleTopic implements TopicInterface
         
         $user = $this->clientManipulator->getClient($connection);
 
-        if(isset($user->id)){
-            $user = $this->em->find('AppBundle\Entity\User', $user->id);
-        } else {
-            dump("Unable to get user");
-            return;
-        }
-
         if (!is_array($event)){
            $event = json_decode($event, true);
         }
@@ -128,19 +121,37 @@ class AppBundleTopic implements TopicInterface
             dump("Contest does not exist!");
             return;
         }
+      
+        $type = $event['type'];
+        $key = $event["passKey"];
+
+        if( !(isset($key) && isset($type)) ){
+            dump("key and type not provided");
+            return;
+        }
+
+        if(isset($user->id)){
+            $user = $this->em->find('AppBundle\Entity\User', $user->id);
+
+            if(!isset($user)){
+                dump("user is null");
+                return;
+            }
+            
+        } else if($key != "gradeldb251") {
+            dump("Unable to get user and password is incorrect");
+            return;
+        }
 
         $grader = new Grader($this->em);
 
-        if( !isset($user) || !method_exists($user, 'hasRole') || !($grader->isTaking($user, $contest) || $grader->isJudging($user, $contest) || $user->hasRole("ROLE_SUPER")) ){
+        if( $key != "gradeldb251" && (!isset($user) || !method_exists($user, 'hasRole') || !($grader->isTaking($user, $contest->section) || $grader->isJudging($user, $contest->section) || $user->hasRole("ROLE_SUPER"))) ){
             dump("Not allowed to access this");
             return;
         }
 
-        $type = $event['type'];
-        $key = $event["passKey"];
-
         // for inter-controller communication
-        if(isset($key) && $key == "gradeldb251"){
+        if($key == "gradeldb251"){
 
             $recipients = $event["recipients"];
             $msg = $event["msg"];
@@ -157,7 +168,7 @@ class AppBundleTopic implements TopicInterface
             $this->broadcastMessage($recipients, $topic, $message);
         } 
         // for responses from a connection
-        else if(is_object($user)){
+        else if(isset($user)){
 
             # switch based on type
             
@@ -320,7 +331,7 @@ class AppBundleTopic implements TopicInterface
 
             if (in_array($person->getUsername(), $recipients)) {
 
-                dump("Sending meassage to ".$person->getUsername());
+                dump("Sending message to ".$person->getUsername());
                 $topic->broadcast($message, [], [$u['connection']->WAMP->sessionId]);
 
             }
