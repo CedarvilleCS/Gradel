@@ -5,6 +5,27 @@
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 {% endblock %}
 
+{% block stylesheets %}
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
+	
+    <link rel="stylesheet" href="{{ asset('styles/styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('styles/contest.css') }}" />
+    <link rel="stylesheet" href="{{ asset('styles/contest-hub.css') }}" />
+
+	
+    <link rel="stylesheet" href="{{ asset('styles/card.css') }}" />
+
+    <link rel="stylesheet" href="{{ asset('styles/submit.css') }}" />
+    <link rel="stylesheet" href="{{ asset('styles/sessions.css') }}" />
+
+    <link rel="stylesheet" href="{{ asset('styles/custom-toggle.css') }}" />
+    <link rel="stylesheet" href="{{ asset('styles/problem-creation.css') }}" />
+
+	<link rel="stylesheet" href="{{ asset('styles/contest-problem_edit.css') }}" />
+
+{% endblock %}
+
 {% block body %}
 <body>
   {{ include('template/top-nav.html.twig') }}
@@ -17,8 +38,8 @@
 		{% if problem is not null %}
 			<a id="delete-btn" class="btn"><div class="btn btn-center btn-delete">Delete</div></a>
 			
-			<ol style="padding-top: 0px">
-				<li id="delete-warning" style="padding-top: 0px"></li>
+			<ol>
+				<li id="delete-warning"></li>
 			</ol>
 		{% endif %}
   </nav>
@@ -104,8 +125,8 @@
 					{% endfor %}
 				</select>
 				<br>
-				<div id="mainClassInput" style="display:none"><label for="main_class">Main Class: </label><input type="text" name="main_class" id="main_class_input"></div>
-				<div id="packgNameInput" style="display:none"><label for="package_name">Package Name: </label><input type="text" name="package_name" id="package_name_input"></div>
+				<div id="mainClassInput"><label for="main_class">Main Class: </label><input type="text" name="main_class" id="main_class_input"></div>
+				<div id="packgNameInput"><label for="package_name">Package Name: </label><input type="text" name="package_name" id="package_name_input"></div>
 				<br/>
 				<div class="btn" style="width: 300px" id="generator-button"> Generate </div>
 				<div id="generator-loading-container" style="display: none">
@@ -123,32 +144,6 @@
 	
   </section>
 </body>
-{% endblock %}
-
-{% block stylesheets %}
-	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
-	
-    <link rel="stylesheet" href="{{ asset('styles/styles.css') }}" />
-    <link rel="stylesheet" href="{{ asset('styles/contest.css') }}" />
-    <link rel="stylesheet" href="{{ asset('styles/contest-hub.css') }}" />
-
-	
-    <link rel="stylesheet" href="{{ asset('styles/card.css') }}" />
-
-    <link rel="stylesheet" href="{{ asset('styles/submit.css') }}" />
-    <link rel="stylesheet" href="{{ asset('styles/sessions.css') }}" />
-
-    <link rel="stylesheet" href="{{ asset('styles/custom-toggle.css') }}" />
-    <link rel="stylesheet" href="{{ asset('styles/problem-creation.css') }}" />
-	
-	<style type="text/css">
-		.testCardAdder:hover {
-			background: url("{{asset('images/testcase-blur-grbg.png')}}") no-repeat;
-			background-size: 100% 100%;
-			background-position: center center;
-		}
-	</style>
 {% endblock %}
 
 {% block scripts %}
