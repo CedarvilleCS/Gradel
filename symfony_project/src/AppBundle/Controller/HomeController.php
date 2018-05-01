@@ -39,6 +39,7 @@ class HomeController extends Controller {
 			->where('s.is_deleted = false')
 			->andWhere('s.start_time < ?1')
 			->andWhere('s.end_time > ?2')
+			->andWhere('s.master IS NULL')
 			->setParameter(1, (new DateTime("now"))->add(new DateInterval('P30D')))
 			->setParameter(2, (new DateTime("now"))->sub(new DateInterval('P14D')));
 		

@@ -91,7 +91,14 @@
 				<li class="sidebar list-item">
 
 					<span class="preview">{{section.course.name}}
-						<br/><small>{{section.name}}</small>
+						<br/>
+						<small>
+						{% if section.slaves.count() > 0 %}
+						{{section.slaves.count() + 1}} Linked Sections
+						{% else %}
+						{{section.name}}
+						{% endif %}
+						</small>
 					</span>
 					<object>
 						<a title="Edit Section" href="{{path('section_edit', {'sectionId': section.id})}}">
@@ -102,6 +109,29 @@
 				</li>
 
 				</a>
+
+				{% if section.slaves.count() > 0 %}
+					
+					<a href="{{path('section', {'sectionId':section.id})}}" style="padding-left: 15px">				
+
+					<li class="sidebar list-item">
+						<span class="preview"><small>{{section.name}}</small></span>
+					</li>
+
+					</a>
+
+					{% for slv in section.slaves %}
+					<a href="{{path('section', {'sectionId':slv.id})}}" style="padding-left: 15px">				
+
+					<li class="sidebar list-item">
+						<span class="preview"><small>{{slv.name}}</small></span>
+					</li>
+
+					</a>
+					{% endfor %}
+
+				{% endif %}
+
 			{% endfor %}
 		</ol>
 		{% endif %}

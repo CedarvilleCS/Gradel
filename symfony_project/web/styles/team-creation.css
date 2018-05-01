@@ -39,7 +39,7 @@
 	margin: 5px;
 }
 
-.team #team-name{
+.team #team-name, .team .team-name{
 	width: 100%;
 	color: white;
 	font-weight: bold;
@@ -91,7 +91,7 @@
 	line-height: 25px;
 }
 
-#team-picker, #judge-picker{
+#team-picker, #judge-picker, .team-picker, .judge-picker, .team-container{
 	width: auto;
 	height: auto;
 	margin-top: 10px;
@@ -108,14 +108,15 @@
 	justify-content: flex-start;
 }
 
-#judge-picker{
+#judge-picker, .judge-picker{
 	min-width: 200px;
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
 	align-items: center;
 }
-#team-pool{
+
+#team-pool, .team-pool{
 	width: auto;
 	margin-top: 5px;
 	margin-bottom: 5px;

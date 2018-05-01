@@ -31,10 +31,7 @@ class Problem implements JsonSerializable{
 		
 		$this->testcases = new ArrayCollection();
 		$this->problem_languages = new ArrayCollection();
-		$this->slaves = new ArrayCollection();
 		$this->queries = new ArrayCollection();
-		
-		$this->master = null;
 	}
 	
 	public function __construct16($assign, $nm, $desc, $wght, $limit, $credit, $tot, $bef, $pen, $stop, $resp, $disp_tcr, $tc_lev, $disp_ext, $vers, $counts){
@@ -97,9 +94,6 @@ class Problem implements JsonSerializable{
 				$queriesClone->add($qryClone);
 			}
 			$this->queries = $queriesClone;
-			
-			$this->slaves = new ArrayCollection();
-			$this->master = null;			
 		}
 		
 	}
@@ -132,16 +126,6 @@ class Problem implements JsonSerializable{
 	* @ORM\OrderBy({"timestamp" = "ASC"})
 	*/
 	public $queries;
-	
-	/**
-    * @ORM\OneToMany(targetEntity="Problem", mappedBy="master", orphanRemoval=true)
-    */
-	public $slaves;
-	
-	/**
-	* @ORM\ManyToOne(targetEntity="Problem", inversedBy="slaves")
-	*/
-	public $master;	 
 		
 	/**
 	* @ORM\OneToMany(targetEntity="ProblemLanguage", mappedBy="problem", cascade={"persist"}, orphanRemoval=true)
@@ -164,6 +148,10 @@ class Problem implements JsonSerializable{
 	*/
 	public $description;
 
+	/**
+	* @ORM\Column(type="integer")
+	*/	
+	public $clone_hash = 0;
 	
 	/**
 	* @ORM\Column(type="blob", nullable=true)

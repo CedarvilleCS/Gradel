@@ -21,11 +21,15 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
+use Doctrine\Common\Collections\ArrayCollection;
+
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 
 use Doctrine\ORM\Tools\Pagination\Paginator;
+
+use Symfony\Component\Config\Definition\Exception\Exception;
 
 use Psr\Log\LoggerInterface;
 
@@ -34,10 +38,9 @@ class SectionController extends Controller {
     public function sectionAction($sectionId) {
 
 		$em = $this->getDoctrine()->getManager();
+		$grader = new Grader($em);
 
 		$user = $this->get('security.token_storage')->getToken()->getUser();
-		
-
 		if(!$user){
 			die("USER DOES NOT EXIST");
 		}
@@ -54,6 +57,9 @@ class SectionController extends Controller {
 			return $this->redirectToRoute('contest', ['contestId' => $section->id]);
 		}
 		
+		if( !($user->hasRole("ROLE_ADMIN") || $user->hasRole("ROLE_SUPER") || (isset($section) && ($grader->isTeaching($user, $section) || $grader->isTaking($user, $section)))) ){
+			die("YOU ARE NOT ALLOWED TO BE HERE");
+		}
 
 		# GET ALL ASSIGNMENTS
 		$qb = $em->createQueryBuilder();
@@ -120,8 +126,6 @@ class SectionController extends Controller {
 			}
 		}
 
-		$grader = new Grader($em);
-
 		if($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isTeaching($user, $section) || $grader->isJudging($user, $section)){
 			
 			$submissions = [];
@@ -170,8 +174,10 @@ class SectionController extends Controller {
 					->select('s')
 					->from('AppBundle\Entity\Submission', 's')
 					->where('s.user = (?1)')
+					->andWhere('s.problem IN (?2)')
 					->orderBy('s.id', 'DESC')
 					->setParameter(1, $user)
+					->setParameter(2, $section->getAllProblems())
 					->setMaxResults(15)
 					->getQuery()
 					->getResult();
@@ -250,6 +256,13 @@ class SectionController extends Controller {
     public function editSectionAction($sectionId) {
 
 		$em = $this->getDoctrine()->getManager();
+		$grader = new Grader($em);
+
+		$user = $this->get('security.token_storage')->getToken()->getUser();
+		if(!$user){
+			die("USER DOES NOT EXIST");
+		}
+
 
 		if($sectionId != 0){
 
@@ -267,55 +280,27 @@ class SectionController extends Controller {
 			if($section->course->is_contest){
 				return $this->redirectToRoute('contest_edit', ['contestId' => $section->id]);	
 			}
-			
-			
-			$section_taker_roles = [];
-			$section_teacher_roles = [];
 
-
-			$teaches_role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Teaches'));
-			$takes_role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));
-
-			foreach($section->user_roles as $ur){
-
-				if($ur->role == $takes_role){
-					$section_taker_roles[] = $ur;
-				} else if($ur->role == $teaches_role){
-					$section_teacher_roles[] = $ur;
-				}
-
+			if($section->master){
+				return $this->redirectToRoute('section_edit', ['sectionId' => $section->master->id]);
 			}
 		}
 		
+		if( !($user->hasRole("ROLE_ADMIN") || $user->hasRole("ROLE_SUPER") || (isset($section) && $grader->isTeaching($user, $section))) ){
+			die("YOU ARE NOT ALLOWED TO BE HERE");
+		}
+
 		$builder = $em->createQueryBuilder();
 		$builder->select('c')
 				->from('AppBundle\Entity\Course', 'c')
 				->where('c.is_deleted = false');
 		$query = $builder->getQuery();
 		$courses = $query->getResult();
-
-		$user = $this->get('security.token_storage')->getToken()->getUser();
-		if(!$user){
-			die("USER DOES NOT EXIST");
-		}
 		
-		
-		$users = $em->getRepository("AppBundle\Entity\User")->findAll();
-		$instructors = [];
-
-		foreach ($users as $u) {
-			if($u->hasRole("ROLE_ADMIN") or $u->hasRole("ROLE_SUPER")) {
-				$instructors[] = $u;
-			}
-		}
 
 		return $this->render('section/edit.html.twig', [
 			'courses' => $courses,
-			'users' => $users,
-			'instructors' => $instructors,
 			'section' => $section,
-			'section_taker_roles' => $section_taker_roles,
-			'section_teacher_roles' => $section_teacher_roles,
 		]);
     }
 
@@ -337,6 +322,14 @@ class SectionController extends Controller {
 		$newSection = clone $section;
 		$em->persist($newSection);
 
+		foreach($section->slaves as $slave){
+			$newSlave = clone $slave;
+			
+			$newSection->slaves->add($newSlave);
+			$newSlave->master = $newSection;
+			$em->persist($newSlave);
+		}
+
 		$em->flush();
 
 		return $this->redirectToRoute('section_edit', ['sectionId' => $newSection->id]);
@@ -352,7 +345,7 @@ class SectionController extends Controller {
 		}
 		$section = $em->find('AppBundle\Entity\Section', $sectionId);
 
-		if(!$section){
+		if(!$section || $section->master != null){
 			die("SECTION DOES NOT EXIST");
 		}
 
@@ -368,6 +361,10 @@ class SectionController extends Controller {
 		}
 
 		$section->is_deleted = !$section->is_deleted;
+
+		foreach($section->slaves as &$slave){
+			$slave->is_deleted = !$slave->is_deleted;
+		}
 		$em->flush();
 
 		return $this->redirectToRoute('homepage');
@@ -376,6 +373,7 @@ class SectionController extends Controller {
 	public function modifyPostAction(Request $request){
 
 		$em = $this->getDoctrine()->getManager();
+		$grader = new Grader($em);
 
 		# validate the current user
 		$user = $this->get('security.token_storage')->getToken()->getUser();
@@ -387,54 +385,8 @@ class SectionController extends Controller {
 		# see which fields were included
 		$postData = $request->request->all();
 
-		# check mandatory fields
-		if(!isset($postData['name']) || trim($postData['name']) == "" || !isset($postData['course']) || !isset($postData['semester']) || !isset($postData['year'])){
-			return $this->returnForbiddenResponse("Not every required field is provided.");
-		} else {
-
-			# validate the year
-			if(!is_numeric(trim($postData['year']))){
-				return $this->returnForbiddenResponse($postData['year']." is not a valid year");
-			}
-
-			# validate the semester
-			if(trim($postData['semester']) != 'Fall' && trim($postData['semester']) != 'Spring' && trim($postData['semester']) != 'Summer'){
-				return $this->returnForbiddenResponse($postData['semester']." is not a valid semester");
-			}
-		}
-
-		# create new section
-		if($postData['section'] == 0){
-			
-			# only super users and admins can make/edit a section
-			if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN")){
-				return $this->returnForbiddenResponse("You do not have permission to make a section.");
-			}
-			
-			$section = new Section();
-		} else if(isset($postData['section'])) {
-
-			if(!isset($postData['section']) || !($postData['section'] > 0)){
-				die("SECTION ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
-			}
-			$section = $em->find('AppBundle\Entity\Section', $postData['section']);
-
-			if(!$section){
-				return $this->returnForbiddenResponse("Section ".$postData['section']." does not exist");
-			}
-			
-			$grader = new Grader($em);
-			# only super users and admins can make/edit a section
-			if(! ($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isTeaching($user, $section)) ){
-				return $this->returnForbiddenResponse("You do not have permission to edit this section.");
-			}			
-			
-		} else {
-			return $this->returnForbiddenResponse("section not provided");
-		}
-
 		# get the course
-		if(!isset($postData['course']) || !($postData['course'] > 0)){
+		if(!isset($postData['course'])){
 			die("COURSE ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
 		}
 
@@ -442,12 +394,25 @@ class SectionController extends Controller {
 		if(!$course){
 			return $this->returnForbiddenResponse("Course provided does not exist.");
 		}
+					
+		if($course->is_contest){
+			return $this->returnForbiddenResponse("This is not the correct post to make a contest");
+		}
 
-		# set the necessary fields
-		$section->name = trim($postData['name']);
-		$section->course = $course;
-		$section->semester = $postData['semester'];
-		$section->year = (int)trim($postData['year']);
+		# check mandatory fields
+		# validate the year
+		if(!isset($postData['year']) || !is_numeric($postData['year'])){
+			return $this->returnForbiddenResponse($postData['year']." is not a valid year");
+		}
+		$year = (int) $postData['year'];
+
+		# validate the semester
+		$validsems = ["Fall", "Spring", "Winter", "Summer"];
+
+		if(!isset($postData['semester']) || !in_array($postData['semester'], $validsems)){
+			return $this->returnForbiddenResponse($postData['semester']." is not a valid semester");
+		}
+		$semester = $postData['semester'];
 
 		# see if the dates were provided or if we will do them automatically
 		$dates = $this->getDateTime($postData['semester'], $postData['year']);
@@ -457,11 +422,12 @@ class SectionController extends Controller {
 			if(!$customStartTime || $customStartTime->format("m/d/Y") != $postData['start_time']){
 				return $this->returnForbiddenResponse("Provided invalid start time ". $postData['start_time']);
 			} else {
-				$section->start_time = $customStartTime;
+
+				$start_time = $customStartTime;
 			}
 
 		} else {
-			$section->start_time = $dates[0];
+			$start_time = $dates[0];
 		}
 
 		if(isset($postData['end_time']) && $postData['end_time'] != ''){
@@ -470,144 +436,228 @@ class SectionController extends Controller {
 			if(!$customEndTime || $customEndTime->format("m/d/Y") != $postData['end_time']){
 				return $this->returnForbiddenResponse("Provided invalid end time ". $postData['end_time']);
 			} else {
-				$section->end_time = $customEndTime;
+				$end_time = $customEndTime;
 			}
 
 		} else {
-			$section->end_time = $dates[1];
+			$end_time = $dates[1];
 		}
 
 		# validate that the end time is after the start time
-		if($section->end_time <= $section->start_time){
+		if($end_time <= $start_time){
 			return $this->returnForbiddenResponse("The end time must be after the start time for the section");
 		}
 
-		# default these to false
-		$section->is_deleted = false;
-		$section->is_public = false;
+		$postSections = json_decode($postData['sections']);
 
-		$em->persist($section);
-
-		# validate the students csv
-		$students = array_unique(json_decode($postData['students']));
-
-		foreach ($students as $student) {
-			if (!filter_var($student, FILTER_VALIDATE_EMAIL)) {
-				return $this->returnForbiddenResponse("Provided student email address ".$student." is not valid");
-			}
-
-			if (in_array($student, $teachers)) {
-				return $this->returnForbiddenResponse("Cannot add " . $student . " as a student. He/she already teaches this section!");
-			}
+		if(count($postSections) < 1){
+			return $this->returnForbiddenResponse("No sections were provided");
 		}
 
-		# vallidate teacher csv
-		$teachers = array_unique(json_decode($postData['teachers']));
+		$deletedSections = json_decode($postData['deleted_sections']);
 
-		foreach ($teachers as $teacher){
+		$master_id = $postData['master_section'];
 
-			if(!filter_var($teacher, FILTER_VALIDATE_EMAIL)) {
-				return $this->returnForbiddenResponse("Provided teacher email address ".$teacher." is not valid");
-			}
+		$em->getConnection()->beginTransaction();
 
-			if (in_array($teacher, $students)) {
-				return $this->returnForbiddenResponse("Cannot add " .$teacher . "as a student. He/she already teaches this section!");
-			}
-		}
+		try{
 
-		$oldUsers = [];
+			$sections = [];
+			foreach($postSections as $jsonSection) {
 
-		if($postData['section'] == 0 && count(json_decode($postData['teachers'])) == 0){
-
-			# add the current user as a role
-			$role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Teaches'));
-			$usr = new UserSectionRole($user, $section, $role);
-			$em->persist($usr);
-
-		} else if($postData['section'] != 0){
-
-			foreach($section->user_roles as $ur){
-				$em->remove($ur);
-
-				$oldUsers[$ur->user->id] = $ur->user;
-			}
-
-			$em->flush();
-		}
-
-		# add students from the students array
-
-		$takes_role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));
-		foreach ($students as $student) {
-
-			if (!filter_var($student, FILTER_VALIDATE_EMAIL)) {
-				return $this->returnForbiddenResponse("Provided student email address ".$student." is not valid");
-			}
+				if(in_array($jsonSection->id, $deletedSections)){
+					throw new Exception("You can't edit and delete a section");
+				}
 			
-			
-
-			$stud_user = $em->getRepository('AppBundle\Entity\User')->findOneBy(array('email' => $student));
-
-			if(!$stud_user){
-				$stud_user = new User($student, $student);
-				$em->persist($stud_user);
-			}
-
-			$usr = new UserSectionRole($stud_user, $section, $takes_role);
-			$em->persist($usr);
-
-			unset($oldUsers[$stud_user->id]);
-		}
-
-		# add the teachers from the teachers array
-
-		$teaches_role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Teaches'));
-		foreach ($teachers as $teacher){
-
-			if(!filter_var($teacher, FILTER_VALIDATE_EMAIL)) {
-				return $this->returnForbiddenResponse("Provided teacher email address ".$teacher." is not valid");
-			}
-
-
-
-			$teach_user = $em->getRepository('AppBundle\Entity\User')->findOneBy(array('email'=>$teacher));
-
-			if(!$teach_user){
-				return $this->returnForbiddenResponse("Teacher with email ".$teacher." does not exist!");
-			}
-
-			if ($grader->isTaking($teach_user, $section)) {
-				return $this->returnForbiddenResponse($student . " is already teaching this course!");
-			}
-
-			$usr = new UserSectionRole($teach_user, $section, $teaches_role);
-			$em->persist($usr);
-
-			unset($oldUsers[$stud_user->id]);
-		}
-
-
-		foreach($oldUsers as $oldUser){
-
-			foreach($section->assignments as $asgn){
-				foreach($asgn->teams as &$team){	
-
-					$team->users->removeElement($oldUser);
-
-					if($team->users->count() == 0){
-						$em->remove($team);
-					} else {
-						$em->persist($team);
+				# create new section
+				if($jsonSection->id == 0){
+					
+					# only super users and admins can make/edit a section
+					if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN")){
+						throw new Exception("You do not have permission to make a section");
 					}
+					
+					$section = new Section();
+				} 
+				# get old section
+				else if(isset($jsonSection->id)) {
+
+					$section = $em->find('AppBundle\Entity\Section', $jsonSection->id);
+
+					if(!$section){
+						throw new Exception("Section does not exist");
+					}
+					
+					# only super users and admins can make/edit a section
+					if(! ($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isTeaching($user, $section)) ){
+						throw new Exception("You do not have permission to edit this section");
+					}		
+				}
+				# error
+				else {
+					throw new Exception("Section was not given an id");
+				}
+
+				if(!isset($jsonSection->name) || trim($jsonSection->name) == ""){
+					throw new Exception("Section was not given a name");
+				}
+
+				$section->name = trim($jsonSection->name);
+				$section->course = $course;
+				$section->semester = $semester;
+				$section->year = $year;
+
+				$section->start_time = $start_time;
+				$section->end_time = $end_time;
+
+				$section->master = null;
+				$section->slaves = new ArrayCollection();
+
+				if($master_id && $section->id === $master_id){
+					$master_section = $section;
+				}
+			
+				# validate the students and teaches csvs for proper email addresses
+				$students = array_unique($jsonSection->students);
+				$teachers = array_unique($jsonSection->teachers);
+
+				if(count($students) < 1){
+					throw new Exception(json_encode($jsonSection));
+				}
+
+				$both = array_merge($students, $teachers);
+
+				foreach ($both as $person) {
+					if (!filter_var($person, FILTER_VALIDATE_EMAIL)) {
+						throw new Exception("Provided email address ".$person." is not valid");
+					}
+
+					if (in_array($person, $teachers) && in_array($person, $students)) {
+						throw new Exception($person." appears in both the teacher and student list");
+					}
+				}
+
+				$em->persist($section);
+				$em->flush();
+
+				# get list of old users
+				$oldUsers = [];
+				foreach($section->user_roles as $ur){
+					$em->remove($ur);
+					$oldUsers[$ur->user->id] = $ur->user;
+				}
+				$em->flush(); 
+
+				# add yourself as the teacher if none were provided
+				if(count($teachers) < 1){
+					# add the current user as a role
+					$role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Teaches'));
+					$usr = new UserSectionRole($user, $section, $role);
+					$em->persist($usr);
+				}
+
+				# add students from the students array
+				$takes_role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));
+				foreach ($students as $student) {
+					
+					$stud_user = $em->getRepository('AppBundle\Entity\User')->findOneBy(array('email' => $student));
+
+					if(!$stud_user){
+						$stud_user = new User($student, $student);
+						$em->persist($stud_user);
+					}
+
+					$usr = new UserSectionRole($stud_user, $section, $takes_role);
+					$em->persist($usr);
+
+					unset($oldUsers[$stud_user->id]);
+				}
+
+				# add the teachers from the teachers array
+				$teaches_role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Teaches'));
+				foreach ($teachers as $teacher){
+
+					$teach_user = $em->getRepository('AppBundle\Entity\User')->findOneBy(array('email'=>$teacher));
+
+					if(!$teach_user){
+						throw new Exception("Teacher with email ".$teacher." does not exist!");
+					}
+
+					if ($grader->isTaking($teach_user, $section)) {
+						throw new Exception($student . " is already teaching this course!");
+					}
+
+					$usr = new UserSectionRole($teach_user, $section, $teaches_role);
+					$em->persist($usr);
+				}
+
+				# remove all of the old users (that are no longer in their section) from their teams in that section
+				foreach($oldUsers as $oldUser){
+
+					foreach($section->assignments as $asgn){
+						foreach($asgn->teams as &$team){	
+
+							$team->users->removeElement($oldUser);
+
+							if($team->users->count() == 0){
+								$em->remove($team);
+							} else {
+								$em->persist($team);
+							}
+						}
+					}
+				}
+
+				$sections[] = $section;
+			}
+
+			# delete sections
+			foreach($deletedSections as $delSection){				
+
+				$section = $em->find('AppBundle\Entity\Section', $delSection);
+
+				if(!$section){
+					throw new Exception("Section does not exist");
+				}
+				
+				# only super users and admins can delete a section
+				if(! ($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isTeaching($user, $section)) ){
+					throw new Exception("You do not have permission to delete this section");
+				}
+
+				$em->remove($section);
+				$em->flush();
+			}
+
+
+			if(!$master_section){
+				$master_section = $sections[0];
+			}
+
+			$master_section->master = null;
+			foreach($sections as &$section){
+
+				if($section != $master_section){
+					$section->master = $master_section;
+					$master_section->slaves->add($section);
 				}
 			}
 
+			$em->flush();
+			$em->getConnection()->commit();
+		}
+		catch(Exception $e){
+			$em->getConnection()->rollBack();
+
+			return $this->returnForbiddenResponse($e->getMessage());	
 		}
 
-		$em->flush();
-
 		# redirect to the section page
-		$url = $this->generateUrl('section', ['sectionId' => $section->id]);
+		if(count($sections) > 1){
+			$url = $this->generateUrl('homepage');			
+		} else {
+			$url = $this->generateUrl('section', ['sectionId' => $section->id]);
+		}
 
 		$response = new Response(json_encode(array('redirect_url' => $url)));
 		$response->headers->set('Content-Type', 'application/json');

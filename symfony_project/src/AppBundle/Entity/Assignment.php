@@ -121,7 +121,7 @@ class Assignment implements JsonSerializable{
 
 		return $this->end_time < $currTime;
 	}
-	
+
 	/** 
 	* @ORM\Column(type="integer")
 	* @ORM\Id
@@ -186,7 +186,12 @@ class Assignment implements JsonSerializable{
 	* @ORM\Column(type="boolean")
 	*/
 	public $is_extra_credit = false;
-	
+
+	/**
+	* @ORM\Column(type="integer")
+	*/	
+	public $clone_hash = 0;
+
 	/**
 	* @ORM\OneToMany(targetEntity="Team", mappedBy="assignment", cascade={"persist"}, orphanRemoval=true)
 	*/
@@ -290,9 +295,16 @@ class Assignment implements JsonSerializable{
 	
 	public function jsonSerialize(){
 		return [
+			'id' => $this->id,
+
 			'name' => $this->name,			
 			'weight' => $this->weight,
+			'penalty_per_day' => $this->penalty_per_day,
+
 			'teams' => $this->teams->toArray(),
+
+			'takers' => $this->section->getTakers(),
+			'section_id' => $this->section->id,
 		];
 	}
 

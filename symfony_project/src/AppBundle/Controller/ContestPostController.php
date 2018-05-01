@@ -100,8 +100,6 @@ class ContestPostController extends Controller {
 		$problem->display_testcaseresults = false;
 		$problem->testcase_output_level = "None";
 		$problem->extra_testcases_display = false;	
-		$problem->slaves = new ArrayCollection();
-		$problem->master = null;	
 
 		# NAME AND DESCRIPTION
 		if(isset($postData['name']) && trim($postData['name']) != "" && isset($postData['description']) && trim($postData['description']) != ""){
@@ -259,7 +257,6 @@ class ContestPostController extends Controller {
 			$section->course = $course;
 			$section->semester = "";
 			$section->year = 0;
-			$section->is_public = false;
 			$section->is_deleted = false;					
 		}
 
@@ -299,7 +296,6 @@ class ContestPostController extends Controller {
 			$contest->weight = 1;
 			$contest->is_extra_credit = false;
 			$contest->penalty_per_day = 0;
-
 
 			# TIMES		
 			$unix_start = strtotime($pc->times[0]);			
@@ -769,8 +765,11 @@ class ContestPostController extends Controller {
 		}
 
 		$em->persist($section);
-		$em->flush();			
+		$em->flush();		
+		$em->clear();	
 
+		# update the leaderboards 
+		$section = $em->find('AppBundle\Entity\Section', $section->id);
 		foreach($section->assignments as &$asgn){
 			$asgn->updateLeaderboard($grader, $em);
 		}

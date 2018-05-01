@@ -1,0 +1,61 @@
+textarea{
+    height: auto;
+    resize: vertical;
+}
+
+#sections-container{    
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+
+    padding: 5px;
+
+    padding-bottom: 15px;
+}
+
+.section-row{
+    position: relative;
+    padding: 6px;
+
+}
+
+.section-row:not(:last-child){
+    border-bottom: 1pt dashed grey;
+    margin-bottom: 4px;
+}
+
+.delete-section-btn{
+    position: absolute;
+    top: 0px;
+    right: 0px;
+
+    height: 25px;
+    width: 25px;
+
+    cursor: pointer;
+}
+
+#add-section-btn{
+    border-radius: 5px;
+    cursor: pointer;
+
+    height: 14px;
+    line-height: 14px;
+
+    padding: 5px;
+    width: 150px;
+    font-size:0.8em;
+
+}
+
+.section-name{
+    font-weight: bold;
+    display: block;
+    border: none;
+    border-bottom: 1px solid grey;
+    font-size: 16px;
+}
+
+.ui-selectable th{
+    cursor: pointer;
+}
