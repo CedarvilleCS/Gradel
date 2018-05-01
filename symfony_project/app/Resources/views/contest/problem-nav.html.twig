@@ -8,7 +8,7 @@
 	{% set problem_page = (problem is not null) %}
 
 	<nav class="nav-left">	
-		<ol>
+		<ol style="margin-bottom: 10px">
 			
 			<a href="{{path('contest', {'contestId': current_contest.section.id, 'roundId': current_contest.id})}}">
 				<li style="text-align:center"> {{current_contest.section.name}} 
