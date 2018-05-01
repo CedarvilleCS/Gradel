@@ -195,3 +195,40 @@
 	border-bottom: none;
 	margin-bottom: 5px;
 }
+
+.accepted{
+	background: #AAE2AB no-repeat center url("{{asset('contest/check.svg')}}");
+	font-size: 0.8em;
+}
+
+.unattempted{
+	background: none;
+	color: transparent;
+	font-size: 0.8em;
+}
+
+.attempted{
+	background: #F67B51 no-repeat center url("{{asset('contest/cross.svg')}}");
+	font-size: 0.8em;
+	color: white;
+}
+
+.unknown{
+	background: #AAAAAA no-repeat center url("{{asset('contest/question.svg')}}");
+	font-size: 0.8em;
+}
+
+#scoreboard-button {
+	position: absolute;
+	right: 8px;
+	top: 10px;
+	height: 10px;
+	line-height: 10px;
+}
+#print-teams-button {
+	position: absolute;
+	right: 8px;
+	top: 40px;
+	height: 10px;
+	line-height: 10px;
+}

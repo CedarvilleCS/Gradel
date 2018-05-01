@@ -1,40 +1,5 @@
-{% block stylesheets %}
-	<style>
-	.drop {
-		cursor: pointer;
-	}
-	
-	/* The container <div> - needed to position the dropdown content */
-	.dropdown {
-		position: relative;
-		display: inline-block;
-	}
-
-	/* Dropdown Content (Hidden by Default) */
-	.dropdown-content {
-		display: none;
-		position: absolute;
-		background-color: #f1f1f1;
-		min-width: 160px;
-		box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-		z-index: 1;
-	}
-
-	/* Links inside the dropdown */
-	.dropdown-content a {
-		color: black;
-		padding: 12px 16px;
-		text-decoration: none;
-		display: block;
-	}
-
-	/* Change color of dropdown links on hover */
-	.dropdown-content a:hover {background-color: #ddd}
-
-	/* Show the dropdown menu (use JS to add this class to the .dropdown-content container when the user clicks on the dropdown button) */
-	.show {display:inline-block;}
-	</style>
-	
+{% block stylesheets %}	
+	<link rel="stylesheet" href="{{ asset('styles/contest-problem-nav.css') }}" />
 {% endblock %}
 
 {% block body %}
@@ -43,7 +8,7 @@
 	{% set problem_page = (problem is not null) %}
 
 	<nav class="nav-left">	
-		<ol style="padding-top: 0px; padding-bottom: 10px">
+		<ol>
 			
 			<a href="{{path('contest', {'contestId': current_contest.section.id, 'roundId': current_contest.id})}}">
 				<li style="text-align:center"> {{current_contest.section.name}} 
@@ -116,12 +81,12 @@
 		{% endif %}
 		
 		{% if app.request.attributes.get('_route') == "contest" %}			
-			<div onclick="showOptions()" class="btn btn-center drop" style="">See Other Contests</div>
+			<div onclick="showOptions()" class="btn btn-center drop">See Other Contests</div>
 			<div class="dropdown">
 				<div id="all-contests" class="dropdown-content">
 				{% for cont in contests %}
 					<a href="{{path('contest', {'contestId': cont.section.id, 'roundId': cont.id})}}">
-						<div class="btn" style=""> {{cont.name}} </div>
+						<div class="btn"> {{cont.name}} </div>
 					</a>
 				{% endfor %}
 				</div>

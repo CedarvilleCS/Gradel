@@ -1,5 +1,5 @@
 # Gradel Setup Instructions
-_This guide assumes that you have a LAMP stack set up. If you don't, following [these instructions](http://howtoubuntu.org/how-to-install-lamp-on-ubuntu). There's only about five steps that are needed._
+_This guide assumes that you have a LAMP stack set up. If you don't, follow [these instructions](http://howtoubuntu.org/how-to-install-lamp-on-ubuntu). There's only about five steps that are needed._
 
 You may also want to set the ServerName for use in some of the later steps. Adding `ServerName localhost` in `/etc/apache2/apache2.conf` will work.
 
@@ -180,6 +180,29 @@ cd compilation/
 sudo docker build --tag=gradel:latest ./.
 cd ..
 ```
+
+### Configure the Web Socket to Restart on Reboot
+
+*Note: An unnamed developer destroyed joseph because he accidentally `chmod 770`'d the entire file structure recursively. Be careful with this step!!!*
+
+We can add a script to the startup directory so that the socket will start on reboot. To do this:
+`cd /etc/init.d`
+Create a new file named socket_server.sh and add:
+```
+cd /var/www/gradel/symfony_project
+./update_cache
+cd /etc/init.d/
+```
+Then run:
+```
+sudo chmod +x socket_server.sh
+sudo update-rc.d socket_server.sh defaults
+```
+This allows the script to be run as a script on reboot
+
+### JS Caching
+
+When adding new JS code, you must be careful of versioning. Chrome is aggressive about caching files client side. To assure that the user gets the most updated file, increment the `framework.assets.version` field.
 
 ### Cleanup
 
