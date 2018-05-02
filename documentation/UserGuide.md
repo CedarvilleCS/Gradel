@@ -1,5 +1,6 @@
 # User Guide
 
+## Table of Contents
 - [Gradel Data Model](#gradel-data-model)
     - [Class Database Model](#class-database-model)
         - [Courses](#courses)
