@@ -181,9 +181,9 @@ From the homepage you can see which assignments are due in the next two weeks. Y
 It is recommended that you develop your code outside of Gradel and then copy and paste or upload your code into our online IDE. 
 
 If you choose to develop in our environment, you can do a lot of neat things!
-    - You can click the plus tab to add a new file.
-    - Rename files by double-clicking on the name in the tab.
-    - Right-click tabs to remove the file. If you remove all the files, the code will revert back to the default code
-    - Drag the grey bar at the bottom of the editor to resize the environment.
-    - Your code automatically saves! Use Ctrl+S or wait for the little notice at the bottom to make sure it is saved. This saving also saves editor height and whether or not you hid the description.
-    - Download the current file with the 'Download File' button.
+- You can click the plus tab to add a new file.
+- Rename files by double-clicking on the name in the tab.
+- Right-click tabs to remove the file. If you remove all the files, the code will revert back to the default code
+- Drag the grey bar at the bottom of the editor to resize the environment.
+- Your code automatically saves! Use Ctrl+S or wait for the little notice at the bottom to make sure it is saved. This saving also saves editor height and whether or not you hid the description.
+- Download the current file with the 'Download File' button.
