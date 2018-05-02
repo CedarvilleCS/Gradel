@@ -1,5 +1,7 @@
 # Gradel Setup
 
+
+## Table of Contents
 - [Installing and Updating Necessities](#installing-and-updating-necessities)
     - [Installing Composer](#installing-composer)
     - [Installing ZeroMQ](#installing-zeromq)
