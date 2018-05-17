@@ -29,7 +29,7 @@ int main(int argc, char** argv){
 	string filename = "";
 	// (is_zipped)
 	// -z -!z
-	bool is_zipped = false;
+	bool is_zipped = true;
 	// (main_class)
 	// -M
 	string main_class = "";
@@ -140,11 +140,22 @@ int main(int argc, char** argv){
 	if(is_zipped){
 		
 		// unzip the file
-		string unzip_cmd = "unzip student_code/" + filename + " -d student_code/";
-		int unzip_val = system(unzip_cmd.c_str());
+		string unzip_cmd = "unzip student_code/" + filename + " -d student_code/ 2>&1";
+		//int unzip_val = system(unzip_cmd.c_str());
+
+		FILE *unzip_file;
+		unzip_file = (FILE*)popen(unzip_cmd.c_str(), "r");
+		char c = 0;
+		string unzip_output = "";
 		
-		if(unzip_val != 0){
-			cout << "ERROR: file could not be unzipped\n";
+		// loop through the validator output
+		while(fread(&c, sizeof c, 1, unzip_file)){
+			unzip_output += c;
+		}		
+		int ret_val = pclose(unzip_file)/256;
+		
+		if(ret_val != 0){
+			cout << "ERROR: file could not be unzipped\nReturned " << ret_val << "\n" << unzip_output << endl;
 			system("touch flags/internal_error");
 			return 14;
 		}
@@ -166,6 +177,10 @@ int main(int argc, char** argv){
 		filename = "*.cpp";
 	} else if(is_zipped && language == "C"){
 		filename = "*.c";
+	} else if(is_zipped && language == "PHP"){
+		filename = "*.*";
+	} else if(is_zipped && (language == "Python2" || language == "Python3")){
+		filename = "*.*";
 	}
 		
 	// set a reverse flag for timeout
@@ -227,7 +242,11 @@ int main(int argc, char** argv){
 	
 	/* STUDENT CODE EXECUTION */
 	// loop over testcases
+	
 	for(int i=1; i<=num_testcases; i++){
+		
+		string flag_touch = "touch flags/time_limit" + to_string(i);
+		system(flag_touch.c_str());
 		
 		cout << "\n\nLet's run the student's code against testcase " + to_string(i) << endl;
 	
@@ -318,7 +337,7 @@ int main(int argc, char** argv){
 	system("rm -rf student_code");
 	
 	// remove the reverse flag for timeout
-	system("rm flags/time_limit");
+	system("rm flags/time_limit*");
 	
 	system("chmod -R 777 /compilation");
 	system("chown -R www-data:www-data /compilation");

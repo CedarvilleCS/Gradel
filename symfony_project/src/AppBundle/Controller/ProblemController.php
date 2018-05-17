@@ -14,6 +14,7 @@ use AppBundle\Entity\UserSectionRole;
 use AppBundle\Entity\Testcase;
 
 use AppBundle\Utils\Grader;
+use AppBundle\Utils\Zipper;
 
 use Psr\Log\LoggerInterface;
 
@@ -69,28 +70,15 @@ class ProblemController extends Controller {
 			if(!$problem){
 				die("PROBLEM DOES NOT EXIST");
 			}			
-						
-			if($problem->master){
-				$problem = $problem->master;				
-				
-				return $this->redirectToRoute('problem_edit', ['sectionId' => $problem->assignment->section->id, 'assignmentId' => $problem->assignment->id, 'problemId' => $problem->id]);
-			}
 		}
 		
-		$default_code = [];
 		$ace_modes = [];
 		$filetypes = [];
 		foreach($languages as $l){
 			
 			$ace_modes[$l->name] = $l->ace_mode;
 			$filetypes[str_replace(".", "", $l->filetype)] = $l->name;
-			
-			// either get the default code from the problem or from the overall default
-			$default_code[$l->name] = $l->deblobinateDefaultCode();
 		}
-		
-		$recommendedSlaves = [];
-		$recommendedSlaves = $em->getRepository('AppBundle\Entity\Problem')->findBy(array('name' => $problem->name));
 
 		return $this->render('problem/edit.html.twig', [
 			'languages' => $languages,
@@ -98,11 +86,10 @@ class ProblemController extends Controller {
 			'assignment' => $assignment,
 			'problem' => $problem,
 			
-			'default_code' => $default_code,
 			'ace_modes' => $ace_modes,
 			'filetypes' => $filetypes,
-				
-			'recommendedSlaves' => $recommendedSlaves,
+			
+			'edit_route' => true,
 		]);
     }
 
@@ -130,8 +117,13 @@ class ProblemController extends Controller {
 			die("YOU ARE NOT ALLOWED TO DELETE THIS PROBLEM");
 		}
 
-		$em->remove($problem);
+		$problems = $em->getRepository('AppBundle\Entity\Problem')->findBy(['clone_hash'=>$problem->clone_hash]);
+		
+		foreach($problems as &$prob){
+			$em->remove($prob);
+		}
 		$em->flush();
+
 		return $this->redirectToRoute('assignment', ['sectionId' => $problem->assignment->section->id, 'assignmentId' => $problem->assignment->id]);
 	}
 
@@ -164,327 +156,304 @@ class ProblemController extends Controller {
 			return $this->returnForbiddenResponse("You do not have permission to make a problem.");
 		}
 		
-		# get the problem or create a new one
-		if($postData['problem'] == 0){
+		$em->getConnection()->beginTransaction();
 
-			$problem = new Problem();
-			$problem->assignment = $assignment;
-			$em->persist($problem);
+		try{
 
-		} else {
-			
-			if(!isset($postData['problem']) || !($postData['problem'] > 0)){
-				die("PROBLEM ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
-			}
-
-			$problem = $em->find('AppBundle\Entity\Problem', $postData['problem']);
-
-			if(!$problem || $assignment != $problem->assignment){
-				return $this->returnForbiddenResponse("Problem ".$postData['problem']." does not exist for the given assignment.");
-			}
-		}
-
-		# check mandatory fields
-		if(!isset($postData['name']) || trim($postData['name']) == "" || !isset($postData['description']) || trim($postData['description']) == "" || !isset($postData['weight']) || !isset($postData['time_limit'])){
-
-			return $this->returnForbiddenResponse("Not every necessary field was provided");
-
-		} else {
-
-			if(!is_numeric(trim($postData['weight'])) || (int)trim($postData['weight']) < 1){
-				return $this->returnForbiddenResponse("Weight provided is not valid - it must be greater than 0");
-			}
-
-			if(!is_numeric(trim($postData['time_limit'])) || (int)trim($postData['time_limit']) < 1){
-				return $this->returnForbiddenResponse("Time limit provided is not valid - it must be greater than 0. You gave us: ". $postData['time_limit']);
-			}
-
-		}
-
-		$problem->version = $problem->version+1;
-		$problem->name = trim($postData['name']);
-		$problem->description = trim($postData['description']);
-		$problem->weight = (int)trim($postData['weight']);
-		$problem->is_extra_credit = ($postData['is_extra_credit'] == "true");		
-		$problem->time_limit = (int)trim($postData['time_limit']);
-		
-		if(!isset($postData['languages']) || !isset($postData['testcases'])){
-
-			return $this->returnForbiddenResponse("Languages or testcases were not provided");
-
-		} else {
-
-			if(count($postData['languages']) < 1){
-				return $this->returnForbiddenResponse("You must specify at least one language");
-			}
-
-			if(count($postData['testcases']) < 1){
-				return $this->returnForbiddenResponse("You must specify at least one test case");
-			}
-
-		}
-
-		# check the optional fields
-		# attempt penalties
-		$total_attempts = $postData['total_attempts'];
-		$attempts_before_penalty = $postData['attempts_before_penalty'];
-		$penalty_per_attempt = $postData['penalty_per_attempt'];
-
-		if(!isset($total_attempts) || !is_numeric($total_attempts) || !isset($attempts_before_penalty) || !is_numeric($attempts_before_penalty) || !isset($penalty_per_attempt) || !is_numeric($penalty_per_attempt)){
-			return $this->returnForbiddenResponse("Not every necessary grading method flag was set properly");
-		}
-
-		if($total_attempts < $attempts_before_penalty){
-			return $this->returnForbiddenResponse("Attempts before penalty must be greater than the total attempts");
-		}
-
-		if($penalty_per_attempt < 0.00 || $penalty_per_attempt > 1.00){
-			return $this->returnForbiddenResponse("Penalty per attempts must be between 0 and 1");
-		}
-
-		$problem->total_attempts = $total_attempts;
-		$problem->attempts_before_penalty = $attempts_before_penalty;
-		$problem->penalty_per_attempt = $penalty_per_attempt;
-
-
-		# feedback flags
-		$stop_on_first_fail = $postData['stop_on_first_fail'];
-		$response_level = trim($postData['response_level']);
-		$display_testcaseresults = $postData['display_testcaseresults'];
-		$testcase_output_level = trim($postData['testcase_output_level']);
-		$extra_testcases_display = $postData['extra_testcases_display'];
-
-		if($stop_on_first_fail != null || $response_level != null || $display_testcaseresults != null || $testcase_output_level != null || $extra_testcases_display != null){
-
-			if($stop_on_first_fail == null || $response_level == null || $display_testcaseresults == null || $testcase_output_level == null || $extra_testcases_display == null){
-				return $this->returnForbiddenResponse("Not every necessary feedback flag was set");
-			}
-
-			if($response_level != "Long" && $response_level != "Short" && $response_level != "None"){
-				return $this->returnForbiddenResponse("Response level is not a valid string value");
-			}
-
-			if($testcase_output_level != "Both" && $testcase_output_level != "Output" && $testcase_output_level != "None"){
-				return $this->returnForbiddenResponse("Testcase output level is not a valid string value. You gave: " . $testcase_output_level);
-			}
-
-		} else {
-			$stop_on_first_fail = false;
-			$response_level = "Long";
-			$display_testcaseresults = true;
-			$testcase_output_level = "Both";
-			$extra_testcases_display = true;
-		}
-
-		$problem->stop_on_first_fail = ($stop_on_first_fail == "true");
-		$problem->response_level = $response_level;
-		$problem->display_testcaseresults = ($display_testcaseresults == "true");
-		$problem->testcase_output_level = $testcase_output_level;
-		$problem->extra_testcases_display = ($extra_testcases_display == "true");		
-		
-		# linked problems
-		if(!$problem->assignment->section->course->is_contest){
-			
-			foreach($problem->slaves as &$slave){
-				$slave->master = null;
-			}
-			
-			foreach($postData['linked_probs'] as $link){
-				
-				$linked = $em->find("AppBundle\Entity\Problem", $link);
-				
-				if(!$linked){
-					return $this->returnForbiddenResponse("Provided problem id ".$link." does not exist");
+			$assignments = $em->getRepository('AppBundle\Entity\Assignment')->findBy(['clone_hash'=>$assignment->clone_hash]);
+			$problems = [];
+	
+			# get the problem or create a new one
+			if($postData['problem'] == 0){
+	
+				$temp = [''];
+				while(count($temp) > 0){
+					$hash = random_int(-2147483648, 2147483647);
+	
+					$temp = $em->getRepository('AppBundle\Entity\Problem')->findBy(['clone_hash'=>$hash]);	
 				}
-				
-				$problem->slaves->add($linked);
-				$linked->master = $problem;			
-			}
-		}		
-		
-		# custom validator
-		$custom_validator = trim($postData['custom_validator']);
-		if(isset($custom_validator) && $custom_validator != ""){
-			$problem->custom_validator = $custom_validator;			
-			//return $this->returnForbiddenResponse($custom_validator."");
-		} else {
-			$problem->custom_validator = null;
-		}
-		
-		# go through the problemlanguages
-		# remove the old ones
-		foreach($problem->problem_languages as $pl){
-			$em->remove($pl);
-		}
-
-		$newProblemLanguages = [];
-		foreach($postData['languages'] as $l){
-
-			if(!is_array($l)){
-				return $this->returnForbiddenResponse("Language data is not formatted properly");
-			}
-			
-			if(!isset($l['id']) || !($l['id'] > 0)){				
-				return $this->returnForbiddenResponse("You did not specify a language id");
-			}
-
-			$language = $em->find("AppBundle\Entity\Language", $l['id']);
-
-			if(!$language){
-				return $this->returnForbiddenResponse("Provided language with id ".$l['id']." does not exist");
-			}
-
-			$problemLanguage = new ProblemLanguage();
-
-			$problemLanguage->language = $language;
-			$problemLanguage->problem = $problem;
-			
-			// set compiler options and default code
-			if(isset($l['compiler_options']) && strlen($l['compiler_options']) > 0){
-				
-				# check the compiler options for invalid characters
-				if(preg_match("/^[ A-Za-z0-9+=\-]+$/", $l['compiler_options']) != 1){
-					return $this->returnForbiddenResponse("The compiler options provided has invalid characters");
-				}
-								
-				$problemLanguage->compilation_options = $l['compiler_options'];
-			}
-			
-			if(isset($l['default_code']) && strlen($l['default_code']) > 0){
-				
-				$problemLanguage->default_code = $l['default_code'];
-			}
-			
-			$newProblemLanguages[] = $problemLanguage;
-			$em->persist($problemLanguage);
-		}
-		
-		
-		# testcases
-		# set the old testcases to null 
-		# (so they don't go away and can be accessed in the results page)
-		foreach($problem->testcases as &$testcase){
-			$testcase->problem = null;
-			$em->persist($testcase);
-		}
-		
-		$newTestcases = new ArrayCollection();
-		$count = 1;
-		foreach($postData['testcases'] as &$tc){
-			
-			$tc = (array) $tc;
-			
-			# build the testcase
-			try{				
-				$testcase = new Testcase($problem, $tc, $count);
-				$count++;
+	
+				foreach($assignments as $asgn){
+					$prob = new Problem();
 					
-				$em->persist($testcase);
-				$newTestcases->add($testcase);
+					$prob->assignment = $asgn;
+					$prob->clone_hash = $hash;
+	
+					$em->persist($prob);
+	
+					$problems[] = $prob;
+				}
+	
+			} else {
 				
-			} catch(Exception $e){
-				return $this->returnForbiddenResponse($e->getMessage());
+				if(!isset($postData['problem']) || !($postData['problem'] > 0)){
+					throw new Exception("PROBLEM ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
+				}
+	
+				$prob = $em->find('AppBundle\Entity\Problem', $postData['problem']);
+	
+				if(!$prob || $assignment != $prob->assignment){
+					throw new Exception("Problem ".$postData['problem']." does not exist for the given assignment.");
+				}
+			
+				$problems = $em->getRepository('AppBundle\Entity\Problem')->findBy(['clone_hash'=>$prob->clone_hash]);		
+			}
+	
+			# check mandatory fields
+			if(!isset($postData['name']) || trim($postData['name']) == "" || !isset($postData['description']) || trim($postData['description']) == "" || !isset($postData['weight']) || !isset($postData['time_limit'])){
+	
+				throw new Exception("Not every necessary field was provided");
+	
+			} else {
+	
+				if(!is_numeric(trim($postData['weight'])) || (int)trim($postData['weight']) < 0){
+					throw new Exception("Weight provided is not valid - it must be non-negative");
+				}
+	
+				if(!is_numeric(trim($postData['time_limit'])) || (int)trim($postData['time_limit']) < 1){
+					throw new Exception("Time limit provided is not valid - it must be greater than 0. You gave us: ". $postData['time_limit']);
+				}
+	
 			}
 
+			# check the optional fields
+			# attempt penalties
+			$total_attempts = $postData['total_attempts'];
+			$attempts_before_penalty = $postData['attempts_before_penalty'];
+			$penalty_per_attempt = $postData['penalty_per_attempt'];
+
+			if(!isset($total_attempts) || !is_numeric($total_attempts) || !isset($attempts_before_penalty) || !is_numeric($attempts_before_penalty) || !isset($penalty_per_attempt) || !is_numeric($penalty_per_attempt)){
+				throw new Exception("Not every necessary grading method flag was set properly");
+			}
+
+			if($total_attempts < $attempts_before_penalty){
+				throw new Exception("Attempts before penalty must be greater than the total attempts");
+			}
+
+			if($penalty_per_attempt < 0.00 || $penalty_per_attempt > 1.00){
+				throw new Exception("Penalty per attempts must be between 0 and 1");
+			}
+
+			if(!isset($postData['languages']) || !isset($postData['testcases'])){
+
+				throw new Exception("Languages or testcases were not provided");
+
+			} else {
+
+				if(count($postData['languages']) < 1) throw new Exception("You must specify at least one language");
+
+				if(count($postData['testcases']) < 1) throw new Exception("You must specify at least one test case");
+
+			}
+
+			# feedback flags
+			$stop_on_first_fail = $postData['stop_on_first_fail'];
+			$response_level = trim($postData['response_level']);
+			$display_testcaseresults = $postData['display_testcaseresults'];
+			$testcase_output_level = trim($postData['testcase_output_level']);
+			$extra_testcases_display = $postData['extra_testcases_display'];
+
+			if($stop_on_first_fail != null || $response_level != null || $display_testcaseresults != null || $testcase_output_level != null || $extra_testcases_display != null){
+
+				if($stop_on_first_fail == null || $response_level == null || $display_testcaseresults == null || $testcase_output_level == null || $extra_testcases_display == null){
+					throw new Exception("Not every necessary feedback flag was set");
+				}
+
+				if($response_level != "Long" && $response_level != "Short" && $response_level != "None"){
+					throw new Exception("Response level is not a valid string value");
+				}
+
+				if($testcase_output_level != "Both" && $testcase_output_level != "Output" && $testcase_output_level != "None"){
+					throw new Exception("Testcase output level is not a valid string value. You gave: " . $testcase_output_level);
+				}
+
+			} else {
+				$stop_on_first_fail = false;
+				$response_level = "Long";
+				$display_testcaseresults = true;
+				$testcase_output_level = "Both";
+				$extra_testcases_display = true;
+			}
+
+			$custom_validator = trim($postData['custom_validator']);			
+			if( !(isset($custom_validator) && $custom_validator != "") ){
+				$custom_validator = null;	
+			}
+
+			$allow_multiple = $postData['allow_multiple'];
+			$allow_upload = $postData['allow_upload'];
+
+
+			// get the contents of the default code and save it to a file so we can save
+			$temp = tmpfile();
+			$temp_filename = stream_get_meta_data($temp)['uri'];
+
+			$default_codes = [];
+
+			$langs = $em->getRepository("AppBundle\Entity\Language")->findAll();
+
+			foreach($langs as $l){
+
+				if ($_FILES['file_'.$l->id]['tmp_name'] != null && move_uploaded_file($_FILES['file_'.$l->id]['tmp_name'], $temp_filename)) {
+
+					$fh = fopen($temp_filename, "r");
+
+					if(!$fh){
+						throw new Exception('Cant open file.');
+					}
+
+					$default_codes[$l->id] = $fh;
+				
+				} else{
+
+					$default_codes[$l->id] = null;
+				}
+			}
+
+			foreach($problems as &$problem) {
+
+				$problem->version = $problem->version+1;
+				$problem->name = trim($postData['name']);
+				$problem->description = trim($postData['description']);
+				$problem->weight = (int)trim($postData['weight']);
+				$problem->is_extra_credit = ($postData['is_extra_credit'] == "true");		
+				$problem->time_limit = (int)trim($postData['time_limit']);
+				
+				$problem->total_attempts = $total_attempts;
+				$problem->attempts_before_penalty = $attempts_before_penalty;
+				$problem->penalty_per_attempt = $penalty_per_attempt;
+
+				$problem->stop_on_first_fail = ($stop_on_first_fail == "true");
+				$problem->response_level = $response_level;
+				$problem->display_testcaseresults = ($display_testcaseresults == "true");
+				$problem->testcase_output_level = $testcase_output_level;
+				$problem->extra_testcases_display = ($extra_testcases_display == "true");	
+				
+				# allow adding files (tabs)
+				$problem->allow_multiple = ($allow_multiple == "true");
+
+				# allow uploading files
+				$problem->allow_upload = ($allow_upload == "true");
+				
+				# custom validator
+				$problem->custom_validator = $custom_validator;	
+
+				# go through the problemlanguages
+				# remove the old ones
+				$oldDefaultCode = [];
+
+				foreach($problem->problem_languages as $pl){
+					$oldDefaultCode[$pl->language->id] = $pl->default_code;
+					$em->remove($pl);
+				}
+
+				$newProblemLanguages = [];
+				$decodedLanguages = json_decode($postData['languages']);
+				foreach($decodedLanguages as $l){
+
+					//return $this->returnForbiddenResponse(var_dump($decodedLanguages));
+					if(!isset($l->id) || !($l->id > 0)){				
+						throw new Exception("You did not specify a language id");
+					}
+
+					$language = $em->find("AppBundle\Entity\Language", $l->id);
+
+					if(!$language){
+						throw new Exception("Provided language with id ".$l->id." does not exist");
+					}
+
+					$problemLanguage = new ProblemLanguage();
+
+					$problemLanguage->language = $language;
+					$problemLanguage->problem = $problem;
+					
+					// set compiler options and default code
+					if(isset($l->compiler_options) && strlen($l->compiler_options) > 0){
+						
+						# check the compiler options for invalid characters
+						if(preg_match("/^[ A-Za-z0-9+=\-]+$/", $l->compiler_options) != 1){
+							throw new Exception("The compiler options provided has invalid characters");
+						}
+										
+						$problemLanguage->compilation_options = $l->compiler_options;
+					}
+					
+					$default_code = $default_codes[$l->id];
+
+					if(isset($default_code)){
+
+						$def_name = stream_get_meta_data($default_code)['uri'];
+
+						$tmpfname = tempnam("/tmp", "grd");
+						
+						if(copy($def_name, $tmpfname)){
+
+							$fh = fopen($tmpfname, "r");
+							
+							$problemLanguage->default_code = $fh;
+
+						} else {
+							throw new Exception("Error creating temp file");
+						}						
+						
+					} else if(isset($oldDefaultCode[$language->id])){
+						
+						$problemLanguage->default_code = $oldDefaultCode[$language->id];
+					
+					} else if(isset($l->default_code) && strlen($l->default_code) > 0){
+						
+						$problemLanguage->default_code = $l->default_code;
+					} 
+										
+					$newProblemLanguages[] = $problemLanguage;
+					$em->persist($problemLanguage);
+				}
+
+				# testcases
+				# set the old testcases to null 
+				# (so they don't go away and can be accessed in the results page)
+				foreach($problem->testcases as &$testcase){
+					$testcase->problem = null;
+					$em->persist($testcase);
+				}
+				
+				$newTestcases = new ArrayCollection();
+				$count = 1;
+
+				$decodedTestcases = json_decode($postData['testcases']);
+				foreach($decodedTestcases as &$tc){
+					
+					$tc = (array) $tc;
+					
+					# build the testcase
+					try{				
+						$testcase = new Testcase($problem, $tc, $count);
+						$count++;
+							
+						$em->persist($testcase);
+						$newTestcases->add($testcase);
+						
+					} catch(Exception $e){
+						throw new Exception($e->getMessage());
+					}
+
+				}
+				$problem->testcases = $newTestcases;
+				$problem->testcase_counts[] = count($problem->testcases);
+			}
+
+			$em->flush();
+			$em->getConnection()->commit();
+
+		} catch(Exception $e) {
+
+			$em->getConnection()->rollBack();
+			return $this->returnForbiddenResponse($e->getMessage());
 		}
-		$problem->testcases = $newTestcases;
-		$problem->testcase_counts[] = count($problem->testcases);	
-		
-		
-		# CONTEST SETTINGS OVERRIDE
-		if($problem->assignment->section->course->is_contest){
-			
-			$problem->slaves = new ArrayCollection();
-			$problem->master = null;
 
-			$problem->weight = 1;
-			$problem->is_extra_credit = false;
-			$problem->total_attempts = 0;
-			$problem->attempts_before_penalty = 0;
-			$problem->penalty_per_attempt = 0;
-			$problem->stop_on_first_fail = true;
-			$problem->response_level = "None";
-			$problem->display_testcaseresults = false;
-			$problem->testcase_output_level = "None";
-			$problem->extra_testcases_display = false;			
-		}
-				
+		$url = $this->generateUrl('assignment', ['sectionId' => $prob->assignment->section->id, 'assignmentId' => $prob->assignment->id, 'problemId' => $prob->id]);
 		
-		# update all the linked problems
-		foreach($problem->slaves as &$slave){
-			
-			# update the version
-			$slave->version = $slave->version+1;
-			
-			# update the name
-			$slave->name = $problem->name;
-			
-			# update the description
-			$slave->description = $problem->description;
-			
-			# update the languages
-			foreach($slave->problem_languages as &$pl){
-				$em->remove($pl);
-				$em->flush();
-			}
-			
-			$plsClone = new ArrayCollection();			
-			foreach($newProblemLanguages as $pl){
-				$plClone = clone $pl;
-				$plClone->problem = $slave;
-				
-				$plsClone->add($plClone);
-			}
-			$slave->problem_languages = $plsClone;
-			
-			# update the weight
-			$slave->weight = $problem->weight;
-			
-			# update extra credit
-			$slave->is_extra_credit = $problem->is_extra_credit;
-			
-			# update the time limit
-			$slave->time_limit = $problem->time_limit;
-			
-			# update the grading options
-			$slave->total_attempts = $problem->total_attempts;
-			$slave->attempts_before_penalty = $problem->attempts_before_penalty;
-			$slave->penalty_per_attempt = $problem->penalty_per_attempt;
-			
-			# update the submission feedback options
-			$slave->stop_on_first_fail = $problem->stop_on_first_fail;
-			$slave->response_level = $problem->response_level;
-			$slave->display_testcaseresults = $problem->display_testcaseresults;
-			$slave->testcase_output_level = $problem->testcase_output_level;
-			$slave->extra_testcases_display = $problem->extra_testcases_display;
-			
-			# update the validator
-			$slave->custom_validator = $problem->custom_validator;
-			
-			# update the test cases
-			foreach($slave->testcases as &$tc){
-				$tc->problem = null;
-				$em->persist($tc);				
-			}
-			
-			$testcaseClone = new ArrayCollection();			
-			foreach($newTestcases->toArray() as $tc){
-				$tcClone = clone $tc;
-				$tcClone->problem = $slave;
-				
-				$testcaseClone->add($tcClone);
-			}
-			$slave->testcases = $testcaseClone;
-			$slave->testcase_counts[] = count($slave->testcases);
-
-			$em->persist($slave);
-		}
-		
-		$em->flush();
-
-		$url = $this->generateUrl('assignment', ['sectionId' => $problem->assignment->section->id, 'assignmentId' => $problem->assignment->id, 'problemId' => $problem->id]);
-		
-		return new JsonResponse(array("problemId"=> $problem->id, "redirect_url" => $url));
+		return new JsonResponse(array("problemId"=> $prob, "redirect_url" => $url));
 	}
 
 	public function resultAction($submission_id) {
@@ -526,40 +495,6 @@ class ProblemController extends Controller {
 
 		$grader = new Grader($em);
 		$feedback = $grader->getFeedback($submission);
-		
-		if(!$submission->isCorrect()){
-			
-			$diff_nums = [];
-			
-			foreach($submission->testcaseresults as $tcr){
-				
-				if($tcr->is_correct){
-					
-					$diff_nums[] = -1;
-					
-				} else {
-					
-					$exp = $tcr->testcase->correct_output;
-					$user = $tcr->std_output;
-					$c = strlen($exp);
-					
-					$highlight = -1;
-					for ($e = 0; $e < $c; $e++) {
-						if($user[$e] != $exp[$e]){
-							$highlight_val = $e;
-							break;
-						}
-						
-						if($e == $c-1){
-							$highlight_val = $e+1;
-						}
-					}
-					
-					$diff_nums[] = $highlight_val;
-					
-				}				
-			}		
-		}
 				
 		$ace_mode = $submission->language->ace_mode;
 		
@@ -579,23 +514,22 @@ class ProblemController extends Controller {
 				$section_takers[] = $usr->user;
 			}
 		}
-		
-
+				
 		return $this->render('problem/result.html.twig', [
 		
 			'section' => $submission->problem->assignment->section,
 			'assignment' => $submission->problem->assignment,
 			'problem' => $submission->problem,
 			'submission' => $submission,
+						
 			'user_impersonators' => $section_takers,
 			'grader' => new Grader($em),
 			
 			'result_page' => true,
+			'result_route' => true, 
 			'feedback' => $feedback,
 
-			'ace_mode' => $ace_mode,				
-			
-			'diff_nums' => $diff_nums,
+			'ace_mode' => $ace_mode,
 		]);
 	}
 	

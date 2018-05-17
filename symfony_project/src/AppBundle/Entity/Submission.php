@@ -9,6 +9,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Config\Definition\Exception\Exception;
 
 use AppBundle\Entity\Trial;
+use AppBundle\Utils\Zipper;
 
 /**
 *@ORM\Entity
@@ -37,7 +38,7 @@ class Submission implements JsonSerializable {
 		$this->team = $tm;
 		$this->user = $trial->user;
 		$this->timestamp = new \DateTime("now");
-		$this->is_accepted = false;
+		$this->best_submission = false;
 		$this->submitted_file = $trial->file;
 		#this->log_directory
 		$this->filename = $trial->filename;
@@ -69,10 +70,10 @@ class Submission implements JsonSerializable {
 		$this->team = $tm;
 		$this->user = $user;
 		$this->timestamp = new \DateTime("now");
-		$this->is_accepted = false;
+		$this->best_submission = false;
 		#this->submitted_file
 		#this->log_directory
-		#this->filename
+		#this->filename2
 		$this->main_class_name = "";
 		$this->package_name = "";
 		#this->compiler_output
@@ -100,7 +101,7 @@ class Submission implements JsonSerializable {
 		$this->user = $user;
 		$this->team = $tm;
 		$this->timestamp = $time;
-		$this->is_accepted = $acc;
+		$this->best_submission = $acc;
 		$this->submitted_file = $subm;
 		$this->log_directory = $log;
 		$this->filename = $filename;
@@ -127,13 +128,48 @@ class Submission implements JsonSerializable {
 		$this->is_completed = false;
 	}
 	
+	public function getResultString(){
+
+		if($this->pending_status < 2 && $this->problem->assignment->section->course->is_contest){
+			return "Pending";
+		}
+		// if it passes all the testcases		
+		else if($this->isCorrect(true)){
+			
+			if($this->wrong_override){
+				return "Incorrect - Judge Overriden";
+			}
+
+			return "Correct";
+		}
+		// if it didn't pass all testcases
+		else if($this->correct_override){
+			return "Correct - Judge Overriden";
+		}
+		else if($this->compiler_error) {
+			return "Incorrect - Compiler Error";
+		} 
+		else if($this->runtime_error) {
+			return "Incorrect - Runtime Error";
+		} 
+		else if($this->exceeded_time_limit) {
+			return "Incorrect - Exceeded Time Limit";
+		}
+		else if($this->judge_message == null){
+			return "Incorrect - Wrong Answer";
+		} 
+		else {
+			return "Incorrect";
+		}
+	}
+
 	public function isError(){
 	
 		return $this->compiler_error || $this->runtime_error || $this->exceeded_time_limit;		
 	}
 	
-	public function isCorrect($raw){
-		
+	public function isCorrect($raw = false){		
+
 		$tcs = 0;
 		$passed_tcs = 0;
 		
@@ -146,7 +182,7 @@ class Submission implements JsonSerializable {
 			}			
 		}
 		
-		if(!$raw){
+		if($raw != true){
 			
 			if($this->correct_override) return true;		
 			if($this->wrong_override) return false;
@@ -159,6 +195,26 @@ class Submission implements JsonSerializable {
 		return $passed_tcs == $tcs;
 	}
 
+	# clone method override
+	public function __clone(){
+		
+		if($this->id){
+			$this->id = null;
+			
+			# clone the testcases
+			$testcaseresultsClone = new ArrayCollection();
+			
+			foreach($this->testcaseresults as $testcaseresult){
+				$testcaseresultClone = clone $testcaseresult;
+
+				$testcaseresultClone->submission = $this;				
+				$testcaseresultsClone->add($testcaseresultClone);
+			}
+			$this->testcaseresults = $testcaseresultsClone;
+		}
+		
+	}
+
 	/**
 	*@ORM\Column(type="integer")
 	*@ORM\Id
@@ -167,7 +223,7 @@ class Submission implements JsonSerializable {
 	public $id;
 
 	/**
-	* @ORM\OneToMany(targetEntity="TestcaseResult", mappedBy="submission")
+	* @ORM\OneToMany(targetEntity="TestcaseResult", mappedBy="submission", cascade={"persist"}, fetch="EXTRA_LAZY")
 	* @ORM\OrderBy({"testcase" = "ASC"})
 	*/
 	public $testcaseresults;
@@ -185,7 +241,7 @@ class Submission implements JsonSerializable {
 	}
 	
 	/**
-     * @ORM\ManyToOne(targetEntity="Problem")
+     * @ORM\ManyToOne(targetEntity="Problem", fetch="EXTRA_LAZY")
      * @ORM\JoinColumn(name="problem_id", referencedColumnName="id", nullable=false, onDelete="CASCADE")
      */
 	public $problem;
@@ -196,13 +252,13 @@ class Submission implements JsonSerializable {
 	public $version;
 	
 	/**
-     * @ORM\ManyToOne(targetEntity="Team", inversedBy="submissions")
+     * @ORM\ManyToOne(targetEntity="Team", inversedBy="submissions", fetch="EXTRA_LAZY")
      * @ORM\JoinColumn(name="team_id", referencedColumnName="id", nullable=true, onDelete="CASCADE")
      */
 	public $team;
 	
 	/**
-     * @ORM\ManyToOne(targetEntity="User")
+     * @ORM\ManyToOne(targetEntity="User", fetch="EXTRA_LAZY")
      * @ORM\JoinColumn(name="user_id", referencedColumnName="id", nullable=true, onDelete="CASCADE")
      */
 	public $user;
@@ -215,7 +271,7 @@ class Submission implements JsonSerializable {
 	/**
 	* @ORM\Column(type="boolean")
 	*/
-	public $is_accepted;
+	public $best_submission;
 	
 	/**
 	* @ORM\Column(type="boolean")
@@ -227,10 +283,35 @@ class Submission implements JsonSerializable {
 	*/
 	public $submitted_file;
 	
-	public function deblobinateSubmittedFile(){			
+	public function deblobinateSubmittedFile(){	
 		$val = stream_get_contents($this->submitted_file);
 		rewind($this->submitted_file);
 		return $val;
+	}
+	
+	public function getSubmissionFileContents(){
+				
+		// get the contents of a submission file
+		$temp = tmpfile();
+		$temp_filename = stream_get_meta_data($temp)['uri'];
+		
+		if(file_put_contents($temp_filename, $this->submitted_file) === FALSE){
+			return false;			
+		}
+		
+		$zipper = new Zipper();		
+		$contents = $zipper->getZipContents($temp_filename);
+		
+		if($contents === false){
+					
+			fseek($temp, 0);
+			
+			return [['name'=>$this->filename, 'contents'=>fread($temp, filesize($temp_filename))]];
+		}
+		
+		fclose($temp);
+
+		return $contents;
 	}
 	
 	/**
@@ -335,17 +416,34 @@ class Submission implements JsonSerializable {
 	
 	
 	public function jsonSerialize(){
+
 		return [
-			'team' => ($this->team) ? $this->team : ["name" => "NO TEAM"],			
 			'id' => $this->id,
-			'problem' => $this->problem,
-			'is_correct' => $this->isCorrect(),
-			'testcaseresults' => $this->testcaseresults->toArray(),
+			
+			'team' => ($this->team) ? $this->team : ["name" => "NO TEAM", "member_string" => $this->user->getFullName()],
+			'user' => $this->user,
+						
+			'problem' => [ 
+				'id'=>$this->problem->id,
+				'name'=>$this->problem->name,
+				'assignment'=>$this->problem->assignment,
+				'testcases'=>$this->problem->testcases->toArray(),
+			],
+
+			'timestamp' => $this->timestamp,
+			
+			'is_correct' => $this->isCorrect(false),
+			'result_string' => $this->getResultString(),
+						
 			'runtime_error' => $this->runtime_error,
 			'exceeded_time_limit' => $this->exceeded_time_limit,
 			'compiler_error' => $this->compiler_error,
 			
+			'language' => $this->language,
+
 			'reviewer' => $this->reviewer,
+
+			'testcaseresults' => $this->testcaseresults->toArray(),
 		];
 	}
 	

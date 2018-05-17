@@ -1,18 +1,20 @@
 {% block title %}
 	<title>Gradel | Submission {{submission.id}}</title>
-	<link rel="icon" type="image/x-icon" href="{{ asset('logo.png') }}" />
+	<link rel="icon" type="image/x-icon" href="{{ asset('images/logo.png') }}" />
 {% endblock %}
 
 
 {% block stylesheets %}
 	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-	<link rel="stylesheet" href="{{ asset('jquery.highlighttextarea.css') }}">
+	<link rel="stylesheet" href="{{ asset('styles/jquery.highlighttextarea.css') }}">
 	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
 	
-	<link rel="stylesheet" href="{{ asset('styles.css') }}" />
-	<link rel="stylesheet" href="{{ asset('card.css') }}" />
+	<link rel="stylesheet" href="{{ asset('styles/styles.css') }}" />
+	<link rel="stylesheet" href="{{ asset('styles/card.css') }}" />
 	
-	<link rel="stylesheet" href="{{ asset('submission-results.css') }}">
+	<link rel="stylesheet" href="{{ asset('styles/sessions.css') }}" />
+	
+	<link rel="stylesheet" href="{{ asset('styles/submission-results.css') }}">
 {% endblock %}
 
 
@@ -37,43 +39,16 @@
 				
 				{% if is_granted("ROLE_SUPER") or grader.isTeaching(app.user, submission.problem.assignment.section) %}
 				<a title="Delete Submission" href="{{path('result_delete', {'submission_id': submission.id})}}">
-					<img src="{{ asset('trash.png') }}">
+					<img src="{{ asset('images/trash.png') }}">
 				</a>
 				{% endif %}
 			</div>
 			
 			<div id="submissionOverview" class="card-contents">
-				<h3 style="margin-top: 2px; margin-bottom: 2px">
-					RESULT: 
-										
-					{% if submission.isCorrect() %}						
-						<span style="color:green">CORRECT!</span>
-						
-					{% else %}					
-						<span style="color:red">
-						{% if submission.compiler_error %}
-						COMPILER ERROR!
-						{% elseif submission.exceeded_time_limit %}
-						TIME LIMIT EXCEEEDED!
-						<br/>
-						
-						{% if submission.testcaseresults|length > 0 %}
-							{% for tcr in submission.testcaseresults %}
-								Runtime for input {{tcr.testcase.seq_num}}) {{tcr.execution_time/1000}}s
-								<br/>
-							{% endfor %}
-						{% else %}
-							Wall clock limit exceeded <br/>
-						{% endif %}
-						
-						{% elseif submission.runtime_error %}
-						RUNTIME ERROR!
-						{% else %}
-						WRONG ANSWER!
-						{% endif %}
-						</span>
-						
-					{% endif %}
+				<h3 style="margin-top: 2px; margin-bottom: 2px; color: {{submission.isCorrect() ? 'green' : 'red'}}">
+					RESULT: <span> {{submission.getResultString()}} </span>
+
+					
 				</h3>				
 				
 				
@@ -94,7 +69,8 @@
 					<div id="testcase-markers-container">
 						<h3 style="margin-bottom: 4px">TESTCASES:</h3>				
 							{% if feedback.show_output and submission.testcaseresults|length > 0 %}
-							<div id="testcase-markers">
+							<small> <i> Note that this is resizable </i> </small>
+							<div id="testcase-markers" onresize="resized()">							
 								<ul>
 									{% set failed = false %}
 									{% for tcr in submission.testcaseresults %}						
@@ -139,21 +115,22 @@
 											{% if feedback.show_input %}
 											<div id="testcase-input">
 											
-												
+												<div style="height: 100%">
 												{% if tcr.testcase.input %}
 												
-												<div>
+												<div {{(tcr.testcase.command_line_input) ? "style='height:50%'" : ""}}>
 													<div class="testcase-data-heading">Input:</div>
 													<textarea {{(tcr.testcase.command_line_input) ? "id='input-textarea'" : "" }} disabled>{{tcr.testcase.input}}</textarea>
 												</div>
 												{% endif %}
 												
 												{% if tcr.testcase.command_line_input %}
-												<div>
+												<div {{(tcr.testcase.input) ? "style='height:50%'" : ""}}>
 													<div class="testcase-data-heading">Command-Line Arguments:</div>
 													<textarea  {{(tcr.testcase.input) ? "id='command-line-textarea'" : "" }} disabled>{{tcr.testcase.command_line_input}}</textarea>
 												</div>
 												{% endif %}
+												</div>
 												
 											</div>
 											{% endif %}
@@ -226,7 +203,7 @@
 				<div style="display: flex; justify-content: space-between; margin-right: 25px;">
 
 					<div id="loading-container" style="display:none;">
-						<img id="loadingGif" style="height: 60px" src="{{asset('beoload.gif')}}" alt="Loading..."/>
+						<img id="loadingGif" style="height: 60px" src="{{asset('images/beoload.gif')}}" alt="Loading..."/>
 						<h3 style="margin: 0px"> Resubmitting Code... </h3>
 					</div>
 				
@@ -242,16 +219,15 @@
 				
 				
 				<div id='edit-note' style='display: none'> <small style="color: red; font-style: italics"> Note that editing and resubmitting this code will override your saved code on the problem page </small> </div>
-								
-<div id="editor">{% if submission.filename|split('.')|last != 'zip' %}
-{{ submission.deblobinateSubmittedFile()|nl2br }}{% else %}
-Submission was a ZIP file{% endif %}</div>
+
+				{# the editor text area #}
+				{{ block('editor_html', 'ace/sessions.twig') }}
 				
 				<h3 style="margin-top: 10px; margin-bottom: 0px">Submission ID: {{submission.id}}</h3>
 				
 				
 				<div id="loading-container" style="display:none;">
-					<img id="loadingGif" style="height: 60px" src="{{asset('beoload.gif')}}" alt="Loading..."/>
+					<img id="loadingGif" style="height: 60px" src="{{asset('images/beoload.gif')}}" alt="Loading..."/>
 					<h3 style="margin: 0px"> Resubmitting Code... </h3>
 				</div>
 				
@@ -270,12 +246,15 @@ Submission was a ZIP file{% endif %}</div>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 	
 	<script src="{{ asset('js/jquery.highlighttextarea.js') }}" type="text/javascript" charset="utf-8"></script>
-	<script src="{{ asset('src-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>	
+	<script src="{{ asset('js/src-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>	
 	
 	<script src="{{ asset('js/cards.js') }}" type="text/javascript" charset="utf-8"></script>
 	<script src="{{ asset('js/unicode_return.js') }}" type="text/javascript" charset="utf-8"></script>
 	
 	<script>
+	
+	{# template for multiple sessions #}
+	{{ block('editor_javascript', 'ace/sessions.twig') }}
 	
 	var feedback = JSON.parse("{{feedback.response|json_encode|e('js')}}");
 	
@@ -290,6 +269,21 @@ Submission was a ZIP file{% endif %}</div>
 				$('#tips-list').html("<li>" + escapeHTML(feedback[seq_num]) + "</li>");
 			}			
 		});
+		
+		var maxWidth = $('.card').width() - 10;
+		var maxHeight = 650;
+		
+		$('#testcase-markers').resizable({
+			handles: "s, e, se",
+			maxHeight: maxHeight,
+			maxWidth: maxWidth,
+			minHeight: 250,
+			minWidth: 400,
+			alsoResize: "#testcase-markers-container"
+		});
+		
+		$('#testcase-markers').css('height', 400);
+		// $('#testcase-markers').css('width', maxWidth);
 		
 		$('#tips-list').html("<li>" + escapeHTML(feedback[1]) + "<li>");
 		
@@ -309,17 +303,13 @@ Submission was a ZIP file{% endif %}</div>
 		
 		{% endif %}
 		
-		var editor = ace.edit("editor");
-		editor.setTheme("ace/theme/xcode");
-		editor.getSession().setMode("ace/mode/" + "{{ace_mode}}");
-		
 		
 		$('.testcase-data textarea').each(function () {			
 			$(this).html(addReturnKey($(this).html()));			
 		});
 		
 		// add highlighting for wrong text 
-		$('.testcase-data textarea').highlightWithinTextarea({
+		$('#testcase-outputyrs textarea').highlightWithinTextarea({
 			highlight: false
 		});
 		
@@ -330,12 +320,7 @@ Submission was a ZIP file{% endif %}</div>
 		});
 		
 		$('#quick-edit-btn').button('disable');
-		
-		editor.getSession().on('change', function() {
-			$('#quick-edit-btn').button('enable');
-			$('#edit-note').show();
-		});
-						
+								
 		$('#full-edit-btn').button().click( function() {
 			window.location = "{{path('assignment', {'sectionId': submission.problem.assignment.section.id, 'assignmentId': submission.problem.assignment.id, 'problemId': submission.problem.id, 'submissionId': submission.id} )}}";
 		});
@@ -344,33 +329,56 @@ Submission was a ZIP file{% endif %}</div>
 		{% for highlights in feedback.highlights %}
 		
 		
-		{% if highlights.ranges|length == 1 and highlights.ranges[0].index == -1 %}
+			{% if highlights.ranges|length == 1 and highlights.ranges[0].index == -1 %}
+				
+				var txt = $('#{{highlights['id']}}').text();
+				
+				$('#{{highlights['id']}}').text(txt+" ");
+				
+				$('#{{highlights['id']}}').highlightWithinTextarea({
+					highlight: [txt.length, txt.length+1]
+				});
 			
-			var txt = $('#{{highlights['id']}}').text();
+			{% else %}
 			
-			$('#{{highlights['id']}}').text(txt+" ");
+				var ranges = [];
+				
+				{% for range in highlights.ranges %}
+				ranges.push([{{range.index}}, {{range.indexEnd}}]);
+				{% endfor %}
 			
-			$('#{{highlights['id']}}').highlightWithinTextarea({
-				highlight: [txt.length, txt.length+1]
-			});
-		
-		{% else %}
-		
-			var ranges = [];
+				$('#{{highlights['id']}}').highlightWithinTextarea({
+					highlight: ranges
+				});
 			
-			{% for range in highlights.ranges %}
-			ranges.push([{{range.index}}, {{range.indexEnd}}]);
-			{% endfor %}
-		
-		$('#{{highlights['id']}}').highlightWithinTextarea({
-			highlight: ranges
-		});
-		
-		{% endif %}
+			{% endif %}
 		
 		{% endfor %}
+		
+		
+		{# editor sessions twig #}
+		{{ block('editor_onready', 'ace/sessions.twig') }}
 	});	
 	
+	function resized() {
+		//console.log("you changed the size!!");
+		var width = $("#testcase-markers").width();
+		var containerWidth = $("#feedback-holder").width();
+
+		console.log(containerWidth/(.75));
+
+		
+		if(width > containerWidth/1.25) { // drop the tips down when the width is big
+			$('#feedback-holder').css('display', 'block');
+			$('#testcase-markers-container').css('width', '100%');
+			$('#feedback').css('width', '100%');
+		} else if (width < containerWidth/1.25) {	// move them back
+			$('#feedback-holder').css('display', 'flex');
+			$('#testcase-markers-container').css('width', 'none');
+			$('#feedback').css('width', 'none');
+		}
+	}
+
 	function quickSubmit(){
 		
 		$('#quick-edit-btn').hide();
@@ -381,17 +389,14 @@ Submission was a ZIP file{% endif %}</div>
 		// Create a FormData object
 		var formData = new FormData();
 		
-		var editor = ace.edit("editor");
-		editor.$blockScrolling = Infinity;
-		
-
-		var ACE = editor.getValue();		
+		var ACE = [];
+		{{ block('editor_storecontentsinace', 'ace/sessions.twig') }}		
+		formData.append('ACE', JSON.stringify(ACE));
 		
 		formData.append('problem_id', {{submission.problem.id}});
 		formData.append('language', "{{submission.language.id}}");
 		formData.append('main_class', "{{submission.main_class_name}}");
 		formData.append('package_name', "{{submission.package_name}}");
-		formData.append('ACE', ACE);
 		
 		$.ajax({
 			type: "POST",

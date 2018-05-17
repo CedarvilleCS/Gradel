@@ -18,7 +18,7 @@
 			<object>
 				{# figure out a way to switch it around if it is a contest section #}
 				<a title="Create Section" href={{path('section_edit')}}>
-					<img class="small-icon" id="add-icon" src="{{ asset('add_circle.png') }}">
+					<img class="small-icon" id="add-icon" src="{{ asset('images/add_circle.png') }}">
 				</a>
 			</object>
 		{% endif %}
@@ -68,7 +68,7 @@
 					{% if app.user in section_teachers or is_granted("ROLE_SUPER") %}
 						<object>
 							<a title="Edit Section" href="{{path('section_edit', {'sectionId': section.id})}}">
-								<img class="small-icon" id="right-icon" src="{{ asset('edit.png') }}">
+								<img class="small-icon" id="right-icon" src="{{ asset('images/edit.png') }}">
 							</a>
 
 						</object>
@@ -91,17 +91,47 @@
 				<li class="sidebar list-item">
 
 					<span class="preview">{{section.course.name}}
-						<br/><small>{{section.name}}</small>
+						<br/>
+						<small>
+						{% if section.slaves.count() > 0 %}
+						{{section.slaves.count() + 1}} Linked Sections
+						{% else %}
+						{{section.name}}
+						{% endif %}
+						</small>
 					</span>
 					<object>
 						<a title="Edit Section" href="{{path('section_edit', {'sectionId': section.id})}}">
-							<img class="small-icon" id="right-icon" src="{{ asset('edit.png') }}">
+							<img class="small-icon" id="right-icon" src="{{ asset('images/edit.png') }}">
 						</a>
 					</object>
 
 				</li>
 
 				</a>
+
+				{% if section.slaves.count() > 0 %}
+					
+					<a href="{{path('section', {'sectionId':section.id})}}" style="padding-left: 15px">				
+
+					<li class="sidebar list-item">
+						<span class="preview"><small>{{section.name}}</small></span>
+					</li>
+
+					</a>
+
+					{% for slv in section.slaves %}
+					<a href="{{path('section', {'sectionId':slv.id})}}" style="padding-left: 15px">				
+
+					<li class="sidebar list-item">
+						<span class="preview"><small>{{slv.name}}</small></span>
+					</li>
+
+					</a>
+					{% endfor %}
+
+				{% endif %}
+
 			{% endfor %}
 		</ol>
 		{% endif %}

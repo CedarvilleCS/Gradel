@@ -31,6 +31,7 @@ class Assignment implements JsonSerializable{
 		$this->problems = new ArrayCollection();
 		$this->teams = new ArrayCollection();
 		$this->queries = new ArrayCollection();
+		$this->contest_languages = new ArrayCollection();
 	}
 	
 	public function __construct9($sect, $nm, $desc, $start, $end, $cutoff, $wght, $pen, $extra){
@@ -96,7 +97,7 @@ class Assignment implements JsonSerializable{
 		
 		$currTime = new \DateTime("now");
 		
-		return $this->start_time <= $currTime && $this->section->isActive();
+		return $this->start_time <= $currTime;
 		
 	}
 	
@@ -114,7 +115,13 @@ class Assignment implements JsonSerializable{
 		// either the freeze time is in the past or the override is set with a time
 		return ((!$this->freeze_override && $this->freeze_time < $currTime) || ($this->freeze_override && isset($this->freeze_override_time)));		
 	}
-	
+
+	public function isFinished(){
+		$currTime = new \DateTime("now");
+
+		return $this->end_time < $currTime;
+	}
+
 	/** 
 	* @ORM\Column(type="integer")
 	* @ORM\Id
@@ -178,61 +185,144 @@ class Assignment implements JsonSerializable{
 	/**
 	* @ORM\Column(type="boolean")
 	*/
-	public $is_extra_credit;
-	
+	public $is_extra_credit = false;
+
+	/**
+	* @ORM\Column(type="integer")
+	*/	
+	public $clone_hash = 0;
+
 	/**
 	* @ORM\OneToMany(targetEntity="Team", mappedBy="assignment", cascade={"persist"}, orphanRemoval=true)
 	*/
 	public $teams;
 	
+	/**
+    * @ORM\OneToOne(targetEntity="Leaderboard", inversedBy="contest",cascade={"persist"})
+    */
+	public $leaderboard = null;
 	
+	public function updateLeaderboard($grader, $em){
+
+		# create new leaderboard
+		if(!$this->leaderboard){
+			$leaderboard = new Leaderboard();			
+			$leaderboard->contest = $this;
+			$this->leaderboard = $leaderboard;
+		}
+
+		$this->leaderboard->board = json_encode($grader->getLeaderboard2($this, false));
+		$this->leaderboard->board_elevated = json_encode($grader->getLeaderboard2($this, true));
+		
+        $em->persist($this);
+        $em->flush();
+	}
+
 	// Contest-Specific Information
 	/**
 	* @ORM\Column(type="datetime", nullable=true)
 	*/
 	public $freeze_time;
+
+	public function getFreezeHour(){
+		$diff = $this->freeze_time->diff($this->end_time, true);
+		
+		$hours = $diff->days*24 + $diff->h;
+		return $hours;
+	}
+
+	public function getFreezeMinute(){
+		$diff = $this->freeze_time->diff($this->end_time, true);
+
+		$mins = $diff->i;
+		return $mins;
+	}
 	
 	/**
 	* @ORM\Column(type="datetime", nullable=true)
 	*/
-	public $freeze_override_time;
+	public $freeze_override_time = null;
 	
 	/**
 	* @ORM\Column(type="boolean", nullable=true)
 	*/
-	public $freeze_override;
+	public $freeze_override = false;
 	
 	/**
 	* @ORM\Column(type="boolean", nullable=true)
 	*/
-	public $post_contest;
+	public $post_contest = false;
+
+	/**
+	* @ORM\Column(type="boolean", nullable=true)
+	*/
+	public $pre_contest = false;
+
+	/**
+	* @ORM\Column(type="boolean", nullable=true) 
+	*/
+	public $is_cloned = false;
 	
 	/**
 	* @ORM\Column(type="integer", nullable=true)
 	*/
-	public $penalty_per_wrong_answer;
+	public $penalty_per_wrong_answer = 0;
 	
 	/**
 	* @ORM\Column(type="integer", nullable=true)
 	*/
-	public $penalty_per_compile_error;
+	public $penalty_per_compile_error = 0;
 	
 	/**
 	* @ORM\Column(type="integer", nullable=true)
 	*/
-	public $penalty_per_time_limit;
+	public $penalty_per_time_limit = 0;
 	
 	/**
 	* @ORM\Column(type="integer", nullable=true)
 	*/
-	public $penalty_per_runtime_error;	
+	public $penalty_per_runtime_error = 0;
+
+	/**
+     * Many Users have Many Groups.
+     * @ORM\ManyToMany(targetEntity="Language")
+     * @ORM\JoinTable(name="contest_languages",
+     *      joinColumns={@ORM\JoinColumn(name="contest_id", referencedColumnName="id", onDelete="CASCADE")},
+     *      inverseJoinColumns={@ORM\JoinColumn(name="language_id", referencedColumnName="id", onDelete="CASCADE")}
+     *      )
+     */
+	public $contest_languages;
 	
 	public function jsonSerialize(){
 		return [
+			'id' => $this->id,
+
 			'name' => $this->name,			
 			'weight' => $this->weight,
+			'penalty_per_day' => $this->penalty_per_day,
+
 			'teams' => $this->teams->toArray(),
+
+			'takers' => $this->section->getTakers(),
+			'section_id' => $this->section->id,
 		];
+	}
+
+	public function getProblemData(){
+		
+		$probs = [];
+
+		foreach($this->problems as $prob){
+
+			$newProb = [];
+
+			$newProb['id'] = $prob->id;
+			$newProb['name'] = substr($prob->name, 0, 1);
+
+			$probs[] = $newProb;
+		}
+
+		return $probs;
 	}
 }
 

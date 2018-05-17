@@ -54,7 +54,7 @@ class Team implements JsonSerializable{
 	public $name;
 
 	/**
-	* @ORM\ManyToOne(targetEntity="Assignment", inversedBy="teams")
+	* @ORM\ManyToOne(targetEntity="Assignment", inversedBy="teams", cascade={"persist"})
 	* @ORM\JoinColumn(name="assignment_id", referencedColumnName="id", nullable=true, onDelete="CASCADE")
 	*/
 	public $assignment;
@@ -67,13 +67,38 @@ class Team implements JsonSerializable{
 	*	)
 	*/
 	public $users;
-	
+
+	/**
+	* @ORM\Column(type="integer") 
+	*/
+	public $workstation_number = 1;
+
+
+	public function getMemberString(){
+
+		$str = '';
+		$first = true;
+		foreach($this->users as $user){
+
+			if(!$first){
+				$str .= '\n'.$user->getFullName();
+			} else {
+				$str = $user->getFullName();
+			}
+
+			$first = false;
+		}
+		
+		return $str;
+	}
 	
 	public function jsonSerialize(){
 		return [
 			'name' => $this->name,			
-			'users' => $this->users->toArray(),
+			'users' => ($this->users) ? $this->users->toArray() : [],
 			'id' => $this->id,
+			'workstation_number' => $this->workstation_number,
+			'member_string' => $this->getMemberString(),
 		];
 	}
 }

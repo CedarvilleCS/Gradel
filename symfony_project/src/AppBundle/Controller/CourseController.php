@@ -184,7 +184,6 @@ class CourseController extends Controller {
 		
 		# set currently unused fields
 		$course->is_deleted = false;
-		$course->is_public = false;
 		
 		$em->persist($course);
 		$em->flush();

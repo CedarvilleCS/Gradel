@@ -36,6 +36,14 @@ class TestcaseResult implements JsonSerializable {
 		$this->std_output = $out;
 	}
 
+	public function __clone(){
+		
+		if($this->id){
+			$this->id = null;
+		}
+		
+	}
+
 
 	/**
 	*@ORM\Column(type="integer")

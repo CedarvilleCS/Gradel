@@ -1,47 +1,19 @@
 {% block stylesheets %}
 	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
 	
-    <link rel="stylesheet" href="{{ asset('styles.css') }}" />
-    <link rel="stylesheet" href="{{ asset('card.css') }}" />
-    <link rel="stylesheet" href="{{ asset('contest.css') }}" />
-    <link rel="stylesheet" href="{{ asset('contest-hub.css') }}" />
+    <link rel="stylesheet" href="{{ asset('styles/styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('styles/card.css') }}" />
+    <link rel="stylesheet" href="{{ asset('styles/contest.css') }}" />
+    <link rel="stylesheet" href="{{ asset('styles/contest-hub.css') }}" />
 	
 	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
-	
-	
-	<style>
-	
-	.accepted{
-		background: #AAE2AB no-repeat center url("{{asset('contest/check.svg')}}");
-		font-size: 0.8em;
-	}
-
-	.unattempted{
-		background: none;
-		color: transparent;
-		font-size: 0.8em;
-	}
-
-	.attempted{
-		background: #F67B51 no-repeat center url("{{asset('contest/cross.svg')}}");
-		font-size: 0.8em;
-		color: white;
-	}
-	
-	.unknown{
-		background: #AAAAAA no-repeat center url("{{asset('contest/question.svg')}}");
-		font-size: 0.8em;
-	}
-	
-	
-	</style>
 	
 {% endblock %}
 
 {% block head %}
 
 <title>Contest Hub</title>
-<link rel="icon" type="image/x-icon" href="{{ asset('logo.png') }}" />
+<link rel="icon" type="image/x-icon" href="{{ asset('images/logo.png') }}" />
 {% endblock %}
 
 
@@ -54,9 +26,15 @@
 
 	
 	
-	<section id="main" class="scrolly">
+	<section id="main">
 		
 		<div class="card">
+
+			{% if elevatedUser and not current_contest.post_contest and not current_contest.pre_contest %}
+				<div id="scoreboard-button"></div>
+				<div id="print-teams-button">Print Teams List</div>
+			{% endif %}	
+
 			<div id="contest-heading"><h1>{{current_contest.section.name}}</h1></div>
 			<div id="name-heading"><h2>{{current_contest.name}}</h2></div>
 			<div id="time-heading"><h3 id="time-left">-</h3></div>
@@ -77,57 +55,34 @@
 		</div>
 		
 		
-		<div class="parallel-cards">		
+		<div class="parallel-cards">	
 		
 			{{ block('leaderboard_html', 'contest/leaderboard.twig') }}
-			
-			{% if contest_open %}
 				
 			<div class="card" id="problems-card" style="flex-grow: 6; height: max-content;">
 				
 				<div class="btn-close">
-					<h2 style="margin: 0px">Problems
-					</h2>
-					
+					<h2 style="margin: 0px">Problems</h2>
 				</div>
 				
 				<div id="problems-container" class="card-contents">
 					<table id="problems">
 
-					{% set team = leaderboard.scores[leaderboard.index] %}
-					
-					{% for problem in current_contest.problems %}
-					
-						{% set className = (loop.last) ? "last-row" : "" %}
-						{% set rowClassName = (team.results[loop.index0]) ? "accepted" : (team.attempts[loop.index0] > 0) ? "attempted" : "unattempted" %}
-						{% set isCorrect = team.results[loop.index0] %}
-						
-						
-						<tr class="{{rowClassName}}" onclick="window.location='{{path('contest_problem', {'contestId': problem.assignment.section.id, 'roundId': problem.assignment.id, 'problemId': problem.id})}}'">
-							<td class="name {{className}}"><div> {{problem.name}} </div></td>
-							<td class="penalties {{className}}"><div> {{ (isCorrect) ?  team.times[loop.index0] ~ ' + ' ~ team.raw_penalties[loop.index0]  : "" }} </div></td>
-							<td class="checkbox {{className}}" style="text-align: right; padding-right: 25px">
-								{{ (team.results[loop.index0]) ? "<div style='color: green'> &#x2713; </div>" : (team.attempts[loop.index0] > 0) ? "<div style='color: red'> &#x2718; </div>" : "" }}						</td>
-						</tr>
-					{% endfor %}
-					
 					</table>
 				</div>
 			</div>
-			
-			{% endif %}
 		
 		</div>
 		
 		
 		
-		<div class="card" style="flex-grow: 8; display: none;" id="clarification-card">
+		<div class="card" style="flex-grow: 8;" id="clarification-card">
 			
 			<div class="btn-close">
-				<h2 style="margin: 0px")">Clarifications
+				<h2 style="margin: 0px">Clarifications
 				</h2>
 				
-				{% if not current_contest.post_contest %}
+				{% if not current_contest.post_contest and not current_contest.pre_contest %}
 				<div id="clarification-button" style="top: 15px; right: 15px">Ask for Clarification</div>
 				{% endif %}
 				
@@ -139,11 +94,6 @@
 			</div>
 		</div>
 		
-			
-		
-		
-		
-			
 	</section>
 
 		
@@ -161,9 +111,6 @@
 
 {% endblock %}
 
-
-
-
 {% block scripts %}
     
 	<!-- JQuery -->
@@ -172,49 +119,20 @@
 	<script src="{{ asset('js/cards.js') }}"></script>
 	<script src="{{ asset('js/validation.js') }}"></script>
 	
+	<script src="{{ asset('js/contest.js') }}"></script>
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.3.5/jspdf.debug.js"></script>
+	
 	<script>
-	
-		var scoreboardPollAJAX;
-		var contestPollAJAX;
-		var clarAJAX;			
-		var freezeAJAX;
-	
-		var contest_started = false;
-	
-		var time = Math.floor(Date.now()/1000) - {{current_contest.start_time|date('U')}}; // current seconds into the contest
-		var starttime = {{current_contest.start_time|date('U')}} - Math.floor(Date.now()/1000); // current seconds until the contest
-		var total = {{current_contest.end_time|date('U')}} - {{current_contest.start_time|date('U')}};
-		var freeze = {{current_contest.freeze_time|date('U')}} - {{current_contest.start_time|date('U')}};
-		
-		var frozen = (Math.floor(Date.now()/1000) >= {{current_contest.freeze_time|date('U')}}) ? 'true' : 'false';
-		var visual_frozen = false;
-		var visual_unfrozen = false;
-		
-		var freeze_override = {{(current_contest.freeze_override and current_contest.freeze_override_time) ? "true" : "false"}};
-		var unfreeze_override = {{(current_contest.freeze_override and not current_contest.freeze_override_time) ? "true" : "false"}};
-		
+
 		$(window).unload(function() {
 						
 		});
-				
+		
+		{{ block('leaderboard_javascript', 'contest/leaderboard.twig') }}
+		
 		//var freeze 
 		$(document).ready( function() {
-		
-			console.log(time);
-			console.log(starttime);
-			console.log(total);
-			console.log(freeze);
-			console.log(frozen);
-			
-			/* set freeze text */
-			var buttonText = ((frozen && !unfreeze_override) || freeze_override) ? 'Unfreeze' : 'Freeze';
-			$('#scoreboard-button').html(buttonText);
-			
-			/* COUNTDOWN TIMER */
-			$('#progressbar').progressbar({
-				max: total, // total seconds in the contest
-				value: time	// current seconds into the contest		
-			});
 			
 			/* QUESTION ASKER */
 			clarificationDialog = $("#clarification-form").dialog({
@@ -249,25 +167,85 @@
 			$('#clarification-button').button().click(function() {
 				clarificationDialog.dialog("open");
 			});
+		});
+
+
+		/* SAVE A LIST OF TEAMS */
+		$('#print-teams-button').button().click( function(){
+
+			var doc = new jsPDF();
+
+			doc.setFont('helvetica');
+			doc.setFontType("bold");
+			doc.text(105, 20, "{{current_contest.section.name}}", null, null, 'center');
 			
-			{% if elevatedUser %}
-			$('#scoreboard-button').button().click(function() {
-				postScoreboardUnfreeze();
-			});
-			{% endif %}
+			var teams = JSON.parse("{{current_contest.teams.toArray()|json_encode|e('js')}}");
+			
+			var height = 40;
+			for(var i=0; i<teams.length; i++){
+			
+				var team = teams[i];
+
+				doc.setFillColor('black');
+				doc.setFontSize(15);
+				doc.setFontType("bold");
+				doc.text(10, height, team.name);
+				height += 7;
+
+				doc.setFontSize(12);
+				doc.setFontType('bolditalic');
+				doc.text(10, height, "Workstation #" + team.workstation_number);
+				doc.rect(10, height+1, 190, 0);
+				height += 7;
+
+				doc.setFillColor('black');
+				doc.setFontType('normal');
+				
+				for(var j=0; j<team.users.length; j++){					
+					var user = team.users[j];
 					
-			/* LOOP */
-			setInterval(loopFunction, 1000);
-			loopFunction();
-			pollContest();
-			pollScoreboard();
-			
+					if(user.full_name != user.email){
+						doc.text(12, height, user.full_name + " [" + user.email + "]");
+					} else {
+						doc.text(12, height, "Unnamed [" + user.email + "]");
+					}
+					height += 7;
+				}
+				height += 5;
+			}
+
+			doc.save('teams.pdf');
 		});
 		
 
 		/* UPDATE THE LIST OF PROBLEMS */
 		function updateChecklist(checklist){
-			
+
+        	$('#problems').children().remove();
+
+			for(var i=0; i<checklist.length; i++){
+
+				problem = checklist[i];
+
+				var trHTML = `
+				
+				<tr class="` + problem.submission_status + `" onclick="window.location='{{path('contest_problem', {'contestId': current_contest.section.id, 'roundId': current_contest.id, 'problemId': ''})}}` + problem.id + `'">
+					<td class="name ` + ((i == checklist.length-1) ? 'last-row' : '') + `"><div>` + escapeHTML(problem.name) + `</div></td>
+					<td class="penalties ` + ((i == checklist.length-1) ? 'last-row' : '') + `"><div>` + escapeHTML(problem.penattempt) + `</div></td>
+					<td class="checkbox ` + ((i == checklist.length-1) ? 'last-row' : '') + `" style="text-align: right; padding-right: 25px">
+					` + ((problem.submission_status == 'accepted') ? "<div style='color: green'> &#x2713; </div>" : (problem.submission_status == 'attempted') ? "<div style='color: red'> &#x2718; </div>" : "") + `
+					</td>
+				</tr>
+				
+				`;
+
+				$('#problems').append(trHTML);
+			}
+
+			if(checklist.length == 0){
+				$('#problems').append('<tr class="unattempted"> <td class="name last-row"><div> Problems are not available </div></td></tr>');
+			}
+		
 		}
 		
 		/* UPDATE THE CLARIFICATION */
@@ -303,280 +281,8 @@
 			
 			
 			$('#questionsCard').html(clarHTML);
-			
-			if(clarifications.length > 0){
-				$('#clarification-card').show();
-			} else {
-				$('#clarification-card').show();
-			}
-			
 		}
-		
-		/* UPDATE THE LEADERBOARD */
-		function updateScoreboard(leaderboard){
 			
-			// script for creating the table (takes the leaderboard variable)
-			{{ block('leaderboard_tablecreation', 'contest/leaderboard.twig') }}
-			
-			
-			// freeze the scoreboard?
-			if(!visual_frozen && !unfreeze_override && (time >= freeze || freeze_override)){
-				
-				$('#progressbar-container').addClass('frozen');
-				
-				{% if not elevatedUser %}
-					$('#leaderboard-heading').html("<h2> <span style='color:red'> <i>FROZEN</i> LEADERBOARD </span> </h2>");				
-				{% else %}
-				
-					var extraInfo = (time < freeze && freeze_override) ? " / Overriden" : "";
-					$('#leaderboard-heading').html("<h2 style='color:red'> <div> <i>FROZEN</i> LEADERBOARD </div><div> (Not Really)" + extraInfo + "</div> </h2>");				
-				{% endif %}				
-				
-				$('#leaderboard-card').css('border', '2pt solid red');
-				visual_frozen = true;
-				visual_unfrozen = false;
-				
-				$('#scoreboard-button').html("Unfreeze");
-				
-			} else if(!visual_unfrozen && !freeze_override && (time < freeze || unfreeze_override)){
-				
-				$('#progressbar-container').removeClass('frozen');
-				
-				{% if not elevatedUser %}
-					$('#leaderboard-heading').html("<h2> LEADERBOARD </h2>");				
-				{% else %}
-				
-					var extraInfo = (unfreeze_override) ? "<div>Overriden</div>" : "";
-				
-					$('#leaderboard-heading').html("<h2 <div> LEADERBOARD </div>" + extraInfo + "</h2>");				
-				{% endif %}				
-				
-				$('#leaderboard-card').css('border', 'initial');
-				visual_frozen = false;
-				visual_unfrozen = true;
-				
-				
-				$('#scoreboard-button').html("Freeze");				
-			}
-
-			// update frozen
-			if(time >= freeze){
-				frozen = true;
-			}
-			
-		}		
-		
-		/* LOOP FUNCTION THAT RUNS EVERY SECOND TO UPDATE THINGS */
-		function loopFunction(){
-
-			// update the progress bar
-			$( "#progressbar" ).progressbar( "option", "value", time);
-			
-			if (starttime <= 0) {
-				time++;
-
-				// update the time left
-				var left = total-time;
-			} else {
-				starttime--;
-				// update the time left
-				var left = starttime;
-			}
-			
-			if(left <= 0){
-				
-				if(contest_started) {
-					$('#time-left').text("FINISHED");
-				} else {
-					$('#time-left').text("---");
-					contest_started = !contest_started;
-				}
-				
-			} else {
-				
-				var hours = parseInt(left/3600);
-				var minutes = parseInt((left - hours*3600)/60);
-				var seconds = (left - hours*3600 - minutes*60);
-				
-				hours = (hours < 10) ? "0"+hours : hours;
-				minutes = (minutes < 10) ? "0"+minutes : minutes;
-				seconds = (seconds < 10) ? "0"+seconds : seconds;
-				
-				
-				if (starttime <= 0) {
-					$('#time-left').text(hours+":"+minutes+":"+seconds+" left");
-				} else {
-					$('#time-left').text(hours+":"+minutes+":"+seconds+" until start");
-				}
-				
-				if (starttime == 0) {
-					window.location.reload();
-				}				
-			}
-			
-			if(time == freeze){
-				socketScoreboardUpdate();
-			}
-			
-			// check for AJAX information			
-			
-			// change this to a different number to change the frequency
-			
-			
-		}
-		
-		function socketScoreboardUpdate() {
-			pollContest();	
-			pollScoreboard();
-		}
-		
-		function pollScoreboard(){
-								
-			// Create a FormData object
-			var formData = new FormData();
-
-			formData.append('contestId', {{current_contest.id}});
-			formData.append('end_time', '{{current_contest.end_time|date('U')}}');
-			formData.append('start_time', '{{current_contest.start_time|date('U')}}');
-			formData.append('freeze_time', '{{current_contest.freeze_time|date('U')}}');
-			
-			scoreboardPollAJAX = $.ajax({
-				type: "POST",
-				url: "{{path('scoreboard_poll')}}",
-				data: formData,
-				processData: false,
-				contentType: false,
-				async: true,
-				success: function(data){
-					
-					// if page needs to be refreshed
-					if(data['page_refresh'] === true){
-						window.location.reload();
-					}
-					
-					// set frozen vs unfrozen
-					if(data['frozen_override'] === true){
-						
-						unfreeze_override = false;
-						freeze_override = true;
-					
-					} else if(data['unfrozen_override'] === true){
-						unfreeze_override = true;
-						freeze_override = false;
-					} else if(data['unfrozen_override'] === false && data['frozen_override'] == false) {
-						unfreeze_override = false;
-						freeze_override = false;
-					}
-					
-			
-										
-					// update the scoreboard
-					{% if elevatedUser %}					
-						updateScoreboard(data['leaderboard']);					
-					{% else %}
-					
-					updateScoreboard(data['leaderboard']);
-					
-					{% endif %}
-					
-				},
-				error: function(data){	
-		
-					if(data['responseText']){					
-						alert(data['responseText']);
-						console.log(data['responseText']);					
-					}
-				}
-			});
-			
-			
-			return true;		
-		}
-		
-		function pollContest(){
-			
-			// Create a FormData object
-			var formData = new FormData();
-
-			formData.append('contestId', {{current_contest.id}});
-			
-			contestPollAJAX = $.ajax({
-				type: "POST",
-				url: "{{path('contest_poll')}}",
-				data: formData,
-				processData: false,
-				contentType: false,
-				async: true,
-				success: function(data){
-					
-					updateChecklist(data['checklist']);
-					updateClarifications(data['clarifications']);
-					
-				},
-				error: function(data){			
-				
-					if(data['responseText']){					
-						alert(data['responseText']);
-						console.log(data['responseText']);					
-					}					
-				}
-			});
-			
-			
-			return true;
-		}
-		
-		{% if elevatedUser %}
-		function postScoreboardUnfreeze(){
-			
-			var formData = new FormData();
-			
-			formData.append('contestId', {{current_contest.id}});
-			
-			if((frozen && !unfreeze_override) || freeze_override){
-				formData.append('type', 'unfreeze');				
-			} else {
-				formData.append('type', 'freeze');
-			}
-			
-			freezeAJAX = $.ajax({
-				type: "POST",
-				url: "{{path('judging_scoreboard')}}",
-				data: formData,
-				processData: false,
-				contentType: false,
-				async: true,
-				success: function(data){
-					console.log(data);
-					
-					if(data['freeze'] == true){
-						freeze_override = true;
-						unfreeze_override = false;
-						
-						$('#scoreboard-button').html("Unfreeze");
-						
-					} else {
-						unfreeze_override = true;
-						freeze_override = false;
-						
-						$('#scoreboard-button').html("Freeze");
-					}
-					
-					pollScoreboard();
-				},
-				error: function(data){
-		
-					if(data['responseText']){					
-						alert(data['responseText']);
-						console.log(data['responseText']);					
-					}
-				}
-			});			
-			
-			return true;
-		}
-		{% endif %}
-		
 		function postClarification(){
 			
 			// Create a FormData object
@@ -595,7 +301,7 @@
 			
 			formData.append('question', question);
 			
-			clarAJAX = $.ajax({
+			$.ajax({
 				type: "POST",
 				url: "{{path('judging_query')}}",
 				data: formData,
@@ -615,8 +321,10 @@
 			return true;
 		}
 		
+
 	</script>
-	{{ include('contest/contest_gas.html.twig') }}
+	{{ include('contest/gas/contest_gas.html.twig') }}
+	{{ include('contest/gas/contest_gas_hub.html.twig') }}
 
 {% endblock %}
 

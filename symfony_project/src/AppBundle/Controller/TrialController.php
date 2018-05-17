@@ -22,6 +22,7 @@ use AppBundle\Entity\Trial;
 
 use AppBundle\Utils\Uploader;
 use AppBundle\Utils\Generator;
+use AppBundle\Utils\Zipper;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -51,8 +52,7 @@ class TrialController extends Controller {
 		
 		# stores all of the data from the post
 		$postData = $request->request->all();	
-		$files = $request->files;
-		
+				
 		# get the problem
 		$problem_id = $postData['problem_id'];		
 		$problem = $em->find('AppBundle\Entity\Problem', $problem_id);
@@ -62,16 +62,17 @@ class TrialController extends Controller {
 		}
 		
 		# get the file content for the trial
-		if($files->get('file')){
+		// for zips
+		/*if($files->get('file')){
 			
-			$file = $files->get('file');
+			$tempFile = $files->get('file');
 			
-			if($file->getClientSize() > 1024*1204){
+			if($tempFile->getClientSize() > 1024*1204){
 				return $this->returnForbiddenResponse("Given file must be smaller than 1Mb.");
-			} else if($file->getClientSize() <= 0){
+			} else if($tempFile->getClientSize() <= 0){
 				return $this->returnForbiddenResponse("Given file is empty.");
 			}
-			$target_file = $uploader->uploadSubmissionFile($file, $user, $problem);
+			$target_file = $uploader->uploadSubmissionFile($tempFile, $user, $problem);
 			
 			$file = fopen($target_file, 'r');
 			
@@ -79,18 +80,93 @@ class TrialController extends Controller {
 				return $this->returnForbiddenResponse("Could not properly upload file");
 			}
 			
-		} else if(isset($postData['ACE'])){
-			
-			$file = $postData['ACE'];
-			
-			if(strlen($file) > 1024*1024){
-				return $this->returnForbiddenResponse("Uploaded code must be smaller than 1Mb.");
-			} else if(strlen($file) <= 0){
-				return $this->returnForbiddenResponse("Uploaded code is empty.");
+		}*/
+		
+
+		if(!isset($_FILES['file'])){
+		
+			if(!isset($postData['ACE'])){
+				return $this->returnForbiddenResponse("ACE editor content was not provided");						
 			}
 			
-		} else {			
-			return $this->returnForbiddenResponse("File or ACE editor content was not provided");			
+			$aceData = json_decode($postData['ACE']);
+			
+			// make a temporary directory
+			$tempdir = null;
+			
+			while(!is_dir($tempdir)){
+				
+				$tempdir = tempnam(sys_get_temp_dir(),'');
+				
+				if (file_exists($tempdir)){
+					unlink($tempdir);
+				}
+				mkdir($tempdir);
+			}
+			$tempdir .= '/';
+					
+			$total_size = 0;			
+			$array_of_names = [];
+			
+			if(count($aceData) < 1){
+				return $this->returnForbiddenResponse("ACE data cannot be empty");
+			}
+
+			foreach($aceData as $aceDatum){
+
+				//return $this->returnForbiddenResponse(json_encode($aceData));
+				
+				if(strlen($aceDatum->content) <= 0){
+					return $this->returnForbiddenResponse('Your file cannot be empty');
+				}
+				
+				if(strlen($aceDatum->filename) <= 0){
+					return $this->returnForbiddenResponse('Your filename cannot be blank');
+				}
+				
+				if(preg_match('/^[a-zA-Z0-9-_]+\.[a-zA-Z]+$/', $aceDatum->filename) <= 0){
+					return $this->returnForbiddenResponse('Your filename is invalid');
+				}
+				
+				$aceContent = $aceDatum->content;
+				$filename = $aceDatum->filename;
+
+				
+				$total_size += strlen($aceContent);
+			
+				if($total_size > 1024*1024){
+					return $this->returnForbiddenResponse("Uploaded code must be smaller than 1Mb total.");
+				}
+				
+				if(!file_put_contents($tempdir.$filename, $aceContent, FILE_USE_INCLUDE_PATH)){
+					return $this->returnForbiddenResponse("UNABLE TO MOVE THE ACE EDITOR CONTENTS");
+				}
+				
+			}
+			
+			$zipper = new Zipper();
+			$target_file = $tempdir."zippy.zip";
+			
+			$response = $zipper->zipFiles($tempdir, $target_file);
+				
+			if($response !== TRUE){
+				return $this->returnForbiddenResponse($response."");
+			}		
+			
+			// make a zip file and set file = fopen(zip location)
+			$file = fopen($target_file, 'r');
+			
+			if(!$file){
+				return $this->returnForbiddenResponse("Could not properly create file.");
+			}
+		} else {
+
+			if(filesize($_FILES['file']['tmp_name']) > 1024*1024){
+				return $this->returnForbiddenResponse("Uploaded code must be smaller than 1Mb total.");
+			}
+
+			$file = fopen($_FILES['file']['tmp_name'], 'r');
+			$filename = "zippy.zip";
 		}
 		
 		# get the old trial or create a new one
@@ -121,21 +197,16 @@ class TrialController extends Controller {
 		$filename = null;
 		$main_class = null;
 		$package_name = null;
-		$language = null;
+		$language = null;		
 		
 		$response = $generator->generateFilename($filename, $language, $main_class, $package_name, $problem, $postData);
 		
-		if($response != 1){
-			return $this->returnForbiddenResponse("Cannot save: ".$response);
-		}	
-		
-		// make it zip if it's a zip
-		if(pathinfo($target_file, PATHINFO_EXTENSION) == "zip"){
-			
-			$filename = pathinfo($target_file, PATHINFO_BASENAME);
+		if($response !== 1){
+			return $this->returnForbiddenResponse($response."");
 		}
 		
-		
+		$filename = pathinfo($target_file, PATHINFO_BASENAME);				
+				
 		$trial->file = $file;
 		$trial->filename = $filename;
 		$trial->language = $language;
@@ -159,9 +230,9 @@ class TrialController extends Controller {
 	public function quickAction(Request $request){
 				
 		$response = $this->forward('AppBundle\Controller\TrialController::trialModifyAction');
-		
+				
 		if($response->getStatusCode() == Response::HTTP_OK){
-					
+				
 			return $this->forward('AppBundle\Controller\CompilationController::submitAction', [
 				'trialId' => json_decode($response->getContent())->trial_id,
 			]);

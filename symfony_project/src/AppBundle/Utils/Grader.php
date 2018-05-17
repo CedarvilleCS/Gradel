@@ -32,8 +32,8 @@ class Grader  {
 	
 	public function __construct($em) {
 		
-		if(get_class($em) != "Doctrine\ORM\EntityManager"){
-			throw new Exception('The Grader class must be given a Doctrine\ORM\EntityManager but was given '.get_class($em));
+		if(stripos(get_class($em), "EntityManager") === FALSE){
+			throw new Exception('The Grader class must be given a EntityManager but was given '.get_class($em));
 		}
 		
 		$this->em = $em;		
@@ -164,7 +164,7 @@ class Grader  {
 			->from('AppBundle\Entity\Submission', 's')
 			->where('s.problem = ?1')
 			->andWhere('s.team = ?2')
-			->andWhere('s.is_accepted = true')
+			->andWhere('s.best_submission = true')
 			->setParameter(1, $problem)
 			->setParameter(2, $team);
 			
@@ -215,7 +215,7 @@ class Grader  {
 			->from('AppBundle\Entity\Submission', 's')
 			->where('s.problem = ?1')
 			->andWhere('s.team = ?2')
-			->andWhere('s.is_accepted = true')
+			->andWhere('s.best_submission = true')
 			->setParameter(1, $problem)
 			->setParameter(2, $team);
 			
@@ -357,7 +357,11 @@ class Grader  {
 		$most_recent_sub = null;
 		foreach($problem_grades as $pg){
 			
-			if(!$most_recent_sub || $most_recent_sub < $pg['accepted_submission']->timestamp){
+			if(! (isset($pg) && isset($pg['accepted_submission']) && isset($pg['accepted_submission']->timestamp)) ){
+				continue;
+			}
+			
+			if(!isset($most_recent_sub) || isset($most_recent_sub) && $most_recent_sub < $pg['accepted_submission']->timestamp){
 				$most_recent_sub = $pg['accepted_submission']->timestamp;
 			}
 		}
@@ -560,7 +564,12 @@ class Grader  {
 						$index = $i;
 						$broken = true;
 					}
-					else if($broken && $exp[$i] == $usr[$i]){
+					else if($broken && ($exp[$i] == $usr[$i] || ($exp[$i] == "A" && $exp[$i+1] == "\n") || ($usr[$i] == "A" && $usr[$i+1] == "\n"))){
+
+						if(($exp[$i] == "A" && $exp[$i+1] == "\n") || ($usr[$i] == "A" && $usr[$i+1] == "\n")){
+							$i++;
+						}
+						
 						$indexEnd = $i;
 						
 						
@@ -586,6 +595,8 @@ class Grader  {
 				}
 				
 				$highlights[] = ['id' => $tcr->id, 'ranges' => $ranges];
+
+				//die(json_encode($highlights));
 			}
 		}
 		
@@ -755,7 +766,7 @@ class Grader  {
 		return $score;
 	}
 	
-	public function getTeamScore($team, $elevatedUser){
+	public function getTeamScore($team, $elevated){
 		
 		// returns an array of some pertinent information:
 		// num_correct, total_penalty, array of subtimes, array of penalties
@@ -765,7 +776,7 @@ class Grader  {
 		$scores = [];
 		
 		foreach($problems as $problem){			
-			$scores[] = $this->getProblemScore($team, $problem, $elevatedUser);			
+			$scores[] = $this->getProblemScore($team, $problem, $elevated);			
 		}
 		
 		$num_correct = 0;
@@ -796,6 +807,7 @@ class Grader  {
 		
 		$score['team_id'] = $team->id;
 		$score['team_name'] = $team->name;
+		$score['member_string'] = $team->getMemberString();
 		$score['num_correct'] = $num_correct;
 		$score['total_penalty'] = $total_penalty;
 		$score['results'] = $results; // boolean array of yes/no solved per problem
@@ -807,47 +819,48 @@ class Grader  {
 		
 		return $score;
 	}
-	
-	public function getLeaderboard($user, $assignment, $normal_user){
-		
-		
-		$teams = $assignment->teams->toArray();
-		
-		$user_team = $this->getTeam($user, $assignment);
-		
+
+	public function getLeaderboard2($contest, $elevated){
+
+		$leaderboard = [];
+		$teams = $contest->teams->toArray();
+
 		$scores = [];
-		
-		
-		
-		if( is_object($user) ){
-			
-			$elevatedUser = ($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $this->isJudging($user, $assignment->section)) && !$normal_user;
-		
-		} else {
-			
-			$elevatedUser = false;			
-		}
-		
+
 		foreach($teams as $team){
-			
-			$elevatedTeam = $elevatedUser;			
-			$scores[] = $this->getTeamScore($team, $elevatedTeam);
+			$scores[] = $this->getTeamScore($team, $elevated);
 		}
-		
-		// sort the scores into the proper order
-		usort($scores, array($this, 'compareTeamScoresNames'));
-		
-		$prevScore = null;
-		$rank = 0;
-		
-		$count = 0;
-		$user_index = -1;
-		foreach($scores as &$scr){
+
+		// get the attempts per problem for a summary
+		$attempts = [];
+		$correct = [];
+
+		$index = 0;
+		foreach ($contest->problems as $prob) {
 			
-			if($scr['team_id'] == $user_team->id){
-				$user_index = $count;
-			}
-			$count++;
+			$correct[$index] = 0;
+			$attempts[$index] = 0;
+			
+			foreach($scores as $scr){
+				
+				// got the problem right
+				if ($scr["results"][$index] == true) {
+					$correct[$index]++;
+				}
+
+				// number of attempts
+				$attempts[$index] += $scr["attempts"][$index];				
+			}		
+
+			$index++;
+		}
+
+		// sort the scores
+		usort($scores, [$this, 'compareTeamScoresNames']);
+
+		$prevScore = null;	
+		$rank = 0;	
+		foreach($scores as &$scr){
 			
 			if($prevScore && $this->compareTeamScores($prevScore, $scr) == 0){
 				$rank = $prevRank;
@@ -860,41 +873,13 @@ class Grader  {
 			$prevRank = $rank;
 			$prevScore = $scr;
 		}
+
+		$leaderboard['scores'] = array_merge(array(), $scores);
+
+		$leaderboard['attempts_per_problem_count'] = $attempts;
+		$leaderboard['correct_submissions_per_problem_count'] = $correct;	
 		
-		$leaderboard['scores'] = $scores;
-		$leaderboard['index'] = $user_index;
-		
-		
-		$attempts_per_problem_count = [];
-		$correct_submissions_per_problem_count = [];
-		
-		$probIndex = 0;
-		// loop through each problem 
-		foreach ($assignment->problems as $prob) {
-			
-			$correct_submissions_per_problem_count[$probIndex] = 0;
-			$attempts_per_problem_count[$probIndex] = 0;
-			
-			foreach($scores as $team_score){
-				
-				$prob_correct_maybe = $team_score["results"];
-				$ps = $prob_correct_maybe[$probIndex];
-				
-				if ( $ps == true) {
-					$correct_submissions_per_problem_count[$probIndex]++;
-				}
-				
-				$att = $team_score["attempts"];
-				$attempts_per_problem_count[$probIndex] += $att[$probIndex];
-				
-			}
-			
-			$probIndex++;
-		}
-		
-		$leaderboard['attempts_per_problem_count'] = $attempts_per_problem_count;
-		$leaderboard['correct_submissions_per_problem_count'] = $correct_submissions_per_problem_count;
-		
+		$leaderboard['problems'] = $contest->getProblemData();
 		
 		return $leaderboard;
 	}

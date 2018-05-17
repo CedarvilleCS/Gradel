@@ -1,0 +1,172 @@
+#feedback-holder {
+	display: flex; 
+	flex-direction: row; 
+	justify-content: flex-start;	
+	
+}
+
+#testcase-markers-container{
+	width: 60%;
+	margin-right: 20px;
+}
+
+#testcase-markers{
+	width: 100%;
+	min-height: 200px;
+}
+
+#testcase-markers-no-out{
+	width: 100%;
+}
+
+
+#feedback{
+	 width: 38%;
+}
+
+@media only screen and (max-width: 1350px) {
+	#feedback-holder {
+		display: block;
+	}
+
+	#testcase-markers-container {
+		width: 100%;
+	}
+
+	#feedback {
+		width: 100%;
+	}
+}
+
+
+#testcase-outputexp, #testcase-outputyrs, #testcase-input {
+	font-size: 10pt;
+	box-shadow: none;
+	border: none;
+	padding: 4px;
+	margin: 0px;
+	width: 33%;
+	height: 100%;
+}
+
+#testcase-input{
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+#testcase-outputexp textarea, #testcase-input textarea{
+	height: calc(100% - 35px);
+}
+
+#testcase-tab{
+	padding: 0px;
+	margin: 0px;
+}
+
+.testcase-data{
+	width: 100%;
+	padding: 0px;
+	margin: 0px;
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+	padding: 0px;
+	height: calc(100% - 50px);
+}
+
+.testcase-data-heading{
+	height: 30px;
+	line-height: 30px;
+	padding-right: 3px;
+}
+
+.ui-tabs-nav li a:focus { outline: none; }
+
+.ui-tabs .ui-tabs-panel{
+	padding: 0px;
+	background: none;
+	
+	
+}
+
+#incorrect.ui-state-active, .ui-widget-content #incorrect.ui-state-active, .ui-widget-header #incorrect.ui-state-active {
+	background: pink;
+	border: 1pt solid red;
+	
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+	
+	margin-bottom: -4px;
+    padding-bottom: 1px;
+}
+
+#correct.ui-state-active, .ui-widget-content #correct.ui-state-active, .ui-widget-header #correct.ui-state-active {
+	background: lightgreen;
+	border: 1pt solid green;
+	
+	
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+	
+	margin-bottom: -4px;
+    padding-bottom: 1px;
+}
+
+
+li{
+	padding: 3px;
+}
+
+ul{
+	list-style-type: none;
+	padding: 0px;
+}
+
+.ui-widget textarea{
+	
+	font-family: Courier New, monospace;
+	padding: 3px;
+	box-shadow: none;
+	border: 1pt solid grey;
+	height: 100%;
+	width: 100%;
+	
+	border-radius: 2px;
+	
+	margin-bottom: 3px;
+}
+
+textarea{
+	height: auto;
+}
+
+#editor { 
+    width: calc(100% - 50px);
+    height: 300px;
+    border: 2px solid grey;
+    padding: 10px;
+    font-family: monospace;
+    font-size: 10pt;
+}
+
+#compiler-output{
+	max-height: 200px;
+}
+
+#input-textarea {
+	height: auto;
+}
+
+#command-line-textarea{
+	height: auto;
+}
+	

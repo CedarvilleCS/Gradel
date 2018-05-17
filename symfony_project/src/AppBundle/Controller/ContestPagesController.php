@@ -81,8 +81,7 @@ class ContestPagesController extends Controller {
 			// if all the contest are past, get the final one
 			if(!$current){
 				$current = $allContests[count($allContests)-1];
-			}
-			
+			}			
 		}
 		// use the round provided
 		else {			
@@ -91,7 +90,75 @@ class ContestPagesController extends Controller {
 	
 		if(!$current || $current->section != $section){
 			die("ROUND DOES NOT EXIST");
-		}	
+		}
+
+		// check to see if you need to populate the post contest
+		if($current->post_contest){
+
+			$previous = $allContests[count($allContests) - 2];
+			
+
+			if(!$current->is_cloned && isset($previous) && $previous->isFinished() && $current->isActive()){
+					
+				$current->is_cloned = true;
+
+				# create problems
+				$newProbs = [];
+				$prevProbs = $previous->problems->toArray();
+				foreach($prevProbs as $prevProb){
+					
+					$prb = clone $prevProb;				
+					$prb->assignment = $current;
+
+					$em->persist($prb);
+
+					$newProbs[$prevProb->id] = $prb;
+				}				
+				
+				# create teams
+				$prevTeams = $previous->teams->toArray();
+				foreach($prevTeams as $prevTeam){
+
+					$prevSubs = $prevTeam->submissions->toArray();
+
+					foreach($prevTeam->users as $prevUser){
+
+						$tm = new Team();
+						$tm->assignment = $current;
+						$tm->name = $prevUser->getFullName();
+						$tm->workstation_number = 0;
+						$tm->users->add($prevUser);
+
+						$em->persist($tm);
+
+						foreach($prevSubs as $prevSub){
+							$sb = clone $prevSub;
+							$sb->problem = $newProbs[$sb->problem->id];
+							$sb->team = $tm;							
+
+							$em->persist($sb);
+						}
+					}
+				}
+			
+				# create queries/answers
+				$prevQueries = $previous->queries->toArray();
+				foreach($prevQueries as $prevQuery){
+
+					$qry = clone $prevQuery;
+					$qry->assignment = $current;
+
+					$current->queries->add($qry);
+				}
+
+				$current->updateLeaderboard($grader, $em);
+
+				$em->persist($current);
+				$em->flush();
+
+				//return $this->returnForbiddenResponse(json_encode($current));
+			}
+		}
 		
 		$team = $grader->getTeam($user, $current);
 				
@@ -102,22 +169,20 @@ class ContestPagesController extends Controller {
 			$contest_open = false;
 		}
 		
-		// Tim's gonna be mad at this, but idk what normal user is supposed to be
-		/* *is mad* */
-		$leaderboard = $grader->getLeaderboard($user, $current, true);
+		# GET ALL USERS
+		$section_takers = $section->getAllUsers();
 		
 		return $this->render('contest/hub.html.twig', [
 			'user' => $user,
 			'team' => $team,
 			
 			'section' => $section,
-			'leaderboard' => $leaderboard,
-			'grader' => $grader,		
-			'attempts_per_problem_count' => $attempts_per_problem_count,
-			'correct_submissions_per_problem_count' => $correct_submissions_per_problem_count,
-			'current_contest' => $current,
 			
-			'contest_open' => $contest_open,
+			'grader' => $grader,		
+
+			'user_impersonators' => $section_takers,
+			
+			'current_contest' => $current,
 			
 			'contests' => $allContests,
 			'elevatedUser' => $elevatedUser,
@@ -336,6 +401,72 @@ class ContestPagesController extends Controller {
 			
 			return $this->returnForbiddenResponse("PERMISSION DENIED");
 		}
+
+		# get the pending submissions
+		$qb_pending = $em->createQueryBuilder();
+		$qb_pending->select('s')
+			->from('AppBundle\Entity\Submission', 's')
+			->where('s.problem IN (?1)')
+			->andWhere('s.pending_status = ?2')
+			->andWhere('s.is_completed = ?3')
+			->orderBy('s.timestamp', 'ASC')
+			->setParameter(1, $current->problems->toArray())
+			->setParameter(2, 0)
+			->setParameter(3, true);
+		$pending_subs = $qb_pending->getQuery()->getResult();
+				
+		$qb_finished = $em->createQueryBuilder();
+		$qb_finished->select('s')
+			->from('AppBundle\Entity\Submission', 's')
+			->where('s.problem IN (?1)')
+			->andWhere('s.pending_status = ?2')
+			->andWhere('s.is_completed = ?3')
+			->andWhere('s.team IS NOT NULL')
+			->orderBy('s.timestamp', 'ASC')
+			->setParameter(1, $current->problems->toArray())
+			->setParameter(2, 2)
+			->setParameter(3, true);
+		$finished_subs = $qb_finished->getQuery()->getResult();
+		
+		# get user's claimed subs
+		$qb_claimed = $em->createQueryBuilder();
+		$qb_claimed->select('s')
+			->from('AppBundle\Entity\Submission', 's')
+			->where('s.problem IN (?1)')
+			->andWhere('s.pending_status = ?2')
+			->andWhere('s.reviewer = ?3')
+			->andWhere('s.is_completed = ?4')
+			->orderBy('s.timestamp', 'ASC')
+			->setParameter(1, $current->problems->toArray())
+			->setParameter(2, 1)
+			->setParameter(3, $user)
+			->setParameter(4, true);
+		$claimed_subs = $qb_claimed->getQuery()->getResult();
+
+		# get the queries for the contest
+		$qb_clars = $em->createQueryBuilder();
+		$qb_clars->select('s')
+			->from('AppBundle\Entity\Query', 's')
+			->where('s.problem IN (?1)')
+			->orWhere('s.assignment IN (?2)')
+			->andWhere('s.answer IS NULL')
+			->orderBy('s.timestamp', 'ASC')
+			->setParameter(1, $current->problems->toArray())
+			->setParameter(2, $current);
+		$clarifications = $qb_clars->getQuery()->getResult();
+		
+		// get the answered queries for the contest
+		$qb_ans = $em->createQueryBuilder();
+		$qb_ans->select('s')
+			->from('AppBundle\Entity\Query', 's')
+			->where('s.problem IN (?1)')
+			->orWhere('s.assignment IN (?2)')
+			->andWhere('s.answer IS NOT NULL')
+			->orderBy('s.timestamp', 'ASC')
+			->setParameter(1, $current->problems->toArray())
+			->setParameter(2, $current);
+		$answered_clarifications = $qb_ans->getQuery()->getResult();
+
 		
 		return $this->render('contest/judging.html.twig', [
 			'section' => $section,
@@ -349,7 +480,13 @@ class ContestPagesController extends Controller {
 			
 			'contest_open' => true,
 			
-			'pending_submissions' => $pending_submissions,
+			'pending_subs' => $pending_subs,
+			'claimed_subs' => $claimed_subs,
+			'finished_subs' => $finished_subs,
+
+			'pending_clars' => $clarifications,
+			'finished_clars' => $answered_clarifications,
+
 
 			'section_takers' => $section_takers,
 			'section_judges' => $section_judges,
@@ -417,6 +554,8 @@ class ContestPagesController extends Controller {
 			'current_contest' => $contest, 
 			
 			'problem' => $problem,
+
+			'edit_route' => true,
 			
 			'languages' => $languages, 
 			
@@ -486,6 +625,8 @@ class ContestPagesController extends Controller {
 			
 			return $this->returnForbiddenResponse("PERMISSION DENIED");
 		}
+
+		$languages = $em->getRepository("AppBundle\Entity\Language")->findAll();
 		
 		return $this->render('contest/edit.html.twig', [
 			'course' => $course,
@@ -494,6 +635,8 @@ class ContestPagesController extends Controller {
 			'freeze_diff_hours' => $freeze_diff_hours,
 			'freeze_diff_minutes' => $freeze_diff_minutes,
 			
+			'languages' => $languages,
+
 			'judges' => $judges,
 			
 			"elevatedUser" => $elevatedUser,
@@ -551,11 +694,16 @@ class ContestPagesController extends Controller {
 		
 			'problem' => $problem,
 			'current_contest' => $assignment,
+
+			'section' => $assignment->section,
+
 			'submission' => $submission,
 			
 			'ace_mode' => $ace_mode,
 			
 			'contest_open' => true,
+
+			'result_route' => true,
 		
 			'grader' => new Grader($em),
 		]);

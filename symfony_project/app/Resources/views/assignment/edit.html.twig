@@ -1,6 +1,21 @@
 {% block head %}
 <title>Gradel | Edit Assignment</title>
-<link rel="icon" type="image/x-icon" href="{{ asset('logo.png') }}" />
+<link rel="icon" type="image/x-icon" href="{{ asset('images/logo.png') }}" />
+{% endblock %}
+
+{% block stylesheets %}
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
+	<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/jquery-ui-timepicker-addon@1.6.3/dist/jquery-ui-timepicker-addon.css" />
+	
+    <link rel="stylesheet" href="{{ asset('styles/styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('styles/card.css') }}" />
+	
+	<link rel="stylesheet" href="{{ asset('styles/team-creation.css') }}">
+	<link rel="stylesheet" href="{{ asset('styles/custom-toggle.css') }}">
+
+	<link rel="stylesheet" href="{{ asset('styles/toastr.css')}}">
+	
+	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
 {% endblock %}
 
 
@@ -12,14 +27,22 @@
     {# Left Nav for Assignment Edit #}
 	<nav class="nav-left">
 		<a id="save-btn" class="btn"><div class="btn btn-center">Save</div></a>
+
+		<div class="btn btn-center" id="cancel-btn">Cancel</div>
 		
 		{% if assignment is not null %}
-		<a id="delete-btn" class="btn"><div class="btn btn-center btn-delete">Delete</div></a>
-		
+		<a id="delete-btn" class="btn"><div class="btn btn-center btn-delete">Delete</div></a>		
 		{% endif %}
-		<ol style="padding-top: 0px">
+		
+		<ol style="padding-top: 0px; margin-bottom: 12px">
 			<li id="delete-warning" style="padding-top: 0px"></li>
 		</ol>
+
+		{% if assignment is not null %}
+		<a id="subs-btn" class="btn"><div class="btn btn-center btn-delete">Clear Submissions</div></a>	
+		<a id="trials-btn" class="btn"><div class="btn btn-center btn-delete">Clear Saved Code</div></a>		
+		{% endif %}
+
     </nav>
 	
 	{{ include('template/path-nav.html.twig') }}
@@ -103,55 +126,15 @@
 			</div>
 			
 		</div>
-		
-		<div class="card">
-			
-			<div class="btn-close" onclick="collapseCard('createTeams')">
-				<h2 style="margin: 0px">Team Creation
-					<span style="float: right"><i class="fa fa-angle-down"></i></span>
-				</h2>
-			</div>
-		
-			<div id="createTeams" class="card-contents" style="margin-top: 0px">
-				<div>
-					<div id="team-pool"></div>						
-					<div id="team-picker"></div>
-											
-					<div id="team-name-container" class="toggle-container">
-						<label for="teamnames"> Team Names </label>
-						<label class="switch">
-							<input type="checkbox" id="team-name-checkbox" name="team-name-checkbox" checked>
-							<span class="slider round"></span>
-						</label>
-					</div>
-					
-					<div class="btn" id="gen-team-button" style="margin-top: 10px; width: 150px"> Distribute Teams </div>
-					
-				</div>
-			</div>
+
+		<div id="team-pickers">
+
 		</div>
-		
-		
-		
+	
 	</section>
 </body>
 
 {% endblock %}
-
-
-{% block stylesheets %}
-	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
-	<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/jquery-ui-timepicker-addon@1.6.3/dist/jquery-ui-timepicker-addon.css" />
-	
-    <link rel="stylesheet" href="{{ asset('styles.css') }}" />
-    <link rel="stylesheet" href="{{ asset('card.css') }}" />
-	
-	<link rel="stylesheet" href="{{ asset('team-creation.css') }}">
-	<link rel="stylesheet" href="{{ asset('custom-toggle.css') }}">
-	
-	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
-{% endblock %}
-
 
 {% block scripts %}
     <!-- JQuery -->
@@ -161,6 +144,8 @@
 	<script src="//cdn.jsdelivr.net/npm/jquery-ui-timepicker-addon@1.6.3/dist/jquery-ui-sliderAccess.js"></script>
 	<script src="//cdn.jsdelivr.net/npm/jquery-ui-timepicker-addon@1.6.3/dist/jquery-ui-timepicker-addon.js"></script>
 	
+	<script type="text/javascript" src="{{ asset('js/toastr/toastr.js')}}"></script>
+
 	<script src="{{ asset('js/cards.js') }}"></script>		
 	<script src="{{ asset('js/validation.js') }}"></script>
 	
@@ -178,15 +163,17 @@
 			
 			// show other assignment weights
 			showAssignmentWeights();
-			
-			// format the teampicker
-			formatTeamCreator();
 						
 			{% if assignment is not null %}
 			populateForm();
 			{% else %}
-			//collapseCard('additionalOptions');
-			$('#gen-team-button').click();
+
+			{% for sct in sections %}
+			addTeamCard(null, JSON.parse("{{sct|json_encode|e('js')}}"));
+			{% endfor %}
+
+			$('#weight').val(1);
+			
 			{% endif %}	
 
 			{% if assignment is not null %}
@@ -202,10 +189,67 @@
 			
 				warned++;
 			});
-			{% endif %}			
+
+			$('#subs-btn').on('click', function(){
+
+				$(this).hide();
+						
+				var formData = new FormData();
+				formData.append('assignment', {{assignment.id}});
+								
+				/* AJAX POST */
+				$.ajax({
+					type: "POST",
+					url: "{{path('assignment_clearsubs')}}",
+					data: formData,
+					processData: false,
+					contentType: false,
+					async: true,
+					success: function(data){
+						console.log(data);
+						toastr.info(data.result + " submissions deleted successfully");
+					},
+					error: function(data){
+						console.log(data['responseText']);
+						toastr.warning("Could not delete submissions");
+						$('#subs-btn').show();
+					}
+				});
+
+			});
+
+			$('#trials-btn').on('click', function(){
+
+				$(this).hide();
+						
+				var formData = new FormData();
+				formData.append('assignment', {{assignment.id}});
+								
+				/* AJAX POST */
+				$.ajax({
+					type: "POST",
+					url: "{{path('assignment_cleartrials')}}",
+					data: formData,
+					processData: false,
+					contentType: false,
+					async: true,
+					success: function(data){
+						console.log(data);
+						toastr.info("Saved code deleted successfully");
+					},
+					error: function(data){
+						console.log(data['responseText']);
+						toastr.warning("Saved code could not be deleted");
+						$('#trials-btn').show();
+					}
+				});
+
+			});
+
+			{% endif %}
 			
-			/* Client-Side Field Validation */
 			
+			/* Client-Side Field Validation */			
 			$('#save-btn').on('click', function(){
 				
 				$('#delete-warning').html("");
@@ -231,7 +275,7 @@
 				
 				// weight
 				var wght = new Number($('#weight').val());
-				if($('#weight').val() === '' || ($('#weight').val() != '' && (wght < 1 || wght % 1 != 0))){						
+				if($('#weight').val() === '' || ($('#weight').val() != '' && (wght < 0 || wght % 1 != 0))){						
 					setInvalid($('#weight'));
 					$('#delete-warning').append("Weight must be a positive integer<br><br>");
 					return false;
@@ -251,17 +295,8 @@
 					setValid($('#penalty'));				
 				}
 				
-				// teams
-				if(!validateTeams() && !team_warning){
-					setInvalid($('#team-picker'));	
-					team_warning = true;
-					
-					$('#delete-warning').append("Not everyone is assigned to a team - Press save again to override<br><br>");
-					
-					return false;
-				} else {
-					setValid($('#team-picker'));
-				}
+				// get JSON structure for the teams
+				var teams = getTeams();					
 				
 				// check to see if this button is allowed to be pressed
 				if($(this).prop('disabled')){
@@ -269,11 +304,7 @@
 				} else {
 					$(this).prop('disabled', true);
 				}
-				
-				// get JSON structure for the teams
-				var teamarray = getTeams();		
-				console.log(teamarray);
-				
+
 				/* Post to the Symfony Route */
 				$.post( "{{path('assignment_modify')}}", {				
 					
@@ -292,9 +323,7 @@
 					section: {{section.id}},
 					assignment: {% if assignment is not null %} {{assignment.id}} {% else %} 0 {% endif %},
 					
-					teams: JSON.stringify(teamarray[0]),
-					teamnames: JSON.stringify(teamarray[1]),
-					teamids: JSON.stringify(teamarray[2])
+					teams: JSON.stringify(teams),
 					
 				}, function(data) {			
 					console.log(data);					
@@ -304,6 +333,10 @@
 					alert(data["responseText"]);					
 					$('#save-btn').prop('disabled', false);				
 				});				
+			});
+
+			$('#cancel-btn').click(() => {
+				window.history.back();
 			});
 		});
 
@@ -320,9 +353,7 @@
 		}
 		
 		console.log(assignments);
-		
-		
-		
+				
 		var str = "<b>Assignment Weights for {{section.name}}</b><ul style='margin: 0; padding-left: 10px; list-style-type: none'>";
 		for(var i=0; i<assignments.length; i++){
 			str += "<li>" + assignments[i].name + ": " +assignments[i].weight +"</li>";
@@ -331,187 +362,178 @@
 		str += "</ul>";
 		$('#other-assignments').html(str);
 	}
-	
-	function formatTeamCreator(){
-	
-		// create all of the students
-		
-		var students = JSON.parse('{{ students|json_encode|raw }}');
-	
-		for(var i=0; i<students.length; i++){
-			$('#team-pool').append("<div class='user' id='"+students[i].id+"'>"+students[i].name+"</div>");
-		}
-	
-		createTeamEvents();
-	}
-	
-	function createTeamEvents(){
-		// hide the team names option
-		$('#team-name-container').hide();
-	
-		$('.user').draggable({
-			revert: true,
-			revertDuration: 0,
-			start: function() {
-			
-				var newTeam = $("<div>", {"class": "team"});
-				newTeam.html("<input type='text' id='team-name' value='Team Name'>");
-								
-				newTeam.droppable({
-					accept: ".user",
-					drop: function(event, ui) {						
-						$(this).append($(ui.draggable));								
-					}
-				});				
-			
-				$('#team-picker').append(newTeam);
-				
-				$('#team-name-checkbox').change();
-			},
-			stop: function() {				
-				$(".team:not(:has(.user))").remove();
 
-				if($(".team").length > 0){
-					$('#team-name-container').show();
-				} else {
-					$('#team-name-container').hide();
-				}
-				
-				if($('#team-pool .user').length == 0){
-					$('#gen-team-button').hide();
-				} else {
-					$('#gen-team-button').show();
-				}
-			}
-		});
-		
-		$('.user').contextmenu(function(event) {
-			$(this).appendTo('#team-pool');
-			$(".team:not(:has(.user))").remove();
-			
-			if($(".team").length > 0){
-				$('#team-name-container').show();
-			} else {
-				$('#team-name-container').hide();
-			}
-			
-			if($('#team-pool .user').length == 0){
-				$('#gen-team-button').hide();
-			} else {
-				$('#gen-team-button').show();
-			}
-			
-			return false;
-		});
-		
-		$('.team').droppable({
-			accept: ".user",
-			drop: function(event, ui) {						
-				$(this).append($(ui.draggable));
-			}
-		});
-		
-		$('#team-pool').droppable({
-			accept: ".user",
-			drop: function(event, ui) {
-				$(this).append($(ui.draggable));
-			}
-		});		
-		
-		$('#team-name-checkbox').change(function() {
-			if($(this).is(":checked")) {				
-				$('.team #team-name').show();				
-			} else {
-				$('.team #team-name').hide();
-			}
-		});
-		
-		$('#gen-team-button').click(function() {
 
-			$('#team-pool').append($('.user'));
-			$('.team').remove();
-
-			$('.user').each(function( index ) {
-				var newTeam = $("<div>", {"class": "team"});
-				newTeam.html("<input type='text' id='team-name' value='Team #"+(index+1)+"'>");
-				
-				newTeam.droppable({
-					accept: ".user",
-					drop: function(event, ui) {						
-						$(this).append($(ui.draggable));								
-					}
-				});				
-			
-				$('#team-picker').append(newTeam);
-				
-				newTeam.append($(this));
-			});
-			
-			toggleTeamOptions();		
-		});
-	}
-	
 	function getTeams(){
-	
-		var teams = [];
-		var teamnames = [];
-		var ids = [];
-	
-		$('.team').each(function( index ) {
-		
-			var name = $('#team-name', this).val();
-			var id = $(this).attr('id');
+					
+		var asgnteams = {};
+
+		$('.sect-card').each(function( par ) {
+
+			var teams = [];
+
+			$(this).find('.team').each(function( index ) {
+
+				var team = {};
 			
-			teamnames[index] = name;
-			teams[index] = [];
-			ids[index] = (id) ? parseInt(id) : 0;
-			
-			$(this).children('.user').each(function(index2) {
-				teams[index][index2] = $(this).prop('id');
+				team.name = "N/A";
+				team.id = $(this).attr('id') ? parseInt($(this).attr('id')) : 0;
+				team.members = [];
+
+				$(this).children('.user').each(function(index2) {
+					team.members.push($(this).prop('id'));
+				});
+				
+				teams.push(team);
 			});
-			
+
+			asgnteams[$(this).attr('data-sectionid')] = teams;
 		});
 		
-		var res = [];
-		res[0] = teams;
-		res[1] = teamnames;
-		res[2] = ids;
-		
-		console.log(ids);
-		
-		return res;
+		return asgnteams;
 	}
 	
-	function validateTeams(){
+	function validateTeams(card){
 	
-		if($('#team-pool .user').length == 0){
+		if($(card).find('.team-pool .user').length == 0){
 			return true;
 		} else {
 			return false;
 		}
 	}
-	
-	function toggleTeamOptions(){
-				
-		if($(".team").length > 0){
-			$('#team-name-container').show();
-		} else {
-			$('#team-name-container').hide();
-		}
-		
-		if($('#team-pool .user').length == 0){
-			$('#gen-team-button').hide();
-		} else {
-			$('#gen-team-button').show();
-		}	
 
-		if($('#team-name-checkbox').is(":checked")) {				
-			$('.team #team-name').show();				
-		} else {
-			$('.team #team-name').hide();
-		}	
-	}
+	function addTeamCard(assignment = null, section = null){
+
+		if(assignment == null){
+			assignment = {};
+			assignment.id = $('.sect-card').length+1;
+			assignment.section_id = section.id;
+			assignment.takers = section.takers;
+			assignment.teams = [];
+		}
+
+		var teamHTML = `<div class="card sect-card" data-sectionid="` + assignment.section_id + `">
+		
+							<div class="btn-close" onclick="collapseCard('teams-` + assignment.id + `')">
+								<h2 style="margin: 0px">` + escapeHTML(section.name) + `
+									<span style="float: right"><i class="fa fa-angle-down"></i></span>
+								</h2>
+							</div>
+						
+							<div id="teams-` + assignment.id + `" class="card-contents" style="margin-top: 0px">
+								<div>
+									<div class="team-pool"></div>						
+									<div class="team-container"></div>
+								</div>
+							</div>
+						</div>
+						`;
+
+
+		$('#team-pickers').append(teamHTML);
+
+		var teamCardId = "#teams-" + assignment.id;
+
+		// add the teams
+		var takers = assignment.takers;
+		var teams = assignment.teams;
 	
+		if(teams.length > 0){
+			for(var i=0; i<takers.length; i++){
+				$(teamCardId).find('.team-pool').append("<div class='user' id='"+takers[i].id+"' data-sectionid='" + assignment.section_id + "'>"+escapeHTML(takers[i].full_name) +"</div>");
+			}
+		} else {
+			for(var i=0; i<takers.length; i++){
+				
+				var newTeam = $("<div>", {"class": "team", "id": 0});
+		
+				$(teamCardId).find('.team-container').append(newTeam);
+				
+				var newUser = $("<div>", {"class": "user", "id": takers[i].id, "data-sectionid": assignment.section_id});
+				newUser.html(escapeHTML(takers[i].full_name));
+				
+				newTeam.append(newUser);
+			}
+		}
+
+		for(var i=0; i<teams.length; i++){
+			for(var j=0; j<teams[i].users.length; j++){
+				$(teamCardId).find('.team-pool #'+teams[i].users[j].id).remove();
+			}
+
+			var newTeam = $("<div>", {"class": "team", "id": teams[i].id});
+		
+			$(teamCardId).find('.team-container').append(newTeam);
+						
+			for(var j=0; j<teams[i].users.length; j++){
+			
+				var newUser = $("<div>", {"class": "user", "id": teams[i].users[j].id, "data-sectionid": assignment.section_id});
+				newUser.html(teams[i].users[j].first_name + " " + teams[i].users[j].last_name);
+				
+				newTeam.append(newUser);			
+			}			
+		}
+	
+		$(teamCardId).find('.user').draggable({
+			revert: true,
+			revertDuration: 0,
+			start: function() {
+			
+				var newTeam = $("<div>", {"class": "team", "id": 0});
+								
+				newTeam.droppable({
+					accept: '.user',
+
+					drop: function(event, ui) {				
+
+						if($(ui.draggable[0]).attr('data-sectionid') != assignment.section_id){
+							return;	
+						}
+
+						$(this).append($(ui.draggable));								
+					}
+				});				
+			
+				$(teamCardId).find('.team-container').append(newTeam);
+			},
+			stop: function() {				
+				$(teamCardId).find(".team:not(:has(.user))").remove();
+			}
+		});
+		
+		$(teamCardId).find('.user').contextmenu(function(event) {
+			$(this).appendTo($(teamCardId).find('.team-pool'));
+			$(teamCardId).find(".team:not(:has(.user))").remove();
+			
+			return false;
+		});
+
+		$(teamCardId).find('.team').droppable({
+			accept: '.user',
+
+			drop: function(event, ui) {				
+
+				if($(ui.draggable[0]).attr('data-sectionid') != assignment.section_id){
+					return;	
+				}
+
+				$(this).append($(ui.draggable));								
+			}		
+		});
+
+		$(teamCardId).find('.team-pool').droppable({
+			accept: '.user',
+			drop: function(event, ui){
+
+				if($(ui.draggable[0]).attr('data-sectionid') != assignment.section_id){
+					return;	
+				}
+
+				$(this).append($(ui.draggable));					
+			}
+		})
+	}
+
 	</script>
 		
 		
@@ -544,40 +566,12 @@
 		$('#extracredit').attr('checked', {% if assignment.is_extra_credit %} true {% else %} false {% endif %});
 		
 		// set the teams
-		var teams_str = '{{assignment.teams.toArray()|json_encode|e('js')}}';
-		var teams = JSON.parse(teams_str);
-		
-		console.log(teams);
-		for(var i=0; i<teams.length; i++){
-			for(var j=0; j<teams[i].users.length; j++){
-				$('#team-pool #'+teams[i].users[j].id).remove();
-			}
-		
-			//$('#team-pool .user').remove();
-			
-			var newTeam = $("<div>", {"class": "team", "id": teams[i].id});
-			newTeam.html("<input type='text' id='team-name' value='"+teams[i].name+"'>");
-			
-			newTeam.droppable({
-				accept: ".user",
-				drop: function(event, ui) {						
-					$(this).append($(ui.draggable));								
-				}
-			});				
-		
-			$('#team-picker').append(newTeam);
-						
-			for(var j=0; j<teams[i].users.length; j++){
-			
-				var newUser = $("<div>", {"class": "user", "id": teams[i].users[j].id});
-				newUser.html(teams[i].users[j].first_name + " " + teams[i].users[j].last_name);
-				
-				newTeam.append(newUser);			
-			}			
-		}
-		
-		createTeamEvents();
-		toggleTeamOptions();
+	//	addTeamCard(JSON.parse("{{assignment|json_encode|e('js')}}"));
+
+		{% for asg in assignments %}
+		addTeamCard(JSON.parse("{{asg|json_encode|e('js')}}"), JSON.parse("{{asg.section|json_encode|e('js')}}"));
+		{% endfor %}
+
 		
 	}
 	

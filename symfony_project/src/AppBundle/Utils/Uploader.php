@@ -18,7 +18,12 @@ use AppBundle\Entity\Language;
 use AppBundle\Entity\Feedback;
 use AppBundle\Entity\TestcaseResult;
 
+
+use AppBundle\Utils\Zipper;
+
+
 use \DateTime;
+use \ZipArchive;
 
 use Symfony\Component\Config\Definition\Exception\Exception;
 
@@ -44,17 +49,29 @@ class Uploader  {
 	*/
 	public function getFileContents($file){
 
-		# Get the file contents and name
-		$fileContents = base64_encode(file_get_contents($file["tmp_name"]));
-		$fileName = basename($file["name"]);
 		
 				
 		if(pathinfo($file['name'], PATHINFO_EXTENSION) == 'zip'){
-			$fileContents = base64_encode("Zip file contents is meaningless");
-		}
+			
+			# ZIP
+			$zipper = new Zipper();
+			$contents = $zipper->getZipContents($file["tmp_name"]);
+			
+			if($contents === false){
+				return false;
+			}
+			
+			return $contents;				
+			
+		} else {
+			
+			# Get the file contents and name
+			$fileContents = base64_encode(file_get_contents($file["tmp_name"]));
+			$fileName = basename($file["name"]);
 
-		# return an array of the contents and name
-		return ["contents" => $fileContents, "name" => $fileName];
+			# return an array of the contents and name
+			return [["contents" => $fileContents, "name" => $fileName]];		
+		}
 	}
 	
 	/* 
@@ -93,7 +110,30 @@ class Uploader  {
 			return null;		
 		}		
 	}	
+	
+	public function createFile($text, $user, $problem, $filename){
 		
+		$response = $generator->generateFilename($filename, $language, $main_class, $package_name, $problem_entity, $postData);
+		
+		if($response != 1){
+			return $response;
+		}		
+		
+		# save uploaded file to $web_dir.compilation/uploads/user_id/problem
+        $web_dir = $this->get('kernel')->getProjectDir()."/";
+        $uploader = new Uploader($web_dir);
+
+
+		$uploads_directory = $uploader->createUploadDirectory($user, $problem_entity);
+
+		if(!file_put_contents($uploads_directory . $filename, $postData["ACE"], FILE_USE_INCLUDE_PATH)){
+			 return "UNABLE TO MOVE THE ACE EDITOR CONTENTS";
+		}
+		
+		
+	}
+	
+	
 	/*
 		This function will take a trial and 
 		put the contents of the trial in a file and return the location
@@ -115,6 +155,38 @@ class Uploader  {
 			return null;
 		}
 	}	
+
+
+	/*
+		This function will take a user, problem, filename, and file and 
+		put the contents in the upload directory for compiling
+	
+	*/
+	public function createGeneratorFile($user, $problem, $filename, $file){
+		
+		$target_directory = $this->createUploadDirectory($user, $problem);
+		$target_file = $target_directory.$filename;
+
+		$fp = fopen($target_file, 'w');
+
+		rewind($file);
+		$val = stream_get_contents($file);
+		rewind($file);
+		
+		# if the file is actually just text
+		if($val == false){			
+			return $file;
+		} 
+		# if the file writing worked
+		else if(fwrite($fp, $val)){
+			chmod($target_file, 0777);
+			return $filename;
+		}
+		# error 
+		else {
+			return null;
+		}		
+	}
 	
 }
 

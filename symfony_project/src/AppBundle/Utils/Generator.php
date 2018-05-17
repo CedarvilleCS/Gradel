@@ -33,8 +33,8 @@ class Generator  {
 	
 	public function __construct($em, $web_dir) {
 		
-		if(get_class($em) != "Doctrine\ORM\EntityManager"){
-			throw new Exception('The Generator class must be given a Doctrine\ORM\EntityManager but was given '.get_class($em));
+		if(stripos(get_class($em), "EntityManager") === FALSE){
+			throw new Exception('The Generator class must be given a EntityManager but was given '.get_class($em));
 		}
 		
 		if(strlen($web_dir) < 1){
@@ -58,17 +58,17 @@ class Generator  {
 		}
 		
 		if(!isset($language_id) || !($language_id > 0)){
-			return "language id was not provided";
+			return "Language ID was not provided";
 		}
 		
 		$language = $this->em->find("AppBundle\Entity\Language", $language_id);
 		if(!$language){
-			 return "language with id ".$language_id." does not exist";
+			 return "Language with ID".$language_id." does not exist";
 		}
 		if($language->name == "Java"){
 
 			if((!isset($postData["main_class"]) || trim($postData["main_class"]) == "") && (!isset($postData["mainclass"]) || trim($postData["mainclass"]) == "")){
-				 return "main class is required";
+				 return "Main Class is required";
 			}
 			
 			$main_class = null;
@@ -134,7 +134,7 @@ class Generator  {
 		if(file_exists($flags_dir."internal_error")){
 			
 			# echo "internal error! abort!";
-			return "There was an internal server error. If this happens again, please contact a system admin.";
+			return "There was an internal docker error, probably custom validation related";
 						
 		} else if(file_exists($flags_dir."malicious")){
 			
@@ -147,7 +147,7 @@ class Generator  {
 			
 			$compile_log = fopen($flags_dir."compile_error", "r");
 			if(!$compile_log){
-				return "Cannot open compile_error file - contact a system admin";
+				return "Cannot open compile_error file";
 			}
 			$submission_is_compileerror = true;
 		} 
@@ -230,15 +230,15 @@ class Generator  {
 					
 					$user_output_log = fopen($output_log_path, "r");
 					if(!$user_output_log){
-						return "Cannot open ".$output_log_path." - contact a system admin";
+						return "Cannot open ".$output_log_path;
 					}
 					$exectime_log = fopen($exectime_log_path, "r");
 					if(!$exectime_log){
-						return "Cannot open ".$exectime_log_path." - contact a system admin";
+						return "Cannot open ".$exectime_log_path;
 					}
 					$diff_log = fopen($diff_log_path, "r");
 					if(!$diff_log){
-						return "Cannot open ".$diff_log_path." - contact a system admin";
+						return "Cannot open ".$diff_log_path;
 					}
 					
 					# echo $tc->seq_num.") normal testcase</br>";
@@ -248,7 +248,7 @@ class Generator  {
 					$milliseconds = trim(fgets($exectime_log));		
 
 					if(!is_numeric($milliseconds)){
-						return "Error parsing the time file - contact a system admin";
+						return "Error parsing the time file";
 					}
 					
 					$testcase_exectime = $milliseconds;
@@ -292,8 +292,7 @@ class Generator  {
 				$testcaseresult->exceeded_time_limit = $testcase_is_timelimit;
 				$testcaseresult->std_output = stream_get_contents($user_output_log);
 				
-				$this->em->persist($testcaseresult);
-				$this->em->flush();
+				$submission->testcaseresults->add($testcaseresult);
 				
 			}
 		}
@@ -326,19 +325,19 @@ class Generator  {
 		# check for an internal compilation again
 		if(file_exists($flags_dir."internal_error")){
 			
-			return "There was an internal server error. You should probably look into this.";
+			return "There was an internal docker error";
 						
 		}
 		# check for a malicious submission
 		else if(file_exists($flags_dir."malicious")){
 			
-			return "The code you entered was malicious.";				
+			return "The code you entered was malicious";				
 			
 		}
 		# check for a compilation error
 		else if(file_exists($flags_dir."compile_error")){
 			
-			return "The code you entered could not be compiled.";
+			return "The code you entered could not be compiled";
 			
 		}
 		# check for a runtime error on a testcase
@@ -353,7 +352,7 @@ class Generator  {
 		# check for overall time limit error
 		else if(file_exists($flags_dir."time_limit")){
 			
-			return "The code you entered took too long to run.";
+			return "The code you entered took too long to run";
 		} 
 		# loop through each testcase which ran
 		else {
@@ -406,7 +405,9 @@ class Generator  {
 				->setParameter(2, $language);
 				
 		$pl_query = $pb_problang->getQuery();
-		$prob_lang = $pl_query->getOneOrNullResult();	
+		$prob_lang = $pl_query->getResult();	
+		
+		$prob_lang = $prob_lang[0];
 		
 		if(!isset($prob_lang)){
 			return "YOU CANNOT SUBMIT A SOLUTION FOR THE GIVEN LANGUAGE";
@@ -458,7 +459,7 @@ class Generator  {
 				
 				$input_file = fopen($input_file_dir.$tc->seq_num.".in", "w");			
 				if(!$input_file){
-					return "Unable to open input file for writing - contact a system admin";
+					return "Unable to open input file for writing";
 				}
 				
 				fwrite($input_file, $input);
@@ -474,7 +475,7 @@ class Generator  {
 				
 				$arg_file = fopen($arg_file_dir.$tc->seq_num.".args", "w");			
 				if(!$arg_file){
-					return "Unable to open command-line arg file for writing - contact a system admin";
+					return "Unable to open command-line arg file for writing";
 				}
 				
 				fwrite($arg_file, $args);
@@ -490,7 +491,7 @@ class Generator  {
 				
 				$output_file = fopen($output_file_dir.$tc->seq_num.".out", "w");
 				if(!$output_file){
-					 return "Unable to open output file for writing - contact a system admin";
+					 return "Unable to open output file for writing";
 				}
 				fwrite($output_file, $correct_output);
 				fclose($output_file);

@@ -1,0 +1,146 @@
+.card {
+    background-color: white;
+	margin: 20px;
+	margin-bottom: 5px;
+    padding: 20px;
+	position: relative;
+    -webkit-box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
+    -moz-box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
+    box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
+}
+
+.card-contents {
+    margin-top: 10px;
+}
+
+.parallel-cards > .card {
+	width: auto;
+	
+	min-width: 200px;
+	
+	left: auto;
+	transform: none;
+	
+}
+
+.colored {
+	background: #92d884;
+	min-height: 100px;
+}
+
+.contest-card {
+	max-width: calc(25% - 61px) !important;
+	min-width: calc(25% - 61px) !important;
+	margin-left: 10px;
+	margin-right: 10px;
+}
+
+.contest-card .test-case label {
+	font-weight: bold;
+	font-size: 0.9em;
+}
+
+.contest-card .test-case {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+}
+
+.contest-card .test-case textarea {
+	width: 100%;
+}
+
+#testcase-cards{	
+	
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	justify-content: flex-start;
+	
+	margin-right: 20px;
+	margin-left: 20px;
+}
+
+#testcase-cards form .file {
+	width: 100%;
+}
+
+.parallel-cards > .testcase-card {
+	width: 42%;
+}
+
+.parallel-cards > .section-card {
+	width: 28.68%;
+}
+
+@media only screen and (max-width: 1460px) {
+	.parallel-cards > .testcase-card {
+		width: 100%;
+	}	
+
+	.parallel-cards > .section-card {
+		width: 41.77%;
+	}	
+}
+
+.serial-cards {
+	width: 30%;
+	display: flex;
+	flex-direction: column;
+}
+
+.parallel-cards {
+	
+	min-width: 870px;
+	
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+	
+	flex-wrap: wrap;
+
+	position: relative;
+	
+	background: none;
+}
+
+.btn-close {
+    /* float: right; */
+    padding-bottom: 10px;
+    border-bottom: 1px dotted #8DC26F;
+	cursor: pointer;
+}
+
+
+
+@media (max-width: 1192px) {
+
+	.parallel-cards > .testcase-card {
+		width: 100%;
+	}
+	
+	.parallel-cards > .section-card {
+		width: 45%;
+	}	
+}	
+
+@media (max-width: 1192px) {
+
+	.parallel-cards {
+		flex-grow: 1;
+	}
+
+	.parallel-cards > .card {
+		width: 100%;
+	}
+	
+	.serial-cards {
+		flex-direction: row;
+		width: 100%;
+		
+	}
+	
+	.serial-cards > .card{
+		flex-grow: 1;
+	}
+}

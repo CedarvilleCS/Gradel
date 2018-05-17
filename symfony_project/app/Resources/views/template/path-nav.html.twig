@@ -17,11 +17,11 @@
 			Edit
 			
 			<a href="{{path('courses')}}" class="back-button">
-				<img class="back-img" src="{{asset('back_arrow.png')}}"/>
+				<img class="back-img" src="{{asset('images/back_arrow.png')}}"/>
 			</a>
 		{% else %}
 			<a href="{{path('homepage')}}" class="back-button">
-				<img class="back-img" src="{{asset('back_arrow.png')}}"/>
+				<img class="back-img" src="{{asset('images/back_arrow.png')}}"/>
 			</a>
 		{% endif %}
 		
@@ -40,14 +40,14 @@
 			Edit 
 
 			<a href="{{path('section', {'sectionId': section.id})}}" class="back-button">
-				<img class="back-img" src="{{asset('back_arrow.png')}}"/>
+				<img class="back-img" src="{{asset('images/back_arrow.png')}}"/>
 			</a>
 			
 		{% else %}
 			{{section.name}}&nbsp; 
 
 			<a href="{{path('homepage')}}" class="back-button">
-				<img class="back-img" src="{{asset('back_arrow.png')}}"/>
+				<img class="back-img" src="{{asset('images/back_arrow.png')}}"/>
 			</a>
 		{% endif %}
 	
@@ -65,13 +65,13 @@
 			Edit 	
 			
 			<a href="{{path('assignment', {'sectionId': section.id, 'assignmentId': assignment.id})}}" class="back-button">
-				<img class="back-img" src="{{asset('back_arrow.png')}}"/>
+				<img class="back-img" src="{{asset('images/back_arrow.png')}}"/>
 			</a>			
 		{% else %}
 			{{assignment.name}}&nbsp; 	
 			
 			<a href="{{path('section', {'sectionId': section.id})}}" class="back-button">
-				<img class="back-img" src="{{asset('back_arrow.png')}}"/>
+				<img class="back-img" src="{{asset('images/back_arrow.png')}}"/>
 			</a>
 		{% endif %}
 	
@@ -90,13 +90,13 @@
 			Edit  	
 			
 			<a href="{{path('assignment', {'sectionId': section.id, 'assignmentId': assignment.id, 'problemId': problem.id})}}" class="back-button">
-				<img class="back-img" src="{{asset('back_arrow.png')}}"/>
+				<img class="back-img" src="{{asset('images/back_arrow.png')}}"/>
 			</a>		
 		{% else %}
 			{{problem.name}}&nbsp;
 			
 			<a href="{{path('assignment', {'sectionId': section.id, 'assignmentId': assignment.id, 'problemId': problem.id})}}" class="back-button">
-				<img class="back-img" src="{{asset('back_arrow.png')}}"/>
+				<img class="back-img" src="{{asset('images/back_arrow.png')}}"/>
 			</a>
 		{% endif %}
 	{% endif %}

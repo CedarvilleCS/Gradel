@@ -1,11 +1,47 @@
 {% block head %}
 <title>Gradel | Edit Section</title>
-<link rel="icon" type="image/x-icon" href="{{ asset('logo.png') }}" />
+<link rel="icon" type="image/x-icon" href="{{ asset('images/logo.png') }}" />
 {% endblock %}
 
 
-{% block body %}
 
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('styles/styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('styles/card.css') }}" />
+
+	<link rel="stylesheet" href="{{ asset('styles/section-edit.css')}}" />
+
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
+
+	<style>
+		select {
+			height: 20px;
+			width: 400px;
+			padding: 0px;
+		}
+
+		input {
+			padding: 0px;
+			height: 20px;
+		}
+
+		#feedback { font-size: 1.4em; }
+		#selectable-semester .ui-selecting { background: #9fd095; }
+		#selectable-semester .ui-selected { background: #71BA62;; color: white; }
+		#selectable-semester { list-style-type: none; margin: 0; padding: 0; width: 60%; }
+		#selectable-semester li { margin: 3px; padding: 0.4em; font-size: 14px; height: 18px; }
+
+		#selectable-year .ui-selecting { background: #9fd095; }
+		#selectable-year .ui-selected { background: #71BA62;; color: white; }
+		#selectable-year { list-style-type: none; margin: 0; padding: 0; width: 60%; }
+		#selectable-year li { margin: 3px; padding: 0.4em; font-size: 14px; height: 18px; }
+
+	</style>
+
+{% endblock %}
+
+{% block body %}
 <body>
 	{{ include('template/top-nav.html.twig') }}
 
@@ -17,15 +53,17 @@
     <nav class="nav-left">
 		<a id="save-btn" class="btn"><div class="btn btn-center">Save</div></a>
 
-		{% if section is not null %}
-		<a id="delete-btn" class="btn"><div class="btn btn-center btn-delete">{% if section.is_deleted %} Reinstate {% else %} Delete {% endif %}</div></a>
+		<a id="cancel-btn" class="btn"><div class="btn btn-center">Cancel</div></a>
 
-		<ol style="padding-top: 0px">
+		{% if section is not null %}
+		<a id="delete-btn" class="btn"><div class="btn btn-center btn-delete">{% if section.is_deleted %} Reinstate {% else %} Delete {% endif %} {% if section.master == null %} All Sections {% else %} Section {% endif %} </div></a>
+
+		<ol style="padding-top: 0px; margin-bottom: 12px"">
 			<li id="delete-warning" style="padding-top: 0px"></li>
 		</ol>
 
 		{% if section is not null %}
-		<a id="clone-btn" class="btn" href="{{ path('section_clone', {'sectionId': section.id}) }}"><div class="btn btn-center" style="margin-top: 10px;">Clone</div></a>
+		<a id="clone-btn" class="btn" href="{{ path('section_clone', {'sectionId': section.id}) }}"><div class="btn btn-center" style="margin-top: 10px;">Clone {% if section.master == null %} All Sections {% else %} Section {% endif %}</div></a>
 		{% endif %}
 
 		{% endif %}
@@ -37,6 +75,8 @@
 	<section id="main">
 
 		{# Cards #}
+		
+		{# <div class="parallel-cards"> #}
 		<div class="card">
 			<div class="btn-close">
 				<h2 style="margin: 0px">
@@ -49,116 +89,78 @@
 			</div>
 
 			<div id="requiredFields" class="card-contents">
-				<div>
-					<table>
-						<tr> <th colspan="3">
+				<table>
+
+					<tr>
+						<th colspan="2">
 							<label for="course">Course</label>
 							<select name="course" id="course">
 							{% for course in courses %}
 								<option value="{{course.id}}" id="{{course.is_contest ? 'yes' : 'no'}}">{{course.name}}</option>
 							{% endfor %}
 							</select>
-						</th> </tr>
+						</th>
+					</tr>
 
-						<tr> <th colspan="3">
-							<label for="name">Section Name</label>
-							<input id="name" name="name" type="text" value="">
-						</th> </tr>
+					<tr>
+						<th colspan="2">
+							<div id="sections-container">
 
-						<tr> <th colspan="3">
+							</div>
+						</th>
+					</tr>
+
+					<tr> 
+						<th colspan="1">
 							<label>Semester</label>
-							<select id="semester">
-								<option>Fall</option>
-								<option>Spring</option>
-								<option>Summer</option>
-							</select>
-						</th> </tr>
+							<table>
+								<tr id="selectable-semester">
+									<th class="ui-widget-content">Fall</th>
+									<th class="ui-widget-content">Spring</th>
+									<th class="ui-widget-content">Summer</th>
+								</tr>
+							</table>
+						</th>
 
-						<tr> <th colspan="3">
+						<th colspan="1">
 							<label>Year</label>
-							<select id="year">
-							{% for yr in ("now"|date("Y"))-1..("now"|date("Y"))+3 %}
-								<option>{{yr}}</option>
-							{% endfor %}
-							</select>
-						</th> </tr>
-
-						<tr> <th>
-							<label>Add Student</label>
-							<select id="student-picker">
-								<option value="-1"></option>
-								{% for u in users %}
-									<option value="{{u.email}}">
-									{{u.getFirstName() ~ " " ~ u.getLastName()}}
-									</option>
+							<table>
+								<tr id="selectable-year">
+								{% for yr in ("now"|date("Y"))-1..("now"|date("Y"))+3 %}
+									<th class="ui-widget-content">{{yr}}</th>
 								{% endfor %}
-							</select>
+								</tr>
+							</table>
+						</th>
+					</tr>
 
-							{# file upload#}
-							<form id="studentCSVForm" action="{{path('get_contents')}}" method="post">
-								<input type="file" name="file" id="file" value="Upload File">
-							</form>
-
-							<textarea id="student-csv"></textarea>
-						</th> </tr>
-
-					</table>
-				</div>
-			</div>
-		</div>
-
-		<div class=card>
-			<div class="btn-close" onclick="collapseCard('additionalOptions')">
-				<h2 style="margin: 0px">Additional Options
-					<span style="float: right"><i class="fa fa-angle-down"></i></span>
-				</h2>
-			</div>
-
-			<div id="additionalOptions" class="card-contents">
-
-
-				<table>
-					<tr> <th>
-						<label for="startdatepicker">Starting Date </label><input type="text" id="startdatepicker" style="width: 100px; margin-right: 20px">
-						<label for="enddatepicker">Ending Date </label><input type="text" id="enddatepicker" style="width: 100px">
-					</th></tr>
-
-					<tr> <th>
-						<label>Add Instructor</label>
-						<select id="teacher-picker">
-							<option value="-1"></option>
-							{% for i in instructors %}
-								<option value="{{i.email}}">
-								{{i.getFirstName() ~ " " ~ i.getLastName()}}
-								</option>
-							{% endfor %}
-						</select>
-
-						{# file upload#}
-						<form id="teacherCSVForm" action="{{path('get_contents')}}" method="post">
-							<input type="file" name="file" id="file" value="Upload File">
-						</form>
-
-						<textarea id="teacher-csv"></textarea>
-					</th> </tr>
+					<tr> 
+						<th colspan="1">
+							<label for="startdatepicker">Starting Date </label><input type="text" id="startdatepicker" style="width: 100px; margin-right: 20px">
+						</th>
+						<th colspan="1">	
+							<label for="enddatepicker">Ending Date </label><input type="text" id="enddatepicker" style="width: 100px">
+						</th>
+					</tr>
 				</table>
+
 			</div>
 		</div>
+
+		<div id="section-csvs" class="parallel-cards">
+		
+		</div>
+
+		</div>
+
 	</section>
+
+	<div id="delete-section-confirm" title="Delete Section?">
+		<p><span class="ui-icon ui-icon-alert" style="float:left; margin:12px 12px 20px 0;"></span>Once this section is deleted, it cannot be recovered. Are you sure you want to do this?</p>
+	</div>
 </body>
 
 {% endblock %}
-
-
-{% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('styles.css') }}" />
-    <link rel="stylesheet" href="{{ asset('card.css') }}" />
-
-	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
-
-{% endblock %}
-
 
 {% block scripts %}
     <!-- JQuery -->
@@ -174,23 +176,46 @@
 
 		$(document).ready(function() {
 			
+			$(() => {$("#selectable-semester").selectable()});
+			$(() => {$("#selectable-year").selectable()});
+
 			var toContest = [];
 
 			{% for course in courses %}
 			toContest[{{course.id}}] = {% if course.is_contest %} true {% else %} false {% endif %};
 			{% endfor %}
 			
-			$('#course').change( function() {
-				
-				
+			$( "#delete-section-confirm" ).dialog({
+				resizable: false,
+				autoOpen: false,
+				height: "auto",
+				width: 400,
+				modal: true,
+				buttons: {
+					"Delete section": function() {
+						continueDelete();
+						$( this ).dialog( "close" );
+					},
+					Cancel: function() {
+						$( this ).dialog( "close" );
+					}
+				}
+			});
+
+			$('#course').change( function() {		
 				
 				if(toContest[$(this).val()]){
 					window.location = "{{ path('contest_edit', {'contestId': 0, 'courseId': ''} ) }}"+$(this).val();	
 				}
 				
 			});
-		
-			$('#year').val("{{'now'|date('Y')}}");
+			
+			$('#semester').change( function() {
+				
+				setDateStuff($('#year').val(), $(this).val());
+				
+			});
+			
 
 			$('#startdatepicker').datepicker({
 				showAnim: "slideDown",
@@ -209,7 +234,14 @@
 			{% if section is not null %}
 			populateForm();
 			{% else %}
+
+			createSection(0, "SECTION NAME");
+
 			//collapseCard('additionalOptions');
+			
+			// guess the dates
+			setDateStuff({{now|date('Y')}},{{now|date('m')}});
+			
 			{% endif %}
 
 			{% if section is not null %}
@@ -229,211 +261,348 @@
 			});
 			{% endif %}
 
-			{# Student CSV Upload #}
-			// submit the form if the file upload is changed
-			$('#studentCSVForm #file').change( function(data) {
-				$('#studentCSVForm').submit();
-			});
+			
+		});
 
-			// overwrite the normal submit to call the ajaxsubmit
-			// asynchronous script to handle the submission form upload
-			$('#studentCSVForm').submit(function() {
-				$(this).ajaxSubmit({
-
-					beforeSubmit: 	function(formData, jqForm, options){
-
-						/* CLIENT-SIDE VALIDATION */
-						console.log("THIS IS WHERE I AM");
-						return true;
-
-					},
-					success:		function(responseText, statusText, xhr, $form) {
-
-						var file = responseText['files'][0];
-						console.log(responseText);
-
-						$('#student-csv').val(atob(file["contents"]));
-						$('#studentCSVForm').hide();
-						
-						addCommas('student-csv');
-
-					},
-					error:			function(xhr, textStatus, errorThrown) {
-						console.log(xhr);
-						alert(xhr['responseText']);
-					}
-				});
-
+		var deleted_sections = [];
+		$('#save-btn').on('click', function(){
+			
+			// check to see if this button is allowed to be pressed
+			if($(this).prop('disabled')){
 				return false;
-			});
+			} else {
+				//$(this).prop('disabled', true);
+			}
 
-			{# Teacher CSV Upload #}
-			// submit the form if the file upload is changed
-			$('#teacherCSVForm #file').change( function(data) {
-				$('#teacherCSVForm').submit();
-			});
+			var sections = {};
+			var validSection = true;
+			/* Client-Side Validation */
+			// section name
+			$('.section-row').each(function() {
+				var section = {};
 
-			// overwrite the normal submit to call the ajaxsubmit
-			// asynchronous script to handle the submission form upload
-			$('#teacherCSVForm').submit(function() {
-				$(this).ajaxSubmit({
+				name = $(this).find('input').val();
 
-					beforeSubmit: 	function(formData, jqForm, options){
-
-						/* CLIENT-SIDE VALIDATION */
-						return true;
-
-					},
-					success:		function(responseText, statusText, xhr, $form) {
-
-						var file = responseText['files'][0];
-						console.log(responseText);
-
-						$('#teacher-csv').val(atob(file["contents"]));
-						$('#teacherCSVForm').hide();
-						
-						addCommas('teacher-csv');
-
-					},
-					error:			function(xhr, textStatus, errorThrown) {
-						console.log(xhr);
-						alert(xhr['responseText']);
-					}
-				});
-
-				return false;
-			});
-
-			{# Save Button #}
-			$('#save-btn').on('click', function(){
-
-				/* Client-Side Validation */
-				// section name
-				if ($.trim($('#name').val())  === '') {
-					setInvalid($('#name'));
-					return false;
-				} else {
+				if(name.trim() === ''){
+					setInvalid($(this).find('input'));					
+					validSection = false;
+				} else{
 					setValid($('#name'));
 				}
 
-				// make sure that if one date is provided, the other one is too
-				if ($('#enddatepicker').val() == '' && $('#startdatepicker').val() != '' || $('#enddatepicker').val() != '' && $('#startdatepicker').val() == ''){
-					setInvalid($('#startdatepicker'));
-					setInvalid($('#enddatepicker'));
-					return false;
-				} else {
-					setValid($('#startdatepicker'));
-					setValid($('#enddatepicker'));
-				}
+				section.name = name;
+				section.id = $(this).attr('data-sectionid');
 
-				// make sure that the dates make sense if they provided them
-				if ($('#enddatepicker').datepicker('getDate') < $('#startdatepicker').datepicker('getDate')){
-					setInvalid($('#enddatepicker'));
-					return false;
-				} else {
-					setValid($('#enddatepicker'));
-				}
+				ind = $(this).attr('data-index');
 
-				/* Array of Teachers */
-				var teachers = document.getElementById('teacher-csv').value.split(",");
-				for(var i=0; i<teachers.length; i++){
-					teachers[i] = teachers[i].replace(/\n/g, '');
-					teachers[i] = teachers[i].replace(/ /g, '');
-				}
-				teachers.pop(); // remove the blank last element
-
-				/* Array of Students */
-				var students = document.getElementById('student-csv').value.split(",");
-				for(var i=0; i<students.length; i++){
-					students[i] = students[i].replace(/\n/g, '');
-					students[i] = students[i].replace(/ /g, '');
-				}
-				students.pop(); // remove the blank last element
-
-				// check to see if this button is allowed to be pressed
-				if($(this).prop('disabled')){
-					return false;
-				} else {
-					$(this).prop('disabled', true);
-				}
-
-				/* Post to the Symfony Route */
-				$.post( "{{path('section_modify')}}", {
-					name: $.trim($('#name').val()),
-					course: $('#course').val(),
-					semester: $('#semester').val(),
-					year: $('#year').val(),
-					teachers: JSON.stringify(teachers),
-					students: JSON.stringify(students),
-					start_time: $('#startdatepicker').val(),
-					end_time: $('#enddatepicker').val(),
-					section: {% if section is not null %} {{section.id}} {% else %} 0 {% endif %}
-
-				}, function(data) {
-					console.log(data);
-
-					window.location = data["redirect_url"];
-				}).fail(function(data) {
-
-					alert(data["responseText"]);
-					$(this).prop('disabled', false);
-				});
+				sections[ind] = section;
 			});
 
-			$('#student-picker').on('change', function(){
-				updateStudentCSV();
+			$('.section-card').each(function() {
+
+				ind = $(this).attr('data-index');
+
+				teachers = [];
+				students = [];
+
+				teacherCSV = $(this).find('.teachers').val();
+				studentCSV = $(this).find('.students').val();
+
+				arr1 = teacherCSV.split(/[\s,;]/);
+				arr2 = studentCSV.split(/[\s,;]/);
+
+				for(var i=0; i<arr1.length; i++){
+
+					if(arr1[i].trim() == ''){
+						continue;
+					}
+					teachers.push(arr1[i]);
+				}
+
+				for(var i=0; i<arr2.length; i++){
+
+					if(arr2[i].trim() == ''){
+						continue;
+					}
+					students.push(arr2[i]);
+				}
+				
+				if(students.length < 1){
+					setInvalid($(this).find('.students'));
+					validSection = false;
+				} else {
+					setValid($(this).find('.students'));
+				}
+
+				sections[ind].teachers = teachers;
+				sections[ind].students = students;
+
 			});
 
-			$('#teacher-picker').on('change', function(){
-				updateTeacherCSV();
+			if(!validSection){
+				return false;
+			}
+
+			// make sure that if one date is provided, the other one is too
+			if ($('#enddatepicker').val() == '' && $('#startdatepicker').val() != '' || $('#enddatepicker').val() != '' && $('#startdatepicker').val() == ''){
+				setInvalid($('#startdatepicker'));
+				setInvalid($('#enddatepicker'));
+				return false;
+			} else {
+				setValid($('#startdatepicker'));
+				setValid($('#enddatepicker'));
+			}
+
+			// make sure that the dates make sense if they provided them
+			if ($('#enddatepicker').datepicker('getDate') < $('#startdatepicker').datepicker('getDate')){
+				setInvalid($('#enddatepicker'));
+				return false;
+			} else {
+				setValid($('#enddatepicker'));
+			}
+
+			if(!$('#selectable-semester').children(".ui-selected").length){
+				setInvalid($('#selectable-semester'));
+				return false;
+			} else {
+				setValid($('#selectable-semester'));
+			}
+
+			if(!$('#selectable-year').children(".ui-selected").length){
+				setInvalid($('#selectable-year'));
+				return false;
+			} else {
+				setValid($('#selectable-year'));
+			}
+
+			/* Post to the Symfony Route */
+			$.post( "{{path('section_modify')}}", {
+
+				master_section: {{(section) ? section.id : 0}},
+				sections: JSON.stringify(sections),
+				deleted_sections: JSON.stringify(deleted_sections),
+				course: $('#course').val(),
+				semester: $('#selectable-semester').children(".ui-selected").html(),
+				year: $('#selectable-year').children(".ui-selected").html(),
+				start_time: $('#startdatepicker').val(),
+				end_time: $('#enddatepicker').val()
+
+			}, function(data) {
+				console.log(data);
+
+				window.location = data["redirect_url"];
+			}).fail(function(data) {
+
+				alert(data["responseText"]);
+				$(this).prop('disabled', false);
 			});
 		});
 
-		function updateStudentCSV() {
+		$('#cancel-btn').on('click', () => {
+			window.history.back();
+		});
 
-			// get the value of the new student
-			var studentPicker = $('#student-picker');
+		function createCreateSectionButton(){
+			
+			$('#add-section-btn').remove();
 
-			if(studentPicker.val() == -1){
-				return;
-			}
+			var createHtml = $('<div>', {"id": "add-section-btn", "class": "btn"});
+			createHtml.append(`Add A Linked Section`);
 
-			// update the text area
-			var studentCSV = $('#student-csv');
-			studentCSV.val(studentCSV.val() + studentPicker.val() + ", \n");
+			createHtml.click( function(){
+				createSection(0, "SECTION NAME");
+			});
 
-			// reset the dropdown to black
-			$('option:selected', studentPicker).remove();
-			studentPicker.val(0);
+			$('#sections-container').append(createHtml);
+		}
+			
+		var delSection;
+		function createSection(id, name, teachers = [], takers = []){
+
+			var numSections = $('.section-row').length;
+
+			var newSectionHtml = $("<div>", {"class": "section-row", "data-sectionid": id,  "data-index": numSections+1});
+			newSectionHtml.append(	`<input class='section-name' value="` + escapeHTML(name) + `">
+
+									<div class="delete-section-btn">
+										<img src="{{asset('images/trash.png')}}">
+									</div>
+								`);
+
+			$('#sections-container').append(newSectionHtml);
+
+			newSectionHtml.find('.delete-section-btn').hide();
+
+			newSectionHtml.on('mouseenter', function() {
+				$(this).find('.delete-section-btn').show({
+					duration: 200,
+				});
+			}).on('mouseleave', function() {
+				$(this).find('.delete-section-btn').hide({
+					duration: 200,
+				});	
+			});
+
+			newSectionHtml.find('input').change( function() {
+				$('#csv-'+newSectionHtml.attr('data-index')).find('.btn-close .name').html($(this).val());
+			});
+
+			// add csv cards
+			createCSV(name, numSections+1, teachers, takers);
+
+			newSectionHtml.find('.delete-section-btn').click( function() {
+
+				if($('.section-row').length == 1){
+					return;
+				}
+
+				delSection = $(this);
+				
+				$('#delete-section-confirm').dialog("open");
+			});
+
+			createCreateSectionButton();
 		}
 
-		function updateTeacherCSV() {
+		function continueDelete(){
+							
+			var delIndex = delSection.parent().attr('data-index');
+			delSection.parent().remove();
 
-			// get the value of the new teacher
-			var teacherPicker = $('#teacher-picker');
-
-			if(teacherPicker.val() == -1){
-				return;
+			var delId = delSection.parent().attr('data-sectionid');
+			if(delId != 0){
+				deleted_sections.push(delId);
 			}
 
-			// update the text area
-			var teacherCSV = $('#teacher-csv');
-			teacherCSV.val(teacherCSV.val() + teacherPicker.val() + ", \n");
+			// remove csvs
+			$('#csv-'+delIndex).remove();
 
-			// reset the dropdown to black
-			$('option:selected', teacherPicker).remove();
-			teacherPicker.val(0);
+			$('.section-row').each( function(ind) {
+				delSection.attr('data-index', ind+1);
+			});
+
+			$('.section-card').each( function(ind) {
+				delSection.attr('data-index', ind+1);
+			});
 		}
+
+		function createCSV(name, index, teachers, takers){
+
+			var csvHtml = 	`<div id="` + "csv-" + index + `" class="card section-card" data-index="` + index + `">
+			
+								<div class="btn-close" onclick="collapseCard('` + "csv-" + index + `-card-content')">
+									<h2 class="name" style="margin: 0px">
+										` + escapeHTML(name) + `				
+										<span style="float: right"><i class="fa fa-angle-down"></i></span>
+									</h2>
+								</div>
+								
+								<div id="csv-` + index + `-card-content" class="card-content">
+
+									<label>Add Students</label>
+									<textarea class="students" id="csv-` + index + `-student" rows="10">`
+										+ takers.join(",\n") + 
+									`</textarea>
+									<form id="csv-` + index + `-student-form" action="{{path('get_contents')}}" method="post">
+										<input type="file" name="file" id="file" value="Upload File">
+									</form>
+									<br/>
+									<label>Add Instructors</label>
+									<textarea class="teachers" id="csv-` + index + `-teacher" rows="3" resizable>`
+										+ teachers.join(",\n") + 									
+									`</textarea>
+									<form id="csv-` + index + `-teacher-form" action="{{path('get_contents')}}" method="post">
+										<input type="file" name="file" id="file" value="Upload File">
+									</form>
+
+								</div>
+							</div>`;
+
+			$('#section-csvs').append(csvHtml);
+
+
+			// submit the form if the file upload is changed
+			$('#csv-'+index+'-teacher-form #file').change( function(data) {
+				$(this).parent().submit();
+			});
+
+			// overwrite the normal submit to call the ajaxsubmit
+			// asynchronous script to handle the submission form upload
+			$('#csv-'+index+'-teacher-form').submit(function() {
+				$(this).ajaxSubmit({
+
+					success:		function(responseText, statusText, xhr, $form) {
+
+						var file = responseText['files'][0];
+						console.log(responseText);
+
+						$('#csv-'+index+'-teacher').val(atob(file['contents']));									
+
+					},
+					error:			function(xhr, textStatus, errorThrown) {
+						console.log(xhr);
+						alert(xhr['responseText']);
+					}
+				});
+
+				return false;
+			});
+
+			// submit the form if the file upload is changed
+			$('#csv-'+index+'-student-form #file').change( function(data) {
+				$(this).parent().submit();
+			});
+
+			// overwrite the normal submit to call the ajaxsubmit
+			// asynchronous script to handle the submission form upload
+			$('#csv-'+index+'-student-form').submit(function() {
+				$(this).ajaxSubmit({
+
+					success:		function(responseText, statusText, xhr, $form) {
+
+						var file = responseText['files'][0];
+						console.log(responseText);
+
+						$('#csv-'+index+'-student').val(atob(file['contents']));								
+
+					},
+					error:			function(xhr, textStatus, errorThrown) {
+						console.log(xhr);
+						alert(xhr['responseText']);
+					}
+				});
+
+				return false;
+			});
+		}
+
 		
-		function addCommas(csvID) {
+		function setDateStuff(year, month){
 			
-			var csv = $('#' + csvID);
-			
-			csv.val(csv.val().replace(/,/g, '\n'));
-			csv.val(csv.val().replace(/(\n)+/g, '\n'));
-			csv.val(csv.val().replace(/\n/g, ',\n'));
-			
-			return;			
+			$('#year').val(year);
+				
+			if(month <= 5 || month == "Spring"){
+				
+				$('#startdatepicker').val('01/01/'+year);				
+				$('#enddatepicker').val('05/10/'+year);
+				
+				//$('#semester').val("Spring");
+				
+			} else if(month <= 7 || month == "Summer"){
+				
+				$('#startdatepicker').val('05/10/'+year);				
+				$('#enddatepicker').val('08/01/'+year);
+				
+				//$('#semester').val("Summer");
+				
+			} else {
+				
+				$('#startdatepicker').val('08/01/'+year);				
+				$('#enddatepicker').val('12/31/'+year);
+				
+				//$('#semester').val("Fall");			
+				
+			}
 		}
 
 	</script>
@@ -442,34 +611,34 @@
 	{% if section is not null %}
 	<script>
 	function populateForm(){
+		
+		for (const c of $('#selectable-semester').children()) {
+			if (c.innerHTML == "{{section.semester}}") {
+				$(c).addClass("ui-selected");
+			}
+		}
+
+		for (const c of $('#selectable-year').children()) {
+			if (c.innerHTML == "{{section.year}}") {
+				$(c).addClass("ui-selected");
+			}
+		}
 
 		// set the course
-		$('#course').val({{section.course.id}});
-
-		// set the name
-		$('#name').val("{{section.name}}");
-
-		// set the semester
-		$('#semester').val("{{section.semester}}");
-
-		// set the year
-		$('#year').val("{{section.year}}");
-
-		// set the teachers csv
-		{% for std in section_teacher_roles %}
-		$('#teacher-csv').append("{{std.user.email}}"+",\n");		
-		{% endfor %}
-
-		// set the students csv
-		{% for std in section_taker_roles %}
-		$('#student-csv').append("{{std.user.email}}"+",\n");	
-		{% endfor %}
+		$('#course').val("{{section.course.id}}");
 
 		// set the starting date
 		$('#startdatepicker').val("{{section.start_time|date('m/d/Y')}}");
 
 		// set the ending date
 		$('#enddatepicker').val("{{section.end_time|date('m/d/Y')}}");
+
+		// add the sections
+		createSection({{section.id}}, "{{section.name|e('js')}}", JSON.parse("{{section.getTeacherCSV()|json_encode|e('js')}}"), JSON.parse("{{section.getTakerCSV()|json_encode|e('js')}}"));
+		{% for slv in section.slaves %}
+		createSection({{slv.id}}, "{{slv.name|e('js')}}", JSON.parse("{{slv.getTeacherCSV()|json_encode|e('js')}}"), JSON.parse("{{slv.getTakerCSV()|json_encode|e('js')}}"));
+		{% endfor %}
+
 
 	}
 

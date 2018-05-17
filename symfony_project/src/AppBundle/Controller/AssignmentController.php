@@ -26,6 +26,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
+use Symfony\Component\Config\Definition\Exception\Exception;
+
 use Psr\Log\LoggerInterface;
 
 class AssignmentController extends Controller {
@@ -100,22 +102,16 @@ class AssignmentController extends Controller {
 			$problem_languages = $problem_entity->problem_languages;
 
 			$languages = [];
-			$default_code = [];
 			$ace_modes = [];
 			$filetypes = [];
 			foreach($problem_languages as $pl){
+				
 				$languages[] = $pl->language;
 				
 				$ace_modes[$pl->language->name] = $pl->language->ace_mode;
 				$filetypes[str_replace(".", "", $pl->language->filetype)] = $pl->language->name;
-				
-				// either get the default code from the problem or from the overall default
-				if($pl->default_code != null){
-					$default_code[$pl->language->name] = $pl->deblobinateDefaultCode();
-				} else{
-					$default_code[$pl->language->name] = $pl->language->deblobinateDefaultCode();
-				}
 			}
+			
 		}
 		
 		$grader = new Grader($em);		
@@ -145,7 +141,7 @@ class AssignmentController extends Controller {
 			->from('AppBundle\Entity\Submission', 's')
 			->where($whereClause)
 			->andWhere('s.problem = ?2')
-			->andWhere('s.is_accepted = true')
+			->andWhere('s.best_submission = true')
 			->setParameter(1, $teamOrUser)
 			->setParameter(2, $problem_entity);		
 			
@@ -184,25 +180,28 @@ class AssignmentController extends Controller {
 			if($submission->user != $user || $submission->problem != $problem_entity){
 				die("You are not allowed to edit this submission on this problem!");
 			}
-			
+						
 			if(!$trial){
 				$trial = new Trial();
 				
 				$trial->user = $user;
-				$trial->problem = $problem_entity;
-				$trial->language = $submission->language;			
+				$trial->problem = $problem_entity;		
 				$trial->show_description = true;
 				
 				$em->persist($trial);
 			}
 			
-			$trial->file = $submission->submitted_file;
-						
+			$trial->file = $submission->submitted_file;						
 			
+			$trial->language = $submission->language;	
 			$trial->filename = $submission->filename;
 			$trial->main_class = $submission->main_class_name;
 			$trial->package_name = $submission->package_name;
 			$trial->last_edit_time = new \DateTime("now");
+			
+			$em->flush();
+			
+			return $this->redirectToRoute('assignment', ['sectionId' => $section_entity->id, 'assignmentId' => $assignment_entity->id, 'problemId' => $problem_entity->id]);
 		}
 		
 		# GET ALL USERS
@@ -230,8 +229,7 @@ class AssignmentController extends Controller {
 			} else if($usr->role->role_num == "Judges"){
 				$section_judges[] = $usr->user;
 			}
-		}
-		
+		}	
 		
 		
 		return $this->render('assignment/index.html.twig', [
@@ -251,7 +249,6 @@ class AssignmentController extends Controller {
 			'trial' => $trial,
 			'all_submissions' => $all_submissions,
 
-			'default_code' => $default_code,
 			'ace_modes' => $ace_modes,
 			'filetypes' => $filetypes,
 		]);
@@ -272,7 +269,7 @@ class AssignmentController extends Controller {
 		}
 		
 		if($section->course->is_contest){
-			return $this->returnForbiddenResponse('contest_edit', ['contestId' => $sectionId]);
+			return $this->redirectToRoute('contest_edit', ['contestId' => $sectionId]);
 		}
 		
 		$user = $this->get('security.token_storage')->getToken()->getUser();  	  
@@ -298,34 +295,35 @@ class AssignmentController extends Controller {
 				die("Assignment does not exist or does not belong to given section");
 			}
 		}
-				
-		# get all the users taking the course
-		$takes_role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));
-		$builder = $em->createQueryBuilder();
-		$builder->select('u')
-			  ->from('AppBundle\Entity\UserSectionRole', 'u')
-			  ->where('u.section = ?1')
-			  ->andWhere('u.role = ?2')
-			  ->setParameter(1, $section)
-			  ->setParameter(2, $takes_role);
-		$query = $builder->getQuery();
-		$section_taker_roles = $query->getResult();
 
-		$students = [];
-		foreach($section_taker_roles as $usr){
-			$student = [];
-			
-			$student['id'] = $usr->user->id;
-			$student['name'] = $usr->user->getFirstName()." ".$usr->user->getLastName();
-			
-			$students[] = $student;
+		$assignments = 	$em->getRepository('AppBundle\Entity\Assignment')->findBy(['clone_hash'=>$assignment->clone_hash]);
+		$sections = [];
+
+		if($section->master){
+			$sections = $section->master->slaves->toArray();
+			$sections[] = $section->master;
+		} else {
+			$sections = $section->slaves->toArray();
+			$sections[] = $section;
 		}
 
+		usort($assignments, function($a, $b){
+			return strcmp($a->section->name, $b->section->name);
+		});
+
+		usort($sections, function($a, $b){
+			return strcmp($a->name, $b->name);
+		});
+
 		return $this->render('assignment/edit.html.twig', [
+			
 			"assignment" => $assignment,
+			"assignments" => $assignments,
+
 			"section" => $section,
+			"sections" => $sections,
+
 			"edit" => true,
-			"students" => $students,
 		]);
     }
 
@@ -334,7 +332,7 @@ class AssignmentController extends Controller {
 		$em = $this->getDoctrine()->getManager();
 		
 		# get the assignment
-		if(!isset($assignmentId) || !($assigmentId > 0)){
+		if(!isset($assignmentId) || !($assignmentId > 0)){
 			die("ASSIGNMENT ID WAS NOT PROVIDED OR FORMATTED PROPERLY");
 		}
 		
@@ -354,7 +352,12 @@ class AssignmentController extends Controller {
 			die("YOU ARE NOT ALLOWED TO DELETE THIS ASSIGNMENT");			
 		}
 		
-		$em->remove($assignment);
+		$assignments = 	$em->getRepository('AppBundle\Entity\Assignment')->findBy(['clone_hash'=>$assignment->clone_hash]);
+		
+		foreach($assignments as &$asgn){
+			$em->remove($asgn);
+		}
+		
 		$em->flush();
 		
 		return $this->redirectToRoute('section', ['sectionId' => $assignment->section->id]);
@@ -376,12 +379,20 @@ class AssignmentController extends Controller {
 		# get the current section
 		# get the assignment
 		if(!isset($postData['section']) || !($postData['section'] > 0)){
-			die("SECTION ID WAS NOT PROVIDED OR FORMATTED PROPERLY");
+			return $this->returnForbiddenResponse("SECTION ID WAS NOT PROVIDED OR FORMATTED PROPERLY");
 		}
 		
 		$section = $em->find('AppBundle\Entity\Section', $postData['section']);		
 		if(!$section){
 			return $this->returnForbiddenResponse("Section ".$postData['section']." does not exist");
+		}
+
+		if($section->master){
+			$sections = $section->master->slaves->toArray();
+			$sections[] = $section->master;
+		} else {
+			$sections = $section->slaves->toArray();
+			$sections[] = $section;
 		}
 		
 		# only super users/admins/teacher can make/edit an assignment
@@ -391,13 +402,13 @@ class AssignmentController extends Controller {
 		}		
 		
 		# check mandatory fields
-		if(!isset($postData['name']) || !isset($postData['open_time']) || !isset($postData['close_time']) || !isset($postData['teams']) || !isset($postData['teamnames'])){
+		if(!isset($postData['name']) || !isset($postData['open_time']) || !isset($postData['close_time']) || !isset($postData['teams'])){
 			return $this->returnForbiddenResponse("Not every required field is provided.");			
 		} else {
 			
 			# validate the weight if there is one
 			if(	is_numeric(trim($postData['weight'])) && 
-				((int)trim($postData['weight']) < 1 || $postData['weight'] % 1 != 0)){
+				((int)trim($postData['weight']) < 0 || $postData['weight'] % 1 != 0)){
 					
 				return $this->returnForbiddenResponse("The provided weight ".$postData['weight']." is not permitted.");
 			}
@@ -410,196 +421,304 @@ class AssignmentController extends Controller {
 			}			
 		}		
 		
-		# create new assignment
-		if($postData['assignment'] == 0){
-			$assignment = new Assignment();		
-			$em->persist($assignment);
-			
-		} else {
-			
-			if(!isset($postData['assignment']) || !($postData['assignment'] > 0)){
-				die("ASSIGNMENT ID WAS NOT PROVIDED OR FORMATTED PROPERLY");
-			}
-			
-			$assignment = $em->find('AppBundle\Entity\Assignment', $postData['assignment']);
-			
-			if(!$assignment || $section != $assignment->section){
-				return $this->returnForbiddenResponse("Assignment ".$postData['assignment']." does not exist for the given section.");
-			}			
-		}
-		
-		# set the necessary fields
-		$assignment->name = trim($postData['name']);
-		$assignment->description = trim($postData['description']);
-		$assignment->section = $section;
-		
-		# set the times		
-		$openTime = DateTime::createFromFormat("m/d/Y H:i:s", $postData['open_time'].":00");
-		$closeTime = DateTime::createFromFormat("m/d/Y H:i:s", $postData['close_time'].":00");
-		
-		if(!isset($openTime) || $openTime->format("m/d/Y H:i") != $postData['open_time']){
-			return $this->returnForbiddenResponse("Provided opening time ".$postData['open_time']." is not valid.");
-		}
-		
-		if(!isset($closeTime) || $closeTime->format("m/d/Y H:i") != $postData['close_time']){
-			return $this->returnForbiddenResponse("Provided closing time ".$postData['close_time']." is not valid.");
-		}
-		
-		if(isset($postData['cutoff_time']) && $postData['cutoff_time'] != ""){
-			
-			$cutoffTime = DateTime::createFromFormat("m/d/Y H:i:s", $postData['cutoff_time'].":00");
-			
-			if(!isset($cutoffTime) || $cutoffTime->format("m/d/Y H:i") != $postData['cutoff_time']){
-				return $this->returnForbiddenResponse("Provided cutoff time ".$postData['cutoff_time']." is not valid.");
-			}
-			
-		} else {
-			$cutoffTime = $closeTime;
-		}
-		
-		
-		if($cutoffTime < $closeTime || $closeTime < $openTime){
-			return $this->returnForbiddenResponse("Provided times are not valid. The closing time must be after the opening time.");			
-		}
-		
-		$assignment->start_time = $openTime;
-		$assignment->end_time = $closeTime;
-		$assignment->cutoff_time = $cutoffTime;
-		
-		# set the weight
-		if(isset($postData['weight'])){
-			$assignment->weight = (int)trim($postData['weight']);
-		} else {
-			$assignment->weight = 1;
-		}				
-				
-		# set extra credit
-		if(isset($postData["is_extra_credit"]) && $postData["is_extra_credit"] == "true"){
-			$assignment->is_extra_credit = true;
-		} else {			
-			$assignment->is_extra_credit = false;
-		}
-		
-		# set grading penalty
-		$penalty = (float)trim($postData['penalty']);		
-		$assignment->penalty_per_day = $penalty;		
-	
-		# get all the users taking the course
-		$takes_role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));
-		$builder = $em->createQueryBuilder();
-		$builder->select('u')
-			  ->from('AppBundle\Entity\UserSectionRole', 'u')
-			  ->where('u.section = ?1')
-			  ->andWhere('u.role = ?2')
-			  ->setParameter(1, $section)
-			  ->setParameter(2, $takes_role);
-		$query = $builder->getQuery();
-		$section_taker_roles = $query->getResult();
-		
-		$section_takers = [];
-		foreach($section_taker_roles as $str){
-			$section_takers[] = $str->user;
-		}
-
-
 		# build teams
-		$teams_json = json_decode($postData['teams']);
-		$teamnames_json = json_decode($postData['teamnames']);
-		$teamids_json = json_decode($postData['teamids']);
+		$jsonAssignmentsTeams = json_decode($postData['teams']);
+
+		$assignments = [];
 		
-		if(count($teams_json) != count($teamnames_json)){
-			return $this->returnForbiddenResponse("The number of teamnames does not equal the number of teams");
-		}
+		$em->getConnection()->beginTransaction();
 
-		$old_teams = $assignment->teams;
-		$mod_teams = new ArrayCollection();
-		
-		$count = 0;
+		try{
+			# create new assignment
+			if($postData['assignment'] == 0){
+									
+				$temp = [''];
+				while(count($temp) > 0){
+					$hash = random_int(-2147483648, 2147483647);
+
+					$temp = $em->getRepository('AppBundle\Entity\Assignment')->findBy(['clone_hash'=>$hash]);	
+				}
+
+				foreach($sections as $sect){
+					$asgn = new Assignment();		
+
+					$asgn->clone_hash = $hash;
+					$asgn->section = $sect;
+
+					$em->persist($asgn);
+					$assignments[] = $asgn;
+				}
+
+			} else {
 				
-		foreach($teams_json as $team_json){
+				if(!isset($postData['assignment']) || !($postData['assignment'] > 0)){
+					die("ASSIGNMENT ID WAS NOT PROVIDED OR FORMATTED PROPERLY");
+				}
+				
+				$asgn = $em->find('AppBundle\Entity\Assignment', $postData['assignment']);
+				
+				if(!$asgn || $section != $asgn->section){
+					throw new Exception("Assignment ".$postData['assignment']." does not exist for the given section.");
+				}
+				
+				$assignments = 	$em->getRepository('AppBundle\Entity\Assignment')->findBy(['clone_hash'=>$asgn->clone_hash]);	
+			}
+
+			# TIMES
+			$openTime = DateTime::createFromFormat("m/d/Y H:i:s", $postData['open_time'].":00");
+			$closeTime = DateTime::createFromFormat("m/d/Y H:i:s", $postData['close_time'].":00");
 			
+			if(!isset($openTime) || $openTime->format("m/d/Y H:i") != $postData['open_time']){
+				throw new Exception("Provided opening time ".$postData['open_time']." is not valid.");
+			}
 			
-			$team_id = $teamids_json[$count];
-
-			// editing a current team
-			if($team_id != 0){
+			if(!isset($closeTime) || $closeTime->format("m/d/Y H:i") != $postData['close_time']){
+				throw new Exception("Provided closing time ".$postData['close_time']." is not valid.");
+			}
+			
+			if(isset($postData['cutoff_time']) && $postData['cutoff_time'] != ""){
 				
-				$team = $em->find('AppBundle\Entity\Team', $team_id);
-
-				if(!$team || $team->assignment != $assignment){
-					return $this->returnForbiddenResponse("Team with id ".$team." does not exist for this assignment");
+				$cutoffTime = DateTime::createFromFormat("m/d/Y H:i:s", $postData['cutoff_time'].":00");
+				
+				if(!isset($cutoffTime) || $cutoffTime->format("m/d/Y H:i") != $postData['cutoff_time']){
+					throw new Exception("Provided cutoff time ".$postData['cutoff_time']." is not valid.");
 				}
 				
-				$team->name = $teamnames_json[$count];				
-				$team->users = new ArrayCollection();
-				
-				foreach($team_json as $user_id){
-					
-					$temp_user = $em->find('AppBundle\Entity\User', $user_id);
+			} else {
+				$cutoffTime = $closeTime;
+			}
+						
+			if($cutoffTime < $closeTime || $closeTime < $openTime){
+				throw new Exception("Provided times are not valid. The closing time must be after the opening time.");			
+			}
 
-					if(!$temp_user || !in_array($temp_user, $section_takers)){
-						return $this->returnForbiddenResponse("User with id ".$user_id." does not take this class");
-					}
+			# PENALTY
+			$penalty = (float)trim($postData['penalty']);		
 
-					$team->users[] = $temp_user;										
-				}
-				
-				if(count($team->users) == 0){
-					return $this->returnForbiddenResponse($team->name." did not have any users provided");
-				}
-				
-				//return $this->returnForbiddenResponse("OLD TEAM: ".$team->name);
-				$em->persist($team);		
-				
-				$mod_teams->add($team->id);
-			} 
-			// new team
-			else {
+			# EXTRA CREDIT
+			if(isset($postData["is_extra_credit"]) && $postData["is_extra_credit"] == "true"){
+				$is_extra_credit = true;
+			} else {			
+				$is_extra_credit = false;
+			}
+
+			$count = 0;
+			foreach($assignments as &$assignment){
+
+				# set the necessary fields
+				$assignment->name = trim($postData['name']);
+				$assignment->description = trim($postData['description']);
 								
-				$team = new Team($teamnames_json[$count] , $assignment);
-			
-				foreach($team_json as $user_id){
-										
-					$temp_user = $em->find('AppBundle\Entity\User', $user_id);
+				$assignment->start_time = $openTime;
+				$assignment->end_time = $closeTime;
+				$assignment->cutoff_time = $cutoffTime;
+				
+				# set the weight
+				if(isset($postData['weight'])){
+					$assignment->weight = (int)trim($postData['weight']);
+				} else {
+					$assignment->weight = 1;
+				}				
+						
+				# set extra credit
+				$assignment->is_extra_credit = $is_extra_credit;
+				
+				# set grading penalty
+				$assignment->penalty_per_day = $penalty;	
 
-					if(!$temp_user || !in_array($temp_user, $section_takers)){
-						return $this->returnForbiddenResponse("User with id ".$user_id." does not take this class");
+				$old_teams = [];
+
+				foreach($assignment->teams->toArray() as $team){
+					$old_teams[$team->id] = $team;
+				}
+
+				$count = 0;		
+				$section_takers = $assignment->section->getTakers();
+
+
+				$jsonTeams = $jsonAssignmentsTeams->{$assignment->section->id};
+
+				foreach($jsonTeams as $jsonTeam){
+					
+					// editing a current team
+					if($jsonTeam->id != 0){
+						
+						$team = $em->find('AppBundle\Entity\Team', $jsonTeam->id);
+
+						if(!$team || $team->assignment != $assignment){
+							throw new Exception("Team with id ".$team." does not exist for this assignment");
+						}
+						
+						unset($old_teams[$team->id]);	
+
+					} else {
+						$team = new Team($jsonTeam->name, $assignment);
 					}
 
-					$team->users[] = $temp_user;				
-				}
-				
-				if(count($team->users) == 0){
-					return $this->returnForbiddenResponse($team->name." did not have any users provided");
-				}
-				
-				$em->persist($team);			
-			}
-			
-			$count++;
-		}
-		
-		# remove the old teams that no longer exist
-		foreach($old_teams as $old){			
-			
-			if(!$mod_teams->contains($old->id)){				
+					$team->name = $jsonTeam->name;				
+					$team->users = new ArrayCollection();
+					
+					foreach($jsonTeam->members as $jsonMember){
+						
+						$temp_user = $em->find('AppBundle\Entity\User', $jsonMember);
 
-				$em->remove($old);	
-				$em->flush();
+						if(!$temp_user || !in_array($temp_user, $section_takers)){
+							throw new Exception("User with id ".$jsonMember." does not take this class");
+						}
+
+						$team->users->add($temp_user);										
+					}
+					
+					if($team->users->count() < 1){
+						throw new Exception($team->name." did not have any users provided");
+					}
+					
+					$assignment->teams->add($team);	
+				}
+
+				# remove the old teams that no longer exist
+				foreach($old_teams as $old){			
+					$em->remove($old);	
+					$em->flush();			
+				}
+
+				$count++;
 			}
+				
+			$em->flush();
+			$em->getConnection()->commit();
+
+		} catch(Exception $e) {
+
+			$em->getConnection()->rollBack();
+			return $this->returnForbiddenResponse($e->getMessage());
 		}
-			
-		$em->persist($assignment);	
-		$em->flush();
-		
+
 		$url = $this->generateUrl('assignment', ['sectionId' => $assignment->section->id, 'assignmentId' => $assignment->id]);
 				
 		$response = new Response(json_encode(array('redirect_url' => $url, 'assignment' => $assignment)));
 		$response->headers->set('Content-Type', 'application/json');
 		$response->setStatusCode(Response::HTTP_OK);
 		
+
 		return $response;
-    }
+	}
+	
+	public function clearSubmissionsAction(Request $request){
+
+		$em = $this->getDoctrine()->getManager();
+				
+		# validate the current user
+		$user = $this->get('security.token_storage')->getToken()->getUser();
+		if(!$user){			
+			return $this->returnForbiddenResponse("You are not a user.");
+		}
+		
+		# see which fields were included
+		$postData = $request->request->all();
+		
+		# get the current section
+		# get the assignment
+		if(!isset($postData['assignment'])){
+			return $this->returnForbiddenResponse("Assignment ID was not provided");
+		}
+		
+		$assignment = $em->find('AppBundle\Entity\Assignment', $postData['assignment']);		
+		if(!$assignment){
+			return $this->returnForbiddenResponse("Section ".$postData['assignment']." does not exist");
+		}
+
+		$section = $assignment->section;
+		
+		# only super users/admins/teacher can make/edit an assignment
+		$grader = new Grader($em);		
+		if( !($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isTeaching($user, $section) || $grader->isJudging($user, $section)) ){			
+			return $this->returnForbiddenResponse("You do not have permission to do this.");
+		}
+
+		$assignments = 	$em->getRepository('AppBundle\Entity\Assignment')->findBy(['clone_hash'=>$assignment->clone_hash]);
+		$result = 0;
+		// delete all submission but keep all of the trials
+		foreach($assignments as $asgn){
+						
+			$qb = $em->createQueryBuilder();
+			$qb->delete('AppBundle\Entity\Submission', 's');
+			$qb->where('s.problem IN (?1)');
+			$qb->setParameter(1, $asgn->problems->toArray());
+
+			$result += $qb->getQuery()->getResult();
+		}
+
+		$em->flush();
+
+		$response = new Response(json_encode([
+			"result" => $result,
+		]));
+
+		$response->headers->set('Content-Type', 'application/json');
+		$response->setStatusCode(Response::HTTP_OK);
+		
+		return $response;				
+	}
+
+	public function clearTrialsAction(Request $request){
+
+		$em = $this->getDoctrine()->getManager();
+				
+		# validate the current user
+		$user = $this->get('security.token_storage')->getToken()->getUser();
+		if(!$user){			
+			return $this->returnForbiddenResponse("You are not a user.");
+		}
+		
+		# see which fields were included
+		$postData = $request->request->all();
+		
+		# get the current section
+		# get the assignment
+		if(!isset($postData['assignment'])){
+			return $this->returnForbiddenResponse("Assignment ID was not provided");
+		}
+		
+		$assignment = $em->find('AppBundle\Entity\Assignment', $postData['assignment']);		
+		if(!$assignment){
+			return $this->returnForbiddenResponse("Section ".$postData['assignment']." does not exist");
+		}
+
+		$section = $assignment->section;
+		
+		# only super users/admins/teacher can make/edit an assignment
+		$grader = new Grader($em);		
+		if( !($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isTeaching($user, $section) || $grader->isJudging($user, $section)) ){			
+			return $this->returnForbiddenResponse("You do not have permission to do this.");
+		}
+
+		$assignments = 	$em->getRepository('AppBundle\Entity\Assignment')->findBy(['clone_hash'=>$assignment->clone_hash]);
+		$result = 0;
+		// delete all submission but keep all of the trials
+		foreach($assignments as $asgn){
+				
+			// delete all submission but keep all of the trials
+			$qb = $em->createQueryBuilder();
+			$qb->delete('AppBundle\Entity\Trial', 't');
+			$qb->where('t.problem IN (?1)');
+			$qb->setParameter(1, $asgn->problems->toArray());
+
+			$result += $qb->getQuery()->getResult();
+		}
+
+		$em->flush();
+
+		$response = new Response(json_encode([
+			"result" => $result,
+		]));
+
+		$response->headers->set('Content-Type', 'application/json');
+		$response->setStatusCode(Response::HTTP_OK);
+		
+		return $response;				
+	}
+	
 	
 	private function returnForbiddenResponse($message){		
 		$response = new Response($message);

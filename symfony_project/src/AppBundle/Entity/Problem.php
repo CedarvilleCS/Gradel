@@ -31,10 +31,7 @@ class Problem implements JsonSerializable{
 		
 		$this->testcases = new ArrayCollection();
 		$this->problem_languages = new ArrayCollection();
-		$this->slaves = new ArrayCollection();
 		$this->queries = new ArrayCollection();
-		
-		$this->master = null;
 	}
 	
 	public function __construct16($assign, $nm, $desc, $wght, $limit, $credit, $tot, $bef, $pen, $stop, $resp, $disp_tcr, $tc_lev, $disp_ext, $vers, $counts){
@@ -78,8 +75,7 @@ class Problem implements JsonSerializable{
 			
 			
 			# clone the problem_languages
-			$plsClone = new ArrayCollection();
-			
+			$plsClone = new ArrayCollection();			
 			foreach($this->problem_languages as $pl){
 				$plClone = clone $pl;
 				$plClone->problem = $this;
@@ -88,12 +84,16 @@ class Problem implements JsonSerializable{
 			}
 			$this->problem_languages = $plsClone;
 			
-			
-			$this->slaves = new ArrayCollection();
-			$this->master = null;
-			
-			$this->version = 1;
-			$this->testcase_counts = [count($this->testcases)];
+			# clone the queries
+			$queriesClone = new ArrayCollection();			
+			foreach($this->queries as $qry){
+				$qryClone = clone $qry;
+				$qryClone->problem = $this;
+				$qryClone->assignment = null;
+				
+				$queriesClone->add($qryClone);
+			}
+			$this->queries = $queriesClone;
 		}
 		
 	}
@@ -126,16 +126,6 @@ class Problem implements JsonSerializable{
 	* @ORM\OrderBy({"timestamp" = "ASC"})
 	*/
 	public $queries;
-	
-	/**
-    * @ORM\OneToMany(targetEntity="Problem", mappedBy="master", orphanRemoval=true)
-    */
-	public $slaves;
-	
-	/**
-	* @ORM\ManyToOne(targetEntity="Problem", inversedBy="slaves")
-	*/
-	public $master;	 
 		
 	/**
 	* @ORM\OneToMany(targetEntity="ProblemLanguage", mappedBy="problem", cascade={"persist"}, orphanRemoval=true)
@@ -158,6 +148,10 @@ class Problem implements JsonSerializable{
 	*/
 	public $description;
 
+	/**
+	* @ORM\Column(type="integer")
+	*/	
+	public $clone_hash = 0;
 	
 	/**
 	* @ORM\Column(type="blob", nullable=true)
@@ -225,13 +219,22 @@ class Problem implements JsonSerializable{
 	* @ORM\Column(type="boolean")
 	*/
 	public $extra_testcases_display;
+
+	/**
+	* @ORM\Column(type="boolean")
+	*/
+	public $allow_multiple = true;	
 	
-		
+	/**
+	* @ORM\Column(type="boolean")
+	*/
+	public $allow_upload = true;
+	
+	
 	public function jsonSerialize(){
 		return [
 			'id' => $this->id,
 			'name' => $this->name,
-			'testcases' => $this->testcases->toArray(),
 		];
 	}
 }

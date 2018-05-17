@@ -1,6 +1,9 @@
 <?php
 
 namespace AppBundle\Entity;
+
+use JsonSerializable;
+
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Config\Definition\Exception\Exception;
 
@@ -8,7 +11,7 @@ use Symfony\Component\Config\Definition\Exception\Exception;
 *@ORM\Entity
 *@ORM\Table(name="language")
 **/
-class Language {
+class Language implements JsonSerializable{
 		
 	public function __construct(){
 		
@@ -59,8 +62,17 @@ class Language {
 	public function deblobinateDefaultCode(){			
 		$val = stream_get_contents($this->default_code);
 		rewind($this->default_code);
-		
+				
 		return $val;
+	}
+	
+	public function jsonSerialize(){
+		return [
+			'name' => $this->name,			
+			'filetype' => $this->filetype,
+			'ace_mode' => $this->ace_mode,
+			'default_code' => $this->deblobinateDefaultCode(),
+		];
 	}
 }
 ?>

@@ -13,29 +13,9 @@ use Symfony\Component\Config\Definition\Exception\Exception;
 class Course{
 		
 	public function __construct(){
-		
-		$a = func_get_args();
-		$i = func_num_args();
-		
-		if(method_exists($this, $f='__construct'.$i)) {
-			call_user_func_array(array($this,$f),$a);
-		} else if($i != 0){
-			throw new Exception('ERROR: '.get_class($this).' constructor does not accept '.$i.' arguments');
-		}
-		
 		$this->sections = new ArrayCollection();
 	}
 	
-	public function __construct6($cd, $nm, $desc, $contest, $public, $deleted){
-		$this->code = $cd;
-		$this->name = $nm;
-		$this->description = $desc;
-		$this->is_contest = $contest;
-		$this->is_public = $public;
-		$this->is_deleted = $deleted;
-	}
-
-
 	/** 
 	* @ORM\Column(type="integer")
 	* @ORM\Id
@@ -47,37 +27,32 @@ class Course{
 	* @ORM\OneToMany(targetEntity="Section", mappedBy="course")
 	* @ORM\OrderBy({"id" = "ASC"})
 	*/
-	public $sections;
+	public $sections = null;
 
 	/**
 	* @ORM\Column(type="string", length=100)
 	*/
-	public $code;
+	public $code = "ABC-123";
 
 	/**
 	* @ORM\Column(type="string", length=100)
 	*/
-	public $name;
+	public $name = "Unnamed Course";
 
 	/**
 	* @ORM\Column(type="text")
 	*/
-	public $description;
+	public $description = "This course is a default course";
 
 	/**
 	* @ORM\Column(type="boolean")
 	*/
-	public $is_contest;	
+	public $is_contest = false;	
 	
 	/**
 	* @ORM\Column(type="boolean")
 	*/
-	public $is_deleted;	
-	
-	/**
-	* @ORM\Column(type="boolean")
-	*/
-	public $is_public;
+	public $is_deleted = false;
 	
 	public static function cmp($a, $b){
 		

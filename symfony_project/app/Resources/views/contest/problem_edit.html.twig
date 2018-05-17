@@ -1,8 +1,29 @@
 {% block head %}
 <title>Gradel</title>
-<link rel="icon" type="image/x-icon" href="{{ asset('logo.png') }}" />
+<link rel="icon" type="image/x-icon" href="{{ asset('images/logo.png') }}" />
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+{% endblock %}
+
+{% block stylesheets %}
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
+	
+    <link rel="stylesheet" href="{{ asset('styles/styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('styles/contest.css') }}" />
+    <link rel="stylesheet" href="{{ asset('styles/contest-hub.css') }}" />
+
+	
+    <link rel="stylesheet" href="{{ asset('styles/card.css') }}" />
+
+    <link rel="stylesheet" href="{{ asset('styles/submit.css') }}" />
+    <link rel="stylesheet" href="{{ asset('styles/sessions.css') }}" />
+
+    <link rel="stylesheet" href="{{ asset('styles/custom-toggle.css') }}" />
+    <link rel="stylesheet" href="{{ asset('styles/problem-creation.css') }}" />
+
+	<link rel="stylesheet" href="{{ asset('styles/contest-problem_edit.css') }}" />
+
 {% endblock %}
 
 {% block body %}
@@ -17,8 +38,8 @@
 		{% if problem is not null %}
 			<a id="delete-btn" class="btn"><div class="btn btn-center btn-delete">Delete</div></a>
 			
-			<ol style="padding-top: 0px">
-				<li id="delete-warning" style="padding-top: 0px"></li>
+			<ol>
+				<li id="delete-warning"></li>
 			</ol>
 		{% endif %}
   </nav>
@@ -86,8 +107,7 @@
 			<p>Enter in a solution for this problem to generate output.</p>
 		
 			{# the ACE editor text area #}
-			<div id="output-generator-editor" class="ace-container"></div>
-			<br/>
+			{{ block('editor_html', 'ace/sessions.twig') }}
 
 			{# file upload#}
 			<form id="output-generator-form" action="{{path('get_contents')}}" method="post">
@@ -105,12 +125,12 @@
 					{% endfor %}
 				</select>
 				<br>
-				<div id="mainClassInput" style="display:none"><label for="main_class">Main Class: </label><input type="text" name="main_class" id="main_class_input"></div>
-				<div id="packgNameInput" style="display:none"><label for="package_name">Package Name: </label><input type="text" name="package_name" id="package_name_input"></div>
+				<div id="mainClassInput"><label for="main_class">Main Class: </label><input type="text" name="main_class" id="main_class_input"></div>
+				<div id="packgNameInput"><label for="package_name">Package Name: </label><input type="text" name="package_name" id="package_name_input"></div>
 				<br/>
 				<div class="btn" style="width: 300px" id="generator-button"> Generate </div>
 				<div id="generator-loading-container" style="display: none">
-					<img id="generator-loading-gif" style="height: 60px" src="{{asset('beoload.gif')}}" alt="Loading..."/>
+					<img id="generator-loading-gif" style="height: 60px" src="{{asset('images/beoload.gif')}}" alt="Loading..."/>
 					<h3 style="margin: 0px"> Generating Output... </h3>
 				</div>
 			</div>
@@ -126,44 +146,31 @@
 </body>
 {% endblock %}
 
-{% block stylesheets %}
-	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
-	
-    <link rel="stylesheet" href="{{ asset('styles.css') }}" />
-    <link rel="stylesheet" href="{{ asset('contest.css') }}" />
-    <link rel="stylesheet" href="{{ asset('contest-hub.css') }}" />
-	
-    <link rel="stylesheet" href="{{ asset('card.css') }}" />
-    <link rel="stylesheet" href="{{ asset('custom-toggle.css') }}" />
-    <link rel="stylesheet" href="{{ asset('problem-creation.css') }}" />
-	
-	<style type="text/css">
-		.testCardAdder:hover {
-			background: url("{{asset('testcase-blur-grbg.png')}}") no-repeat;
-			background-size: 100% 100%;
-			background-position: center center;
-		}
-	</style>
-{% endblock %}
-
 {% block scripts %}
   <!-- JQuery -->
   <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
   <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
   <script src="http://malsup.github.com/jquery.form.js"></script>
   
-  <script src="{{ asset('src-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>	
+  <script src="{{ asset('js/src-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>	
   
   <script src="{{ asset('js/cards.js') }}"></script>	
   <script src="{{ asset('js/validation.js') }}"></script>
   
   <script src="{{ asset('js/unicode_return.js') }}"></script>
+	
+	<script src="{{ asset('js/contest.js') }}"></script>
   
   
   <script>
 	/* OUTPUT GENERATOR FUNCTIONS */
+	var languages = JSON.parse("{{languages|json_encode|e('js')}}");
+	var ace_modes = JSON.parse('{{ ace_modes|json_encode|e('js') }}');
+	var onloadValue = [];
+
 	var saved_code = "";
+
+	{{ block('editor_javascript', 'ace/sessions.twig') }}
 
 	function getLanguage(filename){
 
@@ -217,9 +224,7 @@
 			}
 		}
 
-		var editor = ace.edit("output-generator-editor");
-		editor.$blockScrolling = Infinity;
-		updateAceCode();
+		{{ block('editor_setlanguage', 'ace/sessions.twig') }}
 
 		// toggle the java inputs
 		var ext = getExtension($('#output-generator-form #file').val());
@@ -239,28 +244,6 @@
 			document.getElementById('packgNameInput').style.display = 'block';
 		}
 	}
-
-	function updateAceCode(){
-
-		var default_code = JSON.parse('{{ default_code|json_encode|replace({'\\':'\\\\'})|raw }}');
-		var ace_modes = JSON.parse('{{ ace_modes|json_encode|raw }}');
-
-		var editor = ace.edit("output-generator-editor");
-		editor.$blockScrolling = Infinity;
-		
-		language = $('#languageSelect option:selected').text();
-		
-		if(saved_code !== editor.getValue()) {
-			editor.setValue(editor.getValue(), -1);
-		} else {
-			// This sets the default code for the selected language.
-			editor.setValue(default_code[language], -1);
-			saved_code = default_code[language];
-		}
-		editor.getSession().setMode("ace/mode/" + ace_modes[language]);
-		editor.resize(true);
-	}
-
   </script>
 
   <script>
@@ -273,11 +256,6 @@
     $(document).ready(() => {
 		
 		/* OUTPUT GENERATOR ACE EDITOR */		
-		var generatorEditor = ace.edit("output-generator-editor");
-		generatorEditor.$blockScrolling = Infinity;
-		generatorEditor.setTheme("ace/theme/xcode");
-		generatorEditor.resize();
-				
 		// make the language dropdown change affect the code
 		$('#languageSelect').change( function(data) {
 			var language = $('#languageSelect option:selected').text();
@@ -299,15 +277,11 @@
 					
 					var file = responseText['files'][0];
 			
+					{{ block('editor_onsubmission', 'ace/sessions.twig') }}	
+
 					console.log(responseText);
 					setLanguageFromFilename(file['name']);
 					
-					var editor = ace.edit("output-generator-editor");
-					editor.$blockScrolling = Infinity;
-					editor.setValue(atob(file['contents']));
-					
-					updateAceCode();		
-									
 				},
 				error:			function(xhr, textStatus, errorThrown) {
 					console.log(xhr);						
@@ -499,7 +473,7 @@
 				<h2 style="margin: 0px">`+formalName+`</h2>
 				<object>
 						<a title="Delete assignment" id="closeButton" onclick="deleteTestCase(&quot;`+div_name+`&quot;)")}}">
-							<img class="test_case_delete" id="right-icon" src="{{ asset('trash.png') }}">
+							<img class="test_case_delete" id="right-icon" src="{{ asset('images/trash.png') }}">
 						</a>
 				</object>
 			</div>
@@ -542,7 +516,7 @@
 		addTestCardButton.addClass('card');
 		addTestCardButton.addClass('testCardAdder');
 		addTestCardButton.addClass('contest-card');
-		addTestCardButton.append('<img id="add-button" src="{{asset('big_add_circle.png')}}">');
+		addTestCardButton.append('<img id="add-button" src="{{asset('images/big_add_circle.png')}}">');
 		
 		addTestCardButton.click(function() {
 			addTestCase();			
@@ -664,26 +638,18 @@
 		}
 		setValid($('#main_class_input'));
 
-		var editor = ace.edit("output-generator-editor");
-		editor.$blockScrolling = Infinity;				
-		
-		var generatorText = editor.getValue();
-		
 		submitData.append('assignmentId', {{contest.id}}),
 
 		submitData.append('language', language);
 		submitData.append('main_class', main_class);
 		submitData.append('package_name', package_name);
-		submitData.append('ACE', generatorText);
 
-		if(getExtension($('#output-generator-form #file').val()) == "zip"){
+		// loop through the editors
+		var ACE = [];
+		{{ block('editor_storecontentsinace', 'ace/sessions.twig') }}		
+		submitData.append('ACE', JSON.stringify(ACE));
 
-			var file = $('#output-generator-form #file').prop('files')[0];
-			if(file){
-				submitData.append('file', file);
-			}
-		}
-		
+
 		/* build the testcase array */
 		var testcases = document.getElementsByClassName("test-case");
 		tcs = [];
@@ -710,11 +676,9 @@
 				console.log(data);
 				
 				// save the testcase data to the output textboxes
-				count = 0;
-				$(".test-case").each(function() {
+				$(".test-case").each(function(index) {
 					
-					$(this).find('.output').val(addReturnKey(data['testcases'][count]));
-					count++;		
+					$(this).find('.output').val(addReturnKey(data['testcases'][index]));
 				});
 				
 				$('#generator-loading-container').hide();
@@ -777,6 +741,9 @@
     }
 	
 	</script>
+	
+	{{ include('contest/gas/contest_gas.html.twig') }}
+	{{ include('contest/gas/contest_gas_normal.html.twig') }}
 			
 		
 {% endblock %}

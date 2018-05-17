@@ -1,6 +1,6 @@
 {% block stylesheets %}
-	<link rel="stylesheet" href="{{ asset('styles.css') }}" />
-	<link rel="stylesheet" href="{{ asset('card.css') }}" />
+	<link rel="stylesheet" href="{{ asset('styles/styles.css') }}" />
+	<link rel="stylesheet" href="{{ asset('styles/card.css') }}" />
 
 	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
 {% endblock %}
@@ -8,7 +8,7 @@
 
 {% block head %}
 <title>Gradel Home</title>
-<link rel="icon" type="image/x-icon" href="{{ asset('logo.png') }}" title="Gradel: when you're here, you're coding."/>
+<link rel="icon" type="image/x-icon" href="{{ asset('images/logo.png') }}" title="Gradel: when you're here, you're coding."/>
 {% endblock %}
 
 {% block body %}
@@ -16,7 +16,6 @@
     {{ include('template/top-nav.html.twig') }}
 	{{ include('template/section-nav.html.twig') }}
 	{{ include('template/path-nav.html.twig') }}
-	{{ include('contest/contest_gas.html.twig') }}
 	
     {# Main section #}
     <section id="main">
@@ -43,9 +42,13 @@
 						{% set oldDate = newDate %}
 						
 						<div style="margin-left: 20px">
-							<small>{{asgn.section.name}}</small>
 							
 							<a href="{{path('assignment', {'sectionId':asgn.section.id, 'assignmentId':asgn.id})}}">
+								
+								<small>
+								{{asgn.section.name}}{% for slv in asgn.section.slaves %}, {{slv.name}}{% endfor %}
+								</small>
+							
 								{{asgn.name}}
 							</a>		
 							
