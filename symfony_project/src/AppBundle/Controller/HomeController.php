@@ -23,7 +23,6 @@ use Symfony\Component\HttpFoundation\Request;
 class HomeController extends Controller {
 	
     public function homeAction() {
-		
 		$em = $this->getDoctrine()->getManager();
 	  
 		$user = $this->get('security.token_storage')->getToken()->getUser();
