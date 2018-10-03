@@ -21,8 +21,15 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 
 class HomeController extends Controller {
+
+	private $logger;
+
+	public function __construct(LoggerInterface $logger) {
+		$this->logger = $logger;
+	}
 	
     public function homeAction() {
+		
 		$em = $this->getDoctrine()->getManager();
 	  
 		$user = $this->get('security.token_storage')->getToken()->getUser();
