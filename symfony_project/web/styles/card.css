@@ -2,7 +2,6 @@
     background-color: white;
 	margin: 20px;
 	margin-bottom: 5px;
-    padding: 20px;
 	position: relative;
     -webkit-box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
     -moz-box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
@@ -11,6 +10,7 @@
 
 .card-contents {
     margin-top: 10px;
+    padding: 10px;
 }
 
 .parallel-cards > .card {
@@ -68,9 +68,18 @@
 .parallel-cards > .testcase-card {
 	width: 42%;
 }
+
+.parallel-cards > .section-card {
+	width: 28.68%;
+}
+
 @media only screen and (max-width: 1460px) {
 	.parallel-cards > .testcase-card {
 		width: 100%;
+	}	
+
+	.parallel-cards > .section-card {
+		width: 41.77%;
 	}	
 }
 
@@ -97,9 +106,10 @@
 
 .btn-close {
     /* float: right; */
-    padding-bottom: 10px;
-    border-bottom: 1px dotted #8DC26F;
+    padding: 10px;
 	cursor: pointer;
+  background-color: #003963;
+  color: #fdb813;
 }
 
 
@@ -109,6 +119,10 @@
 	.parallel-cards > .testcase-card {
 		width: 100%;
 	}
+	
+	.parallel-cards > .section-card {
+		width: 45%;
+	}	
 }	
 
 @media (max-width: 1192px) {
