@@ -1,87 +1,103 @@
+{# can we have multiple stylesheets blocks like this to get them all into the same place? that'd be slick #}
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('styles/top-nav.css') }}" />
+{% endblock %}
+
 <div class="topnav" id="myTopnav">
-
-	{% if app.request.attributes.get('_route') != "contest_scoreboard" %}
-
-		{# logout button #}
-		<a href="{{path('user_logout')}}" class="navbuttons">Logout</a>
-
-		{# useful links for contest #}
-		{% if "contest" in app.request.attributes.get('_route') %}
-		<div id="doc-button" class="navbuttons"> Documentation
-		
+	{# left container #}
+	<div id="left-container">
+		{# hamburger menu #}
+		<div class="hamburger_menu">
+			<img src="{{asset('images/hamburger_menu.png')}}" title="Toggle side nav" />
 		</div>
-		
-		
-		<div id="doc-links" style="display: none">
-			<a href="https://docs.oracle.com/javase/7/docs/api/" class="navbuttons"> Java </a>
-			<a href="http://www.cplusplus.com/doc/tutorial/" class="navbuttons"> C++ </a>		
-		</div>
+	</div>
 	
-		
-		{% endif %}
-		
-		
-		{# admin button #}
-		{% if is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN")%}
-			<a href="{{path('courses')}}" class="navbuttons">Courses</a>
-		{% endif %}
+	{# center container #}
+	<div id="center-container">
+		{# logo #}
+		<a href="{{path('homepage')}}" id="logo"><img src="{{asset('images/logo.png')}}" title="Gradel, Gradel, Gradel, we made it out of code!" id="logo" alt="Gradel"></a>
+		<a href="{{path('homepage')}}" id="logoword"><img src="{{asset('images/gradel.png')}}" title="Gradel, Gradel, Gradel, we made it out of code!" id="logoword" alt="Gradel"></a>
+	</div>
 
-		{% if is_granted("ROLE_SUPER") %}
-			<a href="{{path('users')}}" class="navbuttons">Users</a>
-		{% endif %}
-
-
-		{# development user changer #}
-		{% if not is_granted('ROLE_PREVIOUS_ADMIN') and is_granted('ROLE_SUPER') and user_impersonators|length > 0 %}
-
-			<div class="navbuttons" style="display: flex; flex-direction: row; align-items: center; color: #f2f2f2; font-size:17px; float: right; padding-right:25px">
-				Impersonate:&nbsp;
-				<select id="impersonateSelect" onchange="setImpersonate()" style="padding: 6px 12px">
-					<option value="-">None</option>
-
-					{% for user in user_impersonators %}
-						{% if "section" in app.request.attributes.get('_route') %}
-							<option value="{{ path(app.request.attributes.get('_route'), {'_switch_user': user.getEmail(), 'sectionId': section.id}) }}">
-						{% elseif "contest" in app.request.attributes.get('_route') %}
-							<option value="{{ path(app.request.attributes.get('_route'), {'_switch_user': user.getEmail(), 'contestId': section.id, 'roundId': current_contest.id}) }}">
-						{% elseif "assignment" in app.request.attributes.get('_route') %}
-							<option value="{{ path(app.request.attributes.get('_route'), {'_switch_user': user.getEmail(), 'sectionId': section.id, 'assignmentId': assignment.id}) }}">
-					    {% elseif "result" in app.request.attributes.get('_route') %}
-							<option value="{{ path(app.request.attributes.get('_route'), {'_switch_user': user.getEmail(), 'sectionId': section.id, 'assignmentId': assignment.id, 'problemId': problem.id, 'submission_id': submission.id}) }}">
-						{% elseif "problem" in app.request.attributes.get('_route') %}
-							<option value="{{ path(app.request.attributes.get('_route'), {'_switch_user': user.getEmail(), 'sectionId': section.id, 'assignmentId': assignment.id, 'problemId': problem.id}) }}">
-						{% else %}
-							<option value="{{ path('homepage', {'_switch_user': user.getEmail()}) }}">
-						{% endif %}
-							
-						{{user.getFirstName()}} {{user.getLastName()}}</option>
-					{% endfor %}
-				</select>
-			</div>
-
-		{% endif %}
-
-		{% if is_granted('ROLE_PREVIOUS_ADMIN') %}
-			
-			{% if ("section" in app.request.attributes.get('_route')) or ("contest" in app.request.attributes.get('_route')) or ("assignment" in app.request.attributes.get('_route')) or ("problem" in app.request.attributes.get('_route')) or ("result" in app.request.attributes.get('_route')) %}
-				{% if section.is_contest %}
-				<a href="{{ path('contest', {'_switch_user': '_exit', 'contestId': section.id}) }}" class="navbuttons">Exit Impersonation</a>
-				{% else %}
-				<a href="{{ path('section', {'_switch_user': '_exit', 'sectionId': section.id}) }}" class="navbuttons">Exit Impersonation</a>
-				{% endif %}
-			{% else %}
-				<a href="{{ path('homepage', {'_switch_user': '_exit'}) }}" class="navbuttons">Exit Impersonation</a>
+	{# right container #}
+	<div id="right-container">
+		{% if app.request.attributes.get('_route') != "contest_scoreboard" %}
+			{# useful links for contest #}
+			{% if "contest" in app.request.attributes.get('_route') %}
+				<div id="doc-button" class="navbuttons"> Documentation
+				</div>			
+				<div id="doc-links" style="display: none">
+					<a href="https://docs.oracle.com/javase/7/docs/api/" class="navbuttons"> Java </a>
+					<a href="http://www.cplusplus.com/doc/tutorial/" class="navbuttons"> C++ </a>		
+				</div>
 			{% endif %}
+			
+			{# development user changer #}
+			{% if not is_granted('ROLE_PREVIOUS_ADMIN') and is_granted('ROLE_SUPER') and user_impersonators|length > 0 %}
+				<div class="navbuttons" style="display: flex; flex-direction: row; align-items: center; color: #f2f2f2; font-size:17px; float: right; padding-right:25px">
+					Impersonate:&nbsp;
+					<select id="impersonateSelect" onchange="setImpersonate()" style="padding: 6px 12px">
+						<option value="-">None</option>
+						{% for user in user_impersonators %}
+							{% if "section" in app.request.attributes.get('_route') %}
+								<option value="{{ path(app.request.attributes.get('_route'), {'_switch_user': user.getEmail(), 'sectionId': section.id}) }}">
+							{% elseif "contest" in app.request.attributes.get('_route') %}
+								<option value="{{ path(app.request.attributes.get('_route'), {'_switch_user': user.getEmail(), 'contestId': section.id, 'roundId': current_contest.id}) }}">
+							{% elseif "assignment" in app.request.attributes.get('_route') %}
+								<option value="{{ path(app.request.attributes.get('_route'), {'_switch_user': user.getEmail(), 'sectionId': section.id, 'assignmentId': assignment.id}) }}">
+							{% elseif "result" in app.request.attributes.get('_route') %}
+								<option value="{{ path(app.request.attributes.get('_route'), {'_switch_user': user.getEmail(), 'sectionId': section.id, 'assignmentId': assignment.id, 'problemId': problem.id, 'submission_id': submission.id}) }}">
+							{% elseif "problem" in app.request.attributes.get('_route') %}
+								<option value="{{ path(app.request.attributes.get('_route'), {'_switch_user': user.getEmail(), 'sectionId': section.id, 'assignmentId': assignment.id, 'problemId': problem.id}) }}">
+							{% else %}
+								<option value="{{ path('homepage', {'_switch_user': user.getEmail()}) }}">
+							{% endif %}
+
+							{{user.getFirstName()}} {{user.getLastName()}}</option>
+						{% endfor %}
+					</select>
+				</div>
+			{% endif %}
+
+			{% if is_granted('ROLE_PREVIOUS_ADMIN') %}
+				{% if ("section" in app.request.attributes.get('_route')) or ("contest" in app.request.attributes.get('_route')) or ("assignment" in app.request.attributes.get('_route')) or ("problem" in app.request.attributes.get('_route')) or ("result" in app.request.attributes.get('_route')) %}
+					{% if section.is_contest %}
+					<a href="{{ path('contest', {'_switch_user': '_exit', 'contestId': section.id}) }}" class="navbuttons">Exit Impersonation</a>
+					{% else %}
+					<a href="{{ path('section', {'_switch_user': '_exit', 'sectionId': section.id}) }}" class="navbuttons">Exit Impersonation</a>
+					{% endif %}
+				{% else %}
+					<a href="{{ path('homepage', {'_switch_user': '_exit'}) }}" class="navbuttons">Exit Impersonation</a>
+				{% endif %}
+			{% endif %}
+
+			{# about button #}
+			<a href="{{path('user_logout')}}" class="navbuttons">About</a>
+
+			{# help button #}
+			<a href="{{path('user_logout')}}" class="navbuttons">Help</a>
+
+			{# user dropdown #}
+			<div class="dropdown">
+				<button class="dropbtn">{{app.user.getFullName()}} 
+					<i class="fa fa-caret-down"></i>
+				</button>
+				<div class="dropdown-content">
+					{# logout button #}
+					<a href="{{path('user_logout')}}" class="navbuttons">Logout</a>
+
+					{# admin button #}
+					{% if is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN")%}
+						<a href="{{path('courses')}}" class="navbuttons">Courses</a>
+					{% endif %}
+
+					{% if is_granted("ROLE_SUPER") %}
+						<a href="{{path('users')}}" class="navbuttons">Users</a>
+					{% endif %}
+				</div>
+			</div> 
 		{% endif %}
-	
-	{% else %}
-	
-		
-	{% endif %}
-	
-	{# logo #}
-    <a href="{{path('homepage')}}" id="logo"><img src="{{asset('images/logo.png')}}" title="Gradel, Gradel, Gradel, we made it out of code!" id="logo" alt="Gradel"></a>
-	<a href="{{path('homepage')}}" id="logoword"><img src="{{asset('images/gradel.png')}}" title="Gradel, Gradel, Gradel, we made it out of code!" id="logoword" alt="Gradel"></a>
+	</div>
 </div>
 
 
