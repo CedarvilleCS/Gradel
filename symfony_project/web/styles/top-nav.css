@@ -1,6 +1,13 @@
 .topnav {
     display: flex;
     justify-content: flex-end;
+    top: 0;
+    margin-top: 0;
+    background-color: #003963;
+    height: 50px;
+    z-index: 100;
+    width: 100%;
+    grid-area: topnav;
 }
 
 .topnav .navbuttons {
@@ -52,16 +59,6 @@
  	color: black;
  }
 
- .topnav {
-    top: 0;
-    margin-top: 0;
-    background-color: #003963;
-    position: fixed;
-    height: 50px;
-    z-index: 100;
-    width: 100%;
-}
-
 /* Style the links inside the navigation bar */
 .topnav a {
     display: inline-block;
@@ -84,12 +81,12 @@
     color: white;
 }
 
-.hamburger_menu {
+#hamburger-menu {
     padding-left: 2px;
     cursor: pointer;
 }
 
-.hamburger_menu > img {
+#hamburger-menu > img {
     height: 50px;
     width: 50px;
 }
@@ -117,7 +114,6 @@
     display: none;
     position: absolute;
     background-color: #001B2F;
-    min-width: 160px;
     box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
     z-index: 101;
 }
