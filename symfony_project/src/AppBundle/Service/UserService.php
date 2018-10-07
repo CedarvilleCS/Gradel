@@ -13,7 +13,18 @@ class UserService
     }
 
     public function getCurrentUser() {
-        return $this->container->get('security.token_storage')->getToken()->getUser();
+        return $this->container->get("security.token_storage")->getToken()->getUser();
+    }
+
+    public function getUsersToImpersonate($entityManager, $user) {
+        $builder = $entityManager->createQueryBuilder();
+		$builder->select("u")
+			->from("AppBundle\Entity\User", "u")
+			->where("u != ?1")
+			->setParameter(1, $user);
+			
+		$impersonatedUsersQuery = $builder->getQuery();
+		return $impersonatedUsersQuery->getResult();	
     }
 }
 ?>
