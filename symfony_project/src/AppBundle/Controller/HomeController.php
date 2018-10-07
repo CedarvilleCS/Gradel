@@ -7,6 +7,9 @@ use AppBundle\Entity\Course;
 use AppBundle\Entity\UserSectionRole;
 use AppBundle\Entity\Assignment;
 
+use AppBundle\Service\HomeService;
+use AppBundle\Service\UserService;
+
 use AppBundle\Utils\Grader;
 use AppBundle\Utils\Uploader;
 use AppBundle\Utils\Zipper;
@@ -22,19 +25,23 @@ use Symfony\Component\HttpFoundation\Request;
 
 class HomeController extends Controller {
 
+	private $home;
 	private $logger;
 
-	public function __construct(LoggerInterface $logger) {
+	public function __construct(HomeService $home, 
+								LoggerInterface $logger,
+								UserService $userService) {
+		$this->home = $home;
 		$this->logger = $logger;
+		$this->userService = $userService;
 	}
 	
-    public function homeAction() {
-		
+    public function homeAction() {		
 		$em = $this->getDoctrine()->getManager();
 	  
-		$user = $this->get('security.token_storage')->getToken()->getUser();
+		$user = $this->userService->getCurrentUser();
 	  	if(!get_class($user)){
-			die("USER DOES NOT EXIST!");		  
+			die("USER DOES NOT EXIST!");
 		}
 		
 		# get all of the non-deleted sections
@@ -108,17 +115,13 @@ class HomeController extends Controller {
 		
 		return $this->render('home/index.html.twig', [
 			'user' => $user,
-			
 			'usersectionroles' => $usersectionroles,
 			'assignments' => $assignments,
 			'sections_taking' => $sections_taking,
 			'sections_teaching' => $sections_teaching,
-			
 			'grades' => $grades,
-			'user_impersonators' => $users,
+			'user_impersonators' => $users
 		]);
-
     }
 }
-
 ?>

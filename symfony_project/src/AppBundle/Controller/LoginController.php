@@ -17,7 +17,6 @@ use Psr\Log\LoggerInterface;
 class LoginController extends Controller
 {
     public function indexAction(Request $request) {
-
 		$user= $this->get('security.token_storage')->getToken()->getUser();
 
 		if(get_class($user)){
