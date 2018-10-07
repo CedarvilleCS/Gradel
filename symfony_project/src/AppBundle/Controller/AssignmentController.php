@@ -10,6 +10,8 @@ use AppBundle\Entity\Assignment;
 use AppBundle\Entity\Team;
 use AppBundle\Entity\Trial;
 
+use AppBundle\Service\UserService;
+
 use AppBundle\Utils\Grader;
 use AppBundle\Utils\Uploader;
 
@@ -29,22 +31,27 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Psr\Log\LoggerInterface;
 
 class AssignmentController extends Controller {
+	private $userService;
+
+	public function __construct(UserService $userService) {
+		$this->userService = $userService;
+	}
 
 	public function assignmentAction($sectionId, $assignmentId, $problemId) {
-
-		$em = $this->getDoctrine()->getManager();
+		$entityManager = $this->getDoctrine()->getManager();
 		
-		$user = $this->get('security.token_storage')->getToken()->getUser();  	  
-		if(!get_class($user)){
-			die("USER DOES NOT EXIST!");		  
-		}
+		$user = $this->userService->getCurrentUser();
+		if (!get_class($user)) {
+			$this->logger->error("AssignmentController: USER DOES NOT EXIST");
+			return $this->redirectToRoute("user_login");
+	  }
 		
 		# get the section
 		if(!isset($sectionId) || !($sectionId > 0)){
 			die("SECTION ID WAS NOT PROVIDED OR FORMATTED PROPERLY");
 		}
 		
-		$section_entity = $em->find("AppBundle\Entity\Section", $sectionId);
+		$section_entity = $entityManager->find("AppBundle\Entity\Section", $sectionId);
 		if(!$section_entity){
 			die("SECTION DOES NOT EXIST");
 		}
@@ -64,7 +71,7 @@ class AssignmentController extends Controller {
 			die("ASSIGNMENT ID WAS NOT PROVIDED OR FORMATTED PROPERLY");
 		}
 		
-		$assignment_entity = $em->find("AppBundle\Entity\Assignment", $assignmentId);
+		$assignment_entity = $entityManager->find("AppBundle\Entity\Assignment", $assignmentId);
 		if(!assignment_entity){
 			die("ASSIGNMENT DOES NOT EXIST");
 		}
@@ -79,14 +86,14 @@ class AssignmentController extends Controller {
 				die("PROBLEM ID WAS NOT FORMATTED PROPERLY");
 			}
 			
-			$problem_entity = $em->find("AppBundle\Entity\Problem", $problemId);
+			$problem_entity = $entityManager->find("AppBundle\Entity\Problem", $problemId);
 			
 			if(!$problem_entity || $problem_entity->assignment != $assignment_entity){
 				die("PROBLEM DOES NOT EXIST");
 			}
 
 			# get the usersectionrole
-			$qb_usr = $em->createQueryBuilder();
+			$qb_usr = $entityManager->createQueryBuilder();
 			$qb_usr->select('usr')
 				->from('AppBundle\Entity\UserSectionRole', 'usr')
 				->where('usr.user = ?1')
@@ -112,7 +119,7 @@ class AssignmentController extends Controller {
 			
 		}
 		
-		$grader = new Grader($em);		
+		$grader = new Grader($entityManager);		
 		
 		# figure out how many attempts they have left
 		$total_attempts = $problem_entity->total_attempts;
@@ -134,7 +141,7 @@ class AssignmentController extends Controller {
 		}
 		
 		# get the get the best submission so far
-		$qb_accsub = $em->createQueryBuilder();
+		$qb_accsub = $entityManager->createQueryBuilder();
 		$qb_accsub->select('s')
 			->from('AppBundle\Entity\Submission', 's')
 			->where($whereClause)
@@ -147,7 +154,7 @@ class AssignmentController extends Controller {
 		$best_submission = $sub_query->getOneOrNullResult();
 
 		# get the code from the last submissions
-		$qb_allsubs = $em->createQueryBuilder();
+		$qb_allsubs = $entityManager->createQueryBuilder();
 		$qb_allsubs->select('s')
 			->from('AppBundle\Entity\Submission', 's')
 			->where($whereClause)
@@ -159,7 +166,7 @@ class AssignmentController extends Controller {
 		$all_submissions = $subs_query->getResult();
 		
 		# get the user's trial for this problem
-		$qb_trial = $em->createQueryBuilder();
+		$qb_trial = $entityManager->createQueryBuilder();
 		$qb_trial->select('t')
 				->from('AppBundle\Entity\Trial', 't')
 				->where('t.user = ?1')
@@ -173,7 +180,7 @@ class AssignmentController extends Controller {
 		
 		if(isset($_GET["submissionId"]) && $_GET["submissionId"] > 0){
 			
-			$submission = $em->find("AppBundle\Entity\Submission", $_GET["submissionId"]);
+			$submission = $entityManager->find("AppBundle\Entity\Submission", $_GET["submissionId"]);
 			
 			if($submission->user != $user || $submission->problem != $problem_entity){
 				die("You are not allowed to edit this submission on this problem!");
@@ -186,7 +193,7 @@ class AssignmentController extends Controller {
 				$trial->problem = $problem_entity;		
 				$trial->show_description = true;
 				
-				$em->persist($trial);
+				$entityManager->persist($trial);
 			}
 			
 			$trial->file = $submission->submitted_file;						
@@ -197,13 +204,13 @@ class AssignmentController extends Controller {
 			$trial->package_name = $submission->package_name;
 			$trial->last_edit_time = new \DateTime("now");
 			
-			$em->flush();
+			$entityManager->flush();
 			
 			return $this->redirectToRoute('assignment', ['sectionId' => $section_entity->id, 'assignmentId' => $assignment_entity->id, 'problemId' => $problem_entity->id]);
 		}
 		
 		# GET ALL USERS
-		$qb_user = $em->createQueryBuilder();
+		$qb_user = $entityManager->createQueryBuilder();
 		$qb_user->select('usr')
 			->from('AppBundle\Entity\UserSectionRole', 'usr')
 			->where('usr.section = ?1')
@@ -240,7 +247,7 @@ class AssignmentController extends Controller {
 			'user_impersonators' => $section_takers,
 			'languages' => $languages,
 			'usersectionrole' => $usersectionrole,
-			'grader' => new Grader($em),
+			'grader' => new Grader($entityManager),
 			'grades' => $grades,
 			'attempts_remaining' => $attempts_remaining,
 			'best_submission' => $best_submission,
@@ -255,13 +262,13 @@ class AssignmentController extends Controller {
 
     public function editAction($sectionId, $assignmentId) {
 
-		$em = $this->getDoctrine()->getManager();
+		$entityManager = $this->getDoctrine()->getManager();
 		
 		if(!isset($sectionId) || !($sectionId > 0)){
 			die("SECTION ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
 		}
 
-		$section = $em->find('AppBundle\Entity\Section', $sectionId);	
+		$section = $entityManager->find('AppBundle\Entity\Section', $sectionId);	
 		if(!$section){
 			die("SECTION DOES NOT EXIST");
 		}
@@ -276,7 +283,7 @@ class AssignmentController extends Controller {
 		}
 		
 		# validate the user
-		$grader = new Grader($em);
+		$grader = new Grader($entityManager);
 		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN") && !$grader->isTeaching($user, $section) && !$grader->isJudging($user, $section)){
 			die("YOU ARE NOT ALLOWED TO EDIT THIS ASSIGNMENT");			
 		}		
@@ -287,7 +294,7 @@ class AssignmentController extends Controller {
 				die("ASSIGNMENT ID WAS NOT FORMATTED PROPERLY");
 			}
 									
-			$assignment = $em->find('AppBundle\Entity\Assignment', $assignmentId);
+			$assignment = $entityManager->find('AppBundle\Entity\Assignment', $assignmentId);
 			
 			if(!$assignment || $section != $assignment->section){
 				die("Assignment does not exist or does not belong to given section");
@@ -295,8 +302,8 @@ class AssignmentController extends Controller {
 		}
 				
 		# get all the users taking the course
-		$takes_role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));
-		$builder = $em->createQueryBuilder();
+		$takes_role = $entityManager->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));
+		$builder = $entityManager->createQueryBuilder();
 		$builder->select('u')
 			  ->from('AppBundle\Entity\UserSectionRole', 'u')
 			  ->where('u.section = ?1')
@@ -326,14 +333,14 @@ class AssignmentController extends Controller {
 
     public function deleteAction($sectionId, $assignmentId){
 	
-		$em = $this->getDoctrine()->getManager();
+		$entityManager = $this->getDoctrine()->getManager();
 		
 		# get the assignment
 		if(!isset($assignmentId) || !($assigmentId > 0)){
 			die("ASSIGNMENT ID WAS NOT PROVIDED OR FORMATTED PROPERLY");
 		}
 		
-		$assignment = $em->find('AppBundle\Entity\Assignment', $assignmentId);	  
+		$assignment = $entityManager->find('AppBundle\Entity\Assignment', $assignmentId);	  
 		if(!$assignment){
 			die("ASSIGNMENT DOES NOT EXIST");
 		}
@@ -344,20 +351,20 @@ class AssignmentController extends Controller {
 		}
 		
 		# validate the user
-		$grader = new Grader($em);
+		$grader = new Grader($entityManager);
 		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN") && !$grader->isTeaching($user, $assignment->section) && !$grader->isJudging($user, $assignment->section)){
 			die("YOU ARE NOT ALLOWED TO DELETE THIS ASSIGNMENT");			
 		}
 		
-		$em->remove($assignment);
-		$em->flush();
+		$entityManager->remove($assignment);
+		$entityManager->flush();
 		
 		return $this->redirectToRoute('section', ['sectionId' => $assignment->section->id]);
 	}
 	
 	public function modifyPostAction(Request $request) {
 		
-		$em = $this->getDoctrine()->getManager();
+		$entityManager = $this->getDoctrine()->getManager();
 				
 		# validate the current user
 		$user = $this->get('security.token_storage')->getToken()->getUser();
@@ -374,13 +381,13 @@ class AssignmentController extends Controller {
 			return $this->returnForbiddenResponse("SECTION ID WAS NOT PROVIDED OR FORMATTED PROPERLY");
 		}
 		
-		$section = $em->find('AppBundle\Entity\Section', $postData['section']);		
+		$section = $entityManager->find('AppBundle\Entity\Section', $postData['section']);		
 		if(!$section){
 			return $this->returnForbiddenResponse("Section ".$postData['section']." does not exist");
 		}
 		
 		# only super users/admins/teacher can make/edit an assignment
-		$grader = new Grader($em);		
+		$grader = new Grader($entityManager);		
 		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN") && !$grader->isTeaching($user, $section) && !$grader->isJudging($user, $section)){			
 			return $this->returnForbiddenResponse("You do not have permission to make an assignment.");
 		}		
@@ -408,7 +415,7 @@ class AssignmentController extends Controller {
 		# create new assignment
 		if($postData['assignment'] == 0){
 			$assignment = new Assignment();		
-			$em->persist($assignment);
+			$entityManager->persist($assignment);
 			
 		} else {
 			
@@ -416,7 +423,7 @@ class AssignmentController extends Controller {
 				die("ASSIGNMENT ID WAS NOT PROVIDED OR FORMATTED PROPERLY");
 			}
 			
-			$assignment = $em->find('AppBundle\Entity\Assignment', $postData['assignment']);
+			$assignment = $entityManager->find('AppBundle\Entity\Assignment', $postData['assignment']);
 			
 			if(!$assignment || $section != $assignment->section){
 				return $this->returnForbiddenResponse("Assignment ".$postData['assignment']." does not exist for the given section.");
@@ -480,8 +487,8 @@ class AssignmentController extends Controller {
 		$assignment->penalty_per_day = $penalty;		
 	
 		# get all the users taking the course
-		$takes_role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));
-		$builder = $em->createQueryBuilder();
+		$takes_role = $entityManager->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));
+		$builder = $entityManager->createQueryBuilder();
 		$builder->select('u')
 			  ->from('AppBundle\Entity\UserSectionRole', 'u')
 			  ->where('u.section = ?1')
@@ -519,7 +526,7 @@ class AssignmentController extends Controller {
 			// editing a current team
 			if($team_id != 0){
 				
-				$team = $em->find('AppBundle\Entity\Team', $team_id);
+				$team = $entityManager->find('AppBundle\Entity\Team', $team_id);
 
 				if(!$team || $team->assignment != $assignment){
 					return $this->returnForbiddenResponse("Team with id ".$team." does not exist for this assignment");
@@ -530,7 +537,7 @@ class AssignmentController extends Controller {
 				
 				foreach($team_json as $user_id){
 					
-					$temp_user = $em->find('AppBundle\Entity\User', $user_id);
+					$temp_user = $entityManager->find('AppBundle\Entity\User', $user_id);
 
 					if(!$temp_user || !in_array($temp_user, $section_takers)){
 						return $this->returnForbiddenResponse("User with id ".$user_id." does not take this class");
@@ -544,7 +551,7 @@ class AssignmentController extends Controller {
 				}
 				
 				//return $this->returnForbiddenResponse("OLD TEAM: ".$team->name);
-				$em->persist($team);		
+				$entityManager->persist($team);		
 				
 				$mod_teams->add($team->id);
 			} 
@@ -555,7 +562,7 @@ class AssignmentController extends Controller {
 			
 				foreach($team_json as $user_id){
 										
-					$temp_user = $em->find('AppBundle\Entity\User', $user_id);
+					$temp_user = $entityManager->find('AppBundle\Entity\User', $user_id);
 
 					if(!$temp_user || !in_array($temp_user, $section_takers)){
 						return $this->returnForbiddenResponse("User with id ".$user_id." does not take this class");
@@ -568,7 +575,7 @@ class AssignmentController extends Controller {
 					return $this->returnForbiddenResponse($team->name." did not have any users provided");
 				}
 				
-				$em->persist($team);			
+				$entityManager->persist($team);			
 			}
 			
 			$count++;
@@ -579,13 +586,13 @@ class AssignmentController extends Controller {
 			
 			if(!$mod_teams->contains($old->id)){				
 
-				$em->remove($old);	
-				$em->flush();
+				$entityManager->remove($old);	
+				$entityManager->flush();
 			}
 		}
 			
-		$em->persist($assignment);	
-		$em->flush();
+		$entityManager->persist($assignment);	
+		$entityManager->flush();
 		
 		$url = $this->generateUrl('assignment', ['sectionId' => $assignment->section->id, 'assignmentId' => $assignment->id]);
 				
@@ -598,7 +605,7 @@ class AssignmentController extends Controller {
 	
 	public function clearSubmissionsAction(Request $request){
 
-		$em = $this->getDoctrine()->getManager();
+		$entityManager = $this->getDoctrine()->getManager();
 				
 		# validate the current user
 		$user = $this->get('security.token_storage')->getToken()->getUser();
@@ -615,7 +622,7 @@ class AssignmentController extends Controller {
 			return $this->returnForbiddenResponse("Assignment ID was not provided");
 		}
 		
-		$assignment = $em->find('AppBundle\Entity\Assignment', $postData['assignment']);		
+		$assignment = $entityManager->find('AppBundle\Entity\Assignment', $postData['assignment']);		
 		if(!$assignment){
 			return $this->returnForbiddenResponse("Section ".$postData['assignment']." does not exist");
 		}
@@ -623,20 +630,20 @@ class AssignmentController extends Controller {
 		$section = $assignment->section;
 		
 		# only super users/admins/teacher can make/edit an assignment
-		$grader = new Grader($em);		
+		$grader = new Grader($entityManager);		
 		if( !($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isTeaching($user, $section) || $grader->isJudging($user, $section)) ){			
 			return $this->returnForbiddenResponse("You do not have permission to do this.");
 		}
 
 		// delete all submission but keep all of the trials
-		$qb = $em->createQueryBuilder();
+		$qb = $entityManager->createQueryBuilder();
 		$qb->delete('AppBundle\Entity\Submission', 's');
 		$qb->where('s.problem IN (?1)');
 		$qb->setParameter(1, $assignment->problems->toArray());
 
 		$result = $qb->getQuery()->getResult();
 
-		$em->flush();
+		$entityManager->flush();
 
 		$response = new Response(json_encode([
 			"result" => $result,
@@ -650,7 +657,7 @@ class AssignmentController extends Controller {
 
 	public function clearTrialsAction(Request $request){
 
-		$em = $this->getDoctrine()->getManager();
+		$entityManager = $this->getDoctrine()->getManager();
 				
 		# validate the current user
 		$user = $this->get('security.token_storage')->getToken()->getUser();
@@ -667,7 +674,7 @@ class AssignmentController extends Controller {
 			return $this->returnForbiddenResponse("Assignment ID was not provided");
 		}
 		
-		$assignment = $em->find('AppBundle\Entity\Assignment', $postData['assignment']);		
+		$assignment = $entityManager->find('AppBundle\Entity\Assignment', $postData['assignment']);		
 		if(!$assignment){
 			return $this->returnForbiddenResponse("Section ".$postData['assignment']." does not exist");
 		}
@@ -675,20 +682,20 @@ class AssignmentController extends Controller {
 		$section = $assignment->section;
 		
 		# only super users/admins/teacher can make/edit an assignment
-		$grader = new Grader($em);		
+		$grader = new Grader($entityManager);		
 		if( !($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isTeaching($user, $section) || $grader->isJudging($user, $section)) ){			
 			return $this->returnForbiddenResponse("You do not have permission to do this.");
 		}
 
 		// delete all submission but keep all of the trials
-		$qb = $em->createQueryBuilder();
+		$qb = $entityManager->createQueryBuilder();
 		$qb->delete('AppBundle\Entity\Trial', 't');
 		$qb->where('t.problem IN (?1)');
 		$qb->setParameter(1, $assignment->problems->toArray());
 
 		$result = $qb->getQuery()->getResult();
 
-		$em->flush();
+		$entityManager->flush();
 
 		$response = new Response(json_encode([
 			"result" => $result,
