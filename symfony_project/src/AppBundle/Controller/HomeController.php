@@ -51,7 +51,7 @@ class HomeController extends Controller {
 	  
 		$user = $this->userService->getCurrentUser();
 	  	if (!get_class($user)) {
-			  $this->logger->error("HomeController: USER DOES NOT EXIST");
+			  $this->logError("USER DOES NOT EXIST");
 			  return $this->redirectToRoute("user_login");
 		}
 		
@@ -91,6 +91,10 @@ class HomeController extends Controller {
 			"grades" => $grades,
 			"user_impersonators" => $usersToImpersonate
 		]);
-    }
+	}
+	
+	private function logError($message) {
+		$this->logger->error("HomeController: ".$message);
+	}
 }
 ?>

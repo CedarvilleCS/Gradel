@@ -13,7 +13,11 @@ class AssignmentService
 
     public function __construct(ContainerInterface $container) {
         $this->container = $container;
-    }
+	}
+	
+	public function getAssignmentById($entityManager, $assignmentId) {
+		return $entityManager->find("AppBundle\Entity\Assignment", $assignmentId);
+	}
 
     public function getAssignmentsSortedByDueDateForHome($entityManager, $sections) {
         $twoWeeksDate = new DateTime();

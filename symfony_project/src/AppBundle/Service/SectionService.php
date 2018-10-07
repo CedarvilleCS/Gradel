@@ -27,6 +27,10 @@ class SectionService
 		
 		$sectionQuery = $builder->getQuery();
 		return $sectionQuery->getResult();
-    }
+	}
+	
+	public function getSectionById($entityManager, $sectionId) {
+		return $entityManager->find("AppBundle\Entity\Section", $sectionId);
+	}
 }
 ?>
