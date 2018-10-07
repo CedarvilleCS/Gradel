@@ -2,12 +2,16 @@
 
 namespace AppBundle\Controller;
 
+use AppBundle\Constants;
+
 use AppBundle\Entity\User;
 use AppBundle\Entity\Course;
 use AppBundle\Entity\UserSectionRole;
 use AppBundle\Entity\Assignment;
 
-use AppBundle\Service\HomeService;
+use AppBundle\Service\AssignmentService;
+use AppBundle\Service\SectionService;
+use AppBundle\Service\UserSectionRoleService;
 use AppBundle\Service\UserService;
 
 use AppBundle\Utils\Grader;
@@ -25,102 +29,68 @@ use Symfony\Component\HttpFoundation\Request;
 
 class HomeController extends Controller {
 
-	private $home;
+	private $assignmentService;
 	private $logger;
+	private $sectionService;
+	private $userSectionRoleService;
+	private $userService;
 
-	public function __construct(HomeService $home, 
+	public function __construct(AssignmentService $assignmentService,
 								LoggerInterface $logger,
+								SectionService $sectionService,
+								UserSectionRoleService $userSectionRoleService,
 								UserService $userService) {
-		$this->home = $home;
+		$this->assignmentService = $assignmentService;
 		$this->logger = $logger;
+		$this->sectionService = $sectionService;
+		$this->userSectionRoleService = $userSectionRoleService;
 		$this->userService = $userService;
 	}
 	
     public function homeAction() {		
-		$em = $this->getDoctrine()->getManager();
+		$entityManager = $this->getDoctrine()->getManager();
 	  
 		$user = $this->userService->getCurrentUser();
-	  	if(!get_class($user)){
-			die("USER DOES NOT EXIST!");
+	  	if (!get_class($user)) {
+			  $this->logger->error("HomeController: USER DOES NOT EXIST");
+			  return $this->redirectToRoute("user_login");
 		}
 		
-		# get all of the non-deleted sections
-		# they must start in at least 30 days and have ended at most 14 days ago to show up
-		$builder = $em->createQueryBuilder();
-		$builder->select('s')
-			->from('AppBundle\Entity\Section', 's')
-			->where('s.is_deleted = false')
-			->andWhere('s.start_time < ?1')
-			->andWhere('s.end_time > ?2')
-			->setParameter(1, (new DateTime("now"))->add(new DateInterval('P30D')))
-			->setParameter(2, (new DateTime("now"))->sub(new DateInterval('P14D')));
-		
-		$section_query = $builder->getQuery();
-		$sections_active = $section_query->getResult();
+		/* get all of the non-deleted sections
+		   they must start in at least 30 days and have ended at most 14 days ago to show up*/
+		$sectionsActive = $this->sectionService->getNonDeletedSectionsForHome($entityManager);
 	  
-		# get the user section role entities using the user entity and not deleted sections
-		$qb_usr = $em->createQueryBuilder();
-		$qb_usr->select('usr')
-			->from('AppBundle\Entity\UserSectionRole', 'usr')
-			->where('usr.user = ?1')
-			->andWhere('usr.section IN (?2)')
-			->setParameter(1, $user)
-			->setParameter(2, $sections_active);
-
-		$usr_query = $qb_usr->getQuery();
-		$usersectionroles = $usr_query->getResult();
+		/* get the user section role entities using the user entity and active sections */
+		$userSectionRoles = $this->userSectionRoleService->getUserSectionRolesForHome($entityManager, $user, $sectionsActive);
 		
 		$sections = [];
-		$sections_taking = [];
-		$sections_teaching = [];
-		foreach($usersectionroles as $usr){
-			$sections[] = $usr->section->id;
+		$sectionsTaking = [];
+		$sectionsTeaching = [];
+		foreach ($userSectionRoles as $userSectionRole){
+			$sections[] = $userSectionRole->section->id;
 			
-			if($usr->role->role_name == 'Takes'){
-				$sections_taking[] = $usr->section;
-			} else if($usr->role->role_name == 'Teaches' || $usr->role->role_name == 'Judges'){
-				$sections_teaching[] = $usr->section;
+			if ($userSectionRole->role->role_name == Constants::TAKES_ROLE) {
+				$sectionsTaking[] = $userSectionRole->section;
+			} else if ($userSectionRole->role->role_name == Constants::TEACHES_ROLE || 
+			           $userSectionRole->role->role_name == Constants::JUDGES_ROLE) {
+				$sectionsTeaching[] = $userSectionRole->section;
 			}
 		}
 		
-		# get upcoming assignments sorted by due date
-		$twoweeks_date = new DateTime();
-		$twoweeks_date = $twoweeks_date->add(new DateInterval('P2W'));
+		$assignments = $this->assignmentService->getAssignmentsSortedByDueDateForHome($entityManager, $sections);
+		$usersToImpersonate = $this->userService->getUsersToImpersonate($entityManager, $user);
 		
-		$qb_asgn = $em->createQueryBuilder();
-		$qb_asgn->select('a')
-			->from('AppBundle\Entity\Assignment', 'a')
-			->where('a.section IN (?1)')
-			->andWhere('a.end_time > (?2)')
-			->andWhere('a.end_time < (?3)')
-			->setParameter(1, $sections)
-			->setParameter(2, new DateTime())
-			->setParameter(3, $twoweeks_date)
-			->orderBy('a.end_time', 'ASC');
-			
-		$asgn_query = $qb_asgn->getQuery();		
-		$assignments = $asgn_query->getResult();	
-		
-		$qb_users = $em->createQueryBuilder();
-		$qb_users->select('u')
-			->from('AppBundle\Entity\User', 'u')
-			->where('u != ?1')
-			->setParameter(1, $user);
-			
-		$users_query = $qb_users->getQuery();
-		$users = $users_query->getResult();	
-		
-		$grader = new Grader($em);		
+		$grader = new Grader($entityManager);		
 		$grades = $grader->getAllSectionGrades($user);
 		
-		return $this->render('home/index.html.twig', [
-			'user' => $user,
-			'usersectionroles' => $usersectionroles,
-			'assignments' => $assignments,
-			'sections_taking' => $sections_taking,
-			'sections_teaching' => $sections_teaching,
-			'grades' => $grades,
-			'user_impersonators' => $users
+		return $this->render("home/index.html.twig", [
+			"user" => $user,
+			"usersectionroles" => $userSectionRoles,
+			"assignments" => $assignments,
+			"sections_taking" => $sectionsTaking,
+			"sections_teaching" => $sectionsTeaching,
+			"grades" => $grades,
+			"user_impersonators" => $usersToImpersonate
 		]);
     }
 }
