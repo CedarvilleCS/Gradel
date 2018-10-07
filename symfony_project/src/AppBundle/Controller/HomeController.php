@@ -28,7 +28,6 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 
 class HomeController extends Controller {
-
 	private $assignmentService;
 	private $logger;
 	private $sectionService;
