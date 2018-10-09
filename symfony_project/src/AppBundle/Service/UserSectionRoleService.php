@@ -47,6 +47,7 @@ class UserSectionRoleService
 			  ->andWhere("u.role = ?2")
 			  ->setParameter(1, $section)
 			  ->setParameter(2, $takesRole);
+			  
 		$userSectionRoleQuery = $builder->getQuery();
 		return $userSectionRoleQuery->getResult();
 	}

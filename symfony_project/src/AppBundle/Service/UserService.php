@@ -26,5 +26,9 @@ class UserService
 		$impersonatedUsersQuery = $builder->getQuery();
 		return $impersonatedUsersQuery->getResult();	
     }
+
+    public function getUserById($entityManager, $userId) {
+        return $entityManager->find("AppBundle\Entity\User", $userId);
+    }
 }
 ?>

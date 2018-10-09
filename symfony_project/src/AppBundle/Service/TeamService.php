@@ -14,6 +14,10 @@ class TeamService
     public function __construct(ContainerInterface $container) {
         $this->container = $container;
 	}
+
+	public function insertTeam($entityManager, $team) {
+		$entityManager->persist($team);
+	}
 	
 	public function getTeam($entityManager, $user, $assignment) {
 		# get all of the teams
@@ -35,6 +39,10 @@ class TeamService
 			}
 		}
 		return null;
+	}
+
+	public function getTeamById($entityManager, $teamId) {
+		return $entityManager->find("AppBundle\Entity\Team", $teamId);
 	}
 }
 ?>

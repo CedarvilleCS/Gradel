@@ -74,17 +74,17 @@ class AssignmentController extends Controller {
 		
 		$user = $this->userService->getCurrentUser();
 		if (!get_class($user)) {
-			die($this->logError("USER DOES NOT EXIST"));
+			$this->returnForbiddenResponse("USER DOES NOT EXIST");
 	  }
 		
 		// get the section
 		if (!isset($sectionId) || !($sectionId > 0)){
-			die($this->logError("SECTION ID WAS NOT PROVIDED OR FORMATTED PROPERLY"));
+			$this->returnForbiddenResponse("SECTION ID WAS NOT PROVIDED OR FORMATTED PROPERLY");
 		}
 		
 		$section = $this->sectionService->getSectionById($entityManager, $sectionId);
 		if (!$section) {
-			die($this->logError("SECTION DOES NOT EXIST"));
+			$this->returnForbiddenResponse("SECTION ".$sectionId." DOES NOT EXIST");
 		}
 		
 		// REDIRECT TO CONTEST IF NEED BE
@@ -107,12 +107,12 @@ class AssignmentController extends Controller {
 		
 		// get the assignment
 		if (!isset($assignmentId) || !($assignmentId > 0)) {
-			die($this->logError("ASSIGNMENT ID WAS NOT PROVIDED OR FORMATTED PROPERLY"));
+			$this->returnForbiddenResponse("ASSIGNMENT ID WAS NOT PROVIDED OR FORMATTED PROPERLY");
 		}
 		
 		$assignment = $this->assignmentService->getAssignmentById($entityManager, $assignmentId);
 		if (!$assignment) {
-			die($this->logError("ASSIGNMENT DOES NOT EXIST"));
+			$this->returnForbiddenResponse("ASSIGNMENT ".$assignmentId." DOES NOT EXIST");
 		}
 				
 		if ($problemId == 0) {
@@ -124,12 +124,12 @@ class AssignmentController extends Controller {
 		$fileTypes = [];
 		if ($problemId != null) {	
 			if (!($problemId > 0)) {
-				die($this->logError("PROBLEM ID WAS NOT FORMATTED PROPERLY"));
+				$this->returnForbiddenResponse("PROBLEM ID WAS NOT FORMATTED PROPERLY");
 			}
 			
 			$problem = $this->problemService->getProblemById($entityManager, $problemId);
 			if (!$problem || $problem->assignment != $assignment) {
-				die($this->logError("PROBLEM DOES NOT EXIST"));
+				$this->returnForbiddenResponse("PROBLEM ".$problemId." DOES NOT EXIST");
 			}
 			
 			$problemLanguages = $problem->problem_languages;
@@ -177,7 +177,7 @@ class AssignmentController extends Controller {
 			$submission = $this->submissionService->getSubmissionById($submissionId);
 			
 			if ($submission->user != $user || $submission->problem != $problem) {
-				die($this->logError($user->name." is not allowed to edit this submission on this problem"));
+				$this->returnForbiddenResponse($user->name." is not allowed to edit this submission on this problem");
 			}
 						
 			if (!$trial) {
@@ -205,29 +205,29 @@ class AssignmentController extends Controller {
 		// get all userSectionRoles
 		$userSectionRoles = $this->userSectionRoleService->getUserSectionRolesOfSection($entityManager, $section);
 
-		$section_takers = [];
-		$section_teachers = [];
-		$section_helpers = [];
-		$section_judges = [];
+		$sectionTakers = [];
+		$sectionTeachers = [];
+		$sectionHelpers = [];
+		$sectionJudges = [];
 
 		foreach ($userSectionRoles as $usr) {
 			$user = $usr->user;
 			$roleName = $usr->role->role_name;
 			switch ($roleName) {
 				case Constants::HELPS_ROLE:
-					$section_helpers[] = $usr->user;
+					$sectionHelpers[] = $usr->user;
 					break;
 				case Constants::JUDGES_ROLE:
-					$section_judges[] = $usr->user;
+					$sectionJudges[] = $usr->user;
 					break;
 				case Constants::TAKES_ROLE:
-					$section_takers[] = $usr->user;
+					$sectionTakers[] = $usr->user;
 					break;
 				case Constants::TEACHES_ROLE:
-					$section_teachers[] = $usr->user;
+					$sectionTeachers[] = $usr->user;
 					break;
 				default:
-					die($this->logError("ROLE ".$roleName." DOES NOT EXIST ON USER ".$user->getFullName()));
+				$this->returnForbiddenResponse("ROLE ".$roleName." DOES NOT EXIST ON USER ".$user->getFullName());
 			}
 		}
 		
@@ -243,11 +243,11 @@ class AssignmentController extends Controller {
 			"languages" => $languages,
 			"problem" => $problem,
 			"section" => $assignment->section,
-			"section_takers" => $section_takers,
+			"section_takers" => $sectionTakers,
 			"team" => $team,
 			"trial" => $trial,
 			"user" => $user,
-			"user_impersonators" => $section_takers,
+			"user_impersonators" => $sectionTakers,
 			"usersectionrole" => $userSectionRole
 		]);
 	}
@@ -256,12 +256,12 @@ class AssignmentController extends Controller {
 		$entityManager = $this->getDoctrine()->getManager();
 		
 		if (!isset($sectionId) || !($sectionId > 0)) {
-			die($this->logError("SECTION ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY"));
+			$this->returnForbiddenResponse("SECTION ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
 		}
 
 		$section = $this->sectionService->getSectionById($entityManager, $sectionId);
 		if (!$section) {
-			die($this->logError("SECTION DOES NOT EXIST"));
+			$this->returnForbiddenResponse("SECTION ".$sectionId." DOES NOT EXIST");
 		}
 		
 		if ($section->course->is_contest) {
@@ -273,28 +273,28 @@ class AssignmentController extends Controller {
 		
 		$user = $this->userService->getCurrentUser();
 		if (!get_class($user)) {
-			die($this->logError("USER DOES NOT EXIST!"));
+			$this->returnForbiddenResponse("USER DOES NOT EXIST");
 		}
 		
 		// validate the user
 		$grader = new Grader($entityManager);
-		if (!$user->hasRole("ROLE_SUPER") && 
-			!$user->hasRole("ROLE_ADMIN") && 
+		if (!$user->hasRole(CONSTANTS::SUPER_ROLE) && 
+			!$user->hasRole(CONSTANTS::ADMIN_ROLE) && 
 			!$grader->isTeaching($user, $section) && 
 			!$grader->isJudging($user, $section)
 			) {
-			die($this->logError("YOU ARE NOT ALLOWED TO EDIT THIS ASSIGNMENT"));
+			$this->returnForbiddenResponse("YOU ARE NOT ALLOWED TO EDIT THIS ASSIGNMENT");
 		}		
 		
 		if ($assignmentId != 0) {
-			if (!($assignmentId > 0)){
-				die($this->logError("ASSIGNMENT ID WAS NOT FORMATTED PROPERLY"));
+			if (!($assignmentId > 0)) {
+				$this->returnForbiddenResponse("ASSIGNMENT ID WAS NOT FORMATTED PROPERLY");
 			}
 									
 			$assignment = $this->assignmentService->getAssignmentById($entityManager, $assignmentId);
 
 			if (!$assignment || $section != $assignment->section) {
-				die($this->logError("Assignment does not exist or does not belong to given section"));
+				$this->returnForbiddenResponse("ASSIGNMENT ".$assignmentId." DOES NOT EXIST OR DOES NOT BELONG TO SECTION ".$sectionId);
 			}
 		}
 				
@@ -302,7 +302,7 @@ class AssignmentController extends Controller {
 		$sectionTakerRoles = $this->userSectionRoleService->getUserSectionRolesForAssignmentEdit($entityManager, $section);
 
 		$students = [];
-		foreach ($sectionTakerRoles as $sectionTakerRole){
+		foreach ($sectionTakerRoles as $sectionTakerRole) {
 			$user = $sectionTakerRole->user;
 
 			$student = [];
@@ -327,27 +327,27 @@ class AssignmentController extends Controller {
 		
 		// get the assignment
 		if (!isset($assignmentId) || !($assignmentId > 0)) {
-			die($this->logError("ASSIGNMENT ID WAS NOT PROVIDED OR FORMATTED PROPERLY"));
+			$this->returnForbiddenResponse("ASSIGNMENT ID WAS NOT PROVIDED OR FORMATTED PROPERLY");
 		}
 		
 		$assignment = $this->assignmentService->getAssignmentById($entityManager, $assignmentId);
 		if (!$assignment) {
-			die($this->logError("ASSIGNMENT DOES NOT EXIST"));
+			$this->returnForbiddenResponse("ASSIGNMENT ".$assignmentId." DOES NOT EXIST");
 		}
 		
 		$user = $this->userService->getCurrentUser();
 		if (!$user) {
-			die($this->logError("USER DOES NOT EXIST"));
+			$this->returnForbiddenResponse("USER DOES NOT EXIST");
 		}
 		
 		// validate the user
 		$grader = new Grader($entityManager);
-		if (!$user->hasRole("ROLE_SUPER") && 
-			!$user->hasRole("ROLE_ADMIN") && 
+		if (!$user->hasRole(CONSTANTS::SUPER_ROLE) && 
+		    !$user->hasRole(CONSTANTS::ADMIN_ROLE) && 
 			!$grader->isTeaching($user, $assignment->section) && 
 			!$grader->isJudging($user, $assignment->section)
 			) {
-			die($this->logError("YOU ARE NOT ALLOWED TO DELETE THIS ASSIGNMENT"));
+			$this->returnForbiddenResponse("YOU ARE NOT ALLOWED TO DELETE ASSIGNMENT ".$assignmentId);
 		}
 		
 		$this->assignmentService->deleteAssignment($entityManager, $assignment);
@@ -359,13 +359,12 @@ class AssignmentController extends Controller {
 	}
 	
 	public function modifyPostAction(Request $request) {
-		
 		$entityManager = $this->getDoctrine()->getManager();
 				
 		// validate the current user
-		$user = $this->get("security.token_storage")->getToken()->getUser();
-		if(!$user){			
-			return $this->returnForbiddenResponse("You are not a user.");
+		$user = $this->getCurrentUser();
+		if (!$user) {
+			return $this->returnForbiddenResponse("YOU ARE NOT A USER");
 		}
 		
 		// see which fields were included
@@ -373,56 +372,61 @@ class AssignmentController extends Controller {
 		
 		// get the current section
 		// get the assignment
-		if(!isset($postData["section"]) || !($postData["section"] > 0)){
+		if (!isset($postData["section"]) || !($postData["section"] > 0)) {
 			return $this->returnForbiddenResponse("SECTION ID WAS NOT PROVIDED OR FORMATTED PROPERLY");
 		}
 		
-		$section = $entityManager->find("AppBundle\Entity\Section", $postData["section"]);		
-		if(!$section){
-			return $this->returnForbiddenResponse("Section ".$postData["section"]." does not exist");
+		$sectionId = $postData["section"];
+		
+		$section = $this->sectionService->getSectionById($entityManager, $sectionId);
+
+		if (!$section) {
+			return $this->returnForbiddenResponse("SECTION ".$sectionId." DOES NOT EXIST");
 		}
 		
 		// only super users/admins/teacher can make/edit an assignment
 		$grader = new Grader($entityManager);		
-		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN") && !$grader->isTeaching($user, $section) && !$grader->isJudging($user, $section)){			
-			return $this->returnForbiddenResponse("You do not have permission to make an assignment.");
+		if (!$user->hasRole(CONSTANTS::SUPER_ROLE) && 
+			!$user->hasRole(CONSTANTS::ADMIN_ROLE) && 
+			!$grader->isTeaching($user, $section) && 
+			!$grader->isJudging($user, $section)
+			){
+			return $this->returnForbiddenResponse("YOU DO NOT HAVE PERMISSION TO MAKE AN ASSIGNMENT");
 		}		
 		
 		// check mandatory fields
-		if(!isset($postData["name"]) || !isset($postData["open_time"]) || !isset($postData["close_time"]) || !isset($postData["teams"]) || !isset($postData["teamnames"])){
-			return $this->returnForbiddenResponse("Not every required field is provided.");			
-		} else {
-			
-			// validate the weight if there is one
-			if(	is_numeric(trim($postData["weight"])) && 
-				((int)trim($postData["weight"]) < 0 || $postData["weight"] % 1 != 0)){
-					
-				return $this->returnForbiddenResponse("The provided weight ".$postData["weight"]." is not permitted.");
-			}
+		if (!isset($postData["name"]) ||
+			!isset($postData["open_time"]) ||
+			!isset($postData["close_time"]) ||
+			!isset($postData["teams"]) ||
+			!isset($postData["teamnames"])
+			){
+			return $this->returnForbiddenResponse("NOT EVERY REQUIRED FIELD WAS PROVIDED");
+		}
+		// validate the weight if there is one
+		if (is_numeric(trim($postData["weight"])) && ((int)trim($postData["weight"]) < 0 || $postData["weight"] % 1 != 0)) {
+			return $this->returnForbiddenResponse("The provided weight ".$postData["weight"]." is not permitted.");
+		}
 
-			// validate the penalty if there is one
-			if(is_numeric(trim($postData["penalty"])) && 
-				((float)trim($postData["penalty"]) > 1.0 || (float)trim($postData["penalty"]) < 0.0)){
-					
-				return $this->returnForbiddenResponse("The provided penalty ".$postData["penalty"]." is not permitted.");
-			}			
+		// validate the penalty if there is one
+		if(is_numeric(trim($postData["penalty"])) && ((float)trim($postData["penalty"]) > 1.0 || (float)trim($postData["penalty"]) < 0.0)) {		
+			return $this->returnForbiddenResponse("The provided penalty ".$postData["penalty"]." is not permitted.");
 		}		
 		
 		// create new assignment
-		if($postData["assignment"] == 0){
-			$assignment = new Assignment();		
-			$entityManager->persist($assignment);
-			
+		$assignment = null;
+		$assignmentId = $postData["assignment"];
+		if ($postData["assignment"] == 0) {
+			$assignment = $this->assignmentService->createEmptyAssignment($entityManager);
 		} else {
-			
-			if(!isset($postData["assignment"]) || !($postData["assignment"] > 0)){
-				die("ASSIGNMENT ID WAS NOT PROVIDED OR FORMATTED PROPERLY");
+			if (!isset($assignmentId) || !($assignmentId > 0)) {
+				return $this->returnForbiddenResponse("ASSIGNMENT ID WAS NOT PROVIDED OR FORMATTED PROPERLY");
 			}
 			
-			$assignment = $entityManager->find("AppBundle\Entity\Assignment", $postData["assignment"]);
+			$assignment = $this->assignmentService->getAssignmentById($entityManager, $assignmentId);
 			
-			if(!$assignment || $section != $assignment->section){
-				return $this->returnForbiddenResponse("Assignment ".$postData["assignment"]." does not exist for the given section.");
+			if (!$assignment || $section != $assignment->section) {
+				return $this->returnForbiddenResponse("ASSIGNMENT ".$assignmentId." DOES NOT EXIST FOR THE GIVEN SECTION ".$sectionId);
 			}			
 		}
 		
@@ -431,33 +435,30 @@ class AssignmentController extends Controller {
 		$assignment->description = trim($postData["description"]);
 		$assignment->section = $section;
 		
-		// set the times		
+		// set the times
 		$openTime = DateTime::createFromFormat("m/d/Y H:i:s", $postData["open_time"].":00");
 		$closeTime = DateTime::createFromFormat("m/d/Y H:i:s", $postData["close_time"].":00");
 		
-		if(!isset($openTime) || $openTime->format("m/d/Y H:i") != $postData["open_time"]){
-			return $this->returnForbiddenResponse("Provided opening time ".$postData["open_time"]." is not valid.");
+		if (!isset($openTime) || $openTime->format("m/d/Y H:i") != $postData["open_time"]) {
+			return $this->returnForbiddenResponse("PROVIDED OPENING TIME ".$postData["open_time"]." IS NOT VALID");
 		}
 		
-		if(!isset($closeTime) || $closeTime->format("m/d/Y H:i") != $postData["close_time"]){
-			return $this->returnForbiddenResponse("Provided closing time ".$postData["close_time"]." is not valid.");
+		if (!isset($closeTime) || $closeTime->format("m/d/Y H:i") != $postData["close_time"]) {
+			return $this->returnForbiddenResponse("PROVIDED CLOSING TIME ".$postData["close_time"]." IS NOT VALID");
 		}
 		
-		if(isset($postData["cutoff_time"]) && $postData["cutoff_time"] != ""){
-			
+		if (isset($postData["cutoff_time"]) && $postData["cutoff_time"] != "") {	
 			$cutoffTime = DateTime::createFromFormat("m/d/Y H:i:s", $postData["cutoff_time"].":00");
 			
-			if(!isset($cutoffTime) || $cutoffTime->format("m/d/Y H:i") != $postData["cutoff_time"]){
+			if (!isset($cutoffTime) || $cutoffTime->format("m/d/Y H:i") != $postData["cutoff_time"]) {
 				return $this->returnForbiddenResponse("Provided cutoff time ".$postData["cutoff_time"]." is not valid.");
 			}
-			
 		} else {
 			$cutoffTime = $closeTime;
 		}
 		
-		
-		if($cutoffTime < $closeTime || $closeTime < $openTime){
-			return $this->returnForbiddenResponse("Provided times are not valid. The closing time must be after the opening time.");			
+		if ($cutoffTime < $closeTime || $closeTime < $openTime) {
+			return $this->returnForbiddenResponse("PROVIDED TIMES ARE NOT VALID. THE CLOSING TIME MUST BE AFTER THE OPENING TIME.");
 		}
 		
 		$assignment->start_time = $openTime;
@@ -465,132 +466,112 @@ class AssignmentController extends Controller {
 		$assignment->cutoff_time = $cutoffTime;
 		
 		// set the weight
-		if(isset($postData["weight"])){
+		if (isset($postData["weight"])) {
 			$assignment->weight = (int)trim($postData["weight"]);
 		} else {
 			$assignment->weight = 1;
 		}				
-				
+
 		// set extra credit
-		if(isset($postData["is_extra_credit"]) && $postData["is_extra_credit"] == "true"){
+		if (isset($postData["is_extra_credit"]) && $postData["is_extra_credit"] == "true") {
 			$assignment->is_extra_credit = true;
 		} else {			
 			$assignment->is_extra_credit = false;
 		}
 		
 		// set grading penalty
-		$penalty = (float)trim($postData["penalty"]);		
-		$assignment->penalty_per_day = $penalty;		
+		$penalty = (float)trim($postData["penalty"]);
+		$assignment->penalty_per_day = $penalty;
 	
 		// get all the users taking the course
-		$takes_role = $entityManager->getRepository("AppBundle\Entity\Role")->findOneBy(array("role_name" => "Takes"));
-		$builder = $entityManager->createQueryBuilder();
-		$builder->select("u")
-			  ->from("AppBundle\Entity\UserSectionRole", "u")
-			  ->where("u.section = ?1")
-			  ->andWhere("u.role = ?2")
-			  ->setParameter(1, $section)
-			  ->setParameter(2, $takes_role);
-		$query = $builder->getQuery();
-		$sectionTakerRoles = $query->getResult();
+		$sectionTakerRoles = $this->userSectionRoleService->getUserSectionRoleForAssignmentEdit($entityManager, $section);
 		
-		$section_takers = [];
-		foreach($sectionTakerRoles as $str){
-			$section_takers[] = $str->user;
+		$sectionTakers = [];
+		foreach($sectionTakerRoles as $sectionTakerRole){
+			$sectionTakers[] = $sectionTakerRole->user;
 		}
-
 
 		// build teams
-		$teams_json = json_decode($postData["teams"]);
-		$teamnames_json = json_decode($postData["teamnames"]);
-		$teamids_json = json_decode($postData["teamids"]);
+		$teamsJson = json_decode($postData["teams"]);
+		$teamNamesJson = json_decode($postData["teamnames"]);
+		$teamIdsJson = json_decode($postData["teamids"]);
 		
-		if(count($teams_json) != count($teamnames_json)){
-			return $this->returnForbiddenResponse("The number of teamnames does not equal the number of teams");
+		if (count($teamsJson) != count($teamNamesJson)) {
+			return $this->returnForbiddenResponse("THE NUMBER OF TEAMMATES DOES NOT EQUAL THE NUMBER OF TEAMS");
 		}
 
-		$old_teams = $assignment->teams;
-		$mod_teams = new ArrayCollection();
+		$oldTeams = $assignment->teams;
+		$modTeams = new ArrayCollection();
 		
 		$count = 0;
 				
-		foreach($teams_json as $team_json){
-			
-			
-			$team_id = $teamids_json[$count];
+		foreach ($teamsJson as $teamJson) {
+			$teamId = $teamIdsJson[$count];
 
 			// editing a current team
-			if($team_id != 0){
-				
-				$team = $entityManager->find("AppBundle\Entity\Team", $team_id);
+			if ($teamId != 0) {
+				$team = $this->teamService->getTeamById($entityManager, $teamId);
 
-				if(!$team || $team->assignment != $assignment){
-					return $this->returnForbiddenResponse("Team with id ".$team." does not exist for this assignment");
+				if (!$team || $team->assignment != $assignment) {
+					return $this->returnForbiddenResponse("TEAM ".$teamId." DOES NOT EXIST FOR ASSIGNMENT ".$assignmentId);
 				}
 				
-				$team->name = $teamnames_json[$count];				
+				$team->name = $teamNamesJson[$count];
 				$team->users = new ArrayCollection();
 				
-				foreach($team_json as $user_id){
-					
-					$temp_user = $entityManager->find("AppBundle\Entity\User", $user_id);
+				foreach ($teamJson as $userId) {
+					$temp_user = $this->userService->getUserById($entityManager, $userId);
 
-					if(!$temp_user || !in_array($temp_user, $section_takers)){
-						return $this->returnForbiddenResponse("User with id ".$user_id." does not take this class");
+					if (!$temp_user || !in_array($temp_user, $sectionTakers)) {
+						return $this->returnForbiddenResponse("USER ".$userId." DOES NOT TAKE THIS CLASS");
 					}
 
 					$team->users[] = $temp_user;										
 				}
 				
-				if(count($team->users) == 0){
-					return $this->returnForbiddenResponse($team->name." did not have any users provided");
+				if (count($team->users) == 0) {
+					return $this->returnForbiddenResponse($team->name." DID NOT HAVE ANY USERS PROVIDED");
 				}
 				
-				//return $this->returnForbiddenResponse("OLD TEAM: ".$team->name);
-				$entityManager->persist($team);		
-				
-				$mod_teams->add($team->id);
-			} 
-			// new team
-			else {
-								
-				$team = new Team($teamnames_json[$count] , $assignment);
+				$this->teamService->insertTeam($entityManager, $team);
+				$modTeams->add($team->id);
+			} else {
+				$team = new Team($teamNamesJson[$count], $assignment);
 			
-				foreach($team_json as $user_id){
-										
-					$temp_user = $entityManager->find("AppBundle\Entity\User", $user_id);
+				foreach ($teamJson as $userId) {						
+					$temp_user = $this->userService->getUserById($entityManager, $userId);
 
-					if(!$temp_user || !in_array($temp_user, $section_takers)){
-						return $this->returnForbiddenResponse("User with id ".$user_id." does not take this class");
+					if (!$temp_user || !in_array($temp_user, $sectionTakers)) {
+						return $this->returnForbiddenResponse("USER ".$userId." DOES NOT TAKE THIS CLASS");
 					}
 
 					$team->users[] = $temp_user;				
 				}
 				
-				if(count($team->users) == 0){
-					return $this->returnForbiddenResponse($team->name." did not have any users provided");
+				if (count($team->users) == 0) {
+					return $this->returnForbiddenResponse($team->name." DID NOT HAVE ANY USERS PROVIDED");
 				}
 				
-				$entityManager->persist($team);			
+				$this->teamService->insertTeam($team);
 			}
 			
 			$count++;
 		}
 		
 		// remove the old teams that no longer exist
-		foreach($old_teams as $old){			
-			
-			if(!$mod_teams->contains($old->id)){				
-
-				$entityManager->remove($old);	
-				$entityManager->flush();
+		foreach ($oldTeams as $oldTeam){
+			if (!$modTeams->contains($oldTeam->id)) {
+				$this->teamService->deleteTeam($entityManager, $oldTeam);
 			}
 		}
-			
-		$entityManager->persist($assignment);	
-		$entityManager->flush();
+
+		$this->assignmentService->insertTeam($entityManager, $assignment);
 		
-		$url = $this->generateUrl("assignment", ["sectionId" => $assignment->section->id, "assignmentId" => $assignment->id]);
+		$url = $this->generateUrl("assignment", 
+		[
+			"sectionId" => $assignment->section->id, 
+			"assignmentId" => $assignment->id
+		]);
 				
 		$response = new Response(json_encode(array("redirect_url" => $url, "assignment" => $assignment)));
 		$response->headers->set("Content-Type", "application/json");
@@ -712,6 +693,7 @@ class AssignmentController extends Controller {
 	private function returnForbiddenResponse($message){		
 		$response = new Response($message);
 		$response->setStatusCode(Response::HTTP_FORBIDDEN);
+		$this->logError($message);
 		return $response;
 	}
 }

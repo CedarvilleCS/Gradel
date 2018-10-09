@@ -15,6 +15,12 @@ class AssignmentService
         $this->container = $container;
 	}
 
+	public function createEmptyAssignment($entityManager) {
+		$assignment = new Assignment();
+		$entityManager->persist($assignment);
+		return $assignment;
+	}
+
 	public function deleteAssignment($entityManager, $assignment) {
 		$entityManager->remove($assignment);
 		$entityManager->flush();
