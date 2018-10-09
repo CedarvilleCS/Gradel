@@ -362,7 +362,7 @@ class AssignmentController extends Controller {
 		$entityManager = $this->getDoctrine()->getManager();
 				
 		// validate the current user
-		$user = $this->getCurrentUser();
+		$user = $this->userService->getCurrentUser();
 		if (!$user) {
 			return $this->returnForbiddenResponse("YOU ARE NOT A USER");
 		}
@@ -390,7 +390,7 @@ class AssignmentController extends Controller {
 			!$user->hasRole(CONSTANTS::ADMIN_ROLE) && 
 			!$grader->isTeaching($user, $section) && 
 			!$grader->isJudging($user, $section)
-			){
+			) {
 			return $this->returnForbiddenResponse("YOU DO NOT HAVE PERMISSION TO MAKE AN ASSIGNMENT");
 		}		
 		
@@ -405,12 +405,12 @@ class AssignmentController extends Controller {
 		}
 		// validate the weight if there is one
 		if (is_numeric(trim($postData["weight"])) && ((int)trim($postData["weight"]) < 0 || $postData["weight"] % 1 != 0)) {
-			return $this->returnForbiddenResponse("The provided weight ".$postData["weight"]." is not permitted.");
+			return $this->returnForbiddenResponse("THE PROVIDED WEIGHT ".$postData["weight"]." IS NOT PERMITTED");
 		}
 
 		// validate the penalty if there is one
 		if(is_numeric(trim($postData["penalty"])) && ((float)trim($postData["penalty"]) > 1.0 || (float)trim($postData["penalty"]) < 0.0)) {		
-			return $this->returnForbiddenResponse("The provided penalty ".$postData["penalty"]." is not permitted.");
+			return $this->returnForbiddenResponse("THE PROVIDED PENALTY ".$postData["penalty"]." IS NOT PERMITTED");
 		}		
 		
 		// create new assignment
@@ -451,7 +451,7 @@ class AssignmentController extends Controller {
 			$cutoffTime = DateTime::createFromFormat("m/d/Y H:i:s", $postData["cutoff_time"].":00");
 			
 			if (!isset($cutoffTime) || $cutoffTime->format("m/d/Y H:i") != $postData["cutoff_time"]) {
-				return $this->returnForbiddenResponse("Provided cutoff time ".$postData["cutoff_time"]." is not valid.");
+				return $this->returnForbiddenResponse("PROVIDED CUTOFF TIME ".$postData["cutoff_time"]." IS NOT VALID");
 			}
 		} else {
 			$cutoffTime = $closeTime;
@@ -484,7 +484,7 @@ class AssignmentController extends Controller {
 		$assignment->penalty_per_day = $penalty;
 	
 		// get all the users taking the course
-		$sectionTakerRoles = $this->userSectionRoleService->getUserSectionRoleForAssignmentEdit($entityManager, $section);
+		$sectionTakerRoles = $this->userSectionRoleService->getUserSectionRolesForAssignmentEdit($entityManager, $section);
 		
 		$sectionTakers = [];
 		foreach($sectionTakerRoles as $sectionTakerRole){
@@ -573,21 +573,21 @@ class AssignmentController extends Controller {
 			"assignmentId" => $assignment->id
 		]);
 				
-		$response = new Response(json_encode(array("redirect_url" => $url, "assignment" => $assignment)));
-		$response->headers->set("Content-Type", "application/json");
-		$response->setStatusCode(Response::HTTP_OK);
+		$response = new Response(json_encode([
+			"redirect_url" => $url, 
+			"assignment" => $assignment
+		]));
 		
-		return $response;
+		return $this->returnOkResponse($response);
 	}
 	
 	public function clearSubmissionsAction(Request $request){
-
 		$entityManager = $this->getDoctrine()->getManager();
 				
 		// validate the current user
-		$user = $this->get("security.token_storage")->getToken()->getUser();
-		if(!$user){			
-			return $this->returnForbiddenResponse("You are not a user.");
+		$user = $this->userService->getCurrentUser();
+		if (!$user) {
+			return $this->returnForbiddenResponse("YOU ARE NOT A USER");
 		}
 		
 		// see which fields were included
@@ -595,51 +595,44 @@ class AssignmentController extends Controller {
 		
 		// get the current section
 		// get the assignment
-		if(!isset($postData["assignment"])){
-			return $this->returnForbiddenResponse("Assignment ID was not provided");
+		$assignmentId = $postData["assignment"];
+		if (!isset($assignmentId)) {
+			return $this->returnForbiddenResponse("ASSIGNMENT ID WAS NOT PROVIDED");
 		}
 		
-		$assignment = $entityManager->find("AppBundle\Entity\Assignment", $postData["assignment"]);		
-		if(!$assignment){
-			return $this->returnForbiddenResponse("Section ".$postData["assignment"]." does not exist");
+		$assignment = $this->assignmentService->getAssignmentById($entityManager, $assignmentId);
+		if (!$assignment) {
+			return $this->returnForbiddenResponse("ASSIGNMENT ".$assignmentId." DOES NOT EXIST");
 		}
 
 		$section = $assignment->section;
 		
 		// only super users/admins/teacher can make/edit an assignment
 		$grader = new Grader($entityManager);		
-		if( !($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isTeaching($user, $section) || $grader->isJudging($user, $section)) ){			
-			return $this->returnForbiddenResponse("You do not have permission to do this.");
+		if (!$user->hasRole(CONSTANTS::SUPER_ROLE) &&
+			!$user->hasRole(CONSTANTS::ADMIN_ROLE) && 
+			!$grader->isTeaching($user, $section) && 
+			!$grader->isJudging($user, $section)
+			) {
+			return $this->returnForbiddenResponse("YOU DO NOT HAVE PERMISSION TO DO THIS");
 		}
 
 		// delete all submission but keep all of the trials
-		$qb = $entityManager->createQueryBuilder();
-		$qb->delete("AppBundle\Entity\Submission", "s");
-		$qb->where("s.problem IN (?1)");
-		$qb->setParameter(1, $assignment->problems->toArray());
-
-		$result = $qb->getQuery()->getResult();
-
-		$entityManager->flush();
-
+		$result = $this->submissionService->deleteAllSubmissionsForAssignmentClearSubmissions($entityManager, $assignment->problems->toArray());
 		$response = new Response(json_encode([
 			"result" => $result,
 		]));
 
-		$response->headers->set("Content-Type", "application/json");
-		$response->setStatusCode(Response::HTTP_OK);
-		
-		return $response;				
+		return $this->returnOkResponse($response);	
 	}
 
 	public function clearTrialsAction(Request $request){
-
 		$entityManager = $this->getDoctrine()->getManager();
 				
 		// validate the current user
-		$user = $this->get("security.token_storage")->getToken()->getUser();
-		if(!$user){			
-			return $this->returnForbiddenResponse("You are not a user.");
+		$user = $this->userService->getCurrentUser();
+		if (!$user) {
+			return $this->returnForbiddenResponse("YOU ARE NOT A USER");
 		}
 		
 		// see which fields were included
@@ -647,41 +640,35 @@ class AssignmentController extends Controller {
 		
 		// get the current section
 		// get the assignment
-		if(!isset($postData["assignment"])){
-			return $this->returnForbiddenResponse("Assignment ID was not provided");
+		$assignmentId = $postData["assignment"];
+		if (!isset($assignmentId)) {
+			return $this->returnForbiddenResponse("ASSIGNMENT ID WAS NOT PROVIDED");
 		}
 		
-		$assignment = $entityManager->find("AppBundle\Entity\Assignment", $postData["assignment"]);		
-		if(!$assignment){
-			return $this->returnForbiddenResponse("Section ".$postData["assignment"]." does not exist");
+		$assignment = $this->assignmentService->getAssignmentById($entityManager, $assignmentId);
+		if (!$assignment) {
+			return $this->returnForbiddenResponse("ASSIGNMENT ".$assignmentId." DOES NOT EXIST");
 		}
 
 		$section = $assignment->section;
 		
 		// only super users/admins/teacher can make/edit an assignment
 		$grader = new Grader($entityManager);		
-		if( !($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isTeaching($user, $section) || $grader->isJudging($user, $section)) ){			
-			return $this->returnForbiddenResponse("You do not have permission to do this.");
+		if (!$user->hasRole(CONSTANTS::SUPER_ROLE) && 
+			!$user->hasRole(CONSTANTS::ADMIN_ROLE) &&
+			!$grader->isTeaching($user, $section) && 
+			!$grader->isJudging($user, $section)
+			) {			
+			return $this->returnForbiddenResponse("YOU DO NOT HAVE PERMISSION TO DO THIS");
 		}
 
-		// delete all submission but keep all of the trials
-		$qb = $entityManager->createQueryBuilder();
-		$qb->delete("AppBundle\Entity\Trial", "t");
-		$qb->where("t.problem IN (?1)");
-		$qb->setParameter(1, $assignment->problems->toArray());
-
-		$result = $qb->getQuery()->getResult();
-
-		$entityManager->flush();
-
+		// delete all submissions but keep all of the trials
+		$result = $this->submissionService->deleteAllSubmissionsForAssignmentClearSubmissions($entityManager, $assignment->problems->toArray());
 		$response = new Response(json_encode([
 			"result" => $result,
 		]));
-
-		$response->headers->set("Content-Type", "application/json");
-		$response->setStatusCode(Response::HTTP_OK);
 		
-		return $response;				
+		return $this->returnOkResponse($response);		
 	}
 	
 	private function logError($message) {
@@ -694,6 +681,12 @@ class AssignmentController extends Controller {
 		$response = new Response($message);
 		$response->setStatusCode(Response::HTTP_FORBIDDEN);
 		$this->logError($message);
+		return $response;
+	}
+
+	private function returnOkResponse($response) {
+		$response->headers->set("Content-Type", "application/json");
+		$response->setStatusCode(Response::HTTP_OK);
 		return $response;
 	}
 }

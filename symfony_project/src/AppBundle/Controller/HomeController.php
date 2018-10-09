@@ -24,7 +24,9 @@ use \DateInterval;
 use Psr\Log\LoggerInterface;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
+
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 
 class HomeController extends Controller {
@@ -51,7 +53,7 @@ class HomeController extends Controller {
 	  
 		$user = $this->userService->getCurrentUser();
 	  	if (!get_class($user)) {
-			die($this->logError("USER DOES NOT EXIST"));
+			return $this->returnForbiddenResponse("USER DOES NOT EXIST");
 		}
 		
 		/* get all of the non-deleted sections
@@ -90,6 +92,13 @@ class HomeController extends Controller {
 			"grades" => $grades,
 			"user_impersonators" => $usersToImpersonate
 		]);
+	}
+
+	private function returnForbiddenResponse($message){		
+		$response = new Response($message);
+		$response->setStatusCode(Response::HTTP_FORBIDDEN);
+		$this->logError($message);
+		return $response;
 	}
 	
 	private function logError($message) {

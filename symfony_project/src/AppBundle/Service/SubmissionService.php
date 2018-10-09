@@ -14,6 +14,18 @@ class SubmissionService
     public function __construct(ContainerInterface $container) {
         $this->container = $container;
 	}
+
+	public function deleteAllSubmissionsForAssignmentClearSubmissions($entityManager, $problems) {
+		$builder = $entityManager->createQueryBuilder();
+		$builder->delete("AppBundle\Entity\Submission", "s")
+		        ->where("s.problem IN (?1)")
+		        ->setParameter(1, $problems);
+
+		$deleteQuery = $builder->getQuery();
+		$result = $deleteQuery->getResult();
+		$entityManager->flush();
+		return $result;
+	}
 	
 	public function getBestSubmissionForAssignment($entityManager, $teamOrUser, $whereClause, $problem) {
 		# get the best submission so far

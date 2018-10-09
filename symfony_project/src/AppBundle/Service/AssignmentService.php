@@ -18,7 +18,13 @@ class AssignmentService
 	public function createEmptyAssignment($entityManager) {
 		$assignment = new Assignment();
 		$entityManager->persist($assignment);
+		$entityManager->flush();
 		return $assignment;
+	}
+
+	public function insertTeam($entityManager, $assignment) {
+		$entityManager->persist($assignment);
+		$entityManager->flush();
 	}
 
 	public function deleteAssignment($entityManager, $assignment) {
