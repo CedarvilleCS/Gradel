@@ -37,6 +37,19 @@ class UserSectionRoleService
 		$userSectionRoleQuery = $builder->getQuery();
 		return $userSectionRoleQuery->getOneOrNullResult();
 	}
+
+	public function getUserSectionRolesForAssignmentEdit($entityManager, $section) {
+        $takesRole = $entityManager->getRepository("AppBundle\Entity\Role")->findOneBy(array("role_name" => "Takes"));
+		$builder = $entityManager->createQueryBuilder();
+		$builder->select("u")
+			  ->from("AppBundle\Entity\UserSectionRole", "u")
+			  ->where("u.section = ?1")
+			  ->andWhere("u.role = ?2")
+			  ->setParameter(1, $section)
+			  ->setParameter(2, $takesRole);
+		$userSectionRoleQuery = $builder->getQuery();
+		return $userSectionRoleQuery->getResult();
+	}
 	
 	public function getUserSectionRolesOfSection($entityManager, $section) {
 		$builder = $entityManager->createQueryBuilder();

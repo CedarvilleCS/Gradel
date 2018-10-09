@@ -147,7 +147,10 @@ class AssignmentController extends Controller {
 		// figure out how many attempts they have left
 		$totalAttempts = $problem->total_attempts;
 		$attemptsRemaining = -1;
-		if ($totalAttempts != 0 && !$grader->isTeaching($user, $assignment->section) && !$grader->isJudging($user, $assignment->section)) {
+		if ($totalAttempts != 0 && 
+			!$grader->isTeaching($user, $assignment->section) && 
+			!$grader->isJudging($user, $assignment->section)
+			) {
 			$attemptsRemaining = max($totalAttempts - $grader->getNumTotalAttempts($user, $problem), 0);
 		}
 		
@@ -247,69 +250,65 @@ class AssignmentController extends Controller {
 			"user_impersonators" => $section_takers,
 			"usersectionrole" => $userSectionRole
 		]);
-
 	}
 
     public function editAction($sectionId, $assignmentId) {
-
 		$entityManager = $this->getDoctrine()->getManager();
 		
-		if(!isset($sectionId) || !($sectionId > 0)){
-			die("SECTION ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
+		if (!isset($sectionId) || !($sectionId > 0)) {
+			die($this->logError("SECTION ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY"));
 		}
 
-		$section = $entityManager->find("AppBundle\Entity\Section", $sectionId);	
-		if(!$section){
-			die("SECTION DOES NOT EXIST");
+		$section = $this->sectionService->getSectionById($entityManager, $sectionId);
+		if (!$section) {
+			die($this->logError("SECTION DOES NOT EXIST"));
 		}
 		
-		if($section->course->is_contest){
-			return $this->returnForbiddenResponse("contest_edit", ["contestId" => $sectionId]);
+		if ($section->course->is_contest) {
+			return $this->returnForbiddenResponse("contest_edit", 
+			[
+				"contestId" => $sectionId
+			]);
 		}
 		
-		$user = $this->get("security.token_storage")->getToken()->getUser();  	  
-		if(!get_class($user)){
-			die("USER DOES NOT EXIST!");		  
+		$user = $this->userService->getCurrentUser();
+		if (!get_class($user)) {
+			die($this->logError("USER DOES NOT EXIST!"));
 		}
 		
 		// validate the user
 		$grader = new Grader($entityManager);
-		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN") && !$grader->isTeaching($user, $section) && !$grader->isJudging($user, $section)){
-			die("YOU ARE NOT ALLOWED TO EDIT THIS ASSIGNMENT");			
+		if (!$user->hasRole("ROLE_SUPER") && 
+			!$user->hasRole("ROLE_ADMIN") && 
+			!$grader->isTeaching($user, $section) && 
+			!$grader->isJudging($user, $section)
+			) {
+			die($this->logError("YOU ARE NOT ALLOWED TO EDIT THIS ASSIGNMENT"));
 		}		
 		
-		if($assignmentId != 0){
-			
-			if(!($assignmentId > 0)){
-				die("ASSIGNMENT ID WAS NOT FORMATTED PROPERLY");
+		if ($assignmentId != 0) {
+			if (!($assignmentId > 0)){
+				die($this->logError("ASSIGNMENT ID WAS NOT FORMATTED PROPERLY"));
 			}
 									
-			$assignment = $entityManager->find("AppBundle\Entity\Assignment", $assignmentId);
-			
-			if(!$assignment || $section != $assignment->section){
-				die("Assignment does not exist or does not belong to given section");
+			$assignment = $this->assignmentService->getAssignmentById($entityManager, $assigmentId);
+
+			if (!$assignment || $section != $assignment->section) {
+				die($this->logError("Assignment does not exist or does not belong to given section"));
 			}
 		}
 				
 		// get all the users taking the course
-		$takes_role = $entityManager->getRepository("AppBundle\Entity\Role")->findOneBy(array("role_name" => "Takes"));
-		$builder = $entityManager->createQueryBuilder();
-		$builder->select("u")
-			  ->from("AppBundle\Entity\UserSectionRole", "u")
-			  ->where("u.section = ?1")
-			  ->andWhere("u.role = ?2")
-			  ->setParameter(1, $section)
-			  ->setParameter(2, $takes_role);
-		$query = $builder->getQuery();
-		$section_taker_roles = $query->getResult();
+		$sectionTakerRoles = $this->userSectionRoleService->getUserSectionRolesForAssignmentEdit($entityManager, $section);
 
 		$students = [];
-		foreach($section_taker_roles as $usr){
+		foreach ($sectionTakerRoles as $sectionTakerRole){
+			$user = $sectionTakerRole->user;
+
 			$student = [];
-			
-			$student["id"] = $usr->user->id;
-			$student["name"] = $usr->user->getFirstName()." ".$usr->user->getLastName();
-			
+			$student["id"] = $user->id;
+			$student["name"] = $user->getFullName();
+
 			$students[] = $student;
 		}
 
@@ -317,12 +316,12 @@ class AssignmentController extends Controller {
 			"assignment" => $assignment,
 			"section" => $section,
 			"edit" => true,
-			"students" => $students,
+			"students" => $students
 		]);
     }
 
     public function deleteAction($sectionId, $assignmentId){
-	
+
 		$entityManager = $this->getDoctrine()->getManager();
 		
 		// get the assignment
@@ -486,10 +485,10 @@ class AssignmentController extends Controller {
 			  ->setParameter(1, $section)
 			  ->setParameter(2, $takes_role);
 		$query = $builder->getQuery();
-		$section_taker_roles = $query->getResult();
+		$sectionTakerRoles = $query->getResult();
 		
 		$section_takers = [];
-		foreach($section_taker_roles as $str){
+		foreach($sectionTakerRoles as $str){
 			$section_takers[] = $str->user;
 		}
 
