@@ -51,8 +51,7 @@ class HomeController extends Controller {
 	  
 		$user = $this->userService->getCurrentUser();
 	  	if (!get_class($user)) {
-			  $this->logError("USER DOES NOT EXIST");
-			  return $this->redirectToRoute("user_login");
+			die($this->logError("USER DOES NOT EXIST"));
 		}
 		
 		/* get all of the non-deleted sections
@@ -94,7 +93,9 @@ class HomeController extends Controller {
 	}
 	
 	private function logError($message) {
-		$this->logger->error("HomeController: ".$message);
+		$errorMessage = "HomeController: ".$message;
+		$this->logger->error($errorMessage);
+		return $errorMessage;
 	}
 }
 ?>

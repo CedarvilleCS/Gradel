@@ -74,20 +74,17 @@ class AssignmentController extends Controller {
 		
 		$user = $this->userService->getCurrentUser();
 		if (!get_class($user)) {
-			$this->logError("USER DOES NOT EXteamServiceST");
-			return $this->redirectToRoute("usteamServicer_login");
+			die($this->logError("USER DOES NOT EXIST"));
 	  }
 		
 		// get the section
 		if (!isset($sectionId) || !($sectionId > 0)){
-			$this->logError("SECTION ID WAS NOT PROVIDED OR FORMATTED PROPERLY");
-			return $this->redirectToRoute("homepage");
+			die($this->logError("SECTION ID WAS NOT PROVIDED OR FORMATTED PROPERLY"));
 		}
 		
 		$section = $this->sectionService->getSectionById($entityManager, $sectionId);
 		if (!$section) {
-			$this->logError("SECTION DOES NOT EXIST");
-			return $this->redirectToRoute("homepage");
+			die($this->logError("SECTION DOES NOT EXIST"));
 		}
 		
 		// REDIRECT TO CONTEST IF NEED BE
@@ -110,14 +107,12 @@ class AssignmentController extends Controller {
 		
 		// get the assignment
 		if (!isset($assignmentId) || !($assignmentId > 0)) {
-			$this->logError("ASSIGNMENT ID WAS NOT PROVIDED OR FORMATTED PROPERLY");
-			return $this->redirectToRoute("homepage");
+			die($this->logError("ASSIGNMENT ID WAS NOT PROVIDED OR FORMATTED PROPERLY"));
 		}
 		
 		$assignment = $this->assignmentService->getAssignmentById($entityManager, $assignmentId);
 		if (!$assignment) {
-			$this->logError("ASSIGNMENT DOES NOT EXIST");
-			return $this->redirectToRoute("homepage");
+			die($this->logError("ASSIGNMENT DOES NOT EXIST"));
 		}
 				
 		if ($problemId == 0) {
@@ -129,14 +124,12 @@ class AssignmentController extends Controller {
 		$fileTypes = [];
 		if ($problemId != null) {	
 			if (!($problemId > 0)) {
-				$this->logError("PROBLEM ID WAS NOT FORMATTED PROPERLY");
-				return $this->redirectToRoute("homepage");
+				die($this->logError("PROBLEM ID WAS NOT FORMATTED PROPERLY"));
 			}
 			
 			$problem = $this->problemService->getProblemById($entityManager, $problemId);
 			if (!$problem || $problem->assignment != $assignment) {
-				$this->logError("PROBLEM DOES NOT EXIST");
-				return $this->redirectToRoute("homepage");
+				die($this->logError("PROBLEM DOES NOT EXIST"));
 			}
 			
 			$problemLanguages = $problem->problem_languages;
@@ -181,8 +174,7 @@ class AssignmentController extends Controller {
 			$submission = $this->submissionService->getSubmissionById($submissionId);
 			
 			if ($submission->user != $user || $submission->problem != $problem) {
-				$this->logError($user->name." is not allowed to edit this submission on this problem");
-				$this->redirectToRoute("homepage");
+				die($this->logError($user->name." is not allowed to edit this submission on this problem"));
 			}
 						
 			if (!$trial) {
@@ -232,8 +224,7 @@ class AssignmentController extends Controller {
 					$section_teachers[] = $usr->user;
 					break;
 				default:
-					$this->logError("ROLE ".$roleName." DOES NOT EXIST");
-					return $this->redirectToRoute("homepage");
+					die($this->logError("ROLE ".$roleName." DOES NOT EXIST ON USER ".$user->getFullName()));
 			}
 		}
 		
@@ -245,7 +236,7 @@ class AssignmentController extends Controller {
 			"best_submission" => $bestSubmission,
 			"filetypes" => $fileTypes,
 			"grader" => $grader,
-			"grades" => $grades,
+			"grades" => null,
 			"languages" => $languages,
 			"problem" => $problem,
 			"section" => $assignment->section,
@@ -707,7 +698,9 @@ class AssignmentController extends Controller {
 	}
 	
 	private function logError($message) {
-		$this->logger->error("AssignmentController: ".$message);
+		$errorMessage = "AssignmentController: ".$message;
+		$this->logger->error($errorMessage);
+		return $errorMessage;
 	}
 	
 	private function returnForbiddenResponse($message){		
