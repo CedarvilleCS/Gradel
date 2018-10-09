@@ -291,7 +291,7 @@ class AssignmentController extends Controller {
 				die($this->logError("ASSIGNMENT ID WAS NOT FORMATTED PROPERLY"));
 			}
 									
-			$assignment = $this->assignmentService->getAssignmentById($entityManager, $assigmentId);
+			$assignment = $this->assignmentService->getAssignmentById($entityManager, $assignmentId);
 
 			if (!$assignment || $section != $assignment->section) {
 				die($this->logError("Assignment does not exist or does not belong to given section"));
@@ -321,34 +321,41 @@ class AssignmentController extends Controller {
     }
 
     public function deleteAction($sectionId, $assignmentId){
-
 		$entityManager = $this->getDoctrine()->getManager();
+
+		$this->logError("AssignmentID: ".$assignmentId);
 		
 		// get the assignment
-		if(!isset($assignmentId) || !($assigmentId > 0)){
-			die("ASSIGNMENT ID WAS NOT PROVIDED OR FORMATTED PROPERLY");
+		if (!isset($assignmentId) || !($assignmentId > 0)) {
+			die($this->logError("ASSIGNMENT ID WAS NOT PROVIDED OR FORMATTED PROPERLY"));
 		}
 		
-		$assignment = $entityManager->find("AppBundle\Entity\Assignment", $assignmentId);	  
-		if(!$assignment){
-			die("ASSIGNMENT DOES NOT EXIST");
+		$assignment = $this->assignmentService->getAssignmentById($entityManager, $assignmentId);
+		if (!$assignment) {
+			die($this->logError("ASSIGNMENT DOES NOT EXIST"));
 		}
 		
-		$user = $this->get("security.token_storage")->getToken()->getUser();
-		if(!$user){
-			die("USER DOES NOT EXIST");
+		$user = $this->userService->getCurrentUser();
+		if (!$user) {
+			die($this->logError("USER DOES NOT EXIST"));
 		}
 		
 		// validate the user
 		$grader = new Grader($entityManager);
-		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN") && !$grader->isTeaching($user, $assignment->section) && !$grader->isJudging($user, $assignment->section)){
-			die("YOU ARE NOT ALLOWED TO DELETE THIS ASSIGNMENT");			
+		if (!$user->hasRole("ROLE_SUPER") && 
+			!$user->hasRole("ROLE_ADMIN") && 
+			!$grader->isTeaching($user, $assignment->section) && 
+			!$grader->isJudging($user, $assignment->section)
+			) {
+			die($this->logError("YOU ARE NOT ALLOWED TO DELETE THIS ASSIGNMENT"));
 		}
 		
-		$entityManager->remove($assignment);
-		$entityManager->flush();
+		$this->assignmentService->deleteAssignment($entityManager, $assignment);
 		
-		return $this->redirectToRoute("section", ["sectionId" => $assignment->section->id]);
+		return $this->redirectToRoute("section", 
+		[
+			"sectionId" => $assignment->section->id
+		]);
 	}
 	
 	public function modifyPostAction(Request $request) {

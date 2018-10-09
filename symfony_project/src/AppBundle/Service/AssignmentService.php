@@ -14,6 +14,11 @@ class AssignmentService
     public function __construct(ContainerInterface $container) {
         $this->container = $container;
 	}
+
+	public function deleteAssignment($entityManager, $assignment) {
+		$entityManager->remove($assignment);
+		$entityManager->flush();
+	}
 	
 	public function getAssignmentById($entityManager, $assignmentId) {
 		return $entityManager->find("AppBundle\Entity\Assignment", $assignmentId);
