@@ -552,7 +552,7 @@ class AssignmentController extends Controller {
 					return $this->returnForbiddenResponse($team->name." DID NOT HAVE ANY USERS PROVIDED");
 				}
 				
-				$this->teamService->insertTeam($team);
+				$this->teamService->insertTeam($entityManager, $team);
 			}
 			
 			$count++;

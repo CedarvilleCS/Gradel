@@ -4,6 +4,8 @@ namespace AppBundle\Service;
 
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
+use AppBundle\Entity\Assignment;
+
 use \DateTime;
 use \DateInterval;
 
@@ -18,7 +20,6 @@ class AssignmentService
 	public function createEmptyAssignment($entityManager) {
 		$assignment = new Assignment();
 		$entityManager->persist($assignment);
-		$entityManager->flush();
 		return $assignment;
 	}
 
