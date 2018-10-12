@@ -19,18 +19,21 @@ nav.nav-left .large-link {
     font-weight: bold;
 }
 
-nav.nav-left .nav-section {
-    display: flex;
-    align-items: center;
+nav.nav-left .nav-chevron-title-container {
+    display: grid;
+    grid-template-columns: 25px auto;
 }
 
 nav.nav-left .nav-chevron {
     height: 25px;
     width: 25px;
+    cursor: pointer;
 }
 
-nav.nav-left .nav-assignment {
+nav.nav-left .nav-assignment,
+nav.nav-left .nav-problem {
     padding-left: 40px;
+    display: none;
 }
 
 nav.nav-left a {

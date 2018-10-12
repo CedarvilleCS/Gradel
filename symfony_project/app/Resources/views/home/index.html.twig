@@ -29,7 +29,7 @@
 								<a href="{{path('section', {'sectionId':section.id})}}">{{section.course.code}}</a>
 							</div>
 							{% set oldDate = '' %}
-							{% for asgn in assignments %}
+							{% for asgn in section.assignments %}
 								{% set newDate = asgn.end_time|date('m/d/Y') %}
 								{% set oldDate = newDate %}
 								<div class="section-card-content">
@@ -48,7 +48,7 @@
 								<a href="{{path('section', {'sectionId':section.id})}}">{{section.course.code}}</a>
 							</div>
 							{% set oldDate = '' %}
-							{% for asgn in assignments %}
+							{% for asgn in section.assignments %}
 								{% set newDate = asgn.end_time|date('m/d/Y') %}
 								{% set oldDate = newDate %}
 								<div class="section-card-content">

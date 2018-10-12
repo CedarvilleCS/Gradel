@@ -17,13 +17,30 @@
 		{% if sections_taking|length > 0 %}
 			{% for section in sections_taking %}
 				<div class="section-nav-container">
-					<div class="nav-section">
-						<img class="nav-chevron" src="{{asset('images/white_expand_more.png')}}" />
-						<a href="{{path('section', {'sectionId':section.id})}}">{{section.course.code}}</a>
+					<div>
+						<div class="nav-chevron-title-container">
+							{% if section.assignments|length > 0 %}
+								<img class="nav-chevron" onclick="chevronClick(this, 'section-{{ section.id }}')" src="{{asset('images/white_chevron.png')}}" />
+							{% endif %}
+							<a href="{{path('section', {'sectionId':section.id})}}">{{section.course.code}}</a>
+						</div>
+						{% for assignment in section.assignments %}
+							<div class="nav-assignment section-{{ section.id }}">
+								<div class="nav-chevron-title-container">
+									{% if assignment.problems|length > 0 %}
+										<img class="nav-chevron" onclick="chevronClick(this, 'assignment-{{ assignment.id }}')" src="{{asset('images/white_chevron.png')}}" />
+									{% else %}
+										{# empty div here for grid to align things correctly #}
+										<div></div>
+									{% endif %}
+									<a href="{{path('assignment', {'sectionId':assignment.section.id, 'assignmentId':assignment.id})}}">{{assignment.name}}</a>
+								</div>
+								{% for problem in assignment.problems %}
+									<div class="nav-problem assignment-{{ assignment.id }}"><a href="{{path('assignment', {'sectionId':assignment.section.id, 'assignmentId':assignment.id, 'problemId':problem.id})}}">{{problem.name}}</a></div>
+								{% endfor %}
+							</div>
+						{% endfor %}				
 					</div>
-					{% for assignment in section.assignments %}
-						<div class="nav-assignment"><a href="{{path('assignment', {'sectionId':assignment.section.id, 'assignmentId':assignment.id})}}">{{assignment.name}}</a></div>
-					{% endfor %}				
 				</div>
 			{% endfor %}
 		{% endif %}
@@ -32,13 +49,30 @@
 		{% if sections_teaching|length > 0 %}
 			{% for section in sections_teaching %}
 				<div class="section-nav-container">
-					<div class="nav-section">
-						<img class="nav-chevron" src="{{asset('images/white_expand_more.png')}}" />
-						<a href="{{path('section', {'sectionId':section.id})}}">{{section.course.code}}</a>
-					</div>
-					{% for assignment in section.assignments %}
-						<div class="nav-assignment"><a href="{{path('assignment', {'sectionId':assignment.section.id, 'assignmentId':assignment.id})}}">{{assignment.name}}</a></div>
-					{% endfor %}				
+					<div>
+						<div class="nav-chevron-title-container">
+							{% if section.assignments|length > 0 %}
+								<img class="nav-chevron" onclick="chevronClick(this, 'section-{{ section.id }}')" src="{{asset('images/white_chevron.png')}}" />
+							{% endif %}
+							<a href="{{path('section', {'sectionId':section.id})}}">{{section.course.code}}</a>
+						</div>
+						{% for assignment in section.assignments %}
+							<div class="nav-assignment section-{{ section.id }}">
+								<div class="nav-chevron-title-container">
+									{% if assignment.problems|length > 0 %}
+										<img class="nav-chevron" onclick="chevronClick(this, 'assignment-{{ assignment.id }}')" src="{{asset('images/white_chevron.png')}}" />
+									{% else %}
+										{# empty div here for grid to align things correctly #}
+										<div></div>
+									{% endif %}
+									<a href="{{path('assignment', {'sectionId':assignment.section.id, 'assignmentId':assignment.id})}}">{{assignment.name}}</a>
+								</div>
+								{% for problem in assignment.problems %}
+									<div class="nav-problem assignment-{{ assignment.id }}"><a href="{{path('assignment', {'sectionId':assignment.section.id, 'assignmentId':assignment.id, 'problemId':problem.id})}}">{{problem.name}}</a></div>
+								{% endfor %}
+							</div>
+						{% endfor %}
+					</div>			
 				</div>
 			{% endfor %}
 		{% endif %}
@@ -50,3 +84,7 @@
 </nav>
 
 {% endif %}
+
+{% block scripts %}
+	<script src="{{ asset('js/section-nav.js') }}"></script>
+{% endblock %}

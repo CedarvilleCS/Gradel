@@ -12,7 +12,7 @@ html, body {
 body {
     display: grid;
     grid-template-rows: 50px auto;
-    grid-template-columns: 150px auto;
+    grid-template-columns: 16% auto;
     grid-template-areas:
         "topnav topnav"
         "nav-left main";
