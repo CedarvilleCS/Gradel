@@ -17,7 +17,7 @@ class TrialService
         $this->container = $container;
 	}
 
-	public function createTrial($user, $problem, $showDescription) {
+	public function createTrial($entityManager, $user, $problem, $showDescription) {
 		$trial = new Trial();
 
 		$trial->user = $user;

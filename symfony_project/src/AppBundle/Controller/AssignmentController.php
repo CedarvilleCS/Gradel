@@ -181,7 +181,7 @@ class AssignmentController extends Controller {
 			}
 						
 			if (!$trial) {
-				$trial = $this->createTrial($user, $problem, true);
+				$trial = $this->createTrial($entityManager, $user, $problem, true);
 			}
 			
 			$trial->file = $submission->submitted_file;						
