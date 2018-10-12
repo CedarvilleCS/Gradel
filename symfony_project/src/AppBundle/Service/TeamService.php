@@ -15,6 +15,11 @@ class TeamService
         $this->container = $container;
 	}
 
+	public function deleteTeam($entityManager, $team) {
+		$entityManager->remove($team);
+		$entityManager->flush();
+	}
+
 	public function insertTeam($entityManager, $team) {
 		$entityManager->persist($team);
 	}
