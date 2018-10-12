@@ -322,8 +322,6 @@ class AssignmentController extends Controller {
 
     public function deleteAction($sectionId, $assignmentId){
 		$entityManager = $this->getDoctrine()->getManager();
-
-		$this->logError("AssignmentID: ".$assignmentId);
 		
 		// get the assignment
 		if (!isset($assignmentId) || !($assignmentId > 0)) {
