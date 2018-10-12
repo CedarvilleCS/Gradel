@@ -2,6 +2,8 @@
 
 namespace AppBundle\Service;
 
+use AppBundle\Constants;
+
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 class UserSectionRoleService
@@ -39,7 +41,9 @@ class UserSectionRoleService
 	}
 
 	public function getUserSectionRolesForAssignmentEdit($entityManager, $section) {
-        $takesRole = $entityManager->getRepository("AppBundle\Entity\Role")->findOneBy(array("role_name" => "Takes"));
+        $takesRole = $entityManager->getRepository("AppBundle\Entity\Role")->findOneBy([
+			"role_name" => Constants::TAKES_ROLE
+		]));
 		$builder = $entityManager->createQueryBuilder();
 		$builder->select("u")
 			  ->from("AppBundle\Entity\UserSectionRole", "u")
