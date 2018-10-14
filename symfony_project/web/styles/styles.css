@@ -29,7 +29,29 @@ body.hidden_hamburger {
     grid-area: main;
     background-color: lightgray;
     overflow-y: scroll;
-	overflow-x: hidden;
+    overflow-x: hidden;
+    min-height: 200px;
+}
+
+.floating_controls {
+    position: fixed;
+    bottom: 25px;
+    right: 45px;
+    z-index: 100;
+}
+
+.floating_button {
+    color: #fdb813;
+    background-color: #003963;
+    font-size: 18pt;
+    text-decoration: underline;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+}
+
+.floating_button:hover {    
+    text-decoration: none;
 }
 
 .nav-path {

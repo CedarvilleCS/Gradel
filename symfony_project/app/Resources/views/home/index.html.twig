@@ -18,46 +18,56 @@
 	
     {# Main section #}
     <section id="main">
-        {# Cards #}
-		<div class="sections-container">
-			{% if usersectionroles|length > 0 %}	
-				{# list of all the sections being taken #}
-				{% if sections_taking|length > 0 %}
-					{% for section in sections_taking %}
-						<div class="section-container">
-							<div class="section-title">
-								<a href="{{path('section', {'sectionId':section.id})}}">{{section.course.code}}</a>
-							</div>
-							{% set oldDate = '' %}
-							{% for asgn in section.assignments %}
-								{% set newDate = asgn.end_time|date('m/d/Y') %}
-								{% set oldDate = newDate %}
-								<div class="section-card-content">
-									Next Assignment: <a href="{{path('assignment', {'sectionId':asgn.section.id, 'assignmentId':asgn.id})}}">{{asgn.name}}</a>
+		<div class="main_content">
+			{# Cards #}
+			<div class="sections-container">
+				{% if usersectionroles|length > 0 %}	
+					{# list of all the sections being taken #}
+					{% if sections_taking|length > 0 %}
+						{% for section in sections_taking %}
+							<div class="section-container">
+								<div class="section-title">
+									<a href="{{path('section', {'sectionId':section.id})}}">{{section.course.code}}</a>
 								</div>
-							{% endfor %}				
-						</div>
-					{% endfor %}
-				{% endif %}
+								{% set oldDate = '' %}
+								{% for asgn in section.assignments %}
+									{% set newDate = asgn.end_time|date('m/d/Y') %}
+									{% set oldDate = newDate %}
+									<div class="section-card-content">
+										Next Assignment: <a href="{{path('assignment', {'sectionId':asgn.section.id, 'assignmentId':asgn.id})}}">{{asgn.name}}</a>
+									</div>
+								{% endfor %}				
+							</div>
+						{% endfor %}
+					{% endif %}
 
-				{# list of all the sections being taught #}
-				{% if sections_teaching|length > 0 %}
-					{% for section in sections_teaching %}
-						<div class="section-container">
-							<div class="section-title">
-								<a href="{{path('section', {'sectionId':section.id})}}">{{section.course.code}}</a>
-							</div>
-							{% set oldDate = '' %}
-							{% for asgn in section.assignments %}
-								{% set newDate = asgn.end_time|date('m/d/Y') %}
-								{% set oldDate = newDate %}
-								<div class="section-card-content">
-									Next Assignment: <a href="{{path('assignment', {'sectionId':asgn.section.id, 'assignmentId':asgn.id})}}">{{asgn.name}}</a>
+					{# list of all the sections being taught #}
+					{% if sections_teaching|length > 0 %}
+						{% for section in sections_teaching %}
+							<div class="section-container">
+								<div class="section-title">
+									<a href="{{path('section', {'sectionId':section.id})}}">{{section.course.code}}</a>
 								</div>
-							{% endfor %}				
-						</div>
-					{% endfor %}
+								{% set oldDate = '' %}
+								{% for asgn in section.assignments %}
+									{% set newDate = asgn.end_time|date('m/d/Y') %}
+									{% set oldDate = newDate %}
+									<div class="section-card-content">
+										Next Assignment: <a href="{{path('assignment', {'sectionId':asgn.section.id, 'assignmentId':asgn.id})}}">{{asgn.name}}</a>
+									</div>
+								{% endfor %}				
+							</div>
+						{% endfor %}
+					{% endif %}
 				{% endif %}
+			</div>
+			{% if is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") %}
+				{# new section button #}
+				<div class="floating_controls">
+					<a title="Create Section" href={{path('section_edit')}}>
+						<button class="floating_button">Create Section</button>
+					</a>
+				</div>
 			{% endif %}
 		</div>
     </section>
@@ -68,4 +78,6 @@
 <!-- JQuery -->
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+<script src="{{ asset('js/index.js') }}"></script>
 {% endblock %}
