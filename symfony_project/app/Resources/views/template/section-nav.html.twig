@@ -2,19 +2,14 @@
     <link rel="stylesheet" href="{{ asset('styles/section-nav.css') }}" />
 {% endblock %}
 
-{% if usersectionroles is defined and grades is defined and sections_taking is defined and sections_teaching is defined%}
-
-{% set elevatedUser = is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") %}
-
-{# Left Nav For the Section List (On the homepage) #}
-<nav class="nav-left">
-	<div class="large-link">
-		<a href="{{path('homepage')}}">Home</a>
-	</div>
-
-	{% if usersectionroles|length > 0 %}	
-		{# list of all the sections being taken #}
-		{% if sections_taking|length > 0 %}
+{% if sections_taking is defined and sections_teaching is defined%}
+	{# Left Nav For the Section List (On the homepage) #}
+	<nav class="nav-left">
+		<div class="large-link">
+			<a href="{{path('homepage')}}">Home</a>
+		</div>
+		{% if usersectionroles|length > 0 %}	
+			{# list of all the sections being taken #}
 			{% for section in sections_taking %}
 				<div class="section-nav-container">
 					<div>
@@ -76,13 +71,11 @@
 				</div>
 			{% endfor %}
 		{% endif %}
-	{% endif %}
 
-	<div class="large-link">
-		<a href="{{path('homepage')}}">Past</a>
-	</div>
-</nav>
-
+		<div class="large-link">
+			<a href="{{path('homepage')}}">Past</a>
+		</div>
+	</nav>
 {% endif %}
 
 {% block scripts %}

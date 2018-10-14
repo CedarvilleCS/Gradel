@@ -18,139 +18,140 @@
 <body>        
 	{{ include('template/top-nav.html.twig') }}
 	{{ include('template/assignment-nav.html.twig') }}
-	{{ include('template/path-nav.html.twig') }}
 
 	{# Main section #}
 	<section id="main">
-		<div class="card">
-			<div class="btn-close" onclick="collapseCard('courseInfo')"><h2 style="margin: 0px">Due Soon<span style="float: right"><i class="fa fa-angle-down"></i></span></h2></div>
-			<div id="courseInfo" class="card-contents">
-			
-			{% if future_assigs|length == 0 %}
-			
-				<h4 style="background: grey; color: white; padding: 5px">  No upcoming assignments </h4>
-			
-			{% else %}
-
-				{% for assig in future_assigs %}
-						
-					{% set newDate = assig.end_time|date('m/d/Y') %}
-							
-					{% if newDate != oldDate %}
-						<h4 style="background: grey; color: white; padding: 5px"> {{assig.end_time|date('l, F d')}} </h4>
-					{% endif %}
-							
-					{% set oldDate = newDate %}
-							
-					<div style="margin-left: 20px"><small>{{asgn.section.name}}</small>
-						<a href="{{path('assignment', {'sectionId':assig.section.id, 'assignmentId':assig.id})}}">
-							<li>{{assig.name}} <small>(Due {{assig.end_time|date('\\a\\t  h:i:s A')}})</small></li>
-						</a>
-					</div>
-						
-				{% endfor %}
+		<div class="main_content">
+			<div class="card">
+				<div class="btn-close" onclick="collapseCard('courseInfo')"><h2 style="margin: 0px">Due Soon<span style="float: right"><i class="fa fa-angle-down"></i></span></h2></div>
+				<div id="courseInfo" class="card-contents">
 				
-			{% endif %}
-			
-			</div>
-		</div>
-
-		{# Student Info Card #}
-		{% if is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") or grader.isTeaching(user, section) %}
-		<div class="card">
-			<div class="btn-close" onclick="collapseCard('studentInfo')"><h2 style="margin: 0px">Student Info<span style="float: right"><i class="fa fa-angle-down"></i></span></h2></div>
-			<div id="studentInfo" class="card-contents">
-
-				<div>
-				{% if section_takers|length == 0 %}
+				{% if future_assigs|length == 0 %}
 				
-					There are no students enrolled in this class
+					<h4 style="background: grey; color: white; padding: 5px">  No upcoming assignments </h4>
 				
 				{% else %}
-				
-					<table>
-						<tr>
-							<th style="text-align: left; border-bottom: 1px solid black; border-right: 1px solid black;">Student</th>
-							{% for asgn in section.assignments %}
+
+					{% for assig in future_assigs %}
 							
-								<th style="border-bottom: 1px solid black">{{asgn.name}}</th>
+						{% set newDate = assig.end_time|date('m/d/Y') %}
+								
+						{% if newDate != oldDate %}
+							<h4 style="background: grey; color: white; padding: 5px"> {{assig.end_time|date('l, F d')}} </h4>
+						{% endif %}
+								
+						{% set oldDate = newDate %}
+								
+						<div style="margin-left: 20px"><small>{{asgn.section.name}}</small>
+							<a href="{{path('assignment', {'sectionId':assig.section.id, 'assignmentId':assig.id})}}">
+								<li>{{assig.name}} <small>(Due {{assig.end_time|date('\\a\\t  h:i:s A')}})</small></li>
+							</a>
+						</div>
 							
-							{% endfor %}
-						</tr>
-						
-						{% for user in section_takers %}
-														
-							<tr> <th>{{user.getFirstName()}} {{user.getLastName()}}</th>
-			  
-								{% for asgn in section.assignments %}
-									
-									{% if grades[user.id][asgn.id]['num_correct_problems'] > 0 and grades[user.id][asgn.id]['num_correct_problems'] == grades[user.id][asgn.id]['num_problems'] %}
-									
-										<td style="color:green; font-size: 25px">{{grades[user.id][asgn.id]['num_correct_problems']}}/{{grades[user.id][asgn.id]['num_problems']}} 
-										
-										{% if grades[user.id][asgn.id]['num_extra_problems'] > 0 and grades[user.id][asgn.id]['num_extra_correct_problems'] == grades[user.id][asgn.id]['num_extra_problems'] %}
-										{{grades[user.id][asgn.id]['num_correct_problems']}}/{{grades[user.id][asgn.id]['num_problems']}}										
-										{% endif %}
-										</td>
-										
-									{% elseif grades[user.id][asgn.id]['num_correct_problems'] != 0 %}
-										<td style="color:orange; font-size: 25px"><i> {{grades[user.id][asgn.id]['num_correct_problems']}}/{{grades[user.id][asgn.id]['num_problems']}}</i></td>
-								 {% else %} 
-										<td style="color:red; font-size: 25px">{{grades[user.id][asgn.id]['num_correct_problems']}}/{{grades[user.id][asgn.id]['num_problems']}}</td>
-								 {% endif %}
-									
-								{% endfor %}
-							
-						{% endfor %}
-						
-					</table>
+					{% endfor %}
 					
-					<br>
-					
-					<a id="download" download="{{ section.name }} grades.csv">
-						<div class="btn">Download Grades Overview</div>
-					</a>
-				
 				{% endif %}
 				
 				</div>
 			</div>
-		</div>
-		{% endif %}
 
-		{# Assignment Grades Card #}
-		{% if is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") or grader.isTeaching(user, section) %}
-		<div class="card">
-			<div class="btn-close" onclick="collapseCard('studentInfoAssignment')"><h2 style="margin: 0px">Assignment Grades<span style="float: right"><i class="fa fa-angle-down"></i></span></h2></div>
-			<div id="studentInfoAssignment" class="card-contents">
-				<div id="assignmentLinks"></div>
-			</div>
-		</div>
+			{# Student Info Card #}
+			{% if is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") or grader.isTeaching(user, section) %}
+			<div class="card">
+				<div class="btn-close" onclick="collapseCard('studentInfo')"><h2 style="margin: 0px">Student Info<span style="float: right"><i class="fa fa-angle-down"></i></span></h2></div>
+				<div id="studentInfo" class="card-contents">
 
-		{% endif %}
-		
-		{# Recent Submissions Card #}	
-		<div class="card">
-			<div class="btn-close" style="display: flex; flex-direction: row; justify-content: space-between;">
-
-				<div>
-					<h2 style="margin: 0px;">Submissions</h2>
-					<i> Search using the box. Separate parameters with semicolons. </i>
-				</div>
-
-				<div>
-					<input id='sub-search-input' style='width: 300px'>
-					<span id='sub-search-btn' class='fa fa-search'></span>
-				</div>
-			</div>
-			<div id="recentSubs" class="card-contents">
+					<div>
+					{% if section_takers|length == 0 %}
 					
-				<div>   
-					<ul id="submissions-list" style="list-style: none">
+						There are no students enrolled in this class
+					
+					{% else %}
+					
+						<table>
+							<tr>
+								<th style="text-align: left; border-bottom: 1px solid black; border-right: 1px solid black;">Student</th>
+								{% for asgn in section.assignments %}
+								
+									<th style="border-bottom: 1px solid black">{{asgn.name}}</th>
+								
+								{% endfor %}
+							</tr>
+							
+							{% for user in section_takers %}
+															
+								<tr> <th>{{user.getFirstName()}} {{user.getLastName()}}</th>
+				
+									{% for asgn in section.assignments %}
+										
+										{% if grades[user.id][asgn.id]['num_correct_problems'] > 0 and grades[user.id][asgn.id]['num_correct_problems'] == grades[user.id][asgn.id]['num_problems'] %}
+										
+											<td style="color:green; font-size: 25px">{{grades[user.id][asgn.id]['num_correct_problems']}}/{{grades[user.id][asgn.id]['num_problems']}} 
+											
+											{% if grades[user.id][asgn.id]['num_extra_problems'] > 0 and grades[user.id][asgn.id]['num_extra_correct_problems'] == grades[user.id][asgn.id]['num_extra_problems'] %}
+											{{grades[user.id][asgn.id]['num_correct_problems']}}/{{grades[user.id][asgn.id]['num_problems']}}										
+											{% endif %}
+											</td>
+											
+										{% elseif grades[user.id][asgn.id]['num_correct_problems'] != 0 %}
+											<td style="color:orange; font-size: 25px"><i> {{grades[user.id][asgn.id]['num_correct_problems']}}/{{grades[user.id][asgn.id]['num_problems']}}</i></td>
+									{% else %} 
+											<td style="color:red; font-size: 25px">{{grades[user.id][asgn.id]['num_correct_problems']}}/{{grades[user.id][asgn.id]['num_problems']}}</td>
+									{% endif %}
+										
+									{% endfor %}
+								
+							{% endfor %}
+							
+						</table>
 						
-						<li> Search for some submissions </li>
+						<br>
 						
-					</ul>
+						<a id="download" download="{{ section.name }} grades.csv">
+							<div class="btn">Download Grades Overview</div>
+						</a>
+					
+					{% endif %}
+					
+					</div>
+				</div>
+			</div>
+			{% endif %}
+
+			{# Assignment Grades Card #}
+			{% if is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") or grader.isTeaching(user, section) %}
+			<div class="card">
+				<div class="btn-close" onclick="collapseCard('studentInfoAssignment')"><h2 style="margin: 0px">Assignment Grades<span style="float: right"><i class="fa fa-angle-down"></i></span></h2></div>
+				<div id="studentInfoAssignment" class="card-contents">
+					<div id="assignmentLinks"></div>
+				</div>
+			</div>
+
+			{% endif %}
+			
+			{# Recent Submissions Card #}	
+			<div class="card">
+				<div class="btn-close" style="display: flex; flex-direction: row; justify-content: space-between;">
+
+					<div>
+						<h2 style="margin: 0px;">Submissions</h2>
+						<i> Search using the box. Separate parameters with semicolons. </i>
+					</div>
+
+					<div>
+						<input id='sub-search-input' style='width: 300px'>
+						<span id='sub-search-btn' class='fa fa-search'></span>
+					</div>
+				</div>
+				<div id="recentSubs" class="card-contents">
+						
+					<div>   
+						<ul id="submissions-list" style="list-style: none">
+							
+							<li> Search for some submissions </li>
+							
+						</ul>
+					</div>
 				</div>
 			</div>
 		</div>
