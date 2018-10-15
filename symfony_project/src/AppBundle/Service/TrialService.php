@@ -42,7 +42,7 @@ class TrialService
 		return $trialQuery->getOneorNullResult();
 	}
 
-	public function getTrialById($entityManagery, $trialId) {
+	public function getTrialById($entityManager, $trialId) {
 		return $entityManager->find("AppBundle\Entity\Trial", $trialId);
 	}
 }

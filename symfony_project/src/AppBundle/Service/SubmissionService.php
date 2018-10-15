@@ -4,6 +4,8 @@ namespace AppBundle\Service;
 
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
+use AppBundle\Entity\Submission;
+
 use \DateTime;
 use \DateInterval;
 
@@ -13,6 +15,15 @@ class SubmissionService
 
     public function __construct(ContainerInterface $container) {
         $this->container = $container;
+	}
+
+	public function createSubmissionFromTrialAndTeamForCompilationSubmit($entityManager, $trial, $team) {
+		$submission = new Submission($trial, $team);
+
+		$entityManager->persist($submission);
+		$entityManager->flush();
+
+		return $submission;
 	}
 
 	public function deleteAllSubmissionsForAssignmentClearSubmissions($entityManager, $problems) {
@@ -40,6 +51,21 @@ class SubmissionService
 			
 		$bestSubmissionQuery = $builder->getQuery();
 		return $bestSubmissionQuery->getOneOrNullResult();
+	}
+
+	public function getPreviousAcceptedSolutionForCompilationSubmit($entityManager, $teamOrUser, $whereClause, $problem) {
+		$builder = $entityManager->createQueryBuilder();
+		$builder->select("s")
+			->from("AppBundle\Entity\Submission", "s")
+			->where("s.problem = ?1")
+			->andWhere($whereClause)
+			->andWhere("s.best_submission = true")
+			->setParameter(1, $problem)
+			->setParameter(2, $teamOrUser)
+			->orderBy("s.timestamp", "DESC");
+				
+		$previousAcceptedQuery = $builder->getQuery();
+		return $previousAcceptedQuery->getResult()[0];
 	}
 
 	public function getAllSubmissionsForAssignment($entityManager, $teamOrUser, $whereClause, $problem) {
