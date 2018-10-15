@@ -37,6 +37,11 @@ use Symfony\Component\HttpFoundation\Response;
 use Psr\Log\LoggerInterface;
 
 class CompilationController extends Controller {	
+	private $logger;
+
+	public function __construct(LoggerInterface $logger) {
+		$this->logger = $logger;
+	}
 	
 	/* submit */
 	public function submitAction(Request $request, $trialId=0, $forwarded="") {
@@ -691,13 +696,25 @@ class CompilationController extends Controller {
 		
 		$em->flush();
 	}
+
+	private function logError($message) {
+		$errorMessage = "AssignmentController: ".$message;
+		$this->logger->error($errorMessage);
+		return $errorMessage;
+	}
 	
 	private function returnForbiddenResponse($message){		
 		$response = new Response($message);
 		$response->setStatusCode(Response::HTTP_FORBIDDEN);
+		$this->logError($message);
 		return $response;
 	}
-	
+
+	private function returnOkResponse($response) {
+		$response->headers->set("Content-Type", "application/json");
+		$response->setStatusCode(Response::HTTP_OK);
+		return $response;
+	}
 }
 
 ?>
