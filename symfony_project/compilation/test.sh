@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 while true
 do 
 	count=0
@@ -9,7 +8,7 @@ do
 
 	if [ $containers -gt 4 ];
 	then
-		echo "Waiting... $containers containers running"		
+		echo "Waiting... $containers containers running"
 	else
 		echo "Ready!"
 		break
