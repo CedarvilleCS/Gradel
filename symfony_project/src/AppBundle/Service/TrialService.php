@@ -41,5 +41,9 @@ class TrialService
 		$trialQuery = $builder->getQuery();
 		return $trialQuery->getOneorNullResult();
 	}
+
+	public function getTrialById($entityManagery, $trialId) {
+		return $entityManager->find("AppBundle\Entity\Trial", $trialId);
+	}
 }
 ?>
