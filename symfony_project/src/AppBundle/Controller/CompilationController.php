@@ -2,26 +2,26 @@
 
 namespace AppBundle\Controller;
 
-use AppBundle\Entity\Role;
-use AppBundle\Entity\User;
-use AppBundle\Entity\Team;
-use AppBundle\Entity\Course;
-use AppBundle\Entity\Section;
 use AppBundle\Entity\Assignment;
+use AppBundle\Entity\Course;
+use AppBundle\Entity\Feedback;
+use AppBundle\Entity\Language;
 use AppBundle\Entity\Problem;
 use AppBundle\Entity\ProblemLanguage;
-use AppBundle\Entity\UserSectionRole;
-use AppBundle\Entity\Testcase;
+use AppBundle\Entity\Role;
+use AppBundle\Entity\Section;
 use AppBundle\Entity\Submission;
-use AppBundle\Entity\Trial;
-use AppBundle\Entity\Language;
-use AppBundle\Entity\Feedback;
+use AppBundle\Entity\Team;
+use AppBundle\Entity\Testcase;
 use AppBundle\Entity\TestcaseResult;
+use AppBundle\Entity\Trial;
+use AppBundle\Entity\User;
+use AppBundle\Entity\UserSectionRole;
 
 use Symfony\Component\Config\Definition\Exception\Exception;
 
-use AppBundle\Utils\Grader;
 use AppBundle\Utils\Generator;
+use AppBundle\Utils\Grader;
 use AppBundle\Utils\SocketPusher;
 use AppBundle\Utils\Uploader;
 use AppBundle\Utils\Zipper;
