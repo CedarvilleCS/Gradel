@@ -4,13 +4,13 @@ namespace AppBundle\Controller;
 
 use AppBundle\Constants;
 
-use AppBundle\Entity\User;
-use AppBundle\Entity\Course;
-use AppBundle\Entity\UserSectionRole;
-use AppBundle\Entity\Section;
 use AppBundle\Entity\Assignment;
+use AppBundle\Entity\Course;
+use AppBundle\Entity\Section;
 use AppBundle\Entity\Team;
 use AppBundle\Entity\Trial;
+use AppBundle\Entity\User;
+use AppBundle\Entity\UserSectionRole;
 
 use AppBundle\Service\AssignmentService;
 use AppBundle\Service\ProblemService;
@@ -26,16 +26,16 @@ use AppBundle\Utils\Uploader;
 
 use Doctrine\Common\Collections\ArrayCollection;
 
-use \DateTime;
 use \DateInterval;
+use \DateTime;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-use Symfony\Bundle\FrameworkBundle\Routing\Router;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Bundle\FrameworkBundle\Routing\Router;
 
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 use Psr\Log\LoggerInterface;
 

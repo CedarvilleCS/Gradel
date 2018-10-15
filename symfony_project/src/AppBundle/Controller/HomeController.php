@@ -4,10 +4,10 @@ namespace AppBundle\Controller;
 
 use AppBundle\Constants;
 
-use AppBundle\Entity\User;
-use AppBundle\Entity\Course;
-use AppBundle\Entity\UserSectionRole;
 use AppBundle\Entity\Assignment;
+use AppBundle\Entity\Course;
+use AppBundle\Entity\User;
+use AppBundle\Entity\UserSectionRole;
 
 use AppBundle\Service\AssignmentService;
 use AppBundle\Service\SectionService;
@@ -18,16 +18,16 @@ use AppBundle\Utils\Grader;
 use AppBundle\Utils\Uploader;
 use AppBundle\Utils\Zipper;
 
-use \DateTime;
 use \DateInterval;
+use \DateTime;
 
 use Psr\Log\LoggerInterface;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class HomeController extends Controller {
 	private $assignmentService;
