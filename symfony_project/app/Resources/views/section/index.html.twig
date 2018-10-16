@@ -21,8 +21,8 @@
 	{% if is_granted("ROLE_SUPER") %}
 		{# edit button #}
 		<div class="floatingControls">
-			<a href="{{path('section_edit', {'sectionId': section.id})}}">
-				<button class="floatingButton">Edit Section</button>
+			<a class="floatingLink" href="{{path('section_edit', {'sectionId': section.id})}}">
+				<div class="floatingButton">Edit Section</div>
 			</a>
 		</div>
 	{% endif %}

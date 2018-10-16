@@ -63,9 +63,9 @@
 			</div>
 			{% if is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") %}
 				{# new section button #}
-				<div class="floating_controls">
-					<a title="Create Section" href={{path('section_edit')}}>
-						<button class="floating_button">Create Section</button>
+				<div class="floatingControls">
+					<a class="floatingLink" title="Create Section" href={{path('section_edit')}}>
+						<div class="floatingButton">Create Section</div>
 					</a>
 				</div>
 			{% endif %}
