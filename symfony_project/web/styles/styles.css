@@ -33,14 +33,14 @@ body.hidden_hamburger {
     min-height: 200px;
 }
 
-.floating_controls {
+.floatingControls {
     position: fixed;
     bottom: 25px;
     right: 45px;
     z-index: 100;
 }
 
-.floating_button {
+.floatingButton {
     color: #fdb813;
     background-color: #003963;
     font-size: 18pt;

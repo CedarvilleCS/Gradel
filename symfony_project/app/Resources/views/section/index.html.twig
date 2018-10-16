@@ -17,11 +17,12 @@
 
 <body>        
 	{{ include('template/top-nav.html.twig') }}
+
 	{% if is_granted("ROLE_SUPER") %}
 		{# edit button #}
-		<div class="floating_controls">
+		<div class="floatingControls">
 			<a href="{{path('section_edit', {'sectionId': section.id})}}">
-				<button class="floating_button">Edit Section</button>
+				<button class="floatingButton">Edit Section</button>
 			</a>
 		</div>
 	{% endif %}
