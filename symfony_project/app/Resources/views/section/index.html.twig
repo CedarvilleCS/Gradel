@@ -17,10 +17,18 @@
 
 <body>        
 	{{ include('template/top-nav.html.twig') }}
-	{{ include('template/assignment-nav.html.twig') }}
+	{% if is_granted("ROLE_SUPER") %}
+		{# edit button #}
+		<div class="floating_controls">
+			<a href="{{path('section_edit', {'sectionId': section.id})}}">
+				<button class="floating_button">Edit Section</button>
+			</a>
+		</div>
+	{% endif %}
 
 	{# Main section #}
 	<section id="main">
+	
 		<div class="main_content">
 			<div class="card">
 				<div class="btn-close" onclick="collapseCard('courseInfo')"><h2 style="margin: 0px">Due Soon<span style="float: right"><i class="fa fa-angle-down"></i></span></h2></div>
@@ -165,6 +173,10 @@
 	<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 	<script src="{{ asset('js/cards.js') }}"></script>
+	
+	{% if is_granted("ROLE_SUPER") %}
+		<script src="{{ asset('js/floating-control.js') }}"></script>
+	{% endif %}
 
 	<script>
 
