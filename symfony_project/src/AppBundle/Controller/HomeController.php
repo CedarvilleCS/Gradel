@@ -66,7 +66,7 @@ class HomeController extends Controller {
 		$sections = [];
 		$sectionsTaking = [];
 		$sectionsTeaching = [];
-		foreach ($userSectionRoles as $userSectionRole){
+		foreach ($userSectionRoles as $userSectionRole) {
 			$sections[] = $userSectionRole->section->id;
 			
 			if ($userSectionRole->role->role_name == Constants::TAKES_ROLE) {
