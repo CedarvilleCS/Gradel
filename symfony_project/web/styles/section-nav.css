@@ -32,7 +32,7 @@ nav.nav-left .nav-chevron {
 
 nav.nav-left .nav-assignment,
 nav.nav-left .nav-problem {
-    padding-left: 40px;
+    margin-left: 40px;
     display: none;
 }
 
