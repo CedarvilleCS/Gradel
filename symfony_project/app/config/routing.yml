@@ -59,7 +59,7 @@ section_delete:
   methods: [GET]
   
 section_clone:
-  path: '/section/clone/{sectionId}'
+  path: '/section/clone/{sectionId}/semester/{semester}/year/{year}'
   defaults: {_controller: AppBundle:Section:cloneSection}
   methods: [GET]
 

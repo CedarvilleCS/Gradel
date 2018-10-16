@@ -23,7 +23,7 @@ class AssignmentService
 		return $assignment;
 	}
 
-	public function insertTeam($entityManager, $assignment) {
+	public function insertAssignment($entityManager, $assignment) {
 		$entityManager->persist($assignment);
 		$entityManager->flush();
 	}
@@ -54,6 +54,17 @@ class AssignmentService
 			
 		$assignmentQuery = $builder->getQuery();		
 		return $assignmentQuery->getResult();
-    }
+	}
+	
+	public function getAssignmentsBySection($entityManager, $section) {
+		$builder = $entityManager->createQueryBuilder();
+		$builder->select("a")
+			->from("AppBundle\Entity\Assignment", "a")
+			->where("a.section = (?1)")
+			->setParameter(1, $section);
+
+		$assignmentQuery = $builder->getQuery();
+		return $assignmentQuery->getResult();
+	}
 }
 ?>

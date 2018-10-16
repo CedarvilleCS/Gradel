@@ -13,7 +13,14 @@ class SectionService
 
     public function __construct(ContainerInterface $container) {
         $this->container = $container;
-    }
+	}
+	
+	public function insertSection($entityManager, $section) {
+		$entityManager->persist($section);
+		$entityManager->flush();
+		
+		return $section;
+	}
 
     public function getNonDeletedSectionsForHome($entityManager) {
         $builder = $entityManager->createQueryBuilder();
