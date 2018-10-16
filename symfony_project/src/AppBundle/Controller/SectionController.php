@@ -345,7 +345,7 @@ class SectionController extends Controller {
 		]);
     }
 
-	public function cloneSectionAction($sectionId, $semester, $year) {
+	public function cloneSectionAction($sectionId, $name, $semester, $year, $numberOfClones) {
 		$entityManager = $this->getDoctrine()->getManager();
 
 		$user = $this->userService->getCurrentUser($entityManager);
@@ -359,27 +359,39 @@ class SectionController extends Controller {
 			return $this->returnForbiddenResponse("SECTION DOES NOT EXIST");
 		}
 
-		$newSection = clone $section;
-		$newSection->semester = $semester;
-		$newSection->year = $year;
-		$this->sectionService->insertSection($entityManager, $newSection);
+		for ($i = 1; $i <= $numberOfClones; $i++) {
+			$newSection = clone $section;
+			$newSection->semester = $semester;
+			$newSection->name = $name."-".str_pad($i, 2, "0", STR_PAD_LEFT);
+			$newSection->year = $year;
+			$this->sectionService->insertSection($entityManager, $newSection, true);
 
-		$assignments = $this->assignmentService->getAssignmentsBySection($entityManager, $section);
-		if ($assignments) {
-			foreach ($assignments as $assignment) {
-				$this->assignmentService->insertAssignment($entityManager, $assignment);
-			}
+			$assignments = $this->assignmentService->getAssignmentsBySection($entityManager, $section);
+			if ($assignments) {
+				foreach ($assignments as $assignment) {
+					$newAssignment = clone $assignment;
+					$newAssignment->section = $newSection;
+					$this->assignmentService->insertAssignment($entityManager, $newAssignment, true);
 
-			foreach ($assignments as $assignment) {
-				$problems = $this->problemService->getProblemsByAssignment($entityManager, $assignment);
-
-				foreach ($problems as $problem) {
-					$newProblem = clone $problem;
-					$this->problemService->insertProblem($entityManager, $newProblem);
-					$problemLanguages = $this->problemLanguageService->getProblemLanguagesByProblem($entityManager, $newProblem);
-
-					foreach ($problemLanguages as $problemLanguage) {
-						$this->problemLanguageService->insertProblemLanguage($entityManager, $problemLanguage);
+					$problems = $this->problemService->getProblemsByAssignment($entityManager, $assignment);
+					if ($problems) {
+						foreach ($problems as $problem) {
+							$newProblem = clone $problem;
+							$newProblem->assignment = $newAssignment;
+							$this->problemService->insertProblem($entityManager, $newProblem, true);
+							
+							$problemLanguages = $this->problemLanguageService->getProblemLanguagesByProblem($entityManager, $problem);
+							if ($problemLanguages) {
+								$count = 0;
+								foreach ($problemLanguages as $problemLanguage) {
+									$newProblemLanguage = clone $problemLanguage;
+									$newProblemLanguage->problem = $newProblem;
+									$this->problemLanguageService->insertProblemLanguage($entityManager, $newProblemLanguage, true);
+									$count++;
+								}
+								$this->logError("Problem languages: ".$count);
+							}
+						}
 					}
 				}
 			}

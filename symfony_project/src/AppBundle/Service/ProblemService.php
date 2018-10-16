@@ -30,10 +30,11 @@ class ProblemService
 		return $problemQuery->getResult();
 	}
 
-	public function insertProblem($entityManager, $problem) {
+	public function insertProblem($entityManager, $problem, $shouldFlush = false) {
 		$entityManager->persist($problem);
-		$entityManager->flush();
+		if ($shouldFlush) {
+			$entityManager->flush();
+		}
 	}
-
 }
 ?>

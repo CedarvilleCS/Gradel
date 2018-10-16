@@ -15,11 +15,11 @@ class SectionService
         $this->container = $container;
 	}
 	
-	public function insertSection($entityManager, $section) {
+	public function insertSection($entityManager, $section, $shouldFlush = false) {
 		$entityManager->persist($section);
-		$entityManager->flush();
-		
-		return $section;
+		if ($shouldFlush) {
+			$entityManager->flush();
+		}
 	}
 
     public function getNonDeletedSectionsForHome($entityManager) {

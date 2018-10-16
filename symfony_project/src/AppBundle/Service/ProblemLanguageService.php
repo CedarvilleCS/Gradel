@@ -23,9 +23,11 @@ class ProblemLanguageService
 		return $problemLanguageQuery->getResult();
 	}
 
-	public function insertProblemLanguage($entityManager, $problemLanguage) {
+	public function insertProblemLanguage($entityManager, $problemLanguage, $shouldFlush = false) {
 		$entityManager->persist($problemLanguage);
-		$entityManager->flush();
+		if ($shouldFlush) {
+			$entityManager->flush();
+		}
 	}
 }
 ?>
