@@ -17,7 +17,7 @@ class TrialService
         $this->container = $container;
 	}
 
-	public function createTrial($entityManager, $user, $problem, $showDescription) {
+	public function createTrial($entityManager, $user, $problem, $showDescription, $shouldFlush = false) {
 		$trial = new Trial();
 
 		$trial->user = $user;
@@ -25,6 +25,9 @@ class TrialService
 		$trial->show_description = $showDescription;
 				
 		$entityManager->persist($trial);
+		if ($shouldFlush) {
+			$entityManager->flush();
+		}
 
 		return $trial;
 	}

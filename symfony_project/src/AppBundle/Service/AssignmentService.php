@@ -17,20 +17,27 @@ class AssignmentService
         $this->container = $container;
 	}
 
-	public function createEmptyAssignment($entityManager) {
+	public function createEmptyAssignment($entityManager, $assignment, $shouldFlush = false) {
 		$assignment = new Assignment();
 		$entityManager->persist($assignment);
+		if ($shouldFlush) {
+			$entityManager->flush();
+		}
 		return $assignment;
 	}
 
-	public function insertTeam($entityManager, $assignment) {
+	public function insertAssignment($entityManager, $assignment, $shouldFlush = false) {
 		$entityManager->persist($assignment);
-		$entityManager->flush();
+		if ($shouldFlush) {
+			$entityManager->flush();
+		}
 	}
 
-	public function deleteAssignment($entityManager, $assignment) {
+	public function deleteAssignment($entityManager, $assignment, $shouldFlush = false) {
 		$entityManager->remove($assignment);
-		$entityManager->flush();
+		if ($shouldFlush) {
+			$entityManager->flush();
+		}
 	}
 	
 	public function getAssignmentById($entityManager, $assignmentId) {
@@ -54,6 +61,17 @@ class AssignmentService
 			
 		$assignmentQuery = $builder->getQuery();		
 		return $assignmentQuery->getResult();
-    }
+	}
+	
+	public function getAssignmentsBySection($entityManager, $section) {
+		$builder = $entityManager->createQueryBuilder();
+		$builder->select("a")
+			->from("AppBundle\Entity\Assignment", "a")
+			->where("a.section = (?1)")
+			->setParameter(1, $section);
+
+		$assignmentQuery = $builder->getQuery();
+		return $assignmentQuery->getResult();
+	}
 }
 ?>

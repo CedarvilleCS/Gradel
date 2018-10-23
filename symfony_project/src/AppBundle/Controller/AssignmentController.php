@@ -563,7 +563,7 @@ class AssignmentController extends Controller {
 			}
 		}
 
-		$this->assignmentService->insertTeam($entityManager, $assignment);
+		$this->assignmentService->insertAssignment($entityManager, $assignment);
 		
 		$url = $this->generateUrl("assignment", 
 		[

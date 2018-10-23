@@ -47,8 +47,6 @@ class Section implements JsonSerializable{
 		if($this->id){
 			$this->id = null;
 			
-			$this->name = $this->name." CLONE";
-			
 			# clone assignments
 			$assignmentsClone = new ArrayCollection();
 			

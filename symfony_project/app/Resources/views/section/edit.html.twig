@@ -44,7 +44,7 @@
 		</ol>
 
 		{% if section is not null %}
-		<a id="clone-btn" class="btn" href="{{ path('section_clone', {'sectionId': section.id}) }}"><div class="btn btn-center" style="margin-top: 10px;">Clone</div></a>
+		<a id="clone-btn" class="btn" href="{{ path('section_clone', {'sectionId': section.id, 'name': section.name, 'semester': section.semester, 'year': section.year, 'numberOfClones': 1}) }}"><div class="btn btn-center" style="margin-top: 10px;">Clone</div></a>
 		{% endif %}
 
 		{% endif %}
