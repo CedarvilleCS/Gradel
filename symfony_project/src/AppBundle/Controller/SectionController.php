@@ -365,36 +365,6 @@ class SectionController extends Controller {
 			$newSection->name = $name."-".str_pad($i, 2, "0", STR_PAD_LEFT);
 			$newSection->year = $year;
 			$this->sectionService->insertSection($entityManager, $newSection, true);
-
-			$assignments = $this->assignmentService->getAssignmentsBySection($entityManager, $section);
-			if ($assignments) {
-				foreach ($assignments as $assignment) {
-					$newAssignment = clone $assignment;
-					$newAssignment->section = $newSection;
-					$this->assignmentService->insertAssignment($entityManager, $newAssignment, true);
-
-					$problems = $this->problemService->getProblemsByAssignment($entityManager, $assignment);
-					if ($problems) {
-						foreach ($problems as $problem) {
-							$newProblem = clone $problem;
-							$newProblem->assignment = $newAssignment;
-							$this->problemService->insertProblem($entityManager, $newProblem, true);
-							
-							$problemLanguages = $this->problemLanguageService->getProblemLanguagesByProblem($entityManager, $problem);
-							if ($problemLanguages) {
-								$count = 0;
-								foreach ($problemLanguages as $problemLanguage) {
-									$newProblemLanguage = clone $problemLanguage;
-									$newProblemLanguage->problem = $newProblem;
-									$this->problemLanguageService->insertProblemLanguage($entityManager, $newProblemLanguage, true);
-									$count++;
-								}
-								$this->logError("Problem languages: ".$count);
-							}
-						}
-					}
-				}
-			}
 		}
 
 		return $this->redirectToRoute('section_edit',
