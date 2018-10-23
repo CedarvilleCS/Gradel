@@ -15,13 +15,18 @@ class TeamService
         $this->container = $container;
 	}
 
-	public function deleteTeam($entityManager, $team) {
+	public function deleteTeam($entityManager, $team, $shouldFlush = false) {
 		$entityManager->remove($team);
-		$entityManager->flush();
+		if ($shouldFlush) {
+			$entityManager->flush();
+		}
 	}
 
-	public function insertTeam($entityManager, $team) {
+	public function insertTeam($entityManager, $team, $shouldFlush = false) {
 		$entityManager->persist($team);
+		if ($shouldFlush) {
+			$entityManager->flush();
+		}
 	}
 	
 	public function getTeam($entityManager, $user, $assignment) {
