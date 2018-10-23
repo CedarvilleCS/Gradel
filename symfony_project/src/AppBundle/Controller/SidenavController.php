@@ -11,6 +11,7 @@ use AppBundle\Service\UserService;
 use Auth0\SDK\Auth0;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -33,6 +34,8 @@ class SidenavController extends Controller {
 	}
 
     public function dataAction() {
+		$entityManager = $this->getDoctrine()->getManager();
+
 		$user = $this->userService->getCurrentUser();
 		if (!get_class($user)) {
 			return $this->returnForbiddenResponse("USER DOES NOT EXIST");
@@ -56,7 +59,7 @@ class SidenavController extends Controller {
 			}
 		}
 
-		return json_encode([
+		return new JsonResponse([
             'usersectionroles' => $userSectionRoles,
             'sections_taking' => $sectionsTaking,
             'sections_teaching' => $sectionsTeaching
@@ -71,7 +74,7 @@ class SidenavController extends Controller {
 	}
 	
 	private function logError($message) {
-		$errorMessage = "HomeController: ".$message;
+		$errorMessage = "SidenavController: ".$message;
 		$this->logger->error($errorMessage);
 		return $errorMessage;
 	}

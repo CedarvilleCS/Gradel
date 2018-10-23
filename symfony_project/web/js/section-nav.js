@@ -12,3 +12,7 @@ function chevronClick(element, selection) {
         element.src = element.src.replace('white_chevron', 'white_expand_more');
     }
 }
+
+$.get(document.getElementById('SideNavPath').dataset.path, function (data) {
+    console.log(data);
+});
