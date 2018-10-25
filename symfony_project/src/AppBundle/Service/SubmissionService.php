@@ -26,7 +26,7 @@ class SubmissionService
 		return $submission;
 	}
 
-	public function deleteAllSubmissionsForAssignmentClearSubmissions($entityManager, $problems) {
+	public function deleteAllSubmissionsForAssignmentClearSubmissions($entityManager, $problems, $shouldFlush = false) {
 		$builder = $entityManager->createQueryBuilder();
 		$builder->delete("AppBundle\Entity\Submission", "s")
 		        ->where("s.problem IN (?1)")
@@ -34,7 +34,9 @@ class SubmissionService
 
 		$deleteQuery = $builder->getQuery();
 		$result = $deleteQuery->getResult();
-		$entityManager->flush();
+		if ($shouldFlush) {
+			$entityManager->flush();
+		}
 		return $result;
 	}
 	
