@@ -2,83 +2,20 @@
     <link rel="stylesheet" href="{{ asset('styles/section-nav.css') }}" />
 {% endblock %}
 
-{% if sections_taking is defined and sections_teaching is defined%}
-	{# Left Nav For the Section List (On the homepage) #}
-	<nav class="nav-left">
-		<div class="large-link">
-			<a href="{{path('homepage')}}">Home</a>
-		</div>
-		{% if usersectionroles|length > 0 %}	
-			{# list of all the sections being taken #}
-			{% for section in sections_taking %}
-				<div class="section-nav-container">
-					<div>
-						<div class="nav-chevron-title-container">
-							{% if section.assignments|length > 0 %}
-								<img class="nav-chevron" onclick="chevronClick(this, 'section-{{ section.id }}')" src="{{asset('images/white_chevron.png')}}" />
-							{% endif %}
-							<a href="{{path('section', {'sectionId':section.id})}}">{{section.course.code}}</a>
-						</div>
-						{% for assignment in section.assignments %}
-							<div class="nav-assignment section-{{ section.id }}">
-								<div class="nav-chevron-title-container">
-									{% if assignment.problems|length > 0 %}
-										<img class="nav-chevron" onclick="chevronClick(this, 'assignment-{{ assignment.id }}')" src="{{asset('images/white_chevron.png')}}" />
-									{% else %}
-										{# empty div here for grid to align things correctly #}
-										<div></div>
-									{% endif %}
-									<a href="{{path('assignment', {'sectionId':assignment.section.id, 'assignmentId':assignment.id})}}">{{assignment.name}}</a>
-								</div>
-								{% for problem in assignment.problems %}
-									<div class="nav-problem assignment-{{ assignment.id }}"><a href="{{path('assignment', {'sectionId':assignment.section.id, 'assignmentId':assignment.id, 'problemId':problem.id})}}">{{problem.name}}</a></div>
-								{% endfor %}
-							</div>
-						{% endfor %}				
-					</div>
-				</div>
-			{% endfor %}
-		{% endif %}
+{# Left Nav For the Section List (On the homepage) #}
+<nav class="nav-left">
+	<div class="large-link">
+		<a href="{{path('homepage')}}">Home</a>
+	</div>
+	<div id="SideNavContent"></div>
+	<div class="large-link">
+		<a href="{{path('homepage')}}">Past</a>
+	</div>
 
-		{# list of all the sections being taught #}
-		{% if sections_teaching|length > 0 %}
-			{% for section in sections_teaching %}
-				<div class="section-nav-container">
-					<div>
-						<div class="nav-chevron-title-container">
-							{% if section.assignments|length > 0 %}
-								<img class="nav-chevron" onclick="chevronClick(this, 'section-{{ section.id }}')" src="{{asset('images/white_chevron.png')}}" />
-							{% endif %}
-							<a href="{{path('section', {'sectionId':section.id})}}">{{section.course.code}}</a>
-						</div>
-						{% for assignment in section.assignments %}
-							<div class="nav-assignment section-{{ section.id }}">
-								<div class="nav-chevron-title-container">
-									{% if assignment.problems|length > 0 %}
-										<img class="nav-chevron" onclick="chevronClick(this, 'assignment-{{ assignment.id }}')" src="{{asset('images/white_chevron.png')}}" />
-									{% else %}
-										{# empty div here for grid to align things correctly #}
-										<div></div>
-									{% endif %}
-									<a href="{{path('assignment', {'sectionId':assignment.section.id, 'assignmentId':assignment.id})}}">{{assignment.name}}</a>
-								</div>
-								{% for problem in assignment.problems %}
-									<div class="nav-problem assignment-{{ assignment.id }}"><a href="{{path('assignment', {'sectionId':assignment.section.id, 'assignmentId':assignment.id, 'problemId':problem.id})}}">{{problem.name}}</a></div>
-								{% endfor %}
-							</div>
-						{% endfor %}
-					</div>			
-				</div>
-			{% endfor %}
-		{% endif %}
-
-		<div class="large-link">
-			<a href="{{path('homepage')}}">Past</a>
-		</div>
-
-		<div id="SideNavPath" data-path="{{path('sidenav_data')}}" style="display:none;"></div>
-	</nav>
-{% endif %}
+	<div id="SideNavData" data-path="{{path('sidenav_data')}}"
+						  data-white-chevron="{{ asset('images/white_chevron.png') }}"
+	style="display:none;"></div>
+</nav>
 
 {% block scripts %}
 	<script src="{{ asset('js/section-nav.js') }}"></script>
