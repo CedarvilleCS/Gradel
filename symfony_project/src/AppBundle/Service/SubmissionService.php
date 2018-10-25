@@ -86,5 +86,12 @@ class SubmissionService
 	public function getSubmissionById($entityManager, $submissionId) {
 		return $entityManager->find("AppBundle\Entity\Submission", $submissionId);
 	}
+
+	public function insertSubmission($entityManager, $submission, $shouldFlush = false) {
+		$entityManager->persist($submission);
+		if ($shouldFlush) {
+			$entityManager->flush();
+		}
+	}
 }
 ?>

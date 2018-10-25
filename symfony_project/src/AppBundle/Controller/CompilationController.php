@@ -20,6 +20,7 @@ use AppBundle\Entity\UserSectionRole;
 
 use Symfony\Component\Config\Definition\Exception\Exception;
 
+use AppBundle\Service\ProblemService;
 use AppBundle\Service\SubmissionService;
 use AppBundle\Service\TrialService;
 use AppBundle\Service\UserService;
@@ -42,15 +43,18 @@ use Psr\Log\LoggerInterface;
 
 class CompilationController extends Controller {	
 	private $logger;
+	private $problemService;
 	private $submissionService;
 	private $trialService;
 	private $userService;
 
 	public function __construct(LoggerInterface $logger,
+	                            ProblemService $problemService,
 	                            SubmissionService $submissionService,
 	                            TrialService $trialService,
 	                            UserService $userService) {
 		$this->logger = $logger;
+		$this->problemService = $problemService;
 		$this->submissionService = $submissionService;
 		$this->trialService = $trialService;
 		$this->userService = $userService;
@@ -71,7 +75,7 @@ class CompilationController extends Controller {
 		/* get the current user */
 		$user = $this->userService->getCurrentUser($entityManager);
 		
-		if (!$user) {
+		if (!get_class($user)) {
 			return $this->returnForbiddenResponse("USER DOES NOT EXIST");
 		}
 				
@@ -92,11 +96,14 @@ class CompilationController extends Controller {
 		$problem = $trial->problem;
 
 		if ($problem->assignment->section->course->is_contest && $forwarded != "secret_code") {
-			return $this->returnForbiddenResponse("You are not allow to run this controller");
+			return $this->returnForbiddenResponse("YOU ARE NOT PERMITTED TO SUBMIT FOR THIS PROBLEM");
 		}
 	
 		/* validation */
-		$elevatedUser = ($grader->isTeaching($user, $problem->assignment->section) || $grader->isJudging($user, $problem->assignment->section) || $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN"));
+		$isElevatedUser = $grader->isTeaching($user, $problem->assignment->section) || 
+						$grader->isJudging($user, $problem->assignment->section) || 
+						$user->hasRole("ROLE_SUPER") || 
+						$user->hasRole("ROLE_ADMIN");
 		
 		/* get the type of submission */
 		$team = null;
@@ -105,25 +112,25 @@ class CompilationController extends Controller {
 		if ($grader->isTaking($user, $problem->assignment->section)) {
 			/* get the current team */
 			$team = $grader->getTeam($user, $problem->assignment);		
-			if (!($team || $elevatedUser)) {
+			if (!($team || $isElevatedUser)) {
 				return $this->returnForbiddenResponse("YOU ARE NOT ON A TEAM OR TEACHING FOR THIS ASSIGNMENT");
 			}
 		
 			/* make sure that the assignment is still open for submission */
-			if (!$elevatedUser && $problem->assignment->cutoff_time < new \DateTime("now")) {
+			if (!$isElevatedUser && $problem->assignment->cutoff_time < new \DateTime("now")) {
 				return $this->returnForbiddenResponse("TOO LATE TO SUBMIT FOR THIS PROBLEM");
 			}
 			
-			if (!$elevatedUser && $problem->assignment->start_time > new \DateTime("now")) {
+			if (!$isElevatedUser && $problem->assignment->start_time > new \DateTime("now")) {
 				return $this->returnForbiddenResponse("TOO EARLY TO SUBMIT FOR THIS PROBLEM");
 			}
 			
 			/* make sure that you haven"t submitted too many times yet */
 			$currentAttempts = $grader->getNumTotalAttempts($user, $problem);
-			if (!$elevatedUser && $problem->total_attempts > 0 && $currentAttempts >= $problem->total_attempts) {
+			if (!$isElevatedUser && $problem->total_attempts > 0 && $currentAttempts >= $problem->total_attempts) {
 				return $this->returnForbiddenResponse("ALREADY REACHED MAX ATTEMPTS FOR PROBLEM AT ".$currentAttempts." ATTEMPTS");
 			}
-		} else if (!$elevatedUser) {
+		} else if (!$isElevatedUser) {
 			return $this->returnForbiddenResponse("YOU ARE NOT PERMITTED TO SUBMIT FOR THIS PROBLEM");
 		}
 		
@@ -243,7 +250,7 @@ class CompilationController extends Controller {
 		}
 		
 		/* RUN THE DOCKER COMPILATION */
-		$dockerTimeLimit = intval(count($problem->testcases) * ceil(floatval($problem->time_limit)/1000.0)) + 120;
+		$dockerTimeLimit = intval(count($problem->testcases) * ceil(floatval($problem->time_limit) / 1000.0)) + 120;
 
 		$dockerScript = $webDirectory."compilation/dockercompiler.sh \"".$dockerOptions."\" ".$submission->id." ".$dockerTimeLimit;
 		$dockerOutput = shell_exec($dockerScript);
@@ -316,8 +323,7 @@ class CompilationController extends Controller {
 		$submission->is_completed = true;
 		
 		/* update the submission entity */
-		$entityManager->persist($submission);
-		$entityManager->flush();
+		$this->submissionService->insertSubmission($entityManager, $submission, true);
 	
 		$url = $this->generateUrl("problem_result", [
 			"submission_id" => $submission->id
@@ -333,39 +339,42 @@ class CompilationController extends Controller {
 	
 	/* name=generate */
 	public function generateAction(Request $request) {
+		/* entity manager */
+		$entityManager = $this->getDoctrine()->getManager();
 		
-		# entity manager
-		$entityManager = $this->getDoctrine()->getManager();		
-		
-		# gets the gradel/symfony_project directory
+		/* gets the gradel/symfony_project directory */
 		$webDirectory = $this->get("kernel")->getProjectDir()."/";
 			
 		$generator = new Generator($entityManager, $webDirectory);	
 		$uploader = new Uploader($webDirectory);		
 		$grader = new Grader($entityManager);
-						
-		# get the current user
-		$user= $this->get("security.token_storage")->getToken()->getUser();		
-		if(!$user){
+
+		/* get the current user */
+		$user = $this->userService->getCurrentUser($entityManager);
+		if (!get_class($user)) {
 			return $this->returnForbiddenResponse("USER DOES NOT EXIST");
 		}
-		
-		$postData = $request->request->all();		
-		if(!isset($postData["assignmentId"]) || !($postData["assignmentId"] > 0)){
-			return $this->returnForbiddenResponse("Assignment ID was not provided or not formatted properly");
+
+		$assignmentId = $postData["assignmentId"];
+		$postData = $request->request->all();
+		if (!isset($assignmentId) || !($assignmentId > 0)) {
+			return $this->returnForbiddenResponse("ASSIGNMENT ID WAS NOT PROVIDED OR FORMATTED CORRECTLY");
+		}
+
+		$assignment = $this->assignmentService->getAssignmentById($entityManager, $assignmentId);
+		if (!$assignment) {
+			return $this->returnForbiddenResponse("ASSIGNMENT ".$assignmentId." DOES NOT EXIST");
 		}
 		
-		$assignment = $entityManager->find("AppBundle\Entity\Assignment", $postData["assignmentId"]);		
-		if(!$assignment){
-			return $this->returnForbiddenResponse("Assignment does not exist");
-		}
-		
-		$elevatedUser = $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isJudging($user, $assignment->section) || $grader->isTeaching($user, $assignment->section);		
-		if( !($elevatedUser || ($grader->isTaking($user, $assignment->section) && $assignment->isActive())) ){
+		$isElevatedUser = $user->hasRole("ROLE_SUPER") || 
+						$user->hasRole("ROLE_ADMIN") || 
+						$grader->isJudging($user, $assignment->section) || 
+						$grader->isTeaching($user, $assignment->section);
+		if (!($isElevatedUser || ($grader->isTaking($user, $assignment->section) && $assignment->isActive()))) {
 			return $this->returnForbiddenResponse("PERMISSION DENIED");
 		}
 		
-		# PROBLEM CREATION
+		/* PROBLEM CREATION */
 		$problem = new Problem();
 		
 		$problem->name = "";
@@ -387,9 +396,9 @@ class CompilationController extends Controller {
 		$problem->allow_multiple = true;
 		$problem->allow_upload = true;
 		
-		$entityManager->persist($problem);
+		$this->problemService->insertProblem($entityManager, $problem);
 		
-		# instantiate the problem languages
+		/* instantiate the problem languages */
 		$qb = $entityManager->createQueryBuilder();
 		$qb->select("l")
 			->from("AppBundle\Entity\Language", "l")
