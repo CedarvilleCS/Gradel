@@ -1,3 +1,3 @@
 #! /bin/bash
 
-./bin/console doctrine:schema:update
+./bin/console doctrine:schema:update $@
