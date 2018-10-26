@@ -10,7 +10,16 @@ class ProblemLanguageService
 
     public function __construct(ContainerInterface $container) {
         $this->container = $container;
-    }
+	}
+	
+	public function createProblemLanguage($problem, $language) {
+		$problemLanguage = new ProblemLanguage();
+
+		$problemLanguage->language = $language;
+		$problemLanguage->problem = $problem;
+
+		return $problemLanguage;
+	}
 
     public function getProblemLanguagesByProblem($entityManager, $problem) {
 		$builder = $entityManager->createQueryBuilder();
@@ -23,11 +32,9 @@ class ProblemLanguageService
 		return $problemLanguageQuery->getResult();
 	}
 
-	public function insertProblemLanguage($entityManager, $problemLanguage, $shouldFlush = false) {
+	public function insertProblemLanguage($entityManager, $problemLanguage) {
 		$entityManager->persist($problemLanguage);
-		if ($shouldFlush) {
-			$entityManager->flush();
-		}
+		$entityManager->flush();
 	}
 }
 ?>

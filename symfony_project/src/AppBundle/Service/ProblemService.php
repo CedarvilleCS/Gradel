@@ -14,6 +14,11 @@ class ProblemService
     public function __construct(ContainerInterface $container) {
         $this->container = $container;
 	}
+
+	public function deleteProblem($entityManager, $problem) {
+		$entityManager->remove($problem);
+		$entityManager->flush();
+	}
 	
 	public function getProblemById($entityManager, $problemId) {
 		return $entityManager->find("AppBundle\Entity\Problem", $problemId);
@@ -30,11 +35,9 @@ class ProblemService
 		return $problemQuery->getResult();
 	}
 
-	public function insertProblem($entityManager, $problem, $shouldFlush = false) {
+	public function insertProblem($entityManager, $problem) {
 		$entityManager->persist($problem);
-		if ($shouldFlush) {
-			$entityManager->flush();
-		}
+		$entityManager->flush();
 	}
 }
 ?>

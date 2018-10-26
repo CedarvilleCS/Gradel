@@ -181,7 +181,8 @@ class AssignmentController extends Controller {
 			}
 						
 			if (!$trial) {
-				$trial = $this->createTrial($entityManager, $user, $problem, true);
+				$trial = $this->trialService->createTrial($user, $problem);
+				$this->trialService->insertTrial($entityManager, $trial);
 			}
 			
 			$trial->file = $submission->submitted_file;						
@@ -358,7 +359,7 @@ class AssignmentController extends Controller {
 	
 	public function modifyPostAction(Request $request) {
 		$entityManager = $this->getDoctrine()->getManager();
-				
+		
 		// validate the current user
 		$user = $this->userService->getCurrentUser();
 		if (!$user) {
@@ -377,7 +378,7 @@ class AssignmentController extends Controller {
 		$sectionId = $postData["section"];
 		
 		$section = $this->sectionService->getSectionById($entityManager, $sectionId);
-
+		
 		if (!$section) {
 			return $this->returnForbiddenResponse("SECTION ".$sectionId." DOES NOT EXIST");
 		}
@@ -385,27 +386,27 @@ class AssignmentController extends Controller {
 		// only super users/admins/teacher can make/edit an assignment
 		$grader = new Grader($entityManager);		
 		if (!$user->hasRole(CONSTANTS::SUPER_ROLE) && 
-			!$user->hasRole(CONSTANTS::ADMIN_ROLE) && 
-			!$grader->isTeaching($user, $section) && 
-			!$grader->isJudging($user, $section)
-			) {
+		!$user->hasRole(CONSTANTS::ADMIN_ROLE) && 
+		!$grader->isTeaching($user, $section) && 
+		!$grader->isJudging($user, $section)
+		) {
 			return $this->returnForbiddenResponse("YOU DO NOT HAVE PERMISSION TO MAKE AN ASSIGNMENT");
 		}		
 		
 		// check mandatory fields
 		if (!isset($postData["name"]) ||
-			!isset($postData["open_time"]) ||
-			!isset($postData["close_time"]) ||
+		!isset($postData["open_time"]) ||
+		!isset($postData["close_time"]) ||
 			!isset($postData["teams"]) ||
 			!isset($postData["teamnames"])
 			){
-			return $this->returnForbiddenResponse("NOT EVERY REQUIRED FIELD WAS PROVIDED");
-		}
-		// validate the weight if there is one
-		if (is_numeric(trim($postData["weight"])) && ((int)trim($postData["weight"]) < 0 || $postData["weight"] % 1 != 0)) {
+				return $this->returnForbiddenResponse("NOT EVERY REQUIRED FIELD WAS PROVIDED");
+			}
+			// validate the weight if there is one
+			if (is_numeric(trim($postData["weight"])) && ((int)trim($postData["weight"]) < 0 || $postData["weight"] % 1 != 0)) {
 			return $this->returnForbiddenResponse("THE PROVIDED WEIGHT ".$postData["weight"]." IS NOT PERMITTED");
 		}
-
+		
 		// validate the penalty if there is one
 		if(is_numeric(trim($postData["penalty"])) && ((float)trim($postData["penalty"]) > 1.0 || (float)trim($postData["penalty"]) < 0.0)) {		
 			return $this->returnForbiddenResponse("THE PROVIDED PENALTY ".$postData["penalty"]." IS NOT PERMITTED");
@@ -415,7 +416,7 @@ class AssignmentController extends Controller {
 		$assignment = null;
 		$assignmentId = $postData["assignment"];
 		if ($postData["assignment"] == 0) {
-			$assignment = $this->assignmentService->createEmptyAssignment($entityManager);
+			$assignment = $this->assignmentService->createEmptyAssignment();
 		} else {
 			if (!isset($assignmentId) || !($assignmentId > 0)) {
 				return $this->returnForbiddenResponse("ASSIGNMENT ID WAS NOT PROVIDED OR FORMATTED PROPERLY");

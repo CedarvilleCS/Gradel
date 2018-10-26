@@ -17,16 +17,17 @@ class SubmissionService
         $this->container = $container;
 	}
 
-	public function createSubmissionFromTrialAndTeamForCompilationSubmit($entityManager, $trial, $team) {
+	public function createSubmissionFromTrialAndTeamForCompilationSubmit($trial, $team) {
 		$submission = new Submission($trial, $team);
-
-		$entityManager->persist($submission);
-		$entityManager->flush();
-
 		return $submission;
 	}
 
-	public function deleteAllSubmissionsForAssignmentClearSubmissions($entityManager, $problems, $shouldFlush = false) {
+	public function createSubmissionFromProblemTeamAndUser($problem, $team, $user) {
+		$submission = new Submission($problem, null, null);
+		return $submission;
+	}
+
+	public function deleteAllSubmissionsForAssignmentClearSubmissions($entityManager, $problems) {
 		$builder = $entityManager->createQueryBuilder();
 		$builder->delete("AppBundle\Entity\Submission", "s")
 		        ->where("s.problem IN (?1)")
@@ -34,10 +35,13 @@ class SubmissionService
 
 		$deleteQuery = $builder->getQuery();
 		$result = $deleteQuery->getResult();
-		if ($shouldFlush) {
-			$entityManager->flush();
-		}
+		$entityManager->flush();
 		return $result;
+	}
+
+	public function deleteSubmission($entityManager, $submission) {
+		$entityManager->remove($submission);
+		$entityManager->flush();
 	}
 	
 	public function getBestSubmissionForAssignment($entityManager, $teamOrUser, $whereClause, $problem) {
@@ -87,11 +91,9 @@ class SubmissionService
 		return $entityManager->find("AppBundle\Entity\Submission", $submissionId);
 	}
 
-	public function insertSubmission($entityManager, $submission, $shouldFlush = false) {
+	public function insertSubmission($entityManager, $submission) {
 		$entityManager->persist($submission);
-		if ($shouldFlush) {
-			$entityManager->flush();
-		}
+		$entityManager->flush();
 	}
 }
 ?>

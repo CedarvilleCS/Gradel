@@ -15,28 +15,19 @@ class TeamService
         $this->container = $container;
 	}
 
-	public function deleteTeam($entityManager, $team, $shouldFlush = false) {
+	public function deleteTeam($entityManager, $team) {
 		$entityManager->remove($team);
-		if ($shouldFlush) {
-			$entityManager->flush();
-		}
+		$entityManager->flush();
 	}
 
-	public function insertTeam($entityManager, $team, $shouldFlush = false) {
-		$entityManager->persist($team);
-		if ($shouldFlush) {
-			$entityManager->flush();
-		}
-	}
-	
 	public function getTeam($entityManager, $user, $assignment) {
 		# get all of the teams
 		$builder = $entityManager->createQueryBuilder();
 		$builder->select('t')
-				->from('AppBundle\Entity\Team', 't')
-				->where('t.assignment = ?1')
-				->setParameter(1, $assignment);
-				
+		->from('AppBundle\Entity\Team', 't')
+		->where('t.assignment = ?1')
+		->setParameter(1, $assignment);
+		
 		$teamQuery = $builder->getQuery();
 		$teams = $teamQuery->getResult();
 		
@@ -50,9 +41,14 @@ class TeamService
 		}
 		return null;
 	}
-
+	
 	public function getTeamById($entityManager, $teamId) {
 		return $entityManager->find("AppBundle\Entity\Team", $teamId);
+	}
+
+	public function insertTeam($entityManager, $team) {
+		$entityManager->persist($team);
+		$entityManager->flush();
 	}
 }
 ?>

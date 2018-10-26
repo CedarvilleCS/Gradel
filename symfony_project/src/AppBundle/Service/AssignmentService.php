@@ -17,27 +17,19 @@ class AssignmentService
         $this->container = $container;
 	}
 
-	public function createEmptyAssignment($entityManager, $assignment, $shouldFlush = false) {
+	public function createEmptyAssignment() {
 		$assignment = new Assignment();
-		$entityManager->persist($assignment);
-		if ($shouldFlush) {
-			$entityManager->flush();
-		}
 		return $assignment;
 	}
 
-	public function insertAssignment($entityManager, $assignment, $shouldFlush = false) {
+	public function insertAssignment($entityManager, $assignment) {
 		$entityManager->persist($assignment);
-		if ($shouldFlush) {
-			$entityManager->flush();
-		}
+		$entityManager->flush();
 	}
 
-	public function deleteAssignment($entityManager, $assignment, $shouldFlush = false) {
+	public function deleteAssignment($entityManager, $assignment) {
 		$entityManager->remove($assignment);
-		if ($shouldFlush) {
-			$entityManager->flush();
-		}
+		$entityManager->flush();
 	}
 	
 	public function getAssignmentById($entityManager, $assignmentId) {

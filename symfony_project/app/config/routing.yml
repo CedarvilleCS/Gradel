@@ -143,8 +143,6 @@ assignment_cleartrials:
     _controller: AppBundle:Assignment:clearTrials
   methods: [POST]
 
-
-  
 # CONTEST ROUTES
 contest_result:
   path: '/contest/{contestId}/round/{roundId}/problem/{problemId}/result/{resultId}'

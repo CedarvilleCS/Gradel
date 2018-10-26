@@ -22,6 +22,9 @@ use AppBundle\Entity\UserSectionRole;
 
 use Symfony\Component\Config\Definition\Exception\Exception;
 
+use AppBundle\Service\AssignmentService;
+use AppBundle\Service\LanguageService;
+use AppBundle\Service\ProblemLanguageService;
 use AppBundle\Service\ProblemService;
 use AppBundle\Service\SubmissionService;
 use AppBundle\Service\TrialService;
@@ -45,17 +48,26 @@ use Psr\Log\LoggerInterface;
 
 class CompilationController extends Controller {	
 	private $logger;
+	private $assignmentService;
+	private $languageService;
+	private $problemLanguageService;
 	private $problemService;
 	private $submissionService;
 	private $trialService;
 	private $userService;
 
 	public function __construct(LoggerInterface $logger,
-	                            ProblemService $problemService,
+								AssignmentService $assignmentService,			
+								LanguageService $languageService,
+								ProblemService $problemLanguageService,
+								ProblemService $problemService,
 	                            SubmissionService $submissionService,
 	                            TrialService $trialService,
 	                            UserService $userService) {
 		$this->logger = $logger;
+		$this->assignmentService = $assignmentService;
+		$this->languageService = $languageService;
+		$this->problemLanguageService = $problemLanguageService;
 		$this->problemService = $problemService;
 		$this->submissionService = $submissionService;
 		$this->trialService = $trialService;
@@ -157,7 +169,8 @@ class CompilationController extends Controller {
 
 		/* INITIALIZE THE SUBMISSION */
 		/* create an entity for the current submission from the trial */
-		$submission = $this->submissionService->createSubmissionFromTrialAndTeamForCompilationSubmit($entityManager, $trial, $team);
+		$submission = $this->submissionService->createSubmissionFromTrialAndTeamForCompilationSubmit($trial, $team);
+		$this->submissionService->insertSubmission($entityManager, $submission);
 		
 		/* SETTING UP FOLDERS */
 		$subDirectory = $webDirectory."compilation/submissions/".$submission->id."/";
@@ -244,7 +257,7 @@ class CompilationController extends Controller {
 		                                                                  true);
 				
 		if ($dockerOptionsGeneratorResult != 1) {
-			$this->cleanUp($submission, null, $subDirectory, $uploadsDirectory);		
+			$this->cleanUp($submission, null, $subDirectory, $uploadsDirectory);
 			return $this->returnForbiddenResponse($dockerOptionsGeneratorResult."");
 		}
 		
@@ -322,7 +335,7 @@ class CompilationController extends Controller {
 		$submission->is_completed = true;
 		
 		/* update the submission entity */
-		$this->submissionService->insertSubmission($entityManager, $submission, true);
+		$this->submissionService->insertSubmission($entityManager, $submission);
 	
 		$url = $this->generateUrl("problem_result", [
 			"submission_id" => $submission->id
@@ -354,8 +367,10 @@ class CompilationController extends Controller {
 			return $this->returnForbiddenResponse("USER DOES NOT EXIST");
 		}
 
-		$assignmentId = $postData["assignmentId"];
+		/* POST DATA */
 		$postData = $request->request->all();
+
+		$assignmentId = $postData["assignmentId"];
 		if (!isset($assignmentId) || !($assignmentId > 0)) {
 			return $this->returnForbiddenResponse("ASSIGNMENT ID WAS NOT PROVIDED OR FORMATTED CORRECTLY");
 		}
@@ -397,64 +412,53 @@ class CompilationController extends Controller {
 		
 		$this->problemService->insertProblem($entityManager, $problem);
 		
-		/* instantiate the problem languages */
-		$qb = $entityManager->createQueryBuilder();
-		$qb->select("l")
-			->from("AppBundle\Entity\Language", "l")
-			->where("1 = 1");
-		$languages = $qb->getQuery()->getResult();
+		$languages = $this->languageService->getAll($entityManager);
 		
-		foreach($languages as $language){
-
-			$problemLanguage = new ProblemLanguage();
-
-			$problemLanguage->language = $language;
-			$problemLanguage->problem = $problem;
+		/* Instantiate the problem languages */
+		foreach ($languages as $language) {
+			$problemLanguage = $this->problemLanguageService->createProblemLanguage($problem, $language);
 			$entityManager->persist($problemLanguage);
-		}		
+		}
 		
-		# TESTCASES
+		/* Test cases */
 		$postData = $request->request->all();
-		$postTestcases = (array) json_decode($postData["testcases"]);		
-		if(!(count($postTestcases) >= 1)){
-			return $this->returnForbiddenResponse("No testcases given!");
+		$testCases = (array) json_decode($postData["testcases"]);
+		if (!(count($testCases) >= 1)) {
+			return $this->returnForbiddenResponse("NO TESTCASES GIVEN");
 		}
 		
 		$count = 1;
-		foreach($postTestcases as &$tc){
+		foreach ($testCases as &$testCase) {
+			$testCase = (array) $testCase;
 			
-			$tc = (array) $tc;
-			
-			# build the testcase
-			try{				
-				$testcase = new Testcase($problem, $tc, $count);
+			/* Build the testcase */
+			try {				
+				$newTestCase = new Testcase($problem, $testCase, $count);
 				
-				if(!isset($testcase->input) || trim($testcase->input) == ""){
-					//return $this->returnForbiddenResponse(json_encode($testcase));
-					return $this->returnForbiddenResponse("Your testcases are not valid");
+				if (!isset($newTestCase->input) || trim($newTestCase->input) == "") {
+					return $this->returnForbiddenResponse("YOU TESTCASES ARE NOT VALID");
 				}
-				
+
 				$count++;
-					
-				$entityManager->persist($testcase);
-				$problem->testcases[] = $testcase;	
-			} catch(Exception $e){
+
+				$entityManager->persist($newTestCase);
+				$problem->testcases[] = $newTestCase;	
+			} catch (Exception $e) {
 				return $this->returnForbiddenResponse($e->getMessage());
 			}
-		}		
-		
+		}
+
 		$entityManager->persist($problem);		
 		$entityManager->flush();
 							
-		# INITIALIZE A SUBMISSION
-		# create an entity for the current submission
-		$submission = new Submission($problem, null, null);	
+		/* INITIALIZE A SUBMISSION */
+		/* Create an entity for the current submission */
+		$submission = $this->submissionService->createSubmissionFromProblemTeamAndUser($problem, null, null);
 
-		# persist to the database to get the id
-		$entityManager->persist($submission);
-		$entityManager->flush();	
+		/* Persist to the database to get the id */
+		$this->submissionService->insertSubmission($entityManager, $submission);
 		
-		# SETTING UP FOLDERS
+		/* SETTING UP FOLDERS */
 		$subDirectory = $webDirectory."compilation/submissions/".$submission->id."/";
 		
 		$studentCodeDirectory = $subDirectory."student_code/";
@@ -473,8 +477,8 @@ class CompilationController extends Controller {
 		
 		$userOutputDirectory = $subDirectory."user_output/";		
 		
-		# create all of the folders
-		# make the directory for the submission output
+		/* Create all of the folders */
+		/* Make the directory for the submission output */
 		shell_exec("mkdir -p ".$subDirectory);
 		shell_exec("mkdir -p ".$studentCodeDirectory);	
 		shell_exec("mkdir -p ".$compiledCodeDirectory);	
@@ -488,116 +492,111 @@ class CompilationController extends Controller {
 		shell_exec("mkdir -p ".$argFileDirectory);	
 		shell_exec("mkdir -p ".$userOutputDirectory);
 		
-		# GENERATE THE FILES
+		/* GENERATE THE FILES */
 		$aceData = json_decode($postData["ACE"]);
 		
-		// make a temporary directory
-		$tempdir = null;
+		/* Make a temporary directory */
+		$tempDirectory = null;
 		
-		while(!is_dir($tempdir)){
+		while (!is_dir($tempDirectory)) {
+			$tempDirectory = tempnam(sys_get_temp_dir(),"");
 			
-			$tempdir = tempnam(sys_get_temp_dir(),"");
-			
-			if (file_exists($tempdir)){
-				unlink($tempdir);
+			if (file_exists($tempDirectory)) {
+				unlink($tempDirectory);
 			}
-			mkdir($tempdir);
+			mkdir($tempDirectory);
 		}
-		$tempdir .= "/";
+		$tempDirectory .= "/";
 				
-		$total_size = 0;
+		$totalSize = 0;
 		
-		$array_of_names = [];		
-		foreach($aceData as $aceDatum){
-			
-			if(strlen($aceDatum->content) <= 0){
-				return $this->returnForbiddenResponse("Your file cannot be empty");
+		foreach ($aceData as $aceDatum) {
+			if (strlen($aceDatum->content) <= 0) {
+				return $this->returnForbiddenResponse("YOUR FILE CANNOT BE EMPTY");
 			}
 			
-			if(strlen($aceDatum->filename) <= 0){
-				return $this->returnForbiddenResponse("Your filename cannot be blank");
+			if (strlen($aceDatum->filename) <= 0) {
+				return $this->returnForbiddenResponse("YOUR FILENAME CANNOT BE BLANK");
 			}
 			
-			if(preg_match("/^[a-zA-Z0-9-_]+\.[a-zA-Z]+$/", $aceDatum->filename) <= 0){
-				return $this->returnForbiddenResponse("Your filename is invalid");
+			if (preg_match("/^[a-zA-Z0-9-_]+\.[a-zA-Z]+$/", $aceDatum->filename) <= 0) {
+				return $this->returnForbiddenResponse("YOUR FILENAME IS INVALID");
 			}
 			
 			$aceContent = $aceDatum->content;
 			$filename = $aceDatum->filename;
-
 			
-			$total_size += strlen($aceContent);
+			$totalSize += strlen($aceContent);
 		
-			if($total_size > 1024*1024){
-				return $this->returnForbiddenResponse("Uploaded code must be smaller than 1Mb total.");
+			if ($totalSize > 1024 * 1024) {
+				return $this->returnForbiddenResponse("UPLOADED CODE MUST BE SMALLER THAN 1MB TOTAL");
 			}
 			
-			if(!file_put_contents($tempdir.$filename, $aceContent, FILE_USE_INCLUDE_PATH)){
+			if (!file_put_contents($tempDirectory.$filename, $aceContent, FILE_USE_INCLUDE_PATH)) {
 				 return $this->returnForbiddenResponse("UNABLE TO MOVE THE ACE EDITOR CONTENTS");
 			}			
 		}
-		
+
 		$zipper = new Zipper();
-		$target_file = $tempdir."zippy.zip";
-		
-		$response = $zipper->zipFiles($tempdir, $target_file);
+		$targetFile = $tempDirectory."zippy.zip";
+
+		$response = $zipper->zipFiles($tempDirectory, $targetFile);
 			
-		if($response !== TRUE){
+		if ($response !== true) {
 			return $this->returnForbiddenResponse($response."");
 		}		
 		
-		// make a zip file and set file = fopen(zip location)
-		$file = fopen($target_file, "r");		
-		if(!$file){
-			return $this->returnForbiddenResponse("Could not properly open file for moving.");
+		/* Make a zip file and set file = fopen(zip location) */
+		$file = fopen($targetFile, "r");		
+		if (!$file) {
+			return $this->returnForbiddenResponse("COULD NOT PROPERLY OPEN FILE FOR MOVING");
 		}
 		
-		# uploads directory 
-		# get the submitted file path
+		/* Uploads directory */
+		/* Get the submitted file path */
 		$uploadsDirectory = $webDirectory."compilation/uploads/".$user->id."/".$problem->id."/";
 		$submittedFilePath = $uploadsDirectory."zippy.zip";
 
-		# PUT THE ZIP FILE IN THE UPLOADS DIRECTORY
+		/* PUT THE ZIP FILE IN THE UPLOADS DIRECTORY */
 		$submittedFilename = $uploader->createGeneratorFile($user, $problem, "zippy.zip", $file);
-		//return $this->returnForbiddenResponse(json_encode($submittedFilename));
-		if(!$submittedFilename){
+		if (!$submittedFilename) {
 			$this->cleanUp($submission, $problem, $subDirectory, $uploadsDirectory);	
-			return $this->returnForbiddenResponse("Unable to create file for submission");
+			return $this->returnForbiddenResponse("UNABLE TO CREATE FILE FOR SUBMISSION");
 		}
 
-		// move into docker area
+		/* Move into docker area */
 		shell_exec("mv ".$submittedFilePath." ".$studentCodeDirectory."/");
 
-			# save the input/output files to a temp folder by deblobinating them	
+		/* Save the input/output files to a temp folder by deblobinating them */
 		$testCaseGeneratorResult = $generator->generateTestcaseFiles($problem, $inputFileDirectory, $argFileDirectory, $outputFileDirectory);
-		if($testCaseGeneratorResult != 1){			
+		if ($testCaseGeneratorResult != 1) {
 			$this->cleanUp($submission, $problem, $subDirectory, $uploadsDirectory);	
 			return $this->returnForbiddenResponse($testCaseGeneratorResult."");
 		}
 			
-		# get the current language
-		$language_id = $postData["language"];
-		if(!isset($language_id) || !($language_id > 0)){
+		/* get the current language */
+		$languageId = $postData["language"];
+		if (!isset($languageId) || !($languageId > 0)) {
 			$this->cleanUp($submission, $problem, $subDirectory, $uploadsDirectory);	
 			return $this->returnForbiddenResponse("PROBLEM ID WAS NOT PROVIDED PROPERLY");
 		}
 		
-		$language = $entityManager->find("AppBundle\Entity\Language", $language_id);
-		if(!$language){
-			$this->cleanUp($submission, $problem, $subDirectory, $uploadsDirectory);	
-			return $this->returnForbiddenResponse("Language with id ".$language_id." does not exist");
+		$language = $this->languageService->getLanguageById($entityManager, $languageId);
+		if (!$language) {
+			$this->cleanUp($submission, $problem, $subDirectory, $uploadsDirectory);
+			return $this->returnForbiddenResponse("LANGUAGE ".$languageId." DOES NOT EXIST");
 		}		
 		
-		# set the main class and package name
+		/* Set the main class and package name */
 		$mainClass = $postData["main_class"];
 		$packageName = $postData["package_name"];
 				
-		# check main class and package name for validity
-		if(!isset($mainClass) || strlen($mainClass) > 0 && preg_match("/^[a-zA-Z0-9_]+$/", $mainClass) != 1){
+		/* Check main class and package name for validity */
+		if (!isset($mainClass) || strlen($mainClass) > 0 && preg_match("/^[a-zA-Z0-9_]+$/", $mainClass) != 1) {
 			return $this->returnForbiddenResponse("MAIN CLASS MUST BE ONLY LETTERS, NUMBERS, OR UNDERSCORES");
 		}
 		
-		if(!isset($packageName) || strlen($packageName) > 0 && preg_match("/^[a-zA-Z0-9_]+$/", $packageName) != 1){
+		if (!isset($packageName) || strlen($packageName) > 0 && preg_match("/^[a-zA-Z0-9_]+$/", $packageName) != 1) {
 			return $this->returnForbiddenResponse("PACKAGE NAME MUST BE ONLY LETTERS, NUMBERS, OR UNDERSCORES");
 		}
 
@@ -610,88 +609,75 @@ class CompilationController extends Controller {
 		$isZipped = true;
 		
 		/* CREATE THE DOCKER CONTAINER */
-		// required fields
+		/* Required fields */
 		$dockerOptions = "";
-		$dockerOptionsGeneratorResult = $generator->generateDockerOptions($dockerOptions, 
-															$language, 
-															$submittedFilename, 
-															$problem, 
-															$mainClass, 
-															$packageName, 
-															$isZipped, 
-															false);
-		
-		if($dockerOptionsGeneratorResult != 1){			
-			$this->cleanUp($submission, $problem, $subDirectory, $uploadsDirectory);	
+		$dockerOptionsGeneratorResult = $generator->generateDockerOptions($dockerOptions,
+																		  $language,
+																		  $submittedFilename,
+																		  $problem,
+																		  $mainClass,
+																		  $packageName,
+																		  $isZipped,
+																		  false);
+
+		if ($dockerOptionsGeneratorResult != 1) {
+			$this->cleanUp($submission, $problem, $subDirectory, $uploadsDirectory);
 			return $this->returnForbiddenResponse($dockerOptionsGeneratorResult."");
 		}
-		
-		# RUN THE DOCKER COMPILATION
+
+		/* RUN THE DOCKER COMPILATION */
 		$dockerTimeLimit = intval(count($problem->testcases) * ceil(floatval($problem->time_limit)/1000.0)) + 40;
 
 		$dockerScript = $webDirectory."compilation/dockercompiler.sh \"".$dockerOptions."\" ".$submission->id." ".$dockerTimeLimit;
-		$dockerOutput = shell_exec($dockerScript);	
-		
+		$dockerOutput = shell_exec($dockerScript);
+
 		$dockerLogFile = fopen($flagsDirectory."docker_log", "w");
-		if(!$dockerLogFile){
+		if (!$dockerLogFile) {
 			$this->cleanUp($submission, $problem, $subDirectory, $uploadsDirectory);
-			return $this->returnForbiddenResponse("Cannot open docker_script.log - contact a system admin");
+			return $this->returnForbiddenResponse("CANNOT OPEN `docker_script.log` - CONTACT A SYSTEM ADMIN");
 		}
 		fwrite($dockerLogFile, $dockerOutput);
 		fclose($dockerLogFile);
 		
-		#return $this->returnForbiddenResponse($dockerOutput);
-		
-		# PARSE FOR SUBMISSION		
+		/* PARSE FOR SUBMISSION */
 		$testcases = [];
 		$submissionGeneratorResult = $generator->generateOutput($testcases, $submission, count($problem->testcases));
-			
-		if($submissionGeneratorResult != 1) {
-		//	$this->cleanUp($submission, $problem, $subDirectory, $uploadsDirectory);
+
+		if ($submissionGeneratorResult != 1) {
 			return $this->returnForbiddenResponse($submissionGeneratorResult."");
 		}
 						
-		# REMOVE TEMPORARY FOLDERS AND DATABASES
+		/* Remove temporary folders and databases */
 		$this->cleanUp($submission, $problem, $subDirectory, $uploadsDirectory);
-		
-		# RETURN THE TESTCASES OF THE RESULT
-		$response = new Response(json_encode([		
-			"testcases" => $testcases,			
+
+		/* Return the testcases of the result */
+		$response = new Response(json_encode([
+			"testcases" => $testcases,	
 		]));
-		
-		$response->headers->set("Content-Type", "application/json");
-		$response->setStatusCode(Response::HTTP_OK);
-	
-		return $response;
+
+		return $this->returnOkResponse($response);
 	}
 	
-	// function to remove the submission and problem on failure
+	/* Function to remove the submission and problem on failure */
 	private function cleanUp($submission, $problem, $subDirectory, $uploadsDirectory){
-		
-		# entity manager
+		/* Entity manager */
 		$entityManager = $this->getDoctrine()->getManager();	
 		
 		if(isset($submission)){
-			$entityManager->remove($submission);
+			$this->submissionService->deleteSubmission($entityManager, $submission);
 		}
 		
 		if(isset($problem)){
-			$entityManager->remove($problem);
-		}
-		
-		if(isset($subDirectory)){
-			//shell_exec("rm -rf ".$subDirectory);
+			$this->problemService->deleteProblem($entityManager, $problem);
 		}
 		
 		if(isset($uploadsDirectory)){
 			shell_exec("rm -rf ".$uploadsDirectory);			
 		}
-		
-		$entityManager->flush();
 	}
 
 	private function logError($message) {
-		$errorMessage = "AssignmentController: ".$message;
+		$errorMessage = "CompilationController: ".$message;
 		$this->logger->error($errorMessage);
 		return $errorMessage;
 	}

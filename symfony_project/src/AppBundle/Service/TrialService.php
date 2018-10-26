@@ -17,17 +17,12 @@ class TrialService
         $this->container = $container;
 	}
 
-	public function createTrial($entityManager, $user, $problem, $showDescription, $shouldFlush = false) {
+	public function createTrial($user, $problem, $showDescription) {
 		$trial = new Trial();
 
 		$trial->user = $user;
 		$trial->problem = $problem;		
 		$trial->show_description = $showDescription;
-				
-		$entityManager->persist($trial);
-		if ($shouldFlush) {
-			$entityManager->flush();
-		}
 
 		return $trial;
 	}
@@ -47,6 +42,11 @@ class TrialService
 
 	public function getTrialById($entityManager, $trialId) {
 		return $entityManager->find("AppBundle\Entity\Trial", $trialId);
+	}
+
+	public function insertTrial($entityManager, $trial) {
+		$entityManager->persist($trial);
+		$entityManager->flush();
 	}
 }
 ?>

@@ -183,7 +183,6 @@ class SectionController extends Controller {
 					$submission_query = $qb_submissions->getQuery();
 					$submission = $submission_query->getOneOrNullResult();
 					$correct_sub_ids[$assig->id][$prob->id]=$submission->id;
-					
 				}
 			}
 			$subs[$section_taker->id] = $correct_sub_ids;
@@ -364,7 +363,7 @@ class SectionController extends Controller {
 			$newSection->semester = $semester;
 			$newSection->name = $name."-".str_pad($i, 2, "0", STR_PAD_LEFT);
 			$newSection->year = $year;
-			$this->sectionService->insertSection($entityManager, $newSection, true);
+			$this->sectionService->insertSection($entityManager, $newSection);
 		}
 
 		return $this->redirectToRoute('section_edit',
