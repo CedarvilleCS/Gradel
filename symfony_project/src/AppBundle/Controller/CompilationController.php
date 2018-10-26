@@ -231,9 +231,6 @@ class CompilationController extends Controller {
 		/* the submission is always zipped now */
 		$isZipped = true;
 		
-		/* get the problem language entity from the problem and language */
-		/* store the compilation options from the problem language */
-		
 		/* CREATE THE DOCKER CONTAINER */
 		/* required fields */
 		$dockerOptions = "";
