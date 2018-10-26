@@ -2,6 +2,8 @@
 
 namespace AppBundle\Controller;
 
+use AppBundle\Constants;
+
 use AppBundle\Entity\Assignment;
 use AppBundle\Entity\Course;
 use AppBundle\Entity\Feedback;
@@ -102,8 +104,8 @@ class CompilationController extends Controller {
 		/* validation */
 		$isElevatedUser = $grader->isTeaching($user, $problem->assignment->section) || 
 						$grader->isJudging($user, $problem->assignment->section) || 
-						$user->hasRole("ROLE_SUPER") || 
-						$user->hasRole("ROLE_ADMIN");
+						$user->hasRole(Constants::SUPER_ROLE) || 
+						$user->hasRole(Constants::ADMIN_ROLE);
 		
 		/* get the type of submission */
 		$team = null;
@@ -366,8 +368,8 @@ class CompilationController extends Controller {
 			return $this->returnForbiddenResponse("ASSIGNMENT ".$assignmentId." DOES NOT EXIST");
 		}
 		
-		$isElevatedUser = $user->hasRole("ROLE_SUPER") || 
-						$user->hasRole("ROLE_ADMIN") || 
+		$isElevatedUser = $user->hasRole(Constants::SUPER_ROLE) || 
+						$user->hasRole(Constants::ADMIN_ROLE) || 
 						$grader->isJudging($user, $assignment->section) || 
 						$grader->isTeaching($user, $assignment->section);
 		if (!($isElevatedUser || ($grader->isTaking($user, $assignment->section) && $assignment->isActive()))) {
