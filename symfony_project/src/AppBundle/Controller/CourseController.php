@@ -2,10 +2,15 @@
 
 namespace AppBundle\Controller;
 
+use AppBundle\Constants;
+
 use AppBundle\Entity\User;
 use AppBundle\Entity\Course;
 use AppBundle\Entity\Role;
 use AppBundle\Entity\Section;
+
+use AppBundle\Service\CourseService;
+use AppBundle\Service\UserService;
 
 use AppBundle\Utils\Grader;
 
@@ -17,192 +22,212 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Psr\Log\LoggerInterface;
 
 class CourseController extends Controller {
+	private $logger;
+	private $courseService;
+	private $userService;
+
+	public function __construct(LoggerInterface $logger,
+	                            CourseService $courseService,
+	                            UserService $userService) {
+		$this->logger = $logger;
+		$this->courseService = $courseService;
+		$this->userService = $userService;
+	}
 
     public function coursesAction() {
+		$entityManager = $this->getDoctrine()->getManager();
 
-		$em = $this->getDoctrine()->getManager();
+		$user = $this->userService->getCurrentUser($entityManager);
 
-		$user = $this->get('security.token_storage')->getToken()->getUser();
-
-		if(!$user){
-			die("USER DOES NOT EXIST");
+		if (!get_class($user)) {
+			return $this->returnForbiddenResponse("USER DOES NOT EXIST");
 		}
 
-		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN")){
-			
-			die("YOU DO NOT HAVE PERMISSION TO SEE THIS PAGE!");
+		if (!$user->hasRole(CONSTANTS::SUPER_ROLE) && !$user->hasRole(CONSTANTS::ADMIN_ROLE)) {
+			return $this->returnForbiddenResponse("YOU DO NOT HAVE PERMISSION TO SEE THIS PAGE");
 		}
+
+		$courses = $this->courseService->getAll($entityManager);
 		
-		$courses = $em->getRepository("AppBundle\Entity\Course")->findAll();
+		usort($courses, array("AppBundle\Entity\Course", "cmp"));
+
+		$deletedCourses = [];
+		$openCourses = [];
 		
-		usort($courses, array('AppBundle\Entity\Course', 'cmp'));
-		
-		$deleted_courses = [];
-		$open_courses = [];
-		
-		foreach($courses as $cs){
-			if($cs->is_deleted){
-				$deleted_courses[] = $cs;
+		foreach ($courses as $course) {
+			if ($course->is_deleted) {
+				$deletedCourses[] = $course;
 			} else {
-				$open_courses[] = $cs;
+				$openCourses[] = $course;
 			}
 		}
 		
-		return $this->render('course/index.html.twig', [
-			'courses' => $open_courses,
-			'deleted_courses' => $deleted_courses,
+		return $this->render("course/index.html.twig", [
+			"courses" => $openCourses,
+			"deleted_courses" => $deletedCourses
 		]);
     }
 
     public function editCourseAction($courseId) {
+		$entityManager = $this->getDoctrine()->getManager();
 		
-		$em = $this->getDoctrine()->getManager();
-		
-		$user = $this->get('security.token_storage')->getToken()->getUser();
-		if(!$user){
-			die("USER DOES NOT EXIST");
+		$user = $this->userService->getCurrentUser($entityManager);
+		if (!get_class($user)) {
+			return $this->returnForbiddenResponse("USER DOES NOT EXIST");
 		}
 		
-		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN")){
-			die("YOU DO NOT HAVE PERMISSION TO SEE THIS PAGE!"); 
+		if (!$user->hasRole(CONSTANTS::SUPER_ROLE) && !$user->hasRole(CONSTANTS::ADMIN_ROLE)) {
+			return $this->returnForbiddenResponse("YOU DO NOT HAVE PERMISSION TO SEE THIS PAGE"); 
 		}
 		
-		if(isset($courseId) && $courseId > 0){
-			$course = $em->find('AppBundle\Entity\Course', $courseId);
+		$editedCourse = [];
+		if (isset($courseId) && $courseId > 0) {
+			$editedCourse = $this->courseService->getCourseById($entityManager, $courseId);
 		}
 		
-		$courses = $em->getRepository("AppBundle\Entity\Course")->findAll();
+		$courses = $this->courseService->getAll($entityManager);
+
+		$deletedCourses = [];
+		$openCourses = [];
 		
-		$deleted_courses = [];
-		$open_courses = [];
-		
-		foreach($courses as $cs){
-			if($cs->is_deleted){
-				$deleted_courses[] = $cs;
+		foreach ($courses as $course) {
+			if ($course->is_deleted) {
+				$deletedCourses[] = $course;
 			} else {
-				$open_courses[] = $cs;
+				$openCourses[] = $course;
 			}
 		}
 		
-		return $this->render('course/edit.html.twig', [
-			'course' => $course,
-			'courses' => $open_courses,
-			'deleted_courses' => $deleted_courses,
+		return $this->render("course/edit.html.twig", [
+			"course" => $editedCourse,
+			"courses" => $openCourses,
+			"deleted_courses" => $deletedCourses,
 		]);
     }
 	
 	public function deleteCourseAction($courseId){
+		$entityManager = $this->getDoctrine()->getManager();
 		
-		$em = $this->getDoctrine()->getManager();
-		
-		# validate the current user
-		$user = $this->get('security.token_storage')->getToken()->getUser();
-		if(!$user){			
-			die("USER DOES NOT EXIST");
+		$user = $this->userService->getCurrentUser($entityManager);
+		if (!get_class($user)) {
+			return $this->returnForbiddenResponse("USER DOES NOT EXIST");
 		}
 		
-		# only super users and admins can make/edit a course
-		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN")){			
-			die("YOU DO NOT HAVE PERMISSION TO DELETE A COURSE");
+		/* only super users and admins can make/edit a course */
+		if (!$user->hasRole(CONSTANTS::SUPER_ROLE) && !$user->hasRole(CONSTANTS::ADMIN_ROLE)) {
+			return $this->returnForbiddenResponse("YOU DO NOT HAVE PERMISSION TO DELETE A COURSE");
 		}
 		
-		
-		if(!isset($courseId) || !($courseId > 0)){
-			die("COURSE ID WAS NOT PROVIDED PROPERLY");
+		if (!isset($courseId) || !($courseId > 0)) {
+			return $this->returnForbiddenResponse("COURSE ID WAS NOT PROVIDED PROPERLY");
 		}
 		
-		$course = $em->find('AppBundle\Entity\Course', $courseId);
+		$course = $this->courseService->getCourseById($entityManager, $courseId);
 		
-		if(!$course){
-			die("COURSE DOES NOT EXIST");
+		if (!$course) {
+			return $this->returnForbiddenResponse("COURSE ".$courseId." DOES NOT EXIST");
 		}
 		
 		$course->is_deleted = !$course->is_deleted;
 		
-		if($course->is_deleted){
-			foreach($course->sections as $section){
+		if ($course->is_deleted) {
+			foreach ($course->sections as $section) {
 				$section->is_deleted = $course->is_deleted;;
 			}
 		}
 		
-		$em->flush();
+		$entityManager->flush();
 		
-		return $this->redirectToRoute('courses');
+		return $this->redirectToRoute("courses");
 	}
 	
 	public function modifyPostAction(Request $request){
+		$entityManager = $this->getDoctrine()->getManager();
 		
-		$em = $this->getDoctrine()->getManager();
-		
-		# validate the current user
-		$user = $this->get('security.token_storage')->getToken()->getUser();
-		if(!$user){			
-			return $this->returnForbiddenResponse("You are not a user.");
+		$user = $this->userService->getCurrentUser($entityManager);
+		if (!get_class($user)) {
+			return $this->returnForbiddenResponse("USER DOES NOT EXIST");
 		}
 		
-		# only super users and admins can make/edit a course
-		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN")){			
-			return $this->returnForbiddenResponse("You do not have permission to make a section.");
+		/* Only super users and admins can make/edit a course */
+		if (!$user->hasRole(CONSTANTS::SUPER_ROLE) && !$user->hasRole(CONSTANTS::ADMIN_ROLE)){			
+			return $this->returnForbiddenResponse("YOU DO NOT HAVE PERMISSION TO MAKE A COURSE");
 		}
 		
-		# see which fields were included
+		/* See which fields were included */
 		$postData = $request->request->all();
 		
-		# check mandatory fields
-		if(!isset($postData['name']) && !isset($postData['code']) && !isset($postData['description'])){
+		/* Check mandatory fields */
+		if (!isset($postData["name"]) || 
+			!isset($postData["code"]) || 
+			!isset($postData["description"])) {
 			return $this->returnForbiddenResponse("Not every required field is provided.");
 		}
 		
-		# create new assignment
-		if($postData['course'] == 0){
-			$course = new Course();		
-			$em->persist($course);
+		$courseId = $postData["course"];
+		/* Create new assignment */
+		if ($courseId == 0) {
+			$course = $this->courseService->createEmptyCourse();
+			$this->courseService->insertCourse($entityManager, $course);
 		} else {
-			
-			if(!isset($postData['course']) || !($postData['course'] > 0)){
-				return $this->returnForbiddenResponse("Course id was not formatted properly");
+			if (!isset($courseId) ||
+			    !($courseId > 0)) {
+				return $this->returnForbiddenResponse("COURSE ID ".$courseId." WAS NOT PROVIDED OR FORMATTED CORRECTLY");
 			}
 			
-			$course = $em->find('AppBundle\Entity\Course', $postData['course']);
+			$course = $this->courseService->getCourseById($entityManager, $courseId);
 			
-			if(!$course){
-				return $this->returnForbiddenResponse("Course with id ".$postData['course']." does not exist.");
-			}			
+			if (!$course) {
+				return $this->returnForbiddenResponse("COURSE ".$courseId." DOES NOT EXIST");
+			}
 		}
 		
-		# set necessary fields
-		$course->name = trim($postData['name']);
-		$course->code = trim($postData['code']);
-		$course->description = trim($postData['description']);
+		/* set necessary fields */
+		$course->name = trim($postData["name"]);
+		$course->code = trim($postData["code"]);
+		$course->description = trim($postData["description"]);
 		
-		# set contest
+		/* Set contest */
 		if(isset($postData["is_contest"]) && trim($postData["is_contest"]) == "true"){
 			$course->is_contest = true;
 		} else {			
 			$course->is_contest = false;
 		}
 		
-		# set currently unused fields
+		/* Set currently unused fields */
 		$course->is_deleted = false;
 		$course->is_public = false;
 		
-		$em->persist($course);
-		$em->flush();
+		$this->courseService->insertCourse($entityManager, $course);
 		
-		# redirect to the section page
-		$url = $this->generateUrl('courses');		
+		/* Redirect to the section page */
+		$url = $this->generateUrl("courses");
 		
-		$response = new Response(json_encode(array('redirect_url' => $url, 'post_data' => $postData, 'course' => $course)));
-		$response->headers->set('Content-Type', 'application/json');
-		$response->setStatusCode(Response::HTTP_OK);
-		
-		return $response;
+		$response = new Response(json_encode([
+			"redirect_url" => $url, 
+			"post_data" => $postData, 
+			"course" => $course
+		]));
+
+		return $this->returnOkResponse($response);
 	}	
 		
+	private function logError($message) {
+		$errorMessage = "CourseController: ".$message;
+		$this->logger->error($errorMessage);
+		return $errorMessage;
+	}
+	
 	private function returnForbiddenResponse($message){		
 		$response = new Response($message);
 		$response->setStatusCode(Response::HTTP_FORBIDDEN);
+		$this->logError($message);
 		return $response;
 	}
-	
+
+	private function returnOkResponse($response) {
+		$response->headers->set("Content-Type", "application/json");
+		$response->setStatusCode(Response::HTTP_OK);
+		return $response;
+	}
 }
