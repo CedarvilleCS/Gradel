@@ -52,15 +52,54 @@ class SidenavController extends Controller {
 		$sectionsTeaching = [];
 		foreach ($userSectionRoles as $userSectionRole) {	
 			if ($userSectionRole->role->role_name == Constants::TAKES_ROLE) {
-				$sectionsTaking[] = $userSectionRole->section;
+				$assignmentsJSON = [];
+				foreach($userSectionRole->section->assignments as $assignment) {
+					$problemsJSON = [];
+					foreach($assignment->problems as $problem) {
+						$problemsJSON[] = array(
+							"id" => $problem->id,
+							"name" => $problem->name,
+						);
+					}
+					$assignmentsJSON[] = array(
+						"id" => $assignment->id,
+						"name" => $assignment->name,
+						"problems" => $problemsJSON,
+					);
+				}
+				$sectionJSON = array(
+					"id" => $userSectionRole->section->id,
+					"courseCode" => $userSectionRole->section->course->code,
+					"assignments" => $assignmentsJSON,
+				);
+				$sectionsTaking[] = $sectionJSON;
 			} else if ($userSectionRole->role->role_name == Constants::TEACHES_ROLE || 
 			           $userSectionRole->role->role_name == Constants::JUDGES_ROLE) {
-				$sectionsTeaching[] = $userSectionRole->section;
+				$assignmentsJSON = [];
+				foreach($userSectionRole->section->assignments as $assignment) {
+					$problemsJSON = [];
+					foreach($assignment->problems as $problem) {
+						$problemsJSON[] = array(
+							"id" => $problem->id,
+							"name" => $problem->name,
+						);
+					}
+					$assignmentsJSON[] = array(
+						"id" => $assignment->id,
+						"name" => $assignment->name,
+						"problems" => $problemsJSON,
+					);
+				}
+				$sectionJSON = array(
+					"id" => $userSectionRole->section->id,
+					"courseCode" => $userSectionRole->section->course->code,
+					"assignments" => $assignmentsJSON,
+				);
+				$sectionsTeaching[] = $sectionJSON;
 			}
 		}
 
 		return new JsonResponse([
-            'usersectionroles' => $userSectionRoles,
             'sections_taking' => $sectionsTaking,
             'sections_teaching' => $sectionsTeaching
         ]);

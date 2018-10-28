@@ -1,13 +1,23 @@
-function path(baseUrl, parameters = {}, trailingUrl = '') {
+function path(parameters = {}, trailingUrl = '') {
+    let baseUrl = window.location.pathname;
     let requestPath = '/';
-    if (baseUrl && baseUrl !== '/' && baseUrl !== '') {
-        requestPath += `${baseUrl}/`;
+
+    //If we are in development or admin, add in all the dev URL stuff
+    if (baseUrl.includes('gradel_')) {
+        requestPath = `${baseUrl.substring(0, baseUrl.indexOf('web') + 3)}`;
     }
 
     for (let parameter in parameters) {
-        requestPath += `${parameter}/${parameters[parameter]}/`;
+        requestPath += `/${parameter}/${parameters[parameter]}`;
     }
-    requestPath += trailingUrl;
+    
+    if(trailingUrl !== '') {
+        requestPath += `/${trailingUrl}`;
+    }
 
     return requestPath;
+}
+
+function asset(url) {
+    return path({}, url);
 }
