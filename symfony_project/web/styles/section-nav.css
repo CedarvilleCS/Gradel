@@ -19,6 +19,10 @@ nav.nav-left .large-link {
     font-weight: bold;
 }
 
+nav.nav-left #PastLink {
+    padding-top: 100px;
+}
+
 nav.nav-left .nav-chevron-title-container {
     display: grid;
     grid-template-columns: 25px auto;
