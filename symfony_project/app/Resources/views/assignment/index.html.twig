@@ -39,19 +39,34 @@
 <body>
     {{ include('template/top-nav.html.twig') }}
 
-	{# left panel with the problem links #}
-	{{ include('template/problem-nav.html.twig') }}
-
-	{{ include('template/path-nav.html.twig') }}
+	{#{{ include('template/problem-nav.html.twig') }}#}
+	{{ include('template/section-nav.html.twig') }}
 	
+	{% if grader.isTeaching(app.user, assignment.section) or is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") %}
+		<div class="floatingControls">
+			{# edit problem button #}
+			<a class="floatingLink" href="{{path('problem_edit', {'sectionId': section.id, 'assignmentId': assignment.id, 'problemId': problem.id})}}">
+				<div class="floatingButton">Edit Problem</div>
+			</a>
+			{# add problem button #}
+			<a class="floatingLink" href="{{path('problem_edit', {"sectionId": section.id, 'assignmentId': assignment.id})}}">
+				<div class="floatingButton">Create Problem</div>
+			</a>
+			{# edit assignment button #}
+			<a class="floatingLink" href="{{path('assignment_edit', {'sectionId': section.id, 'assignmentId': assignment.id})}}">
+				<div class="floatingButton">Edit Assignment</div>
+			</a>
+		</div>
+	{% endif %}
+
     <section id="main">
 
 		{% if problem.assignment.problems|length == 0 %}
 
 		{% else %}
-
 		<div class="card" style="padding-top: 2px">
 			{% set grade = grader.getProblemGrade(app.user, problem) %}
+
 			{% if not teaching %}
 			
 				{% if grade['total_testcases'] + grade['total_extra_testcases'] == grade['passed_testcases'] + grade['passed_extra_testcases'] %}

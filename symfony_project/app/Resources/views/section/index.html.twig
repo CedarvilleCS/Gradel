@@ -17,6 +17,7 @@
 
 <body>        
 	{{ include('template/top-nav.html.twig') }}
+	{{ include('template/section-nav.html.twig') }}
 
 	{% if is_granted("ROLE_SUPER") %}
 		{# edit button #}
