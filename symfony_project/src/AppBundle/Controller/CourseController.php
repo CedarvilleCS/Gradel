@@ -132,7 +132,7 @@ class CourseController extends Controller {
 		
 		if ($course->is_deleted) {
 			foreach ($course->sections as $section) {
-				$section->is_deleted = $course->is_deleted;;
+				$section->is_deleted = $course->is_deleted;
 			}
 		}
 		
