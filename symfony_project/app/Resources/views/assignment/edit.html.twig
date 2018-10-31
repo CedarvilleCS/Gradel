@@ -23,30 +23,31 @@
 
 <body>
     {{ include('template/top-nav.html.twig') }}
-	
-    {# Left Nav for Assignment Edit #}
-	<nav class="nav-left">
-		<a id="save-btn" class="btn"><div class="btn btn-center">Save</div></a>
+	{{ include('template/section-nav.html.twig') }}
 
-		<div class="btn btn-center" id="cancel-btn">Cancel</div>
-		
+	 {# Left Nav for Assignment Edit #}
+	<div class="floatingControls">
+		<a id="save-btn" class="floatingLink">
+			<div class="floatingButton">Save</div>
+		</a>
+		<a id="cancel-btn" class="floatingLink">
+			<div class="floatingButton">Cancel</div>
+		</a>
 		{% if assignment is not null %}
-		<a id="delete-btn" class="btn"><div class="btn btn-center btn-delete">Delete</div></a>		
+		<a id="delete-btn" class="floatingLink">
+			<div class="floatingButton deleteButton deleteWarning">Delete</div>
+		</a>		
 		{% endif %}
-		
-		<ol style="padding-top: 0px">
-			<li id="delete-warning" style="padding-top: 0px"></li>
-		</ol>
-
 		{% if assignment is not null %}
-		<a id="subs-btn" class="btn"><div class="btn btn-center btn-delete">Clear Submissions</div></a>	
-		<a id="trials-btn" class="btn"><div class="btn btn-center btn-delete">Clear Saved Code</div></a>		
+		<a id="subs-btn" class="floatingLink">
+			<div class="floatingButton deleteButton">Clear Submissions</div>
+		</a>	
+		<a id="trials-btn" class="floatingLink">
+			<div class="floatingButton deleteButton">Clear Saved Code</div>
+		</a>		
 		{% endif %}
-
-    </nav>
+    </div>
 	
-	{{ include('template/path-nav.html.twig') }}
-
     {# Main section #}
 	<section id="main">
 		{# Cards #}
@@ -218,7 +219,7 @@
 					window.location = "{{path('assignment_delete', {'sectionId': assignment.section.id, 'assignmentId': assignment.id})}}";
 					
 				} else {
-					$('#delete-warning').html("Are you sure?<br/>Click again to delete.");
+					$('.deleteWarning').html("Are you sure? Click again to delete");
 				}
 			
 				warned++;
@@ -285,14 +286,11 @@
 			
 			/* Client-Side Field Validation */			
 			$('#save-btn').on('click', function(){
-				
-				$('#delete-warning').html("");
-				
 				// compare dates
 				if ($('#closedatepicker').datepicker('getDate') < $('#opendatepicker').datepicker('getDate')){
 					setInvalid($('#closedatepicker'));
 					setInvalid($('#opendatepicker'));
-					$('#delete-warning').append("Close date must be after open date<br><br>");
+					toastr.warning("Close date must be after open date");
 					return false;
 				} else {
 					setValid($('#closedatepicker'));
@@ -301,7 +299,7 @@
 				
 				if ($('#cutoffdatepicker').val() != '' && $('#cutoffdatepicker').datepicker('getDate') < $('#closedatepicker').datepicker('getDate')){
 					setInvalid($('#cutoffdatepicker'));
-					$('#delete-warning').append("Cutoff date must be after close date<br><br>");
+					toastr.warning("Cutoff date must be after close date");
 					return false;
 				} else {
 					setValid($('#cutoffdatepicker'));
@@ -311,7 +309,7 @@
 				var wght = new Number($('#weight').val());
 				if($('#weight').val() === '' || ($('#weight').val() != '' && (wght < 0 || wght % 1 != 0))){						
 					setInvalid($('#weight'));
-					$('#delete-warning').append("Weight must be a positive integer<br><br>");
+					toastr.warning("Weight must be a positive integer");
 					return false;
 				} else {
 					setValid($('#weight'));				
@@ -322,7 +320,7 @@
 				if($('#penalty').val() === '' || !(pen >= 0.0 && pen <= 1.0)){						
 					setInvalid($('#penalty'));
 					
-					$('#delete-warning').append("Penalty per day late must be a value between 0 and 1<br><br>");
+					toastr.warning("Penalty per day late must be a value between 0 and 1");
 					
 					return false;
 				} else {
@@ -334,7 +332,7 @@
 					setInvalid($('#team-picker'));	
 					team_warning = true;
 					
-					$('#delete-warning').append("Not everyone is assigned to a team - Press save again to override<br><br>");
+					toastr.warning("Not everyone is assigned to a team - Press save again to override");
 					
 					return false;
 				} else {
@@ -379,7 +377,7 @@
 					window.location = "{{path('section', {'sectionId': section.id})}}";
 					
 				}).fail(function(data) {				
-					alert(data["responseText"]);					
+					toastr.warning(data["responseText"]);					
 					$('#save-btn').prop('disabled', false);				
 				});				
 			});
