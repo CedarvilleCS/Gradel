@@ -8,71 +8,119 @@
 
 <body>        
     {{ include('template/top-nav.html.twig') }}
-    
-	{{ include('template/course-nav.html.twig') }}
+	{{ include('template/section-nav.html.twig') }}
 
-	{{ include('template/path-nav.html.twig') }}
+	{% if is_granted("ROLE_ADMIN") or is_granted("ROLE_SUPER") %}
+		<div class="floatingControls">
+			<a class="floatingLink" href="{{ path('course_edit') }}">
+				<div class="floatingButton">Create Course</div>
+			</a>
+		</div>
+	{% endif %}
 
     {# Main section #}
 	<section id="main">
 		{# Cards #}
-		
-		<div class="card">
-			<div class="btn-close"><h2 style="margin: 0px">All Courses</h2></div>
-			<div id="courseInfo" class="card-contents">
-			
-				{% for course in courses %}
-				<h4 style="background: grey; color: white; padding: 5px">
-					{% if course.code != '' %}
-						{{course.code}} - 
-					{% endif %}
-					{{course.name}} 
-				</h4>
+		<div class="parallel-cards">
+			<div class="card card-parallel-main">
+				<div class="btn-close"><h2 style="margin: 0px">Course Info</h2></div>
+				<div id="courseInfo" class="card-contents">
 				
-				<h5 style="margin: 0; padding: 5px; margin-left: 20px"> Active Sections </h5>
-				<ul style="list-style-type: none">
-					{# active sections #}
-					{% for section in course.sections %}
-						
-						{% if not section.is_deleted and section.start_time|date('U') < now|date('U') and section.end_time|date('U') > now|date('U') %}
-						
-						<li><a style="text-decoration:none" href="{{path('section', {'sectionId': section.id})}}">{{section.name}} <small><i>{{section.start_time|date('m/d/Y')}} - {{section.end_time|date('m/d/Y')}}</i></small></a></li>
-						
+					{% for course in courses %}
+					<h4 style="background: grey; color: white; padding: 5px">
+						{% if course.code != '' %}
+							{{course.code}} - 
 						{% endif %}
-					{% endfor %}
-				</ul>
-				
-				<h5 style="margin: 0; padding: 5px; margin-left: 20px"> Inactive Sections </h5>
-				<ul style="list-style-type: none">
-					{# old sections #}
-					{% for section in course.sections %}
-						
-						{% if section.start_time|date('U') > now|date('U') or section.end_time|date('U') < now|date('U') %}
+						{{course.name}} 
+					</h4>
 					
-						<li><a style="text-decoration:none" href="{{path('section', {'sectionId': section.id})}}">{{section.name}} <small><i>{{section.start_time|date('m/d/Y')}} - {{section.end_time|date('m/d/Y')}}</i></small></a></li>
-						
-						{% endif %}
-					{% endfor %}
-				</ul>
-				
-				<h5 style="margin: 0; padding: 5px; margin-left: 20px"> Deleted Sections </h5>
-				<ul style="list-style-type: none">
-					{# old sections #}
-					{% for section in course.sections %}
-						
-						{% if section.is_deleted %}
-					
-						<li><a style="text-decoration:none" href="{{path('section', {'sectionId': section.id})}}">{{section.name}} <small><i>{{section.start_time|date('m/d/Y')}} - {{section.end_time|date('m/d/Y')}}</i></small></a></li>
-
-						{% endif %}
-					{% endfor %}
-				</ul>
+					<h5 style="margin: 0; padding: 5px; margin-left: 20px"> Active Sections </h5>
+					<ul style="list-style-type: none">
+						{# active sections #}
+						{% for section in course.sections %}
 							
+							{% if not section.is_deleted and section.start_time|date('U') < now|date('U') and section.end_time|date('U') > now|date('U') %}
+							
+							<li><a style="text-decoration:none" href="{{path('section', {'sectionId': section.id})}}">{{section.name}} <small><i>{{section.start_time|date('m/d/Y')}} - {{section.end_time|date('m/d/Y')}}</i></small></a></li>
+							
+							{% endif %}
+						{% endfor %}
+					</ul>
+					
+					<h5 style="margin: 0; padding: 5px; margin-left: 20px"> Inactive Sections </h5>
+					<ul style="list-style-type: none">
+						{# old sections #}
+						{% for section in course.sections %}
+							
+							{% if section.start_time|date('U') > now|date('U') or section.end_time|date('U') < now|date('U') %}
+						
+							<li><a style="text-decoration:none" href="{{path('section', {'sectionId': section.id})}}">{{section.name}} <small><i>{{section.start_time|date('m/d/Y')}} - {{section.end_time|date('m/d/Y')}}</i></small></a></li>
+							
+							{% endif %}
+						{% endfor %}
+					</ul>
+					
+					<h5 style="margin: 0; padding: 5px; margin-left: 20px"> Deleted Sections </h5>
+					<ul style="list-style-type: none">
+						{# old sections #}
+						{% for section in course.sections %}
+							
+							{% if section.is_deleted %}
+						
+							<li><a style="text-decoration:none" href="{{path('section', {'sectionId': section.id})}}">{{section.name}} <small><i>{{section.start_time|date('m/d/Y')}} - {{section.end_time|date('m/d/Y')}}</i></small></a></li>
+
+							{% endif %}
+						{% endfor %}
+					</ul>
+								
+					
+					{% endfor %}
 				
-				{% endfor %}
-			
+				</div>
 			</div>
-		</div>		
+			{% if courses is defined and deleted_courses is defined%}
+				{# Left Nav For the Course List (On the Courses Page) #}
+				<div class="serial-cards">
+					<div class="card">
+						<div class="btn-close"><h2 style="margin: 0px">Courses</h2></div>
+						<ol style="padding-top: 0px">
+							{% for course in courses %}	
+								<a href="{{path('course_edit', {'courseId':course.id})}}">
+									<li class="sidebar list-item">
+										<span class="preview">
+											<div class="sidebar-text"> {{course.name}} </div>
+										</span>	
+										<!-- <object>
+											<a title="Delete Course" href="{{path('course_delete', {'courseId': course.id})}}">
+												<img class="small-icon" id="right-icon" src="{{ asset('images/whitetrash.png') }}">
+											</a>
+										</object> -->
+									</li>
+								</a>	
+							{% endfor %}
+						</ol>
+						<div class="btn btn-center" id="past_courses_button">&#9660; Show Deleted </div>
+						{# list of all the deleted courses #}
+						<ol id="past_list" style="padding-bottom: 10px; display: none">
+							{% for course in deleted_courses %}
+								<a href="{{path('course_edit', {'courseId':course.id})}}">
+									<li class="sidebar list-item">
+										<span class="preview">{{course.name}}</span>	
+										<object>
+											<a title="Open Course" href="{{path('course_delete', {'courseId': course.id})}}">
+												<img class="small-icon" style="right: -1" id="right-icon" src="{{ asset('images/whitetrash.png') }}">
+											</a>
+										</object>
+									</li>
+								</a>
+							{% else %}
+								<li class="sidebar list-item"> No deleted courses </li>
+							{% endfor %}
+						</ol>
+					</div>
+				</div>
+			{% endif %}
+		</div>
 	</section>
 
 
