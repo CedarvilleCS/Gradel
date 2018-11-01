@@ -26,6 +26,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
+use Psr\Log\LoggerInterface;
+
 class Grader  {
 	
 	public $em;
@@ -39,23 +41,23 @@ class Grader  {
 		$this->em = $em;		
 	}
 	
-	
 	private function isRole($user, $section, $role){
 
-		$qb = $this->em->createQueryBuilder();
-		$qb->select('usr')
-			->from('AppBundle\Entity\UserSectionRole', 'usr')
-			->where('usr.role = ?1')
-			->andWhere('usr.user = ?2')
-			->andWhere('usr.section = ?3')
-			->setParameter(1, $role)
-			->setParameter(2, $user)
-			->setParameter(3, $section);
+		// $qb = $this->em->createQueryBuilder();
+		// $qb->select('usr')
+		// 	->from('AppBundle\Entity\UserSectionRole', 'usr')
+		// 	->where('usr.role = ?1')
+		// 	->andWhere('usr.user = ?2')
+		// 	->andWhere('usr.section = ?3')
+		// 	->setParameter(1, $role)
+		// 	->setParameter(2, $user)
+		// 	->setParameter(3, $section);
 			
-		$query = $qb->getQuery();
-		$usr = $query->getOneOrNullResult();
+		// $query = $qb->getQuery();
+		// $usr = $query->getOneOrNullResult();
 		
-		return isset($usr);
+		// return isset($usr);
+		return false;
 	}	
 	
 	public function isTeaching($user, $section){
@@ -66,7 +68,6 @@ class Grader  {
 	}
 	
 	public function isTaking($user, $section){
-		
 		$role = $this->em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));		
 		
 		return $this->isRole($user, $section, $role);		
@@ -961,7 +962,7 @@ class Grader  {
 			
 			return ($a['num_correct'] > $b['num_correct']) ? -1 : 1;
 		}
-	}	
+	}
 }
 
 ?>
