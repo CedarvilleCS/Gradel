@@ -55,6 +55,12 @@ class ProblemController extends Controller {
  	public function editAction($sectionId, $assignmentId, $problemId) {
 		$entityManager = $this->getDoctrine()->getManager();
 
+		/* Validate the user */
+		$user = $this->userService->getCurrentUser($entityManager);
+		if (!$user) {
+			return $this->returnForbiddenResponse("USER DOES NOT EXIST");
+		}
+
 		$languages = $this->languageService->getAll($entityManager);
 		
 		if (!isset($sectionId) || !($sectionId > 0)) {
