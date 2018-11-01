@@ -82,9 +82,6 @@
 					<i class="fa fa-caret-down"></i>
 				</button>
 				<div class="dropdown-content">
-					{# logout button #}
-					<a href="{{path('user_logout')}}" class="navbuttons">Logout</a>
-
 					{# admin button #}
 					{% if is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN")%}
 						<a href="{{path('courses')}}" class="navbuttons">Courses</a>
@@ -93,6 +90,9 @@
 					{% if is_granted("ROLE_SUPER") %}
 						<a href="{{path('users')}}" class="navbuttons">Users</a>
 					{% endif %}
+
+					{# logout button #}
+					<a href="{{path('user_logout')}}" class="navbuttons">Logout</a>
 				</div>
 			</div>
 		{% endif %}
