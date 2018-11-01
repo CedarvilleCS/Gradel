@@ -15,7 +15,9 @@
 		<a id="save-btn" class="floatingLink">
 			<div class="floatingButton">Save</div>
 		</a>
-		
+		<a class="floatingLink" href="{{path('courses')}}">
+			<div class="floatingButton">Cancel</div>
+		</a>
 		{% if course is not null %}
 			<a id="delete-btn" class="floatingLink">
 				<div class="floatingButton deleteButton deleteWarning">{% if course.is_deleted %} Reinstate {% else %} Delete {% endif %}</div>
