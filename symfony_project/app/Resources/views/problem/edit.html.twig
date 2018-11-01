@@ -8,24 +8,22 @@
 {% block body %}
 <body>
   {{ include('template/top-nav.html.twig') }}
-
+  {{ include('template/section-nav.html.twig') }}
 
   {# Left Nav Bar #}
-  <nav class="nav-left">
-		<div class="btn btn-center" id="save-btn">Save</div>
-
-		<div class="btn btn-center" id="cancel-btn">Cancel</div>
-	  
-		{% if problem is not null %}
-			<a id="delete-btn" class="btn"><div class="btn btn-center btn-delete">Delete</div></a>
-			
-			<ol style="padding-top: 0px">
-				<li id="delete-warning" style="padding-top: 0px"></li>
-			</ol>
-		{% endif %}
-  </nav>
-
-  {{ include('template/path-nav.html.twig') }}
+  <div class="floatingControls">
+	<a id="save-btn" class="floatingLink">
+		<div class="floatingButton">Save</div>
+	</a>
+	<a id="cancel-btn" class="floatingLink">
+		<div class="floatingButton">Cancel</div>
+	</a>	  
+	{% if problem is not null %}
+		<a id="delete-btn" class="floatingLink">
+			<div class="floatingButton deleteButton deleteWarning">Delete</div>
+		</a>
+	{% endif %}
+  </div>
 
   {# Main Section #}
   <section id="main">
@@ -659,7 +657,7 @@
 					window.location = "{{path('problem_delete', {'sectionId': problem.assignment.section.id, 'assignmentId': problem.assignment.id, 'problemId': problem.id})}}";
 					
 				} else {
-					$('#delete-warning').html("Are you sure?<br/>Click again to delete.");
+					$('.deleteWarning').html("Are you sure? Click again to delete");
 				}
 			
 				warned++;
