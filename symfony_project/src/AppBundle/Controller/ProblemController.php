@@ -654,7 +654,7 @@ class ProblemController extends Controller {
 	}
 	
 	private function logError($message) {
-		$errorMessage = "AssignmentController: ".$message;
+		$errorMessage = "ProblemController: ".$message;
 		$this->logger->error($errorMessage);
 		return $errorMessage;
 	}
