@@ -16,6 +16,7 @@ use AppBundle\Service\AssignmentService;
 use AppBundle\Service\LanguageService;
 use AppBundle\Service\ProblemService;
 use AppBundle\Service\SectionService;
+use AppBundle\Service\UserService;
 
 use AppBundle\Utils\Grader;
 use AppBundle\Utils\Zipper;
@@ -35,17 +36,20 @@ class ProblemController extends Controller {
 	private $problemService;
 	private $languageService;
 	private $sectionService;
+	private $userService;
 
 	public function __construct(LoggerInterface $logger,
 								AssignmentService $assignmentService,
 								LanguageService $languageService,
 								ProblemService $problemService,
-								SectionService $sectionService) {
+								SectionService $sectionService,
+								UserService $userService) {
 		$this->logger = $logger;
 		$this->assignmentService = $assignmentService;
 		$this->languageService = $languageService;
 		$this->problemService = $problemService;
 		$this->sectionService = $sectionService;
+		$this->userService = $userService;
 	}
 
  	public function editAction($sectionId, $assignmentId, $problemId) {
