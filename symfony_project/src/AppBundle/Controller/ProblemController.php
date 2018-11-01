@@ -82,7 +82,7 @@ class ProblemController extends Controller {
 		}
 		
 		if ($problemId != 0) {
-			if(!isset($problemId) || !($problemId > 0)){
+			if (!isset($problemId) || !($problemId > 0)) {
 				return $this->returnForbiddenResponse("PROBLEM ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
 			}		
 			
@@ -128,33 +128,34 @@ class ProblemController extends Controller {
 	public function deleteAction($sectionId, $assignmentId, $problemId){
 		$entityManager = $this->getDoctrine()->getManager();
 		
-		if(!isset($problemId) || !($problemId > 0)){
-			return $this->returnForbiddenResponse("PROBLEM ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
-		}
-
-		$problem = $entityManager->find("AppBundle\Entity\Problem", $problemId);
-		if(!$problem){
-			return $this->returnForbiddenResponse("PROBLEM DOES NOT EXIST");
-		}
-
-		$user = $this->get("security.token_storage")->getToken()->getUser();
-		if(!$user){
+		/* Validate the user */
+		$user = $this->userService->getCurrentUser($entityManager);
+		if (!$user) {
 			return $this->returnForbiddenResponse("USER DOES NOT EXIST");
 		}
 
-		# validate the user
+		if (!isset($problemId) || !($problemId > 0)) {
+			return $this->returnForbiddenResponse("PROBLEM ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
+		}
+
+		$problem = $this->problemService->getProblemById($entityManager, $problemId);
+		if (!$problem) {
+			return $this->returnForbiddenResponse("PROBLEM ".$problemId." DOES NOT EXIST");
+		}
+
 		$grader = new Grader($entityManager);
-		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN") && !$grader->isTeaching($user, $problem->assignment->section)){
+		if (!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN") && !$grader->isTeaching($user, $problem->assignment->section)) {
 			return $this->returnForbiddenResponse("YOU ARE NOT ALLOWED TO DELETE THIS PROBLEM");
 		}
 
-		$entityManager->remove($problem);
-		$entityManager->flush();
-		return $this->redirectToRoute("assignment", ["sectionId" => $problem->assignment->section->id, "assignmentId" => $problem->assignment->id]);
+		$this->problemService->deleteProblem($entityManager, $problem);
+		return $this->redirectToRoute("assignment", [
+			"sectionId" => $problem->assignment->section->id, 
+			"assignmentId" => $problem->assignment->id
+		]);
 	}
 
 	public function modifyPostAction(Request $request) {
-
 		$entityManager = $this->getDoctrine()->getManager();
 
 		# validate the current user
