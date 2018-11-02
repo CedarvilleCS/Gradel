@@ -79,7 +79,7 @@ class HomeController extends Controller {
 			}
 		}
 		
-		$assignments = $this->assignmentService->getAssignmentsSortedByDueDateForHome($sections);
+		$assignments = $this->assignmentService->getAssignmentsSortedByDueDate($sections);
 		$usersToImpersonate = $this->userService->getUsersToImpersonate($user);
 		
 		$grades = $this->graderService->getAllSectionGrades($user);

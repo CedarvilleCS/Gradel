@@ -226,7 +226,7 @@ class AssignmentController extends Controller {
 					$sectionTeachers[] = $usr->user;
 					break;
 				default:
-				$this->returnForbiddenResponse("ROLE ".$roleName." DOES NOT EXIST ON USER ".$user->getFullName());
+					$this->returnForbiddenResponse("ROLE ".$roleName." DOES NOT EXIST ON USER ".$user->getFullName());
 			}
 		}
 		
