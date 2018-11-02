@@ -304,7 +304,7 @@ class SectionController extends Controller {
 		]);
 	}
 
-	public function deleteSectionAction($sectionId){
+	public function deleteSectionAction($sectionId) {
 
 		$entityManager = $this->getDoctrine()->getManager();
 
