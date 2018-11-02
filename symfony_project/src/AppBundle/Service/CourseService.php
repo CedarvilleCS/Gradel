@@ -10,7 +10,6 @@ class CourseService {
     private $entityManager;
 
     public function __construct(EntityManagerInterface $entityManager) {
-        $this->container = $container;
         $this->entityManager = $entityManager;
     }
 

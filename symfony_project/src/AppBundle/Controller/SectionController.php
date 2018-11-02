@@ -305,38 +305,31 @@ class SectionController extends Controller {
 	}
 
 	public function deleteSectionAction($sectionId) {
-
-		$entityManager = $this->getDoctrine()->getManager();
-
-		# get the section
-		if(!isset($sectionId) || !($sectionId > 0)){
-			return $this->returnForbiddenResponse("SECTION ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
-		}
-		$section = $entityManager->find("AppBundle\Entity\Section", $sectionId);
-
-		if(!$section){
-			return $this->returnForbiddenResponse("SECTION DOES NOT EXIST");
-		}
-
-		$user = $this->get("security.token_storage")->getToken()->getUser();
+		$user = $this->userService->getCurrentUser();
 		if(!$user){
 			return $this->returnForbiddenResponse("USER DOES NOT EXIST");
 		}
-
-		# validate the user
-		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN")){
+		if(!$user->hasRole(Constants::ADMIN_ROLE) && !$user->hasRole(Constants::SUPER_ROLE)){
 			return $this->returnForbiddenResponse("YOU ARE NOT ALLOWED TO DELETE THIS SECTION");
-
+		}
+		
+		/* Get the section */
+		if (!isset($sectionId) || !($sectionId > 0)) {
+			return $this->returnForbiddenResponse("SECTION ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
+		}
+		
+		$section = $this->sectionService->getSectionById($sectionId);
+		if (!$section) {
+			return $this->returnForbiddenResponse("SECTION ".$sectionId." DOES NOT EXIST");
 		}
 
 		$section->is_deleted = !$section->is_deleted;
-		$entityManager->flush();
+		$this->sectionService->insertSection($section);
 
 		return $this->redirectToRoute("homepage");
 	}
 
 	public function modifyPostAction(Request $request){
-
 		$entityManager = $this->getDoctrine()->getManager();
 
 		# validate the current user
@@ -580,23 +573,20 @@ class SectionController extends Controller {
 	}
 
 	private function getDateTime($semester, $year){
-
-		if($semester == "Fall"){
-			return [DateTime::createFromFormat("m/d/Y H:i:s", "08/01/".$year." 00:00:00"),
-					DateTime::createFromFormat("m/d/Y H:i:s", "12/31/".$year." 23:59:59")];
-		} else if($semester == "Spring"){
-			return [DateTime::createFromFormat("m/d/Y H:i:s", "01/01/".$year." 00:00:00"),
-					DateTime::createFromFormat("m/d/Y H:i:s", "05/31/".$year." 23:59:59")];
-		} else {
-			return [DateTime::createFromFormat("m/d/Y H:i:s", "05/01/".$year." 00:00:00"),
-					DateTime::createFromFormat("m/d/Y H:i:s", "08/31/".$year." 23:59:59")];
+		switch ($semester) {
+			case "Fall":
+				return [DateTime::createFromFormat("m/d/Y H:i:s", "08/01/".$year." 00:00:00"),
+						DateTime::createFromFormat("m/d/Y H:i:s", "12/31/".$year." 23:59:59")];
+			case "Spring":
+				return [DateTime::createFromFormat("m/d/Y H:i:s", "01/01/".$year." 00:00:00"),
+						DateTime::createFromFormat("m/d/Y H:i:s", "05/31/".$year." 23:59:59")];
+			default:
+				return [DateTime::createFromFormat("m/d/Y H:i:s", "05/01/".$year." 00:00:00"),
+						DateTime::createFromFormat("m/d/Y H:i:s", "08/31/".$year." 23:59:59")];	
 		}
-
 	}
 
-	public function searchSubmissionsAction(Request $request){
-
-
+	public function searchSubmissionsAction(Request $request) {
 		$entityManager = $this->getDoctrine()->getManager();
 		// $graderService = new Grader($entityManager);
 

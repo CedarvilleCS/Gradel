@@ -127,6 +127,7 @@ class CourseController extends Controller {
 				$section->is_deleted = $course->is_deleted;
 			}
 		}
+		$this->courseService->insertCourse($course);
 		
 		return $this->redirectToRoute("courses");
 	}

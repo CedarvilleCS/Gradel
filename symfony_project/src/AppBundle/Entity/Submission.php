@@ -164,7 +164,6 @@ class Submission implements JsonSerializable {
 	}
 
 	public function isError(){
-	
 		return $this->compiler_error || $this->runtime_error || $this->exceeded_time_limit;		
 	}
 	
@@ -173,13 +172,15 @@ class Submission implements JsonSerializable {
 		$tcs = 0;
 		$passed_tcs = 0;
 		
-		$tcs = $this->problem->testcase_counts[$this->version];
-		
-		foreach($this->testcaseresults as $tcr){
+		$tcs = [];
+		if ($this->problem->testcase_counts[$this->version]) {
+			$tcs = $this->problem->testcase_counts[$this->version];
 			
-			if($tcr->is_correct){
-				$passed_tcs++;
-			}			
+			foreach($this->testcaseresults as $tcr){
+				if($tcr->is_correct){
+					$passed_tcs++;
+				}			
+			}
 		}
 		
 		if($raw != true){
