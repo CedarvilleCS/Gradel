@@ -148,7 +148,7 @@ class SectionController extends Controller {
 		}
 
 
-		// get the users most recent submissions (top 15)
+		/* Get the users most recent submissions (top 15) */
 		$entityManager = $this->getDoctrine()->getManager();		
 		$recentSubmissions = $this->submissionService->getRecentResultsForUser($user);
 
