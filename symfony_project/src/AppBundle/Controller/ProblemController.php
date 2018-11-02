@@ -19,7 +19,9 @@ use AppBundle\Service\LanguageService;
 use AppBundle\Service\ProblemLanguageService;
 use AppBundle\Service\ProblemService;
 use AppBundle\Service\SectionService;
+use AppBundle\Service\SubmissionService;
 use AppBundle\Service\TestCaseService;
+use AppBundle\Service\UserSectionRoleService;
 use AppBundle\Service\UserService;
 
 use AppBundle\Utils\Grader;
@@ -41,7 +43,9 @@ class ProblemController extends Controller {
 	private $problemService;
 	private $languageService;
 	private $sectionService;
+	private $submissionService;
 	private $testCaseService;
+	private $userSectionRoleService;
 	private $userService;
 
 	public function __construct(LoggerInterface $logger,
@@ -50,7 +54,9 @@ class ProblemController extends Controller {
 								ProblemLanguageService $problemLanguageService,
 								ProblemService $problemService,
 								SectionService $sectionService,
+								SubmissionService $submissionService,
 								TestCaseService $testCaseService,
+								UserSectionRoleService $userSectionRoleService,
 								UserService $userService) {
 		$this->logger = $logger;
 		$this->assignmentService = $assignmentService;
@@ -58,8 +64,10 @@ class ProblemController extends Controller {
 		$this->problemLanguageService = $problemLanguageService;
 		$this->problemService = $problemService;
 		$this->sectionService = $sectionService;
+		$this->submissionService = $submissionService;
 		$this->testCaseService = $testCaseService;
 		$this->userService = $userService;
+		$this->userSectionRoleService = $userSectionRoleService;
 	}
 
  	public function editAction($sectionId, $assignmentId, $problemId) {
@@ -457,8 +465,8 @@ class ProblemController extends Controller {
 			} catch (Exception $e) {
 				return $this->returnForbiddenResponse($e->getMessage());
 			}
-
 		}
+
 		$problem->testcases = $newTestCases;
 		$problem->testcase_counts[] = count($problem->testcases);
 		
@@ -477,8 +485,7 @@ class ProblemController extends Controller {
 			$problem->testcase_output_level = Constants::NONE_TESTCASE_OUTPUT_LEVEL;
 			$problem->total_attempts = 0;
 			$problem->weight = 1;
-		}
-				
+		}		
 		
 		/* Update all the linked problems */
 		foreach ($problem->slaves as &$slave) {
@@ -560,22 +567,28 @@ class ProblemController extends Controller {
 		]);
 	}
 
-	public function resultAction($submission_id) {
+	public function resultAction($submissionId) {
 		$entityManager = $this->getDoctrine()->getManager();
 		$grader = new Grader($entityManager);
+
+		/* Validate the user */
+		$user = $this->userService->getCurrentUser($entityManager);
+		if (!$user) {
+			return $this->returnForbiddenResponse("USER DOES NOT EXIST!");
+		}
 		
-		if(!isset($submission_id) || !($submission_id > 0)){
+		if (!isset($submissionId) || !($submissionId > 0)) {
 			return $this->returnForbiddenResponse("SUBMISSION ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
 		}
 
-		$submission = $entityManager->find("AppBundle\Entity\Submission", $submission_id);
+		$submission = $this->submissionService->getSubmissionById($entityManager, $submissionId);
 
-		if(!$submission){
-			return $this->returnForbiddenResponse("SUBMISSION DOES NOT EXIST");
+		if (!$submission) {
+			return $this->returnForbiddenResponse("SUBMISSION ".$submissionId." DOES NOT EXIST");
 		}
 		
-		# REDIRECT TO CONTEST IF NEED BE
-		if($submission->problem->assignment->section->course->is_contest){
+		/* REDIRECT TO CONTEST IF NEED BE */
+		if ($submission->problem->assignment->section->course->is_contest) {
 			return $this->redirectToRoute("contest_result", [
 				"contestId" => $submission->problem->assignment->section->id, 
 				"roundId" => $submission->problem->assignment->id, 
@@ -584,69 +597,50 @@ class ProblemController extends Controller {
 			]);
 		}
 
-		# get the user
-		$user = $this->get("security.token_storage")->getToken()->getUser();
-		if(!$user){
-			return $this->returnForbiddenResponse("USER DOES NOT EXIST!");
+		/* Make sure the user has permissions to view the submission result */
+		if (!$user->hasRole(Constants::SUPER_ROLE) && 
+			!$user->hasRole(Constants::ADMIN_ROLE) && 
+			!$grader->isTeaching($user, $submission->problem->assignment->section) && !$grader->isOnTeam($user, $submission->problem->assignment, $submission->team)) {
+			return $this->returnForbiddenResponse("YOU ARE NOT ALLOWED TO VIEW THIS SUBMISSION");
 		}
 
-		# make sure the user has permissions to view the submission result
-		if(!$user->hasRole(Constants::SUPER_ROLE) && !$user->hasRole(Constants::ADMIN_ROLE) && !$grader->isTeaching($user, $submission->problem->assignment->section) && !$grader->isOnTeam($user, $submission->problem->assignment, $submission->team)){
-			echo "YOU ARE NOT ALLOWED TO VIEW THIS SUBMISSION";
-			return $this->returnForbiddenResponse();
-		}
-
-		$grader = new Grader($entityManager);
 		$feedback = $grader->getFeedback($submission);
 				
-		$ace_mode = $submission->language->ace_mode;
-		
-		$qb_user = $entityManager->createQueryBuilder();
-		$qb_user->select("usr")
-			->from("AppBundle\Entity\UserSectionRole", "usr")
-			->where("usr.section = ?1")
-			->setParameter(1, $submission->problem->assignment->section);
+		$aceMode = $submission->language->ace_mode;
 
-		$user_query = $qb_user->getQuery();
-		$usersectionroles = $user_query->getResult();
+		$userSectionRoles = $this->userSectionRoleService->getUserSectionRolesOfSection($entityManager, $submission->problem->assignment->section);
 
-		$section_takers = [];
+		$sectionTakers = [];
 
-		foreach($usersectionroles as $usr){
-			if($usr->role->role_name == "Takes"){
-				$section_takers[] = $usr->user;
+		foreach ($userSectionRoles as $userSectionRole) {
+			if ($userSectionRole->role->role_name == Constants::TAKES_ROLE) {
+				$sectionTakers[] = $userSectionRole->user;
 			}
 		}
 				
 		return $this->render("problem/result.html.twig", [
-		
-			"section" => $submission->problem->assignment->section,
+			"ace_mode" => $aceMode,
 			"assignment" => $submission->problem->assignment,
+			"feedback" => $feedback,
+			"grader" => $grader,
 			"problem" => $submission->problem,
-			"submission" => $submission,
-						
-			"user_impersonators" => $section_takers,
-			"grader" => new Grader($entityManager),
-			
 			"result_page" => true,
 			"result_route" => true, 
-			"feedback" => $feedback,
-
-			"ace_mode" => $ace_mode,
+			"section" => $submission->problem->assignment->section,
+			"submission" => $submission,
+			"user_impersonators" => $sectionTakers
 		]);
 	}
 	
-	
-	public function resultDeleteAction($submission_id){
-		
+	public function resultDeleteAction($submissionId) {
 		$entityManager = $this->getDoctrine()->getManager();
 		$grader = new Grader($entityManager);
 		
-		if(!isset($submission_id) || !($submission_id > 0)){
+		if (!isset($submissionId) || !($submissionId > 0)) {
 			return $this->returnForbiddenResponse("SUBMISSION ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
 		}
 
-		$submission = $entityManager->find("AppBundle\Entity\Submission", $submission_id);
+		$submission = $entityManager->find("AppBundle\Entity\Submission", $submissionId);
 
 		if(!$submission){
 			return $this->returnForbiddenResponse("SUBMISSION DOES NOT EXIST");

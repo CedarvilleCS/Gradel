@@ -87,13 +87,13 @@ problem_delete:
   methods: [GET]
 
 problem_result:
-    path: '/result/{submission_id}'
+    path: '/result/{submissionId}'
     defaults: {_controller: AppBundle:Problem:result}
     requirements:
         submission_id: '\d+'
         
 result_delete:
-    path: '/result_delete/{submission_id}'
+    path: '/result_delete/{submissionId}'
     defaults: {_controller: AppBundle:Problem:resultDelete}
     requirements:
         submission_id: '\d+'
