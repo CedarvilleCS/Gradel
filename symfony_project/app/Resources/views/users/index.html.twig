@@ -64,13 +64,14 @@
 
 <body>        
 	{{ include('template/top-nav.html.twig') }}
-	{{ include('template/path-nav.html.twig') }}
+	{{ include('template/section-nav.html.twig') }}
 
 
-	<nav class="nav-left">
-		<a id="save-btn" class="btn"><div class="btn btn-center">Save</div></a>
-		
-    </nav>
+	<div class="floatingControls">
+		<a id="save-btn" class="floatingLink">
+			<div class="floatingButton">Save</div>
+		</a>
+    </div>
 
 	{# Main section #}
 	<section id="main">
