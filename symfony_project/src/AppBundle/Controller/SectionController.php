@@ -280,27 +280,28 @@ class SectionController extends Controller {
 		]);
     }
 
-	public function cloneSectionAction($sectionId){
-
-		$entityManager = $this->getDoctrine()->getManager();
-
-		$user = $this->get("security.token_storage")->getToken()->getUser();
-		if(!$user){
+	public function cloneSectionAction($sectionId, $name, $semester, $year, $numberOfClones) {
+		$user = $this->userService->getCurrentUser();
+		if (!get_class($user)) {
 			return $this->returnForbiddenResponse("USER DOES NOT EXIST");
 		}
 
-		$section = $entityManager->find("AppBundle\Entity\Section", $sectionId);
-
-		if(!$section){
-			return $this->returnForbiddenResponse("SECTION DOES NOT EXIST");
+		$section = $this->sectionService->getSectionById($sectionId);
+		if (!$section) {
+			return $this->returnForbiddenResponse("SECTION ".$sectionId." DOES NOT EXIST");
 		}
 
-		$newSection = clone $section;
-		$entityManager->persist($newSection);
-
-		$entityManager->flush();
-
-		return $this->redirectToRoute("section_edit", ["sectionId" => $newSection->id]);
+		for ($i = 1; $i <= $numberOfClones; $i++) {
+			$newSection = clone $section;
+			$newSection->semester = $semester;
+			$newSection->name = $name."-".str_pad($i, 2, "0", STR_PAD_LEFT);
+			$newSection->year = $year;
+			$this->sectionService->insertSection($newSection);
+		}
+		return $this->redirectToRoute("section_edit",
+		[
+			"sectionId" => $newSection->id
+		]);
 	}
 
 	public function deleteSectionAction($sectionId){
