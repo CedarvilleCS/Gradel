@@ -42,9 +42,21 @@ class SubmissionService {
 		$this->entityManager->remove($submission);
 		$this->entityManager->flush();
 	}
+
+	public function getAllSubmissionsForAssignment($teamOrUser, $whereClause, $problem) {
+		$builder = $this->entityManager->createQueryBuilder();
+		$builder->select("s")
+			->from("AppBundle\Entity\Submission", "s")
+			->where($whereClause)
+			->andWhere("s.problem = ?2")
+			->orderBy("s.id", "DESC")
+			->setParameter(1, $teamOrUser)
+			->setParameter(2, $problem);
+		$allSubmissionsQuery = $builder->getQuery();
+		return $allSubmissionsQuery->getResult();
+	}
 	
 	public function getBestSubmissionForAssignment($teamOrUser, $whereClause, $problem) {
-		# get the best submission so far
 		$builder = $this->entityManager->createQueryBuilder();
 		$builder->select("s")
 			->from("AppBundle\Entity\Submission", "s")
@@ -56,6 +68,24 @@ class SubmissionService {
 			
 		$bestSubmissionQuery = $builder->getQuery();
 		return $bestSubmissionQuery->getOneOrNullResult();
+	}
+
+	public function getBestSubmissionForTeam($problem, $team) {
+		$builder = $this->entityManager->createQueryBuilder();
+		$builder->select("s")
+				->from("AppBundle\Entity\Submission", "s")
+				->where("s.problem = (?1)")
+				->andWhere("s.team = (?2)")
+				->andWhere("s.best_submission = 1")
+				->setParameter(1, $problem)
+				->setParameter(2, $team);
+		$bestSubmissionQuery = $builder->getQuery();
+		$submissions = $bestSubmissionQuery->getResult();
+		
+		if (count($submissions) >= 1) {
+			return $submissions[0];
+		}
+		return null;
 	}
 
 	public function getPreviousAcceptedSolutionForCompilationSubmit($teamOrUser, $whereClause, $problem) {
@@ -73,17 +103,16 @@ class SubmissionService {
 		return $previousAcceptedQuery->getResult()[0];
 	}
 
-	public function getAllSubmissionsForAssignment($teamOrUser, $whereClause, $problem) {
-		$builder = $this->entityManager->createQueryBuilder();
-		$builder->select("s")
-			->from("AppBundle\Entity\Submission", "s")
-			->where($whereClause)
-			->andWhere("s.problem = ?2")
-			->orderBy("s.id", "DESC")
-			->setParameter(1, $teamOrUser)
-			->setParameter(2, $problem);
-		$allSubmissionsQuery = $builder->getQuery();
-		return $allSubmissionsQuery->getResult();
+	public function getRecentResultsForUser($user, $maxResults = 15) {
+		$builder = $this->entityManager->createQueryBuilder()
+					->select("s")
+					->from("AppBundle\Entity\Submission", "s")
+					->where("s.user = (?1)")
+					->orderBy("s.id", "DESC")
+					->setParameter(1, $user)
+					->setMaxResults($maxResults);
+		$recentResultsQuery = $builder->getQuery();
+		return $recentResultsQuery->getResult();
 	}
 
 	public function getSubmissionById($submissionId) {

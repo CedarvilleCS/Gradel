@@ -31,9 +31,12 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class GraderService extends Controller {
 	public $entityManager;
+	public $logger;
 	
-	public function __construct(EntityManagerInterface $entityManager) {
+	public function __construct(EntityManagerInterface $entityManager,
+	                            LoggerInterface $logger) {
 		$this->entityManager = $entityManager;
+		$this->logger = $logger;
 	}
 	
 	private function isRole($user, $section, $role) {
@@ -955,6 +958,12 @@ class GraderService extends Controller {
 			
 			return ($a['num_correct'] > $b['num_correct']) ? -1 : 1;
 		}
+	}
+
+	private function logError($message) {
+		$errorMessage = "GraderService: ".$message;
+		$this->logger->error($errorMessage);
+		return $errorMessage;
 	}
 }
 
