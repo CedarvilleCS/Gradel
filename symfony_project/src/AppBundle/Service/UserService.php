@@ -15,6 +15,10 @@ class UserService {
         $this->entityManager = $entityManager;
     }
 
+    public function getAllUsers() {
+        return $this->entityManager->getRepository("AppBundle\Entity\User")->findAll();
+    }
+
     public function getCurrentUser() {
         return $this->container->get("security.token_storage")->getToken()->getUser();
     }

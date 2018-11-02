@@ -16,7 +16,9 @@ use AppBundle\Entity\User;
 use AppBundle\Entity\UserSectionRole;
 
 use AppBundle\Service\AssignmentService;
+use AppBundle\Service\CourseService;
 use AppBundle\Service\GraderService;
+use AppBundle\Service\RoleService;
 use AppBundle\Service\SectionService;
 use AppBundle\Service\SubmissionService;
 use AppBundle\Service\UserSectionRoleService;
@@ -38,23 +40,29 @@ use Psr\Log\LoggerInterface;
 
 class SectionController extends Controller {
 	private $assignmentService;
+	private $courseService;
 	private $logger;
 	private $graderService;
+	private $roleService;
 	private $sectionService;
 	private $submissionService;
 	private $userSectionRoleService;
 	private $userService;
 
 	public function __construct(AssignmentService $assignmentService,
+								CourseService $courseService,
 		                        LoggerInterface $logger,
 								GraderService $graderService,
+								RoleService $roleService,
 								SectionService $sectionService,
 								SubmissionService $submissionService,
 								UserSectionRoleService $userSectionRoleService,
 								UserService $userService) {
 		$this->assignmentService = $assignmentService;
+		$this->courseService = $courseService;
 		$this->logger = $logger;
 		$this->graderService = $graderService;
+		$this->roleService = $roleService;
 		$this->sectionService = $sectionService;
 		$this->submissionService = $submissionService;
 		$this->userSectionRoleService = $userSectionRoleService;
@@ -63,7 +71,7 @@ class SectionController extends Controller {
 
     public function sectionAction($sectionId) {
 		$user = $this->userService->getCurrentUser();
-		if (!$user) {
+		if (!get_class($user)) {
 			return $this->returnForbiddenResponse("USER DOES NOT EXIST");
 		}
 
@@ -215,64 +223,50 @@ class SectionController extends Controller {
 	}
 
     public function editSectionAction($sectionId) {
-
 		$entityManager = $this->getDoctrine()->getManager();
 
-		if($sectionId != 0){
+		$user = $this->userService->getCurrentUser();
+		if (!get_class($user)) {
+			return $this->returnForbiddenResponse("USER DOES NOT EXIST");
+		}
 
-			if(!isset($sectionId) || !($sectionId > 0)){
+		if ($sectionId != 0) {
+			if (!isset($sectionId) || !($sectionId > 0)) {
 				return $this->returnForbiddenResponse("SECTION ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
 			}
 
-			$section = $entityManager->find("AppBundle\Entity\Section", $sectionId);
-
-			if(!$section){
-				return $this->returnForbiddenResponse("SECTION DOES NOT EXIST");
+			$section = $this->sectionService->getSectionById($sectionId);
+			if (!$section) {
+				return $this->returnForbiddenResponse("SECTION ".$sectionId." DOES NOT EXIST");
 			}
 
-			# REDIRECT TO CONTEST IF NEED BE
-			if($section->course->is_contest){
-				return $this->redirectToRoute("contest_edit", ["contestId" => $section->id]);	
+			/* Redirect to contest if need be */
+			if ($section->course->is_contest) {
+				return $this->redirectToRoute("contest_edit", ["contestId" => $section->id]);
 			}
 			
+			$sectionTakerRoles = [];
+			$sectionTeacherRoles = [];
+	
+			$teachesRole = $this->roleService->getRoleByRoleName(Constants::TEACHES_ROLE);
+			$takesRole = $this->roleService->getRoleByRoleName(Constants::TAKES_ROLE);
 			
-			$section_taker_roles = [];
-			$section_teacher_roles = [];
-
-
-			$teaches_role = $entityManager->getRepository("AppBundle\Entity\Role")->findOneBy(array("role_name" => "Teaches"));
-			$takes_role = $entityManager->getRepository("AppBundle\Entity\Role")->findOneBy(array("role_name" => "Takes"));
-
-			foreach($section->user_roles as $ur){
-
-				if($ur->role == $takes_role){
-					$section_taker_roles[] = $ur;
-				} else if($ur->role == $teaches_role){
-					$section_teacher_roles[] = $ur;
+			foreach ($section->user_roles as $sectionUserRole) {
+				if ($sectionUserRole->role == $takesRole) {
+					$sectionTakerRoles[] = $sectionUserRole;
+				} else if ($sectionUserRole->role == $teachesRole) {
+					$sectionTeacherRoles[] = $sectionUserRole;
 				}
-
 			}
 		}
 		
-		$builder = $entityManager->createQueryBuilder();
-		$builder->select("c")
-				->from("AppBundle\Entity\Course", "c")
-				->where("c.is_deleted = false");
-		$query = $builder->getQuery();
-		$courses = $query->getResult();
-
-		$user = $this->get("security.token_storage")->getToken()->getUser();
-		if(!$user){
-			return $this->returnForbiddenResponse("USER DOES NOT EXIST");
-		}
-		
-		
-		$users = $entityManager->getRepository("AppBundle\Entity\User")->findAll();
+		$courses = $this->courseService->getNonDeletedCourses();
+		$users = $this->userService->getAllUsers();
 		$instructors = [];
 
-		foreach ($users as $u) {
-			if($u->hasRole("ROLE_ADMIN") or $u->hasRole("ROLE_SUPER")) {
-				$instructors[] = $u;
+		foreach ($users as $potentialTeacher) {
+			if ($potentialTeacher->hasRole(Constants::ADMIN_ROLE) or $potentialTeacher->hasRole(Constants::SUPER_ROLE)) {
+				$instructors[] = $potentialTeacher;
 			}
 		}
 
@@ -281,8 +275,8 @@ class SectionController extends Controller {
 			"users" => $users,
 			"instructors" => $instructors,
 			"section" => $section,
-			"section_taker_roles" => $section_taker_roles,
-			"section_teacher_roles" => $section_teacher_roles,
+			"section_taker_roles" => $sectionTakerRoles,
+			"section_teacher_roles" => $sectionTeacherRoles
 		]);
     }
 
@@ -503,7 +497,7 @@ class SectionController extends Controller {
 		
 		# add students from the students array
 		
-		$takes_role = $entityManager->getRepository("AppBundle\Entity\Role")->findOneBy(array("role_name" => "Takes"));
+		$takesRole = $entityManager->getRepository("AppBundle\Entity\Role")->findOneBy(array("role_name" => "Takes"));
 		foreach ($students as $student) {
 			
 			if (!filter_var($student, FILTER_VALIDATE_EMAIL)) {
@@ -519,7 +513,7 @@ class SectionController extends Controller {
 				$entityManager->persist($stud_user);
 			}
 			
-			$usr = new UserSectionRole($stud_user, $section, $takes_role);
+			$usr = new UserSectionRole($stud_user, $section, $takesRole);
 			$entityManager->persist($usr);
 			
 			unset($oldUsers[$stud_user->id]);
@@ -527,7 +521,7 @@ class SectionController extends Controller {
 		
 		# add the teachers from the teachers array
 		
-		$teaches_role = $entityManager->getRepository("AppBundle\Entity\Role")->findOneBy(array("role_name" => "Teaches"));
+		$teachesRole = $entityManager->getRepository("AppBundle\Entity\Role")->findOneBy(array("role_name" => "Teaches"));
 		foreach ($teachers as $sectionTeacher){
 			
 			if(!filter_var($sectionTeacher, FILTER_VALIDATE_EMAIL)) {
@@ -548,7 +542,7 @@ class SectionController extends Controller {
 			}
 			$this->logError("Made it second");
 			
-			$usr = new UserSectionRole($teach_user, $section, $teaches_role);
+			$usr = new UserSectionRole($teach_user, $section, $teachesRole);
 			$entityManager->persist($usr);
 			
 			unset($oldUsers[$stud_user->id]);

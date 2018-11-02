@@ -29,7 +29,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Psr\Log\LoggerInterface;
 use Doctrine\ORM\EntityManagerInterface;
 
-class GraderService extends Controller {
+class GraderService {
 	public $entityManager;
 	public $logger;
 	

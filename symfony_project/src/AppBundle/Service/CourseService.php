@@ -18,12 +18,22 @@ class CourseService {
         return new Course();
     }
 
+    public function getAll() {
+        return $this->entityManager->getRepository("AppBundle\Entity\Course")->findAll();
+    }
+
     public function getCourseById($courseId) {
         return $this->entityManager->find('AppBundle\Entity\Course', $courseId);
     }
 
-    public function getAll() {
-        return $this->entityManager->getRepository("AppBundle\Entity\Course")->findAll();
+    public function getNonDeletedCourses() {
+        $builder = $this->entityManager->createQueryBuilder();
+		$builder->select("c")
+				->from("AppBundle\Entity\Course", "c")
+				->where("c.is_deleted = false");
+        $query = $builder->getQuery();
+        
+		return $query->getResult();	
     }
 
     public function insertCourse($course, $shouldFlush = true) {
