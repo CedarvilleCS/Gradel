@@ -21,6 +21,11 @@ class ProblemLanguageService
 		return $problemLanguage;
 	}
 
+	public function deleteProblemLanguage($entityManager, $problemLanguage) {
+		$entityManager->remove($problemLanguage);
+		$entityManager->flush();
+	}
+
     public function getProblemLanguagesByProblem($entityManager, $problem) {
 		$builder = $entityManager->createQueryBuilder();
 		$builder->select("pl")

@@ -5,6 +5,8 @@ namespace AppBundle\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 
+use AppBundle\Constants;
+
 use AppBundle\Entity\Submission;
 use AppBundle\Entity\Problem;
 use AppBundle\Entity\ProblemLanguage;
@@ -14,8 +16,10 @@ use AppBundle\Entity\Testcase;
 
 use AppBundle\Service\AssignmentService;
 use AppBundle\Service\LanguageService;
+use AppBundle\Service\ProblemLanguageService;
 use AppBundle\Service\ProblemService;
 use AppBundle\Service\SectionService;
+use AppBundle\Service\TestCaseService;
 use AppBundle\Service\UserService;
 
 use AppBundle\Utils\Grader;
@@ -33,22 +37,28 @@ use Symfony\Component\Config\Definition\Exception\Exception;
 class ProblemController extends Controller {
 	private $logger;
 	private $assignmentService;
+	private $problemLanguageService;
 	private $problemService;
 	private $languageService;
 	private $sectionService;
+	private $testCaseService;
 	private $userService;
 
 	public function __construct(LoggerInterface $logger,
 								AssignmentService $assignmentService,
 								LanguageService $languageService,
+								ProblemLanguageService $problemLanguageService,
 								ProblemService $problemService,
 								SectionService $sectionService,
+								TestCaseService $testCaseService,
 								UserService $userService) {
 		$this->logger = $logger;
 		$this->assignmentService = $assignmentService;
 		$this->languageService = $languageService;
+		$this->problemLanguageService = $problemLanguageService;
 		$this->problemService = $problemService;
 		$this->sectionService = $sectionService;
+		$this->testCaseService = $testCaseService;
 		$this->userService = $userService;
 	}
 
@@ -137,6 +147,7 @@ class ProblemController extends Controller {
 
 	public function deleteAction($sectionId, $assignmentId, $problemId){
 		$entityManager = $this->getDoctrine()->getManager();
+		$grader = new Grader($entityManager);
 		
 		/* Validate the user */
 		$user = $this->userService->getCurrentUser($entityManager);
@@ -153,8 +164,7 @@ class ProblemController extends Controller {
 			return $this->returnForbiddenResponse("PROBLEM ".$problemId." DOES NOT EXIST");
 		}
 
-		$grader = new Grader($entityManager);
-		if (!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN") && !$grader->isTeaching($user, $problem->assignment->section)) {
+		if (!$user->hasRole(Constants::SUPER_ROLE) && !$user->hasRole(Constants::ADMIN_ROLE) && !$grader->isTeaching($user, $problem->assignment->section)) {
 			return $this->returnForbiddenResponse("YOU ARE NOT ALLOWED TO DELETE THIS PROBLEM");
 		}
 
@@ -167,392 +177,389 @@ class ProblemController extends Controller {
 
 	public function modifyPostAction(Request $request) {
 		$entityManager = $this->getDoctrine()->getManager();
+		$grader = new Grader($entityManager);
 
-		# validate the current user
-		$user = $this->get("security.token_storage")->getToken()->getUser();
-		if(!$user){
-			return $this->returnForbiddenResponse("You are not a user.");
+		/* Validate the user */
+		$user = $this->userService->getCurrentUser($entityManager);
+		if (!$user) {
+			return $this->returnForbiddenResponse("USER DOES NOT EXIST");
 		}
 
-		# see which fields were included
 		$postData = $request->request->all();
 
-		# get the current assignment
-		if(!isset($postData["assignmentId"]) || !($postData["assignmentId"] > 0)){
+		/* Get the current assignment */
+		$assignmentId = $postData["assignmentId"];
+		if(!isset($assignmentId) || !($assignmentId > 0)){
 			return $this->returnForbiddenResponse("ASSIGNMENT ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
 		}
 		
-		$assignment = $entityManager->find("AppBundle\Entity\Assignment", $postData["assignmentId"]);
-		if(!$assignment){
-			return $this->returnForbiddenResponse("Assignment ".$postData["assignmentId"]." does not exist");
+		$assignment = $this->assignmentService->getAssignmentById($entityManager, $assignmentId);
+		if (!$assignment) {
+			return $this->returnForbiddenResponse("ASSIGNMENT ".$assignmentId." DOES NOT EXIST");
 		}
 
-		# only super users/admins/teacher can make/edit an assignment
-		$grader = new Grader($entityManager);
-		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN") && !$grader->isTeaching($user, $assignment->section)){
-			return $this->returnForbiddenResponse("You do not have permission to make a problem.");
+		/* Only super users/admins/teacher can make/edit an assignment */
+		if (!$user->hasRole(Constants::SUPER_ROLE) && !$user->hasRole(Constants::ADMIN_ROLE) && !$grader->isTeaching($user, $assignment->section)) {
+			return $this->returnForbiddenResponse("YOU DO NOT HAVE PERMISSION TO MAKE A PROBLEM");
 		}
 		
-		# get the problem or create a new one
-		if($postData["problem"] == 0){
-
-			$problem = new Problem();
+		/* Get the problem or create a new one */
+		$problemId = $postData["problem"];
+		if ($problemId == 0) {
+			$problem = $this->problemService->createEmptyProblem();
 			$problem->assignment = $assignment;
-			$entityManager->persist($problem);
-
+			$this->problemService->insertProblem($entityManager, $problem);
 		} else {
-			
-			if(!isset($postData["problem"]) || !($postData["problem"] > 0)){
+			if (!isset($problemId) || !($problemId > 0)) {
 				return $this->returnForbiddenResponse("PROBLEM ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
 			}
 
-			$problem = $entityManager->find("AppBundle\Entity\Problem", $postData["problem"]);
+			$problem = $this->problemService->getProblemById($entityManager, $problemId);
 
-			if(!$problem || $assignment != $problem->assignment){
-				return $this->returnForbiddenResponse("Problem ".$postData["problem"]." does not exist for the given assignment.");
+			if (!$problem || $assignment != $problem->assignment) {
+				return $this->returnForbiddenResponse("PROBLEM ".$problemId." DOES NOT EXIST FOR THE GIVEN ASSIGNMENT");
 			}
 		}
 
-		# check mandatory fields
-		if(!isset($postData["name"]) || trim($postData["name"]) == "" || !isset($postData["description"]) || trim($postData["description"]) == "" || !isset($postData["weight"]) || !isset($postData["time_limit"])){
-
-			return $this->returnForbiddenResponse("Not every necessary field was provided");
-
+		/* Check mandatory fields */
+		$problemName = $postData["name"];
+		$problemDescription = $postData["description"];
+		$problemWeight = $postData["weight"];
+		$problemTimeLimit = $postData["time_limit"];
+		if (!isset($problemName) || 
+			trim($problemName) == "" || 
+			!isset($problemDescription) || 
+			trim($problemDescription) == "" || 
+			!isset($problemWeight) || 
+			!isset($problemTimeLimit)) {
+			return $this->returnForbiddenResponse("NOT EVERY NECESSARY FIELD WAS PROVIDED");
 		} else {
-
-			if(!is_numeric(trim($postData["weight"])) || (int)trim($postData["weight"]) < 0){
-				return $this->returnForbiddenResponse("Weight provided is not valid - it must be non-negative");
+			if (!is_numeric(trim($problemWeight)) || (int)trim($problemWeight) < 0) {
+				return $this->returnForbiddenResponse("WEIGHT PROVIDED IS NOT VALID - IT MUST BE NON-NEGATIVE");
 			}
 
-			if(!is_numeric(trim($postData["time_limit"])) || (int)trim($postData["time_limit"]) < 1){
-				return $this->returnForbiddenResponse("Time limit provided is not valid - it must be greater than 0. You gave us: ". $postData["time_limit"]);
+			if (!is_numeric(trim($problemTimeLimit)) || (int)trim($problemTimeLimit) < 1) {
+				return $this->returnForbiddenResponse("TIME LIMIT PROVIDED IS NOT VALID - IT MUST BE NON-NEGATIVE");
 			}
-
 		}
 
-		$problem->version = $problem->version+1;
-		$problem->name = trim($postData["name"]);
-		$problem->description = trim($postData["description"]);
-		$problem->weight = (int)trim($postData["weight"]);
-		$problem->is_extra_credit = ($postData["is_extra_credit"] == "true");		
-		$problem->time_limit = (int)trim($postData["time_limit"]);
+		$problem->version = $problem->version + 1;
+		$problem->name = trim($problemName);
+		$problem->description = trim($problemDescription);
+		$problem->weight = (int)trim($problemWeight);
+		$problem->is_extra_credit = ($postData["is_extra_credit"] == "true");
+		$problem->time_limit = (int)trim($problemTimeLimit);
 		
-		if(!isset($postData["languages"]) || !isset($postData["testcases"])){
-
-			return $this->returnForbiddenResponse("Languages or testcases were not provided");
-
-		} else {
-
-			if(count($postData["languages"]) < 1){
-				return $this->returnForbiddenResponse("You must specify at least one language");
-			}
-
-			if(count($postData["testcases"]) < 1){
-				return $this->returnForbiddenResponse("You must specify at least one test case");
-			}
-
+		$problemLanguages = $postData["languages"];
+		$problemTestCases = $postData["testcases"];
+		if (!isset($problemLanguages)) {
+			return $this->returnForbiddenResponse("LANGUAGES WERE NOT PROVIDED");
+		}
+		if (!isset($problemTestCases)) {
+			return $this->returnForbiddenResponse("TESTCASES WERE NOT PROVIDED");
+		}
+		if (count($problemLanguages) < 1) {
+			return $this->returnForbiddenResponse("YOU MUST SPECIFY AT LEAST ONE LANGUAGE");
+		}
+		if (count($problemTestCases) < 1){
+			return $this->returnForbiddenResponse("YOU MUST SPECIFY AT LEAST ONE TEST CASE");
 		}
 
-		# check the optional fields
-		# attempt penalties
-		$total_attempts = $postData["total_attempts"];
-		$attempts_before_penalty = $postData["attempts_before_penalty"];
-		$penalty_per_attempt = $postData["penalty_per_attempt"];
+		/* Check the optional fields */
+		/* Attempt penalties */
+		$totalAttempts = $postData["total_attempts"];
+		$attemptsBeforePenalty = $postData["attempts_before_penalty"];
+		$penaltyPerAttempt = $postData["penalty_per_attempt"];
 
-		if(!isset($total_attempts) || !is_numeric($total_attempts) || !isset($attempts_before_penalty) || !is_numeric($attempts_before_penalty) || !isset($penalty_per_attempt) || !is_numeric($penalty_per_attempt)){
-			return $this->returnForbiddenResponse("Not every necessary grading method flag was set properly");
+		if (!isset($totalAttempts) || 
+			!is_numeric($totalAttempts) || 
+			!isset($attemptsBeforePenalty) || 
+			!is_numeric($attemptsBeforePenalty) || 
+			!isset($penaltyPerAttempt) || 
+			!is_numeric($penaltyPerAttempt)) {
+			return $this->returnForbiddenResponse("NOT EVERY NECESSARY GRADING FLAG WAS SET PROPERLY");
 		}
 
-		if($total_attempts < $attempts_before_penalty){
-			return $this->returnForbiddenResponse("Attempts before penalty must be greater than the total attempts");
+		if ($totalAttempts < $attemptsBeforePenalty) {
+			return $this->returnForbiddenResponse("ATTEMPTS BEFORE PENALTY MUST BE GREATER THAN TOTAL ATTEMPTS");
 		}
 
-		if($penalty_per_attempt < 0.00 || $penalty_per_attempt > 1.00){
-			return $this->returnForbiddenResponse("Penalty per attempts must be between 0 and 1");
+		if ($penaltyPerAttempt < 0.00 || $penaltyPerAttempt > 1.00) {
+			return $this->returnForbiddenResponse("PENALTY PER ATTEMPT MUST BE BETWEEN 0 AND 1");
 		}
 
-		$problem->total_attempts = $total_attempts;
-		$problem->attempts_before_penalty = $attempts_before_penalty;
-		$problem->penalty_per_attempt = $penalty_per_attempt;
-
+		$problem->total_attempts = $totalAttempts;
+		$problem->attempts_before_penalty = $attemptsBeforePenalty;
+		$problem->penalty_per_attempt = $penaltyPerAttempt;
 
 		# feedback flags
-		$stop_on_first_fail = $postData["stop_on_first_fail"];
-		$response_level = trim($postData["response_level"]);
-		$display_testcaseresults = $postData["display_testcaseresults"];
-		$testcase_output_level = trim($postData["testcase_output_level"]);
-		$extra_testcases_display = $postData["extra_testcases_display"];
+		$stopOnFirstFail = $postData["stop_on_first_fail"];
+		$responseLevel = trim($postData["response_level"]);
+		$displayTestCaseResults = $postData["display_testcaseresults"];
+		$testcaseOutputLevel = trim($postData["testcase_output_level"]);
+		$extraTestcasesDisplay = $postData["extra_testcases_display"];
 
-		if($stop_on_first_fail != null || $response_level != null || $display_testcaseresults != null || $testcase_output_level != null || $extra_testcases_display != null){
-
-			if($stop_on_first_fail == null || $response_level == null || $display_testcaseresults == null || $testcase_output_level == null || $extra_testcases_display == null){
-				return $this->returnForbiddenResponse("Not every necessary feedback flag was set");
+		if ($stopOnFirstFail != null || 
+			$responseLevel != null || 
+			$displayTestCaseResults != null || 
+			$testcaseOutputLevel != null || 
+			$extraTestcasesDisplay != null) {
+			if ($stopOnFirstFail == null || 
+				$responseLevel == null || 
+				$displayTestCaseResults == null || 
+				$testcaseOutputLevel == null || 
+				$extraTestcasesDisplay == null) {
+				return $this->returnForbiddenResponse("NOT EVERY NECESSARY FEEDBACK FLAG WAS SET");
 			}
 
-			if($response_level != "Long" && $response_level != "Short" && $response_level != "None"){
-				return $this->returnForbiddenResponse("Response level is not a valid string value");
+			if ($responseLevel != Constants::LONG_RESPONSE_LEVEL && 
+				$responseLevel != Constants::SHORT_RESPONSE_LEVEL && 
+				$responseLevel != Constants::NONE_RESPONSE_LEVEL) {
+				return $this->returnForbiddenResponse("RESPONSE VALUE WAS NOT VALID");
 			}
 
-			if($testcase_output_level != "Both" && $testcase_output_level != "Output" && $testcase_output_level != "None"){
-				return $this->returnForbiddenResponse("Testcase output level is not a valid string value. You gave: " . $testcase_output_level);
+			if ($testcaseOutputLevel != Constants::BOTH_TESTCASE_OUTPUT_LEVEL && 
+				$testcaseOutputLevel != Constants::OUTPUT_TESTCASE_OUTPUT_LEVEL && 
+				$testcaseOutputLevel != Constants::NONE_TESTCASE_OUTPUT_LEVEL) {
+				return $this->returnForbiddenResponse("TESTCASE OUTPUT VALUE WAS NOT VALID");
 			}
-
 		} else {
-			$stop_on_first_fail = false;
-			$response_level = "Long";
-			$display_testcaseresults = true;
-			$testcase_output_level = "Both";
-			$extra_testcases_display = true;
+			$displayTestCaseResults = true;
+			$extraTestcasesDisplay = true;
+			$responseLevel = Constants::LONG_RESPONSE_LEVEL;
+			$stopOnFirstFail = false;
+			$testcaseOutputLevel = Constants::BOTH_TESTCASE_OUTPUT_LEVEL;
 		}
 
-		$problem->stop_on_first_fail = ($stop_on_first_fail == "true");
-		$problem->response_level = $response_level;
-		$problem->display_testcaseresults = ($display_testcaseresults == "true");
-		$problem->testcase_output_level = $testcase_output_level;
-		$problem->extra_testcases_display = ($extra_testcases_display == "true");	
+		$problem->stop_on_first_fail = ($stopOnFirstFail == "true");
+		$problem->response_level = $responseLevel;
+		$problem->display_testcaseresults = ($displayTestCaseResults == "true");
+		$problem->testcase_output_level = $testcaseOutputLevel;
+		$problem->extra_testcases_display = ($extraTestcasesDisplay == "true");	
 		
-		# allow adding files (tabs)
+		/* Allow adding files (tabs) */
 		$allow_multiple = $postData["allow_multiple"];
 		$problem->allow_multiple = ($allow_multiple == "true");
 
-		# allow uploading files
+		/* Allow uploading files */
 		$allow_upload = $postData["allow_upload"];
 		$problem->allow_upload = ($allow_upload == "true");
 		
-		# linked problems
-		if(!$problem->assignment->section->course->is_contest){
-			
-			foreach($problem->slaves as &$slave){
+		/* Linked problems */
+		if (!$problem->assignment->section->course->is_contest) {
+			foreach ($problem->slaves as &$slave) {
 				$slave->master = null;
 			}
 			
-			$decodedLinked = json_decode($postData["linked_probs"]);
-			foreach($decodedLinked as $link){
-				
-				$linked = $entityManager->find("AppBundle\Entity\Problem", $link);
-				
-				if(!$linked){
-					return $this->returnForbiddenResponse("Provided problem id ".$link." does not exist");
+			$decodedProblemLinks = json_decode($postData["linked_probs"]);
+			foreach ($decodedProblemLinks as $decodedProblemLink) {
+				$linkedProblem = $this->problemService->getProblemById($decodedProblemLink);
+
+				if (!$linkedProblem) {
+					return $this->returnForbiddenResponse("PROBLEM ".$decodedProblemLink." DOES NOT EXIST");
 				}
 				
-				$problem->slaves->add($linked);
-				$linked->master = $problem;			
+				$problem->slaves->add($linkedProblem);
+				$linkedProblem->master = $problem;
 			}
 		}		
 		
-		# custom validator
-		$custom_validator = trim($postData["custom_validator"]);
-		if(isset($custom_validator) && $custom_validator != ""){
-			$problem->custom_validator = $custom_validator;			
-			//return $this->returnForbiddenResponse($custom_validator."");
+		/* Custom validator */
+		$customValidator = trim($postData["custom_validator"]);
+		if (isset($customValidator) && $customValidator != "") {
+			$problem->custom_validator = $customValidator;
 		} else {
 			$problem->custom_validator = null;
 		}
 		
-		# go through the problemlanguages
-		# remove the old ones
+		/* Go through the problemlanguages */
+		/* Remove the old ones */
 		$oldDefaultCode = [];
 
-		foreach($problem->problem_languages as $pl){
-			$oldDefaultCode[$pl->language->id] = $pl->default_code;
-			$entityManager->remove($pl);
+		foreach ($problem->problem_languages as $oldProblemLanguage) {
+			$oldDefaultCode[$oldProblemLanguage->language->id] = $oldProblemLanguage->default_code;
+			$this->problemLanguageService->deleteProblemLanguage($entityManager, $oldProblemLanguage);
 		}
 
 		$newProblemLanguages = [];
 		$decodedLanguages = json_decode($postData["languages"]);
-		foreach($decodedLanguages as $l){
-
-			//return $this->returnForbiddenResponse(var_dump($decodedLanguages));
-			if(!isset($l->id) || !($l->id > 0)){				
-				return $this->returnForbiddenResponse("You did not specify a language id");
+		foreach ($decodedLanguages as $decodedLanguage) {
+			if (!isset($decodedLanguage->id) || !($decodedLanguage->id > 0)) {
+				return $this->returnForbiddenResponse("YOU DID NOT SPECIFY A LANGUAGE ID");
 			}
 
-			$language = $entityManager->find("AppBundle\Entity\Language", $l->id);
-
-			if(!$language){
-				return $this->returnForbiddenResponse("Provided language with id ".$l->id." does not exist");
+			$language = $this->languageService->getLanguageById($entityManager, $decodedLanguage->id);
+			if (!$language) {
+				return $this->returnForbiddenResponse("LANGUAGE ".$decodedLanguage->id." DOES NOT EXIST");
 			}
 
-			$problemLanguage = new ProblemLanguage();
-
-			$problemLanguage->language = $language;
-			$problemLanguage->problem = $problem;
-			
-			// set compiler options and default code
-			if(isset($l->compiler_options) && strlen($l->compiler_options) > 0){
-				
-				# check the compiler options for invalid characters
-				if(preg_match("/^[ A-Za-z0-9+=\-]+$/", $l->compiler_options) != 1){
-					return $this->returnForbiddenResponse("The compiler options provided has invalid characters");
+			$problemLanguage = $this->problemLanguageService->createProblemLanguage($problem, $language);			
+			/* Set compiler options and default code */
+			if (isset($decodedLanguage->compiler_options) && strlen($decodedLanguage->compiler_options) > 0) {
+				/* Check the compiler options for invalid characters */
+				if (preg_match("/^[ A-Za-z0-9+=\-]+$/", $decodedLanguage->compiler_options) != 1) {
+					return $this->returnForbiddenResponse("THE COMPILER OPTIONS PROVIDED HAVE INVALID CHARACTERS");
 				}
-								
-				$problemLanguage->compilation_options = $l->compiler_options;
+			
+				$problemLanguage->compilation_options = $decodedLanguage->compiler_options;
 			}
 			
-			if(isset($l->default_code) && strlen($l->default_code) > 0){
-				
-				$problemLanguage->default_code = $l->default_code;
+			if (isset($decodedLanguage->default_code) && strlen($decodedLanguage->default_code) > 0) {
+				$problemLanguage->default_code = $decodedLanguage->default_code;
 			}
 
-			// get the contents of the default code and save it to a file so we can save
+			/* Get the contents of the default code and save it to a file so we can save */
 			$temp = tmpfile();
-			$temp_filename = stream_get_meta_data($temp)["uri"];
-		//	fclose($temp);
+			$tempFilename = stream_get_meta_data($temp)["uri"];
+			$tempLanguageName = $_FILES["file_".$decodedLanguage->id]["tmp_name"];
 
-			if($_FILES["file_".$l->id]["tmp_name"] == null){
+			if ($tempLanguageName == null) {
+				$problemLanguage->default_code = $oldDefaultCode[$decodedLanguage->id];
+			} else if (move_uploaded_file($tempLanguageName, $tempFilename)) {
+				$fileHandle = fopen($tempFilename, "r");
 
-				$problemLanguage->default_code = $oldDefaultCode[$l->id];
-
-			} else if (move_uploaded_file($_FILES["file_".$l->id]["tmp_name"], $temp_filename)) {
-
-				$fh = fopen($temp_filename, "r");
-
-				if(!$fh){
-					return $this->returnForbiddenResponse("Cant open file.");
+				if (!$fileHandle) {
+					return $this->returnForbiddenResponse("CANNOT OPEN FILE");
 				}
 
-				$problemLanguage->default_code = $fh;
-
-			} else { 
-				return $this->returnForbiddenResponse("Error saving default code.");
+				$problemLanguage->default_code = $fileHandle;
+			} else {
+				return $this->returnForbiddenResponse("ERROR SAVING DEFAULT CODE");
 			}
-			
-			$newProblemLanguages[] = $problemLanguage;
-			$entityManager->persist($problemLanguage);
 
+			$newProblemLanguages[] = $problemLanguage;
+			$this->problemLanguageService->insertProblemLanguage($entityManager, $problemLanguage);
 		}
 
-		# testcases
-		# set the old testcases to null 
-		# (so they don"t go away and can be accessed in the results page)
-		foreach($problem->testcases as &$testcase){
-			$testcase->problem = null;
-			$entityManager->persist($testcase);
+		/* Testcases */
+		/* Set the old testcases to null */
+		/* (so they don"t go away and can be accessed in the results page) */
+		foreach ($problem->testcases as &$testCase) {
+			$testCase->problem = null;
+			$this->testCaseService->insertTestCase($entityManager, $testCase);
 		}
 		
-		$newTestcases = new ArrayCollection();
+		$newTestCases = new ArrayCollection();
 		$count = 1;
 
-		$decodedTestcases = json_decode($postData["testcases"]);
-		foreach($decodedTestcases as &$tc){
+		$decodedTestCases = json_decode($postData["testcases"]);
+		foreach ($decodedTestCases as &$decodedTestCase) {
+			$decodedTestCase = (array) $decodedTestCase;
 			
-			$tc = (array) $tc;
-			
-			# build the testcase
-			try{				
-				$testcase = new Testcase($problem, $tc, $count);
+			/* Build the testcase */
+			try {
+				$testCase = new Testcase($problem, $decodedTestCase, $count);
+				$this->testCaseService->insertTestCase($entityManager, $testCase);
+				$newTestCases->add($testCase);
 				$count++;
-					
-				$entityManager->persist($testcase);
-				$newTestcases->add($testcase);
 				
-			} catch(Exception $e){
+			} catch (Exception $e) {
 				return $this->returnForbiddenResponse($e->getMessage());
 			}
 
 		}
-		$problem->testcases = $newTestcases;
-		$problem->testcase_counts[] = count($problem->testcases);	
+		$problem->testcases = $newTestCases;
+		$problem->testcase_counts[] = count($problem->testcases);
 		
-		
-		# CONTEST SETTINGS OVERRIDE
-		if($problem->assignment->section->course->is_contest){
-			
+		/* CONTEST SETTINGS OVERRIDE */
+		if ($problem->assignment->section->course->is_contest) {
 			$problem->slaves = new ArrayCollection();
 			$problem->master = null;
-
-			$problem->weight = 1;
-			$problem->is_extra_credit = false;
-			$problem->total_attempts = 0;
+			
 			$problem->attempts_before_penalty = 0;
-			$problem->penalty_per_attempt = 0;
-			$problem->stop_on_first_fail = true;
-			$problem->response_level = "None";
 			$problem->display_testcaseresults = false;
-			$problem->testcase_output_level = "None";
 			$problem->extra_testcases_display = false;			
+			$problem->is_extra_credit = false;
+			$problem->penalty_per_attempt = 0;
+			$problem->response_level = Constants::NONE_RESPONSE_LEVEL;
+			$problem->stop_on_first_fail = true;
+			$problem->testcase_output_level = Constants::NONE_TESTCASE_OUTPUT_LEVEL;
+			$problem->total_attempts = 0;
+			$problem->weight = 1;
 		}
 				
 		
-		# update all the linked problems
-		foreach($problem->slaves as &$slave){
+		/* Update all the linked problems */
+		foreach ($problem->slaves as &$slave) {
+			/* Update the version */
+			$slave->version = $slave->version + 1;
 			
-			# update the version
-			$slave->version = $slave->version+1;
-			
-			# update the name
+			/* Update the name */
 			$slave->name = $problem->name;
 			
-			# update the description
+			/* Update the description */
 			$slave->description = $problem->description;
 			
-			# update the languages
-			foreach($slave->problem_languages as &$pl){
-				$entityManager->remove($pl);
-				$entityManager->flush();
+			/* Update the languages */
+			foreach ($slave->problem_languages as &$slaveProblemLanguage) {
+				$this->problemLanguageService->deleteProblemLanguage($entityManager, $slaveProblemLanguage);
 			}
 			
-			$plsClone = new ArrayCollection();			
-			foreach($newProblemLanguages as $pl){
-				$plClone = clone $pl;
-				$plClone->problem = $slave;
+			$problemLanguagesClone = new ArrayCollection();
+			foreach ($newProblemLanguages as $slaveProblemLanguage) {
+				$problemLanguageClone = clone $slaveProblemLanguage;
+				$problemLanguageClone->problem = $slave;
 				
-				$plsClone->add($plClone);
+				$problemLanguagesClone->add($problemLanguageClone);
 			}
-			$slave->problem_languages = $plsClone;
+			$slave->problem_languages = $problemLanguagesClone;
 			
-			# update the weight
+			/* Update the weight */
 			$slave->weight = $problem->weight;
 			
-			# update extra credit
+			/* Update extra credit */
 			$slave->is_extra_credit = $problem->is_extra_credit;
 			
-			# update the time limit
+			/* Update the time limit */
 			$slave->time_limit = $problem->time_limit;
 			
-			# update the grading options
-			$slave->total_attempts = $problem->total_attempts;
+			/* Update the grading options */
 			$slave->attempts_before_penalty = $problem->attempts_before_penalty;
 			$slave->penalty_per_attempt = $problem->penalty_per_attempt;
+			$slave->total_attempts = $problem->total_attempts;
 			
-			# update the submission feedback options
-			$slave->stop_on_first_fail = $problem->stop_on_first_fail;
-			$slave->response_level = $problem->response_level;
+			/* Update the submission feedback options */
 			$slave->display_testcaseresults = $problem->display_testcaseresults;
-			$slave->testcase_output_level = $problem->testcase_output_level;
 			$slave->extra_testcases_display = $problem->extra_testcases_display;
+			$slave->response_level = $problem->response_level;
+			$slave->stop_on_first_fail = $problem->stop_on_first_fail;
+			$slave->testcase_output_level = $problem->testcase_output_level;
 			
-			# update the validator
+			/* Update the validator */
 			$slave->custom_validator = $problem->custom_validator;
 			
-			# update the test cases
-			foreach($slave->testcases as &$tc){
-				$tc->problem = null;
-				$entityManager->persist($tc);				
+			/* Update the test cases */
+			foreach ($slave->testcases as &$decodedTestCase) {
+				$decodedTestCase->problem = null;
+				$entityManager->persist($decodedTestCase);			
 			}
-			
-			$testcaseClone = new ArrayCollection();			
-			foreach($newTestcases->toArray() as $tc){
-				$tcClone = clone $tc;
-				$tcClone->problem = $slave;
-				
-				$testcaseClone->add($tcClone);
+
+			$testcaseClone = new ArrayCollection();	
+			foreach ($newTestCases->toArray() as $decodedTestCase) {
+				$testCaseClone = clone $decodedTestCase;
+				$testCaseClone->problem = $slave;
+
+				$testcaseClone->add($testCaseClone);
 			}
 			$slave->testcases = $testcaseClone;
 			$slave->testcase_counts[] = count($slave->testcases);
 
-			$entityManager->persist($slave);
+			$this->problemService->insertProblem($entityManager, $slave);
 		}
-		
-		$entityManager->flush();
 
-		$url = $this->generateUrl("assignment", ["sectionId" => $problem->assignment->section->id, "assignmentId" => $problem->assignment->id, "problemId" => $problem->id]);
+		$url = $this->generateUrl("assignment", [
+			"sectionId" => $problem->assignment->section->id, 
+			"assignmentId" => $problem->assignment->id, 
+			"problemId" => $problem->id
+		]);
 		
-		return new JsonResponse(array("problemId"=> $problem->id, "redirect_url" => $url));
+		return new JsonResponse([
+			"problemId"=> $problem->id, 
+			"redirect_url" => $url
+		]);
 	}
 
 	public function resultAction($submission_id) {
-
 		$entityManager = $this->getDoctrine()->getManager();
 		$grader = new Grader($entityManager);
 		
@@ -583,7 +590,7 @@ class ProblemController extends Controller {
 		}
 
 		# make sure the user has permissions to view the submission result
-		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN") && !$grader->isTeaching($user, $submission->problem->assignment->section) && !$grader->isOnTeam($user, $submission->problem->assignment, $submission->team)){
+		if(!$user->hasRole(Constants::SUPER_ROLE) && !$user->hasRole(Constants::ADMIN_ROLE) && !$grader->isTeaching($user, $submission->problem->assignment->section) && !$grader->isOnTeam($user, $submission->problem->assignment, $submission->team)){
 			echo "YOU ARE NOT ALLOWED TO VIEW THIS SUBMISSION";
 			return $this->returnForbiddenResponse();
 		}
@@ -651,7 +658,7 @@ class ProblemController extends Controller {
 		}
 
 		# make sure the user has permissions to view the submission result
-		if(!$user->hasRole("ROLE_SUPER") && !$grader->isTeaching($user, $submission->problem->assignment->section)){
+		if(!$user->hasRole(Constants::SUPER_ROLE) && !$grader->isTeaching($user, $submission->problem->assignment->section)){
 			echo "YOU ARE NOT ALLOWED TO DELETE THIS SUBMISSION";
 			return $this->returnForbiddenResponse();
 		}

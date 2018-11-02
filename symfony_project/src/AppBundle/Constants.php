@@ -23,6 +23,14 @@ class Constants
         CONSTANTS::ADMIN_ROLE,
         CONSTANTS::SUPER_ROLE
     ];
+
+    const LONG_RESPONSE_LEVEL = "Long";
+    const NONE_RESPONSE_LEVEL = "None";
+    const SHORT_RESPONSE_LEVEL = "Short";
+
+    const BOTH_TESTCASE_OUTPUT_LEVEL = "Both";
+    const NONE_TESTCASE_OUTPUT_LEVEL = "None";
+    const OUTPUT_TESTCASE_OUTPUT_LEVEL = "Output";
 }
 
 ?>

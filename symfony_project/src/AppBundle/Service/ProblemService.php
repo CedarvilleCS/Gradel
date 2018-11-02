@@ -4,6 +4,8 @@ namespace AppBundle\Service;
 
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
+use AppBundle\Entity\Problem;
+
 use \DateTime;
 use \DateInterval;
 
@@ -13,6 +15,10 @@ class ProblemService
 
     public function __construct(ContainerInterface $container) {
         $this->container = $container;
+	}
+
+	public function createEmptyProblem() {
+		return new Problem();
 	}
 
 	public function deleteProblem($entityManager, $problem) {
