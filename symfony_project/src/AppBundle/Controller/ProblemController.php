@@ -636,33 +636,33 @@ class ProblemController extends Controller {
 		$entityManager = $this->getDoctrine()->getManager();
 		$grader = new Grader($entityManager);
 		
-		if (!isset($submissionId) || !($submissionId > 0)) {
-			return $this->returnForbiddenResponse("SUBMISSION ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
-		}
-
-		$submission = $entityManager->find("AppBundle\Entity\Submission", $submissionId);
-
-		if(!$submission){
-			return $this->returnForbiddenResponse("SUBMISSION DOES NOT EXIST");
-		}
-
-		# get the user
+		/* Validate the user */
 		$user = $this->get("security.token_storage")->getToken()->getUser();
 		if(!$user){
 			return $this->returnForbiddenResponse("USER DOES NOT EXIST!");
 		}
 
-		# make sure the user has permissions to view the submission result
-		if(!$user->hasRole(Constants::SUPER_ROLE) && !$grader->isTeaching($user, $submission->problem->assignment->section)){
-			echo "YOU ARE NOT ALLOWED TO DELETE THIS SUBMISSION";
-			return $this->returnForbiddenResponse();
+		if (!isset($submissionId) || !($submissionId > 0)) {
+			return $this->returnForbiddenResponse("SUBMISSION ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
+		}
+
+		$submission = $this->submissionService->getSubmissionById($entityManager, $submissionId);
+		if (!$submission) {
+			return $this->returnForbiddenResponse("SUBMISSION ".$submissionId." DOES NOT EXIST");
+		}
+
+		/* Make sure the user has permissions to view the submission result */
+		if (!$user->hasRole(Constants::SUPER_ROLE) && !$grader->isTeaching($user, $submission->problem->assignment->section)) {
+			return $this->returnForbiddenResponse("YOU ARE NOT ALLOWED TO DELETE THIS SUBMISSION");
 		}
 		
+		$this->submissionService->deleteSubmission($entityManager, $submission);
 		
-		$entityManager->remove($submission);
-		$entityManager->flush();
-		
-		return $this->redirectToRoute("assignment", ["problemId" => $submission->problem->id, "assignmentId" => $submission->problem->assignment->id, "sectionId" => $submission->problem->assignment->section->id]);	
+		return $this->redirectToRoute("assignment", [
+			"problemId" => $submission->problem->id, 
+			"assignmentId" => $submission->problem->assignment->id, 
+			"sectionId" => $submission->problem->assignment->section->id
+		]);	
 	}
 	
 	private function logError($message) {
