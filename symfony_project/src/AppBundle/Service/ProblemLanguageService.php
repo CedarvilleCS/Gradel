@@ -4,6 +4,8 @@ namespace AppBundle\Service;
 
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
+use AppBundle\Entity\ProblemLanguage;
+
 class ProblemLanguageService
 {
     private $container;
@@ -37,9 +39,11 @@ class ProblemLanguageService
 		return $problemLanguageQuery->getResult();
 	}
 
-	public function insertProblemLanguage($entityManager, $problemLanguage) {
+	public function insertProblemLanguage($entityManager, $problemLanguage, $shouldFlush = true) {
 		$entityManager->persist($problemLanguage);
-		$entityManager->flush();
+		if ($shouldFlush) {
+			$entityManager->flush();
+		}
 	}
 }
 ?>

@@ -26,9 +26,11 @@ class CourseService
         return $entityManager->getRepository("AppBundle\Entity\Course")->findAll();
     }
 
-    public function insertCourse($entityManager, $course) {
+    public function insertCourse($entityManager, $course, $shouldFlush = true) {
         $entityManager->persist($course);
-        $entityManager->flush();
+        if ($shouldFlush) {
+            $entityManager->flush();
+        }
     }
 }
 ?>

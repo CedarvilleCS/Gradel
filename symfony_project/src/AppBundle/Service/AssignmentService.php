@@ -61,9 +61,11 @@ class AssignmentService
 		return $assignmentQuery->getResult();
 	}
 
-	public function insertAssignment($entityManager, $assignment) {
+	public function insertAssignment($entityManager, $assignment, $shouldFlush = true) {
 		$entityManager->persist($assignment);
-		$entityManager->flush();
+		if ($shouldFlush) {
+			$entityManager->flush();
+		}
 	}
 }
 ?>

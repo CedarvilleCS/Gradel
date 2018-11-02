@@ -45,9 +45,11 @@ class ProblemService
 		return $entityManager->getRepository("AppBundle\Entity\Problem")->findBy($findBy);
 	}
 
-	public function insertProblem($entityManager, $problem) {
+	public function insertProblem($entityManager, $problem, $shouldFlush = true) {
 		$entityManager->persist($problem);
-		$entityManager->flush();
+		if ($shouldFlush) {
+			$entityManager->flush();
+		}
 	}
 }
 ?>

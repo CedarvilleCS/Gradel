@@ -46,9 +46,11 @@ class TeamService
 		return $entityManager->find("AppBundle\Entity\Team", $teamId);
 	}
 
-	public function insertTeam($entityManager, $team) {
+	public function insertTeam($entityManager, $team, $shouldFlush = true) {
 		$entityManager->persist($team);
-		$entityManager->flush();
+		if ($shouldFlush) {
+			$entityManager->flush();
+		}
 	}
 }
 ?>

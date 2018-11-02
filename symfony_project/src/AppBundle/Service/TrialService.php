@@ -44,9 +44,11 @@ class TrialService
 		return $entityManager->find("AppBundle\Entity\Trial", $trialId);
 	}
 
-	public function insertTrial($entityManager, $trial) {
+	public function insertTrial($entityManager, $trial, $shouldFlush = true) {
 		$entityManager->persist($trial);
-		$entityManager->flush();
+		if ($shouldFlush) {
+			$entityManager->flush();
+		}
 	}
 }
 ?>

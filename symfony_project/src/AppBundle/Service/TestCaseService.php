@@ -17,9 +17,11 @@ class TestCaseService
         $this->container = $container;
 	}
 
-	public function insertTestCase($entityManager, $testCase) {
+	public function insertTestCase($entityManager, $testCase, $shouldFlush = true) {
 		$entityManager->persist($testCase);
-		$entityManager->flush();
+		if ($shouldFlush) {
+			$entityManager->flush();
+		}
 	}
 }
 ?>

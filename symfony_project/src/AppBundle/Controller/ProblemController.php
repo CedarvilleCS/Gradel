@@ -208,7 +208,8 @@ class ProblemController extends Controller {
 		if ($problemId == 0) {
 			$problem = $this->problemService->createEmptyProblem();
 			$problem->assignment = $assignment;
-			$this->problemService->insertProblem($entityManager, $problem);
+			$this->problemService->insertProblem($entityManager, $problem, false);
+			$this->logError("Made it");
 		} else {
 			if (!isset($problemId) || !($problemId > 0)) {
 				return $this->returnForbiddenResponse("PROBLEM ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
