@@ -2,19 +2,19 @@
 
 namespace AppBundle\Service;
 
-use Symfony\Component\DependencyInjection\ContainerInterface;
-
 use AppBundle\Entity\Assignment;
+
+use Doctrine\ORM\EntityManagerInterface;
 
 use \DateTime;
 use \DateInterval;
 
-class AssignmentService 
-{
-    private $container;
+class AssignmentService {
+	private $entityManager;
 
-    public function __construct(ContainerInterface $container) {
-        $this->container = $container;
+	public function __construct(EntityManagerInterface $entityManager) {
+		$this->container = $container;
+		$this->entityManager = $entityManager;
 	}
 
 	public function createEmptyAssignment() {
@@ -22,20 +22,20 @@ class AssignmentService
 		return $assignment;
 	}
 
-	public function deleteAssignment($entityManager, $assignment) {
-		$entityManager->remove($assignment);
-		$entityManager->flush();
+	public function deleteAssignment($assignment) {
+		$this->entityManager->remove($assignment);
+		$this->entityManager->flush();
 	}
 	
-	public function getAssignmentById($entityManager, $assignmentId) {
-		return $entityManager->find("AppBundle\Entity\Assignment", $assignmentId);
+	public function getAssignmentById($assignmentId) {
+		return $this->entityManager->find("AppBundle\Entity\Assignment", $assignmentId);
 	}
 	
-    public function getAssignmentsSortedByDueDateForHome($entityManager, $sections) {
+    public function getAssignmentsSortedByDueDateForHome($sections) {
 		$twoWeeksDate = new DateTime();
 		$twoWeeksDate = $twoWeeksDate->add(new DateInterval("P2W"));
 		
-		$builder = $entityManager->createQueryBuilder();
+		$builder = $this->entityManager->createQueryBuilder();
 		$builder->select("a")
 		->from("AppBundle\Entity\Assignment", "a")
 		->where("a.section IN (?1)")
@@ -50,8 +50,8 @@ class AssignmentService
 		return $assignmentQuery->getResult();
 	}
 	
-	public function getAssignmentsBySection($entityManager, $section) {
-		$builder = $entityManager->createQueryBuilder();
+	public function getAssignmentsBySection($section) {
+		$builder = $this->entityManager->createQueryBuilder();
 		$builder->select("a")
 		->from("AppBundle\Entity\Assignment", "a")
 		->where("a.section = (?1)")
@@ -61,10 +61,10 @@ class AssignmentService
 		return $assignmentQuery->getResult();
 	}
 
-	public function insertAssignment($entityManager, $assignment, $shouldFlush = true) {
-		$entityManager->persist($assignment);
+	public function insertAssignment($assignment, $shouldFlush = true) {
+		$this->entityManager->persist($assignment);
 		if ($shouldFlush) {
-			$entityManager->flush();
+			$this->entityManager->flush();
 		}
 	}
 }

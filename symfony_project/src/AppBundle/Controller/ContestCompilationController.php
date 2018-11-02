@@ -19,13 +19,13 @@ use AppBundle\Entity\Testcase;
 use AppBundle\Entity\User;
 use AppBundle\Entity\UserSectionRole;
 
+use AppBundle\Service\GraderService;
 use AppBundle\Service\SubmissionService;
 use AppBundle\Service\UserService;
 
 use Symfony\Component\Config\Definition\Exception\Exception;
 
 use AppBundle\Utils\Generator;
-use AppBundle\Utils\Grader;
 use AppBundle\Utils\SocketPusher;
 use AppBundle\Utils\Uploader;
 use AppBundle\Utils\Zipper;
@@ -39,13 +39,16 @@ use Symfony\Component\HttpFoundation\Response;
 use Psr\Log\LoggerInterface;
 
 class ContestCompilationController extends Controller {
+    private $graderService;
     private $logger;
     private $submissionService;
     private $userService;
 
-    public function __construct(LoggerInterface $logger,
+    public function __construct(GraderService $graderService,
+                                LoggerInterface $logger,
                                 SubmissionService $submissionService,
                                 UserService $userService) {
+        $this->graderService = $graderService;
         $this->logger = $logger;
         $this->submissionService = $submissionService;
         $this->userService = $userService;
@@ -53,10 +56,9 @@ class ContestCompilationController extends Controller {
 
 	public function contestSubmitAction(Request $request, $trialId = 0) {
         $entityManager = $this->getDoctrine()->getManager();
-        $grader = new Grader($entityManager);
         
         /* Get the current user */
-		$user = $this->userService->getCurrentUser($entityManager);	
+		$user = $this->userService->getCurrentUser();
 		if (!get_class($user)) {
 			return $this->returnForbiddenResponse("USER DOES NOT EXIST");
         }
@@ -74,15 +76,15 @@ class ContestCompilationController extends Controller {
             return $response;
         }
 
-        $submission = $entityManager->find("AppBundle\Entity\Submission", $submissionId);
+        $submission = $this->submissionService->getSubmissionById($submissionId);
 
         if (!$submission->problem->assignment->post_contest && 
             !$submission->problem->assignment->pre_contest && 
-            $grader->getTeam($user, $submission->problem->assignment) && 
+            $this->graderService->getTeam($user, $submission->problem->assignment) && 
             !$submission->isCorrect() && !$submission->isError()) {
             $submission->pending_status = 0;
 
-            $this->submissionService->insertSubmission($entityManager, $submission);
+            $this->submissionService->insertSubmission($submission);
         } 
 
         $contest = $submission->problem->assignment;
@@ -91,7 +93,7 @@ class ContestCompilationController extends Controller {
         $pusher = new SocketPusher($this->container->get('gos_web_socket.wamp.pusher'), $entityManager, $contest);
         if ($submission->pending_status != 0) {   
             /* UPDATE LEADERBOARD */
-            $contest->updateLeaderboard($grader, $entityManager);
+            $contest->updateLeaderboard($this->graderService, $entityManager);
             $pusher->sendGradedSubmission($submission);     
             $pusher->sendScoreboardUpdates();
         } else {

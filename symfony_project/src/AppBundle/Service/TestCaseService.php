@@ -2,25 +2,23 @@
 
 namespace AppBundle\Service;
 
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use Doctrine\ORM\EntityManagerInterface;
 
 use AppBundle\Entity\Testcase;
 
 use \DateTime;
 use \DateInterval;
 
-class TestCaseService
-{
-    private $container;
+class TestCaseService {
 
-    public function __construct(ContainerInterface $container) {
-        $this->container = $container;
+    public function __construct(EntityManagerInterface $entityManager) {
+        $this->entityManager = $entityManager;
 	}
 
-	public function insertTestCase($entityManager, $testCase, $shouldFlush = true) {
-		$entityManager->persist($testCase);
+	public function insertTestCase($testCase, $shouldFlush = true) {
+		$this->entityManager->persist($testCase);
 		if ($shouldFlush) {
-			$entityManager->flush();
+			$this->entityManager->flush();
 		}
 	}
 }

@@ -5,13 +5,15 @@ namespace AppBundle\Controller;
 use \DateTime;
 use \DateInterval;
 
-use AppBundle\Entity\User;
+use AppBundle\Entity\Assignment;
 use AppBundle\Entity\Course;
-use AppBundle\Entity\UserSectionRole;
 use AppBundle\Entity\Role;
 use AppBundle\Entity\Section;
-use AppBundle\Entity\Assignment;
 use AppBundle\Entity\Submission;
+use AppBundle\Entity\User;
+use AppBundle\Entity\UserSectionRole;
+
+use AppBundle\Service\GraderService;
 
 use AppBundle\Utils\Grader;
 
@@ -31,9 +33,12 @@ use Psr\Log\LoggerInterface;
 
 class SectionController extends Controller {
 	private $logger;
+	private $grader;
 
-	public function __construct(LoggerInterface $logger) {
+	public function __construct(LoggerInterface $logger,
+	                            GraderService $grader) {
 		$this->logger = $logger;
+		$this->grader = $grader;
 	}
 
     public function sectionAction($sectionId) {
@@ -124,9 +129,9 @@ class SectionController extends Controller {
 			}
 		}
 
-		$grader = new Grader($em);
+		// $grader = new Grader($em);
 
-		if($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isTeaching($user, $section) || $grader->isJudging($user, $section)){
+		if($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $this->grader->isTeaching($user, $section) || $this->grader->isJudging($user, $section)){
 			
 			$submissions = [];
 
@@ -142,11 +147,11 @@ class SectionController extends Controller {
 			
 			$correct_sub_ids = [];
 			
-			$grades[$section_taker->id] = $grader->getAllAssignmentGrades($section_taker, $section);
+			$grades[$section_taker->id] = $this->grader->getAllAssignmentGrades($section_taker, $section);
 			
 			foreach ($assignments as $assig){
 				$probs = $assig->problems;
-				$team = $grader->getTeam($section_taker, $assig);
+				$team = $this->grader->getTeam($section_taker, $assig);
 				
 				foreach($probs as $prob){
 					
@@ -231,7 +236,7 @@ class SectionController extends Controller {
 			
 			'grader' => new Grader($em),
 			'user' => $user,
-			'team' => $team,
+			// 'team' => $team,
 
 			'grades' => $grades,
 
@@ -406,7 +411,7 @@ class SectionController extends Controller {
 			}
 		}
 		
-		$grader = new Grader($em);
+		// $grader = new Grader($em);
 		# create new section
 		if($postData['section'] == 0){
 			
@@ -428,7 +433,7 @@ class SectionController extends Controller {
 			}
 			
 			# only super users and admins can make/edit a section
-			if(! ($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isTeaching($user, $section)) ){
+			if(! ($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $this->grader->isTeaching($user, $section)) ){
 				return $this->returnForbiddenResponse("You do not have permission to edit this section.");
 			}			
 			
@@ -580,7 +585,7 @@ class SectionController extends Controller {
 			}
 			
 			$this->logError("Made it first");
-			if ($grader->isTaking($teach_user, $section)) {
+			if ($this->grader->isTaking($teach_user, $section)) {
 				return $this->returnForbiddenResponse($student . " is already teaching this course!");
 			}
 			$this->logError("Made it second");
@@ -640,7 +645,7 @@ class SectionController extends Controller {
 
 
 		$em = $this->getDoctrine()->getManager();
-		$grader = new Grader($em);
+		// $grader = new Grader($em);
 
 		# validate the current user
 		$user = $this->get('security.token_storage')->getToken()->getUser();
@@ -665,7 +670,7 @@ class SectionController extends Controller {
 		$searchVals = explode(';', $postData['val']);
 		$section = $em->find('AppBundle\Entity\Section', $postData['id']);
 		
-		if( !($grader->isTeaching($user, $section) || $grader->isTaking($user, $section) || $grader->isHelping($user, $section) || $elevatedUser) ){
+		if( !($this->grader->isTeaching($user, $section) || $this->grader->isTaking($user, $section) || $this->grader->isHelping($user, $section) || $elevatedUser) ){
 			return $this->returnForbiddenResponse("You are not allowed to search the submissions of this section");			
 		}
 

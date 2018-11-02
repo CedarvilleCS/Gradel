@@ -1,6 +1,6 @@
 <?php
 
-namespace AppBundle\Utils;
+namespace AppBundle\Service;
 
 use AppBundle\Entity\Role;
 use AppBundle\Entity\User;
@@ -27,23 +27,17 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
 use Psr\Log\LoggerInterface;
+use Doctrine\ORM\EntityManagerInterface;
 
-class Grader  {
+class GraderService extends Controller {
+	public $entityManager;
 	
-	public $em;
-	
-	public function __construct($em) {
-		
-		if(stripos(get_class($em), "EntityManager") === FALSE){
-			throw new Exception('The Grader class must be given a EntityManager but was given '.get_class($em));
-		}
-		
-		$this->em = $em;
+	public function __construct(EntityManagerInterface $entityManager) {
+		$this->entityManager = $entityManager;
 	}
 	
-	private function isRole($user, $section, $role){
-
-		// $qb = $this->em->createQueryBuilder();
+	private function isRole($user, $section, $role) {
+		// $qb = $this->entityManager->createQueryBuilder();
 		// $qb->select('usr')
 		// 	->from('AppBundle\Entity\UserSectionRole', 'usr')
 		// 	->where('usr.role = ?1')
@@ -61,28 +55,27 @@ class Grader  {
 	}	
 	
 	public function isTeaching($user, $section){
-		
-		$role = $this->em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Teaches'));		
+		$role = $this->entityManager->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Teaches'));		
 		
 		return $this->isRole($user, $section, $role);
 	}
 	
 	public function isTaking($user, $section){
-		$role = $this->em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));		
+		$role = $this->entityManager->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));		
 		
 		return $this->isRole($user, $section, $role);		
 	}
 		
 	public function isHelping($user, $section){
 		
-		$role = $this->em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Helps'));		
+		$role = $this->entityManager->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Helps'));		
 		
 		return $this->isRole($user, $section, $role);	
 	}
 	
 	public function isJudging($user, $section){
 		
-		$role = $this->em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Judges'));		
+		$role = $this->entityManager->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Judges'));		
 		
 		return $this->isRole($user, $section, $role);		
 	}
@@ -95,7 +88,7 @@ class Grader  {
 	public function getTeam($user, $assignment){
 		
 		# get all of the teams
-		$qb_teams = $this->em->createQueryBuilder();
+		$qb_teams = $this->entityManager->createQueryBuilder();
 		$qb_teams->select('t')
 				->from('AppBundle\Entity\Team', 't')
 				->where('t.assignment = ?1')
@@ -123,7 +116,7 @@ class Grader  {
 		$team = $this->getTeam($user, $problem->assignment);		
 		
 		# array of all submissions
-		$qb_subs = $this->em->createQueryBuilder();
+		$qb_subs = $this->entityManager->createQueryBuilder();
 		$qb_subs->select('s')
 			->from('AppBundle\Entity\Submission', 's')
 			->where('s.problem = ?1')
@@ -141,7 +134,7 @@ class Grader  {
 	public function getProbTotalAttempts($problem){	
 		
 		# array of all submissions
-		$qb_subs = $this->em->createQueryBuilder();
+		$qb_subs = $this->entityManager->createQueryBuilder();
 		$qb_subs->select('s')
 			->from('AppBundle\Entity\Submission', 's')
 			->where('s.problem = ?1')
@@ -160,7 +153,7 @@ class Grader  {
 		$team = $this->getTeam($user, $problem->assignment);		
 		
 		# accepted submission
-		$qb_accepted_sub = $this->em->createQueryBuilder();
+		$qb_accepted_sub = $this->entityManager->createQueryBuilder();
 		$qb_accepted_sub->select('s')
 			->from('AppBundle\Entity\Submission', 's')
 			->where('s.problem = ?1')
@@ -177,7 +170,7 @@ class Grader  {
 		}
 		
 		# array of all submissions
-		$qb_subs = $this->em->createQueryBuilder();
+		$qb_subs = $this->entityManager->createQueryBuilder();
 		$qb_subs->select('s')
 			->from('AppBundle\Entity\Submission', 's')
 			->where('s.problem = ?1')
@@ -211,7 +204,7 @@ class Grader  {
 		$team = $this->getTeam($user, $problem->assignment);
 		
 		# accepted submission
-		$qb_accepted_sub = $this->em->createQueryBuilder();
+		$qb_accepted_sub = $this->entityManager->createQueryBuilder();
 		$qb_accepted_sub->select('s')
 			->from('AppBundle\Entity\Submission', 's')
 			->where('s.problem = ?1')
@@ -442,7 +435,7 @@ class Grader  {
 	
 	public function getAllSectionGrades($user){
 			
-		$qb_usr = $this->em->createQueryBuilder();
+		$qb_usr = $this->entityManager->createQueryBuilder();
 		$qb_usr->select('usr')
 			->from('AppBundle\Entity\UserSectionRole', 'usr')
 			->where('usr.user = ?1')
@@ -674,7 +667,7 @@ class Grader  {
 		}
 		
 		// get submissions
-		$qb_subs = $this->em->createQueryBuilder();
+		$qb_subs = $this->entityManager->createQueryBuilder();
 		$qb_subs->select('s')
 			->from('AppBundle\Entity\Submission', 's')
 			->where('s.problem = ?1')

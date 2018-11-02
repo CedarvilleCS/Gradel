@@ -2,27 +2,26 @@
 
 namespace AppBundle\Service;
 
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use Doctrine\ORM\EntityManagerInterface;
 
 use \DateTime;
 use \DateInterval;
 
-class TeamService
-{
-    private $container;
+class TeamService {
+    private $entityManager;
 
-    public function __construct(ContainerInterface $container) {
-        $this->container = $container;
+    public function __construct(EntityManagerInterface $entityManager) {
+        $this->entityManager = $entityManager;
 	}
 
-	public function deleteTeam($entityManager, $team) {
-		$entityManager->remove($team);
-		$entityManager->flush();
+	public function deleteTeam($team) {
+		$this->entityManager->remove($team);
+		$this->entityManager->flush();
 	}
 
-	public function getTeam($entityManager, $user, $assignment) {
+	public function getTeam($user, $assignment) {
 		# get all of the teams
-		$builder = $entityManager->createQueryBuilder();
+		$builder = $this->entityManager->createQueryBuilder();
 		$builder->select('t')
 		->from('AppBundle\Entity\Team', 't')
 		->where('t.assignment = ?1')
@@ -42,14 +41,14 @@ class TeamService
 		return null;
 	}
 	
-	public function getTeamById($entityManager, $teamId) {
-		return $entityManager->find("AppBundle\Entity\Team", $teamId);
+	public function getTeamById($teamId) {
+		return $this->entityManager->find("AppBundle\Entity\Team", $teamId);
 	}
 
-	public function insertTeam($entityManager, $team, $shouldFlush = true) {
-		$entityManager->persist($team);
+	public function insertTeam($team, $shouldFlush = true) {
+		$this->entityManager->persist($team);
 		if ($shouldFlush) {
-			$entityManager->flush();
+			$this->entityManager->flush();
 		}
 	}
 }

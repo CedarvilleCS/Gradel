@@ -10,6 +10,7 @@ use AppBundle\Entity\User;
 use AppBundle\Entity\UserSectionRole;
 
 use AppBundle\Service\AssignmentService;
+use AppBundle\Service\GraderService;
 use AppBundle\Service\SectionService;
 use AppBundle\Service\UserSectionRoleService;
 use AppBundle\Service\UserService;
@@ -31,26 +32,27 @@ use Symfony\Component\HttpFoundation\Response;
 
 class HomeController extends Controller {
 	private $assignmentService;
+	private $graderService;
 	private $logger;
 	private $sectionService;
 	private $userSectionRoleService;
 	private $userService;
 
 	public function __construct(AssignmentService $assignmentService,
+								GraderService $graderService,
 								LoggerInterface $logger,
 								SectionService $sectionService,
 								UserSectionRoleService $userSectionRoleService,
 								UserService $userService) {
 		$this->assignmentService = $assignmentService;
+		$this->graderService = $graderService;
 		$this->logger = $logger;
 		$this->sectionService = $sectionService;
 		$this->userSectionRoleService = $userSectionRoleService;
 		$this->userService = $userService;
 	}
 	
-    public function homeAction() {		
-		$entityManager = $this->getDoctrine()->getManager();
-	  
+    public function homeAction() {
 		$user = $this->userService->getCurrentUser();
 	  	if (!get_class($user)) {
 			return $this->returnForbiddenResponse("USER DOES NOT EXIST");
@@ -58,10 +60,10 @@ class HomeController extends Controller {
 		
 		/* get all of the non-deleted sections
 		   they must start in at least 30 days and have ended at most 14 days ago to show up*/
-		$sectionsActive = $this->sectionService->getNonDeletedSectionsForHome($entityManager);
+		$sectionsActive = $this->sectionService->getNonDeletedSectionsForHome();
 	  
 		/* get the user section role entities using the user entity and active sections */
-		$userSectionRoles = $this->userSectionRoleService->getUserSectionRolesForHome($entityManager, $user, $sectionsActive);
+		$userSectionRoles = $this->userSectionRoleService->getUserSectionRolesForHome($user, $sectionsActive);
 		
 		$sections = [];
 		$sectionsTaking = [];
@@ -77,11 +79,10 @@ class HomeController extends Controller {
 			}
 		}
 		
-		$assignments = $this->assignmentService->getAssignmentsSortedByDueDateForHome($entityManager, $sections);
-		$usersToImpersonate = $this->userService->getUsersToImpersonate($entityManager, $user);
+		$assignments = $this->assignmentService->getAssignmentsSortedByDueDateForHome($sections);
+		$usersToImpersonate = $this->userService->getUsersToImpersonate($user);
 		
-		$grader = new Grader($entityManager);		
-		$grades = $grader->getAllSectionGrades($user);
+		$grades = $this->graderService->getAllSectionGrades($user);
 		
 		return $this->render("home/index.html.twig", [
 			"user" => $user,

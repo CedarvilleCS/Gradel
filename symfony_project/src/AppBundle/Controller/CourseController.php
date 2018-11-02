@@ -12,8 +12,6 @@ use AppBundle\Entity\Section;
 use AppBundle\Service\CourseService;
 use AppBundle\Service\UserService;
 
-use AppBundle\Utils\Grader;
-
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -35,9 +33,7 @@ class CourseController extends Controller {
 	}
 
     public function coursesAction() {
-		$entityManager = $this->getDoctrine()->getManager();
-
-		$user = $this->userService->getCurrentUser($entityManager);
+		$user = $this->userService->getCurrentUser();
 
 		if (!get_class($user)) {
 			return $this->returnForbiddenResponse("USER DOES NOT EXIST");
@@ -47,7 +43,7 @@ class CourseController extends Controller {
 			return $this->returnForbiddenResponse("YOU DO NOT HAVE PERMISSION TO SEE THIS PAGE");
 		}
 
-		$courses = $this->courseService->getAll($entityManager);
+		$courses = $this->courseService->getAll();
 		
 		usort($courses, array("AppBundle\Entity\Course", "cmp"));
 
@@ -69,9 +65,7 @@ class CourseController extends Controller {
     }
 
     public function editCourseAction($courseId) {
-		$entityManager = $this->getDoctrine()->getManager();
-		
-		$user = $this->userService->getCurrentUser($entityManager);
+		$user = $this->userService->getCurrentUser();
 		if (!get_class($user)) {
 			return $this->returnForbiddenResponse("USER DOES NOT EXIST");
 		}
@@ -82,10 +76,10 @@ class CourseController extends Controller {
 		
 		$editedCourse = [];
 		if (isset($courseId) && $courseId > 0) {
-			$editedCourse = $this->courseService->getCourseById($entityManager, $courseId);
+			$editedCourse = $this->courseService->getCourseById($courseId);
 		}
 		
-		$courses = $this->courseService->getAll($entityManager);
+		$courses = $this->courseService->getAll();
 
 		$deletedCourses = [];
 		$openCourses = [];
@@ -105,10 +99,8 @@ class CourseController extends Controller {
 		]);
     }
 	
-	public function deleteCourseAction($courseId){
-		$entityManager = $this->getDoctrine()->getManager();
-		
-		$user = $this->userService->getCurrentUser($entityManager);
+	public function deleteCourseAction($courseId) {
+		$user = $this->userService->getCurrentUser();
 		if (!get_class($user)) {
 			return $this->returnForbiddenResponse("USER DOES NOT EXIST");
 		}
@@ -122,7 +114,7 @@ class CourseController extends Controller {
 			return $this->returnForbiddenResponse("COURSE ID WAS NOT PROVIDED PROPERLY");
 		}
 		
-		$course = $this->courseService->getCourseById($entityManager, $courseId);
+		$course = $this->courseService->getCourseById($courseId);
 		
 		if (!$course) {
 			return $this->returnForbiddenResponse("COURSE ".$courseId." DOES NOT EXIST");
@@ -136,15 +128,11 @@ class CourseController extends Controller {
 			}
 		}
 		
-		$entityManager->flush();
-		
 		return $this->redirectToRoute("courses");
 	}
 	
-	public function modifyPostAction(Request $request){
-		$entityManager = $this->getDoctrine()->getManager();
-		
-		$user = $this->userService->getCurrentUser($entityManager);
+	public function modifyPostAction(Request $request) {
+		$user = $this->userService->getCurrentUser();
 		if (!get_class($user)) {
 			return $this->returnForbiddenResponse("USER DOES NOT EXIST");
 		}
@@ -168,14 +156,14 @@ class CourseController extends Controller {
 		/* Create new assignment */
 		if ($courseId == 0) {
 			$course = $this->courseService->createEmptyCourse();
-			$this->courseService->insertCourse($entityManager, $course);
+			$this->courseService->insertCourse($course);
 		} else {
 			if (!isset($courseId) ||
 			    !($courseId > 0)) {
 				return $this->returnForbiddenResponse("COURSE ID ".$courseId." WAS NOT PROVIDED OR FORMATTED CORRECTLY");
 			}
 			
-			$course = $this->courseService->getCourseById($entityManager, $courseId);
+			$course = $this->courseService->getCourseById($courseId);
 			
 			if (!$course) {
 				return $this->returnForbiddenResponse("COURSE ".$courseId." DOES NOT EXIST");
@@ -198,7 +186,7 @@ class CourseController extends Controller {
 		$course->is_deleted = false;
 		$course->is_public = false;
 		
-		$this->courseService->insertCourse($entityManager, $course);
+		$this->courseService->insertCourse($course);
 		
 		/* Redirect to the section page */
 		$url = $this->generateUrl("courses");

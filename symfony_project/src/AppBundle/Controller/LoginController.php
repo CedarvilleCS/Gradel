@@ -27,10 +27,10 @@ class LoginController extends Controller
     public function indexAction(Request $request) {
 		$user = $this->userService->getCurrentUser();
 		if (get_class($user)) {
-			return $this->redirectToRoute('homepage');
+			return $this->redirectToRoute("homepage");
 		}
 
-		return $this->render('login/index.html.twig');
+		return $this->render("login/index.html.twig");
     }
 }
 

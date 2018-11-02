@@ -2,34 +2,34 @@
 
 namespace AppBundle\Service;
 
-use Symfony\Component\DependencyInjection\ContainerInterface;
-
 use AppBundle\Entity\Course;
 
-class CourseService 
-{
-    private $container;
+use Doctrine\ORM\EntityManagerInterface;
 
-    public function __construct(ContainerInterface $container) {
+class CourseService {
+    private $entityManager;
+
+    public function __construct(EntityManagerInterface $entityManager) {
         $this->container = $container;
+        $this->entityManager = $entityManager;
     }
 
     public function createEmptyCourse() {
         return new Course();
     }
 
-    public function getCourseById($entityManager, $courseId) {
-        return $entityManager->find('AppBundle\Entity\Course', $courseId);
+    public function getCourseById($courseId) {
+        return $this->entityManager->find('AppBundle\Entity\Course', $courseId);
     }
 
-    public function getAll($entityManager) {
-        return $entityManager->getRepository("AppBundle\Entity\Course")->findAll();
+    public function getAll() {
+        return $this->entityManager->getRepository("AppBundle\Entity\Course")->findAll();
     }
 
-    public function insertCourse($entityManager, $course, $shouldFlush = true) {
-        $entityManager->persist($course);
+    public function insertCourse($course, $shouldFlush = true) {
+        $this->entityManager->persist($course);
         if ($shouldFlush) {
-            $entityManager->flush();
+            $this->entityManager->flush();
         }
     }
 }

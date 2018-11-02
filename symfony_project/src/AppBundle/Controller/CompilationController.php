@@ -23,15 +23,16 @@ use AppBundle\Entity\UserSectionRole;
 use Symfony\Component\Config\Definition\Exception\Exception;
 
 use AppBundle\Service\AssignmentService;
+use AppBundle\Service\GraderService;
 use AppBundle\Service\LanguageService;
 use AppBundle\Service\ProblemLanguageService;
 use AppBundle\Service\ProblemService;
 use AppBundle\Service\SubmissionService;
+use AppBundle\Service\TestCaseService;
 use AppBundle\Service\TrialService;
 use AppBundle\Service\UserService;
 
 use AppBundle\Utils\Generator;
-use AppBundle\Utils\Grader;
 use AppBundle\Utils\SocketPusher;
 use AppBundle\Utils\Uploader;
 use AppBundle\Utils\Zipper;
@@ -47,47 +48,51 @@ use Symfony\Component\HttpFoundation\Response;
 use Psr\Log\LoggerInterface;
 
 class CompilationController extends Controller {	
-	private $logger;
 	private $assignmentService;
+	private $graderService;
 	private $languageService;
+	private $logger;
 	private $problemLanguageService;
 	private $problemService;
 	private $submissionService;
+	private $testCaseService;
 	private $trialService;
 	private $userService;
 
-	public function __construct(LoggerInterface $logger,
-								AssignmentService $assignmentService,			
+	public function __construct(AssignmentService $assignmentService,			
+								GraderService $graderService,			
 								LanguageService $languageService,
+								LoggerInterface $logger,
 								ProblemService $problemLanguageService,
 								ProblemService $problemService,
 	                            SubmissionService $submissionService,
+	                            TestCaseService $testCaseService,
 	                            TrialService $trialService,
 	                            UserService $userService) {
-		$this->logger = $logger;
 		$this->assignmentService = $assignmentService;
+		$this->graderService = $graderService;
 		$this->languageService = $languageService;
+		$this->logger = $logger;
 		$this->problemLanguageService = $problemLanguageService;
 		$this->problemService = $problemService;
 		$this->submissionService = $submissionService;
+		$this->testCaseService = $testCaseService;
 		$this->trialService = $trialService;
 		$this->userService = $userService;
 	}
 	
 	/* submit */
 	public function submitAction(Request $request, $trialId = 0, $forwarded = "") {
-		/* entity manager */
 		$entityManager = $this->getDoctrine()->getManager();
-		
+
 		/* gets the gradel/symfony_project directory */
 		$webDirectory = $this->get("kernel")->getProjectDir()."/";
 
-		$generator = new Generator($entityManager, $webDirectory);		
-		$grader = new Grader($entityManager);
+		$generator = new Generator($entityManager, $webDirectory);
 		$uploader = new Uploader($webDirectory);
 						
 		/* get the current user */
-		$user = $this->userService->getCurrentUser($entityManager);
+		$user = $this->userService->getCurrentUser();
 		
 		if (!get_class($user)) {
 			return $this->returnForbiddenResponse("USER DOES NOT EXIST");
@@ -101,7 +106,7 @@ class CompilationController extends Controller {
 		}
 		
 		/* get the current trial */
-		$trial = $this->trialService->getTrialById($entityManager, $trialId);
+		$trial = $this->trialService->getTrialById($trialId);
 		
 		if (!$trial || $trial->user != $user) {
 			return $this->returnForbiddenResponse("TRIAL DOES NOT EXIST");
@@ -114,8 +119,8 @@ class CompilationController extends Controller {
 		}
 	
 		/* validation */
-		$isElevatedUser = $grader->isTeaching($user, $problem->assignment->section) || 
-						$grader->isJudging($user, $problem->assignment->section) || 
+		$isElevatedUser = $this->graderService->isTeaching($user, $problem->assignment->section) || 
+						$this->graderService->isJudging($user, $problem->assignment->section) || 
 						$user->hasRole(Constants::SUPER_ROLE) || 
 						$user->hasRole(Constants::ADMIN_ROLE);
 		
@@ -123,9 +128,9 @@ class CompilationController extends Controller {
 		$team = null;
 		
 		/* if you are taking, we need to get the team and the number of attempts */
-		if ($grader->isTaking($user, $problem->assignment->section)) {
+		if ($this->graderService->isTaking($user, $problem->assignment->section)) {
 			/* get the current team */
-			$team = $grader->getTeam($user, $problem->assignment);		
+			$team = $this->graderService->getTeam($user, $problem->assignment);		
 			if (!($team || $isElevatedUser)) {
 				return $this->returnForbiddenResponse("YOU ARE NOT ON A TEAM OR TEACHING FOR THIS ASSIGNMENT");
 			}
@@ -140,7 +145,7 @@ class CompilationController extends Controller {
 			}
 			
 			/* make sure that you haven"t submitted too many times yet */
-			$currentAttempts = $grader->getNumTotalAttempts($user, $problem);
+			$currentAttempts = $this->graderService->getNumTotalAttempts($user, $problem);
 			if (!$isElevatedUser && $problem->total_attempts > 0 && $currentAttempts >= $problem->total_attempts) {
 				return $this->returnForbiddenResponse("ALREADY REACHED MAX ATTEMPTS FOR PROBLEM AT ".$currentAttempts." ATTEMPTS");
 			}
@@ -170,7 +175,7 @@ class CompilationController extends Controller {
 		/* INITIALIZE THE SUBMISSION */
 		/* create an entity for the current submission from the trial */
 		$submission = $this->submissionService->createSubmissionFromTrialAndTeamForCompilationSubmit($trial, $team);
-		$this->submissionService->insertSubmission($entityManager, $submission);
+		$this->submissionService->insertSubmission($submission);
 		
 		/* SETTING UP FOLDERS */
 		$subDirectory = $webDirectory."compilation/submissions/".$submission->id."/";
@@ -316,15 +321,15 @@ class CompilationController extends Controller {
 			$teamOrUser = $team;
 		}
 
-		$previousAcceptedSolution = $this->submissionService->getPreviousAcceptedSolutionForCompilationSubmit($entityManager, $teamOrUser, $whereClause, $problem);
+		$previousAcceptedSolution = $this->submissionService->getPreviousAcceptedSolutionForCompilationSubmit($teamOrUser, $whereClause, $problem);
 		
 		/* determine if the new submission is the best one yet */
-		if ($grader->isAcceptedSubmission($submission, $previousAcceptedSolution)) {
+		if ($this->graderService->isAcceptedSubmission($submission, $previousAcceptedSolution)) {
 			$submission->best_submission = true;
 			
 			if ($previousAcceptedSolution) {
 				$previousAcceptedSolution->best_submission = false;
-				$entityManager->persist($previousAcceptedSolution);
+				$this->submissionService->insertSubmission($previousAcceptedSolution);
 			}
 		}
 		
@@ -335,10 +340,10 @@ class CompilationController extends Controller {
 		$submission->is_completed = true;
 		
 		/* update the submission entity */
-		$this->submissionService->insertSubmission($entityManager, $submission);
+		$this->submissionService->insertSubmission($submission);
 	
 		$url = $this->generateUrl("problem_result", [
-			"submission_id" => $submission->id
+			"submissionId" => $submission->id
 		]);
 	
 		$response = new Response(json_encode([		
@@ -358,11 +363,10 @@ class CompilationController extends Controller {
 		$webDirectory = $this->get("kernel")->getProjectDir()."/";
 			
 		$generator = new Generator($entityManager, $webDirectory);	
-		$uploader = new Uploader($webDirectory);		
-		$grader = new Grader($entityManager);
+		$uploader = new Uploader($webDirectory);
 
 		/* get the current user */
-		$user = $this->userService->getCurrentUser($entityManager);
+		$user = $this->userService->getCurrentUser();
 		if (!get_class($user)) {
 			return $this->returnForbiddenResponse("USER DOES NOT EXIST");
 		}
@@ -375,16 +379,16 @@ class CompilationController extends Controller {
 			return $this->returnForbiddenResponse("ASSIGNMENT ID WAS NOT PROVIDED OR FORMATTED CORRECTLY");
 		}
 
-		$assignment = $this->assignmentService->getAssignmentById($entityManager, $assignmentId);
+		$assignment = $this->assignmentService->getAssignmentById($assignmentId);
 		if (!$assignment) {
 			return $this->returnForbiddenResponse("ASSIGNMENT ".$assignmentId." DOES NOT EXIST");
 		}
 		
 		$isElevatedUser = $user->hasRole(Constants::SUPER_ROLE) || 
 						$user->hasRole(Constants::ADMIN_ROLE) || 
-						$grader->isJudging($user, $assignment->section) || 
-						$grader->isTeaching($user, $assignment->section);
-		if (!($isElevatedUser || ($grader->isTaking($user, $assignment->section) && $assignment->isActive()))) {
+						$this->graderService->isJudging($user, $assignment->section) || 
+						$this->graderService->isTeaching($user, $assignment->section);
+		if (!($isElevatedUser || ($this->graderService->isTaking($user, $assignment->section) && $assignment->isActive()))) {
 			return $this->returnForbiddenResponse("PERMISSION DENIED");
 		}
 		
@@ -410,14 +414,14 @@ class CompilationController extends Controller {
 		$problem->allow_multiple = true;
 		$problem->allow_upload = true;
 		
-		$this->problemService->insertProblem($entityManager, $problem);
+		$this->problemService->insertProblem($problem);
 		
-		$languages = $this->languageService->getAll($entityManager);
+		$languages = $this->languageService->getAll();
 		
 		/* Instantiate the problem languages */
 		foreach ($languages as $language) {
 			$problemLanguage = $this->problemLanguageService->createProblemLanguage($problem, $language);
-			$entityManager->persist($problemLanguage);
+			$this->problemLanguageService->insertProblemLanguage($problemLanguage);
 		}
 		
 		/* Test cases */
@@ -441,22 +445,21 @@ class CompilationController extends Controller {
 
 				$count++;
 
-				$entityManager->persist($newTestCase);
+				$this->testCaseService->insertTestCase($newTestCase);
 				$problem->testcases[] = $newTestCase;	
 			} catch (Exception $e) {
 				return $this->returnForbiddenResponse($e->getMessage());
 			}
 		}
 
-		$entityManager->persist($problem);		
-		$entityManager->flush();
+		$this->problemService->insertProblem($problem);
 							
 		/* INITIALIZE A SUBMISSION */
 		/* Create an entity for the current submission */
 		$submission = $this->submissionService->createSubmissionFromProblemTeamAndUser($problem, null, null);
 
 		/* Persist to the database to get the id */
-		$this->submissionService->insertSubmission($entityManager, $submission);
+		$this->submissionService->insertSubmission($submission);
 		
 		/* SETTING UP FOLDERS */
 		$subDirectory = $webDirectory."compilation/submissions/".$submission->id."/";
@@ -581,7 +584,7 @@ class CompilationController extends Controller {
 			return $this->returnForbiddenResponse("PROBLEM ID WAS NOT PROVIDED PROPERLY");
 		}
 		
-		$language = $this->languageService->getLanguageById($entityManager, $languageId);
+		$language = $this->languageService->getLanguageById($languageId);
 		if (!$language) {
 			$this->cleanUp($submission, $problem, $subDirectory, $uploadsDirectory);
 			return $this->returnForbiddenResponse("LANGUAGE ".$languageId." DOES NOT EXIST");
@@ -659,19 +662,16 @@ class CompilationController extends Controller {
 	}
 	
 	/* Function to remove the submission and problem on failure */
-	private function cleanUp($submission, $problem, $subDirectory, $uploadsDirectory){
-		/* Entity manager */
-		$entityManager = $this->getDoctrine()->getManager();	
-		
-		if(isset($submission)){
-			$this->submissionService->deleteSubmission($entityManager, $submission);
+	private function cleanUp($submission, $problem, $subDirectory, $uploadsDirectory) {
+		if (isset($submission)) {
+			$this->submissionService->deleteSubmission($submission);
 		}
 		
-		if(isset($problem)){
-			$this->problemService->deleteProblem($entityManager, $problem);
+		if (isset($problem)) {
+			$this->problemService->deleteProblem($problem);
 		}
 		
-		if(isset($uploadsDirectory)){
+		if (isset($uploadsDirectory)) {
 			shell_exec("rm -rf ".$uploadsDirectory);			
 		}
 	}

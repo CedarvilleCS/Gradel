@@ -10,7 +10,6 @@ use AppBundle\Entity\Assignment;
 use AppBundle\Entity\Team;
 use AppBundle\Entity\Trial;
 
-use AppBundle\Utils\Grader;
 use AppBundle\Utils\Uploader;
 
 use Doctrine\Common\Collections\ArrayCollection;
@@ -32,7 +31,6 @@ use Psr\Log\LoggerInterface;
 class UsersController extends Controller {
 
 	public function usersAction() {
-
 		$em = $this->getDoctrine()->getManager();
 		$usr = $em->getRepository("AppBundle\Entity\User")->findAll();
 		$roles = $em->getRepository("AppBundle\Entity\Role")->findAll();

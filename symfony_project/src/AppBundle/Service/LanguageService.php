@@ -2,24 +2,22 @@
 
 namespace AppBundle\Service;
 
-use Symfony\Component\DependencyInjection\ContainerInterface;
-
 use AppBundle\Entity\Language;
+use Doctrine\ORM\EntityManagerInterface;
 
-class LanguageService 
-{
-    private $container;
+class LanguageService {
+    private $entityManager;
 
-    public function __construct(ContainerInterface $container) {
-        $this->container = $container;
+    public function __construct(EntityManagerInterface $entityManager) {
+        $this->entityManager = $entityManager;
     }
     
-    public function getLanguageById($entityManager, $languageId) {
-        return $entityManager->find("AppBundle\Entity\Language", $languageId);
+    public function getLanguageById($languageId) {
+        return $this->entityManager->find("AppBundle\Entity\Language", $languageId);
     }
 
-    public function getAll($entityManager) {
-        return $entityManager->getRepository("AppBundle\Entity\Language")->findAll();
+    public function getAll() {
+        return $this->entityManager->getRepository("AppBundle\Entity\Language")->findAll();
     }
 }
 ?>

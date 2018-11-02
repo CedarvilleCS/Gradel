@@ -2,19 +2,18 @@
 
 namespace AppBundle\Service;
 
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use Doctrine\ORM\EntityManagerInterface;
 
 use AppBundle\Entity\Trial;
 
 use \DateTime;
 use \DateInterval;
 
-class TrialService
-{
-    private $container;
+class TrialService {
+    private $entityManager;
 
-    public function __construct(ContainerInterface $container) {
-        $this->container = $container;
+    public function __construct(EntityManagerInterface $entityManager) {
+        $this->entityManager = $entityManager;
 	}
 
 	public function createTrial($user, $problem, $showDescription) {
@@ -27,8 +26,8 @@ class TrialService
 		return $trial;
 	}
 	
-	public function getTrialForAssignment($entityManager, $user, $problem) {
-		$builder = $entityManager->createQueryBuilder();
+	public function getTrialForAssignment($user, $problem) {
+		$builder = $this->entityManager->createQueryBuilder();
 		$builder->select("t")
 				->from("AppBundle\Entity\Trial", "t")
 				->where("t.user = ?1")
@@ -40,14 +39,14 @@ class TrialService
 		return $trialQuery->getOneorNullResult();
 	}
 
-	public function getTrialById($entityManager, $trialId) {
-		return $entityManager->find("AppBundle\Entity\Trial", $trialId);
+	public function getTrialById($trialId) {
+		return $this->entityManager->find("AppBundle\Entity\Trial", $trialId);
 	}
 
-	public function insertTrial($entityManager, $trial, $shouldFlush = true) {
-		$entityManager->persist($trial);
+	public function insertTrial($trial, $shouldFlush = true) {
+		$this->entityManager->persist($trial);
 		if ($shouldFlush) {
-			$entityManager->flush();
+			$this->entityManager->flush();
 		}
 	}
 }

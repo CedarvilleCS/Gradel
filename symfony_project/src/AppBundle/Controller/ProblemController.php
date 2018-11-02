@@ -15,6 +15,7 @@ use AppBundle\Entity\UserSectionRole;
 use AppBundle\Entity\Testcase;
 
 use AppBundle\Service\AssignmentService;
+use AppBundle\Service\GraderService;
 use AppBundle\Service\LanguageService;
 use AppBundle\Service\ProblemLanguageService;
 use AppBundle\Service\ProblemService;
@@ -37,19 +38,21 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Config\Definition\Exception\Exception;
 
 class ProblemController extends Controller {
-	private $logger;
 	private $assignmentService;
+	private $graderService;
+	private $languageService;
+	private $logger;
 	private $problemLanguageService;
 	private $problemService;
-	private $languageService;
 	private $sectionService;
 	private $submissionService;
 	private $testCaseService;
 	private $userSectionRoleService;
 	private $userService;
 
-	public function __construct(LoggerInterface $logger,
-								AssignmentService $assignmentService,
+	public function __construct(AssignmentService $assignmentService,
+								GraderService $graderService,
+		                        LoggerInterface $logger,
 								LanguageService $languageService,
 								ProblemLanguageService $problemLanguageService,
 								ProblemService $problemService,
@@ -58,34 +61,33 @@ class ProblemController extends Controller {
 								TestCaseService $testCaseService,
 								UserSectionRoleService $userSectionRoleService,
 								UserService $userService) {
-		$this->logger = $logger;
 		$this->assignmentService = $assignmentService;
+		$this->graderService = $graderService;
 		$this->languageService = $languageService;
+		$this->logger = $logger;
 		$this->problemLanguageService = $problemLanguageService;
 		$this->problemService = $problemService;
 		$this->sectionService = $sectionService;
 		$this->submissionService = $submissionService;
 		$this->testCaseService = $testCaseService;
-		$this->userService = $userService;
 		$this->userSectionRoleService = $userSectionRoleService;
+		$this->userService = $userService;
 	}
 
  	public function editAction($sectionId, $assignmentId, $problemId) {
-		$entityManager = $this->getDoctrine()->getManager();
-
 		/* Validate the user */
-		$user = $this->userService->getCurrentUser($entityManager);
+		$user = $this->userService->getCurrentUser();
 		if (!$user) {
 			return $this->returnForbiddenResponse("USER DOES NOT EXIST");
 		}
 
-		$languages = $this->languageService->getAll($entityManager);
+		$languages = $this->languageService->getAll();
 		
 		if (!isset($sectionId) || !($sectionId > 0)) {
 			return $this->returnForbiddenResponse("SECTION ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
 		}
 		
-		$section = $this->sectionService->getSectionById($entityManager, $sectionId);
+		$section = $this->sectionService->getSectionById($sectionId);
 		if (!$section) {
 			return $this->returnForbiddenResponse("SECTION ".$sectionId." DOES NOT EXIST");
 		}
@@ -103,7 +105,7 @@ class ProblemController extends Controller {
 			return $this->returnForbiddenResponse("ASSIGNMENT ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
 		}
 		
-		$assignment = $this->assignmentService->getAssignmentById($entityManager, $assignmentId);
+		$assignment = $this->assignmentService->getAssignmentById($assignmentId);
 
 		if (!$assignment) {
 			return $this->returnForbiddenResponse("ASSIGNMENT ".$assignmentId." DOES NOT EXIST");
@@ -114,7 +116,7 @@ class ProblemController extends Controller {
 				return $this->returnForbiddenResponse("PROBLEM ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
 			}		
 			
-			$problem = $this->problemService->getProblemById($entityManager, $problemId);
+			$problem = $this->problemService->getProblemById($problemId);
 			
 			if (!$problem) {
 				return $this->returnForbiddenResponse("PROBLEM ".$problemId." DOES NOT EXIST");
@@ -139,7 +141,7 @@ class ProblemController extends Controller {
 		}
 		
 		$recommendedSlaves = [];
-		$recommendedSlaves = $this->problemService->getProblemsByObject($entityManager, ["name" => $problem->name]);
+		$recommendedSlaves = $this->problemService->getProblemsByObject(["name" => $problem->name]);
 
 		return $this->render("problem/edit.html.twig", [
 			"ace_modes" => $aceModes,
@@ -153,12 +155,9 @@ class ProblemController extends Controller {
 		]);
     }
 
-	public function deleteAction($sectionId, $assignmentId, $problemId){
-		$entityManager = $this->getDoctrine()->getManager();
-		$grader = new Grader($entityManager);
-		
+	public function deleteAction($sectionId, $assignmentId, $problemId) {
 		/* Validate the user */
-		$user = $this->userService->getCurrentUser($entityManager);
+		$user = $this->userService->getCurrentUser();
 		if (!$user) {
 			return $this->returnForbiddenResponse("USER DOES NOT EXIST");
 		}
@@ -167,16 +166,16 @@ class ProblemController extends Controller {
 			return $this->returnForbiddenResponse("PROBLEM ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
 		}
 
-		$problem = $this->problemService->getProblemById($entityManager, $problemId);
+		$problem = $this->problemService->getProblemById($problemId);
 		if (!$problem) {
 			return $this->returnForbiddenResponse("PROBLEM ".$problemId." DOES NOT EXIST");
 		}
 
-		if (!$user->hasRole(Constants::SUPER_ROLE) && !$user->hasRole(Constants::ADMIN_ROLE) && !$grader->isTeaching($user, $problem->assignment->section)) {
+		if (!$user->hasRole(Constants::SUPER_ROLE) && !$user->hasRole(Constants::ADMIN_ROLE) && !$this->graderService->isTeaching($user, $problem->assignment->section)) {
 			return $this->returnForbiddenResponse("YOU ARE NOT ALLOWED TO DELETE THIS PROBLEM");
 		}
 
-		$this->problemService->deleteProblem($entityManager, $problem);
+		$this->problemService->deleteProblem($problem);
 		return $this->redirectToRoute("assignment", [
 			"sectionId" => $problem->assignment->section->id, 
 			"assignmentId" => $problem->assignment->id
@@ -184,11 +183,8 @@ class ProblemController extends Controller {
 	}
 
 	public function modifyPostAction(Request $request) {
-		$entityManager = $this->getDoctrine()->getManager();
-		$grader = new Grader($entityManager);
-
 		/* Validate the user */
-		$user = $this->userService->getCurrentUser($entityManager);
+		$user = $this->userService->getCurrentUser();
 		if (!$user) {
 			return $this->returnForbiddenResponse("USER DOES NOT EXIST");
 		}
@@ -201,13 +197,13 @@ class ProblemController extends Controller {
 			return $this->returnForbiddenResponse("ASSIGNMENT ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
 		}
 		
-		$assignment = $this->assignmentService->getAssignmentById($entityManager, $assignmentId);
+		$assignment = $this->assignmentService->getAssignmentById($assignmentId);
 		if (!$assignment) {
 			return $this->returnForbiddenResponse("ASSIGNMENT ".$assignmentId." DOES NOT EXIST");
 		}
 
 		/* Only super users/admins/teacher can make/edit an assignment */
-		if (!$user->hasRole(Constants::SUPER_ROLE) && !$user->hasRole(Constants::ADMIN_ROLE) && !$grader->isTeaching($user, $assignment->section)) {
+		if (!$user->hasRole(Constants::SUPER_ROLE) && !$user->hasRole(Constants::ADMIN_ROLE) && !$this->graderService->isTeaching($user, $assignment->section)) {
 			return $this->returnForbiddenResponse("YOU DO NOT HAVE PERMISSION TO MAKE A PROBLEM");
 		}
 		
@@ -216,14 +212,14 @@ class ProblemController extends Controller {
 		if ($problemId == 0) {
 			$problem = $this->problemService->createEmptyProblem();
 			$problem->assignment = $assignment;
-			$this->problemService->insertProblem($entityManager, $problem, false);
+			$this->problemService->insertProblem($problem, false);
 			$this->logError("Made it");
 		} else {
 			if (!isset($problemId) || !($problemId > 0)) {
 				return $this->returnForbiddenResponse("PROBLEM ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
 			}
 
-			$problem = $this->problemService->getProblemById($entityManager, $problemId);
+			$problem = $this->problemService->getProblemById($problemId);
 
 			if (!$problem || $assignment != $problem->assignment) {
 				return $this->returnForbiddenResponse("PROBLEM ".$problemId." DOES NOT EXIST FOR THE GIVEN ASSIGNMENT");
@@ -387,7 +383,7 @@ class ProblemController extends Controller {
 
 		foreach ($problem->problem_languages as $oldProblemLanguage) {
 			$oldDefaultCode[$oldProblemLanguage->language->id] = $oldProblemLanguage->default_code;
-			$this->problemLanguageService->deleteProblemLanguage($entityManager, $oldProblemLanguage);
+			$this->problemLanguageService->deleteProblemLanguage($oldProblemLanguage);
 		}
 
 		$newProblemLanguages = [];
@@ -397,7 +393,7 @@ class ProblemController extends Controller {
 				return $this->returnForbiddenResponse("YOU DID NOT SPECIFY A LANGUAGE ID");
 			}
 
-			$language = $this->languageService->getLanguageById($entityManager, $decodedLanguage->id);
+			$language = $this->languageService->getLanguageById($decodedLanguage->id);
 			if (!$language) {
 				return $this->returnForbiddenResponse("LANGUAGE ".$decodedLanguage->id." DOES NOT EXIST");
 			}
@@ -437,7 +433,7 @@ class ProblemController extends Controller {
 			}
 
 			$newProblemLanguages[] = $problemLanguage;
-			$this->problemLanguageService->insertProblemLanguage($entityManager, $problemLanguage);
+			$this->problemLanguageService->insertProblemLanguage($problemLanguage);
 		}
 
 		/* Testcases */
@@ -445,7 +441,7 @@ class ProblemController extends Controller {
 		/* (so they don"t go away and can be accessed in the results page) */
 		foreach ($problem->testcases as &$testCase) {
 			$testCase->problem = null;
-			$this->testCaseService->insertTestCase($entityManager, $testCase);
+			$this->testCaseService->insertTestCase($testCase);
 		}
 		
 		$newTestCases = new ArrayCollection();
@@ -458,7 +454,7 @@ class ProblemController extends Controller {
 			/* Build the testcase */
 			try {
 				$testCase = new Testcase($problem, $decodedTestCase, $count);
-				$this->testCaseService->insertTestCase($entityManager, $testCase);
+				$this->testCaseService->insertTestCase($testCase);
 				$newTestCases->add($testCase);
 				$count++;
 				
@@ -500,7 +496,7 @@ class ProblemController extends Controller {
 			
 			/* Update the languages */
 			foreach ($slave->problem_languages as &$slaveProblemLanguage) {
-				$this->problemLanguageService->deleteProblemLanguage($entityManager, $slaveProblemLanguage);
+				$this->problemLanguageService->deleteProblemLanguage($slaveProblemLanguage);
 			}
 			
 			$problemLanguagesClone = new ArrayCollection();
@@ -539,7 +535,7 @@ class ProblemController extends Controller {
 			/* Update the test cases */
 			foreach ($slave->testcases as &$decodedTestCase) {
 				$decodedTestCase->problem = null;
-				$entityManager->persist($decodedTestCase);			
+				$this->testCaseService->insertTestCase($decodedTestCase);
 			}
 
 			$testcaseClone = new ArrayCollection();	
@@ -552,7 +548,7 @@ class ProblemController extends Controller {
 			$slave->testcases = $testcaseClone;
 			$slave->testcase_counts[] = count($slave->testcases);
 
-			$this->problemService->insertProblem($entityManager, $slave);
+			$this->problemService->insertProblem($slave);
 		}
 
 		$url = $this->generateUrl("assignment", [
@@ -568,11 +564,8 @@ class ProblemController extends Controller {
 	}
 
 	public function resultAction($submissionId) {
-		$entityManager = $this->getDoctrine()->getManager();
-		$grader = new Grader($entityManager);
-
 		/* Validate the user */
-		$user = $this->userService->getCurrentUser($entityManager);
+		$user = $this->userService->getCurrentUser();
 		if (!$user) {
 			return $this->returnForbiddenResponse("USER DOES NOT EXIST!");
 		}
@@ -581,7 +574,7 @@ class ProblemController extends Controller {
 			return $this->returnForbiddenResponse("SUBMISSION ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
 		}
 
-		$submission = $this->submissionService->getSubmissionById($entityManager, $submissionId);
+		$submission = $this->submissionService->getSubmissionById($submissionId);
 
 		if (!$submission) {
 			return $this->returnForbiddenResponse("SUBMISSION ".$submissionId." DOES NOT EXIST");
@@ -600,15 +593,15 @@ class ProblemController extends Controller {
 		/* Make sure the user has permissions to view the submission result */
 		if (!$user->hasRole(Constants::SUPER_ROLE) && 
 			!$user->hasRole(Constants::ADMIN_ROLE) && 
-			!$grader->isTeaching($user, $submission->problem->assignment->section) && !$grader->isOnTeam($user, $submission->problem->assignment, $submission->team)) {
+			!$this->graderService->isTeaching($user, $submission->problem->assignment->section) && !$this->graderService->isOnTeam($user, $submission->problem->assignment, $submission->team)) {
 			return $this->returnForbiddenResponse("YOU ARE NOT ALLOWED TO VIEW THIS SUBMISSION");
 		}
 
-		$feedback = $grader->getFeedback($submission);
+		$feedback = $this->graderService->getFeedback($submission);
 				
 		$aceMode = $submission->language->ace_mode;
 
-		$userSectionRoles = $this->userSectionRoleService->getUserSectionRolesOfSection($entityManager, $submission->problem->assignment->section);
+		$userSectionRoles = $this->userSectionRoleService->getUserSectionRolesOfSection($submission->problem->assignment->section);
 
 		$sectionTakers = [];
 
@@ -632,10 +625,7 @@ class ProblemController extends Controller {
 		]);
 	}
 	
-	public function resultDeleteAction($submissionId) {
-		$entityManager = $this->getDoctrine()->getManager();
-		$grader = new Grader($entityManager);
-		
+	public function resultDeleteAction($submissionId) {		
 		/* Validate the user */
 		$user = $this->get("security.token_storage")->getToken()->getUser();
 		if(!$user){
@@ -646,17 +636,17 @@ class ProblemController extends Controller {
 			return $this->returnForbiddenResponse("SUBMISSION ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
 		}
 
-		$submission = $this->submissionService->getSubmissionById($entityManager, $submissionId);
+		$submission = $this->submissionService->getSubmissionById($submissionId);
 		if (!$submission) {
 			return $this->returnForbiddenResponse("SUBMISSION ".$submissionId." DOES NOT EXIST");
 		}
 
 		/* Make sure the user has permissions to view the submission result */
-		if (!$user->hasRole(Constants::SUPER_ROLE) && !$grader->isTeaching($user, $submission->problem->assignment->section)) {
+		if (!$user->hasRole(Constants::SUPER_ROLE) && !$this->graderService->isTeaching($user, $submission->problem->assignment->section)) {
 			return $this->returnForbiddenResponse("YOU ARE NOT ALLOWED TO DELETE THIS SUBMISSION");
 		}
 		
-		$this->submissionService->deleteSubmission($entityManager, $submission);
+		$this->submissionService->deleteSubmission($submission);
 		
 		return $this->redirectToRoute("assignment", [
 			"problemId" => $submission->problem->id, 

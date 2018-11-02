@@ -29,9 +29,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 use \DateTime;
 
-
 class TrialController extends Controller {
-
 	public function trialModifyAction(Request $request){
 		
 		# entity manager

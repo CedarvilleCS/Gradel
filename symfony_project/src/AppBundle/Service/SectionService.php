@@ -2,21 +2,20 @@
 
 namespace AppBundle\Service;
 
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use Doctrine\ORM\EntityManagerInterface;
 
 use \DateTime;
 use \DateInterval;
 
-class SectionService
-{
-    private $container;
+class SectionService {
+    private $entityManager;
 
-    public function __construct(ContainerInterface $container) {
-        $this->container = $container;
+    public function __construct(EntityManagerInterface $entityManager) {
+        $this->entityManager = $entityManager;
 	}
 	
-    public function getNonDeletedSectionsForHome($entityManager) {
-		$builder = $entityManager->createQueryBuilder();
+    public function getNonDeletedSectionsForHome() {
+		$builder = $this->entityManager->createQueryBuilder();
 		$builder->select("s")
 		->from("AppBundle\Entity\Section", "s")
 		->where("s.is_deleted = false")
@@ -29,14 +28,14 @@ class SectionService
 		return $sectionQuery->getResult();
 	}
 	
-	public function getSectionById($entityManager, $sectionId) {
-		return $entityManager->find("AppBundle\Entity\Section", $sectionId);
+	public function getSectionById($sectionId) {
+		return $this->entityManager->find("AppBundle\Entity\Section", $sectionId);
 	}
 
-	public function insertSection($entityManager, $section, $shouldFlush = true) {
-		$entityManager->persist($section);
+	public function insertSection($section, $shouldFlush = true) {
+		$this->entityManager->persist($section);
 		if ($shouldFlush) {
-			$entityManager->flush();
+			$this->entityManager->flush();
 		}
 	}
 }

@@ -2,22 +2,25 @@
 
 namespace AppBundle\Service;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
-class UserService
-{
+class UserService {
     private $container;
+    private $entityManager;
 
-    public function __construct(ContainerInterface $container) {
+    public function __construct(ContainerInterface $container,
+                                EntityManagerInterface $entityManager) {
         $this->container = $container;
+        $this->entityManager = $entityManager;
     }
 
     public function getCurrentUser() {
         return $this->container->get("security.token_storage")->getToken()->getUser();
     }
 
-    public function getUsersToImpersonate($entityManager, $user) {
-        $builder = $entityManager->createQueryBuilder();
+    public function getUsersToImpersonate($user) {
+        $builder = $this->entityManager->createQueryBuilder();
 		$builder->select("u")
 			->from("AppBundle\Entity\User", "u")
 			->where("u != ?1")
@@ -27,8 +30,8 @@ class UserService
 		return $impersonatedUsersQuery->getResult();	
     }
 
-    public function getUserById($entityManager, $userId) {
-        return $entityManager->find("AppBundle\Entity\User", $userId);
+    public function getUserById($userId) {
+        return $this->entityManager->find("AppBundle\Entity\User", $userId);
     }
 }
 ?>

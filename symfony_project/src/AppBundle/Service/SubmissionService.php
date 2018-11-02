@@ -2,19 +2,18 @@
 
 namespace AppBundle\Service;
 
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use Doctrine\ORM\EntityManagerInterface;
 
 use AppBundle\Entity\Submission;
 
 use \DateTime;
 use \DateInterval;
 
-class SubmissionService
-{
-    private $container;
+class SubmissionService {
+    private $entityManager;
 
-    public function __construct(ContainerInterface $container) {
-        $this->container = $container;
+    public function __construct(EntityManagerInterface $entityManager) {
+        $this->entityManager = $entityManager;
 	}
 
 	public function createSubmissionFromTrialAndTeamForCompilationSubmit($trial, $team) {
@@ -27,26 +26,26 @@ class SubmissionService
 		return $submission;
 	}
 
-	public function deleteAllSubmissionsForAssignmentClearSubmissions($entityManager, $problems) {
-		$builder = $entityManager->createQueryBuilder();
+	public function deleteAllSubmissionsForAssignmentClearSubmissions($problems) {
+		$builder = $this->entityManager->createQueryBuilder();
 		$builder->delete("AppBundle\Entity\Submission", "s")
 		        ->where("s.problem IN (?1)")
 		        ->setParameter(1, $problems);
 
 		$deleteQuery = $builder->getQuery();
 		$result = $deleteQuery->getResult();
-		$entityManager->flush();
+		$this->entityManager->flush();
 		return $result;
 	}
 
-	public function deleteSubmission($entityManager, $submission) {
-		$entityManager->remove($submission);
-		$entityManager->flush();
+	public function deleteSubmission($submission) {
+		$this->entityManager->remove($submission);
+		$this->entityManager->flush();
 	}
 	
-	public function getBestSubmissionForAssignment($entityManager, $teamOrUser, $whereClause, $problem) {
+	public function getBestSubmissionForAssignment($teamOrUser, $whereClause, $problem) {
 		# get the best submission so far
-		$builder = $entityManager->createQueryBuilder();
+		$builder = $this->entityManager->createQueryBuilder();
 		$builder->select("s")
 			->from("AppBundle\Entity\Submission", "s")
 			->where($whereClause)
@@ -59,8 +58,8 @@ class SubmissionService
 		return $bestSubmissionQuery->getOneOrNullResult();
 	}
 
-	public function getPreviousAcceptedSolutionForCompilationSubmit($entityManager, $teamOrUser, $whereClause, $problem) {
-		$builder = $entityManager->createQueryBuilder();
+	public function getPreviousAcceptedSolutionForCompilationSubmit($teamOrUser, $whereClause, $problem) {
+		$builder = $this->entityManager->createQueryBuilder();
 		$builder->select("s")
 			->from("AppBundle\Entity\Submission", "s")
 			->where("s.problem = ?1")
@@ -74,8 +73,8 @@ class SubmissionService
 		return $previousAcceptedQuery->getResult()[0];
 	}
 
-	public function getAllSubmissionsForAssignment($entityManager, $teamOrUser, $whereClause, $problem) {
-		$builder = $entityManager->createQueryBuilder();
+	public function getAllSubmissionsForAssignment($teamOrUser, $whereClause, $problem) {
+		$builder = $this->entityManager->createQueryBuilder();
 		$builder->select("s")
 			->from("AppBundle\Entity\Submission", "s")
 			->where($whereClause)
@@ -87,14 +86,14 @@ class SubmissionService
 		return $allSubmissionsQuery->getResult();
 	}
 
-	public function getSubmissionById($entityManager, $submissionId) {
-		return $entityManager->find("AppBundle\Entity\Submission", $submissionId);
+	public function getSubmissionById($submissionId) {
+		return $this->entityManager->find("AppBundle\Entity\Submission", $submissionId);
 	}
 
-	public function insertSubmission($entityManager, $submission, $shouldFlush = true) {
-		$entityManager->persist($submission);
+	public function insertSubmission($submission, $shouldFlush = true) {
+		$this->entityManager->persist($submission);
 		if ($shouldFlush) {
-			$entityManager->flush();
+			$this->entityManager->flush();
 		}
 	}
 }

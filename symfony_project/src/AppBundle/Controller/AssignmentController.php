@@ -13,6 +13,7 @@ use AppBundle\Entity\User;
 use AppBundle\Entity\UserSectionRole;
 
 use AppBundle\Service\AssignmentService;
+use AppBundle\Service\GraderService;
 use AppBundle\Service\ProblemService;
 use AppBundle\Service\SectionService;
 use AppBundle\Service\SubmissionService;
@@ -21,7 +22,6 @@ use AppBundle\Service\TrialService;
 use AppBundle\Service\UserSectionRoleService;
 use AppBundle\Service\UserService;
 
-use AppBundle\Utils\Grader;
 use AppBundle\Utils\Uploader;
 
 use Doctrine\Common\Collections\ArrayCollection;
@@ -41,15 +41,17 @@ use Psr\Log\LoggerInterface;
 
 class AssignmentController extends Controller {
 	private $assignmentService;
+	private $graderService;
 	private $logger;
 	private $problemService;
-	private $teamService;
 	private $sectionService;
 	private $submissionService;
+	private $teamService;
 	private $userSectionRoleService;
 	private $userService;
 
 	public function __construct(AssignmentService $assignmentService,
+								GraderService $graderService,
 	                            LoggerInterface $logger,
 								ProblemService $problemService,
 								SectionService $sectionService,
@@ -59,6 +61,7 @@ class AssignmentController extends Controller {
 								UserSectionRoleService $userSectionRoleService,
 		                        UserService $userService) {
 		$this->assignmentService = $assignmentService;
+		$this->graderService = $graderService;
 		$this->logger = $logger;
 		$this->problemService = $problemService;
 		$this->sectionService = $sectionService;
@@ -70,7 +73,6 @@ class AssignmentController extends Controller {
 	}
 
 	public function assignmentAction($sectionId, $assignmentId, $problemId) {
-		$entityManager = $this->getDoctrine()->getManager();
 		
 		$user = $this->userService->getCurrentUser();
 		if (!get_class($user)) {
@@ -82,7 +84,7 @@ class AssignmentController extends Controller {
 			$this->returnForbiddenResponse("SECTION ID WAS NOT PROVIDED OR FORMATTED PROPERLY");
 		}
 		
-		$section = $this->sectionService->getSectionById($entityManager, $sectionId);
+		$section = $this->sectionService->getSectionById($sectionId);
 		if (!$section) {
 			$this->returnForbiddenResponse("SECTION ".$sectionId." DOES NOT EXIST");
 		}
@@ -110,7 +112,7 @@ class AssignmentController extends Controller {
 			$this->returnForbiddenResponse("ASSIGNMENT ID WAS NOT PROVIDED OR FORMATTED PROPERLY");
 		}
 		
-		$assignment = $this->assignmentService->getAssignmentById($entityManager, $assignmentId);
+		$assignment = $this->assignmentService->getAssignmentById($assignmentId);
 		if (!$assignment) {
 			$this->returnForbiddenResponse("ASSIGNMENT ".$assignmentId." DOES NOT EXIST");
 		}
@@ -127,7 +129,7 @@ class AssignmentController extends Controller {
 				$this->returnForbiddenResponse("PROBLEM ID WAS NOT FORMATTED PROPERLY");
 			}
 			
-			$problem = $this->problemService->getProblemById($entityManager, $problemId);
+			$problem = $this->problemService->getProblemById($problemId);
 			if (!$problem || $problem->assignment != $assignment) {
 				$this->returnForbiddenResponse("PROBLEM ".$problemId." DOES NOT EXIST");
 			}
@@ -141,21 +143,19 @@ class AssignmentController extends Controller {
 		}
 
 		// get the usersectionrole
-		$userSectionRole = $this->userSectionRoleService->getUserSectionRolesForAssignment($entityManager, $problem->assignment->section);
-		$grader = new Grader($entityManager);
+		$userSectionRole = $this->userSectionRoleService->getUserSectionRolesForAssignment($problem->assignment->section);
 		
 		// figure out how many attempts they have left
 		$totalAttempts = $problem->total_attempts;
 		$attemptsRemaining = -1;
 		if ($totalAttempts != 0 && 
-			!$grader->isTeaching($user, $assignment->section) && 
-			!$grader->isJudging($user, $assignment->section)
-			) {
-			$attemptsRemaining = max($totalAttempts - $grader->getNumTotalAttempts($user, $problem), 0);
+			!$this->graderService->isTeaching($user, $assignment->section) && 
+			!$this->graderService->isJudging($user, $assignment->section)) {
+			$attemptsRemaining = max($totalAttempts - $this->graderService->getNumTotalAttempts($user, $problem), 0);
 		}
 		
 		// get the team
-		$team = $this->teamService->getTeam($entityManager, $user, $assignment);
+		$team = $this->teamService->getTeam($user, $assignment);
 
 		$teamOrUser = $user;
 		$whereClause = "s.user = ?1";
@@ -165,12 +165,12 @@ class AssignmentController extends Controller {
 		}
 
 		// get the best submission so far
-		$bestSubmission = $this->submissionService->getBestSubmissionForAssignment($entityManager, $teamOrUser, $whereClause, $problem);
+		$bestSubmission = $this->submissionService->getBestSubmissionForAssignment($teamOrUser, $whereClause, $problem);
 		// get the code from the last submissions
-		$allSubmissions = $this->submissionService->getAllSubmissionsForAssignment($entityManager, $teamOrUser, $whereClause, $problem);
+		$allSubmissions = $this->submissionService->getAllSubmissionsForAssignment($teamOrUser, $whereClause, $problem);
 		
 		// get the user's trial for this problem
-		$trial = $this->trialService->getTrialForAssignment($entityManager, $user, $problem);
+		$trial = $this->trialService->getTrialForAssignment($user, $problem);
 		
 		$submissionId = $_GET["submissionId"];
 		if (isset($submissionId) && $submissionId > 0) {
@@ -182,7 +182,7 @@ class AssignmentController extends Controller {
 						
 			if (!$trial) {
 				$trial = $this->trialService->createTrial($user, $problem);
-				$this->trialService->insertTrial($entityManager, $trial);
+				$this->trialService->insertTrial($trial);
 			}
 			
 			$trial->file = $submission->submitted_file;						
@@ -193,8 +193,6 @@ class AssignmentController extends Controller {
 			$trial->package_name = $submission->package_name;
 			$trial->last_edit_time = new \DateTime("now");
 			
-			$entityManager->flush();
-			
 			return $this->redirectToRoute("assignment", 
 			[
 				"sectionId" => $section->id, 
@@ -204,7 +202,7 @@ class AssignmentController extends Controller {
 		}
 		
 		// get all userSectionRoles
-		$userSectionRoles = $this->userSectionRoleService->getUserSectionRolesOfSection($entityManager, $section);
+		$userSectionRoles = $this->userSectionRoleService->getUserSectionRolesOfSection($section);
 
 		$sectionTakers = [];
 		$sectionTeachers = [];
@@ -239,7 +237,7 @@ class AssignmentController extends Controller {
 			"attempts_remaining" => $attemptsRemaining,
 			"best_submission" => $bestSubmission,
 			"filetypes" => $fileTypes,
-			"grader" => $grader,
+			"grader" => $this->graderService,
 			"grades" => null,
 			"languages" => $languages,
 			"problem" => $problem,
@@ -254,13 +252,11 @@ class AssignmentController extends Controller {
 	}
 
     public function editAction($sectionId, $assignmentId) {
-		$entityManager = $this->getDoctrine()->getManager();
-		
 		if (!isset($sectionId) || !($sectionId > 0)) {
 			$this->returnForbiddenResponse("SECTION ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
 		}
 
-		$section = $this->sectionService->getSectionById($entityManager, $sectionId);
+		$section = $this->sectionService->getSectionById($sectionId);
 		if (!$section) {
 			$this->returnForbiddenResponse("SECTION ".$sectionId." DOES NOT EXIST");
 		}
@@ -278,11 +274,10 @@ class AssignmentController extends Controller {
 		}
 		
 		// validate the user
-		$grader = new Grader($entityManager);
 		if (!$user->hasRole(CONSTANTS::SUPER_ROLE) && 
 			!$user->hasRole(CONSTANTS::ADMIN_ROLE) && 
-			!$grader->isTeaching($user, $section) && 
-			!$grader->isJudging($user, $section)
+			!$this->graderService->isTeaching($user, $section) && 
+			!$this->graderService->isJudging($user, $section)
 			) {
 			$this->returnForbiddenResponse("YOU ARE NOT ALLOWED TO EDIT THIS ASSIGNMENT");
 		}		
@@ -292,7 +287,7 @@ class AssignmentController extends Controller {
 				$this->returnForbiddenResponse("ASSIGNMENT ID WAS NOT FORMATTED PROPERLY");
 			}
 									
-			$assignment = $this->assignmentService->getAssignmentById($entityManager, $assignmentId);
+			$assignment = $this->assignmentService->getAssignmentById($assignmentId);
 
 			if (!$assignment || $section != $assignment->section) {
 				$this->returnForbiddenResponse("ASSIGNMENT ".$assignmentId." DOES NOT EXIST OR DOES NOT BELONG TO SECTION ".$sectionId);
@@ -300,7 +295,7 @@ class AssignmentController extends Controller {
 		}
 				
 		// get all the users taking the course
-		$sectionTakerRoles = $this->userSectionRoleService->getUserSectionRolesForAssignmentEdit($entityManager, $section);
+		$sectionTakerRoles = $this->userSectionRoleService->getUserSectionRolesForAssignmentEdit($section);
 
 		$students = [];
 		foreach ($sectionTakerRoles as $sectionTakerRole) {
@@ -321,15 +316,13 @@ class AssignmentController extends Controller {
 		]);
     }
 
-    public function deleteAction($sectionId, $assignmentId){
-		$entityManager = $this->getDoctrine()->getManager();
-		
+    public function deleteAction($sectionId, $assignmentId) {
 		// get the assignment
 		if (!isset($assignmentId) || !($assignmentId > 0)) {
 			$this->returnForbiddenResponse("ASSIGNMENT ID WAS NOT PROVIDED OR FORMATTED PROPERLY");
 		}
 		
-		$assignment = $this->assignmentService->getAssignmentById($entityManager, $assignmentId);
+		$assignment = $this->assignmentService->getAssignmentById($assignmentId);
 		if (!$assignment) {
 			$this->returnForbiddenResponse("ASSIGNMENT ".$assignmentId." DOES NOT EXIST");
 		}
@@ -340,16 +333,14 @@ class AssignmentController extends Controller {
 		}
 		
 		// validate the user
-		$grader = new Grader($entityManager);
 		if (!$user->hasRole(CONSTANTS::SUPER_ROLE) && 
 		    !$user->hasRole(CONSTANTS::ADMIN_ROLE) && 
-			!$grader->isTeaching($user, $assignment->section) && 
-			!$grader->isJudging($user, $assignment->section)
-			) {
+			!$this->graderService->isTeaching($user, $assignment->section) && 
+			!$this->graderService->isJudging($user, $assignment->section)) {
 			$this->returnForbiddenResponse("YOU ARE NOT ALLOWED TO DELETE ASSIGNMENT ".$assignmentId);
 		}
 		
-		$this->assignmentService->deleteAssignment($entityManager, $assignment);
+		$this->assignmentService->deleteAssignment($assignment);
 		
 		return $this->redirectToRoute("section", 
 		[
@@ -358,8 +349,6 @@ class AssignmentController extends Controller {
 	}
 	
 	public function modifyPostAction(Request $request) {
-		$entityManager = $this->getDoctrine()->getManager();
-		
 		// validate the current user
 		$user = $this->userService->getCurrentUser();
 		if (!$user) {
@@ -377,29 +366,26 @@ class AssignmentController extends Controller {
 		
 		$sectionId = $postData["section"];
 		
-		$section = $this->sectionService->getSectionById($entityManager, $sectionId);
+		$section = $this->sectionService->getSectionById($sectionId);
 		
 		if (!$section) {
 			return $this->returnForbiddenResponse("SECTION ".$sectionId." DOES NOT EXIST");
 		}
 		
 		// only super users/admins/teacher can make/edit an assignment
-		$grader = new Grader($entityManager);		
 		if (!$user->hasRole(CONSTANTS::SUPER_ROLE) && 
-		!$user->hasRole(CONSTANTS::ADMIN_ROLE) && 
-		!$grader->isTeaching($user, $section) && 
-		!$grader->isJudging($user, $section)
-		) {
+			!$user->hasRole(CONSTANTS::ADMIN_ROLE) && 
+			!$this->graderService->isTeaching($user, $section) && 
+			!$this->graderService->isJudging($user, $section)) {
 			return $this->returnForbiddenResponse("YOU DO NOT HAVE PERMISSION TO MAKE AN ASSIGNMENT");
 		}		
 		
 		// check mandatory fields
 		if (!isset($postData["name"]) ||
-		!isset($postData["open_time"]) ||
-		!isset($postData["close_time"]) ||
+			!isset($postData["open_time"]) ||
+			!isset($postData["close_time"]) ||
 			!isset($postData["teams"]) ||
-			!isset($postData["teamnames"])
-			){
+			!isset($postData["teamnames"])){
 				return $this->returnForbiddenResponse("NOT EVERY REQUIRED FIELD WAS PROVIDED");
 			}
 			// validate the weight if there is one
@@ -422,7 +408,7 @@ class AssignmentController extends Controller {
 				return $this->returnForbiddenResponse("ASSIGNMENT ID WAS NOT PROVIDED OR FORMATTED PROPERLY");
 			}
 			
-			$assignment = $this->assignmentService->getAssignmentById($entityManager, $assignmentId);
+			$assignment = $this->assignmentService->getAssignmentById($assignmentId);
 			
 			if (!$assignment || $section != $assignment->section) {
 				return $this->returnForbiddenResponse("ASSIGNMENT ".$assignmentId." DOES NOT EXIST FOR THE GIVEN SECTION ".$sectionId);
@@ -483,7 +469,7 @@ class AssignmentController extends Controller {
 		$assignment->penalty_per_day = $penalty;
 	
 		// get all the users taking the course
-		$sectionTakerRoles = $this->userSectionRoleService->getUserSectionRolesForAssignmentEdit($entityManager, $section);
+		$sectionTakerRoles = $this->userSectionRoleService->getUserSectionRolesForAssignmentEdit($section);
 		
 		$sectionTakers = [];
 		foreach($sectionTakerRoles as $sectionTakerRole){
@@ -509,7 +495,7 @@ class AssignmentController extends Controller {
 
 			// editing a current team
 			if ($teamId != 0) {
-				$team = $this->teamService->getTeamById($entityManager, $teamId);
+				$team = $this->teamService->getTeamById($teamId);
 
 				if (!$team || $team->assignment != $assignment) {
 					return $this->returnForbiddenResponse("TEAM ".$teamId." DOES NOT EXIST FOR ASSIGNMENT ".$assignmentId);
@@ -519,7 +505,7 @@ class AssignmentController extends Controller {
 				$team->users = new ArrayCollection();
 				
 				foreach ($teamJson as $userId) {
-					$temp_user = $this->userService->getUserById($entityManager, $userId);
+					$temp_user = $this->userService->getUserById($userId);
 
 					if (!$temp_user || !in_array($temp_user, $sectionTakers)) {
 						return $this->returnForbiddenResponse("USER ".$userId." DOES NOT TAKE THIS CLASS");
@@ -532,13 +518,13 @@ class AssignmentController extends Controller {
 					return $this->returnForbiddenResponse($team->name." DID NOT HAVE ANY USERS PROVIDED");
 				}
 				
-				$this->teamService->insertTeam($entityManager, $team);
+				$this->teamService->insertTeam($team);
 				$modTeams->add($team->id);
 			} else {
 				$team = new Team($teamNamesJson[$count], $assignment);
 			
 				foreach ($teamJson as $userId) {						
-					$temp_user = $this->userService->getUserById($entityManager, $userId);
+					$temp_user = $this->userService->getUserById($userId);
 
 					if (!$temp_user || !in_array($temp_user, $sectionTakers)) {
 						return $this->returnForbiddenResponse("USER ".$userId." DOES NOT TAKE THIS CLASS");
@@ -551,7 +537,7 @@ class AssignmentController extends Controller {
 					return $this->returnForbiddenResponse($team->name." DID NOT HAVE ANY USERS PROVIDED");
 				}
 				
-				$this->teamService->insertTeam($entityManager, $team);
+				$this->teamService->insertTeam($team);
 			}
 			
 			$count++;
@@ -560,11 +546,11 @@ class AssignmentController extends Controller {
 		// remove the old teams that no longer exist
 		foreach ($oldTeams as $oldTeam){
 			if (!$modTeams->contains($oldTeam->id)) {
-				$this->teamService->deleteTeam($entityManager, $oldTeam);
+				$this->teamService->deleteTeam($oldTeam);
 			}
 		}
 
-		$this->assignmentService->insertAssignment($entityManager, $assignment);
+		$this->assignmentService->insertAssignment($assignment);
 		
 		$url = $this->generateUrl("assignment", 
 		[
@@ -580,9 +566,7 @@ class AssignmentController extends Controller {
 		return $this->returnOkResponse($response);
 	}
 	
-	public function clearSubmissionsAction(Request $request){
-		$entityManager = $this->getDoctrine()->getManager();
-				
+	public function clearSubmissionsAction(Request $request) {
 		// validate the current user
 		$user = $this->userService->getCurrentUser();
 		if (!$user) {
@@ -599,7 +583,7 @@ class AssignmentController extends Controller {
 			return $this->returnForbiddenResponse("ASSIGNMENT ID WAS NOT PROVIDED");
 		}
 		
-		$assignment = $this->assignmentService->getAssignmentById($entityManager, $assignmentId);
+		$assignment = $this->assignmentService->getAssignmentById($assignmentId);
 		if (!$assignment) {
 			return $this->returnForbiddenResponse("ASSIGNMENT ".$assignmentId." DOES NOT EXIST");
 		}
@@ -607,17 +591,15 @@ class AssignmentController extends Controller {
 		$section = $assignment->section;
 		
 		// only super users/admins/teacher can make/edit an assignment
-		$grader = new Grader($entityManager);		
 		if (!$user->hasRole(CONSTANTS::SUPER_ROLE) &&
 			!$user->hasRole(CONSTANTS::ADMIN_ROLE) && 
-			!$grader->isTeaching($user, $section) && 
-			!$grader->isJudging($user, $section)
-			) {
+			!$this->graderService->isTeaching($user, $section) && 
+			!$this->graderService->isJudging($user, $section)) {
 			return $this->returnForbiddenResponse("YOU DO NOT HAVE PERMISSION TO DO THIS");
 		}
 
 		// delete all submission but keep all of the trials
-		$result = $this->submissionService->deleteAllSubmissionsForAssignmentClearSubmissions($entityManager, $assignment->problems->toArray());
+		$result = $this->submissionService->deleteAllSubmissionsForAssignmentClearSubmissions($assignment->problems->toArray());
 		$response = new Response(json_encode([
 			"result" => $result,
 		]));
@@ -625,9 +607,7 @@ class AssignmentController extends Controller {
 		return $this->returnOkResponse($response);	
 	}
 
-	public function clearTrialsAction(Request $request){
-		$entityManager = $this->getDoctrine()->getManager();
-				
+	public function clearTrialsAction(Request $request) {
 		// validate the current user
 		$user = $this->userService->getCurrentUser();
 		if (!$user) {
@@ -644,7 +624,7 @@ class AssignmentController extends Controller {
 			return $this->returnForbiddenResponse("ASSIGNMENT ID WAS NOT PROVIDED");
 		}
 		
-		$assignment = $this->assignmentService->getAssignmentById($entityManager, $assignmentId);
+		$assignment = $this->assignmentService->getAssignmentById($assignmentId);
 		if (!$assignment) {
 			return $this->returnForbiddenResponse("ASSIGNMENT ".$assignmentId." DOES NOT EXIST");
 		}
@@ -652,17 +632,15 @@ class AssignmentController extends Controller {
 		$section = $assignment->section;
 		
 		// only super users/admins/teacher can make/edit an assignment
-		$grader = new Grader($entityManager);		
 		if (!$user->hasRole(CONSTANTS::SUPER_ROLE) && 
 			!$user->hasRole(CONSTANTS::ADMIN_ROLE) &&
-			!$grader->isTeaching($user, $section) && 
-			!$grader->isJudging($user, $section)
-			) {			
+			!$this->graderService->isTeaching($user, $section) && 
+			!$this->graderService->isJudging($user, $section)) {			
 			return $this->returnForbiddenResponse("YOU DO NOT HAVE PERMISSION TO DO THIS");
 		}
 
 		// delete all submissions but keep all of the trials
-		$result = $this->submissionService->deleteAllSubmissionsForAssignmentClearSubmissions($entityManager, $assignment->problems->toArray());
+		$result = $this->submissionService->deleteAllSubmissionsForAssignmentClearSubmissions($assignment->problems->toArray());
 		$response = new Response(json_encode([
 			"result" => $result,
 		]));
