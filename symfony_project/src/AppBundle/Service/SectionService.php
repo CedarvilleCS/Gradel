@@ -4,6 +4,8 @@ namespace AppBundle\Service;
 
 use Doctrine\ORM\EntityManagerInterface;
 
+use AppBundle\Entity\Section;
+
 use \DateTime;
 use \DateInterval;
 
@@ -12,6 +14,10 @@ class SectionService {
 
     public function __construct(EntityManagerInterface $entityManager) {
         $this->entityManager = $entityManager;
+	}
+
+	public function createEmptySection() {
+		return new Section();
 	}
 	
     public function getNonDeletedSectionsForHome() {

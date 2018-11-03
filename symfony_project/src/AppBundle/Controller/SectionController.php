@@ -21,6 +21,7 @@ use AppBundle\Service\GraderService;
 use AppBundle\Service\RoleService;
 use AppBundle\Service\SectionService;
 use AppBundle\Service\SubmissionService;
+use AppBundle\Service\TeamService;
 use AppBundle\Service\UserSectionRoleService;
 use AppBundle\Service\UserService;
 
@@ -46,6 +47,7 @@ class SectionController extends Controller {
 	private $roleService;
 	private $sectionService;
 	private $submissionService;
+	private $teamService;
 	private $userSectionRoleService;
 	private $userService;
 
@@ -56,6 +58,7 @@ class SectionController extends Controller {
 								RoleService $roleService,
 								SectionService $sectionService,
 								SubmissionService $submissionService,
+								TeamService $teamService,
 								UserSectionRoleService $userSectionRoleService,
 								UserService $userService) {
 		$this->assignmentService = $assignmentService;
@@ -65,6 +68,7 @@ class SectionController extends Controller {
 		$this->roleService = $roleService;
 		$this->sectionService = $sectionService;
 		$this->submissionService = $submissionService;
+		$this->teamService = $teamService;
 		$this->userSectionRoleService = $userSectionRoleService;
 		$this->userService = $userService;
 	}
@@ -329,247 +333,224 @@ class SectionController extends Controller {
 		return $this->redirectToRoute("homepage");
 	}
 
-	public function modifyPostAction(Request $request){
-		$entityManager = $this->getDoctrine()->getManager();
-
-		# validate the current user
+	public function modifyPostAction(Request $request) {
+		/* Validate the current user */
 		$user = $this->get("security.token_storage")->getToken()->getUser();
-		if(!$user){
-			return $this->returnForbiddenResponse("You are not a user.");
+		$user = $this->userService->getCurrentUser();
+		if (!get_class($user)) {
+			return $this->returnForbiddenResponse("USER DOES NOT EXIST");
 		}
 		
-		# see which fields were included
+		/* See which fields were included */
 		$postData = $request->request->all();
 		
-		# check mandatory fields
-		if(!isset($postData["name"]) || trim($postData["name"]) == "" || !isset($postData["course"]) || !isset($postData["semester"]) || !isset($postData["year"])){
-			return $this->returnForbiddenResponse("Not every required field is provided.");
+		/* Check mandatory fields */
+		$sectionName = $postData["name"];
+		$sectionCourse = $postData["course"];
+		$sectionSemester = $postData["semester"];
+		$sectionYear = $postData["year"];
+
+		if (!isset($sectionName) || trim($sectionName) == "" || !isset($sectionCourse) || !isset($sectionSemester) || !isset($sectionYear)) {
+			return $this->returnForbiddenResponse("NOT EVERY REQUIRED FIELD WAS PROVIDED");
 		} else {
-			
-			# validate the year
-			if(!is_numeric(trim($postData["year"]))){
-				return $this->returnForbiddenResponse($postData["year"]." is not a valid year");
+			/* Validate the year */
+			if (!is_numeric(trim($sectionYear))) {
+				return $this->returnForbiddenResponse($sectionYear." IS NOT A VALID YEAR");
 			}
 			
-			# validate the semester
-			if(trim($postData["semester"]) != "Fall" && trim($postData["semester"]) != "Spring" && trim($postData["semester"]) != "Summer"){
-				return $this->returnForbiddenResponse($postData["semester"]." is not a valid semester");
+			 /*Validate the semester */
+			if (trim($sectionSemester) != "Fall" && trim($sectionSemester) != "Spring" && trim($sectionSemester) != "Summer") {
+				return $this->returnForbiddenResponse($sectionSemester." IS NOT A VALID SEMESTER");
 			}
 		}
-		
-		// $graderService = new Grader($entityManager);
-		# create new section
-		if($postData["section"] == 0){
-			
-			# only super users and admins can make/edit a section
-			if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN")){
-				return $this->returnForbiddenResponse("You do not have permission to make a section.");
+
+		/* Create new section */
+		$sectionId = $postData["section"];
+		if ($sectionId == 0) {
+			/* Only super users and admins can make/edit a section */
+			if (!$user->hasRole(Constants::SUPER_ROLE) && !$user->hasRole(Constants::ADMIN_ROLE)) {
+				return $this->returnForbiddenResponse("YOU DO NOT HAVE PERMISSION TO MAKE A SECTION");
 			}
 			
-			$section = new Section();
-		} else if(isset($postData["section"])) {
+			$section = $this->sectionService->createEmptySection();
+		} else if (isset($sectionId) || $sectionId > 0) {
+			$section - $this->sectionService->getSectionBuyId($sectionId);
 			
-			if(!isset($postData["section"]) || !($postData["section"] > 0)){
-				return $this->returnForbiddenResponse("SECTION ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
-			}
-			$section = $entityManager->find("AppBundle\Entity\Section", $postData["section"]);
-			
-			if(!$section){
-				return $this->returnForbiddenResponse("Section ".$postData["section"]." does not exist");
+			if (!$section) {
+				return $this->returnForbiddenResponse("SECTION ".$sectionId." DOES NOT EXIST");
 			}
 			
-			# only super users and admins can make/edit a section
-			if(! ($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $this->graderService->isTeaching($user, $section)) ){
-				return $this->returnForbiddenResponse("You do not have permission to edit this section.");
-			}			
-			
+			/* Only super users and admins can make/edit a section */
+			if(!($user->hasRole(Constants::SUPER_ROLE) || $user->hasRole(Constants::ADMIN_ROLE) || $this->graderService->isTeaching($user, $section))){
+				return $this->returnForbiddenResponse("YOU DO NOT HAVE PERMISSION TO EDIT THIS SECTION");
+			}
 		} else {
-			return $this->returnForbiddenResponse("section not provided");
+			return $this->returnForbiddenResponse("SECTION ID WAS NOT PROVIDED OR FORMATTED PROPERLY");
 		}
 		
-		# get the course
-		if(!isset($postData["course"]) || !($postData["course"] > 0)){
+		/* Get the course */
+		$courseId = $postData["course"];
+		if (!isset($courseId) || !($courseId > 0)) {
 			return $this->returnForbiddenResponse("COURSE ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
 		}
 		
-		$course = $entityManager->find("AppBundle\Entity\Course", $postData["course"]);
-		if(!$course){
-			return $this->returnForbiddenResponse("Course provided does not exist.");
+		$course = $this->courseService->getCourseById($courseId);
+		if (!$course) {
+			return $this->returnForbiddenResponse("COURSE ".$courseId." DOES NOT EXIST");
 		}
 		
-		# set the necessary fields
-		$section->name = trim($postData["name"]);
+		/* Set the necessary fields */
+		$section->name = trim($sectionName);
 		$section->course = $course;
-		$section->semester = $postData["semester"];
-		$section->year = (int)trim($postData["year"]);
+		$section->semester = $sectionSemester;
+		$section->year = (int)trim($sectionYear);
 		
-		# see if the dates were provided or if we will do them automatically
-		$dates = $this->getDateTime($postData["semester"], $postData["year"]);
-		if(isset($postData["start_time"]) && $postData["start_time"] != ""){
-			$customStartTime = DateTime::createFromFormat("m/d/Y H:i:s", $postData["start_time"]." 00:00:00");
+		/* See if the dates were provided or if we will do them automatically */
+		$dates = $this->getDateTime($sectionSemester, $sectionYear);
+		$sectionStartTime = $postData["start_time"];
+		if (isset($sectionStartTime) && $sectionStartTime != "") {
+			$customStartTime = DateTime::createFromFormat("m/d/Y H:i:s", $sectionStartTime." 00:00:00");
 			
-			if(!$customStartTime || $customStartTime->format("m/d/Y") != $postData["start_time"]){
-				return $this->returnForbiddenResponse("Provided invalid start time ". $postData["start_time"]);
+			if (!$customStartTime || $customStartTime->format("m/d/Y") != $sectionStartTime) {
+				return $this->returnForbiddenResponse("PROVIDED INVALID START TIME ". $sectionStartTime);
 			} else {
 				$section->start_time = $customStartTime;
 			}
-			
 		} else {
 			$section->start_time = $dates[0];
 		}
 		
-		if(isset($postData["end_time"]) && $postData["end_time"] != ""){
-			$customEndTime = DateTime::createFromFormat("m/d/Y H:i:s", $postData["end_time"]." 23:59:59");
+		$sectionEndTime = $postData["end_time"];
+		if (isset($sectionEndTime) && $sectionEndTime != "") {
+			$customEndTime = DateTime::createFromFormat("m/d/Y H:i:s", $sectionEndTime." 23:59:59");
 			
-			if(!$customEndTime || $customEndTime->format("m/d/Y") != $postData["end_time"]){
-				return $this->returnForbiddenResponse("Provided invalid end time ". $postData["end_time"]);
+			if (!$customEndTime || $customEndTime->format("m/d/Y") != $sectionEndTime) {
+				return $this->returnForbiddenResponse("PROVIDED INVALID END TIME ". $sectionEndTime);
 			} else {
 				$section->end_time = $customEndTime;
 			}
-			
 		} else {
 			$section->end_time = $dates[1];
 		}
 		
-		# validate that the end time is after the start time
-		if($section->end_time <= $section->start_time){
-			return $this->returnForbiddenResponse("The end time must be after the start time for the section");
+		/* validate that the end time is after the start time */
+		if ($section->end_time <= $section->start_time) {
+			return $this->returnForbiddenResponse("THE END TIME MUST BE AFTER THE START TIME FOR THE SECTION");
 		}
 		
-		# default these to false
+		/* Default these to false */
 		$section->is_deleted = false;
 		$section->is_public = false;
 		
-		$entityManager->persist($section);
+		$this->sectionService->insertSection($section);
 		
-		# validate the students csv
-		$students = array_unique(json_decode($postData["students"]));
+		$sectionStudents = $postData["students"];
+		/* Validate the students csv */
+		$students = array_unique(json_decode($sectionStudents));
 		
 		foreach ($students as $student) {
 			if (!filter_var($student, FILTER_VALIDATE_EMAIL)) {
-				return $this->returnForbiddenResponse("Provided student email address ".$student." is not valid");
+				return $this->returnForbiddenResponse("PROVIDED STUDENT EMAIL ADDRESS ".$student." IS NOT VALID");
 			}
 			
 			if (in_array($student, $teachers)) {
-				return $this->returnForbiddenResponse("Cannot add " . $student . " as a student. He/she already teaches this section!");
+				return $this->returnForbiddenResponse("CANNOT ADD ".$student." AS A STUDENT BECAUSE THEY ARE ALREADY TAKING THIS SECTION");
 			}
 		}
 		
-		# vallidate teacher csv
-		$teachers = array_unique(json_decode($postData["teachers"]));
+		$sectionTeachers = $postData["teachers"];
+		/* Validate teacher csv */
+		$teachers = array_unique(json_decode($sectionTeachers));
 		
-		foreach ($teachers as $sectionTeacher){
-			
-			if(!filter_var($sectionTeacher, FILTER_VALIDATE_EMAIL)) {
-				return $this->returnForbiddenResponse("Provided teacher email address ".$sectionTeacher." is not valid");
+		foreach ($teachers as $teacher) {
+			if (!filter_var($teacher, FILTER_VALIDATE_EMAIL)) {
+				return $this->returnForbiddenResponse("PROVIDED TEACHER EMAIL ADDRESS ".$teacher." IS NOT VALID");
 			}
 			
-			if (in_array($sectionTeacher, $students)) {
-				return $this->returnForbiddenResponse("Cannot add " .$sectionTeacher . "as a student. He/she already teaches this section!");
+			if (in_array($teacher, $students)) {
+				return $this->returnForbiddenResponse("CANNOT ADD " .$teacher . " AS A STUDENT BECAUSE THEY ARE ALREADY TEACHING THIS SECTION");
 			}
 		}
 		
 		$oldUsers = [];
 		
-		if($postData["section"] == 0 && count(json_decode($postData["teachers"])) == 0){
-			
-			# add the current user as a role
-			$role = $entityManager->getRepository("AppBundle\Entity\Role")->findOneBy(array("role_name" => "Teaches"));
-			$usr = new UserSectionRole($user, $section, $role);
-			$entityManager->persist($usr);
-			
-		} else if($postData["section"] != 0){
-			
-			foreach($section->user_roles as $ur){
-				$entityManager->remove($ur);
+		if ($sectionId == 0 && count(json_decode($sectionTeachers)) == 0) {
+			/* Add the current user as a role */
+			$role = $this->roleService->getRoleByRoleName(Constants::TEACHES_ROLE);
+			$userSectionRole = $this->userSectionRoleService->createUserSectionRole($user, $section, $role);
+			$entityManager->persist($userSectionRole);
+			$this->userSectionRoleService->insertUserSectionRole($userSectionRole);
+		} else if ($sectionId != 0) {
+			foreach ($section->user_roles as $userRole) {
+				$this->userSectionRoleService->deleteUserSectionRole($userRole);
 				
-				$oldUsers[$ur->user->id] = $ur->user;
+				$oldUsers[$userRole->user->id] = $userRole->user;
 			}
-			
-			$entityManager->flush();
 		}
 		
-		# add students from the students array
-		
-		$takesRole = $entityManager->getRepository("AppBundle\Entity\Role")->findOneBy(array("role_name" => "Takes"));
+		/* Add students from the students array */
+		$takesRole = $this->roleService->getRoleByRoleName(Constants::TAKES_ROLE);
 		foreach ($students as $student) {
-			
 			if (!filter_var($student, FILTER_VALIDATE_EMAIL)) {
-				return $this->returnForbiddenResponse("Provided student email address ".$student." is not valid");
+				return $this->returnForbiddenResponse("PROVIDED STUDENT EMAIL ".$student." IS NOT VALID");
 			}
 			
-			
-			
-			$stud_user = $entityManager->getRepository("AppBundle\Entity\User")->findOneBy(array("email" => $student));
-			
-			if(!$stud_user){
-				$stud_user = new User($student, $student);
-				$entityManager->persist($stud_user);
+			$studentUser = $this->userService->getUserByObject(["email" => $student]);
+			if (!$studentUser) {
+				$studentUser = $this->userService->createUser($student, $student);
+				$this->userService->insertUser($studentUser);
 			}
 			
-			$usr = new UserSectionRole($stud_user, $section, $takesRole);
-			$entityManager->persist($usr);
+			$studentUserSectionRole = $this->userSectionRoleService->createUserSectionRole($studentUser, $section, $takesRole);
+			$this->userSectionRoleService->insertUserSectionRole($studentUserSectionRole);
 			
-			unset($oldUsers[$stud_user->id]);
+			unset($oldUsers[$studentUser->id]);
 		}
 		
-		# add the teachers from the teachers array
+		/* Add the teachers from the teachers array */
 		
-		$teachesRole = $entityManager->getRepository("AppBundle\Entity\Role")->findOneBy(array("role_name" => "Teaches"));
-		foreach ($teachers as $sectionTeacher){
-			
-			if(!filter_var($sectionTeacher, FILTER_VALIDATE_EMAIL)) {
-				return $this->returnForbiddenResponse("Provided teacher email address ".$sectionTeacher." is not valid");
-			}
-			
-			
-			
-			$teach_user = $entityManager->getRepository("AppBundle\Entity\User")->findOneBy(array("email"=>$sectionTeacher));
-			
-			if(!$teach_user){
-				return $this->returnForbiddenResponse("Teacher with email ".$sectionTeacher." does not exist!");
-			}
-			
-			$this->logError("Made it first");
-			if ($this->graderService->isTaking($teach_user, $section)) {
-				return $this->returnForbiddenResponse($student . " is already teaching this course!");
-			}
-			$this->logError("Made it second");
-			
-			$usr = new UserSectionRole($teach_user, $section, $teachesRole);
-			$entityManager->persist($usr);
-			
-			unset($oldUsers[$stud_user->id]);
-		}
-		
-		
-		foreach($oldUsers as $oldUser){
-			
-			foreach($section->assignments as $assignments){
-				foreach($assignments->teams as &$team){	
+		$teachesRole = $this->roleService->getRoleByRoleName(Constants::TEACHES_ROLE);
 
+		foreach ($teachers as $teacher) {
+			if (!filter_var($teacher, FILTER_VALIDATE_EMAIL)) {
+				return $this->returnForbiddenResponse("PROVIDED TEACHER EMAIL ADDRESS ".$teacher." IS NOT VALID");
+			}
+			
+			$teacherUser = $this->userService->getUserByObject(["email" => $teacher]);
+			
+			if (!$teacherUser) {
+				return $this->returnForbiddenResponse("TEACHER WITH EMAIL ".$teacher." DOES NOT EXIST");
+			}
+			
+			if ($this->graderService->isTaking($teacherUser, $section)) {
+				return $this->returnForbiddenResponse($student . " IS ALREADY TEACHING THIS COURSE");
+			}
+
+			$teacherUserSectionRole = $this->userSectionRoleService->createUserSectionRole($teacherUser, $section, $teachesRole);
+			$this->userSectionRoleService->insertUserSectionRole($teacherUserSectionRole);
+			
+			unset($oldUsers[$studentUser->id]);
+		}
+		
+		foreach ($oldUsers as $oldUser) {
+			foreach ($section->assignments as $assignments) {
+				foreach ($assignments->teams as &$team) {
 					$team->users->removeElement($oldUser);
 
-					if($team->users->count() == 0){
-						$entityManager->remove($team);
+					if ($team->users->count() == 0) {
+						$this->teamService->deleteTeam($team);
 					} else {
-						$entityManager->persist($team);
+						$this->teamService->insertTeam($team);
 					}
 				}
 			}
-
 		}
 
-		$entityManager->flush();
-
-		# redirect to the section page
+		/* Redirect to the section page */
 		$url = $this->generateUrl("section", ["sectionId" => $section->id]);
 
-		$response = new Response(json_encode(array("redirect_url" => $url)));
-		$response->headers->set("Content-Type", "application/json");
-		$response->setStatusCode(Response::HTTP_OK);
-
-		return $response;
+		$response = new Response(json_encode(["redirect_url" => $url]));
+		return $this->returnOkResponse($response);
 	}
 
 	private function getDateTime($semester, $year){
@@ -718,6 +699,12 @@ class SectionController extends Controller {
 		$response = new Response($message);
 		$response->setStatusCode(Response::HTTP_FORBIDDEN);
 		$this->logError($message);
+		return $response;
+	}
+
+	private function returnOkResponse($response) {
+		$response->headers->set("Content-Type", "application/json");
+		$response->setStatusCode(Response::HTTP_OK);
 		return $response;
 	}
 }

@@ -4,6 +4,8 @@ namespace AppBundle\Service;
 
 use AppBundle\Constants;
 
+use AppBundle\Entity\UserSectionRole;
+
 use Doctrine\ORM\EntityManagerInterface;
 
 class UserSectionRoleService {
@@ -11,7 +13,18 @@ class UserSectionRoleService {
 
     public function __construct(EntityManagerInterface $entityManager) {
         $this->entityManager = $entityManager;
-    }
+	}
+	
+	public function createUserSectionRole($user, $section, $role) {
+		return new UserSectionRole($user, $section, $role);
+	}
+
+	public function deleteUserSectionRole($userSectionRole, $shouldFlush = true) {
+		$this->entityManager->remove($userSectionRole);
+		if ($shouldFlush) {
+			$this->entityManager->flush();
+		}
+	}
 
     public function getUserSectionRolesForHome($user, $sections) {
         $builder = $this->entityManager->createQueryBuilder();
@@ -64,6 +77,13 @@ class UserSectionRoleService {
 
 		$userSectionRoleQuery = $builder->getQuery();
 		return $userSectionRoleQuery->getResult();
+	}
+
+	public function insertUserSectionRole($userSectionRole, $shouldFlush = true) {
+		$this->entityManager->persist($userSectionRole);
+		if ($shouldFlush) {
+			$this->entityManager->flush();
+		}
 	}
 }
 ?>

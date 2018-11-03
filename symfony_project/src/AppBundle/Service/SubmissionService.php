@@ -26,7 +26,7 @@ class SubmissionService {
 		return $submission;
 	}
 
-	public function deleteAllSubmissionsForAssignmentClearSubmissions($problems) {
+	public function deleteAllSubmissionsForAssignmentClearSubmissions($problems, $shouldFlush = true) {
 		$builder = $this->entityManager->createQueryBuilder();
 		$builder->delete("AppBundle\Entity\Submission", "s")
 		        ->where("s.problem IN (?1)")
@@ -34,13 +34,17 @@ class SubmissionService {
 
 		$deleteQuery = $builder->getQuery();
 		$result = $deleteQuery->getResult();
-		$this->entityManager->flush();
+		if ($shouldFlush) {
+			$this->entityManager->flush();
+		}
 		return $result;
 	}
 
-	public function deleteSubmission($submission) {
+	public function deleteSubmission($submission, $shouldFlush = true) {
 		$this->entityManager->remove($submission);
-		$this->entityManager->flush();
+		if ($shouldFlush) {
+			$this->entityManager->flush();
+		}
 	}
 
 	public function getAllSubmissionsForAssignment($teamOrUser, $whereClause, $problem) {

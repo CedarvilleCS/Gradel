@@ -22,9 +22,11 @@ class ProblemLanguageService {
 		return $problemLanguage;
 	}
 
-	public function deleteProblemLanguage($problemLanguage) {
+	public function deleteProblemLanguage($problemLanguage, $shouldFlush = true) {
 		$this->entityManager->remove($problemLanguage);
-		$this->entityManager->flush();
+		if ($shouldFlush) {
+			$this->entityManager->flush();
+		}
 	}
 
     public function getProblemLanguagesByProblem($problem) {

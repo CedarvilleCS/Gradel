@@ -14,9 +14,11 @@ class TeamService {
         $this->entityManager = $entityManager;
 	}
 
-	public function deleteTeam($team) {
+	public function deleteTeam($team, $shouldFlush = true) {
 		$this->entityManager->remove($team);
-		$this->entityManager->flush();
+		if ($shouldFlush) {
+			$this->entityManager->flush();
+		}
 	}
 
 	public function getTeam($user, $assignment) {

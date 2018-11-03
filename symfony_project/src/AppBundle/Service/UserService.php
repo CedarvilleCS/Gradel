@@ -15,6 +15,10 @@ class UserService {
         $this->entityManager = $entityManager;
     }
 
+    public function createUser($username, $email) {
+        return new User($username, $email);
+    }
+
     public function getAllUsers() {
         return $this->entityManager->getRepository("AppBundle\Entity\User")->findAll();
     }
@@ -36,6 +40,17 @@ class UserService {
 
     public function getUserById($userId) {
         return $this->entityManager->find("AppBundle\Entity\User", $userId);
+    }
+
+    public function getUserByObject($findBy) {
+        return $this->entityManager->getRepository("AppBundle\Entity\User")->findOneBy($findBy);
+    }
+
+    public function insertUser($user, $shouldFlush = true) {
+        $this->entityManager->persist($user);
+        if ($shouldFlush) {
+            $this->entityManager->flush();
+        }
     }
 }
 ?>

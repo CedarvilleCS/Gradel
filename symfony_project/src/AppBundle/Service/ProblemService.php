@@ -20,9 +20,11 @@ class ProblemService {
 		return new Problem();
 	}
 
-	public function deleteProblem($problem) {
+	public function deleteProblem($problem, $shouldFlush = true) {
 		$this->entityManager->remove($problem);
-		$this->entityManager->flush();
+		if ($shouldFlush) {
+			$this->entityManager->flush();
+		}
 	}
 	
 	public function getProblemById($problemId) {

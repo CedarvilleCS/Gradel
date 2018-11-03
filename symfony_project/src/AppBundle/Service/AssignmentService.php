@@ -21,9 +21,11 @@ class AssignmentService {
 		return $assignment;
 	}
 
-	public function deleteAssignment($assignment) {
+	public function deleteAssignment($assignment, $shouldFlush = true) {
 		$this->entityManager->remove($assignment);
-		$this->entityManager->flush();
+		if ($shouldFlush) {
+			$this->entityManager->flush();
+		}
 	}
 	
 	public function getAssignmentById($assignmentId) {
