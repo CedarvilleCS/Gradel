@@ -203,7 +203,7 @@ class TrialController extends Controller {
 	}
 	
 	private function logError($message) {
-		$errorMessage = "SectionController: ".$message;
+		$errorMessage = "TrialController: ".$message;
 		$this->logger->error($errorMessage);
 		return $errorMessage;
 	}

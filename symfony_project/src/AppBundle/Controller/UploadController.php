@@ -240,7 +240,7 @@ class UploadController extends Controller {
     }
 	
 	private function logError($message) {
-		$errorMessage = "SectionController: ".$message;
+		$errorMessage = "UploadController: ".$message;
 		$this->logger->error($errorMessage);
 		return $errorMessage;
 	}

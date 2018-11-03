@@ -13,7 +13,11 @@ class RoleService {
 
     public function __construct(EntityManagerInterface $entityManager) {
         $this->entityManager = $entityManager;
-	}
+    }
+    
+    public function getAllRoles() {
+        return $this->entityManager->getRepository("AppBundle\Entity\Role")->findAll();
+    }
 
 	public function getRoleByRoleName($roleName) {
         return $this->entityManager->getRepository("AppBundle\Entity\Role")->findOneBy(array("role_name" => $roleName));
