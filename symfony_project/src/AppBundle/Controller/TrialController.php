@@ -194,13 +194,10 @@ class TrialController extends Controller {
 	public function quickAction(Request $request) {	
 		$response = $this->forward("AppBundle\Controller\TrialController::trialModifyAction");
 				
-		if($response->getStatusCode() == Response::HTTP_OK){
-				
+		if ($response->getStatusCode() == Response::HTTP_OK) {
 			return $this->forward("AppBundle\Controller\CompilationController::submitAction", [
 				"trialId" => json_decode($response->getContent())->trial_id,
 			]);
-			
-			
 		} else {			
 			return $response;	
 		}		
