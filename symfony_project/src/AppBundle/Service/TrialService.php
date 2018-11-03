@@ -15,17 +15,8 @@ class TrialService {
     public function __construct(EntityManagerInterface $entityManager) {
         $this->entityManager = $entityManager;
 	}
-
-	public function createTrial($user, $problem) {
-		$trial = new Trial();
-
-		$trial->user = $user;
-		$trial->problem = $problem;
-
-		return $trial;
-	}
 	
-	public function createTrial($user, $problem, $showDescription) {
+	public function createTrial($user, $problem, $showDescription = "false") {
 		$trial = new Trial();
 
 		$trial->user = $user;
