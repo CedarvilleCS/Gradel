@@ -155,7 +155,6 @@ class TrialController extends Controller {
 		
 		if (!$trial) {
 			$trial = $this->trialService->createTrial($user, $problem);
-			$this->trialService->insertTrial($trial);
 		}
 		
 		$trial->last_edit_time = new \DateTime("now");
