@@ -76,7 +76,7 @@ class SectionController extends Controller {
     public function sectionAction($sectionId) {
 		$user = $this->userService->getCurrentUser();
 		if (!get_class($user)) {
-			return $this->returnForbiddenResponse("USER DOES NOT EXIST");
+			return $this->returnForbiddenResponse("YOU ARE NOT LOGGED IN");
 		}
 
 		$section = $this->sectionService->getSectionById($sectionId);
@@ -231,7 +231,7 @@ class SectionController extends Controller {
 
 		$user = $this->userService->getCurrentUser();
 		if (!get_class($user)) {
-			return $this->returnForbiddenResponse("USER DOES NOT EXIST");
+			return $this->returnForbiddenResponse("YOU ARE NOT LOGGED IN");
 		}
 
 		if ($sectionId != 0) {
@@ -287,7 +287,7 @@ class SectionController extends Controller {
 	public function cloneSectionAction($sectionId, $name, $semester, $year, $numberOfClones) {
 		$user = $this->userService->getCurrentUser();
 		if (!get_class($user)) {
-			return $this->returnForbiddenResponse("USER DOES NOT EXIST");
+			return $this->returnForbiddenResponse("YOU ARE NOT LOGGED IN");
 		}
 
 		$section = $this->sectionService->getSectionById($sectionId);
@@ -310,10 +310,10 @@ class SectionController extends Controller {
 
 	public function deleteSectionAction($sectionId) {
 		$user = $this->userService->getCurrentUser();
-		if(!$user){
-			return $this->returnForbiddenResponse("USER DOES NOT EXIST");
+		if (!get_class($user)) {
+			return $this->returnForbiddenResponse("YOU ARE NOT LOGGED IN");
 		}
-		if(!$user->hasRole(Constants::ADMIN_ROLE) && !$user->hasRole(Constants::SUPER_ROLE)){
+		if (!$user->hasRole(Constants::ADMIN_ROLE) && !$user->hasRole(Constants::SUPER_ROLE)) {
 			return $this->returnForbiddenResponse("YOU ARE NOT ALLOWED TO DELETE THIS SECTION");
 		}
 		
@@ -338,7 +338,7 @@ class SectionController extends Controller {
 		$user = $this->get("security.token_storage")->getToken()->getUser();
 		$user = $this->userService->getCurrentUser();
 		if (!get_class($user)) {
-			return $this->returnForbiddenResponse("USER DOES NOT EXIST");
+			return $this->returnForbiddenResponse("YOU ARE NOT LOGGED IN");
 		}
 		
 		/* See which fields were included */
@@ -571,110 +571,77 @@ class SectionController extends Controller {
 		$entityManager = $this->getDoctrine()->getManager();
 		// $graderService = new Grader($entityManager);
 
-		# validate the current user
-		$user = $this->get("security.token_storage")->getToken()->getUser();
-		if(!$user){
-			return $this->returnForbiddenResponse("You are not a user.");
+		/* Validate the current user */
+		$user = $this->userService->getCurrentUser();
+		if (!get_class($user)) {
+			return $this->returnForbiddenResponse("YOU ARE NOT LOGGED IN");
 		}
 
-		$elevatedUser = $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN");
+		$isElevatedUser = $user->hasRole(Constants::SUPER_ROLE) || $user->hasRole(Constnts::ADMIN_ROLE);
 
-		# see which fields were included
+		/* See which fields were included */
 		$postData = $request->request->all();
-
-		if(!isset($postData["val"]) || trim($postData["val"]) == ""){
-			return $this->returnForbiddenResponse("val must be provided for searching");			
+		$searchValue = $postData["val"];
+		if (!isset($searchValue) || trim($searchValue) == "") {
+			return $this->returnForbiddenResponse("SEARCH VALUE MUST BE PROVIDED FOR SEARCHING");			
 		}
 
-		if(!isset($postData["id"]) || trim($postData["id"]) == ""){
-			return $this->returnForbiddenResponse("section id must be provided for searching");			
+		$sectionId = $postData["id"];
+		if (!isset($sectionId) || trim($sectionId) == "") {
+			return $this->returnForbiddenResponse("SECTION ID MUST BE PROVIDED FOR SEARCHING");			
 		}
 
-		# VALIDATION
-		$searchVals = explode(";", $postData["val"]);
-		$section = $entityManager->find("AppBundle\Entity\Section", $postData["id"]);
+		/* Validation */
+		$searchValues = explode(";", $searchValue);
+		$section = $this->sectionService->getSectionById($sectionId);
 		
-		if( !($this->graderService->isTeaching($user, $section) || $this->graderService->isTaking($user, $section) || $this->graderService->isHelping($user, $section) || $elevatedUser) ){
-			return $this->returnForbiddenResponse("You are not allowed to search the submissions of this section");			
+		if (!($this->graderService->isTeaching($user, $section) || 
+			  $this->graderService->isTaking($user, $section) || 
+			  $this->graderService->isHelping($user, $section) || 
+			  $isElevatedUser)) {
+			return $this->returnForbiddenResponse("YOU ARE NOT ALLOWED THE SEARCH THE SUBMISSIONS OF THIS SECTION");
 		}
 
 		$elevatedQuery = "";
-		if($elevatedUser){
+		if ($isElevatedUser) {
 			$elevatedQuery = " OR 1=1";
 		}
 
-		$userTeams = $entityManager->createQueryBuilder()
-						->select("t")
-						->from("AppBundle\Entity\Team", "t")
-						->where(":user MEMBER OF t.users")
-						->setParameter("user", $user)
-						->getQuery()
-						->getResult();
-
-		$data_query = $entityManager->createQueryBuilder()
-				->select("s")
-				->from("AppBundle\Entity\Submission", "s")
-				->where("s.problem IN (?1)")
-				->andWhere("s.team IN (?2)".$elevatedQuery)
-				->orderBy("s.id", "DESC")
-				->setParameter(1, $section->getAllProblems())
-				->setParameter(2, $userTeams)
-				->getQuery();
+		$userTeams = $this->teamService->getTeamsForSectionSearch($user);
+		$submissionDataQuery = $this->submissionService->getSubmissionSearchDataQuery($section->getAllProblems(), $userTeams, $elevatedQuery);
 
 		$results = [];
 
-		foreach($searchVals as $searchVal){					
-			
+		$entityManager = $this->getDoctrine()->getManager();
+		foreach ($searchValues as $searchVal) {
 			$searchVal = trim($searchVal);
-			
-			$paginator = new Paginator($data_query, true);
+			$paginator = new Paginator($submissionDataQuery, true);
 
-			foreach($paginator as $sub){
-
-				if( $sub->id == $searchVal){
-					$results[] = $sub;
-					continue;
-				}
-
-				if( stripos($sub->problem->assignment->name, $searchVal) !== FALSE){
-					$results[] = $sub;
-					continue;
-				}
-
-				if( stripos($sub->problem->name, $searchVal) !== FALSE){
-					$results[] = $sub;
-					continue;
-				}
-
-				if( stripos($sub->user->getFullName(), $searchVal) !== FALSE){
-					$results[] = $sub;
-					continue;
-				}
-
-				if( stripos($sub->user->getEmail(), $searchVal) !== FALSE){
-					$results[] = $sub;
-					continue;
-				}
-
-				$teamStr = $sub->team->name;
-				foreach($sub->team->users as $usr){
-					$teamStr .= " ".$usr->getFullName()." ".$usr->getEmail();				
-				}
-				
-				if( stripos($teamStr, $searchVal) !== FALSE){
-					$results[] = $sub;
-					continue;	
-				}
-
-				if( $sub->isCorrect() && stripos("Correct", $searchVal) !== FALSE){
-					$results[] = $sub;
+			foreach ($paginator as $paginatedSubmission) {
+				if ($paginatedSubmission->id == $searchVal || 
+					stripos($paginatedSubmission->problem->assignment->name, $searchVal) !== false ||
+					stripos($paginatedSubmission->problem->name, $searchVal) !== false ||
+					stripos($paginatedSubmission->user->getFullName(), $searchVal) !== false ||
+					stripos($paginatedSubmission->user->getEmail(), $searchVal) !== false ||
+					$paginatedSubmission->isCorrect() && stripos("Correct", $searchVal) !== false) {
+					$results[] = $paginatedSubmission;
 					continue;				
-				} else if( stripos("Correct", $searchVal) !== FALSE ){
+				} else if (stripos("Correct", $searchVal) !== false) {
 					continue;
-				} else if( !$sub->isCorrect() && stripos($sub->getResultString(), $searchVal) !== FALSE){
-					$results[] = $sub;
+				} else if (!$paginatedSubmission->isCorrect() && stripos($paginatedSubmission->getResultString(), $searchVal) !== false) {
+					$results[] = $paginatedSubmission;
 					continue;
 				}	
+
+				$teamName = $paginatedSubmission->team->name;
+				foreach ($paginatedSubmission->team->users as $teamUser) {
+					$teamName .= " ".$teamUser->getFullName()." ".$teamUser->getEmail();
+				}
+				
+				if (stripos($teamName, $searchVal) !== false) {
+					$results[] = $paginatedSubmission;
+					continue;	
+				}
 
 				$entityManager->clear();
 			}
@@ -683,10 +650,7 @@ class SectionController extends Controller {
 		$response = new Response(json_encode([
 			"results" => $results,		
 		]));
-		$response->headers->set("Content-Type", "application/json");
-		$response->setStatusCode(Response::HTTP_OK);
-
-		return $response;
+		return $this->returnOkResponse($response);
 	}	
 
 	private function logError($message) {

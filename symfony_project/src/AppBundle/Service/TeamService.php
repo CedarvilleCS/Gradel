@@ -25,9 +25,9 @@ class TeamService {
 		# get all of the teams
 		$builder = $this->entityManager->createQueryBuilder();
 		$builder->select('t')
-		->from('AppBundle\Entity\Team', 't')
-		->where('t.assignment = ?1')
-		->setParameter(1, $assignment);
+			->from('AppBundle\Entity\Team', 't')
+			->where('t.assignment = ?1')
+			->setParameter(1, $assignment);
 		
 		$teamQuery = $builder->getQuery();
 		$teams = $teamQuery->getResult();
@@ -45,6 +45,16 @@ class TeamService {
 	
 	public function getTeamById($teamId) {
 		return $this->entityManager->find("AppBundle\Entity\Team", $teamId);
+	}
+
+	public function getTeamsForSectionSearch($user) {
+		$builder = $this->entityManager->createQueryBuilder()
+			->select("t")
+			->from("AppBundle\Entity\Team", "t")
+			->where(":user MEMBER OF t.users")
+			->setParameter("user", $user);
+		$teamQuery = $builder->getQuery();
+		return $teamQuery->getResult();
 	}
 
 	public function insertTeam($team, $shouldFlush = true) {

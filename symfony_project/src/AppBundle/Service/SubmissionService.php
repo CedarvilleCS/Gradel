@@ -119,6 +119,18 @@ class SubmissionService {
 		return $recentResultsQuery->getResult();
 	}
 
+	public function getSubmissionSearchDataQuery($problems, $userTeams, $elevatedQuery) {
+		$builder = $this->entityManager->createQueryBuilder()
+			->select("s")
+			->from("AppBundle\Entity\Submission", "s")
+			->where("s.problem IN (?1)")
+			->andWhere("s.team IN (?2)".$elevatedQuery)
+			->orderBy("s.id", "DESC")
+			->setParameter(1, $problems)
+			->setParameter(2, $userTeams);
+		return $builder->getQuery();
+	}
+
 	public function getSubmissionById($submissionId) {
 		return $this->entityManager->find("AppBundle\Entity\Submission", $submissionId);
 	}
