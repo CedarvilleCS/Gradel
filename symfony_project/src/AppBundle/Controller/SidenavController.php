@@ -69,7 +69,7 @@ class SidenavController extends Controller {
 				}
 				$sectionJSON = array(
 					"id" => $userSectionRole->section->id,
-					"courseCode" => $userSectionRole->section->course->code,
+					"name" => $userSectionRole->section->name,
 					"assignments" => $assignmentsJSON,
 				);
 				$sectionsTaking[] = $sectionJSON;
@@ -92,7 +92,7 @@ class SidenavController extends Controller {
 				}
 				$sectionJSON = array(
 					"id" => $userSectionRole->section->id,
-					"courseCode" => $userSectionRole->section->course->code,
+					"name" => $userSectionRole->section->name,
 					"assignments" => $assignmentsJSON,
 				);
 				$sectionsTeaching[] = $sectionJSON;

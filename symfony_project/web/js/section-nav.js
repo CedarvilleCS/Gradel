@@ -24,7 +24,7 @@ $.get(viewData.path, function (data) {
         if (section.assignments.length > 0) {
             html +=         `<img class="nav-chevron" onclick="chevronClick(this, 'section-${section.id}')" src="${asset('images/white_chevron.png')}" />`;
         }
-        html +=             `<a href="${path({'section': section.id})}">${section.courseCode}</a>
+        html +=             `<a href="${path({'section': section.id})}">${section.name}</a>
                         </div>`;
         section.assignments.forEach((assignment, assignmentIndex) => {
             html +=     `<div class="nav-assignment section-${section.id}">
@@ -53,7 +53,7 @@ $.get(viewData.path, function (data) {
             if (section.assignments.length > 0) {
                 html +=     `<img class="nav-chevron" onclick="chevronClick(this, 'section-${section.id}')" src="${asset('images/white_chevron.png')}" />`;
             }
-        html +=             `<a href="${path({'section': section.id})}">${section.courseCode}</a>
+        html +=             `<a href="${path({'section': section.id})}">${section.name}</a>
                         </div>`;
         section.assignments.forEach((assignment, assignmentIndex) => {
             html +=     `<div class="nav-assignment section-${section.id}">

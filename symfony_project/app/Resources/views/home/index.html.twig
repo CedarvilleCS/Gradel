@@ -27,7 +27,7 @@
 						{% for section in sections_taking %}
 							<div class="section-container">
 								<div class="section-title">
-									<a href="{{path('section', {'sectionId':section.id})}}">{{section.course.code}}</a>
+									<a href="{{path('section', {'sectionId':section.id})}}">{{section.name}}</a>
 								</div>
 								{% set oldDate = '' %}
 								{% for asgn in section.assignments %}
@@ -46,7 +46,7 @@
 						{% for section in sections_teaching %}
 							<div class="section-container">
 								<div class="section-title">
-									<a href="{{path('section', {'sectionId':section.id})}}">{{section.course.code}}</a>
+									<a href="{{path('section', {'sectionId':section.id})}}">{{section.name}}</a>
 								</div>
 								{% set oldDate = '' %}
 								{% for asgn in section.assignments %}
