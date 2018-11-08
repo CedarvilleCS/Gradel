@@ -40,8 +40,8 @@ class GraderService {
 	}
 	
 	private function isRole($user, $section, $role) {
-		$qb = $this->entityManager->createQueryBuilder();
-		$qb->select("usr")
+		$builder = $this->entityManager->createQueryBuilder();
+		$builder->select("usr")
 			->from("AppBundle\Entity\UserSectionRole", "usr")
 			->where("usr.role = ?1")
 			->andWhere("usr.user = ?2")
@@ -50,10 +50,9 @@ class GraderService {
 			->setParameter(2, $user)
 			->setParameter(3, $section);
 			
-		$query = $qb->getQuery();
-		$usr = $query->getOneOrNullResult();
+		$roleQuery = $builder->getQuery();
 		
-		return isset($usr);
+		return isset($roleQuery->getOneOrNullResult());
 	}	
 	
 	public function isTeaching($user, $section) {

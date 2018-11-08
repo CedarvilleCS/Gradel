@@ -54,13 +54,13 @@ class ContestCompilationController extends Controller {
         $this->userService = $userService;
     }
 
-	public function contestSubmitAction(Request $request, $trialId = 0) {
+    public function contestSubmitAction(Request $request, $trialId = 0) {
         $entityManager = $this->getDoctrine()->getManager();
         
         /* Get the current user */
-		$user = $this->userService->getCurrentUser();
-		if (!get_class($user)) {
-			return $this->returnForbiddenResponse("USER DOES NOT EXIST");
+        $user = $this->userService->getCurrentUser();
+        if (!get_class($user)) {
+            return $this->returnForbiddenResponse("USER DOES NOT EXIST");
         }
         
         /* Forward to actual compilation controller */
@@ -98,9 +98,9 @@ class ContestCompilationController extends Controller {
             $pusher->sendScoreboardUpdates();
         } else {
             /* Send the ungraded one to the judges for grading */
-		    $pusher->sendNewSubmission($submission);
+            $pusher->sendNewSubmission($submission);
         }
-				
+                
         $url = $this->generateUrl('contest_result', [
             'contestId' => $submission->problem->assignment->section->id,
             'roundId' => $submission->problem->assignment->id,
@@ -109,43 +109,43 @@ class ContestCompilationController extends Controller {
         ]);
 
         $response = new Response(json_encode([		
-			'redirect_url' => $url,	
-			'submission_id' => $submission->id,		
+            'redirect_url' => $url,	
+            'submission_id' => $submission->id,		
         ]));
 
         return returnOkResponse($response);
     } 
 
-	public function contestQuickAction(Request $request) {
-		$response = $this->forward('AppBundle\Controller\TrialController::trialModifyAction');
-				
-		if ($response->getStatusCode() == Response::HTTP_OK) {
-			return $this->forward('AppBundle\Controller\ContestCompilationController::contestSubmitAction', [
-				'trialId' => json_decode($response->getContent())->trial_id,
-			]);
-		} else {			
-			return $response;	
-		}	
-	}
+    public function contestQuickAction(Request $request) {
+        $response = $this->forward('AppBundle\Controller\TrialController::trialModifyAction');
+                
+        if ($response->getStatusCode() == Response::HTTP_OK) {
+            return $this->forward('AppBundle\Controller\ContestCompilationController::contestSubmitAction', [
+                'trialId' => json_decode($response->getContent())->trial_id,
+            ]);
+        } else {			
+            return $response;	
+        }	
+    }
 
     private function logError($message) {
-		$errorMessage = "ContestCompilationController: ".$message;
-		$this->logger->error($errorMessage);
-		return $errorMessage;
-	}
-	
-	private function returnForbiddenResponse($message){		
-		$response = new Response($message);
-		$response->setStatusCode(Response::HTTP_FORBIDDEN);
-		$this->logError($message);
-		return $response;
-	}
+        $errorMessage = "ContestCompilationController: ".$message;
+        $this->logger->error($errorMessage);
+        return $errorMessage;
+    }
+    
+    private function returnForbiddenResponse($message){		
+        $response = new Response($message);
+        $response->setStatusCode(Response::HTTP_FORBIDDEN);
+        $this->logError($message);
+        return $response;
+    }
 
-	private function returnOkResponse($response) {
-		$response->headers->set("Content-Type", "application/json");
-		$response->setStatusCode(Response::HTTP_OK);
-		return $response;
-	}
+    private function returnOkResponse($response) {
+        $response->headers->set("Content-Type", "application/json");
+        $response->setStatusCode(Response::HTTP_OK);
+        return $response;
+    }
 }
 
 ?>

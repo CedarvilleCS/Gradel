@@ -42,22 +42,20 @@ class Grader  {
 	}
 	
 	private function isRole($user, $section, $role){
-
-		// $qb = $this->em->createQueryBuilder();
-		// $qb->select('usr')
-		// 	->from('AppBundle\Entity\UserSectionRole', 'usr')
-		// 	->where('usr.role = ?1')
-		// 	->andWhere('usr.user = ?2')
-		// 	->andWhere('usr.section = ?3')
-		// 	->setParameter(1, $role)
-		// 	->setParameter(2, $user)
-		// 	->setParameter(3, $section);
+		$qb = $this->em->createQueryBuilder();
+		$qb->select('usr')
+			->from('AppBundle\Entity\UserSectionRole', 'usr')
+			->where('usr.role = ?1')
+			->andWhere('usr.user = ?2')
+			->andWhere('usr.section = ?3')
+			->setParameter(1, $role)
+			->setParameter(2, $user)
+			->setParameter(3, $section);
 			
-		// $query = $qb->getQuery();
-		// $usr = $query->getOneOrNullResult();
+		$query = $qb->getQuery();
+		$usr = $query->getOneOrNullResult();
 		
-		// return isset($usr);
-		return false;
+		return isset($usr);
 	}	
 	
 	public function isTeaching($user, $section){

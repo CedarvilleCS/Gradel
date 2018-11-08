@@ -11,14 +11,14 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 
 class HilariousController extends Controller {
-	
+    
     public function spinAction() {
-		$user = $this->get('security.token_storage')->getToken()->getUser();
-	  	if (!get_class($user)) {
-			die("USER DOES NOT EXIST!");		  
-		}
-		
-		return $this->render('hilarious/chihuahua_spin.html.twig', []);
+        $user = $this->get('security.token_storage')->getToken()->getUser();
+        if (!get_class($user)) {
+            die("USER DOES NOT EXIST!");		  
+        }
+        
+        return $this->render('hilarious/chihuahua_spin.html.twig', []);
     }
 }
 
