@@ -51,8 +51,9 @@ class GraderService {
 			->setParameter(3, $section);
 			
 		$roleQuery = $builder->getQuery();
+		$result = $roleQuery->getOneOrNullResult();
 		
-		return isset($roleQuery->getOneOrNullResult());
+		return isset($result);
 	}	
 	
 	public function isTeaching($user, $section) {
