@@ -38,8 +38,6 @@
 
 <body>
     {{ include('template/top-nav.html.twig') }}
-
-	{#{{ include('template/problem-nav.html.twig') }}#}
 	{{ include('template/section-nav.html.twig') }}
 	
 	{% if grader.isTeaching(app.user, assignment.section) or is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") %}
