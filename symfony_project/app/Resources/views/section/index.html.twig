@@ -201,17 +201,17 @@
 						+				"{# {{ grades|json_encode() }} #}"
 						+				"{% if grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] == grades[user.id][asgn.id]['problem_grades'][problem.id]['total_testcases'] %}"
 						+'<td style="color:green; font-size: 20px"><a style="margin:0; width:100%; height:100%;" href=' 
-						+ "{{path('problem_result', {'submission_id': user_assig_prob_sub[user.id][asgn.id][problem.id]})}}"
+						+ "{{path('problem_result', {'submissionId': user_assig_prob_sub[user.id][asgn.id][problem.id]})}}"
 						+ '>' 
 						+ "{{ grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] }}  / {{ grades[user.id][asgn.id]['problem_grades'][problem.id]['total_testcases'] }}</a></td>"
 						+				"{% elseif grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] != 0 %}"
 						+					'<td style="color:orange; font-size: 20px"><a style="margin:0; width:100%; height:100%;" href=' 
-						+ "{{path('problem_result', {'submission_id': user_assig_prob_sub[user.id][asgn.id][problem.id]})}}"
+						+ "{{path('problem_result', {'submissionId': user_assig_prob_sub[user.id][asgn.id][problem.id]})}}"
 						+ '>' 
 						+ "{{ grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] }}  / {{ grades[user.id][asgn.id]['problem_grades'][problem.id]['total_testcases'] }}</a></td>"
 						+				"{% else %}"
 						+					'<td style="color:red; font-size: 20px"><a style="margin:0; width:100%; height:100%;" href=' 
-						+ "{{path('problem_result', {'submission_id': user_assig_prob_sub[user.id][asgn.id][problem.id]})}}"
+						+ "{{path('problem_result', {'submissionId': user_assig_prob_sub[user.id][asgn.id][problem.id]})}}"
 						+ '>' 
 						+ "{{ grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] }}  / {{ grades[user.id][asgn.id]['problem_grades'][problem.id]['total_testcases'] }}</a></td>"
 						+				"{% endif %}"									
@@ -468,7 +468,7 @@
 
 					var resultColor = (res.is_correct) ? "green" : "red";
 
-					var searchResult = "<li style='color: " + resultColor + "'><a href='{{path('problem_result', {'submission_id': ''})}}" +res.id + "'>" + res.id + " - [" + res.problem.name + "] <b>" + names + "<i> - " + resultStr + "</i></b></a></li>";
+					var searchResult = "<li style='color: " + resultColor + "'><a href='{{path('problem_result', {'submissionId': ''})}}" +res.id + "'>" + res.id + " - [" + res.problem.name + "] <b>" + names + "<i> - " + resultStr + "</i></b></a></li>";
 
 					$('#submissions-list').append(searchResult);
 				}

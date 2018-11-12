@@ -1,6 +1,6 @@
 <?php
 
-namespace AppBundle\Utils;
+namespace AppBundle\Service;
 
 use AppBundle\Entity\Role;
 use AppBundle\Entity\User;
@@ -27,60 +27,57 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
 use Psr\Log\LoggerInterface;
+use Doctrine\ORM\EntityManagerInterface;
 
-class Grader  {
+class GraderService {
+	public $entityManager;
+	public $logger;
 	
-	public $em;
-	
-	public function __construct($em) {
-		
-		if(stripos(get_class($em), "EntityManager") === FALSE){
-			throw new Exception('The Grader class must be given a EntityManager but was given '.get_class($em));
-		}
-		
-		$this->em = $em;
+	public function __construct(EntityManagerInterface $entityManager,
+	                            LoggerInterface $logger) {
+		$this->entityManager = $entityManager;
+		$this->logger = $logger;
 	}
 	
-	private function isRole($user, $section, $role){
-		$qb = $this->em->createQueryBuilder();
-		$qb->select('usr')
-			->from('AppBundle\Entity\UserSectionRole', 'usr')
-			->where('usr.role = ?1')
-			->andWhere('usr.user = ?2')
-			->andWhere('usr.section = ?3')
+	private function isRole($user, $section, $role) {
+		$builder = $this->entityManager->createQueryBuilder();
+		$builder->select("usr")
+			->from("AppBundle\Entity\UserSectionRole", "usr")
+			->where("usr.role = ?1")
+			->andWhere("usr.user = ?2")
+			->andWhere("usr.section = ?3")
 			->setParameter(1, $role)
 			->setParameter(2, $user)
 			->setParameter(3, $section);
 			
-		$query = $qb->getQuery();
-		$usr = $query->getOneOrNullResult();
+		$roleQuery = $builder->getQuery();
+		$result = $roleQuery->getOneOrNullResult();
 		
-		return isset($usr);
+		return isset($result);
 	}	
 	
-	public function isTeaching($user, $section){
-		
-		$role = $this->em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Teaches'));		
+	public function isTeaching($user, $section) {
+		$role = $this->entityManager->getRepository("AppBundle\Entity\Role")->findOneBy(array("role_name" => "Teaches"));		
 		
 		return $this->isRole($user, $section, $role);
 	}
 	
-	public function isTaking($user, $section){
-		$role = $this->em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));		
+	public function isTaking($user, $section) {
+		$role = $this->entityManager->getRepository("AppBundle\Entity\Role")->findOneBy(array("role_name" => "Takes"));		
 		
 		return $this->isRole($user, $section, $role);		
 	}
 		
 	public function isHelping($user, $section){
 		
-		$role = $this->em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Helps'));		
+		$role = $this->entityManager->getRepository("AppBundle\Entity\Role")->findOneBy(array("role_name" => "Helps"));		
 		
 		return $this->isRole($user, $section, $role);	
 	}
 	
 	public function isJudging($user, $section){
 		
-		$role = $this->em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Judges'));		
+		$role = $this->entityManager->getRepository("AppBundle\Entity\Role")->findOneBy(array("role_name" => "Judges"));		
 		
 		return $this->isRole($user, $section, $role);		
 	}
@@ -93,10 +90,10 @@ class Grader  {
 	public function getTeam($user, $assignment){
 		
 		# get all of the teams
-		$qb_teams = $this->em->createQueryBuilder();
-		$qb_teams->select('t')
-				->from('AppBundle\Entity\Team', 't')
-				->where('t.assignment = ?1')
+		$qb_teams = $this->entityManager->createQueryBuilder();
+		$qb_teams->select("t")
+				->from("AppBundle\Entity\Team", "t")
+				->where("t.assignment = ?1")
 				->setParameter(1, $assignment);
 				
 		$query_team = $qb_teams->getQuery();
@@ -121,14 +118,14 @@ class Grader  {
 		$team = $this->getTeam($user, $problem->assignment);		
 		
 		# array of all submissions
-		$qb_subs = $this->em->createQueryBuilder();
-		$qb_subs->select('s')
-			->from('AppBundle\Entity\Submission', 's')
-			->where('s.problem = ?1')
-			->andWhere('s.team = ?2')
+		$qb_subs = $this->entityManager->createQueryBuilder();
+		$qb_subs->select("s")
+			->from("AppBundle\Entity\Submission", "s")
+			->where("s.problem = ?1")
+			->andWhere("s.team = ?2")
 			->setParameter(1, $problem)
 			->setParameter(2, $team)
-			->orderBy('s.timestamp', 'ASC');
+			->orderBy("s.timestamp", "ASC");
 			
 		$subs_query = $qb_subs->getQuery();
 		$subs = $subs_query->getResult();
@@ -139,12 +136,12 @@ class Grader  {
 	public function getProbTotalAttempts($problem){	
 		
 		# array of all submissions
-		$qb_subs = $this->em->createQueryBuilder();
-		$qb_subs->select('s')
-			->from('AppBundle\Entity\Submission', 's')
-			->where('s.problem = ?1')
+		$qb_subs = $this->entityManager->createQueryBuilder();
+		$qb_subs->select("s")
+			->from("AppBundle\Entity\Submission", "s")
+			->where("s.problem = ?1")
 			->setParameter(1, $problem)
-			->orderBy('s.timestamp', 'ASC');
+			->orderBy("s.timestamp", "ASC");
 			
 		$subs_query = $qb_subs->getQuery();
 		$subs = $subs_query->getResult();
@@ -158,12 +155,12 @@ class Grader  {
 		$team = $this->getTeam($user, $problem->assignment);		
 		
 		# accepted submission
-		$qb_accepted_sub = $this->em->createQueryBuilder();
-		$qb_accepted_sub->select('s')
-			->from('AppBundle\Entity\Submission', 's')
-			->where('s.problem = ?1')
-			->andWhere('s.team = ?2')
-			->andWhere('s.best_submission = true')
+		$qb_accepted_sub = $this->entityManager->createQueryBuilder();
+		$qb_accepted_sub->select("s")
+			->from("AppBundle\Entity\Submission", "s")
+			->where("s.problem = ?1")
+			->andWhere("s.team = ?2")
+			->andWhere("s.best_submission = true")
 			->setParameter(1, $problem)
 			->setParameter(2, $team);
 			
@@ -175,14 +172,14 @@ class Grader  {
 		}
 		
 		# array of all submissions
-		$qb_subs = $this->em->createQueryBuilder();
-		$qb_subs->select('s')
-			->from('AppBundle\Entity\Submission', 's')
-			->where('s.problem = ?1')
-			->andWhere('s.team = ?2')
+		$qb_subs = $this->entityManager->createQueryBuilder();
+		$qb_subs->select("s")
+			->from("AppBundle\Entity\Submission", "s")
+			->where("s.problem = ?1")
+			->andWhere("s.team = ?2")
 			->setParameter(1, $problem)
 			->setParameter(2, $team)
-			->orderBy('s.timestamp', 'ASC');
+			->orderBy("s.timestamp", "ASC");
 			
 		$subs_query = $qb_subs->getQuery();
 		$subs = $subs_query->getResult();
@@ -209,19 +206,19 @@ class Grader  {
 		$team = $this->getTeam($user, $problem->assignment);
 		
 		# accepted submission
-		$qb_accepted_sub = $this->em->createQueryBuilder();
-		$qb_accepted_sub->select('s')
-			->from('AppBundle\Entity\Submission', 's')
-			->where('s.problem = ?1')
-			->andWhere('s.team = ?2')
-			->andWhere('s.best_submission = true')
+		$qb_accepted_sub = $this->entityManager->createQueryBuilder();
+		$qb_accepted_sub->select("s")
+			->from("AppBundle\Entity\Submission", "s")
+			->where("s.problem = ?1")
+			->andWhere("s.team = ?2")
+			->andWhere("s.best_submission = true")
 			->setParameter(1, $problem)
 			->setParameter(2, $team);
 			
 		$accepted_sub_query = $qb_accepted_sub->getQuery();
 		$accepted_sub = $accepted_sub_query->getOneOrNullResult();
 		
-		$grades['accepted_submission'] = $accepted_sub;
+		$grades["accepted_submission"] = $accepted_sub;
 		
 		# test cases total
 		$total_testcases = count($problem->testcases);
@@ -236,16 +233,16 @@ class Grader  {
 			$total_normal_testcases++;			
 		}
 		
-		$grades['total_testcases'] = $total_normal_testcases;	
+		$grades["total_testcases"] = $total_normal_testcases;	
 
-		$grades['total_extra_testcases'] = $total_testcases - $total_normal_testcases;
+		$grades["total_extra_testcases"] = $total_testcases - $total_normal_testcases;
 		$attempts = $this->getNumAttempts($user, $problem);				
-		$grades['attempts'] = $attempts;		
+		$grades["attempts"] = $attempts;		
 		
 		# temp values
-		$grades['passed_testcases'] = 0;
-		$grades['percentage_raw'] = 0;
-		$grades['percentage_adj'] = 0;
+		$grades["passed_testcases"] = 0;
+		$grades["percentage_raw"] = 0;
+		$grades["percentage_adj"] = 0;
 		
 		if($accepted_sub){
 			
@@ -261,11 +258,11 @@ class Grader  {
 					}
 				}
 			}
-			$grades['passed_testcases'] = $passed_testcases;
-			$grades['passed_extra_testcases'] = $passed_extra_testcases;
+			$grades["passed_testcases"] = $passed_testcases;
+			$grades["passed_extra_testcases"] = $passed_extra_testcases;
 			
 			# percentage grade - raw
-			$grades['percentage_raw'] = (float)$accepted_sub->percentage;
+			$grades["percentage_raw"] = (float)$accepted_sub->percentage;
 			
 			# percentage grade - after mods			
 			$num_before_penalty = $problem->attempts_before_penalty;
@@ -275,7 +272,7 @@ class Grader  {
 			$total_penalty = $attempts_to_penalize*$penalty_percentage;
 			
 			$adjusted_percentage = max($accepted_sub->percentage - $total_penalty, 0);
-			$grades['percentage_adj'] = $adjusted_percentage;
+			$grades["percentage_adj"] = $adjusted_percentage;
 		}
 		
 		return $grades;		
@@ -319,26 +316,26 @@ class Grader  {
 		$num_correct_problems = 0;
 		$num_extra_correct_problems = 0;
 		
-		$grade['num_problems'] = $normal_problem_count;
-		$grade['num_extra_problems'] = $extra_problem_count;
-		$grade['num_correct_problems'] = 0;
-		$grade['num_extra_correct_problems'] = 0;
+		$grade["num_problems"] = $normal_problem_count;
+		$grade["num_extra_problems"] = $extra_problem_count;
+		$grade["num_correct_problems"] = 0;
+		$grade["num_extra_correct_problems"] = 0;
 		
-		$grade['percentage_raw'] = 0.0;
-		$grade['percentage_adj'] = 0.0;
+		$grade["percentage_raw"] = 0.0;
+		$grade["percentage_adj"] = 0.0;
 		
 		$problem_grades = $this->getAllProblemGrades($user, $assignment);
-		$grade['problem_grades'] = $problem_grades;
+		$grade["problem_grades"] = $problem_grades;
 		
 		
 		$assignment_percentage = 0.0;
 		foreach($assignment->problems as $problem){	
 		
-			$problem_percentage = $problem_grades[$problem->id]['percentage_adj'];
+			$problem_percentage = $problem_grades[$problem->id]["percentage_adj"];
 			
 			$assignment_percentage += $problem_percentage*$problem->weight/$total_problem_weight;
 						
-			if($problem_grades[$problem->id]['total_testcases'] > 0 && $problem_grades[$problem->id]['passed_testcases'] == $problem_grades[$problem->id]['total_testcases']){
+			if($problem_grades[$problem->id]["total_testcases"] > 0 && $problem_grades[$problem->id]["passed_testcases"] == $problem_grades[$problem->id]["total_testcases"]){
 				
 				if($problem->is_extra_credit){
 					$num_extra_correct_problems++;
@@ -348,30 +345,30 @@ class Grader  {
 			}
 		}
 		
-		$grade['num_correct_problems'] = $num_correct_problems;
-		$grade['num_extra_correct_problems'] = $num_extra_correct_problems;
+		$grade["num_correct_problems"] = $num_correct_problems;
+		$grade["num_extra_correct_problems"] = $num_extra_correct_problems;
 	
-		$grade['percentage_raw'] = $assignment_percentage;
+		$grade["percentage_raw"] = $assignment_percentage;
 	
 		$most_recent_sub = null;
 		foreach($problem_grades as $pg){
 			
-			if(! (isset($pg) && isset($pg['accepted_submission']) && isset($pg['accepted_submission']->timestamp)) ){
+			if(! (isset($pg) && isset($pg["accepted_submission"]) && isset($pg["accepted_submission"]->timestamp)) ){
 				continue;
 			}
 			
-			if(!isset($most_recent_sub) || isset($most_recent_sub) && $most_recent_sub < $pg['accepted_submission']->timestamp){
-				$most_recent_sub = $pg['accepted_submission']->timestamp;
+			if(!isset($most_recent_sub) || isset($most_recent_sub) && $most_recent_sub < $pg["accepted_submission"]->timestamp){
+				$most_recent_sub = $pg["accepted_submission"]->timestamp;
 			}
 		}
 	
 		$num_days_over = 0;
 		if($most_recent_sub > $assignment->end_time){
-			$num_days_over = 1+(int)$most_recent_sub->diff($assignment->end_time)->format('%a');
+			$num_days_over = 1+(int)$most_recent_sub->diff($assignment->end_time)->format("%a");
 		}
 	
 		$assignment_percentage_adj = max($assignment_percentage - $num_days_over*$assignment->penalty_per_day, 0);
-		$grade['percentage_adj'] = $assignment_percentage_adj;
+		$grade["percentage_adj"] = $assignment_percentage_adj;
 
 		return $grade;
 	}
@@ -393,7 +390,7 @@ class Grader  {
 		
 		$grade = [];
 		
-		$grade['percentage_adj'] = 0;
+		$grade["percentage_adj"] = 0;
 		
 		$num_finished_assignments = 0;
 		$num_future_assignments = 0;
@@ -428,22 +425,22 @@ class Grader  {
 				continue;
 			}
 						
-			$assignment_percentage = $assignment_grades[$assignment->id]['percentage_adj'];
+			$assignment_percentage = $assignment_grades[$assignment->id]["percentage_adj"];
 			
 			$total_percentage_weighted += $assignment_percentage*$assignment->weight/$total_finished_weight;
 		}
 		
-		$grade['percentage_adj'] = $total_percentage_weighted;
+		$grade["percentage_adj"] = $total_percentage_weighted;
 
 		return $grade;
 	}
 	
 	public function getAllSectionGrades($user){
 			
-		$qb_usr = $this->em->createQueryBuilder();
-		$qb_usr->select('usr')
-			->from('AppBundle\Entity\UserSectionRole', 'usr')
-			->where('usr.user = ?1')
+		$qb_usr = $this->entityManager->createQueryBuilder();
+		$qb_usr->select("usr")
+			->from("AppBundle\Entity\UserSectionRole", "usr")
+			->where("usr.user = ?1")
 			->setParameter(1, $user);
 
 		$usr_query = $qb_usr->getQuery();
@@ -452,7 +449,7 @@ class Grader  {
 		$sections = [];
 		foreach($usersectionroles as $usr){
 			
-			if($usr->role->role_name == 'Takes'){
+			if($usr->role->role_name == "Takes"){
 				$sections[] = $usr->section;	
 			}			
 		}
@@ -483,31 +480,31 @@ class Grader  {
 		$feedback = [];	
 		
 		// boolean for displaying individual testcase results
-		$feedback['display_markers'] = $display_testcaseresults;
+		$feedback["display_markers"] = $display_testcaseresults;
 		// boolean for displaying individual extra credit testcase results
-		$feedback['extra_testcases_display'] = $extra_testcases_display;
+		$feedback["extra_testcases_display"] = $extra_testcases_display;
 		// boolean for stopping on the first failure
-		$feedback['stop_on_first_fail'] = $stop_on_first_fail;
+		$feedback["stop_on_first_fail"] = $stop_on_first_fail;
 		
 		
 		// boolean for show input for testcases
-		$feedback['show_input'] = false;
+		$feedback["show_input"] = false;
 		// boolean for show output for testcases
-		$feedback['show_output'] = false;
+		$feedback["show_output"] = false;
 		
 		// array of short/long feedback
-		$feedback['response'] = [];
+		$feedback["response"] = [];
 		
 			
 		if($testcase_output_level == "Output"){
-			$feedback['show_output'] = true;
+			$feedback["show_output"] = true;
 			
 		} else if($testcase_output_level == "Both"){
-			$feedback['show_output'] = true;
-			$feedback['show_input'] = true;
+			$feedback["show_output"] = true;
+			$feedback["show_input"] = true;
 		}
 		
-		$feedback['highlights'] = [];
+		$feedback["highlights"] = [];
 		$highlights = [];
 		
 		// loop through the results
@@ -523,14 +520,14 @@ class Grader  {
 				$resp = trim($tcr->testcase->feedback->short_response);
 				
 				if($resp != ""){
-					$feedback['response'][$tcr->testcase->seq_num] = $resp;
+					$feedback["response"][$tcr->testcase->seq_num] = $resp;
 				}
 			} else if($tcr->testcase->feedback != null && !$tcr->is_correct && $response_level == "Long"){
 				
 				$resp = trim($tcr->testcase->feedback->long_response);
 				
 				if($resp != ""){
-					$feedback['response'][$tcr->testcase->seq_num] = $resp;
+					$feedback["response"][$tcr->testcase->seq_num] = $resp;
 				}
 			}
 			
@@ -552,7 +549,7 @@ class Grader  {
 				$usr = str_replace("\n", "A\n", $usr);
 								
 				if(strlen($usr) == 0){
-					$ranges[] = ['index' => -1, 'indexEnd' => -1];
+					$ranges[] = ["index" => -1, "indexEnd" => -1];
 				}
 				
 				for($i=0; $i<strlen($exp) && $i<strlen($usr); $i++){
@@ -585,7 +582,7 @@ class Grader  {
 							$indexEnd = strlen($usr)-1;
 						}
 
-						$ranges[] = ['index' => $index, 'indexEnd' => $indexEnd];
+						$ranges[] = ["index" => $index, "indexEnd" => $indexEnd];
 						
 						$index = $indexEnd + 1;
 						$indexEnd = -1;
@@ -593,7 +590,7 @@ class Grader  {
 					
 				}
 				
-				$highlights[] = ['id' => $tcr->id, 'ranges' => $ranges];
+				$highlights[] = ["id" => $tcr->id, "ranges" => $ranges];
 
 				//die(json_encode($highlights));
 			}
@@ -601,10 +598,10 @@ class Grader  {
 		
 		//die(json_encode($highlights));
 		
-		$feedback['highlights'] = $highlights;
+		$feedback["highlights"] = $highlights;
 			
-		if(!$feedback['display_markers']){
-			$feedback['response'] = array_unique($feedback['response']);
+		if(!$feedback["display_markers"]){
+			$feedback["response"] = array_unique($feedback["response"]);
 		}
 		
 		return $feedback;		
@@ -632,7 +629,7 @@ class Grader  {
 			return true;
 		}
 		else {
-			#echo "Only change if the old one isn't set";
+			#echo "Only change if the old one isn"t set";
 			return $previous == null;
 		}
 		
@@ -672,20 +669,20 @@ class Grader  {
 		}
 		
 		// get submissions
-		$qb_subs = $this->em->createQueryBuilder();
-		$qb_subs->select('s')
-			->from('AppBundle\Entity\Submission', 's')
-			->where('s.problem = ?1')
-			->andWhere('s.team = ?2')
-			->andWhere('s.pending_status = ?3')
-			->andWhere('s.is_completed = ?4')
-			->andWhere('s.timestamp <= ?5')
+		$qb_subs = $this->entityManager->createQueryBuilder();
+		$qb_subs->select("s")
+			->from("AppBundle\Entity\Submission", "s")
+			->where("s.problem = ?1")
+			->andWhere("s.team = ?2")
+			->andWhere("s.pending_status = ?3")
+			->andWhere("s.is_completed = ?4")
+			->andWhere("s.timestamp <= ?5")
 			->setParameter(1, $problem)
 			->setParameter(2, $team)
 			->setParameter(3, 2)
 			->setParameter(4, true)
 			->setParameter(5, $time_max)
-			->orderBy('s.timestamp', 'ASC');
+			->orderBy("s.timestamp", "ASC");
 			
 		$subs_query = $qb_subs->getQuery();
 		$subs = $subs_query->getResult();
@@ -729,7 +726,7 @@ class Grader  {
 			$penalty_points_raw += $pen_type_val;
 		}
 		
-		$score['num_attempts'] = $num_attempts;
+		$score["num_attempts"] = $num_attempts;
 		
 		
 		// get time of sub
@@ -745,20 +742,20 @@ class Grader  {
 			$is_correct = true;
 			$time_of_sub = max((int) ceil($time_diff / 60), 0);
 					
-			$score['penalty_points_raw'] = $penalty_points_raw;			
-			$score['penalty_points'] = $time_of_sub + $penalty_points_raw;
+			$score["penalty_points_raw"] = $penalty_points_raw;			
+			$score["penalty_points"] = $time_of_sub + $penalty_points_raw;
 			
 		} else {
 			
 			$is_correct = false;
 			$time_of_sub = -1;	
 
-			$score['penalty_points_raw'] = -1;
-			$score['penalty_points'] = -1;
+			$score["penalty_points_raw"] = -1;
+			$score["penalty_points"] = -1;
 		}
 		
-		$score['correct'] = $is_correct;
-		$score['time'] = $time_of_sub;
+		$score["correct"] = $is_correct;
+		$score["time"] = $time_of_sub;
 		
 		
 		
@@ -788,33 +785,33 @@ class Grader  {
 		
 		foreach($scores as $scr){
 			
-			$results[] = $scr['correct'];
+			$results[] = $scr["correct"];
 			
-			if($scr['correct']){
+			if($scr["correct"]){
 				
 				$num_correct++;
-				$total_penalty += $scr['penalty_points'];
+				$total_penalty += $scr["penalty_points"];
 			}
 			
-			$penalties[] = $scr['penalty_points'];
-			$raw_penalties[] = $scr['penalty_points_raw'];
-			$times[] = $scr['time'];	
-			$attempts[] = $scr['num_attempts'];
+			$penalties[] = $scr["penalty_points"];
+			$raw_penalties[] = $scr["penalty_points_raw"];
+			$times[] = $scr["time"];	
+			$attempts[] = $scr["num_attempts"];
 		}
 		
 		$score = [];
 		
-		$score['team_id'] = $team->id;
-		$score['team_name'] = $team->name;
-		$score['member_string'] = $team->getMemberString();
-		$score['num_correct'] = $num_correct;
-		$score['total_penalty'] = $total_penalty;
-		$score['results'] = $results; // boolean array of yes/no solved per problem
-		$score['penalties'] = $penalties; // int array of penalties per problem
-		$score['raw_penalties'] = $raw_penalties; // int array of penalties per problem without  
-		$score['times'] = $times;
-		$score['attempts'] = $attempts; // integer array of attempts per problem
-		$score['rank'] = -1;
+		$score["team_id"] = $team->id;
+		$score["team_name"] = $team->name;
+		$score["member_string"] = $team->getMemberString();
+		$score["num_correct"] = $num_correct;
+		$score["total_penalty"] = $total_penalty;
+		$score["results"] = $results; // boolean array of yes/no solved per problem
+		$score["penalties"] = $penalties; // int array of penalties per problem
+		$score["raw_penalties"] = $raw_penalties; // int array of penalties per problem without  
+		$score["times"] = $times;
+		$score["attempts"] = $attempts; // integer array of attempts per problem
+		$score["rank"] = -1;
 		
 		return $score;
 	}
@@ -855,7 +852,7 @@ class Grader  {
 		}
 
 		// sort the scores
-		usort($scores, [$this, 'compareTeamScoresNames']);
+		usort($scores, [$this, "compareTeamScoresNames"]);
 
 		$prevScore = null;	
 		$rank = 0;	
@@ -867,18 +864,18 @@ class Grader  {
 				$rank++;
 			}
 			
-			$scr['rank'] = $rank;
+			$scr["rank"] = $rank;
 			
 			$prevRank = $rank;
 			$prevScore = $scr;
 		}
 
-		$leaderboard['scores'] = array_merge(array(), $scores);
+		$leaderboard["scores"] = array_merge(array(), $scores);
 
-		$leaderboard['attempts_per_problem_count'] = $attempts;
-		$leaderboard['correct_submissions_per_problem_count'] = $correct;	
+		$leaderboard["attempts_per_problem_count"] = $attempts;
+		$leaderboard["correct_submissions_per_problem_count"] = $correct;	
 		
-		$leaderboard['problems'] = $contest->getProblemData();
+		$leaderboard["problems"] = $contest->getProblemData();
 		
 		return $leaderboard;
 	}
@@ -890,12 +887,12 @@ class Grader  {
 		// 2) team with the fewest penalty points
 		// 3) team with the quickest final submission, 2nd-to-last submission, ...
 		
-		if($a['num_correct'] == $b['num_correct']){
+		if($a["num_correct"] == $b["num_correct"]){
 		
-			if($a['total_penalty'] == $b['total_penalty']){
+			if($a["total_penalty"] == $b["total_penalty"]){
 				
-				$a_times = $a['times'];
-				$b_times = $b['times'];
+				$a_times = $a["times"];
+				$b_times = $b["times"];
 				
 				rsort($a_times);
 				rsort($b_times);
@@ -909,16 +906,16 @@ class Grader  {
 				}
 				
 				// they are equal
-				return strcmp($a['team_name'], $b['team_name']);
+				return strcmp($a["team_name"], $b["team_name"]);
 				
 			} else {
 				
-				return ($a['total_penalty'] < $b['total_penalty']) ? -1 : 1;				
+				return ($a["total_penalty"] < $b["total_penalty"]) ? -1 : 1;				
 			}
 			
 		} else {
 			
-			return ($a['num_correct'] > $b['num_correct']) ? -1 : 1;
+			return ($a["num_correct"] > $b["num_correct"]) ? -1 : 1;
 		}
 		
 	}
@@ -930,12 +927,12 @@ class Grader  {
 		// 2) team with the fewest penalty points
 		// 3) team with the quickest final submission, 2nd-to-last submission, ...
 		
-		if($a['num_correct'] == $b['num_correct']){
+		if($a["num_correct"] == $b["num_correct"]){
 		
-			if($a['total_penalty'] == $b['total_penalty']){
+			if($a["total_penalty"] == $b["total_penalty"]){
 				
-				$a_times = $a['times'];
-				$b_times = $b['times'];
+				$a_times = $a["times"];
+				$b_times = $b["times"];
 				
 				rsort($a_times);
 				rsort($b_times);
@@ -953,13 +950,19 @@ class Grader  {
 				
 			} else {
 				
-				return ($a['total_penalty'] < $b['total_penalty']) ? -1 : 1;				
+				return ($a["total_penalty"] < $b["total_penalty"]) ? -1 : 1;				
 			}
 			
 		} else {
 			
-			return ($a['num_correct'] > $b['num_correct']) ? -1 : 1;
+			return ($a["num_correct"] > $b["num_correct"]) ? -1 : 1;
 		}
+	}
+
+	private function logError($message) {
+		$errorMessage = "GraderService: ".$message;
+		$this->logger->error($errorMessage);
+		return $errorMessage;
 	}
 }
 

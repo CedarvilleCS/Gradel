@@ -38,7 +38,7 @@
 				<h2 style="margin: 0px">{{submission.problem.name}}</h2>
 				
 				{% if is_granted("ROLE_SUPER") or grader.isTeaching(app.user, submission.problem.assignment.section) %}
-				<a title="Delete Submission" href="{{path('result_delete', {'submission_id': submission.id})}}">
+				<a title="Delete Submission" href="{{path('result_delete', {'submissionId': submission.id})}}">
 					<img src="{{ asset('images/trash.png') }}">
 				</a>
 				{% endif %}

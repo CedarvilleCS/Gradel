@@ -15,6 +15,7 @@ users:
 user_edit:
   path: '/user_edit'
   defaults: {_controller: AppBundle:Users:edit}
+  methods: [POST]
 
 # course routes
 courses:
@@ -87,13 +88,13 @@ problem_delete:
   methods: [GET]
 
 problem_result:
-    path: '/result/{submission_id}'
+    path: '/result/{submissionId}'
     defaults: {_controller: AppBundle:Problem:result}
     requirements:
         submission_id: '\d+'
         
 result_delete:
-    path: '/result_delete/{submission_id}'
+    path: '/result_delete/{submissionId}'
     defaults: {_controller: AppBundle:Problem:resultDelete}
     requirements:
         submission_id: '\d+'
@@ -143,8 +144,6 @@ assignment_cleartrials:
     _controller: AppBundle:Assignment:clearTrials
   methods: [POST]
 
-
-  
 # CONTEST ROUTES
 contest_result:
   path: '/contest/{contestId}/round/{roundId}/problem/{problemId}/result/{resultId}'

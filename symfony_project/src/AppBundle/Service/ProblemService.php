@@ -2,25 +2,37 @@
 
 namespace AppBundle\Service;
 
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use AppBundle\Entity\Problem;
+
+use Doctrine\ORM\EntityManagerInterface;
 
 use \DateTime;
 use \DateInterval;
 
-class ProblemService
-{
-    private $container;
+class ProblemService {
+	private $entityManager;
 
-    public function __construct(ContainerInterface $container) {
-        $this->container = $container;
+	public function __construct(EntityManagerInterface $entityManager) {
+		$this->entityManager = $entityManager;
+	}
+
+	public function createEmptyProblem() {
+		return new Problem();
+	}
+
+	public function deleteProblem($problem, $shouldFlush = true) {
+		$this->entityManager->remove($problem);
+		if ($shouldFlush) {
+			$this->entityManager->flush();
+		}
 	}
 	
-	public function getProblemById($entityManager, $problemId) {
-		return $entityManager->find("AppBundle\Entity\Problem", $problemId);
+	public function getProblemById($problemId) {
+		return $this->entityManager->find("AppBundle\Entity\Problem", $problemId);
 	}
 
-	public function getProblemsByAssignment($entityManager, $assignment) {
-		$builder = $entityManager->createQueryBuilder();
+	public function getProblemsByAssignment($assignment) {
+		$builder = $this->entityManager->createQueryBuilder();
 		$builder->select("p")
 			->from("AppBundle\Entity\Problem", "p")
 			->where("p.assignment = (?1)")
@@ -30,10 +42,14 @@ class ProblemService
 		return $problemQuery->getResult();
 	}
 
-	public function insertProblem($entityManager, $problem, $shouldFlush = false) {
-		$entityManager->persist($problem);
+	public function getProblemsByObject($findBy) {
+		return $this->entityManager->getRepository("AppBundle\Entity\Problem")->findBy($findBy);
+	}
+
+	public function insertProblem($problem, $shouldFlush = true) {
+		$this->entityManager->persist($problem);
 		if ($shouldFlush) {
-			$entityManager->flush();
+			$this->entityManager->flush();
 		}
 	}
 }
