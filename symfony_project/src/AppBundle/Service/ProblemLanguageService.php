@@ -2,18 +2,35 @@
 
 namespace AppBundle\Service;
 
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use AppBundle\Entity\ProblemLanguage;
 
-class ProblemLanguageService
-{
-    private $container;
+use Doctrine\ORM\EntityManagerInterface;
 
-    public function __construct(ContainerInterface $container) {
-        $this->container = $container;
-    }
+class ProblemLanguageService {
+	private $entityManager;
 
-    public function getProblemLanguagesByProblem($entityManager, $problem) {
-		$builder = $entityManager->createQueryBuilder();
+	public function __construct(EntityManagerInterface $entityManager) {
+		$this->entityManager = $entityManager;
+	}
+	
+	public function createProblemLanguage($problem, $language) {
+		$problemLanguage = new ProblemLanguage();
+
+		$problemLanguage->language = $language;
+		$problemLanguage->problem = $problem;
+
+		return $problemLanguage;
+	}
+
+	public function deleteProblemLanguage($problemLanguage, $shouldFlush = true) {
+		$this->entityManager->remove($problemLanguage);
+		if ($shouldFlush) {
+			$this->entityManager->flush();
+		}
+	}
+
+    public function getProblemLanguagesByProblem($problem) {
+		$builder = $this->entityManager->createQueryBuilder();
 		$builder->select("pl")
 			->from("AppBundle\Entity\ProblemLanguage", "pl")
 			->where("pl.problem = (?1)")
@@ -23,10 +40,10 @@ class ProblemLanguageService
 		return $problemLanguageQuery->getResult();
 	}
 
-	public function insertProblemLanguage($entityManager, $problemLanguage, $shouldFlush = false) {
-		$entityManager->persist($problemLanguage);
+	public function insertProblemLanguage($problemLanguage, $shouldFlush = true) {
+		$this->entityManager->persist($problemLanguage);
 		if ($shouldFlush) {
-			$entityManager->flush();
+			$this->entityManager->flush();
 		}
 	}
 }

@@ -2,41 +2,33 @@
 
 namespace AppBundle\Service;
 
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use Doctrine\ORM\EntityManagerInterface;
 
 use \DateTime;
 use \DateInterval;
 
-class TeamService
-{
-    private $container;
+class TeamService {
+    private $entityManager;
 
-    public function __construct(ContainerInterface $container) {
-        $this->container = $container;
+    public function __construct(EntityManagerInterface $entityManager) {
+        $this->entityManager = $entityManager;
 	}
 
-	public function deleteTeam($entityManager, $team, $shouldFlush = false) {
-		$entityManager->remove($team);
+	public function deleteTeam($team, $shouldFlush = true) {
+		$this->entityManager->remove($team);
 		if ($shouldFlush) {
-			$entityManager->flush();
+			$this->entityManager->flush();
 		}
 	}
 
-	public function insertTeam($entityManager, $team, $shouldFlush = false) {
-		$entityManager->persist($team);
-		if ($shouldFlush) {
-			$entityManager->flush();
-		}
-	}
-	
-	public function getTeam($entityManager, $user, $assignment) {
+	public function getTeam($user, $assignment) {
 		# get all of the teams
-		$builder = $entityManager->createQueryBuilder();
+		$builder = $this->entityManager->createQueryBuilder();
 		$builder->select('t')
-				->from('AppBundle\Entity\Team', 't')
-				->where('t.assignment = ?1')
-				->setParameter(1, $assignment);
-				
+			->from('AppBundle\Entity\Team', 't')
+			->where('t.assignment = ?1')
+			->setParameter(1, $assignment);
+		
 		$teamQuery = $builder->getQuery();
 		$teams = $teamQuery->getResult();
 		
@@ -50,9 +42,26 @@ class TeamService
 		}
 		return null;
 	}
+	
+	public function getTeamById($teamId) {
+		return $this->entityManager->find("AppBundle\Entity\Team", $teamId);
+	}
 
-	public function getTeamById($entityManager, $teamId) {
-		return $entityManager->find("AppBundle\Entity\Team", $teamId);
+	public function getTeamsForSectionSearch($user) {
+		$builder = $this->entityManager->createQueryBuilder()
+			->select("t")
+			->from("AppBundle\Entity\Team", "t")
+			->where(":user MEMBER OF t.users")
+			->setParameter("user", $user);
+		$teamQuery = $builder->getQuery();
+		return $teamQuery->getResult();
+	}
+
+	public function insertTeam($team, $shouldFlush = true) {
+		$this->entityManager->persist($team);
+		if ($shouldFlush) {
+			$this->entityManager->flush();
+		}
 	}
 }
 ?>

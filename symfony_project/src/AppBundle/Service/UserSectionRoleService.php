@@ -4,18 +4,30 @@ namespace AppBundle\Service;
 
 use AppBundle\Constants;
 
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use AppBundle\Entity\UserSectionRole;
 
-class UserSectionRoleService
-{
-    private $container;
+use Doctrine\ORM\EntityManagerInterface;
 
-    public function __construct(ContainerInterface $container) {
-        $this->container = $container;
-    }
+class UserSectionRoleService {
+    private $entityManager;
 
-    public function getUserSectionRolesForHome($entityManager, $user, $sections) {
-        $builder = $entityManager->createQueryBuilder();
+    public function __construct(EntityManagerInterface $entityManager) {
+        $this->entityManager = $entityManager;
+	}
+	
+	public function createUserSectionRole($user, $section, $role) {
+		return new UserSectionRole($user, $section, $role);
+	}
+
+	public function deleteUserSectionRole($userSectionRole, $shouldFlush = true) {
+		$this->entityManager->remove($userSectionRole);
+		if ($shouldFlush) {
+			$this->entityManager->flush();
+		}
+	}
+
+    public function getUserSectionRolesForHome($user, $sections) {
+        $builder = $this->entityManager->createQueryBuilder();
 		$builder->select("usr")
 			->from("AppBundle\Entity\UserSectionRole", "usr")
 			->where("usr.user = ?1")
@@ -27,8 +39,8 @@ class UserSectionRoleService
 		return $userSectionRoleQuery->getResult();
 	}
 	
-	public function getUserSectionRolesForAssignment($entityManager, $user, $section) {
-        $builder = $entityManager->createQueryBuilder();
+	public function getUserSectionRolesForAssignment($user, $section) {
+        $builder = $this->entityManager->createQueryBuilder();
 		$builder->select("usr")
 			->from("AppBundle\Entity\UserSectionRole", "usr")
 			->where("usr.user = ?1")
@@ -40,11 +52,11 @@ class UserSectionRoleService
 		return $userSectionRoleQuery->getOneOrNullResult();
 	}
 
-	public function getUserSectionRolesForAssignmentEdit($entityManager, $section) {
-        $takesRole = $entityManager->getRepository("AppBundle\Entity\Role")->findOneBy([
+	public function getUserSectionRolesForAssignmentEdit($section) {
+        $takesRole = $this->entityManager->getRepository("AppBundle\Entity\Role")->findOneBy([
 			"role_name" => Constants::TAKES_ROLE
 		]);
-		$builder = $entityManager->createQueryBuilder();
+		$builder = $this->entityManager->createQueryBuilder();
 		$builder->select("u")
 			  ->from("AppBundle\Entity\UserSectionRole", "u")
 			  ->where("u.section = ?1")
@@ -56,8 +68,8 @@ class UserSectionRoleService
 		return $userSectionRoleQuery->getResult();
 	}
 	
-	public function getUserSectionRolesOfSection($entityManager, $section) {
-		$builder = $entityManager->createQueryBuilder();
+	public function getUserSectionRolesOfSection($section) {
+		$builder = $this->entityManager->createQueryBuilder();
 		$builder->select("usr")
 		->from("AppBundle\Entity\UserSectionRole", "usr")
 		->where("usr.section = ?1")
@@ -65,6 +77,13 @@ class UserSectionRoleService
 
 		$userSectionRoleQuery = $builder->getQuery();
 		return $userSectionRoleQuery->getResult();
+	}
+
+	public function insertUserSectionRole($userSectionRole, $shouldFlush = true) {
+		$this->entityManager->persist($userSectionRole);
+		if ($shouldFlush) {
+			$this->entityManager->flush();
+		}
 	}
 }
 ?>

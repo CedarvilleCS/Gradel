@@ -82,7 +82,7 @@
 
 
 					{% if best_submission != null %}
-						<a href="{{path('problem_result', {'submission_id': best_submission.id})}}"> [Currently accepted submission] </a>
+						<a href="{{path('problem_result', {'submissionId': best_submission.id})}}"> [Currently accepted submission] </a>
 					{% endif %}
 				</h3>
 			
@@ -176,7 +176,7 @@
 								<div style="color: red">
 							{% endif %}
 							
-							<li><a href="{{path('problem_result', {'submission_id': sub.id})}}">
+							<li><a href="{{path('problem_result', {'submissionId': sub.id})}}">
 								{% if sub.team.users|length > 1 %}
 										{
 										{% for user in sub.team.users %}

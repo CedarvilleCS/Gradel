@@ -156,7 +156,7 @@
 					
 					is_contest: $('#contest').is(':checked'),
 					
-					course: {% if course is not null %} {{course.id}} {% else %} 0 {% endif %},
+					{% if course %} course: {{course.id}}, {% endif %}
 					
 				}, function(data) {			
 					console.log(data);					
