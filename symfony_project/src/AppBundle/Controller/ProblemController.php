@@ -616,7 +616,7 @@ class ProblemController extends Controller {
             "ace_mode" => $aceMode,
             "assignment" => $submission->problem->assignment,
             "feedback" => $feedback,
-            "grader" => $grader,
+            "grader" => $this->graderService,
             "problem" => $submission->problem,
             "result_page" => true,
             "result_route" => true, 

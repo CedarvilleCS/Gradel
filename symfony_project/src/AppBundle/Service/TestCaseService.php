@@ -15,6 +15,22 @@ class TestCaseService {
         $this->entityManager = $entityManager;
 	}
 
+	public function selectTestCasesByProblem($problem){
+		$builder = $this->entityManager->createQueryBuilder()
+				->select("t")
+				->from("AppBundle\Entity\Testcase", "t")
+				->where("t.problem = (?1)")
+				->setParameter(1, $problem);
+		return $testcases = $builder->getQuery()->getResult();
+	}
+
+	public function deleteTestCase($testcase, $shouldFlush = true){
+		$this->entityManager->remove($testcase);
+		if ($shouldFlush) {
+			$this->entityManager->flush();
+		}
+	}
+
 	public function insertTestCase($testCase, $shouldFlush = true) {
 		$this->entityManager->persist($testCase);
 		if ($shouldFlush) {

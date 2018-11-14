@@ -6,6 +6,7 @@ use Doctrine\ORM\EntityManagerInterface;
 
 use AppBundle\Entity\Submission;
 
+
 use \DateTime;
 use \DateInterval;
 
@@ -139,6 +140,19 @@ class SubmissionService {
 		$this->entityManager->persist($submission);
 		if ($shouldFlush) {
 			$this->entityManager->flush();
+		}
+	}
+
+	public function deleteSubmissionsByProblem($problem){
+		$builder = $this->entityManager->createQueryBuilder()
+			->select("s")
+			->from("AppBundle\Entity\Submission", "s")
+			->where("s.problem = (?1)")
+			->setParameter(1, $problem);
+		$submissions = $builder->getQuery()->getResult();
+
+		foreach ($submissions as $submission){
+			$this->deleteSubmission($submission);
 		}
 	}
 }
