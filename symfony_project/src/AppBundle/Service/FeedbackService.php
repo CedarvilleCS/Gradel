@@ -31,7 +31,7 @@ class FeedbackService{
         }
     }    
 
-    public function deleteFeedback($feedback, $shouldFlush){
+    public function deleteFeedback($feedback, $shouldFlush = true){
         $this->entityManager->remove($feedback);
         if($shouldFlush){
             $this->entity->flush();
