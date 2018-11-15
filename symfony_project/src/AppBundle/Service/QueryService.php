@@ -16,7 +16,7 @@ class QueryService{
 		$this->entityManager = $entityManager;
     }
     
-    public function deleteQueriesByProblem($problem, $shouldFlush){
+    public function deleteQueriesByProblem($problem, $shouldFlush = true){
         $builder = $this->entityManager->createQueryBuilder();
 		$builder->select("q")
 			->from("AppBundle\Entity\Query", "q")
@@ -33,7 +33,7 @@ class QueryService{
         }
     }    
 
-    public function deleteQuery($query, $shouldFlush){
+    public function deleteQuery($query, $shouldFlush = true){
         $this->entityManager->remove($query);
         if($shouldFlush){
             $this->entity->flush();
