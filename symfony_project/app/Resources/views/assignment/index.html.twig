@@ -62,141 +62,149 @@
 		{% if problem.assignment.problems|length == 0 %}
 
 		{% else %}
-		<div class="card" style="padding-top: 2px">
-			{% set grade = grader.getProblemGrade(app.user, problem) %}
+		<div class="main_content">
+			<div class="card">
+				<div class="sectionHeaderContainer">
+					<div class="sectionHeader">{{problem.name}} | <a href="{{path('assignment', {'sectionId': problem.assignment.section.id, 'assignmentId': problem.assignment.id})}}" class="headerLink">{{problem.assignment.name}}</a></div>
+					<div class="sectionSubHeader">Due: {{problem.assignment.end_time|date('m/d/Y')}}</div>
+				</div>
+			</div>
 
-			{% if not teaching %}
-			
-				{% if grade['total_testcases'] + grade['total_extra_testcases'] == grade['passed_testcases'] + grade['passed_extra_testcases'] %}
-					<h3 style="color: green"> You have completed this problem! </h3>
-				{% elseif grade['total_testcases'] == grade['passed_testcases'] %}
-					<h3> Your solution has solved the normal testcases, but not the extra credit ones </h3>
+			<div class="card" style="padding-top: 2px">
+				{% set grade = grader.getProblemGrade(app.user, problem) %}
+
+				{% if not teaching %}
+				
+					{% if grade['total_testcases'] + grade['total_extra_testcases'] == grade['passed_testcases'] + grade['passed_extra_testcases'] %}
+						<h3 style="color: green"> You have completed this problem! </h3>
+					{% elseif grade['total_testcases'] == grade['passed_testcases'] %}
+						<h3> Your solution has solved the normal testcases, but not the extra credit ones </h3>
+					{% endif %}
+					
+					<h3>
+						{% if attempts_remaining < 0 %}
+							Unlimited attempts allowed
+						{% else %}
+							Attempts left: {{attempts_remaining}}
+						{% endif %}
+
+
+						{% if best_submission != null %}
+							<a href="{{path('problem_result', {'submissionId': best_submission.id})}}"> [Currently accepted submission] </a>
+						{% endif %}
+					</h3>
+				
 				{% endif %}
 				
-				<h3>
-					{% if attempts_remaining < 0 %}
-						Unlimited attempts allowed
-					{% else %}
-						Attempts left: {{attempts_remaining}}
-					{% endif %}
-
-
-					{% if best_submission != null %}
-						<a href="{{path('problem_result', {'submissionId': best_submission.id})}}"> [Currently accepted submission] </a>
-					{% endif %}
-				</h3>
-			
-			{% endif %}
-			
-			<div id="courseInfo" class="card-contents">
-			
-				<div class="markdown-container">
-					<div id="markdown-header"><h1>{{problem.name}}</h1></div>
-					<div id="markdown"></div>
-					<div id="markdown-collapser">Hide Description</div>
-				</div>
+				<div id="courseInfo" class="card-contents">
 				
-				{# the editor text area #}
-				{{ block('editor_html', 'ace/sessions.twig') }}
-
-				{# display the form or not #}
-				{% set open = (problem.assignment.start_time|date('U') < "now"|date('U') and problem.assignment.cutoff_time|date('U') > "now"|date('U')) %}
-
-				{% if teaching or (usersectionrole.role.role_name == 'Takes' and open and attempts_remaining != 0)%}
-
-					<div style="margin-top: 0px; display: flex; justify-content: space-between; flex-direction: row">
-						<div id="trial-status" style="font-style: italic; font-size:0.8em; color: grey;">&nbsp;</div>
-						
-						{# file upload#}
-						{% if problem.allow_upload %}
-						<form id="submissionUploadForm" action="{{path('get_contents')}}" method="post" style="margin-top: 5px">
-							<input type="file" accept=".zip,.c,.cpp,.java,.php,.py" name="file" id="file" value="Upload File" style="width: 180px">
-						</form>
-						{% endif %}
-						
+					<div class="markdown-container">
+						<div id="markdown"></div>
+						<div id="markdown-collapser">Hide Description</div>
 					</div>
 					
-					{# Language selection and hidden field to submit ACE contents #}
-					<div id="submissionForm">
+					{# the editor text area #}
+					{{ block('editor_html', 'ace/sessions.twig') }}
 
-						Language:
-						<select id="languageSelect" name="language">
-							{% for lang in languages %}
-								<option {{(trial and lang.name == trial.language.name) ? 'selected'}} value={{lang.id}}>{{lang.name}}</option>
-							{% endfor %}
-						</select>
-						<br>
-						<div id="mainClassInput" style="display:none"><label for="main_class">Main Class: </label><input type="text" name="main_class" id="main_class_input" value="{{(trial) ? trial.main_class}}"></div>
-						<br/>
-						<input type="hidden" name="ACE" id="ACE">
+					{# display the form or not #}
+					{% set open = (problem.assignment.start_time|date('U') < "now"|date('U') and problem.assignment.cutoff_time|date('U') > "now"|date('U')) %}
 
-						<div style="display: flex; flex-direction: row; justify-content: space-between; width: 100%">
-							<div class="btn" style="width: 100px" id="submissionButton"> Submit </div>
-							<!--<div class="btn" style="width: 70px; font-size: 0.7em; line-height: 14px; background: red; cursor: pointer" id="clearButton"> Reset Code </div>-->
-							{# Download the text from the ACE editor #}
-							<a id="download" download="code.cpp" onclick="downloadACECode();">
-								<div class="btn" style="width: 150px;">Download File</div>
-							</a>
-						</div>
+					{% if teaching or (usersectionrole.role.role_name == 'Takes' and open and attempts_remaining != 0)%}
 
-						<div id="loading-container" style="display: none">
-							<img id="loadingGif" style="height: 60px" src="{{asset('images/beoload.gif')}}" alt="Loading..."/>
-							<h3 style="margin: 0px"> Submitting Code... </h3>
-						</div>
-					</div>
-
-				{% elseif attempts_remaining == 0 %}
-					You are out of attempts for this problem.
-				{% elseif open %}
-					You are not allowed to submit for this problem.
-				{% else %}
-					This problem is not currently open.
-				{% endif %}
-			</div>
-		</div>
-		
-		{% if all_submissions|length > 0 %}
-		<div class="card">
-			<div class="btn-close" onclick="collapseCard('recentSubs')">
-				<h2 style="margin: 0px">Your {% if team.users|length > 1 %} Team's {% endif %} Recent Submissions</h2>
-			</div>
-			
-			<div id="recentSubs" class="card-contents" style="margin-top: 0px">
-				<div>   
-					<ul>
-					{% if all_submissions|length == 0 %}
-						<li> No recent submissions </li>
-					{% else %}
-						
-						{% for sub in all_submissions %}
-							{% if sub.isCorrect %}
-								<div style="color: green">
-							{% else %}
-								
-								<div style="color: red">
+						<div style="margin-top: 0px; display: flex; justify-content: space-between; flex-direction: row">
+							<div id="trial-status" style="font-style: italic; font-size:0.8em; color: grey;">&nbsp;</div>
+							
+							{# file upload#}
+							{% if problem.allow_upload %}
+							<form id="submissionUploadForm" action="{{path('get_contents')}}" method="post" style="margin-top: 5px">
+								<input type="file" accept=".zip,.c,.cpp,.java,.php,.py" name="file" id="file" value="Upload File" style="width: 180px">
+							</form>
 							{% endif %}
 							
-							<li><a href="{{path('problem_result', {'submissionId': sub.id})}}">
-								{% if sub.team.users|length > 1 %}
-										{
-										{% for user in sub.team.users %}
-											
-											{{user.getLastName}}
-											{% if not loop.last %}
-											, 
-											{% endif%}
-										{% endfor %}
-										} - 
-									{% endif %}
-									{{sub.timestamp|date('F d, Y  \\a\\t  h:i:s')}} ({{sub.language.name}})
-							</a> </li>
+						</div>
 						
+						{# Language selection and hidden field to submit ACE contents #}
+						<div id="submissionForm">
+
+							Language:
+							<select id="languageSelect" name="language">
+								{% for lang in languages %}
+									<option {{(trial and lang.name == trial.language.name) ? 'selected'}} value={{lang.id}}>{{lang.name}}</option>
+								{% endfor %}
+							</select>
+							<br>
+							<div id="mainClassInput" style="display:none"><label for="main_class">Main Class: </label><input type="text" name="main_class" id="main_class_input" value="{{(trial) ? trial.main_class}}"></div>
+							<br/>
+							<input type="hidden" name="ACE" id="ACE">
+
+							<div style="display: flex; flex-direction: row; justify-content: space-between; width: 100%">
+								<div class="btn" style="width: 100px" id="submissionButton"> Submit </div>
+								<!--<div class="btn" style="width: 70px; font-size: 0.7em; line-height: 14px; background: red; cursor: pointer" id="clearButton"> Reset Code </div>-->
+								{# Download the text from the ACE editor #}
+								<a id="download" download="code.cpp" onclick="downloadACECode();">
+									<div class="btn" style="width: 150px;">Download File</div>
+								</a>
 							</div>
-						{% endfor %}
-						
+
+							<div id="loading-container" style="display: none">
+								<img id="loadingGif" style="height: 60px" src="{{asset('images/beoload.gif')}}" alt="Loading..."/>
+								<h3 style="margin: 0px"> Submitting Code... </h3>
+							</div>
+						</div>
+
+					{% elseif attempts_remaining == 0 %}
+						You are out of attempts for this problem.
+					{% elseif open %}
+						You are not allowed to submit for this problem.
+					{% else %}
+						This problem is not currently open.
 					{% endif %}
-					
-					</ul>
+				</div>
+			</div>
+			
+			{% if all_submissions|length > 0 %}
+			<div class="card">
+				<div class="btn-close" onclick="collapseCard('recentSubs')">
+					<h2 style="margin: 0px">Your {% if team.users|length > 1 %} Team's {% endif %} Recent Submissions</h2>
+				</div>
+				
+				<div id="recentSubs" class="card-contents" style="margin-top: 0px">
+					<div>   
+						<ul>
+						{% if all_submissions|length == 0 %}
+							<li> No recent submissions </li>
+						{% else %}
+							
+							{% for sub in all_submissions %}
+								{% if sub.isCorrect %}
+									<div style="color: green">
+								{% else %}
+									
+									<div style="color: red">
+								{% endif %}
+								
+								<li><a href="{{path('problem_result', {'submissionId': sub.id})}}">
+									{% if sub.team.users|length > 1 %}
+											{
+											{% for user in sub.team.users %}
+												
+												{{user.getLastName}}
+												{% if not loop.last %}
+												, 
+												{% endif%}
+											{% endfor %}
+											} - 
+										{% endif %}
+										{{sub.timestamp|date('F d, Y  \\a\\t  h:i:s')}} ({{sub.language.name}}) | 4/4 Test Cases
+								</a> </li>
+							
+								</div>
+							{% endfor %}
+							
+						{% endif %}
+						
+						</ul>
+					</div>
 				</div>
 			</div>
 		</div>
