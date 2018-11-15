@@ -14,7 +14,7 @@ class FeedbackService{
 		$this->entityManager = $entityManager;
     }
     
-    public function deleteFeedbacksByTestcase($testcase, $shouldFlush){
+    public function deleteFeedbacksByTestcase($testcase, $shouldFlush = true){
         $builder = $this->entityManager->createQueryBuilder();
 		$builder->select("f")
 			->from("AppBundle\Entity\Feedback", "f")
