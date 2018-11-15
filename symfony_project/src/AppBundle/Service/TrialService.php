@@ -52,7 +52,7 @@ class TrialService {
 		$trials = $builder->getQuery()->getResult();
 
 		foreach ($trials as $trial){
-			$this->deleteTrial($trial, true);
+			$this->deleteTrial($trial, $shouldFlush);
 		}
 	}
 
