@@ -16,7 +16,7 @@ class ProblemLinkService{
 		$this->entityManager = $entityManager;
     }
     
-    public function deleteProblemLinksByProblem($problem, $shouldFlush){
+    public function deleteProblemLinksByProblem($problem, $shouldFlush = true){
         $builder = $this->entityManager->createQueryBuilder();
 		$builder->select("pl")
 			->from("AppBundle\Entity\ProblemLinks", "pl")
@@ -33,7 +33,7 @@ class ProblemLinkService{
         }
     }    
 
-    public function deleteQuery($query, $shouldFlush){
+    public function deleteQuery($query, $shouldFlush = true){
         $this->entityManager->remove($query);
         if($shouldFlush){
             $this->entity->flush();
