@@ -38,8 +38,11 @@
                 <div class="card">
                     <div class="sectionHeaderContainer">
                         <div class="sectionHeader">{{section.name}}</div>
-                        <div class="sectionSubHeader">Prof:
-                            {{section.name}}</div>
+                        <div class="sectionSubHeader">
+                        {% if section_teachers | length > 0 %}
+                            Prof: {{section_teachers[0]}}
+                        {% endif %}
+                        </div>
                     </div>
                 </div>
                 <div class="card">
@@ -55,8 +58,10 @@
                                         <a href="{{path('assignment', {'sectionId': section.id, 'assignmentId': assignment.id})}}" class="assignmentLink">{{assignment.name}}</a>
                                     </div>
                                     <div class="assignmentInfo">
-                                        <div>Due: {{assignment.end_time|date('m/d/Y')}}</div>
-                                        <div>Weight: {{assignment.weight}}</div>
+                                        <div>Due:
+                                            {{assignment.end_time|date('m/d/Y')}}</div>
+                                        <div>Weight:
+                                            {{assignment.weight}}</div>
                                         {% for problem in assignment.problems %}
                                             <div>
                                                 {# <div id="TestData" data-display-testcaseresults="{{problem.display_testcaseresults}}"
