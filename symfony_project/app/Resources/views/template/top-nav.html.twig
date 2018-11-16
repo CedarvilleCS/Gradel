@@ -45,7 +45,7 @@
 							{% elseif "assignment" in app.request.attributes.get('_route') %}
 								<option value="{{ path(app.request.attributes.get('_route'), {'_switch_user': user.getEmail(), 'sectionId': section.id, 'assignmentId': assignment.id}) }}">
 							{% elseif "result" in app.request.attributes.get('_route') %}
-								<option value="{{ path(app.request.attributes.get('_route'), {'_switch_user': user.getEmail(), 'sectionId': section.id, 'assignmentId': assignment.id, 'problemId': problem.id, 'submission_id': submission.id}) }}">
+								<option value="{{ path(app.request.attributes.get('_route'), {'_switch_user': user.getEmail(), 'sectionId': section.id, 'assignmentId': assignment.id, 'problemId': problem.id, 'submissionId': submission.id}) }}">
 							{% elseif "problem" in app.request.attributes.get('_route') %}
 								<option value="{{ path(app.request.attributes.get('_route'), {'_switch_user': user.getEmail(), 'sectionId': section.id, 'assignmentId': assignment.id, 'problemId': problem.id}) }}">
 							{% else %}
