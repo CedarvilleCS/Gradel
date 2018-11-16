@@ -22,6 +22,7 @@ use AppBundle\Service\RoleService;
 use AppBundle\Service\SectionService;
 use AppBundle\Service\SubmissionService;
 use AppBundle\Service\TeamService;
+use AppBundle\Service\TestCaseService;
 use AppBundle\Service\UserSectionRoleService;
 use AppBundle\Service\UserService;
 
@@ -48,6 +49,7 @@ class SectionController extends Controller {
     private $sectionService;
     private $submissionService;
     private $teamService;
+    private $testCaseService;
     private $userSectionRoleService;
     private $userService;
 
@@ -59,6 +61,7 @@ class SectionController extends Controller {
                                 SectionService $sectionService,
                                 SubmissionService $submissionService,
                                 TeamService $teamService,
+                                TestCaseService $testCaseService,
                                 UserSectionRoleService $userSectionRoleService,
                                 UserService $userService) {
         $this->assignmentService = $assignmentService;
@@ -69,6 +72,7 @@ class SectionController extends Controller {
         $this->sectionService = $sectionService;
         $this->submissionService = $submissionService;
         $this->teamService = $teamService;
+        $this->testCaseService = $testCaseService;
         $this->userSectionRoleService = $userSectionRoleService;
         $this->userService = $userService;
     }
@@ -78,6 +82,8 @@ class SectionController extends Controller {
         if (!get_class($user)) {
             return $this->returnForbiddenResponse("YOU ARE NOT LOGGED IN");
         }
+        /* Will get the impersonated user if they are making the call */
+        $requestingUser = $this->getUser();
 
         $section = $this->sectionService->getSectionById($sectionId);
         if (!$section) {
@@ -147,13 +153,21 @@ class SectionController extends Controller {
                 $assignmentProblems = $assignment->problems;
                 $team = $this->graderService->getTeam($sectionTaker, $assignment);
 
+                $teamOrUser = $requestingUser;
+                $whereClause = "s.user = ?1";
+                
                 if ($team) {
+                    $teamOrUser = $team;
+                    $whereClause = "s.team = ?1";
                     foreach ($assignmentProblems as $assignmentProblem) {
                         $bestSubmission = $this->submissionService->getBestSubmissionForTeam($assignmentProblem, $team);
                         if ($bestSubmission) {
                             $correctSubmissions[$assignment->id][$assignmentProblem->id] = $bestSubmission->id;
                         }
                     }
+                }
+                foreach ($assignmentProblems as $assignmentProblem) {
+                    $assignmentProblem->testCaseInfo = $this->testCaseService->getTestCaseInfoFromTeamOrUserAndProblem($teamOrUser, $whereClause, $assignmentProblem);
                 }
             }
             $assignmentProblemSubmissions[$sectionTaker->id] = $correctSubmissions;
@@ -187,7 +201,7 @@ class SectionController extends Controller {
 
         /* Get the problems */
         foreach ($allProblems as $assignmentProblem) {
-            $suggestions[] = [$assignmentProblem->name, $assignmentProblem->assignment->name];			
+            $suggestions[] = [$assignmentProblem->name, $assignmentProblem->assignment->name, $assignmentProblem->testcase_counts];			
         }
 
         /* Get the assignments and teams */
@@ -221,7 +235,6 @@ class SectionController extends Controller {
             "submissions" => $recentSubmissions,
             "team" => $team,
             "user" => $user,
-            "user_assig_prob_sub" => $assignmentProblemSubmissions,
             "user_impersonators" => $sectionTakers
         ]);
     }
@@ -371,7 +384,7 @@ class SectionController extends Controller {
             
             $section = $this->sectionService->createEmptySection();
         } else if (isset($sectionId) || $sectionId > 0) {
-            $section - $this->sectionService->getSectionBuyId($sectionId);
+            $section = $this->sectionService->getSectionById($sectionId);
             
             if (!$section) {
                 return $this->returnForbiddenResponse("SECTION ".$sectionId." DOES NOT EXIST");

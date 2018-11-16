@@ -69,7 +69,8 @@
                                                 data-extra-testcases-display="{{problem.extra_testcases_display}}"
                                                 data-testcase-counts="{{problem.testcase_counts|json_encode}}"></div> #}
                                                 <a href="{{path('assignment', {'sectionId': section.id, 'assignmentId': assignment.id, 'problemId': problem.id})}}" class="assignmentLink">{{problem.name}}</a>
-                                                | 4/4</div>
+                                                | {{problem.testCaseInfo.numberOfCorrectTestCases}}/{{problem.testCaseInfo.numberOfTestCases}}
+                                            </div>
                                         {% endfor %}
                                     </div>
                                 </div>
