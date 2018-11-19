@@ -49,7 +49,7 @@ class TestCaseService {
 			$numberOfCorrectTestCaseResults = count($testCaseResultQuery->getResult());
 		}
 
-		return [
+		return (object) [
 			'numberOfTestCases' => count($problem->testcases),
 			'numberOfCorrectTestCases' => $numberOfCorrectTestCaseResults
 		];
