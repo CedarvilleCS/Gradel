@@ -95,7 +95,6 @@ class SectionController extends Controller {
             return $this->redirectToRoute("contest", ["contestId" => $section->id]);
         }
         
-
         /* Get all assignments */
         $assignments = $this->assignmentService->getAssignmentsBySection($section);
 
@@ -144,7 +143,9 @@ class SectionController extends Controller {
         $grades = [];
         $assignmentProblemSubmissions = [];
         $team = [];
-        foreach ($sectionTakers as $sectionTaker) {	
+        $isTeaching = $this->graderService->isTeaching($requestingUser, $section);
+        
+        foreach ($sectionTakers as $sectionTaker) {
             $correctSubmissions = [];
             
             $grades[$sectionTaker->id] = $this->graderService->getAllAssignmentGrades($sectionTaker, $section);
@@ -153,7 +154,7 @@ class SectionController extends Controller {
                 $assignmentProblems = $assignment->problems;
                 $team = $this->graderService->getTeam($sectionTaker, $assignment);
 
-                $teamOrUser = $requestingUser;
+                $teamOrUser = $sectionTaker;
                 $whereClause = "s.user = ?1";
                 
                 if ($team) {
@@ -166,13 +167,21 @@ class SectionController extends Controller {
                         }
                     }
                 }
+                
+                /* Set user's individual test case info and also aggregate class's stats for problem completion */
+                $totalAssignmentProblems = count($assignmentProblems);
                 foreach ($assignmentProblems as $assignmentProblem) {
-                    $assignmentProblem->testCaseInfo = $this->testCaseService->getTestCaseInfoFromTeamOrUserAndProblem($teamOrUser, $whereClause, $assignmentProblem);
+                    $testCaseInfo = $this->testCaseService->getTestCaseInfoFromTeamOrUserAndProblem($teamOrUser, $whereClause, $assignmentProblem);
+                    if ($sectionTaker == $requestingUser) {
+                        $assignmentProblem->userTestCaseInfo = $testCaseInfo;
+                    }
+                    if ($testCaseInfo->numberOfTestCases == $testCaseInfo->numberOfCorrectTestCases) {
+                        ++$assignmentProblem->numberOfCompletedStudents;
+                    }
                 }
             }
             $assignmentProblemSubmissions[$sectionTaker->id] = $correctSubmissions;
         }
-
 
         /* Get the users most recent submissions (top 15) */
         $entityManager = $this->getDoctrine()->getManager();		
@@ -227,6 +236,7 @@ class SectionController extends Controller {
             "future_assigs" => $futureAssignments,
             "grader" => $this->graderService,
             "grades" => $grades,
+            "isTeaching" => $isTeaching,
             "search_suggestions" => $suggestions,
             "section" => $section,
             "section_helpers" => $sectionHelpers,

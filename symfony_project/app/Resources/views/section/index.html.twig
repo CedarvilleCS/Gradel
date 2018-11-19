@@ -69,7 +69,12 @@
                                                 data-extra-testcases-display="{{problem.extra_testcases_display}}"
                                                 data-testcase-counts="{{problem.testcase_counts|json_encode}}"></div> #}
                                                 <a href="{{path('assignment', {'sectionId': section.id, 'assignmentId': assignment.id, 'problemId': problem.id})}}" class="assignmentLink">{{problem.name}}</a>
-                                                | {{problem.testCaseInfo.numberOfCorrectTestCases}}/{{problem.testCaseInfo.numberOfTestCases}}
+                                                | 
+                                                {% if isTeaching %}
+                                                    {{problem.numberOfCompletedStudents}}/{{section_takers | length}} students have completed
+                                                {% else %}
+                                                    {{problem.userTestCaseInfo.numberOfCorrectTestCases}}/{{problem.userTestCaseInfo.numberOfTestCases}} test cases completed
+                                                {% endif %}
                                             </div>
                                         {% endfor %}
                                     </div>
