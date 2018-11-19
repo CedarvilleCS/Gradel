@@ -244,6 +244,8 @@ class Problem implements JsonSerializable{
 
 	public $testCaseInfo = [];
 
+	public $numberOfCompletedStudents = 0;
+
 	public function __toString() {
 		return $this->testCaseInfo;
 	}
@@ -253,7 +255,8 @@ class Problem implements JsonSerializable{
 			'id' => $this->id,
 			'name' => $this->name,
 			'testcases' => $this->testcase_counts,
-			'testCaseInfo' => $this->testCaseInfo
+			'userTestCaseInfo' => $this->userTestCaseInfo,
+			'numberOfCompletedStudents' => $this->numberOfCompletedStudents
 		];
 	}
 }
