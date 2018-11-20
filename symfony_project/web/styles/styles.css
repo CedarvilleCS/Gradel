@@ -25,6 +25,18 @@ body.hidden_hamburger {
     transition: grid-template-areas 350ms ease-in-out;
 }
 
+.green {
+    color: green;
+}
+
+.yellow {
+    color: yellow;
+}
+
+.red {
+    color: red;
+}
+
 #main {
     grid-area: main;
     background-color: lightgray;

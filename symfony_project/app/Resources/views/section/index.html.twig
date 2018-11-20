@@ -23,11 +23,16 @@
         {{ include('template/top-nav.html.twig') }}
         {{ include('template/section-nav.html.twig') }}
 
-        {% if is_granted("ROLE_SUPER") %}
+        {% if is_granted("ROLE_SUPER")or is_granted("ROLE_ADMIN")or grader.isTeaching(user, section) %}
             {# edit button #}
             <div class="floatingControls">
-                <a class="floatingLink" href="{{path('section_edit', {'sectionId': section.id})}}">
-                    <div class="floatingButton">Edit Section</div>
+                {% if is_granted("ROLE_SUPER")or is_granted("ROLE_ADMIN") %}
+                    <a class="floatingLink" href="{{path('section_edit', {'sectionId': section.id})}}">
+                        <div class="floatingButton">Edit Section</div>
+                    </a>
+                {% endif %}
+                <a id="download" class="floatingLink" download="{{ section.name }} grades.csv">
+                    <div class="floatingButton">Download Grades</div>
                 </a>
             </div>
         {% endif %}
@@ -39,9 +44,10 @@
                     <div class="sectionHeaderContainer">
                         <div class="sectionHeader">{{section.name}}</div>
                         <div class="sectionSubHeader">
-                        {% if section_teachers | length > 0 %}
-                            Prof: {{section_teachers[0]}}
-                        {% endif %}
+                            {% if section_teachers | length > 0 %}
+                                Prof:
+                                {{section_teachers[0]}}
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -64,16 +70,19 @@
                                             {{assignment.weight}}</div>
                                         {% for problem in assignment.problems %}
                                             <div>
-                                                {# <div id="TestData" data-display-testcaseresults="{{problem.display_testcaseresults}}"
-                                                data-testcase-output-level="{{problem.testcase_output_level}}"
-                                                data-extra-testcases-display="{{problem.extra_testcases_display}}"
-                                                data-testcase-counts="{{problem.testcase_counts|json_encode}}"></div> #}
                                                 <a href="{{path('assignment', {'sectionId': section.id, 'assignmentId': assignment.id, 'problemId': problem.id})}}" class="assignmentLink">{{problem.name}}</a>
-                                                | 
+                                                |
                                                 {% if isTeaching %}
-                                                    {{problem.numberOfCompletedStudents}}/{{section_takers | length}} students have completed
+                                                    {{problem.numberOfCompletedStudents}}/{{section_takers | length}}
+                                                    Students Completed
                                                 {% else %}
-                                                    {{problem.userTestCaseInfo.numberOfCorrectTestCases}}/{{problem.userTestCaseInfo.numberOfTestCases}} test cases completed
+                                                    {% set colorClass = 'green' %}
+                                                    {% if problem.userTestCaseInfo.numberOfCorrectTestCases == 0 %}
+                                                        {% set colorClass = 'red' %}
+                                                    {% elseif problem.userTestCaseInfo.numberOfCorrectTestCases < problem.userTestCaseInfo.numberOfTestCases %}
+                                                        {% set colorClass = 'yellow' %}
+                                                    {% endif %}
+                                                    <span class="{{ colorClass }}">{{problem.userTestCaseInfo.numberOfCorrectTestCases}}/{{problem.userTestCaseInfo.numberOfTestCases}}</span>
                                                 {% endif %}
                                             </div>
                                         {% endfor %}
@@ -98,6 +107,100 @@
 
 {% if is_granted("ROLE_SUPER") %}
     <script src="{{ asset('js/floating-control.js') }}"></script>
+{% endif %}
+
+{% if is_granted("ROLE_SUPER")or is_granted("ROLE_ADMIN")or grader.isTeaching(user, section) %}
+    <script>
+        // Download CSV of Grades
+        var textFile = null;
+        // Create a text file from the given text
+        function makeTextFile(text) {
+            var data = new Blob([text], {type: 'text/plain'});
+
+            // If we are replacing a previously generated file we need to
+            // manually revoke the object URL to avoid memory leaks.
+            if (textFile !== null) {
+                window.URL.revokeObjectURL(textFile);
+            }
+
+            textFile = window.URL.createObjectURL(data);
+
+            return textFile;
+        };
+        // Generate a CSV list of the grades
+        function generateGradeCSVSection() {
+            var gradesCSV = "Name, User, ";
+            {% for asgn in section.assignments %}
+                gradesCSV += "{{asgn.name}}";
+                gradesCSV += ", ";
+            {% endfor %}
+            gradesCSV += "Total";
+            gradesCSV += "\n";
+
+            {% for user in section_takers %}
+                var sumTotal = 0;
+                gradesCSV += '{{user.getFirstName()}} {{user.getLastName()}}, ';
+                gradesCSV += '{{user }}, ';
+                var i = 0;
+                {% for asgn in section.assignments %}
+                    i += 1;
+                    const percent = {{this.getAssignmentGrade(user, asgn)}};
+
+                    gradesCSV += percent + ', ';
+
+                {% endfor %}
+                gradesCSV += sumTotal / i;
+                gradesCSV += "\n";
+
+            {% endfor %}
+            return gradesCSV;
+        }
+        // Generate a CSV list of the grades
+        function generateGradeCSVAssignment(index) {
+            var gradesCSV = [];
+            var i = 0;
+
+            {% for asgn in section.assignments %}
+                gradesCSV[i] = " , ";
+                {% for problem in asgn.problems %}
+                    gradesCSV[i] += "{{ problem.name }}" + ", , , ";
+                {% endfor %}
+                gradesCSV[i] += "\nUser, ";
+                {% for problem in asgn.problems %}
+                    gradesCSV[i] += "Testcases Right, Total Testcases, Grade, ";
+                {% endfor %}
+                gradesCSV[i] += "\n";
+                {% for user in section_takers %}
+                    gradesCSV[i] += '{{user.getFirstName()}} {{user.getLastName()}}, ';
+                    {% for problem in asgn.problems %}
+                        var right = parseFloat("{{ grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] }}");
+                        var total = parseFloat("{{ grades[user.id][asgn.id]['problem_grades'][problem.id]['total_testcases'] }}");
+
+                        gradesCSV[i] += right + ", " + total + ", " + {{grader.getProblemGrade(user, problem)}} + ", ";
+                    {% endfor %}
+                    gradesCSV[i] += "\n";
+                {% endfor %}
+                i += 1;
+            {% endfor %}
+            return gradesCSV[index];
+        }
+        // Download the CSV of grades when the download button is clicked
+        var download = document.getElementById('download');
+        if (download != null) {
+            download.addEventListener('click', function () {
+                var link = document.getElementById('download');
+                link.href = makeTextFile(generateGradeCSVSection());
+                link.style.display = 'block';
+            }, false);
+        }
+        function downloadAssgnGrades(index, id) {
+            var link = document.getElementById(id);
+            if (link != null) {
+                link.href = makeTextFile(generateGradeCSVAssignment(index));
+                link.style.display = 'block';
+            }
+        }
+    </script>
 {% endif %}
 
 {% endblock %}
