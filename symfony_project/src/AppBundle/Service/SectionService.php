@@ -20,6 +20,17 @@ class SectionService {
 		return new Section();
 	}
 
+	public function getSectionsBySemester($semester){
+		$builder = $this->entityManager->createQueryBuilder();
+		$builder->select("s")
+				->from("AppBundle\Entity\Section", "s")
+				->where("s.semester = (?1)")
+				->setParameter(1, $semester);
+		
+		$sections = $builder->getQuery();
+		return $sections->getResult();
+	}
+
     public function getNonDeletedSectionsForHome() {
 		$builder = $this->entityManager->createQueryBuilder();
 		$builder->select("s")
