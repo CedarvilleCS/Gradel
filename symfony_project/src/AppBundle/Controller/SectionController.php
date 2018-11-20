@@ -297,8 +297,8 @@ class SectionController extends Controller {
             return $this->returnForbiddenResponse("SECTION ".$sectionId." DOES NOT EXIST");
         }
 
-        $semester = $this->semesteService->getSemesterByTermAndYear($term, $year);//query to get current semester
-        if($semester == NULL){
+        $semester = $this->semesterService->getSemesterByTermAndYear($term, $year);
+        if ($semester == NULL) {
             $this->semesterService->createSemesterByTermAndYear($term, $year);
         }
 
