@@ -15,6 +15,10 @@ class TestCaseService {
         $this->entityManager = $entityManager;
 	}
 
+	public function createEmptyTestCase() {
+		return new TestCase();
+	}
+
 	public function selectTestCasesByProblem($problem){
 		$builder = $this->entityManager->createQueryBuilder()
 				->select("t")

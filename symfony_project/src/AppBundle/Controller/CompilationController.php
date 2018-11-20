@@ -63,7 +63,7 @@ class CompilationController extends Controller {
                                 GraderService $graderService,			
                                 LanguageService $languageService,
                                 LoggerInterface $logger,
-                                ProblemService $problemLanguageService,
+                                ProblemLanguageService $problemLanguageService,
                                 ProblemService $problemService,
                                 SubmissionService $submissionService,
                                 TestCaseService $testCaseService,

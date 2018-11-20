@@ -80,7 +80,7 @@ class AssignmentController extends Controller {
       }
         
         // get the section
-        if (!isset($sectionId) || !($sectionId > 0)){
+        if (!isset($sectionId) || !($sectionId > 0)) {
             $this->returnForbiddenResponse("SECTION ID WAS NOT PROVIDED OR FORMATTED PROPERLY");
         }
         
