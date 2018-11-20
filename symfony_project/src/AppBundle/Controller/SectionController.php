@@ -340,7 +340,6 @@ class SectionController extends Controller {
         return $this->redirectToRoute("homepage");
     }
 
-    //this funcion is not working
     public function modifyPostAction(Request $request) {
         /* Validate the current user */
         $user = $this->userService->getCurrentUser();
@@ -349,18 +348,15 @@ class SectionController extends Controller {
         }
         
         /* See which fields were included */
-        //where do these fields come from?
         $postData = $request->request->all();
         
         /* Check mandatory fields */
-        $sectionName = $postData["name"];
         $sectionCourse = $postData["course"];
-
-        //where is the post data coming from?
-        $sectionSemester = $postData["semester"];
+        $sectionName = $postData["name"];
+        $sectionTerm = $postData["semester"];
         $sectionYear = $postData["year"];
 
-        if (!isset($sectionName) || trim($sectionName) == "" || !isset($sectionCourse) || !isset($sectionSemester) || !isset($sectionYear)) {
+        if (!isset($sectionName) || trim($sectionName) == "" || !isset($sectionCourse) || !isset($sectionTerm) || !isset($sectionYear)) {
             return $this->returnForbiddenResponse("NOT EVERY REQUIRED FIELD WAS PROVIDED");
         } else {
             /* Validate the year */
@@ -369,8 +365,8 @@ class SectionController extends Controller {
             }
             
              /*Validate the semester */
-            if (trim($sectionSemester) != "Fall" && trim($sectionSemester) != "Spring" && trim($sectionSemester) != "Summer") {
-                return $this->returnForbiddenResponse($sectionSemester." IS NOT A VALID SEMESTER");
+            if (trim($sectionTerm) != "Fall" && trim($sectionTerm) != "Spring" && trim($sectionTerm) != "Summer") {
+                return $this->returnForbiddenResponse($sectionTerm." IS NOT A VALID SEMESTER");
             }
         }
 
@@ -413,13 +409,16 @@ class SectionController extends Controller {
         $section->name = trim($sectionName);
         $section->course = $course;
 
-        //need to pass this an object rather than a string at line 349 this must be fixed
-        $section->semester = $section->semester;
-        //$section->semester = $sectionSemester;
-        $section->semester = (int)trim($sectionYear);
+        /*Validate the semester*/
+        $semester = $this->semesterService->getSemesterByTermAndYear($sectionTerm, $sectionYear);
+        if (!$semester){ //this is not entered
+            $semester = $this->semesterService->createSemesterByTermAndYear($sectionTerm, $sectionYear, false);
+            $this->semesterService->insertSemester($semester);
+        }
+        $section->semester = $semester;
         
         /* See if the dates were provided or if we will do them automatically */
-        $dates = $this->getDateTime($sectionSemester, $sectionYear);
+        $dates = $this->getDateTime($sectionTerm, $sectionYear);
         $sectionStartTime = $postData["start_time"];
         if (isset($sectionStartTime) && $sectionStartTime != "") {
             $customStartTime = DateTime::createFromFormat("m/d/Y H:i:s", $sectionStartTime." 00:00:00");

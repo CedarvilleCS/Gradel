@@ -23,9 +23,9 @@ class Semester {
         }
     }
 
-    public function __construct3($year, $term, $is_current_semester){
+    public function __construct3($term, $year, $is_current_semester){
         $this->year = $year;
-        $this->term = $semester;
+        $this->term = $term;
         $this->is_current_semester = $is_current_semester;
     }
 
@@ -41,6 +41,11 @@ class Semester {
 	* @ORM\Column(type="string", length=255, unique=true)
 	*/
     public $term;
+
+    /**
+	* @ORM\Column(type="integer")
+	*/
+    public $year;
     
     /**
 	* @ORM\Column(type="boolean")

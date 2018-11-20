@@ -4,6 +4,8 @@ namespace AppBundle\Service;
 
 use Doctrine\ORM\EntityManagerInterface;
 
+use AppBundle\Entity\Semester;
+
 class SemesterService {
     private $entityManager;
 
@@ -15,19 +17,22 @@ class SemesterService {
         $builder = $this->entityManager->createQueryBuilder();
         $builder->select("s")
                 ->from("AppBundle\Entity\Semester", "s")
-                ->where("s.is_current_semester = 1");
-        $semester = $builder->getQuery()->getResult()[0];
-        return $semester;
+                ->where("s.is_current_semester = (?1)")
+                ->setParameter(1, 1);
+        $semester = $builder->getQuery()->getResult();
+        return $semester[0];
     }
 
-    public function getSemesterBySeasonAndYear($term, $year) {
+    public function getSemesterByTermAndYear($term, $year) {
         $builder = $this->entityManager->createQueryBuilder();
         $builder->select("s")
                 ->from("AppBundle\Entity\Semester", "s")
-                ->where("s.is_current_semester = 1")
-                ->setMaxResults(1);
-        $semester = $builder->getQuery()->getResult()[0];
-        return $semester;
+                ->where("s.term = (?1)")
+                ->andWhere("s.year = (?2)")
+                ->setParameter(1, $term)
+                ->setParameter(2, $year);
+        $semester = $builder->getQuery()->getResult();
+        return $semester[0];
     }
 
     public function insertSemester($semester, $shouldFlush = true){
@@ -38,7 +43,7 @@ class SemesterService {
     }
 
     public function createSemesterByTermAndYear($term, $year, $isCurrentSemester){
-        $semester = new Semester($year, $term, $isCurrentSemester);
+        $semester = new Semester($term, $year, $isCurrentSemester);
         return $semester;
     }
 }
