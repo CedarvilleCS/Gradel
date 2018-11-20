@@ -30,11 +30,9 @@ class Section implements JsonSerializable{
 		$this->user_roles = new ArrayCollection();
 	}
 
-	public function __construct8($crs, $nm, /*$sem, $yr*/ $semester, $start, $end, $public, $deleted){
+	public function __construct8($crs, $nm, $semester, $start, $end, $public, $deleted){
 		$this->course = $crs;
 		$this->name = $nm;
-		/*$this->semester = $sem;
-		$this->year = $yr;*/
 		$this->start_time = $start;
 		$this->semester = $semester;
 		$this->end_time = $end;
@@ -162,22 +160,6 @@ class Section implements JsonSerializable{
 	* @ORM\Column(type="string", length=255)
 	*/
 	public $name;
-
-
-
-
-/////////////////////////////////////////////////////////
-	/**
-	* @ORM\Column(type="string", length=255)
-	*/
-	//public $semester;
-
-	/**
-	* @ORM\Column(type="integer")
-	*/
-	//public $year;
-/////////////////////////////////////////////////////////
-
 
 	/**
 	* @ORM\ManyToOne(targetEntity="Semester", inversedBy="sections")

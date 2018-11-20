@@ -306,7 +306,6 @@ class SectionController extends Controller {
             $newSection = clone $section;
             $newSection->semester = $semester;
             $newSection->name = $name."-".str_pad($i, 2, "0", STR_PAD_LEFT);
-            // $newSection->year = $year;
             $this->sectionService->insertSection($newSection);
         }
         return $this->redirectToRoute("section_edit",
@@ -411,7 +410,7 @@ class SectionController extends Controller {
 
         /*Validate the semester*/
         $semester = $this->semesterService->getSemesterByTermAndYear($sectionTerm, $sectionYear);
-        if (!$semester){ //this is not entered
+        if (!$semester){
             $semester = $this->semesterService->createSemesterByTermAndYear($sectionTerm, $sectionYear, false);
             $this->semesterService->insertSemester($semester);
         }
@@ -473,7 +472,6 @@ class SectionController extends Controller {
         $sectionTeachers = $postData["teachers"];
         /* Validate teacher csv */
         $teachers = array_unique(json_decode($sectionTeachers));
-        
         foreach ($teachers as $teacher) {
             if (!filter_var($teacher, FILTER_VALIDATE_EMAIL)) {
                 return $this->returnForbiddenResponse("PROVIDED TEACHER EMAIL ADDRESS ".$teacher." IS NOT VALID");

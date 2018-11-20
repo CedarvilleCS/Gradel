@@ -2,8 +2,6 @@
 
 namespace AppBundle\Entity;
 
-//use JsonSerializable;
-
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Config\Definition\Exception\Exception;
 
