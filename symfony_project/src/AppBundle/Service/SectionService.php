@@ -19,7 +19,7 @@ class SectionService {
 	public function createEmptySection() {
 		return new Section();
 	}
-	
+
     public function getNonDeletedSectionsForHome() {
 		$builder = $this->entityManager->createQueryBuilder();
 		$builder->select("s")

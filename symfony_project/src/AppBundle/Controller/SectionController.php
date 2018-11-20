@@ -2,8 +2,8 @@
 
 namespace AppBundle\Controller;
 
-use \DateTime;
 use \DateInterval;
+use \DateTime;
 
 use AppBundle\Constants;
 
@@ -27,14 +27,16 @@ use AppBundle\Service\UserSectionRoleService;
 use AppBundle\Service\UserService;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
+
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 
-use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 
 use Doctrine\ORM\Tools\Pagination\Paginator;
 
@@ -43,8 +45,8 @@ use Psr\Log\LoggerInterface;
 class SectionController extends Controller {
     private $assignmentService;
     private $courseService;
-    private $logger;
     private $graderService;
+    private $logger;
     private $roleService;
     private $sectionService;
     private $semesterService;
@@ -55,8 +57,8 @@ class SectionController extends Controller {
 
     public function __construct(AssignmentService $assignmentService,
                                 CourseService $courseService,
-                                LoggerInterface $logger,
                                 GraderService $graderService,
+                                LoggerInterface $logger,
                                 RoleService $roleService,
                                 SectionService $sectionService,
                                 SemesterService $semesterService,
@@ -66,8 +68,8 @@ class SectionController extends Controller {
                                 UserService $userService) {
         $this->assignmentService = $assignmentService;
         $this->courseService = $courseService;
-        $this->logger = $logger;
         $this->graderService = $graderService;
+        $this->logger = $logger;
         $this->roleService = $roleService;
         $this->sectionService = $sectionService;
         $this->semesterService = $semesterService;
