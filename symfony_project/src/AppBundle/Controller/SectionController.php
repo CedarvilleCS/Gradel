@@ -20,6 +20,7 @@ use AppBundle\Service\CourseService;
 use AppBundle\Service\GraderService;
 use AppBundle\Service\RoleService;
 use AppBundle\Service\SectionService;
+use AppBundle\Service\SemesterService;
 use AppBundle\Service\SubmissionService;
 use AppBundle\Service\TeamService;
 use AppBundle\Service\UserSectionRoleService;
@@ -46,6 +47,7 @@ class SectionController extends Controller {
     private $graderService;
     private $roleService;
     private $sectionService;
+    private $semesterService;
     private $submissionService;
     private $teamService;
     private $userSectionRoleService;
@@ -57,6 +59,7 @@ class SectionController extends Controller {
                                 GraderService $graderService,
                                 RoleService $roleService,
                                 SectionService $sectionService,
+                                SemesterService $semesterService,
                                 SubmissionService $submissionService,
                                 TeamService $teamService,
                                 UserSectionRoleService $userSectionRoleService,
@@ -67,6 +70,7 @@ class SectionController extends Controller {
         $this->graderService = $graderService;
         $this->roleService = $roleService;
         $this->sectionService = $sectionService;
+        $this->semesterService = $semesterService;
         $this->submissionService = $submissionService;
         $this->teamService = $teamService;
         $this->userSectionRoleService = $userSectionRoleService;
@@ -282,7 +286,7 @@ class SectionController extends Controller {
         ]);
     }
 
-    public function cloneSectionAction($sectionId, $name, $semester, $year, $numberOfClones) {
+    public function cloneSectionAction($sectionId, $name, $term, $year, $numberOfClones) {
         $user = $this->userService->getCurrentUser();
         if (!get_class($user)) {
             return $this->returnForbiddenResponse("YOU ARE NOT LOGGED IN");
@@ -293,11 +297,16 @@ class SectionController extends Controller {
             return $this->returnForbiddenResponse("SECTION ".$sectionId." DOES NOT EXIST");
         }
 
+        $semester = $this->semesteService->getSemesterByTermAndYear($term, $year);//query to get current semester
+        if($semester == NULL){
+            $this->semesterService->createSemesterByTermAndYear($term, $year);
+        }
+
         for ($i = 1; $i <= $numberOfClones; $i++) {
             $newSection = clone $section;
             $newSection->semester = $semester;
             $newSection->name = $name."-".str_pad($i, 2, "0", STR_PAD_LEFT);
-            $newSection->year = $year;
+            // $newSection->year = $year;
             $this->sectionService->insertSection($newSection);
         }
         return $this->redirectToRoute("section_edit",
@@ -331,6 +340,7 @@ class SectionController extends Controller {
         return $this->redirectToRoute("homepage");
     }
 
+    //this funcion is not working
     public function modifyPostAction(Request $request) {
         /* Validate the current user */
         $user = $this->userService->getCurrentUser();
@@ -339,11 +349,14 @@ class SectionController extends Controller {
         }
         
         /* See which fields were included */
+        //where do these fields come from?
         $postData = $request->request->all();
         
         /* Check mandatory fields */
         $sectionName = $postData["name"];
         $sectionCourse = $postData["course"];
+
+        //where is the post data coming from?
         $sectionSemester = $postData["semester"];
         $sectionYear = $postData["year"];
 
@@ -371,7 +384,7 @@ class SectionController extends Controller {
             
             $section = $this->sectionService->createEmptySection();
         } else if (isset($sectionId) || $sectionId > 0) {
-            $section - $this->sectionService->getSectionBuyId($sectionId);
+            $section = $this->sectionService->getSectionById($sectionId);
             
             if (!$section) {
                 return $this->returnForbiddenResponse("SECTION ".$sectionId." DOES NOT EXIST");
@@ -396,11 +409,14 @@ class SectionController extends Controller {
             return $this->returnForbiddenResponse("COURSE ".$courseId." DOES NOT EXIST");
         }
         
-        /* Set the necessary fields */
+        /* Set the necessary fields*/
         $section->name = trim($sectionName);
         $section->course = $course;
-        $section->semester = $sectionSemester;
-        $section->year = (int)trim($sectionYear);
+
+        //need to pass this an object rather than a string at line 349 this must be fixed
+        $section->semester = $section->semester;
+        //$section->semester = $sectionSemester;
+        $section->semester = (int)trim($sectionYear);
         
         /* See if the dates were provided or if we will do them automatically */
         $dates = $this->getDateTime($sectionSemester, $sectionYear);
@@ -550,6 +566,7 @@ class SectionController extends Controller {
         return $this->returnOkResponse($response);
     }
 
+    //switch to using term
     private function getDateTime($semester, $year){
         switch ($semester) {
             case "Fall":

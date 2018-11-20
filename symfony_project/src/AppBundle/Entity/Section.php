@@ -30,12 +30,13 @@ class Section implements JsonSerializable{
 		$this->user_roles = new ArrayCollection();
 	}
 
-	public function __construct8($crs, $nm, $sem, $yr, $start, $end, $public, $deleted){
+	public function __construct8($crs, $nm, /*$sem, $yr*/ $semester, $start, $end, $public, $deleted){
 		$this->course = $crs;
 		$this->name = $nm;
-		$this->semester = $sem;
-		$this->year = $yr;
+		/*$this->semester = $sem;
+		$this->year = $yr;*/
 		$this->start_time = $start;
+		$this->semester = $semester;
 		$this->end_time = $end;
 		$this->is_public = $public;
 		$this->is_deleted = $deleted;
@@ -76,10 +77,10 @@ class Section implements JsonSerializable{
 		}		
 	}
 	
+	//change to use semester->is_currentsemester
 	public function isActive(){
 		
 		$currTime = new \DateTime("now");
-		
 		return $this->start_time <= $currTime && $currTime < $this->end_time;
   }
   
@@ -162,15 +163,26 @@ class Section implements JsonSerializable{
 	*/
 	public $name;
 
+
+
+
+/////////////////////////////////////////////////////////
 	/**
 	* @ORM\Column(type="string", length=255)
 	*/
-	public $semester;
+	//public $semester;
 
 	/**
 	* @ORM\Column(type="integer")
 	*/
-	public $year;
+	//public $year;
+/////////////////////////////////////////////////////////
+
+
+	/**
+	* @ORM\ManyToOne(targetEntity="Semester", inversedBy="sections")
+	*/
+	public $semester;
 
 	/**
 	* @ORM\Column(type="datetime")

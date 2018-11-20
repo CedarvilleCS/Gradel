@@ -44,7 +44,7 @@
 		</ol>
 
 		{% if section is not null %}
-		<a id="clone-btn" class="btn" href="{{ path('section_clone', {'sectionId': section.id, 'name': section.name, 'semester': section.semester, 'year': section.year, 'numberOfClones': 1}) }}"><div class="btn btn-center" style="margin-top: 10px;">Clone</div></a>
+		<a id="clone-btn" class="btn" href="{{ path('section_clone', {'sectionId': section.id, 'name': section.name, 'semester': section.semester.term, 'year': section.semester.year, 'numberOfClones': 1}) }}"><div class="btn btn-center" style="margin-top: 10px;">Clone</div></a>
 		{% endif %}
 
 		{% endif %}
@@ -540,13 +540,13 @@
 	function populateForm(){
 		
 		for (const c of $('#selectable-semester').children()) {
-			if (c.innerHTML == "{{section.semester}}") {
+			if (c.innerHTML == "{{section.semester.term}}") {
 				$(c).addClass("ui-selected");
 			}
 		}
 
 		for (const c of $('#selectable-year').children()) {
-			if (c.innerHTML == "{{section.year}}") {
+			if (c.innerHTML == "{{section.semester.year}}") {
 				$(c).addClass("ui-selected");
 			}
 		}
@@ -558,10 +558,10 @@
 		$('#name').val("{{section.name}}");
 
 		// set the semester
-		$('#semester').val("{{section.semester}}");
+		$('#semester').val("{{section.semester.term}}");
 
 		// set the year
-		$('#year').val("{{section.year}}");
+		$('#year').val("{{section.semester.year}}");
 
 		// set the teachers csv
 		{% for std in section_teacher_roles %}
