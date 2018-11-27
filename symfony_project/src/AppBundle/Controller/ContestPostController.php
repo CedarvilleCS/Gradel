@@ -7,27 +7,30 @@ use \DateInterval;
 
 use AppBundle\Constants;
 
-use AppBundle\Entity\User;
-use AppBundle\Entity\Course;
-use AppBundle\Entity\UserSectionRole;
-use AppBundle\Entity\Role;
-use AppBundle\Entity\Query;
-use AppBundle\Entity\Section;
 use AppBundle\Entity\Assignment;
-use AppBundle\Entity\Submission;
+use AppBundle\Entity\Course;
 use AppBundle\Entity\Problem;
+use AppBundle\Entity\ProblemLanguage;
+use AppBundle\Entity\Query;
+use AppBundle\Entity\Role;
+use AppBundle\Entity\Section;
+use AppBundle\Entity\Submission;
 use AppBundle\Entity\Team;
 use AppBundle\Entity\Testcase;
-use AppBundle\Entity\ProblemLanguage;
+use AppBundle\Entity\User;
+use AppBundle\Entity\UserSectionRole;
 
 use AppBundle\Service\AssignmentService;
+use AppBundle\Service\ContestService;
 use AppBundle\Service\CourseService;
 use AppBundle\Service\GraderService;
 use AppBundle\Service\LanguageService;
 use AppBundle\Service\ProblemLanguageService;
 use AppBundle\Service\ProblemService;
+use AppBundle\Service\QueryService;
 use AppBundle\Service\RoleService;
 use AppBundle\Service\SectionService;
+use AppBundle\Service\SubmissionService;
 use AppBundle\Service\TeamService;
 use AppBundle\Service\TestCaseService;
 use AppBundle\Service\UserSectionRoleService;
@@ -52,41 +55,50 @@ use Psr\Log\LoggerInterface;
 
 class ContestPostController extends Controller {
     private $assignmentService;
+    private $contestService;
     private $courseService;
     private $graderService;
     private $languageService;
     private $logger;
     private $problemLanguageService;
     private $problemService;
+    private $queryService;
     private $roleService;
     private $sectionService;
+    private $submissionService;
     private $teamService;
     private $testCaseService;
     private $userSectionRoleService;
     private $userService;
 
     public function __construct(AssignmentService $assignmentService,
+                                ContestService $contestService,
                                 CourseService $courseService,
                                 GraderService $graderService,
                                 LanguageService $languageService,
                                 LoggerInterface $logger,
                                 ProblemLanguageService $problemLanguageService,
                                 ProblemService $problemService,
+                                QueryService $queryService,
                                 RoleService $roleService,
                                 SectionService $sectionService,
+                                SubmissionService $submissionService,
                                 TeamService $teamService,
                                 TestCaseService $testCaseService,
                                 UserSectionRoleService $userSectionRoleService,
                                 UserService $userService) {
         $this->assignmentService = $assignmentService;
+        $this->contestService = $contestService;
         $this->courseService = $courseService;
         $this->graderService = $graderService;
         $this->languageService = $languageService;
         $this->logger = $logger;
         $this->problemLanguageService = $problemLanguageService;
         $this->problemService = $problemService;
+        $this->queryService = $queryService;
         $this->roleService = $roleService;
         $this->sectionService = $sectionService;
+        $this->submissionService = $submissionService;
         $this->teamService = $teamService;
         $this->testCaseService = $testCaseService;
         $this->userSectionRoleService = $userSectionRoleService;
@@ -309,12 +321,12 @@ class ContestPostController extends Controller {
 
         foreach ($postContests as $postContest) {
             if ($postContest->id) {
-                $contest = $this->assignmentService->getAssignmentById($postContest->id);
+                $contest = $this->contestService->getContestById($postContest->id);
                 if (!$contest || $contest->section != $section) {
                     return $this->returnForbiddenResponse("ASSIGNMENT ".$postContest->id." DOES NOT EXIST");
                 }
             } else {
-                $contest = $this->assignmentService->createEmptyAssignment();
+                $contest = $this->contestService->createEmptyContest();
                 $contest->section = $section;
             }
 
@@ -609,13 +621,13 @@ class ContestPostController extends Controller {
 
         $postContestId = $postData["post_contest"];
         if (isset($postContestId)) {
-            $currTime = new \DateTime("now");
+            $currentTime = new \DateTime("now");
             
-            if ($postContestId == 0 || $currTime <= $lastEndDate) {
+            if ($postContestId == 0 || $currentTime <= $lastEndDate) {
                 $postContest = new Assignment();
                 $postContest->section = $section;
             } else {
-                $postContest = $this->assignmentService->getAssignmentById($postContestId);
+                $postContest = $this->contestService->getContestById($postContestId);
                 if (!$postContest || $postContest->section != $section) {
                     return $this->returnForbiddenResponse("POST-CONTEST ASSIGNMENT ".$postContestId." DOES NOT EXIST");
                 }
@@ -647,12 +659,12 @@ class ContestPostController extends Controller {
         $preContestId = $postData["pre_contest"];
         if (isset($preContestId)) {
             if ($preContestId == 0) {
-                $preContest = $this->assignmentService->createEmptyAssignment();
+                $preContest = $this->contestService->createEmptyContest();
                 $preContest->section = $section;
             } else {
-                $preContest = $this->assignmentService->getAssignmentById($preContestId);
+                $preContest = $this->contestService->getContestById($preContestId);
                 if (!$preContest || $preContest->section != $section) {
-                    return $this->returnForbiddenResponse("ORE-CONTEST ASSIGNMENT ".$preContestId." DOES NOT EXIST");
+                    return $this->returnForbiddenResponse("PRE-CONTEST ASSIGNMENT ".$preContestId." DOES NOT EXIST");
                 }
             }
             
@@ -685,7 +697,7 @@ class ContestPostController extends Controller {
             foreach ($preContest->problems as &$preContestProblem) {
                 $preContestProblem->problem_languages->clear();
     
-                foreach($preContest->contest_languages as $lang) {
+                foreach ($preContest->contest_languages as $lang) {
                     $preContestProblemLanguage = $this->problemLanguageService->createProblemLanguage($preContestProblem, $lang);
                     $preContestProblem->problem_languages->add($preContestProblemLanguage);
                 }
@@ -744,7 +756,7 @@ class ContestPostController extends Controller {
             $count++;
         }
         foreach ($contestsToRemove as &$contestToRemove) {
-            $this->assignmentService->deleteAssignment($contestToRemove);
+            $this->contestService->deleteContest($contestToRemove);
         }
 
         $this->sectionService->insertSection($section);
@@ -771,365 +783,313 @@ class ContestPostController extends Controller {
         return $this->returnOkResponse($response);
     }
     
-    // this is called when a user wants to ask a question
-    public function postQuestionAction(Request $request){
-
-        $entityManager = $this->getDoctrine()->getManager();		
-        $this->graderService = new Grader($entityManager);
-
-        $user = $this->get("security.token_storage")->getToken()->getUser();
-        if(!$user){
+    public function postQuestionAction(Request $request) {
+        $user = $this->getCurrentUser();
+        if (!get_class($user)) {
             $this->returnForbiddenResponse("USER DOES NOT EXIST");
         }
-        # see which fields were included	
+        /* See which fields were included */
         $postData = $request->request->all();
+
+        $contestId = $postData["contestId"];
+        $contest = $this->contestService->getContestById($contestId);
         
-        $contest = $entityManager->find("AppBundle\Entity\Assignment", $postData["contestId"]);
-        
-        if(!$contest){
-            return $this->returnForbiddenResponse("Contest ID provided was not valid.");
+        if (!$contest) {
+            return $this->returnForbiddenResponse("CONTEST ".$contestId." DOES NOT EXIST");
         }
         
         $section = $contest->section;
         
-        # validation
-        $this->graderService = new Grader($entityManager);
-        $elevatedUser = $this->graderService->isJudging($user, $section) || $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN");
+        /* Validation */
+        $elevatedUser = $this->graderService->isJudging($user, $section) || $user->hasRole(Constants::SUPER_ROLE) || $user->hasRole(Constants::ADMIN_ROLE);
 
-        if( !($elevatedUser || ($this->graderService->isTaking($user, $section) && $section->isActive())) ){
+        if (!($elevatedUser ||
+             ($this->graderService->isTaking($user, $section) && $section->isActive())
+            )) {
             return $this->returnForbiddenResponse("PERMISSION DENIED");
         }
         
-        if(isset($postData["problemId"])){
+        $problemId = $postData["problemId"];
+        if (isset($problemId)) {
+            $problem = $this->problemService->getProblemById($problemId);
             
-            $problem = $entityManager->find("AppBundle\Entity\Problem", $postData["problemId"]);
-            
-            if(!$problem || $problem->assignment != $contest){
-                return $this->returnForbiddenResponse("Problem ID provided was not valid.");
+            if (!$problem || $problem->assignment != $contest) {
+                return $this->returnForbiddenResponse("PROBLEM ".$problemId." DOES NOT EXIST");
             }
         }
         
-        if(!isset($postData["question"]) || trim($postData["question"]) == ""){
-            return $this->returnForbiddenResponse("Question was not provided");
+        $questionId = $postData["question"];
+        if (!isset($questionId) || trim($questionId) == "") {
+            return $this->returnForbiddenResponse("QUESTION ".$questionId." WAS NOT PROVIDED");
         }
         
         $query = new Query();
         
-        if($problem){
+        if ($problem) {
             $query->problem = $problem;
         } else {
             $query->assignment = $contest;
         }
         
-        $query->question = trim($postData["question"]);
+        $query->question = trim($questionId);
         $query->timestamp = new \DateTime("now");
         $query->asker = $this->graderService->getTeam($user, $contest);
         
-        $entityManager->persist($query);
-        $entityManager->flush();
-        
-        $response = new Response(json_encode([
-            "id" => $query->id, 
-        ]));		
-                    
-        $response->headers->set("Content-Type", "application/json");
-        $response->setStatusCode(Response::HTTP_OK);
+        $this->queryService->insertQuery($query);
 
-        # SOCKET PUSHER
+        /* SOCKET PUSHER */
+        $entityManager = $this->getDoctrine()->getManager();
         $pusher = new SocketPusher($this->container->get("gos_web_socket.wamp.pusher"), $entityManager, $contest);
         $pusher->sendNewClarification($query);
 
-        return $response;		
+        $response = new Response(json_encode([
+            "id" => $query->id, 
+        ]));
+
+        return $this->returnOkResponse($response);
     }
         
-    public function scoreboardFreezeAction(Request $request){
-        
-        $entityManager = $this->getDoctrine()->getManager();		
-        $this->graderService = new Grader($entityManager);
-
-        $user = $this->get("security.token_storage")->getToken()->getUser();
-        if(!$user){
-            $this->returnForbiddenResponse("USER DOES NOT EXIST");
+    public function scoreboardFreezeAction(Request $request) {
+        $user = $this->userService->getCurrentUser();
+        if (!get_class($user)) {
+            return $this->returnForbiddenResponse("USER DOES NOT EXIST");
         }
-        # see which fields were included	
+        /* See which fields were included */
         $postData = $request->request->all();
         
-        $contest = $entityManager->find("AppBundle\Entity\Assignment", $postData["contestId"]);
+        $contestId = $postData["contestId"];
+        $contest = $this->contestService->getContestById($contestId);
         
-        if(!$contest){
-            return $this->returnForbiddenResponse("Contest ID provided was not valid.");
+        if (!$contest) {
+            return $this->returnForbiddenResponse("CONTEST ".$contestId." DOES NOT EXIST");
         }
         
         $section = $contest->section;
         
-        # validation
-        $elevatedUser = $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $this->graderService->isJudging($user, $section);
-        if( !($elevatedUser) ){
-            return $this->returnForbiddenResponse("You are not allowed to modify the scoreboard");
+        /* Validation */
+        $elevatedUser = $user->hasRole(Constants::SUPER_ROLE) || $user->hasRole(Constants::ADMIN_ROLE) || $this->graderService->isJudging($user, $section);
+        if (!$elevatedUser) {
+            return $this->returnForbiddenResponse("YOU ARE NOT ALLOWED TO MODIFY THE SCOREBOARD");
         }
         
-        # get the type 
-        if( !isset($postData["type"]) ){
-            return $this->returnForbiddenResponse("type was not provided");
+        /* Get the type */
+        $scoreboardActionType = $postData["type"];
+        if (!isset($scoreboardActionType)) {
+            return $this->returnForbiddenResponse("SCOREBARD ACTION TYPE WAS NOT PROVIDED");
         }
 
-        $currTime = new \DateTime("now");	
-        $frozen = ($contest->freeze_time <= $currTime);
-            
-        if($postData["type"] == "freeze"){
-            
-            // scoreboard is naturally open
-            if(!$frozen){
-                
-                // scoreboard is frozen at this moment so only submissions at this moment and before can be seen
-                $contest->freeze_override_time = $currTime;
-                $contest->freeze_override = true;
-                                
-            }
-            // scoreboard is already overriden, undo the changes
-            else if($contest->freeze_override && $contest->freeze_override_time == null) {
-            
-                $contest->freeze_override_time = null;
-                $contest->freeze_override = false;
-                
-            }
-            // error
-            else {
-                return $this->returnForbiddenResponse("Scoreboard is already frozen");				
-            }
-            
-            $shouldFreeze = true;
+        $currentTime = new \DateTime("now");
+        $frozen = ($contest->freeze_time <= $currentTime);
 
-        } else if($postData["type"] == "unfreeze"){
-            
-            // scoreboard is naturally frozen
-            if($frozen){
+        switch ($scoreboardActionType) {
+            case Constants::SCOREBOARD_FREEZE_ACTION:
+                /* Scoreboard is naturally open */
+                if (!$frozen) {
+                    /* Scoreboard is frozen at this moment so only submissions at this moment and before can be seen */
+                    $contest->freeze_override_time = $currentTime;
+                    $contest->freeze_override = true;                
+                }
+                /* Scoreboard is already overriden, undo the changes */
+                else if ($contest->freeze_override && $contest->freeze_override_time == null) {
+                    $contest->freeze_override_time = null;
+                    $contest->freeze_override = false;
+                }
+                /* Error */
+                else {
+                    return $this->returnForbiddenResponse("SCOREBOARD IS ALREADY FROZEN");
+                }
                 
-                // scoreboard is unfrozen so all submissions can be seen
-                $contest->freeze_override_time = null;
-                $contest->freeze_override = true;
+                $shouldFreeze = true;
+                break;
+            case Constants::SCOREBOARD_UNFREEZE_ACTION:
+                /* Scoreboard is naturally frozen */
+                if ($frozen) {
+                    /* Scoreboard is unfrozen so all submissions can be seen */
+                    $contest->freeze_override_time = null;
+                    $contest->freeze_override = true;
+                } 
+                /* Scoreboard is already overriden, undo the changes */
+                else if ($contest->freeze_override && $contest->freeze_override_time != null) {
+                    $contest->freeze_override_time = null;
+                    $contest->freeze_override = false;
+                }
+                /* Error */
+                else {
+                    return $this->returnForbiddenResponse("SCOREBOARD IS ALREADY UNFROZEN");
+                }
                 
-            } 
-            // scoreboard is already overriden, undo the changes
-            else if($contest->freeze_override && $contest->freeze_override_time != null) { 
-            
-                $contest->freeze_override_time = null;
-                $contest->freeze_override = false;
-                
-            } 
-            // error
-            else {
-                return $this->returnForbiddenResponse("Scoreboard is already unfrozen");
-            }
-            
-            $shouldFreeze = false;
-            
-        } else {
-            return $this->returnForbiddenResponse("type provided ".$postData["type"]." is not valid");
+                $shouldFreeze = false;
+                break;
+            default:
+            return $this->returnForbiddenResponse("SCOREBOARD ACTION TYPE ".$scoreboardActionType." IS NOT VALID");
         }
-                
-        $entityManager->persist($contest);
-        $entityManager->flush();
+         
+        $this->contestService->insertContest($contest);
 
-        $response = new Response(json_encode([
-            "id" => $contest->id,
-            "freeze" => $shouldFreeze,
-        ]));		
-                    
-        $response->headers->set("Content-Type", "application/json");
-        $response->setStatusCode(Response::HTTP_OK);
-
-        // UPDATE LEADERBOARD
+        /* UPDATE LEADERBOARD */
         $contest->updateLeaderboard($this->graderService, $entityManager);
 
-        # SOCKET PUSHER
+        $entityManager = $this->getDoctrine()->getManager();
+        /* SOCKET PUSHER */
         $pusher = new SocketPusher($this->container->get("gos_web_socket.wamp.pusher"), $entityManager, $contest);
 
-        if($shouldFreeze){
+        if ($shouldFreeze) {
             $pusher->sendFreeze();
         } else {
             $pusher->sendUnfreeze();
         }
         $pusher->sendScoreboardUpdates(true);
 
-        return $response;
+        $response = new Response(json_encode([
+            "id" => $contest->id,
+            "freeze" => $shouldFreeze,
+        ]));
+
+        return $this->returnOkResponse($response);
     }
     
-    public function submissionJudgingAction(Request $request){
-        
-        $entityManager = $this->getDoctrine()->getManager();		
-        $this->graderService = new Grader($entityManager);
-
-        $user = $this->get("security.token_storage")->getToken()->getUser();
-        if(!$user){
+    public function submissionJudgingAction(Request $request) {
+        $user = $this->userService->getCurrentUser();
+        if (!get_class($user)) {
             $this->returnForbiddenResponse("USER DOES NOT EXIST");
         }
         
-        # see which fields were included	
+        /* See which fields were included */
         $postData = $request->request->all();
         
-        if(!isset($postData["contestId"])){
-            return $this->returnForbiddenResponse("contestId not provided");
+        $contestId = $postData["contestId"];
+        if (!isset($contestId)) {
+            return $this->returnForbiddenResponse("CONTEST ".$contestId."DOES NOT EXIST");
         }
         
-        $contest = $entityManager->find("AppBundle\Entity\Assignment", $postData["contestId"]);
+        $contest = $this->contestService->getContestById($contestId);
         
-        if(!$contest){
-            return $this->returnForbiddenResponse("CONTEST DOES NOT EXIST");
+        if (!$contest) {
+            return $this->returnForbiddenResponse("CONTEST ".$contestId." DOES NOT EXIST");
         }
         
         $section = $contest->section;		
         
-        $elevatedUser = $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $this->graderService->isJudging($user, $section);		
-        if( !($elevatedUser) ){
+        $elevatedUser = $user->hasRole(Constants::SUPER_ROLE) || $user->hasRole(Constants::ADMIN_ROLE) || $this->graderService->isJudging($user, $section);
+        if (!$elevatedUser) {
             return $this->returnForbiddenResponse("PERMISSION DENIED");
         }
 
-        # SOCKET PUSHER
+        $entityManager = $this->getDoctrine()->getManager();
+        /* SOCKET PUSHER */
         $pusher = new SocketPusher($this->container->get("gos_web_socket.wamp.pusher"), $entityManager, $contest);
         
+        /* For submission editing */
+        $submissionId = $postData["submissionId"];
+        $clarificationId = $postData["clarificationId"];
+        if (isset($submissionId)) {
+            $submission = $this->submissionService->getSubmissionById($submissionId);
         
-        // for submission editing
-        if(isset($postData["submissionId"])){
-        
-            $submission = $entityManager->find("AppBundle\Entity\Submission", $postData["submissionId"]);
-        
-            if(!$submission){
-                return $this->returnForbiddenResponse("Submission ID is not valid.");
+            if (!$submission) {
+                return $this->returnForbiddenResponse("SUBMISSION ".$submissionId." DOES NOT EXIST");
             }
             
-            # validation
-            if($submission->problem->assignment != $contest){
+            /* Validation */
+            if ($submission->problem->assignment != $contest) {
                 return $this->returnForbiddenResponse("PERMISSION DENIED");
-            }			
-            
-            // check to make sure the submission hasn"t been claimed
-            // ************************* RACE CONDITIONS *************************
-            if($submission->pending_status > 1 && !$postData["override"]){
-                return $this->returnForbiddenResponse("Submission has already been reviewed");
+            }
+
+            /* Check to make sure the submission hasn"t been claimed */
+            /* ************************* RACE CONDITIONS ************************* */
+            $isOverride = $postData["override"];
+            if ($submission->pending_status > 1 && !$isOverride) {
+                return $this->returnForbiddenResponse("SUBMISSION HAS ALREADY BEEN REVIEWED");
             }
             
             $update = true;
-            $override_wrong = false;
+            $overrideWrong = false;
             $reviewed = true;
 
-            // saying the submission was incorrect
-            if($postData["type"] == "wrong"){
+            /* Saying the submission was incorrect */
+            $submissionJudgingType = $postData["type"];
 
-                $override_wrong = true;
-                
-                
-            }
-            // saying the submission was correct
-            else if($postData["type"] == "correct"){
-                
-                // override the submission to correct
-                if($submission->isCorrect(true)){
-                    
-                    $submission->wrong_override = false;
-                    $submission->correct_override = false;	
-                    
-                } else {
-                    
-                    $submission->wrong_override = false;
-                    $submission->correct_override = true;					
-                }
-
-                //$pusher->sendAcceptance($submission);
-
-                
-            } 
-            // saying the submission was deleted
-            else if($postData["type"] == "delete"){
-                    
-                // delete the submission
-                $subId = $submission->id;
-                $entityManager->remove($submission);
-
-                //$pusher->sendDelete($submission);
-                    
-            }
-            // saying the submisison was a formatting error
-            else if($postData["type"] == "formatting"){
-                
-                $override_wrong = true;
-                        
-                // add formatting message to submission
-                $submission->judge_message = "Formatting Error";
-                        
-            }
-            // saying the submission was a custom judge message error
-            else if($postData["type"] == "message"){
-                
-                $override_wrong = true;
-                $message = $postData["message"];
-                
-                // add custom message to submission
-                if(!isset($message) || trim($message) == ""){
-                    $submission->judge_message = NULL;
-                } else {
-                    $submission->judge_message = trim($postData["message"]);
-                }	
+            switch ($submissionJudgingType) {
+                case Constants::SUBMISSION_JUDGING_WRONG:
+                    $overrideWrong = true;
+                    break;
+                case Constants::SUBMISSION_JUDGING_CORRECT:
+                    /* Override the submission to correct */
+                    if ($submission->isCorrect(true)) {
+                        $submission->wrong_override = false;
+                        $submission->correct_override = false;	
+                    } else {
+                        $submission->wrong_override = false;
+                        $submission->correct_override = true;					
+                    }
+                    break;
+                case Constants::SUBMISSION_JUDGING_DELETE:
+                    /* Delete the submission */
+                    $subId = $submission->id;
+                    $this->submissionService->deleteSubmission($submission);
+                    break;
+                case Constants::SUBMISSION_JUDGING_FORMATTING:
+                    $overrideWrong = true;
                             
-            }
-            // claiming the submission
-            else if($postData["type"] == "claimed"){
-                
-                $reviewed = false;			
-                
-                if($submission->pending_status > 0){
-                    return $this->returnForbiddenResponse("Submission has already been claimed");
-                }	
-                
-                $submission->pending_status = 1;
-
-                $update = false;
-
-                // let the judges know this one has been claimed
-                $pusher->sendClaimedSubmission($submission->id);
-                
-            }
-            // unclaiming the submission
-            else if($postData["type"] == "unclaimed"){
-                
-                $reviewed = false;			
-                
-                if($submission->pending_status < 1){
-                    return $this->returnForbiddenResponse("Submission has already been un-claimed");
-                }	
-                
-                $submission->pending_status = 0;
-
-                $update = false;	
-                
-                // let the other judges know this submission is back on the market
-                $pusher->sendNewSubmission($submission);
-                
-            } else {
-                return $this->returnForbiddenResponse("Type of judging command not allowed");
-            }
-
-            // do this if you need to override the submission to be wrong
-            // (since it is used in many of the cases above)
-            if($override_wrong){
-
-                // override the submission to wrong
-                if($submission->isCorrect(true) || $submission->isError()){
+                    /* Add formatting message to submission */
+                    $submission->judge_message = "Formatting Error";
+                    break;
+                case Constants::SUBMISSION_JUDGING_MESSAGE:
+                    $overrideWrong = true;
+                    $message = $postData["message"];
                     
-                    $submission->wrong_override = true;				
+                    /* Add custom message to submission */
+                    if (!isset($message) || trim($message) == "") {
+                        $submission->judge_message = NULL;
+                    } else {
+                        $submission->judge_message = trim($postData["message"]);
+                    }
+                    break;
+                case Constants::SUBMISSION_JUDGING_CLAIMED:
+                    $reviewed = false;
+                    
+                    if ($submission->pending_status > 0) {
+                        return $this->returnForbiddenResponse("Submission has already been claimed");
+                    }	
+                    
+                    $submission->pending_status = 1;
+
+                    $update = false;
+
+                    /* Let the judges know this one has been claimed */
+                    $pusher->sendClaimedSubmission($submission->id);
+                    break;
+                case Constants::SUBMISSION_JUDGING_UNCLAIMED:
+                    $reviewed = false;
+                    
+                    if ($submission->pending_status < 1) {
+                        return $this->returnForbiddenResponse("SUBMISSION HAS ALREADY BEEN UN-CLAIMED");
+                    }	
+                    
+                    $submission->pending_status = 0;
+
+                    $update = false;	
+                    
+                    /* Let the other judges know this submission is back on the market */
+                    $pusher->sendNewSubmission($submission);
+                    break;
+                default:
+                    return $this->returnForbiddenResponse("TYPE OF JUDGING COMMAND NOT ALLOWED");
+            }
+
+            /* Do this if you need to override the submission to be wrong */
+            /* (since it is used in many of the cases above) */
+            if ($overrideWrong) {
+                /* Override the submission to wrong */
+                if ($submission->isCorrect(true) || $submission->isError()) {
+                    $submission->wrong_override = true;
                     $submission->correct_override = false;
                 } else {
-                    
                     $submission->wrong_override = false;
                     $submission->correct_override = false;
                 }
-
-                // let the team know their submission was rejected
-                //$pusher->sendRejection($submission);
             }
 
-            
-            if($reviewed){
+            if ($reviewed) {
                 $submission->pending_status = 2;
             }
             
@@ -1137,167 +1097,123 @@ class ContestPostController extends Controller {
             
             $submission->edited_timestamp = new \DateTime("now");
             
-            
-            $entityManager->flush();	
-            
-            $response = new Response(json_encode([
-                "id" => ($submission) ? $submission->id : $subId,
-                "reviewed" => $reviewed, 
-            ]));
-                
-            
-            $response->headers->set("Content-Type", "application/json");
-            $response->setStatusCode(Response::HTTP_OK);
+            $this->submissionService->insertSubmission($submission);
 
-            if($update){
-                // UPDATE LEADERBOARD            	
+            if ($update) {
+                /* UPDATE LEADERBOARD */
+                $entityManager = $this->getDoctrine()->getManager();
                 $contest->updateLeaderboard($this->graderService, $entityManager);
 
-                if($postData["type"] != "delete"){
+                if ($submissionJudgingType != Constants::SUBMISSION_JUDGING_DELETE) {
                     $pusher->sendGradedSubmission($submission);
                     $pusher->sendResultUpdate($submission);
                     $pusher->sendScoreboardUpdates();
-                }				
+                }
 
-                if($postData["type"] == "delete"){
+                if ($submissionJudgingType == Constants::SUBMISSION_JUDGING_DELETE) {
                     $type = "delete";
-                } 
-                else if($postData["type"] != "correct"){
+                } else if ($submissionJudgingType != Constants::SUBMISSION_JUDGING_CORRECT) {
                     $type = "reject";
-                } 
-                else {
+                } else {
                     $type = "accept";
                 }
 
                 $pusher->sendResponse($submission, $type);
             }
             
-            return $response;
+            $response = new Response(json_encode([
+                "id" => ($submission) ? $submission->id : $subId,
+                "reviewed" => $reviewed, 
+            ]));
             
+            return $this->returnOkResponse($response);
         } 
-        // for clarification editing
-        else if(isset($postData["clarificationId"])){
-            
-            // Posting a notice
-            if($postData["clarificationId"] == 0){
-                
-                $query = new Query();
-                $entityManager->persist($query);
-                
+        /* For clarification editing */
+        else if (isset($clarificationId)) {
+            /* Posting a notice */
+            if ($clarificationId == 0) {
+                $query = $this->queryService->createEmptyQuery();
                 $query->assignment = $contest;
                 $query->answerer = $user;
                 $query->timestamp = new \DateTime("now");
+                $this->queryService->insertQuery($query);
             }
-            // Answering a query
+            /* Answering a query */
             else {
-
-                $query = $entityManager->find("AppBundle\Entity\Query", $postData["clarificationId"]);
+                $query = $this->queryService->getQueryById($clarificationId);
                 
-                if(!$query){
-                    return $this->returnForbiddenResponse("Clarification ID is not valid.");
+                if (!$query) {
+                    return $this->returnForbiddenResponse("CLARIFICATION ".$clarificationId." DOES NOT EXIST");
                 }
                 
-                if( !((isset($query->problem) && $query->problem->assignment == $contest) || (isset($query->assignment) && $query->assignment == $contest)) ){
+                if (!(
+                        (isset($query->problem) && $query->problem->assignment == $contest) || 
+                        (isset($query->assignment) && $query->assignment == $contest))
+                    ) {
                     return $this->returnForbiddenResponse("PERMISSION DENIED");
                 }
             
                 $query->answerer = $user;
-                if($postData["global"]){
+                if ($postData["global"]) {
                     $query->asker = null;
                 }
             }
-                                    
+
+            $answerId = $postData["answer"];
             
-            $answer = $postData["answer"];
-            
-            // add answer to the query
-            if(!isset($answer)){
-                return $this->returnForbiddenResponse("Answer provided was not valid");
+            /* Add answer to the query */
+            if (!isset($answerId)) {
+                return $this->returnForbiddenResponse("ANSWER ".$answerId." DOES NOT EXIST");
             }
             
-            $query->answer = $answer;
-                        
-            if(trim($answer) == ""){
-                $qid = $query->id;
-                $entityManager->remove($query);
-            }
-                    
+            $query->answer = $answerId;
+            $queryId = $query->id;        
             $entityManager->flush();
             
-            $response = new Response(json_encode([
-                "id" => ($qid) ? $qid : $query->id,
-                "answered" => $answered, 
-            ]));		
-                        
-            $response->headers->set("Content-Type", "application/json");
-            $response->setStatusCode(Response::HTTP_OK);
-
-            # push a clarification message
+            /* Push a clarification message */
             $pusher->sendClarification($query);
 
-            return $response;
-                        
+            $response = new Response(json_encode([
+                "id" => $queryId,
+                "answered" => $answered, 
+            ]));
+            return $this->returnOkResponse($response);
         }
-        // for removing all submissions
-        else if($postData["type"] == "clear-subs"){
-            
-            if($contest->isActive()){
-                return $this->returnForbiddenResponse("Cannot do this while the contest is running.");
+        /* For removing all submissions */
+        else if ($postData["type"] == "clear-subs") {
+            if ($contest->isActive()) {
+                return $this->returnForbiddenResponse("CANNOT DO THIS WHILE THE CONTEST IS RUNNING");
             }
+
+            $result = $this->submissionService->deleteAllSubmissionsForAssignmentClearSubmissions($contest->problems->toArray());
             
-            $qb = $entityManager->createQueryBuilder();
-            $qb->delete("AppBundle\Entity\Submission", "s")
-                ->where("s.problem IN (?1)")
-                ->setParameter(1, $contest->problems->toArray());
-            
-            $query = $qb->getQuery();
-            $res = $query->getResult();
+            $entityManager = $this->getDoctrine()->getManager();
+            $contest->updateLeaderboard($this->graderService, $entityManager);
+
+            $response = new Response(json_encode([
+                "good" => true,
+            ]));
+            return $this->returnOkResponse($response);
+        }
+        /* For removing all clarifications */
+        else if ($postData["type"] == "clear-clars") {
+            if ($contest->isActive()) {
+                return $this->returnForbiddenResponse("CANNOT DO THIS WHILE THE CONTEST IS RUNNING");
+            }
+
+            $result = $this->queryService->deleteQueriesByProblemsAndAssignment($contest->problems->toArray(), $contest);
+
+            $entityManager = $this->getDoctrine()->getManager();
+            $contest->updateLeaderboard($this->graderService, $entityManager);
             
             $response = new Response(json_encode([
                 "good" => true,
             ]));
-                
-            
-            $contest->updateLeaderboard($this->graderService, $entityManager);
-
-            $response->headers->set("Content-Type", "application/json");
-            $response->setStatusCode(Response::HTTP_OK);
-
-            return $response; 		
-        }
-        // for removing all clarifications
-        else if($postData["type"] == "clear-clars"){
-            
-            if($contest->isActive()){
-                return $this->returnForbiddenResponse("Cannot do this while the contest is running.");
-            }
-            
-            
-            $qb = $entityManager->createQueryBuilder();
-            $qb->delete("AppBundle\Entity\Query", "q")
-                ->where("q.problem IN (?1)")
-                ->orWhere("q.assignment = (?2)")
-                ->setParameter(1, $contest->problems->toArray())
-                ->setParameter(2, $contest);
-            
-            $query = $qb->getQuery();
-            $res = $query->getResult();
-            
-            $response = new Response(json_encode([
-                "good" => true,
-            ]));
-
-            $contest->updateLeaderboard($this->graderService, $entityManager);
-                        
-            $response->headers->set("Content-Type", "application/json");
-            $response->setStatusCode(Response::HTTP_OK);
-            
-            return $response;
-            
+            return $this->returnOkResponse($response);
         }
         // error
         else {
-            return $this->returnForbiddenResponse("Submission or clarification ID not provided");
+            return $this->returnForbiddenResponse("SUBMISSION OR CLARIFICATION ID NOT PROVIDED");
         }
     }
         
@@ -1319,7 +1235,6 @@ class ContestPostController extends Controller {
         $this->logger->error($errorMessage);
         return $errorMessage;
     }
-
 }
 
 ?>
