@@ -254,7 +254,7 @@ class SectionController extends Controller {
             "user_impersonators" => $sectionTakers
         ]);
     }
-
+    
     public function editSectionAction($sectionId) {
         $user = $this->userService->getCurrentUser();
         if (!get_class($user)) {
@@ -310,7 +310,7 @@ class SectionController extends Controller {
             "section_teacher_roles" => $sectionTeacherRoles
         ]);
     }
-
+    
     public function cloneSectionAction($sectionId, $name, $term, $year, $numberOfClones) {
         $user = $this->userService->getCurrentUser();
         if (!get_class($user)) {
@@ -588,7 +588,7 @@ class SectionController extends Controller {
         return $this->returnOkResponse($response);
     }
 
-    //switch to using term
+    //switch to using semester object
     private function getDateTime($semester, $year){
         switch ($semester) {
             case "Fall":
