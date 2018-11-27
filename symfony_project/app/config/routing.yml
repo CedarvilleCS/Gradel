@@ -91,7 +91,6 @@ problem_edit:
   path: '/section/{sectionId}/assignment/{assignmentId}/problem/edit/{problemId}'
   defaults: 
     _controller: AppBundle:Problem:edit
-    problemId: 0
   methods: [GET]
 
 problem_delete:
