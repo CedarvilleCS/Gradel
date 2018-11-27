@@ -256,6 +256,7 @@ class ProblemController extends Controller {
     }
 
      public function editAction($sectionId, $assignmentId, $problemId) {
+         $this->logError("Made it");
         /* Validate the user */
         $user = $this->userService->getCurrentUser();
         if (!$user) {
@@ -322,7 +323,9 @@ class ProblemController extends Controller {
         }
         
         $recommendedSlaves = [];
-        $recommendedSlaves = $this->problemService->getProblemsByObject(["name" => $problem->name]);
+        if ($problem) {
+            $recommendedSlaves = $this->problemService->getProblemsByObject(["name" => $problem->name]);
+        }
 
         return $this->render("problem/edit.html.twig", [
             "ace_modes" => $aceModes,
