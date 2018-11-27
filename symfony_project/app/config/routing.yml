@@ -81,6 +81,12 @@ sidenav_data:
   methods: [GET]
   
 # problem routes
+problem:
+  path: '/section/{sectionId}/assignment/{assignmentId}/problem/{problemId}'
+  defaults:
+    _controller: AppBundle:Problem:problem
+  methods: [GET]
+
 problem_edit:
   path: '/section/{sectionId}/assignment/{assignmentId}/problem/edit/{problemId}'
   defaults: 
@@ -126,10 +132,9 @@ assignment_delete:
   methods: [GET]
   
 assignment:
-  path: '/section/{sectionId}/assignment/{assignmentId}/problem/{problemId}'
+  path: '/section/{sectionId}/assignment/{assignmentId}'
   defaults:
     _controller: AppBundle:Assignment:assignment
-    problemId: 0
   methods: [GET]
 
 assignment_modify:
