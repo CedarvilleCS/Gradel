@@ -64,8 +64,20 @@
                                         <a href="{{path('assignment', {'sectionId': section.id, 'assignmentId': assignment.id})}}" class="assignmentLink">{{assignment.name}}</a>
                                     </div>
                                     <div class="assignmentInfo">
-                                        <div>Due:
+                                        {% if "now"|date("m/d/Y") < assignment.start_time|date('m/d/Y') %}
+                                            <div> Opens:
+                                            {{assignment.start_time|date('m/d/Y')}}</div>
+                                        
+                                        {% elseif "now"|date("m/d/Y") < assignment.end_time|date('m/d/Y') %}
+                                            <div> Due:
                                             {{assignment.end_time|date('m/d/Y')}}</div>
+                                        
+                                        {% elseif "now"|date("m/d/Y") < assignment.end_time|date('m/d/Y') %}
+                                            <div> Closes:
+                                            {{assignment.cutoff_time|date('m/d/Y')}}</div>
+                                        {% else %}
+                                            <div> Closed </div>                                        
+                                        {% endif %}
                                         <div>Weight:
                                             {{assignment.weight}}</div>
                                         {% for problem in assignment.problems %}
