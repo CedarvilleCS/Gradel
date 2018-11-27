@@ -19,7 +19,7 @@ $.get(viewData.path, function (data) {
     //List all of the sections being taken
     data.sections_taking.forEach((section, sectionIndex) => {
         html += `<div class="section-nav-container">
-                    <div>
+                    <div id="section-${section.id}">
                         <div class="nav-chevron-title-container">`;
         if (section.assignments.length > 0) {
             html +=         `<img class="nav-chevron" onclick="chevronClick(this, 'section-${section.id}')" src="${asset('images/white_chevron.png')}" />`;
@@ -27,7 +27,7 @@ $.get(viewData.path, function (data) {
         html +=             `<a href="${path({'section': section.id})}">${section.name}</a>
                         </div>`;
         section.assignments.forEach((assignment, assignmentIndex) => {
-            html +=     `<div class="nav-assignment section-${section.id}">
+            html +=     `<div id="assignment-${assignment.id}" class="nav-assignment section-${section.id}">
                             <div class="nav-chevron-title-container">`;
             if (assignment.problems.length > 0) {
                 html +=         `<img class="nav-chevron" onclick="chevronClick(this, 'assignment-${assignment.id}')" src="${asset('images/white_chevron.png')}" />`;
