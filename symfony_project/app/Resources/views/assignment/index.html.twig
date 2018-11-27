@@ -42,8 +42,12 @@
 	
 	{% if grader.isTeaching(app.user, assignment.section) or is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") %}
 		<div class="floatingControls">
+			{# add problem button #}
+			<a class="floatingLink" href="{{path('problem_edit', {'sectionId': assignment.section.id, 'assignmentId': assignment.id})}}">
+				<div class="floatingButton">Create Problem</div>
+			</a>
 			{# edit assignment button #}
-			<a class="floatingLink" href="{{path('assignment_edit', {'sectionId': section.id, 'assignmentId': assignment.id})}}">
+			<a class="floatingLink" href="{{path('assignment_edit', {'sectionId': assignment.section.id, 'assignmentId': assignment.id})}}">
 				<div class="floatingButton">Edit Assignment</div>
 			</a>
 		</div>
@@ -53,415 +57,41 @@
 		<div class="main_content">
 			<div class="card">
 				<div class="sectionHeaderContainer">
-					<div class="sectionHeader">{{assignment.name}}</div>
+					<div class="sectionHeader">{{assignment.name}} | <a href="{{path('section', {'sectionId': assignment.section.id})}}" class="headerLink">{{assignment.section.name}}</a></div>
+					<div class="sectionSubHeader">Due: {{assignment.end_time|date('m/d/Y')}}</div>
 				</div>
 			</div>
+			<div class="card">
+                    <div class="btn-close" onclick="collapseCard('Assignment')">
+                        <h2 style="margin: 0px">Assignment<span style="float: right">
+                                <i class="fa fa-angle-down"></i></span></h2>
+                    </div>
+                    <div id="Problems">
+                        {% for problems in assignments.problems %}
+                            <div class="assignmentContainer">
+                                <div>
+                                    <div class="assignmentHeader">
+                                        <a href="{{path('problem', {'sectionId': assignment.section.id, 'assignmentId': assignment.id, 'problemId': problem.id})}}" class="assignmentLink">{{problem.name}}</a>
+                                    </div>
+                                    <div class="assignmentInfo">
+                                        <div>Description:
+                                            {{problem.description}}</div>
+                                        <div>Score:
+                                            {% set colorClass = 'green' %}
+											{% if problem.userTestCaseInfo.numberOfCorrectTestCases == 0 %}
+												{% set colorClass = 'red' %}
+											{% elseif problem.userTestCaseInfo.numberOfCorrectTestCases < problem.userTestCaseInfo.numberOfTestCases %}
+												{% set colorClass = 'yellow' %}
+											{% endif %}
+											<span class="{{ colorClass }}">{{problem.userTestCaseInfo.numberOfCorrectTestCases}}/{{problem.userTestCaseInfo.numberOfTestCases}}</span>
+										</div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
 		</div>
     </section>
 </body>
-{% endblock %}
-
-{% block scripts %}
-    <!-- JQuery -->
-    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
-	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-	<script src="{{ asset('js/unicode_return.js') }}" type="text/javascript" charset="utf-8"></script>
-	
-	<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-	
-	<script src="{{ asset('js/src-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>
-	
-	<script src="{{ asset('js/validation.js') }}"></script>
-		
-	{# asynchronous file upload #}
-	<script src="http://malsup.github.com/jquery.form.js"></script>
-
-	{# markdown #}
-	<script src="http://cdn.rawgit.com/showdownjs/showdown/1.8.6/dist/showdown.min.js"></script>
-	
-	<script src="{{ asset('js/floating-control.js') }}"></script>
-
-	<script>
-	
-		var languages = JSON.parse("{{languages|json_encode|e('js')}}");
-		
-		var ace_modes = JSON.parse('{{ ace_modes|json_encode|e('js') }}');
-		var onloadValue = [];
-
-
-		var code_for_langs = [];
-		{% for problang in problem.problem_languages %}
-		code_for_langs['{{problang.language.name}}'] = JSON.parse("{{problang.getDefaultFileContents()|json_encode|e('js')}}");
-		{% endfor %}
-		
-		// markdown stuff
-		var converter = new showdown.Converter();
-		converter.setOption('tasklists', true);
-		converter.setOption('backslashEscapesHTMLTags', true);
-		converter.setOption('emoji', true);
-
-		converter.setFlavor('github');
-		var markdownText = converter.makeHtml("{{problem.description|e('js')}}");
-
-		{# template for multiple sessions #}
-		{{ block('editor_javascript', 'ace/sessions.twig') }}
-		
-		function getFiletype(){
-			
-			var languageName = $('#languageSelect option:selected').text();
-			
-			for(var i=0; i<languages.length; i++){
-				
-				if(languageName == languages[i].name){
-					return languages[i].filetype;					
-				}
-			}
-			return "";
-		}
-		
-		function getLanguage(filename){
-
-			var filetypes = JSON.parse('{{ filetypes|json_encode|raw }}');
-			var ext = getExtension(filename);
-
-			return filetypes[ext];
-		}
-
-		function getExtension(filename){
-
-			var ext = filename.substr(filename.lastIndexOf('.') + 1);
-			return ext;
-		}
-
-		function getName(filename){
-
-			var ext = getExtension(filename);
-			var cls = filename.substr(filename.lastIndexOf('\\') + 1).replace("."+ext,"");
-			
-			return cls;
-		}
-
-		function setLanguageFromFilename(filename){
-
-			var classname = getName(filename);
-			var language = getLanguage(filename);
-
-			if(!language){				
-				return false;
-			}
-
-			setLanguage(language);
-
-			// set the main class
-			document.getElementById('main_class_input').value = classname;
-
-			// toggle the java inputs
-			toggleJavaInputs(language == "Java");
-			
-			return true;
-		}
-
-		function setLanguage(language){
-
-			// set the language selector
-			var selectObject = document.getElementById('languageSelect');
-			for(var i=0; i<selectObject.length; i++){
-				if(selectObject.options[i].text == language){
-					selectObject.selectedIndex = i;
-					break;
-				}
-			}
-
-			{# template for updating the sessions #}
-			{{ block('editor_setlanguage', 'ace/sessions.twig') }}
-			
-			// toggle the java inputs
-			toggleJavaInputs(language == "Java");
-
-			currLanguage = language;
-		}
-
-		function autoSetLanguage(){
-			
-			var deter = hljs.highlightAuto(editor.getValue(), ["python", "cpp", "java", "php"]);
-			var lang = deter.language;
-			
-			if(deter.second_best){
-				var second = deter.second_best.language;
-			}
-			
-			var language = "";
-			
-			if(second == "java"){
-				language = "Java";
-			} else if(second == "python"){ 
-				language = "Python 3";
-			} else {
-				
-				if(lang == "cpp"){
-					language = "C++";
-				} else if(lang == "python"){
-					language = "Python 3";
-				} else if(lang == "php"){
-					language = "PHP";
-				} else if(lang == "java"){
-					language = "Java";
-				}
-			}
-			
-			setLanguage(language);	
-		}
-		
-		function toggleJavaInputs(state1){
-
-			if(!state1){
-				document.getElementById('mainClassInput').style.display = 'none';
-			} else {
-				document.getElementById('mainClassInput').style.display = 'block';
-			}
-		}
-
-	</script>
-
-	<script>
-	
-		var trialUpdateTimer = null;
-		var trialId = {{(trial) ? trial.id : "0"}};
-		var second = 0;
-		var codeUnchanged = {% if trial %} false {% else %} true {% endif %};
-
-		var currLanguage = "";
-
-		$(document).ready(function() {
-			
-			{# editor sessions twig #}
-			{{ block('editor_onready', 'ace/sessions.twig') }}
-
-			$('#markdown').html(markdownText);
-
-			{% if trial != null %}
-				
-				{% if not trial.show_description %}
-				$("#markdown-collapser").click();
-				{% endif %}
-				
-				{% if trial.editor_height > 0 %}
-				$('#editor').height({{trial.editor_height}});
-				{% endif %}
-
-			{% endif %}
-
-			$('#languageSelect').change();	
-			
-			var origWidthContainer = $('#editor-container').width();
-			var origWidthEditor = $('#editor').width();
-			
-			$('#editor-container').resizable({
-				
-				handles: {
-					's': '#editor-handle',				
-				},
-				minHeight: 150,
-				start: function(event, ui){						
-					$('#editor-handle').css('background', '#bbbbbb');
-				},
-				resize: function(event, ui){
-										
-					$('#editor-container').width(origWidthContainer);
-					$('#editor').width(origWidthEditor);
-					
-					editor.resize();
-					$('#trial-status').text("Height: " + $(this).height() + "px");
-									
-				},
-				stop: function(){
-					//updateTrial();
-					$('#trial-status').text("Unsaved changes...");	
-					$('#editor-handle').css('background', '#e8e8e8');
-				},
-				alsoResize: "#editor",
-			});	
-		});
-				
-		// make the language dropdown change affect the code
-		$('#languageSelect').change( function(data) {
-
-			var language = $('#languageSelect option:selected').text();
-			setLanguage(language);
-		});
-
-		// submit the form if the file upload is changed
-		$('#submissionUploadForm #file').change( function(data) {
-			$('#submissionUploadForm').submit();
-		});
-
-		$("#markdown-collapser").click(function () {
-			
-			$collapser = $(this);
-			$content = $('#markdown');
-						
-			$collapser.text(function() {
-				return $content.is(":visible") ? "Show Description" : "Hide Description";
-			});
-			
-			$content.slideToggle(20, function() {});
-			
-			updateTrial();			
-		});
-		
-		// overwrite the normal submit to call the ajaxsubmit
-		{% if problem.allow_upload %}
-		$('#submissionUploadForm').submit(function() {
-			
-			$(this).ajaxSubmit({
-			
-				beforeSubmit: 	function(formData, jqForm, options){
-					
-					/* CLIENT-SIDE VALIDATION MAY HAPPEN HERE */
-					return true;
-					
-				},
-				success:		function(responseText, statusText, xhr, $form) {
-										
-					var file = responseText['files'][0];
-			
-					console.log(responseText);
-					
-					{# editor get contents success #}
-					{{ block('editor_onsubmission', 'ace/sessions.twig') }}
-					
-					if(!setLanguageFromFilename(file['name']) && getExtension(file['name']) != 'zip'){
-										
-						autoSetLanguage();					
-					}
-					
-					updateTrial(responseText);	
-														
-				},
-				error:			function(xhr, textStatus, errorThrown) {
-					console.log(xhr);						
-					alert(xhr['responseText']);
-				}
-			});
-			
-			return false;
-		});
-		{% endif %}
-
-		$('#submissionButton').click( function() {	
-			$('#download').hide();
-			updateTrial("submit");			
-		});
-				
-		function updateTrial(submitAfter){
-					
-			if(!codeUpdated() && submitAfter != "submit"){
-	
-				$('#trial-status').text("Nothing to save...");	
-				return;
-			}
-
-
-			clearInterval(trialUpdateTimer);	
-			
-			// Create a FormData object
-			var formData = new FormData();
-
-			var language = $('#languageSelect option:selected').val();
-			var main_class = $('#main_class_input').val();
-			var package_name = "";
-			var show_description = !($("#markdown-collapser").text() == "Show Description");
-			var editor_height = $('#editor').height();			
-			
-			formData.append('problem_id', {{problem.id}});
-			formData.append('language', language);
-			formData.append('main_class', main_class);
-			formData.append('package_name', package_name);
-			formData.append('show_description', show_description);
-			formData.append('editor_height', editor_height);
-
-			// loop through the editors
-			var ACE = [];
-			{{ block('editor_storecontentsinace', 'ace/sessions.twig') }}		
-			formData.append('ACE', JSON.stringify(ACE));
-
-			$.ajax({
-				type: "POST",
-				url: "{{path('modify_trial')}}",
-				data: formData,
-				processData: false,
-				contentType: false,
-				async: true,
-				success: function(data){
-					console.log(data);
-					$('#trial-status').text("Code saved.");
-					trialId = data['trial_id'];
-					
-					if(submitAfter == "submit"){
-						submitSolution();
-					}
-				},
-				error: function(data){
-					//alert(data['responseText']);
-					console.log(data['responseText']);
-					$('#trial-status').text(data['responseText']);
-					
-					if(data['continue'] && submitAfter=="submit"){
-						submitSolution();
-					}
-				}
-			});						
-		}
-		
-		function submitSolution(){
-			
-			// Create a FormData object
-			var formData = new FormData();
-
-			// validate that fields are filled in
-			var language = $('#languageSelect option:selected').val();
-			var languageText = $('#languageSelect option:selected').text();
-			var main_class = $('#main_class_input').val();
-			var package_name = "";
-
-			if(languageText == 'Java' && main_class == '') {
-			
-				setInvalid($('#main_class_input'));				
-				return false;
-				
-			} else if(languageText != 'Java'){
-
-				main_class = "";
-				package_name = "";
-			}
-			setValid($('#main_class_input'));
-
-			formData.append('trial_id', trialId);
-
-			$('#loading-container').show();
-			$('#submissionButton').hide();
-			
-			$.ajax({
-				type: "POST",
-				url: "{{path('submit')}}",
-				data: formData,
-				processData: false,
-				contentType: false,
-				success: function(data){
-
-					console.log(data);
-					window.location = data["redirect_url"];
-				},
-				error: function(data){
-					alert(data['responseText']);
-					console.log(data['responseText']);
-					
-					$('#loading-container').hide();
-					$('#submissionButton').show();
-				}
-			});
-		}
-				
-	</script>
-
 {% endblock %}

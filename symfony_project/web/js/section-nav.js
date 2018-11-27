@@ -35,7 +35,7 @@ $.get(viewData.path, function (data) {
                 //Empty div here for css-grid to align things correctly
                 html +=         `<div></div>`;
             }
-            html +=             `<a href="${path({'section': section.id, 'assignment': assignment.id}, 'problem')}">${assignment.name}</a>
+            html +=             `<a href="${path({'section': section.id, 'assignment': assignment.id})}">${assignment.name}</a>
                             </div>`;
             assignment.problems.forEach((problem, problemIndex) => {
                 html +=     `<div class="nav-problem assignment-${assignment.id}"><a href="${path({'section': section.id, 'assignment': assignment.id, 'problem': problem.id})}">${problem.name}</a></div>`;
