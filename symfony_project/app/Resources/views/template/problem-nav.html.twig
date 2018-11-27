@@ -3,7 +3,7 @@
 
 {% set elevatedUser = grader.isTeaching(app.user, assignment.section) or is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") %}
 
-<nav class="nav-left">
+<nav class="problem-controls">
 
 	<ol style="padding-top: 0px; padding-bottom: 10px">
 		{# overview of when the assignment is due #}		

@@ -8,21 +8,22 @@
 
 <body>
 	{{ include('template/top-nav.html.twig') }}
+	{{ include('template/section-nav.html.twig') }}
 
     {# Left Nav for Course Edit #}
-	<nav class="nav-left">
-		<a id="save-btn" class="btn"><div class="btn btn-center">Save</div></a>
-		
+	<div class="floatingControls">
+		<a id="save-btn" class="floatingLink">
+			<div class="floatingButton">Save</div>
+		</a>
+		<a class="floatingLink" href="{{path('courses')}}">
+			<div class="floatingButton">Cancel</div>
+		</a>
 		{% if course is not null %}
-		<a id="delete-btn" class="btn"><div class="btn btn-center btn-delete">{% if course.is_deleted %} Reinstate {% else %} Delete {% endif %}</div></a>
-		
-		<ol style="padding-top: 0px">
-			<li id="delete-warning" style="padding-top: 0px"></li>
-		</ol>
+			<a id="delete-btn" class="floatingLink">
+				<div class="floatingButton deleteButton deleteWarning">{% if course.is_deleted %} Reinstate {% else %} Delete {% endif %}</div>
+			</a>
 		{% endif %}
-    </nav>
-	
-	{{ include('template/path-nav.html.twig') }}
+    </div>
 
     {# Main section with the necessary variable#}
 	<section id="main">
@@ -84,6 +85,7 @@
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 	<script src="{{ asset('js/cards.js') }}"></script>
 	<script src="{{ asset('js/validation.js') }}"></script>
+	<script src="{{ asset('js/floating-control.js') }}"></script>
 	
 	<script>
 	
@@ -101,9 +103,9 @@
 					window.location = "{{path('course_delete', {'courseId': course.id})}}";
 					
 				} else if(warned == 1) {
-					$('#delete-warning').html("Are you REALLY sure?<br/>Click again to {% if course.is_deleted %} reinstate {% else %} delete {% endif %}");
+					$('.deleteWarning').html("Are you REALLY sure? Click again to {% if course.is_deleted %} reinstate {% else %} delete {% endif %}");
 				} else {
-					$('#delete-warning').html("Are you sure?<br/>Click again to {% if course.is_deleted %} reinstate {% else %} delete {% endif %}");
+					$('.deleteWarning').html("Are you sure? Click again to {% if course.is_deleted %} reinstate {% else %} delete {% endif %}");
 				}
 			
 				warned++;

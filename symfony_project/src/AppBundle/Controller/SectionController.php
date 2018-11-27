@@ -23,6 +23,7 @@ use AppBundle\Service\SectionService;
 use AppBundle\Service\SemesterService;
 use AppBundle\Service\SubmissionService;
 use AppBundle\Service\TeamService;
+use AppBundle\Service\TestCaseService;
 use AppBundle\Service\UserSectionRoleService;
 use AppBundle\Service\UserService;
 
@@ -52,6 +53,7 @@ class SectionController extends Controller {
     private $semesterService;
     private $submissionService;
     private $teamService;
+    private $testCaseService;
     private $userSectionRoleService;
     private $userService;
 
@@ -64,6 +66,7 @@ class SectionController extends Controller {
                                 SemesterService $semesterService,
                                 SubmissionService $submissionService,
                                 TeamService $teamService,
+                                TestCaseService $testCaseService,
                                 UserSectionRoleService $userSectionRoleService,
                                 UserService $userService) {
         $this->assignmentService = $assignmentService;
@@ -75,6 +78,7 @@ class SectionController extends Controller {
         $this->semesterService = $semesterService;
         $this->submissionService = $submissionService;
         $this->teamService = $teamService;
+        $this->testCaseService = $testCaseService;
         $this->userSectionRoleService = $userSectionRoleService;
         $this->userService = $userService;
     }
@@ -84,6 +88,8 @@ class SectionController extends Controller {
         if (!get_class($user)) {
             return $this->returnForbiddenResponse("YOU ARE NOT LOGGED IN");
         }
+        /* Will get the impersonated user if they are making the call */
+        $requestingUser = $this->getUser();
 
         $section = $this->sectionService->getSectionById($sectionId);
         if (!$section) {
@@ -95,7 +101,6 @@ class SectionController extends Controller {
             return $this->redirectToRoute("contest", ["contestId" => $section->id]);
         }
         
-
         /* Get all assignments */
         $assignments = $this->assignmentService->getAssignmentsBySection($section);
 
@@ -144,7 +149,9 @@ class SectionController extends Controller {
         $grades = [];
         $assignmentProblemSubmissions = [];
         $team = [];
-        foreach ($sectionTakers as $sectionTaker) {	
+        $isTeaching = $this->graderService->isTeaching($requestingUser, $section);
+        
+        foreach ($sectionTakers as $sectionTaker) {
             $correctSubmissions = [];
             
             $grades[$sectionTaker->id] = $this->graderService->getAllAssignmentGrades($sectionTaker, $section);
@@ -153,7 +160,12 @@ class SectionController extends Controller {
                 $assignmentProblems = $assignment->problems;
                 $team = $this->graderService->getTeam($sectionTaker, $assignment);
 
+                $teamOrUser = $sectionTaker;
+                $whereClause = "s.user = ?1";
+                
                 if ($team) {
+                    $teamOrUser = $team;
+                    $whereClause = "s.team = ?1";
                     foreach ($assignmentProblems as $assignmentProblem) {
                         $bestSubmission = $this->submissionService->getBestSubmissionForTeam($assignmentProblem, $team);
                         if ($bestSubmission) {
@@ -161,10 +173,21 @@ class SectionController extends Controller {
                         }
                     }
                 }
+                
+                /* Set user's individual test case info and also aggregate class's stats for problem completion */
+                $totalAssignmentProblems = count($assignmentProblems);
+                foreach ($assignmentProblems as $assignmentProblem) {
+                    $testCaseInfo = $this->testCaseService->getTestCaseInfoFromTeamOrUserAndProblem($teamOrUser, $whereClause, $assignmentProblem);
+                    if ($sectionTaker == $requestingUser) {
+                        $assignmentProblem->userTestCaseInfo = $testCaseInfo;
+                    }
+                    if ($testCaseInfo->numberOfTestCases == $testCaseInfo->numberOfCorrectTestCases) {
+                        ++$assignmentProblem->numberOfCompletedStudents;
+                    }
+                }
             }
             $assignmentProblemSubmissions[$sectionTaker->id] = $correctSubmissions;
         }
-
 
         /* Get the users most recent submissions (top 15) */
         $entityManager = $this->getDoctrine()->getManager();		
@@ -193,7 +216,7 @@ class SectionController extends Controller {
 
         /* Get the problems */
         foreach ($allProblems as $assignmentProblem) {
-            $suggestions[] = [$assignmentProblem->name, $assignmentProblem->assignment->name];			
+            $suggestions[] = [$assignmentProblem->name, $assignmentProblem->assignment->name, $assignmentProblem->testcase_counts];			
         }
 
         /* Get the assignments and teams */
@@ -219,6 +242,7 @@ class SectionController extends Controller {
             "future_assigs" => $futureAssignments,
             "grader" => $this->graderService,
             "grades" => $grades,
+            "isTeaching" => $isTeaching,
             "search_suggestions" => $suggestions,
             "section" => $section,
             "section_helpers" => $sectionHelpers,
@@ -227,7 +251,6 @@ class SectionController extends Controller {
             "submissions" => $recentSubmissions,
             "team" => $team,
             "user" => $user,
-            "user_assig_prob_sub" => $assignmentProblemSubmissions,
             "user_impersonators" => $sectionTakers
         ]);
     }

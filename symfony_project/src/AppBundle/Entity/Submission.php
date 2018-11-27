@@ -28,7 +28,7 @@ class Submission implements JsonSerializable {
 			throw new Exception('ERROR: '.get_class($this).' constructor does not accept '.$i.' arguments');
 		}
 		
-		$this->testcaseresults = new ArrayCollection();	
+		$this->testcaseresults = new ArrayCollection();
 	}
 	
 	public function __construct2($trial, $tm){

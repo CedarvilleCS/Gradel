@@ -9,13 +9,13 @@
 
 <style>
   #feedback { font-size: 1.4em; }
-  #selectable-semester .ui-selecting { background: #9fd095; }
-  #selectable-semester .ui-selected { background: #71BA62;; color: white; }
+  #selectable-semester .ui-selecting { background: #9FD0FF; }
+  #selectable-semester .ui-selected { background: #71BAFF;; color: white; }
   #selectable-semester { list-style-type: none; margin: 0; padding: 0; width: 60%; }
   #selectable-semester li { margin: 3px; padding: 0.4em; font-size: 14px; height: 18px; }
 
-  #selectable-year .ui-selecting { background: #9fd095; }
-  #selectable-year .ui-selected { background: #71BA62;; color: white; }
+  #selectable-year .ui-selecting { background: #9FD0FF; }
+  #selectable-year .ui-selected { background: #71BAFF;; color: white; }
   #selectable-year { list-style-type: none; margin: 0; padding: 0; width: 60%; }
   #selectable-year li { margin: 3px; padding: 0.4em; font-size: 14px; height: 18px; }
   </style>
@@ -25,32 +25,26 @@
 
 <body>
 	{{ include('template/top-nav.html.twig') }}
-
-    <section id="course-container">
-
-    </section>
+	{{ include('template/section-nav.html.twig') }}
 
     {# Left Nav for Section Edit#}
-    <nav class="nav-left">
-		<a id="save-btn" class="btn"><div class="btn btn-center">Save</div></a>
-
-		<a id="cancel-btn" class="btn"><div class="btn btn-center">Cancel</div></a>
-
+    <nav class="floatingControls">
+		<a id="save-btn" class="floatingLink">
+			<div class="floatingButton">Save</div>
+		</a>
+		<a id="cancel-btn" class="floatingLink">
+			<div class="floatingButton">Cancel</div>
+		</a>
 		{% if section is not null %}
-		<a id="delete-btn" class="btn"><div class="btn btn-center btn-delete">{% if section.is_deleted %} Reinstate {% else %} Delete {% endif %}</div></a>
-
-		<ol style="padding-top: 0px">
-			<li id="delete-warning" style="padding-top: 0px"></li>
-		</ol>
-
-		{% if section is not null %}
-		<a id="clone-btn" class="btn" href="{{ path('section_clone', {'sectionId': section.id, 'name': section.name, 'term': section.semester.term, 'year': section.semester.year, 'numberOfClones': 1}) }}"><div class="btn btn-center" style="margin-top: 10px;">Clone</div></a>
-		{% endif %}
-
+			<a id="delete-btn" class="floatingLink">
+				<div class="floatingButton deleteButton deleteWarning">{% if section.is_deleted %} Reinstate {% else %} Delete {% endif %}</div>
+			</a>
+			<a id="clone-btn" class="floatingLink" href="{{ path('section_clone', {'sectionId': section.id, 'name': section.name, 'term': section.semester.term, 'year': section.semester.year, 'numberOfClones': 1}) }}">
+				<div class="floatingButton">Clone</div>
+			</a>
 		{% endif %}
     </nav>
 
-	{{ include('template/path-nav.html.twig') }}
 
     {# Main section with the necessary variable#}
 	<section id="main">
@@ -220,6 +214,8 @@
 	{# asynchronous file upload #}
 	<script src="http://malsup.github.com/jquery.form.js"></script>
 
+	<script src="{{ asset('js/floating-control.js') }}"></script>
+
 	<script>
 
 		
@@ -282,9 +278,9 @@
 					window.location = "{{path('section_delete', {'sectionId': section.id})}}";
 
 				} else if(warned == 1) {
-					$('#delete-warning').html("Are you REALLY sure?<br/>Click again to {% if section.is_deleted %} reinstate {% else %} delete {% endif %}");
+					$('.deleteWarning').html("Are you REALLY sure? Click again to {% if section.is_deleted %} Reinstate {% else %} Delete {% endif %}");
 				} else {
-					$('#delete-warning').html("Are you sure?<br/>Click again to {% if section.is_deleted %} reinstate {% else %} delete {% endif %}");
+					$('.deleteWarning').html("Are you sure? Click again to {% if section.is_deleted %} Reinstate {% else %} Delete {% endif %}");
 				}
 
 				warned++;

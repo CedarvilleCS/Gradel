@@ -1,121 +1,23 @@
-{% if usersectionroles is defined and grades is defined and sections_taking is defined and sections_teaching is defined%}
-
-
-{% set elevatedUser = is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") %}
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('styles/section-nav.css') }}" />
+{% endblock %}
 
 {# Left Nav For the Section List (On the homepage) #}
 <nav class="nav-left">
+	<div class="large-link">
+		<a href="{{path('homepage')}}">Home</a>
+	</div>
+	<div id="SideNavContent"></div>
+	<div id="PastLink" class="large-link">
+		<a href="{{path('homepage')}}">Past</a>
+	</div>
 
-
-	<ol>
-	<li class="sidebar" style="text-align:center">Welcome, {{app.user.getFirstName()}}!  <br>
-	<small>Today is {{"now"|date('F d, Y')}}.</small>
-		</li>
-
-	<li class="sidebar" style="text-align:left">
-		<strong>Sections</strong>
-		{% if elevatedUser %}
-			<object>
-				{# figure out a way to switch it around if it is a contest section #}
-				<a title="Create Section" href={{path('section_edit')}}>
-					<img class="small-icon" id="add-icon" src="{{ asset('images/add_circle.png') }}">
-				</a>
-			</object>
-		{% endif %}
-	</li>
-
-	{% if usersectionroles|length == 0 %}
-
-			<li class="sidebar list-item"> You aren't part of any sections </li>
-		</ol>
-
-	{% else %}
-
-		</ol>
-		{# list of all the sections being taken #}
-		{% if sections_taking|length > 0 %}
-		<ol style="padding-bottom: 10px">
-
-			{% if sections_teaching|length > 0%}
-				<li style="margin: 0px; padding-bottom: 5px"> TAKING: </li>
-			{% endif %}
-
-			{% for section in sections_taking %}
-
-				<a href="{{path('section', {'sectionId':section.id})}}">				
-				
-					<li class="sidebar list-item">
-						<span class="preview">
-						
-						{% if not section.course.is_contest %}
-							{{section.course.name}}
-								<br/><small>
-								{{section.name}}
-
-								{% if grades[section.id]['percentage_adj'] > 0 %}
-
-									{{(grades[section.id]['percentage_adj']*100)|number_format(1, '.') ~ '%'}}
-
-								{% endif %}
-
-								</small>							
-						{% else %}
-							{{section.name}}
-						{% endif %}
-						
-						</span>
-
-					{% if app.user in section_teachers or is_granted("ROLE_SUPER") %}
-						<object>
-							<a title="Edit Section" href="{{path('section_edit', {'sectionId': section.id})}}">
-								<img class="small-icon" id="right-icon" src="{{ asset('images/edit.png') }}">
-							</a>
-
-						</object>
-					{% endif %}
-
-					</li>
-				</a>
-			{% endfor %}
-		</ol>
-		{% endif %}
-
-		{# list of all the sections being taught #}
-		{% if sections_teaching|length > 0 %}
-		<ol style="padding-bottom: 10px">
-			{% if sections_taking|length > 0%} <li style="margin: 0px; padding-bottom: 5px"> TEACHING: </li> {% endif %}
-			{% for section in sections_teaching %}
-
-				<a href="{{path('section', {'sectionId':section.id})}}">				
-
-				<li class="sidebar list-item">
-
-					<span class="preview">{{section.course.name}}
-						<br/><small>{{section.name}}</small>
-					</span>
-					<object>
-						<a title="Edit Section" href="{{path('section_edit', {'sectionId': section.id})}}">
-							<img class="small-icon" id="right-icon" src="{{ asset('images/edit.png') }}">
-						</a>
-					</object>
-
-				</li>
-
-				</a>
-			{% endfor %}
-		</ol>
-		{% endif %}
-	{% endif %}
-
-	{#
-	<div class="btn btn-center" id="past_sections_button">&#9660; Load Past Sections </div>
-
-	<ol id="past_list" style="padding-bottom: 10px; display: none">
-
-	</ol-->
-	#}
-<div class="feedback-note">Give us feedback: gradel@cedarville.edu</div>
+	<div id="SideNavData" data-path="{{path('sidenav_data')}}"
+						  data-white-chevron="{{ asset('images/white_chevron.png') }}"
+	style="display:none;"></div>
 </nav>
 
-
-{% endif %}
+{% block scripts %}
+	<script src="{{ asset('js/section-nav.js') }}"></script>
+	<script src="{{ asset('js/helpers.js') }}"></script>
+{% endblock %}
