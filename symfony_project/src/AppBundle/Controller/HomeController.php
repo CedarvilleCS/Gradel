@@ -56,7 +56,7 @@ class HomeController extends Controller {
     }
     
     public function homeAction($year, $term) {
-        if($year == -1 || $term == -1){
+        if ($year == -1 || $term == -1) {
             $semester = $this->semesterService->getCurrentSemester();
             $year = $semester->year;
             $term = $semester->term;
@@ -68,7 +68,7 @@ class HomeController extends Controller {
         }
     
         $semester = $this->semesterService->getSemesterByTermAndYear($term, $year);
-        if(!$semester){
+        if (!$semester) {
             return $this->returnForbiddenResponse("SEMESTER ".$term." ".$year." DOES NOT EXIST");
         }
         /* get all of the non-deleted sections
@@ -81,7 +81,7 @@ class HomeController extends Controller {
         $sections = [];
         $sectionsTaking = [];
         $sectionsTeaching = [];
-        foreach ($userSectionRoles as $userSectionRole){
+        foreach ($userSectionRoles as $userSectionRole) {
             $sections[] = $userSectionRole->section->id;
             
             if ($userSectionRole->role->role_name == Constants::TAKES_ROLE) {
