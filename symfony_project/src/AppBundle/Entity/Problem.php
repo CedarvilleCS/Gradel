@@ -241,12 +241,22 @@ class Problem implements JsonSerializable{
 	* @ORM\Column(type="boolean")
 	*/
 	public $allow_upload = true;
-	
+
+	public $testCaseInfo = [];
+
+	public $numberOfCompletedStudents = 0;
+
+	public function __toString() {
+		return $this->testCaseInfo;
+	}
 	
 	public function jsonSerialize(){
 		return [
 			'id' => $this->id,
 			'name' => $this->name,
+			'testcases' => $this->testcase_counts,
+			'userTestCaseInfo' => $this->userTestCaseInfo,
+			'numberOfCompletedStudents' => $this->numberOfCompletedStudents
 		];
 	}
 }

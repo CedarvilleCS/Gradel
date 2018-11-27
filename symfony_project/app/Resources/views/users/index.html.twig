@@ -64,13 +64,14 @@
 
 <body>        
 	{{ include('template/top-nav.html.twig') }}
-	{{ include('template/path-nav.html.twig') }}
+	{{ include('template/section-nav.html.twig') }}
 
 
-	<nav class="nav-left">
-		<a id="save-btn" class="btn"><div class="btn btn-center">Save</div></a>
-		
-    </nav>
+	<div class="floatingControls">
+		<a id="save-btn" class="floatingLink">
+			<div class="floatingButton">Save</div>
+		</a>
+    </div>
 
 	{# Main section #}
 	<section id="main">
@@ -139,6 +140,7 @@
 	<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 	<script src="{{ asset('js/cards.js') }}"></script>
+	<script src="{{ asset('js/floating-control.js') }}"></script>
 
 	<script>
 		var userActions = "{{userRoles}}";

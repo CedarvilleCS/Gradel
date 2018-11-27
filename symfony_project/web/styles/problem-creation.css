@@ -3,7 +3,7 @@
 	cursor: pointer;
 	
 	background: none;
-	border: 2px dotted darkgreen;
+	border: 2px dotted darkblue;
 		
 	display: flex;
 	align-items: center;
@@ -54,7 +54,7 @@
 	font-weight: normal;
 }
 .language:hover{
-	background: #4CAF50
+	background: #4CAFFF
 }
 
 .remove-language{
@@ -81,7 +81,7 @@
 }
 
 .ui-tabs .ui-tabs-nav li.ui-tabs-active {
-	background: #71BA62 !important;
+	background: #71BAFF !important;
 	border: white !important;
 }
 

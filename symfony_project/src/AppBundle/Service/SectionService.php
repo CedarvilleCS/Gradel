@@ -20,15 +20,28 @@ class SectionService {
 		return new Section();
 	}
 	
+	public function getSectionsBySemesterAndYear(){
+		$builder = $this->entityManager->createQueryBuilder();
+		$builder->select("s")
+				->from("AppBundle\Entity\Section", "s")
+				->where("s.semester = (?1)")
+				->andWhere("s.year = (?2)")
+				->setParameter(1, $semester)
+				->setParameter(2, $year);
+		
+		$sections = $builder->getQuery();
+		return $sections->getResult();
+	}
+
     public function getNonDeletedSectionsForHome() {
 		$builder = $this->entityManager->createQueryBuilder();
 		$builder->select("s")
-		->from("AppBundle\Entity\Section", "s")
-		->where("s.is_deleted = false")
-		->andWhere("s.start_time < ?1")
-		->andWhere("s.end_time > ?2")
-		->setParameter(1, (new DateTime("now"))->add(new DateInterval("P30D")))
-		->setParameter(2, (new DateTime("now"))->sub(new DateInterval("P14D")));
+				->from("AppBundle\Entity\Section", "s")
+				->where("s.is_deleted = false")
+				->andWhere("s.start_time < ?1")
+				->andWhere("s.end_time > ?2")
+				->setParameter(1, (new DateTime("now"))->add(new DateInterval("P30D")))
+				->setParameter(2, (new DateTime("now"))->sub(new DateInterval("P14D")));
 		
 		$sectionQuery = $builder->getQuery();
 		return $sectionQuery->getResult();

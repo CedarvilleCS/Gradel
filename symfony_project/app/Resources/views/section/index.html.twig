@@ -1,484 +1,206 @@
 {% block head %}
 
-<title>Gradel{% if section != null %} | {{section.name}} {% endif %}</title>
-<link rel="icon" type="image/x-icon" href="{{ asset('images/logo.png') }}" />
+    <title>Gradel{% if section != null %}
+            |
+            {{section.name}}
+        {% endif %}
+    </title>
+    <link rel="icon" type="image/x-icon" href="{{ asset('images/logo.png') }}"/>
 {% endblock %}
 
 {% block stylesheets %}
-	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"/>
 
-	<link rel="stylesheet" href="{{ asset('styles/styles.css') }}" />
-	<link rel="stylesheet" href="{{ asset('styles/card.css') }}" />
-	
-	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('styles/styles.css') }}"/>
+    <link rel="stylesheet" href="{{ asset('styles/card.css') }}"/>
+
+    <link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
 {% endblock %}
 
 {% block body %}
 
-<body>        
-	{{ include('template/top-nav.html.twig') }}
-	{{ include('template/assignment-nav.html.twig') }}
-	{{ include('template/path-nav.html.twig') }}
+    <body>
+        {{ include('template/top-nav.html.twig') }}
+        {{ include('template/section-nav.html.twig') }}
 
-	{# Main section #}
-	<section id="main">
-		<div class="card">
-			<div class="btn-close" onclick="collapseCard('courseInfo')"><h2 style="margin: 0px">Due Soon<span style="float: right"><i class="fa fa-angle-down"></i></span></h2></div>
-			<div id="courseInfo" class="card-contents">
-			
-			{% if future_assigs|length == 0 %}
-			
-				<h4 style="background: grey; color: white; padding: 5px">  No upcoming assignments </h4>
-			
-			{% else %}
+        {% if is_granted("ROLE_SUPER")or is_granted("ROLE_ADMIN")or grader.isTeaching(user, section) %}
+            {# edit button #}
+            <div class="floatingControls">
+                {% if is_granted("ROLE_SUPER")or is_granted("ROLE_ADMIN") %}
+                    <a class="floatingLink" href="{{path('section_edit', {'sectionId': section.id})}}">
+                        <div class="floatingButton">Edit Section</div>
+                    </a>
+                {% endif %}
+                <a id="download" class="disabledFloatingLink" download="{{ section.name }} grades.csv">
+                    <div class="floatingButton">Download Grades</div>
+                </a>
+            </div>
+        {% endif %}
 
-				{% for assig in future_assigs %}
-						
-					{% set newDate = assig.end_time|date('m/d/Y') %}
-							
-					{% if newDate != oldDate %}
-						<h4 style="background: grey; color: white; padding: 5px"> {{assig.end_time|date('l, F d')}} </h4>
-					{% endif %}
-							
-					{% set oldDate = newDate %}
-							
-					<div style="margin-left: 20px"><small>{{asgn.section.name}}</small>
-						<a href="{{path('assignment', {'sectionId':assig.section.id, 'assignmentId':assig.id})}}">
-							<li>{{assig.name}} <small>(Due {{assig.end_time|date('\\a\\t  h:i:s A')}})</small></li>
-						</a>
-					</div>
-						
-				{% endfor %}
-				
-			{% endif %}
-			
-			</div>
-		</div>
-
-		{# Student Info Card #}
-		{% if is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") or grader.isTeaching(user, section) %}
-		<div class="card">
-			<div class="btn-close" onclick="collapseCard('studentInfo')"><h2 style="margin: 0px">Student Info<span style="float: right"><i class="fa fa-angle-down"></i></span></h2></div>
-			<div id="studentInfo" class="card-contents">
-
-				<div>
-				{% if section_takers|length == 0 %}
-				
-					There are no students enrolled in this class
-				
-				{% else %}
-				
-					<table>
-						<tr>
-							<th style="text-align: left; border-bottom: 1px solid black; border-right: 1px solid black;">Student</th>
-							{% for asgn in section.assignments %}
-							
-								<th style="border-bottom: 1px solid black">{{asgn.name}}</th>
-							
-							{% endfor %}
-						</tr>
-						
-						{% for user in section_takers %}
-														
-							<tr> <th>{{user.getFirstName()}} {{user.getLastName()}}</th>
-			  
-								{% for asgn in section.assignments %}
-									
-									{% if grades[user.id][asgn.id]['num_correct_problems'] > 0 and grades[user.id][asgn.id]['num_correct_problems'] == grades[user.id][asgn.id]['num_problems'] %}
-									
-										<td style="color:green; font-size: 25px">{{grades[user.id][asgn.id]['num_correct_problems']}}/{{grades[user.id][asgn.id]['num_problems']}} 
-										
-										{% if grades[user.id][asgn.id]['num_extra_problems'] > 0 and grades[user.id][asgn.id]['num_extra_correct_problems'] == grades[user.id][asgn.id]['num_extra_problems'] %}
-										{{grades[user.id][asgn.id]['num_correct_problems']}}/{{grades[user.id][asgn.id]['num_problems']}}										
-										{% endif %}
-										</td>
-										
-									{% elseif grades[user.id][asgn.id]['num_correct_problems'] != 0 %}
-										<td style="color:orange; font-size: 25px"><i> {{grades[user.id][asgn.id]['num_correct_problems']}}/{{grades[user.id][asgn.id]['num_problems']}}</i></td>
-								 {% else %} 
-										<td style="color:red; font-size: 25px">{{grades[user.id][asgn.id]['num_correct_problems']}}/{{grades[user.id][asgn.id]['num_problems']}}</td>
-								 {% endif %}
-									
-								{% endfor %}
-							
-						{% endfor %}
-						
-					</table>
-					
-					<br>
-					
-					<a id="download" download="{{ section.name }} grades.csv">
-						<div class="btn">Download Grades Overview</div>
-					</a>
-				
-				{% endif %}
-				
-				</div>
-			</div>
-		</div>
-		{% endif %}
-
-		{# Assignment Grades Card #}
-		{% if is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") or grader.isTeaching(user, section) %}
-		<div class="card">
-			<div class="btn-close" onclick="collapseCard('studentInfoAssignment')"><h2 style="margin: 0px">Assignment Grades<span style="float: right"><i class="fa fa-angle-down"></i></span></h2></div>
-			<div id="studentInfoAssignment" class="card-contents">
-				<div id="assignmentLinks"></div>
-			</div>
-		</div>
-
-		{% endif %}
-		
-		{# Recent Submissions Card #}	
-		<div class="card">
-			<div class="btn-close" style="display: flex; flex-direction: row; justify-content: space-between;">
-
-				<div>
-					<h2 style="margin: 0px;">Submissions</h2>
-					<i> Search using the box. Separate parameters with semicolons. </i>
-				</div>
-
-				<div>
-					<input id='sub-search-input' style='width: 300px'>
-					<span id='sub-search-btn' class='fa fa-search'></span>
-				</div>
-			</div>
-			<div id="recentSubs" class="card-contents">
-					
-				<div>   
-					<ul id="submissions-list" style="list-style: none">
-						
-						<li> Search for some submissions </li>
-						
-					</ul>
-				</div>
-			</div>
-		</div>
-	</section>
+        {# Main section #}
+        <section id="main">
+            <div class="main_content">
+                <div class="card">
+                    <div class="sectionHeaderContainer">
+                        <div class="sectionHeader">{{section.name}}</div>
+                        <div class="sectionSubHeader">
+                            {% if section_teachers | length > 0 %}
+                                Prof:
+                                {{section_teachers[0]}}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="btn-close" onclick="collapseCard('Assignment')">
+                        <h2 style="margin: 0px">Assignment<span style="float: right">
+                                <i class="fa fa-angle-down"></i></span></h2>
+                    </div>
+                    <div id="Assignment">
+                        {% for assignment in section.assignments %}
+                            <div class="assignmentContainer">
+                                <div>
+                                    <div class="assignmentHeader">
+                                        <a href="{{path('assignment', {'sectionId': section.id, 'assignmentId': assignment.id})}}" class="assignmentLink">{{assignment.name}}</a>
+                                    </div>
+                                    <div class="assignmentInfo">
+                                        <div>Due:
+                                            {{assignment.end_time|date('m/d/Y')}}</div>
+                                        <div>Weight:
+                                            {{assignment.weight}}</div>
+                                        {% for problem in assignment.problems %}
+                                            <div>
+                                                <a href="{{path('assignment', {'sectionId': section.id, 'assignmentId': assignment.id, 'problemId': problem.id})}}" class="assignmentLink">{{problem.name}}</a>
+                                                |
+                                                {% if isTeaching %}
+                                                    {{problem.numberOfCompletedStudents}}/{{section_takers | length}}
+                                                    Students Completed
+                                                {% else %}
+                                                    {% set colorClass = 'green' %}
+                                                    {% if problem.userTestCaseInfo.numberOfCorrectTestCases == 0 %}
+                                                        {% set colorClass = 'red' %}
+                                                    {% elseif problem.userTestCaseInfo.numberOfCorrectTestCases < problem.userTestCaseInfo.numberOfTestCases %}
+                                                        {% set colorClass = 'yellow' %}
+                                                    {% endif %}
+                                                    <span class="{{ colorClass }}">{{problem.userTestCaseInfo.numberOfCorrectTestCases}}/{{problem.userTestCaseInfo.numberOfTestCases}}</span>
+                                                {% endif %}
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 </body>
 
 {% endblock %}
 
 {% block scripts %}
-	<!-- JQuery -->
-	<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
-	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-	<script src="{{ asset('js/cards.js') }}"></script>
+<!-- JQuery -->
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<script src="{{ asset('js/cards.js') }}"></script>
 
-	<script>
+{% if is_granted("ROLE_SUPER") %}
+    <script src="{{ asset('js/floating-control.js') }}"></script>
+{% endif %}
 
-		var table = [];
-		var selecton = "";
-				
-		$( document ).ready(function() {
+{% if is_granted("ROLE_SUPER")or is_granted("ROLE_ADMIN")or grader.isTeaching(user, section) %}
+    <script>
+        // Download CSV of Grades
+        var textFile = null;
+        // Create a text file from the given text
+        function makeTextFile(text) {
+            var data = new Blob([text], {type: 'text/plain'});
 
-			var counter = 0;
-			
-			{% if is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") or grader.isTeaching(user, section) %}
+            // If we are replacing a previously generated file we need to
+            // manually revoke the object URL to avoid memory leaks.
+            if (textFile !== null) {
+                window.URL.revokeObjectURL(textFile);
+            }
 
-			{% if section_takers|length == 0 %}				
-			table[0] 		+=	"There are no students enrolled in this class";
-			{% else %}
-			{# For each assignment #}
-			{% for asgn in section.assignments %}
-				table[counter] = "<h3 id='asgn" + counter + "'>{{asgn.name}}</h3>"
-						+	"<table>"
-						+		"<tr>"
-						+			"<th style='border-right: 1px solid black;'>&nbsp;</th>"
-						+			'<th colspan="' + "{{ grades[user.id][asgn.id]['num_problems'] }}"+ '"' + 'style="text-align: center;">Testcases Passed / Total</th>'
-						+		"</tr>"
-						+		"<tr>"
-						+			'<th style="text-align: left; border-bottom: 1px solid black; border-right: 1px solid black;">Student</th>'
-						+			"{% for problem in asgn.problems %}"
-						+				'<th style="text-align: left; border-bottom: 1px solid black;">{{ problem.name }}</th>'
-						+			"{% endfor %}"
-						+		"</tr>"
-						+		"{% for user in section_takers %}"
-						+			"<tr> <th>{{user.getFirstName()}} {{user.getLastName()}}</th>"	
-						+			"{# Loop through problems #}"
-						+			"{% for problem in asgn.problems %}"
-						+				"{# number of testcases passed, number of test cases failed #}"
-						+				"{# {{ grades|json_encode() }} #}"
-						+				"{% if grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] == grades[user.id][asgn.id]['problem_grades'][problem.id]['total_testcases'] %}"
-						+'<td style="color:green; font-size: 20px"><a style="margin:0; width:100%; height:100%;" href=' 
-						+ "{{path('problem_result', {'submissionId': user_assig_prob_sub[user.id][asgn.id][problem.id]})}}"
-						+ '>' 
-						+ "{{ grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] }}  / {{ grades[user.id][asgn.id]['problem_grades'][problem.id]['total_testcases'] }}</a></td>"
-						+				"{% elseif grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] != 0 %}"
-						+					'<td style="color:orange; font-size: 20px"><a style="margin:0; width:100%; height:100%;" href=' 
-						+ "{{path('problem_result', {'submissionId': user_assig_prob_sub[user.id][asgn.id][problem.id]})}}"
-						+ '>' 
-						+ "{{ grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] }}  / {{ grades[user.id][asgn.id]['problem_grades'][problem.id]['total_testcases'] }}</a></td>"
-						+				"{% else %}"
-						+					'<td style="color:red; font-size: 20px"><a style="margin:0; width:100%; height:100%;" href=' 
-						+ "{{path('problem_result', {'submissionId': user_assig_prob_sub[user.id][asgn.id][problem.id]})}}"
-						+ '>' 
-						+ "{{ grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] }}  / {{ grades[user.id][asgn.id]['problem_grades'][problem.id]['total_testcases'] }}</a></td>"
-						+				"{% endif %}"									
-						+			"{% endfor %}"
-						+		"{% endfor %}"
-						+		"</table>"
-						+		"<br><br>"	
-						+		'<a id="download' + counter + '" download="{{ asgn.name }}.csv" onclick="' + "downloadAssgnGrades(" + counter + ", 'download" +  counter + "')" + '">'
-						+			'<div class="btn">Download Assignment Grades</div>'
-						+		"</a>";
-						counter += 1;
-			{% endfor %}
-			{% endif %}
+            textFile = window.URL.createObjectURL(data);
 
-			{% endif %}
+            return textFile;
+        };
+        // Generate a CSV list of the grades
+        function generateGradeCSVSection() {
+            var gradesCSV = "Name, User, ";
+            {% for asgn in section.assignments %}
+                gradesCSV += "{{asgn.name}}";
+                gradesCSV += ", ";
+            {% endfor %}
+            gradesCSV += "Total";
+            gradesCSV += "\n";
 
-			// add it to the card
-			counter = 0;
-			selection = "Select an assignment: <select id='assignmentSelect' onchange='gradeTable()' style='height: 30px; font-size: 13px;'><option value='default'></option>";
-					// onclick='gradeTable(" + counter + ")
-			{% for asgn in section.assignments %}
-				selection += "<option value=" + counter + ">{{ asgn.name }}</option>";
-				counter += 1;
-			{% endfor %}
-			selection += "</select>";
+            {% for user in section_takers %}
+                var sumTotal = 0;
+                gradesCSV += '{{user.getFirstName()}} {{user.getLastName()}}, ';
+                gradesCSV += '{{user }}, ';
+                var i = 0;
+                {% for asgn in section.assignments %}
+                    i += 1;
+                    const percent = {{this.getAssignmentGrade(user, asgn)}};
 
-			initializeGradeTable(0);
+                    gradesCSV += percent + ', ';
 
-			// create a list of links and add to card
-			{# counter = 0;
-			{% for asgn in section.assignments %}
-				$("#assignmentLinks").append("<a href='#asgn" + counter + "'>{{ asgn.name }}</a><br>");
-				counter += 1;
-			{% endfor %} #}
+                {% endfor %}
+                gradesCSV += sumTotal / i;
+                gradesCSV += "\n";
 
-			var search_suggestions =  JSON.parse("{{search_suggestions|json_encode|e('js')}}");
+            {% endfor %}
+            return gradesCSV;
+        }
+        // Generate a CSV list of the grades
+        function generateGradeCSVAssignment(index) {
+            var gradesCSV = [];
+            var i = 0;
 
-			var auto_comp_suggs = [];
-			for(var i=0; i<search_suggestions.length; i++){
-				auto_comp_suggs.push(search_suggestions[i][0]);
-			}
+            {% for asgn in section.assignments %}
+                gradesCSV[i] = " , ";
+                {% for problem in asgn.problems %}
+                    gradesCSV[i] += "{{ problem.name }}" + ", , , ";
+                {% endfor %}
+                gradesCSV[i] += "\nUser, ";
+                {% for problem in asgn.problems %}
+                    gradesCSV[i] += "Testcases Right, Total Testcases, Grade, ";
+                {% endfor %}
+                gradesCSV[i] += "\n";
+                {% for user in section_takers %}
+                    gradesCSV[i] += '{{user.getFirstName()}} {{user.getLastName()}}, ';
+                    {% for problem in asgn.problems %}
+                        var right = parseFloat("{{ grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] }}");
+                        var total = parseFloat("{{ grades[user.id][asgn.id]['problem_grades'][problem.id]['total_testcases'] }}");
 
-			$( "#sub-search-input" ).autocomplete({
-      			
-				  source: auto_comp_suggs
-
-    		}).data( "ui-autocomplete" )._renderItem = function( ul, item ) {
-            
-				var ind = auto_comp_suggs.indexOf(item.label);
-				var suggest = search_suggestions[ind][1];
-
-				var thing = $("<li>")
-					.append("<a>" + item.label + "<small><i> " + suggest + "</i></small></a>") 
-					.appendTo( ul );
-
-				return thing;
-        	};
-
-		});
-
-		function initializeGradeTable(index) {
-			$("#studentInfoAssignment").html(selection + table[index]);
-		}
-		function gradeTable() {
-			index = $('#assignmentSelect').val();
-			$("#studentInfoAssignment").html(selection + table[index]);
-		}
-	
-
-		{% if is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") or grader.isTeaching(user, section) %}
-		// Download CSV of Grades
-
-		var textFile = null;
-
-		// Create a text file from the given text
-		function makeTextFile(text) {
-			var data = new Blob([text], {type: 'text/plain'});
-		
-			// If we are replacing a previously generated file we need to
-			// manually revoke the object URL to avoid memory leaks.
-			if (textFile !== null) {
-				window.URL.revokeObjectURL(textFile);
-			}
-		
-			textFile = window.URL.createObjectURL(data);
-		
-			return textFile;
-		};
-
-		// Generate a CSV list of the grades
-		function generateGradeCSVSection() {
-			var gradesCSV = "Name, User, ";
-			{% for asgn in section.assignments %}
-				gradesCSV += "{{asgn.name}}";
-				gradesCSV += ", ";
-			{% endfor %}
-				gradesCSV += "Total";
-				gradesCSV += "\n";
-			
-			{% for user in section_takers %}
-				var sumTotal = 0;
-				gradesCSV += '{{user.getFirstName()}} {{user.getLastName()}}, ';
-				gradesCSV += '{{user }}, ';
-				var i = 0;
-				{% for asgn in section.assignments %}
-					i += 1;
-					const percent = {{this.getAssignmentGrade(user, asgn)}};
-					
-					gradesCSV += percent + ', '; 
-					
-					
-
-				{% endfor %}
-				gradesCSV += sumTotal/i;
-				gradesCSV += "\n";
-				
-			{% endfor %}
-
-			return gradesCSV;
-		}
-
-
-		// Generate a CSV list of the grades
-		function generateGradeCSVAssignment(index) {
-
-			var gradesCSV = [];
-			var i = 0;
-			
-			{% for asgn in section.assignments %}
-
-				gradesCSV[i] = " , ";
-
-				{% for problem in asgn.problems %}
-					gradesCSV[i] += "{{ problem.name }}" + ", , , ";
-				{% endfor %}
-
-				gradesCSV[i] += "\nUser, ";
-				{% for problem in asgn.problems %}
-					gradesCSV[i] += "Testcases Right, Total Testcases, Grade, ";
-				{% endfor %}
-
-				gradesCSV[i] += "\n";
-
-				{% for user in section_takers %}
-					gradesCSV[i] += '{{user.getFirstName()}} {{user.getLastName()}}, ';
-
-					{% for problem in asgn.problems %}
-						var right = parseFloat("{{ grades[user.id][asgn.id]['problem_grades'][problem.id]['passed_testcases'] }}");
-						var total = parseFloat("{{ grades[user.id][asgn.id]['problem_grades'][problem.id]['total_testcases'] }}");
-						
-						gradesCSV[i] += right + ", " + total + ", " + {{grader.getProblemGrade(user, problem)}} + ", ";
-
-					{% endfor %}
-
-					gradesCSV[i] += "\n";
-				{% endfor %}
-				i += 1;
-			{% endfor %}
-
-			return gradesCSV[index];
-		}
-
-
-		// Download the CSV of grades when the download button is clicked
-		var download = document.getElementById('download');	
-		if(download != null){
-			download.addEventListener('click', function () {
-				var link = document.getElementById('download');
-				link.href = makeTextFile(generateGradeCSVSection());
-				link.style.display = 'block';
-			}, false);
-		}
-
-		function downloadAssgnGrades(index, id) {
-			var link = document.getElementById(id);
-
-			if(link != null){
-				link.href = makeTextFile(generateGradeCSVAssignment(index));
-				link.style.display = 'block';
-			}
-		}
-
-		{% endif %}
-
-
-		$('#sub-search-btn').click(function() {
-			searchSubmissions($('#sub-search-input').val());		
-		});
-
-		$('#sub-search-input').on("keydown", function (e) {
-
-			if(e.keyCode == 13) {
-				searchSubmissions($('#sub-search-input').val());
-			}
-		});
-
-		function searchSubmissions(str){
-
-			if(str.trim() == "") return;
-
-			$('#submissions-list').children().remove();
-			$('#submissions-list').append("<li> Searching for submissions... </li>");
-
-			var formData = new FormData();
-			formData.append('val', str);
-			formData.append('id', {{section.id}})
-
-			$.ajax({
-				type: "POST",
-				url: "{{path('submission_search')}}",
-				data: formData,
-				processData: false,
-				contentType: false,
-				success: function(data){					
-					displaySubmissions(data['results']);					
-				},
-				error: function(data){
-		
-					if(data['responseText']){					
-						alert(data['responseText']);
-						console.log(JSON.parse(data['responseText']));					
-					}				
-				}
-			});
-		}
-
-
-		displaySubmissions(JSON.parse("{{submissions|json_encode|e('js')}}"));
-
-		function displaySubmissions(data){
-				
-				$('#submissions-list').find('li').remove();
-
-				for(var i=0; i<data.length; i++){
-
-					var res = data[i];
-
-					var time = new Date(res.timestamp.date);
-
-					var names = "";
-					if(res.team.users != null && res.team.users.length > 1){
-						
-						names = res.team.name;
-
-					} else {
-						names = res.user.full_name;
-					}
-
-					var timestrings = time.toLocaleString().split(',');
-					var language = res.language.name;
-
-					var resultStr = res.result_string.split('-');
-					resultStr = resultStr[resultStr.length-1];
-
-					var resultColor = (res.is_correct) ? "green" : "red";
-
-					var searchResult = "<li style='color: " + resultColor + "'><a href='{{path('problem_result', {'submissionId': ''})}}" +res.id + "'>" + res.id + " - [" + res.problem.name + "] <b>" + names + "<i> - " + resultStr + "</i></b></a></li>";
-
-					$('#submissions-list').append(searchResult);
-				}
-
-				if(data.length == 0){
-					$('#submissions-list').append('<li> There were no results. :( </li>');
-				}
-		
-		}
-
-	</script>
+                        gradesCSV[i] += right + ", " + total + ", " + {{grader.getProblemGrade(user, problem)}} + ", ";
+                    {% endfor %}
+                    gradesCSV[i] += "\n";
+                {% endfor %}
+                i += 1;
+            {% endfor %}
+            return gradesCSV[index];
+        }
+        // Download the CSV of grades when the download button is clicked
+        var download = document.getElementById('download');
+        if (download != null) {
+            download.addEventListener('click', function () {
+                var link = document.getElementById('download');
+                link.href = makeTextFile(generateGradeCSVSection());
+                link.style.display = 'block';
+            }, false);
+        }
+        function downloadAssgnGrades(index, id) {
+            var link = document.getElementById(id);
+            if (link != null) {
+                link.href = makeTextFile(generateGradeCSVAssignment(index));
+                link.style.display = 'block';
+            }
+        }
+    </script>
+{% endif %}
 
 {% endblock %}

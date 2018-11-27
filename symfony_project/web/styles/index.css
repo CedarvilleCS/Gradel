@@ -1,0 +1,35 @@
+.sections-container {
+    display: grid;
+    grid-template-columns: 50% 50%;
+}
+
+.section-container {
+    width: 550px;
+    border: 3px solid #003963;
+    border-radius: 10px;
+    margin: 40px auto 0 auto;
+    font-size: 20pt;
+    color: #003963;
+    background-color: white;
+    text-align: center;
+}
+
+.section-container a {
+    text-decoration: underline;
+}
+
+.section-container a:hover {
+    text-decoration: none;
+}
+
+.section-title {
+    color: #fdb813;
+    font-size: 24pt;
+    background-color: #003963;
+    border-radius: 5px;
+    padding: 5px;
+}
+
+.section-card-content {
+    padding: 10px;
+}
