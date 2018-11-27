@@ -87,9 +87,23 @@ class AssignmentController extends Controller {
             return $this->returnForbiddenResponse("ASSIGNMENT ".$assignmentId." DOES NOT EXIST");
         }
         
+        // get all the users taking the course
+        $section = $this->sectionService->getSectionById($sectionId);
+        $sectionTakerRoles = $this->userSectionRoleService->getUserSectionRolesForAssignmentEdit($section);
+                
+        $grades = [];
+        $sectionTakers = [];
+        foreach($sectionTakerRoles as $sectionTakerRole){
+            $sectionTakers[] = $sectionTakerRole->user;
+            $grades[$sectionTaker->id] = $this->graderService->getAssignmentGrade($sectionTakerRole->user, $assignment);
+        }
+
         return $this->render("assignment/index.html.twig", [
             "assignment" => $assignment,
-            "user" => $user
+            "section_takers" => $sectionTakers,
+            "user" => $user,
+            "user_impersonators" => $sectionTakers,
+            "grades" => $grades
         ]);
     }
 

@@ -64,35 +64,72 @@
 				</div>
 			</div>
 			<div class="card">
-                    <div class="btn-close" onclick="collapseCard('Problem')">
-                        <h2 style="margin: 0px">Problem<span style="float: right">
-                                <i class="fa fa-angle-down"></i></span></h2>
-                    </div>
-                    <div id="Problem">
-                        {% for problem in assignment.problems %}
-                            <div class="assignmentContainer">
-                                <div>
-                                    <div class="assignmentHeader">
-                                        <a href="{{path('problem', {'sectionId': assignment.section.id, 'assignmentId': assignment.id, 'problemId': problem.id})}}" class="assignmentLink">{{problem.name}}</a>
-                                    </div>
-                                    <div class="assignmentInfo">
-                                        <div>Description:
-                                            {{problem.description}}</div>
-                                        <div>Score:
-                                            {% set colorClass = 'green' %}
-											{% if problem.userTestCaseInfo.numberOfCorrectTestCases == 0 %}
-												{% set colorClass = 'red' %}
-											{% elseif problem.userTestCaseInfo.numberOfCorrectTestCases < problem.userTestCaseInfo.numberOfTestCases %}
-												{% set colorClass = 'yellow' %}
+				<div class="btn-close" onclick="collapseCard('Problem')">
+					<h2 style="margin: 0px">Problem<span style="float: right">
+							<i class="fa fa-angle-down"></i></span></h2>
+				</div>
+				<div id="Problem">
+					{% for problem in assignment.problems %}
+						<div class="assignmentContainer">
+							<div>
+								<div class="assignmentHeader">
+									<a href="{{path('problem', {'sectionId': assignment.section.id, 'assignmentId': assignment.id, 'problemId': problem.id})}}" class="assignmentLink">{{problem.name}}</a>
+								</div>
+								<div class="assignmentInfo">
+									<div>Description:
+										{{problem.description}}</div>
+									<div>Score:
+										{% set colorClass = 'green' %}
+										{% if problem.userTestCaseInfo.numberOfCorrectTestCases == 0 %}
+											{% set colorClass = 'red' %}
+										{% elseif problem.userTestCaseInfo.numberOfCorrectTestCases < problem.userTestCaseInfo.numberOfTestCases %}
+											{% set colorClass = 'yellow' %}
+										{% endif %}
+										<span class="{{ colorClass }}">{{problem.userTestCaseInfo.numberOfCorrectTestCases}}/{{problem.userTestCaseInfo.numberOfTestCases}}</span>
+									</div>
+								</div>
+							</div>
+						</div>
+					{% endfor %}
+				</div>
+			</div>
+			{# Student Info Card #}
+			{% if is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") or grader.isTeaching(user, section) %}
+				<div class="card">
+					<div class="btn-close" onclick="collapseCard('studentInfo')"><h2 style="margin: 0px">Student Info<span style="float: right"><i class="fa fa-angle-down"></i></span></h2></div>
+					<div id="studentInfo" class="card-contents">
+						<div>
+						{% if section_takers|length == 0 %}
+							There are no students enrolled in this class
+						{% else %}
+						<div id="Test" data-grades="{{grades|json_encode}}"></div>
+							<table>
+								<tr>
+									<th style="text-align: left; border-bottom: 1px solid black; border-right: 1px solid black;">Student</th>
+									<th style="border-bottom: 1px solid black">{{assignment.name}}</th>
+								</tr>
+								{% for user in section_takers %}
+									<tr> 
+										<th>{{user.getFirstName()}} {{user.getLastName()}}</th>
+										{% if grades[user.id]['num_correct_problems'] > 0 and grades[user.id]['num_correct_problems'] == grades[user.id]['num_problems'] %}
+											<td style="color:green; font-size: 25px">{{grades[user.id]['num_correct_problems']}}/{{grades[user.id]['num_problems']}} 
+											{% if grades[user.id]['num_extra_problems'] > 0 and grades[user.id]['num_extra_correct_problems'] == grades[user.id]['num_extra_problems'] %}
+												{{grades[user.id]['num_correct_problems']}}/{{grades[user.id]['num_problems']}}										
 											{% endif %}
-											<span class="{{ colorClass }}">{{problem.userTestCaseInfo.numberOfCorrectTestCases}}/{{problem.userTestCaseInfo.numberOfTestCases}}</span>
-										</div>
-                                    </div>
-                                </div>
-                            </div>
-                        {% endfor %}
-                    </div>
-                </div>
+											</td>
+										{% elseif grades[user.id]['num_correct_problems'] != 0 %}
+											<td style="color:orange; font-size: 25px"><i> {{grades[user.id]['num_correct_problems']}}/{{grades[user.id]['num_problems']}}</i></td>
+										{% else %} 
+											<td style="color:red; font-size: 25px">{{grades[user.id]['num_correct_problems']}}/{{grades[user.id]['num_problems']}}</td>
+										{% endif %}
+									</tr>
+								{% endfor %}
+							</table>
+						{% endif %}
+						</div>
+					</div>
+				</div>
+			{% endif %}
 		</div>
     </section>
 </body>
