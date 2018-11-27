@@ -76,11 +76,12 @@
                                                     {{problem.numberOfCompletedStudents}}/{{section_takers | length}}
                                                     Students Completed
                                                 {% else %}
-                                                    {% set colorClass = 'green' %}
                                                     {% if problem.userTestCaseInfo.numberOfCorrectTestCases == 0 %}
                                                         {% set colorClass = 'red' %}
                                                     {% elseif problem.userTestCaseInfo.numberOfCorrectTestCases < problem.userTestCaseInfo.numberOfTestCases %}
                                                         {% set colorClass = 'yellow' %}
+                                                    {% else %}
+                                                        {% set colorClass = 'green' %}
                                                     {% endif %}
                                                     <span class="{{ colorClass }}">{{problem.userTestCaseInfo.numberOfCorrectTestCases}}/{{problem.userTestCaseInfo.numberOfTestCases}}</span>
                                                 {% endif %}

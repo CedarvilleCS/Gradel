@@ -58,12 +58,12 @@ class HomeController extends Controller {
             return $this->returnForbiddenResponse("USER DOES NOT EXIST");
         }
         
-    
         /* get all of the non-deleted sections
            they must start in at least 30 days and have ended at most 14 days ago to show up*/
         $sectionsActive = $this->sectionService->getNonDeletedSectionsForHome();
       
         /* get the user section role entities using the user entity and active sections */
+        $this->logError("made it");
         $userSectionRoles = $this->userSectionRoleService->getUserSectionRolesForHome($user, $sectionsActive);
         
         $sections = [];
