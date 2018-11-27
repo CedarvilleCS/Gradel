@@ -55,21 +55,30 @@ class HomeController extends Controller {
         $this->userService = $userService;
     }
     
-    public function homeAction(/*$year, $semester*/) {
+    public function homeAction($year, $term) {
+        if($year == -1 || $term == -1){
+            $semester = $this->semesterService->getCurrentSemester();
+            $year = $semester->year;
+            $term = $semester->term;
+        }
+
         $user = $this->userService->getCurrentUser();
           if (!get_class($user)) {
             return $this->returnForbiddenResponse("USER DOES NOT EXIST");
         }
     
-        $currentSemester = $this->semesterService->getCurrentSemester();
+        $semester = $this->semesterService->getSemesterByTermAndYear($term, $year);
+        if(!$semester){
+            return $this->returnForbiddenResponse("SEMESTER ".$term." ".$year." DOES NOT EXIST");
+        }
 
         /* get all of the non-deleted sections
            they must start in at least 30 days and have ended at most 14 days ago to show up*/
-        $sectionsActive = $this->sectionService->getSectionsBySemester($currentSemester);;
+        $sectionsActive = $this->sectionService->getSectionsBySemester($semester);
       
         /* get the user section role entities using the user entity and active sections */
         $userSectionRoles = $this->userSectionRoleService->getUserSectionRolesForHome($user, $sectionsActive);
-        
+
         $sections = [];
         $sectionsTaking = [];
         $sectionsTeaching = [];

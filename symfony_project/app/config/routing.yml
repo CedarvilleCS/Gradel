@@ -1,8 +1,11 @@
 # HOMEPAGE ROUTES
 homepage:
-    path:   '/home'
-    defaults:  { _controller: AppBundle:Home:home}
-
+    path:   '/home/{term}/{year}'
+    defaults: 
+      _controller: AppBundle:Home:home
+      term: -1
+      year: -1
+    
 alt_homepage:
     path:   '/'
     defaults: { _controller: AppBundle:Home:home}
