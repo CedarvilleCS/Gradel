@@ -66,6 +66,14 @@ body.hidden_hamburger {
     filter: brightness(150%);
 }
 
+.disabledFloatingLink {
+    margin: 0 5px;
+}
+
+.disabledFloatingLink {
+    cursor: default;
+}
+
 .floatingButton {
     color: #fdb813;
     background-color: #003963;
@@ -76,8 +84,22 @@ body.hidden_hamburger {
     border-radius: 5px;
 }
 
-.floating_button:hover {    
+.floatingButton:hover {    
     text-decoration: none;
+}
+
+.disabledFloatingLink > .floatingButton {
+    color: lightgray;
+    background-color: gray;
+    font-size: 18pt;
+    text-decoration: underline;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+}
+
+.disabledFloatingLink > .floatingButton:hover {
+    text-decoration: underline;
 }
 
 .nav-path {

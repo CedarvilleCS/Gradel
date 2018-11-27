@@ -51,7 +51,6 @@
 							{% else %}
 								<option value="{{ path('homepage', {'_switch_user': user.getEmail()}) }}">
 							{% endif %}
-
 							{{user.getFirstName()}} {{user.getLastName()}}</option>
 						{% endfor %}
 					</select>
