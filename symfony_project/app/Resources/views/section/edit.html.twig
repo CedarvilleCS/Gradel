@@ -26,6 +26,14 @@
 <body>
 	{{ include('template/top-nav.html.twig') }}
 	{{ include('template/section-nav.html.twig') }}
+	<div id="SitePosition"
+             class="hidden"
+             data-pos='{
+                 "start": {
+                     "id": "Section-{{section.id}}",
+                     "next": null
+                 }
+             }'></div>
 
     {# Left Nav for Section Edit#}
     <nav class="floatingControls">
@@ -48,10 +56,8 @@
 
     {# Main section with the necessary variable#}
 	<section id="main">
-
-		{# Cards #}
-		
-		{# <div class="parallel-cards"> #}
+		<div class="main_content">
+			{# Cards #}
 			<div class="card">
 				<div class="btn-close">
 					<h2 style="margin: 0px">
@@ -170,8 +176,8 @@
 					</th> </tr>
 					</table>
 				</div>
+			</div>
 		</div>
-
 	</section>
 </body>
 
