@@ -19,7 +19,7 @@ $.get(viewData.path, function (data) {
     //List all of the sections being taken
     data.sections_taking.forEach((section, sectionIndex) => {
         html += `<div class="section-nav-container">
-                    <div id="section-${section.id}">
+                    <div id="Section-${section.id}">
                         <div class="nav-chevron-title-container">`;
         if (section.assignments.length > 0) {
             html +=         `<img class="nav-chevron" onclick="chevronClick(this, 'section-${section.id}')" src="${asset('images/white_chevron.png')}" />`;
@@ -27,7 +27,7 @@ $.get(viewData.path, function (data) {
         html +=             `<a href="${path({'section': section.id})}">${section.name}</a>
                         </div>`;
         section.assignments.forEach((assignment, assignmentIndex) => {
-            html +=     `<div id="assignment-${assignment.id}" class="nav-assignment section-${section.id}">
+            html +=     `<div id="Assignment-${assignment.id}" class="nav-assignment section-${section.id}">
                             <div class="nav-chevron-title-container">`;
             if (assignment.problems.length > 0) {
                 html +=         `<img class="nav-chevron" onclick="chevronClick(this, 'assignment-${assignment.id}')" src="${asset('images/white_chevron.png')}" />`;
@@ -38,7 +38,7 @@ $.get(viewData.path, function (data) {
             html +=             `<a href="${path({'section': section.id, 'assignment': assignment.id}, 'problem')}">${assignment.name}</a>
                             </div>`;
             assignment.problems.forEach((problem, problemIndex) => {
-                html +=     `<div class="nav-problem assignment-${assignment.id}"><a href="${path({'section': section.id, 'assignment': assignment.id, 'problem': problem.id})}">${problem.name}</a></div>`;
+                html +=     `<div id="Problem-${problem.id}" class="nav-problem assignment-${assignment.id}"><a href="${path({'section': section.id, 'assignment': assignment.id, 'problem': problem.id})}">${problem.name}</a></div>`;
             });
             html +=     `</div>`;
         });
@@ -48,7 +48,7 @@ $.get(viewData.path, function (data) {
     //List all of the sections being taught
     data.sections_teaching.forEach((section, sectionIndex) => {
         html += `<div class="section-nav-container">
-                    <div>
+                    <div id="Section-${section.id}">
                         <div class="nav-chevron-title-container">`;
             if (section.assignments.length > 0) {
                 html +=     `<img class="nav-chevron" onclick="chevronClick(this, 'section-${section.id}')" src="${asset('images/white_chevron.png')}" />`;
@@ -56,7 +56,7 @@ $.get(viewData.path, function (data) {
         html +=             `<a href="${path({'section': section.id})}">${section.name}</a>
                         </div>`;
         section.assignments.forEach((assignment, assignmentIndex) => {
-            html +=     `<div class="nav-assignment section-${section.id}">
+            html +=     `<div id="Assignment-${assignment.id}" class="nav-assignment section-${section.id}">
                             <div class="nav-chevron-title-container">`;
             if (assignment.problems.length > 0) {
                 html +=         `<img class="nav-chevron" onclick="chevronClick(this, 'assignment-${assignment.id}')" src="${asset('images/white_chevron.png')}" />`;
@@ -67,7 +67,7 @@ $.get(viewData.path, function (data) {
             html +=             `<a href="${path({'section': section.id, 'assignment': assignment.id}, 'problem')}">${assignment.name}</a>
                             </div>`;
             assignment.problems.forEach((problem, problemIndex) => {
-                html +=     `<div class="nav-problem assignment-${assignment.id}"><a href="${path({'section': section.id, 'assignment': assignment.id, 'problem': problem.id})}}">${problem.name}</a></div>`;
+                html +=     `<div id="Problem-${problem.id}" class="nav-problem assignment-${assignment.id}"><a href="${path({'section': section.id, 'assignment': assignment.id, 'problem': problem.id})}}">${problem.name}</a></div>`;
             });
             html +=     `</div>`;
         });
@@ -76,3 +76,31 @@ $.get(viewData.path, function (data) {
     });
     document.getElementById('SideNavContent').innerHTML = html;
 });
+
+//Expand side nav to show the link for the page we are on and color that link orange
+/* SitePosition is formatted this way for longevity:
+*
+*   start: [
+*       id: Section-123,
+*       next: [
+*           id: Assignment-456,
+*           next: [
+*               id: Problem-789,
+*               next: null
+*                 ]
+*             ]
+*          ]
+*
+*  This way we can keep digging into the 'next' attribute until it's null, expanding
+*  everything in the divs matching the ids found in this array.
+*  We then color orange the text that is either in the anchor under the
+*  nav-chevron-title-container div under the div containing the id, or else we the
+*  text under the anchor under the div containing the id.
+*/
+let sitePosition = document.getElementById('SitePosition').dataset.pos;
+let tail = sitePosition['start'];
+while(tail['next'] !== null) {
+
+
+    tail = tail['next'];
+}
