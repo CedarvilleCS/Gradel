@@ -41,6 +41,10 @@ body.hidden_hamburger {
     color: #fdb813;
 }
 
+.hidden {
+    display: none;
+}
+
 #main {
     grid-area: main;
     background-color: lightgray;

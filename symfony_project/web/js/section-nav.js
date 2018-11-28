@@ -79,47 +79,52 @@ $.get(viewData.path, function (data) {
                 </div>`;
     });
     document.getElementById('SideNavContent').innerHTML = html;
-});
 
-//Expand side nav to show the link for the page we are on and color that link orange
-/* SitePosition is formatted this way for longevity:
-*
-*   start: [
-*       id: Section-123,
-*       next: [
-*           id: Assignment-456,
-*           next: [
-*               id: Problem-789,
-*               next: null
-*                 ]
-*             ]
-*          ]
-*
-*  This way we can keep digging into the 'next' attribute until it's null, expanding
-*  everything in the divs matching the ids found in this array.
-*  We then color orange the text that is in the corresponding link.
-*/
-let sitePosition = document.getElementById('SitePosition').dataset.pos;
-let tail = sitePosition['start'];
-while(tail['next'] !== null) {
-    let selection = tail['id'];
-    //Change the first character of the string to lowercase because it was an ID
-    //but will now represent a class.
-    selection = selection.substring(0, 1).toLowerCase + selection.substring(1);
-    //Expand this element
-    let subElements = document.querySelectorAll(`.${selection}`);
-    subElements.forEach((value, index) => {
-        value.style.display = 'block';
-    });
-    //Switch the chevron to the expanded icon if there is one
-    let chevronElement = document.querySelector(`.Chevron-${tail['id']}`);
-    if(chevronElement) {
-        chevronElement.src = chevronElement.src.replace('white_chevron', 'white_expand_more');
+    //Now that the nav HTML is in the page, we can work on expanding and coloring it:
+
+    //Expand side nav to show the link for the page we are on and color that link orange
+    /* SitePosition is formatted this way for longevity:
+    *
+    *   start: {
+    *       id: Section-123,
+    *       next: {
+    *           id: Assignment-456,
+    *           next: {
+    *               id: Problem-789,
+    *               next: null
+    *                 }
+    *             }
+    *          }
+    *
+    *  This way we can keep digging into the 'next' attribute until it's null, expanding
+    *  everything in the divs matching the ids found in this array.
+    *  We then color orange the text that is in the corresponding link.
+    */
+    let sitePositionElement = document.getElementById('SitePosition');
+    if(sitePositionElement) {
+        let sitePosition = JSON.parse(sitePositionElement.dataset.pos);
+        let tail = sitePosition['start'];
+        while(tail !== null) {
+            let selection = tail['id'];
+            //Change the first character of the string to lowercase because it was an ID
+            //but will now represent a class.
+            selection = selection.substring(0, 1).toLowerCase() + selection.substring(1);
+            //Expand this element
+            let subElements = document.querySelectorAll(`.${selection}`);
+            subElements.forEach((value, index) => {
+                value.style.display = 'block';
+            });
+            //Switch the chevron to the expanded icon if there is one
+            let chevronElement = document.getElementById(`Chevron-${tail['id']}`);
+            if(chevronElement) {
+                chevronElement.src = chevronElement.src.replace('white_chevron', 'white_expand_more');
+            }
+            //Another null check for tail here so that we can catch it and color the text orange
+            if(tail['next'] === null) {
+                document.getElementById(`Link-${tail['id']}`).classList.add('orange');
+            }
+            //Set tail to the next element
+            tail = tail['next'];
+        }
     }
-    //Another null check for tail here so that we can catch it and color the text orange
-    if(tail['next'] === null) {
-        document.getElementById(`Link-${tail['id']}`).classList.add('orange');
-    }
-    //Set tail to the next element
-    tail = tail['next'];
-}
+});
