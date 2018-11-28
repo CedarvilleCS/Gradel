@@ -22,23 +22,25 @@ $.get(viewData.path, function (data) {
                     <div id="Section-${section.id}">
                         <div class="nav-chevron-title-container">`;
         if (section.assignments.length > 0) {
-            html +=         `<img class="nav-chevron" onclick="chevronClick(this, 'section-${section.id}')" src="${asset('images/white_chevron.png')}" />`;
+            html +=         `<img id="Chevron-Section-${section.id}" class="nav-chevron" onclick="chevronClick(this, 'section-${section.id}')" src="${asset('images/white_chevron.png')}" />`;
         }
-        html +=             `<a href="${path({'section': section.id})}">${section.name}</a>
+        html +=             `<a id="Link-Section-${section.id}" href="${path({'section': section.id})}">${section.name}</a>
                         </div>`;
         section.assignments.forEach((assignment, assignmentIndex) => {
             html +=     `<div id="Assignment-${assignment.id}" class="nav-assignment section-${section.id}">
                             <div class="nav-chevron-title-container">`;
             if (assignment.problems.length > 0) {
-                html +=         `<img class="nav-chevron" onclick="chevronClick(this, 'assignment-${assignment.id}')" src="${asset('images/white_chevron.png')}" />`;
+                html +=         `<img id="Chevron-Assignment-${assignment.id}" class="nav-chevron" onclick="chevronClick(this, 'assignment-${assignment.id}')" src="${asset('images/white_chevron.png')}" />`;
             } else {
                 //Empty div here for css-grid to align things correctly
                 html +=         `<div></div>`;
             }
-            html +=             `<a href="${path({'section': section.id, 'assignment': assignment.id}, 'problem')}">${assignment.name}</a>
+            html +=             `<a id="Link-Assignment-${assignment.id}" href="${path({'section': section.id, 'assignment': assignment.id}, 'problem')}">${assignment.name}</a>
                             </div>`;
             assignment.problems.forEach((problem, problemIndex) => {
-                html +=     `<div id="Problem-${problem.id}" class="nav-problem assignment-${assignment.id}"><a href="${path({'section': section.id, 'assignment': assignment.id, 'problem': problem.id})}">${problem.name}</a></div>`;
+                html +=     `<div id="Problem-${problem.id}" class="nav-problem assignment-${assignment.id}">
+                                <a id="Link-Problem-${problem.id}" href="${path({'section': section.id, 'assignment': assignment.id, 'problem': problem.id})}">${problem.name}</a>
+                            </div>`;
             });
             html +=     `</div>`;
         });
@@ -51,23 +53,25 @@ $.get(viewData.path, function (data) {
                     <div id="Section-${section.id}">
                         <div class="nav-chevron-title-container">`;
             if (section.assignments.length > 0) {
-                html +=     `<img class="nav-chevron" onclick="chevronClick(this, 'section-${section.id}')" src="${asset('images/white_chevron.png')}" />`;
+                html +=     `<img id="Chevron-Section-${section.id}" class="nav-chevron" onclick="chevronClick(this, 'section-${section.id}')" src="${asset('images/white_chevron.png')}" />`;
             }
-        html +=             `<a href="${path({'section': section.id})}">${section.name}</a>
+        html +=             `<a id="Link-Section-${section.id}" href="${path({'section': section.id})}">${section.name}</a>
                         </div>`;
         section.assignments.forEach((assignment, assignmentIndex) => {
             html +=     `<div id="Assignment-${assignment.id}" class="nav-assignment section-${section.id}">
                             <div class="nav-chevron-title-container">`;
             if (assignment.problems.length > 0) {
-                html +=         `<img class="nav-chevron" onclick="chevronClick(this, 'assignment-${assignment.id}')" src="${asset('images/white_chevron.png')}" />`;
+                html +=         `<img id="Chevron-Assignment-${assignment.id}" class="nav-chevron" onclick="chevronClick(this, 'assignment-${assignment.id}')" src="${asset('images/white_chevron.png')}" />`;
             } else {
                 //Empty div here for css-grid to align things correctly
                 html +=         `<div></div>`;
             }
-            html +=             `<a href="${path({'section': section.id, 'assignment': assignment.id}, 'problem')}">${assignment.name}</a>
+            html +=             `<a id="Link-Assignment-${assignment.id}" href="${path({'section': section.id, 'assignment': assignment.id}, 'problem')}">${assignment.name}</a>
                             </div>`;
             assignment.problems.forEach((problem, problemIndex) => {
-                html +=     `<div id="Problem-${problem.id}" class="nav-problem assignment-${assignment.id}"><a href="${path({'section': section.id, 'assignment': assignment.id, 'problem': problem.id})}}">${problem.name}</a></div>`;
+                html +=     `<div id="Problem-${problem.id}" class="nav-problem assignment-${assignment.id}">
+                                <a id="Link-Problem-${problem.id}" href="${path({'section': section.id, 'assignment': assignment.id, 'problem': problem.id})}}">${problem.name}</a>
+                            </div>`;
             });
             html +=     `</div>`;
         });
@@ -93,14 +97,29 @@ $.get(viewData.path, function (data) {
 *
 *  This way we can keep digging into the 'next' attribute until it's null, expanding
 *  everything in the divs matching the ids found in this array.
-*  We then color orange the text that is either in the anchor under the
-*  nav-chevron-title-container div under the div containing the id, or else we the
-*  text under the anchor under the div containing the id.
+*  We then color orange the text that is in the corresponding link.
 */
 let sitePosition = document.getElementById('SitePosition').dataset.pos;
 let tail = sitePosition['start'];
 while(tail['next'] !== null) {
-
-
+    let selection = tail['id'];
+    //Change the first character of the string to lowercase because it was an ID
+    //but will now represent a class.
+    selection = selection.substring(0, 1).toLowerCase + selection.substring(1);
+    //Expand this element
+    let subElements = document.querySelectorAll(`.${selection}`);
+    subElements.forEach((value, index) => {
+        value.style.display = 'block';
+    });
+    //Switch the chevron to the expanded icon if there is one
+    let chevronElement = document.querySelector(`.Chevron-${tail['id']}`);
+    if(chevronElement) {
+        chevronElement.src = chevronElement.src.replace('white_chevron', 'white_expand_more');
+    }
+    //Another null check for tail here so that we can catch it and color the text orange
+    if(tail['next'] === null) {
+        document.getElementById(`Link-${tail['id']}`).classList.add('orange');
+    }
+    //Set tail to the next element
     tail = tail['next'];
 }
