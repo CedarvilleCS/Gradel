@@ -2,8 +2,8 @@
 
 namespace AppBundle\Controller;
 
-use \DateTime;
 use \DateInterval;
+use \DateTime;
 
 use AppBundle\Constants;
 
@@ -20,6 +20,7 @@ use AppBundle\Service\CourseService;
 use AppBundle\Service\GraderService;
 use AppBundle\Service\RoleService;
 use AppBundle\Service\SectionService;
+use AppBundle\Service\SemesterService;
 use AppBundle\Service\SubmissionService;
 use AppBundle\Service\TeamService;
 use AppBundle\Service\TestCaseService;
@@ -27,14 +28,16 @@ use AppBundle\Service\UserSectionRoleService;
 use AppBundle\Service\UserService;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
+
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 
-use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 
 use Doctrine\ORM\Tools\Pagination\Paginator;
 
@@ -43,10 +46,11 @@ use Psr\Log\LoggerInterface;
 class SectionController extends Controller {
     private $assignmentService;
     private $courseService;
-    private $logger;
     private $graderService;
+    private $logger;
     private $roleService;
     private $sectionService;
+    private $semesterService;
     private $submissionService;
     private $teamService;
     private $testCaseService;
@@ -55,10 +59,11 @@ class SectionController extends Controller {
 
     public function __construct(AssignmentService $assignmentService,
                                 CourseService $courseService,
-                                LoggerInterface $logger,
                                 GraderService $graderService,
+                                LoggerInterface $logger,
                                 RoleService $roleService,
                                 SectionService $sectionService,
+                                SemesterService $semesterService,
                                 SubmissionService $submissionService,
                                 TeamService $teamService,
                                 TestCaseService $testCaseService,
@@ -66,10 +71,11 @@ class SectionController extends Controller {
                                 UserService $userService) {
         $this->assignmentService = $assignmentService;
         $this->courseService = $courseService;
-        $this->logger = $logger;
         $this->graderService = $graderService;
+        $this->logger = $logger;
         $this->roleService = $roleService;
         $this->sectionService = $sectionService;
+        $this->semesterService = $semesterService;
         $this->submissionService = $submissionService;
         $this->teamService = $teamService;
         $this->testCaseService = $testCaseService;
@@ -248,7 +254,7 @@ class SectionController extends Controller {
             "user_impersonators" => $sectionTakers
         ]);
     }
-
+    
     public function editSectionAction($sectionId) {
         $user = $this->userService->getCurrentUser();
         if (!get_class($user)) {
@@ -304,8 +310,8 @@ class SectionController extends Controller {
             "section_teacher_roles" => $sectionTeacherRoles
         ]);
     }
-
-    public function cloneSectionAction($sectionId, $name, $semester, $year, $numberOfClones) {
+    
+    public function cloneSectionAction($sectionId, $name, $term, $year, $numberOfClones) {
         $user = $this->userService->getCurrentUser();
         if (!get_class($user)) {
             return $this->returnForbiddenResponse("YOU ARE NOT LOGGED IN");
@@ -316,11 +322,15 @@ class SectionController extends Controller {
             return $this->returnForbiddenResponse("SECTION ".$sectionId." DOES NOT EXIST");
         }
 
+        $semester = $this->semesterService->getSemesterByTermAndYear($term, $year);
+        if ($semester == NULL) {
+            $this->semesterService->createSemesterByTermAndYear($term, $year);
+        }
+
         for ($i = 1; $i <= $numberOfClones; $i++) {
             $newSection = clone $section;
             $newSection->semester = $semester;
             $newSection->name = $name."-".str_pad($i, 2, "0", STR_PAD_LEFT);
-            $newSection->year = $year;
             $this->sectionService->insertSection($newSection);
         }
         return $this->redirectToRoute("section_edit",
@@ -365,12 +375,12 @@ class SectionController extends Controller {
         $postData = $request->request->all();
         
         /* Check mandatory fields */
-        $sectionName = $postData["name"];
         $sectionCourse = $postData["course"];
-        $sectionSemester = $postData["semester"];
+        $sectionName = $postData["name"];
+        $sectionTerm = $postData["semester"];
         $sectionYear = $postData["year"];
 
-        if (!isset($sectionName) || trim($sectionName) == "" || !isset($sectionCourse) || !isset($sectionSemester) || !isset($sectionYear)) {
+        if (!isset($sectionName) || trim($sectionName) == "" || !isset($sectionCourse) || !isset($sectionTerm) || !isset($sectionYear)) {
             return $this->returnForbiddenResponse("NOT EVERY REQUIRED FIELD WAS PROVIDED");
         } else {
             /* Validate the year */
@@ -379,8 +389,8 @@ class SectionController extends Controller {
             }
             
              /*Validate the semester */
-            if (trim($sectionSemester) != "Fall" && trim($sectionSemester) != "Spring" && trim($sectionSemester) != "Summer") {
-                return $this->returnForbiddenResponse($sectionSemester." IS NOT A VALID SEMESTER");
+            if (trim($sectionTerm) != "Fall" && trim($sectionTerm) != "Spring" && trim($sectionTerm) != "Summer") {
+                return $this->returnForbiddenResponse($sectionTerm." IS NOT A VALID SEMESTER");
             }
         }
 
@@ -419,14 +429,20 @@ class SectionController extends Controller {
             return $this->returnForbiddenResponse("COURSE ".$courseId." DOES NOT EXIST");
         }
         
-        /* Set the necessary fields */
+        /* Set the necessary fields*/
         $section->name = trim($sectionName);
         $section->course = $course;
-        $section->semester = $sectionSemester;
-        $section->year = (int)trim($sectionYear);
+
+        /*Validate the semester*/
+        $semester = $this->semesterService->getSemesterByTermAndYear($sectionTerm, $sectionYear);
+        if (!$semester){
+            $semester = $this->semesterService->createSemesterByTermAndYear($sectionTerm, $sectionYear, false);
+            $this->semesterService->insertSemester($semester);
+        }
+        $section->semester = $semester;
         
         /* See if the dates were provided or if we will do them automatically */
-        $dates = $this->getDateTime($sectionSemester, $sectionYear);
+        $dates = $this->getDateTime($sectionTerm, $sectionYear);
         $sectionStartTime = $postData["start_time"];
         if (isset($sectionStartTime) && $sectionStartTime != "") {
             $customStartTime = DateTime::createFromFormat("m/d/Y H:i:s", $sectionStartTime." 00:00:00");
@@ -481,7 +497,6 @@ class SectionController extends Controller {
         $sectionTeachers = $postData["teachers"];
         /* Validate teacher csv */
         $teachers = array_unique(json_decode($sectionTeachers));
-        
         foreach ($teachers as $teacher) {
             if (!filter_var($teacher, FILTER_VALIDATE_EMAIL)) {
                 return $this->returnForbiddenResponse("PROVIDED TEACHER EMAIL ADDRESS ".$teacher." IS NOT VALID");
@@ -573,6 +588,7 @@ class SectionController extends Controller {
         return $this->returnOkResponse($response);
     }
 
+    //switch to using semester object
     private function getDateTime($semester, $year){
         switch ($semester) {
             case "Fall":

@@ -6,7 +6,6 @@ use Doctrine\ORM\EntityManagerInterface;
 
 use AppBundle\Entity\Submission;
 
-
 use \DateTime;
 use \DateInterval;
 
