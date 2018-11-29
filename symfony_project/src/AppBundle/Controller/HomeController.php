@@ -14,7 +14,7 @@ use AppBundle\Service\GraderService;
 use AppBundle\Service\SectionService;
 use AppBundle\Service\UserSectionRoleService;
 use AppBundle\Service\UserService;
-
+use AppBundle\Service\SemesterService;
 use AppBundle\Utils\Grader;
 use AppBundle\Utils\Uploader;
 use AppBundle\Utils\Zipper;
@@ -35,6 +35,7 @@ class HomeController extends Controller {
     private $graderService;
     private $logger;
     private $sectionService;
+    private $semesterService;
     private $userSectionRoleService;
     private $userService;
 
@@ -42,33 +43,46 @@ class HomeController extends Controller {
                                 GraderService $graderService,
                                 LoggerInterface $logger,
                                 SectionService $sectionService,
+                                SemesterService $semesterService,
                                 UserSectionRoleService $userSectionRoleService,
                                 UserService $userService) {
         $this->assignmentService = $assignmentService;
         $this->graderService = $graderService;
         $this->logger = $logger;
         $this->sectionService = $sectionService;
+        $this->semesterService = $semesterService;
         $this->userSectionRoleService = $userSectionRoleService;
         $this->userService = $userService;
     }
     
-    public function homeAction() {
+    public function homeAction($year, $term) {
+        if ($year == -1 || $term == -1) {
+            $semester = $this->semesterService->getCurrentSemester();
+            $year = $semester->year;
+            $term = $semester->term;
+        }
+
         $user = $this->userService->getCurrentUser();
           if (!get_class($user)) {
             return $this->returnForbiddenResponse("USER DOES NOT EXIST");
         }
         
+        $semester = $this->semesterService->getSemesterByTermAndYear($term, $year);
+        if (!$semester) {
+            return $this->returnForbiddenResponse("SEMESTER ".$term." ".$year." DOES NOT EXIST");
+        }
+
         /* get all of the non-deleted sections
            they must start in at least 30 days and have ended at most 14 days ago to show up*/
-        $sectionsActive = $this->sectionService->getNonDeletedSectionsForHome();
+        $sectionsActive = $this->sectionService->getSectionsBySemester($semester);
       
         /* get the user section role entities using the user entity and active sections */
         $userSectionRoles = $this->userSectionRoleService->getUserSectionRolesForHome($user, $sectionsActive);
-        
+
         $sections = [];
         $sectionsTaking = [];
         $sectionsTeaching = [];
-        foreach ($userSectionRoles as $userSectionRole){
+        foreach ($userSectionRoles as $userSectionRole) {
             $sections[] = $userSectionRole->section->id;
             
             if ($userSectionRole->role->role_name == Constants::TAKES_ROLE) {
@@ -78,7 +92,7 @@ class HomeController extends Controller {
                 $sectionsTeaching[] = $userSectionRole->section;
             }
         }
-        
+
         $assignments = $this->assignmentService->getAssignmentsSortedByDueDate($sections);
         $usersToImpersonate = $this->userService->getUsersToImpersonate($user);
         
@@ -90,6 +104,7 @@ class HomeController extends Controller {
             "assignments" => $assignments,
             "sections_taking" => $sectionsTaking,
             "sections_teaching" => $sectionsTeaching,
+            "semester" => $semester,
             "grades" => $grades,
             "user_impersonators" => $usersToImpersonate
         ]);
