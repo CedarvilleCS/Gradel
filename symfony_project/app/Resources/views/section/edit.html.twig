@@ -26,6 +26,14 @@
 <body>
 	{{ include('template/top-nav.html.twig') }}
 	{{ include('template/section-nav.html.twig') }}
+	<div id="SitePosition"
+             class="hidden"
+             data-pos='{
+                 "start": {
+                     "id": "Section-{{section.id}}",
+                     "next": null
+                 }
+             }'></div>
 
     {# Left Nav for Section Edit#}
     <nav class="floatingControls">
@@ -48,10 +56,8 @@
 
     {# Main section with the necessary variable#}
 	<section id="main">
-
-		{# Cards #}
-		
-		{# <div class="parallel-cards"> #}
+		<div class="main_content">
+			{# Cards #}
 			<div class="card">
 				<div class="btn-close">
 					<h2 style="margin: 0px">
@@ -171,7 +177,7 @@
 					</table>
 				</div>
 			</div>
-
+		</div>
 	</section>
 
 	<div id="cloneDialog">
@@ -231,7 +237,6 @@
 	<link rel="stylesheet" href="{{ asset('styles/clone.css') }}" />
 	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
-	<link rel="stylesheet" href="{{ asset('contest-edit.css') }}" />
 	<style>
 		select {
 			height: 20px;

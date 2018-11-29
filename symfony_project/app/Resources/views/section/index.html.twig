@@ -22,6 +22,14 @@
     <body>
         {{ include('template/top-nav.html.twig') }}
         {{ include('template/section-nav.html.twig') }}
+        <div id="SitePosition"
+             class="hidden"
+             data-pos='{
+                 "start": {
+                     "id": "Section-{{section.id}}",
+                     "next": null
+                 }
+             }'></div>
 
         {% if is_granted("ROLE_SUPER")or is_granted("ROLE_ADMIN")or grader.isTeaching(user, section) %}
             {# edit button #}
@@ -121,7 +129,7 @@
 {% if is_granted("ROLE_SUPER") %}
     <script src="{{ asset('js/floating-control.js') }}"></script>
 {% endif %}
-
+{#
 {% if is_granted("ROLE_SUPER")or is_granted("ROLE_ADMIN")or grader.isTeaching(user, section) %}
     <script>
         // Download CSV of Grades
@@ -215,5 +223,5 @@
         }
     </script>
 {% endif %}
-
+#}
 {% endblock %}

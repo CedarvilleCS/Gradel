@@ -28,7 +28,7 @@ $('#cloneSave').on('click', function() {
         var requestPath = path({
             'section/clone': cloneId,
             name: cloneName,
-            semester: cloneSemester,
+            term: cloneSemester,
             year: cloneYear,
             numberOfClones: numberOfClones
         });
