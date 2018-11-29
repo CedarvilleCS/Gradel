@@ -160,6 +160,10 @@ class User extends BaseUser implements JsonSerializable{
      * @ORM\OneToMany(targetEntity="UserSectionRole", mappedBy="user")
      */
 	public $section_roles;
+
+	public $userTestCaseInfo = [];
+
+	public $numberOfCompletedProblems = 0;
 	
 	public function __toString() {
 		return $this->getFullName();
@@ -176,6 +180,8 @@ class User extends BaseUser implements JsonSerializable{
 			'last_name' => $last_name,
 			'email' => $this->email,
 			'full_name' => $this->getFullName(),
+			'numberOfCompletedProblems' => $this->numberOfCompletedProblems,
+			'userTestCaseInfo' => $this->userTestCaseInfo
 		];
 	}
 }

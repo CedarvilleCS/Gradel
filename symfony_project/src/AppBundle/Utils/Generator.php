@@ -297,7 +297,7 @@ class Generator  {
 			}
 		}
 		
-		# update the submission entity to the values decided aboce
+		# update the submission entity to the values decided above
 		$submission->compiler_error = $submission_is_compileerror;
 		$submission->compiler_output = stream_get_contents($compile_log);
 		$submission->runtime_error = $submission_is_runtimeerror;
@@ -305,6 +305,9 @@ class Generator  {
 		$submission->exceeded_time_limit = $submission_is_timelimit; 
 		$submission->max_runtime = $submission_max_runtime;
 		$submission->percentage = $submission_percentage;
+		if ($testcase_is_correct ) {
+			$submission->judge_message = "Correct";
+		}
 
 		$solvedAllTestcases = ($correct_testcase_count == $problem->testcases->count());
 		

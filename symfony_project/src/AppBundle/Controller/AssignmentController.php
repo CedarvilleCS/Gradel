@@ -18,6 +18,7 @@ use AppBundle\Service\ProblemService;
 use AppBundle\Service\SectionService;
 use AppBundle\Service\SubmissionService;
 use AppBundle\Service\TeamService;
+use AppBundle\Service\TestCaseService;
 use AppBundle\Service\TrialService;
 use AppBundle\Service\UserSectionRoleService;
 use AppBundle\Service\UserService;
@@ -47,6 +48,7 @@ class AssignmentController extends Controller {
     private $sectionService;
     private $submissionService;
     private $teamService;
+    private $testCaseService;
     private $userSectionRoleService;
     private $userService;
 
@@ -57,6 +59,7 @@ class AssignmentController extends Controller {
                                 SectionService $sectionService,
                                 SubmissionService $submissionService,
                                 TeamService $teamService,
+                                TestCaseService $testCaseService,
                                 TrialService $trialService,
                                 UserSectionRoleService $userSectionRoleService,
                                 UserService $userService) {
@@ -67,6 +70,7 @@ class AssignmentController extends Controller {
         $this->sectionService = $sectionService;
         $this->submissionService = $submissionService;
         $this->teamService = $teamService;
+        $this->testCaseService = $testCaseService;
         $this->trialService = $trialService;
         $this->userSectionRoleService = $userSectionRoleService;
         $this->userService = $userService;
@@ -74,6 +78,7 @@ class AssignmentController extends Controller {
 
     public function assignmentAction($sectionId, $assignmentId) {
         $user = $this->userService->getCurrentUser();
+        $requestingUser = $this->getUser();
         if (!get_class($user)) {
             $this->returnForbiddenResponse("USER DOES NOT EXIST");
         }
@@ -93,9 +98,22 @@ class AssignmentController extends Controller {
                 
         $grades = [];
         $sectionTakers = [];
-        foreach($sectionTakerRoles as $sectionTakerRole){
+        foreach ($sectionTakerRoles as $sectionTakerRole) {
             $sectionTakers[] = $sectionTakerRole->user;
-            $grades[$sectionTaker->id] = $this->graderService->getAssignmentGrade($sectionTakerRole->user, $assignment);
+            $grades[$sectionTakerRole->user->id] = $this->graderService->getAssignmentGrade($sectionTakerRole->user, $assignment);
+        }
+
+        $assignmentProblems = $assignment->problems;
+        foreach ($sectionTakers as $sectionTaker) {
+            foreach ($assignmentProblems as $assignmentProblem) {
+                $testCaseInfo = $this->testCaseService->getTestCaseInfoFromTeamOrUserAndProblem($requestingUser, "s.user = ?1", $assignmentProblem);
+                if ($sectionTaker == $requestingUser) {
+                    $assignmentProblem->userTestCaseInfo = $testCaseInfo;
+                }
+                if ($testCaseInfo->numberOfTestCases == $testCaseInfo->numberOfCorrectTestCases) {
+                    $sectionTaker->numberOfCompletedProblems++;
+                }
+            }
         }
 
         return $this->render("assignment/index.html.twig", [
