@@ -9,7 +9,13 @@
 	</div>
 	<div id="SideNavContent"></div>
 	<div id="PastLink" class="large-link">
+        <img class="nav-chevron" onclick="chevronClick(this, 'past')" src="{{asset('images/white_chevron.png')}}" />
 		<a href="{{path('homepage')}}">Past</a>
+	</div>
+	<div class="past pastDropdownContainer">
+		<label for="Terms">Term: </label>
+		<select id="Terms">
+		</select>
 	</div>
 
 	<div id="SideNavData" data-path="{{path('sidenav_data')}}"

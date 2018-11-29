@@ -21,6 +21,7 @@ nav.nav-left .large-link {
 
 nav.nav-left #PastLink {
     padding-top: 100px;
+    display: flex;
 }
 
 nav.nav-left .nav-chevron-title-container {
@@ -38,6 +39,11 @@ nav.nav-left .nav-assignment,
 nav.nav-left .nav-problem {
     margin-left: 40px;
     display: none;
+}
+
+.pastDropdownContainer {
+    display: none;
+    margin-left: 40px;
 }
 
 nav.nav-left a {
