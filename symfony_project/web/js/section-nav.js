@@ -39,7 +39,7 @@ $.get(viewData.path, function (data) {
                 //Empty div here for css-grid to align things correctly
                 html +=         `<div></div>`;
             }
-            html +=             `<a id="Link-Assignment-${assignment.id}" href="${path({'section': section.id, 'assignment': assignment.id}, 'problem')}">${assignment.name}</a>
+            html +=             `<a id="Link-Assignment-${assignment.id}" href="${path({'section': section.id, 'assignment': assignment.id})}">${assignment.name}</a>
                             </div>`;
             assignment.problems.forEach((problem, problemIndex) => {
                 html +=     `<div id="Problem-${problem.id}" class="nav-problem assignment-${assignment.id}">
@@ -135,7 +135,7 @@ $.get(viewData.path, function (data) {
             tail = tail['next'];
         }
     }
-
+    
     $.get(viewData.semestersPath, function(semesterData) {
         console.log(semesterData);
         document.getElementById('ChosenSemester').innerHTML = ` | ${semesterData.chosenSemester.term} ${semesterData.chosenSemester.year}`;

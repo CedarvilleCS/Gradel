@@ -21,7 +21,9 @@ use AppBundle\Service\ProblemLanguageService;
 use AppBundle\Service\ProblemService;
 use AppBundle\Service\SectionService;
 use AppBundle\Service\SubmissionService;
+use AppBundle\Service\TeamService;
 use AppBundle\Service\TestCaseService;
+use AppBundle\Service\TrialService;
 use AppBundle\Service\UserSectionRoleService;
 use AppBundle\Service\UserService;
 
@@ -46,7 +48,9 @@ class ProblemController extends Controller {
     private $problemService;
     private $sectionService;
     private $submissionService;
+    private $teamService;
     private $testCaseService;
+    private $trialService;
     private $userSectionRoleService;
     private $userService;
 
@@ -58,7 +62,9 @@ class ProblemController extends Controller {
                                 ProblemService $problemService,
                                 SectionService $sectionService,
                                 SubmissionService $submissionService,
+                                TeamService $teamService,
                                 TestCaseService $testCaseService,
+                                TrialService $trialService,
                                 UserSectionRoleService $userSectionRoleService,
                                 UserService $userService) {
         $this->assignmentService = $assignmentService;
@@ -69,12 +75,188 @@ class ProblemController extends Controller {
         $this->problemService = $problemService;
         $this->sectionService = $sectionService;
         $this->submissionService = $submissionService;
+        $this->teamService = $teamService;
         $this->testCaseService = $testCaseService;
+        $this->trialService = $trialService;
         $this->userSectionRoleService = $userSectionRoleService;
         $this->userService = $userService;
     }
 
+    public function problemAction($sectionId, $assignmentId, $problemId) {
+        $user = $this->userService->getCurrentUser();
+        $requestingUser = $this->getUser();
+        if (!get_class($user)) {
+            return $this->returnForbiddenResponse("USER DOES NOT EXIST");
+        }
+        
+        /* Get the section */
+        if (!isset($sectionId) || !($sectionId > 0)){
+            return $this->returnForbiddenResponse("SECTION ID WAS NOT PROVIDED OR FORMATTED PROPERLY");
+        }
+        
+        $section = $this->sectionService->getSectionById($sectionId);
+        if (!$section) {
+            return $this->returnForbiddenResponse("SECTION ".$sectionId." DOES NOT EXIST");
+        }
+        
+        /* REDIRECT TO CONTEST IF NEED BE */
+        if ($section->course->is_contest) {
+            if (!isset($problemId)) {
+                return $this->redirectToRoute("contest", 
+                [
+                    "contestId" => $sectionId,
+                    "roundId" => $assignmentId
+                ]);
+            } else {
+                return $this->redirectToRoute("contest_problem", 
+                [
+                    "contestId" => $sectionId, 
+                    "roundId" => $assignmentId, 
+                    "problemId" => $problemId
+                ]);
+            }
+        }
+        
+        /* Get the assignment */
+        if (!isset($assignmentId) || !($assignmentId > 0)) {
+            return $this->returnForbiddenResponse("ASSIGNMENT ID WAS NOT PROVIDED OR FORMATTED PROPERLY");
+        }
+        
+        $assignment = $this->assignmentService->getAssignmentById($assignmentId);
+        if (!$assignment) {
+            return $this->returnForbiddenResponse("ASSIGNMENT ".$assignmentId." DOES NOT EXIST");
+        }
+        
+        $languages = [];
+        $aceModes = [];
+        $fileTypes = [];
+        if (!($problemId > 0)) {
+            return $this->returnForbiddenResponse("PROBLEM ID WAS NOT FORMATTED PROPERLY");
+        }
+        
+        $problem = $this->problemService->getProblemById($problemId);
+        if (!$problem || $problem->assignment != $assignment) {
+            return $this->returnForbiddenResponse("PROBLEM ".$problemId." DOES NOT EXIST");
+        }
+        
+        $problemLanguages = $problem->problem_languages;
+        foreach ($problemLanguages as $problemLanguage) {
+            $languages[] = $problemLanguage->language;
+            $aceModes[$problemLanguage->language->name] = $problemLanguage->language->ace_mode;
+            $fileTypes[str_replace(".", "", $problemLanguage->language->filetype)] = $problemLanguage->language->name;
+        }
+
+        // get the usersectionrole
+        $userSectionRole = $this->userSectionRoleService->getUserSectionRolesForAssignment($requestingUser, $problem->assignment->section);
+        
+        // figure out how many attempts they have left
+        $totalAttempts = $problem->total_attempts;
+        $attemptsRemaining = -1;
+        if ($totalAttempts != 0 && 
+            !$this->graderService->isTeaching($user, $assignment->section) && 
+            !$this->graderService->isJudging($user, $assignment->section)) {
+            $attemptsRemaining = max($totalAttempts - $this->graderService->getNumTotalAttempts($user, $problem), 0);
+        }
+        
+        // get the team
+        $team = $this->teamService->getTeam($user, $assignment);
+
+        $teamOrUser = $user;
+        $whereClause = "s.user = ?1";
+        if (isset($team)) {
+            $teamOrUser = $team;
+            $whereClause = "s.team = ?1";
+        }
+
+        // get the best submission so far
+        $bestSubmission = $this->submissionService->getBestSubmissionForAssignment($teamOrUser, $whereClause, $problem);
+        // get the code from the last submissions
+        $allSubmissions = $this->submissionService->getAllSubmissionsForAssignment($teamOrUser, $whereClause, $problem);
+        
+        // get the user's trial for this problem
+        $trial = $this->trialService->getTrialForAssignment($user, $problem);
+        
+        $submissionId = $_GET["submissionId"];
+        if (isset($submissionId) && $submissionId > 0) {
+            $submission = $this->submissionService->getSubmissionById($submissionId);
+            
+            if ($submission->user != $user || $submission->problem != $problem) {
+                return $this->returnForbiddenResponse($user->name." is not allowed to edit this submission on this problem");
+            }
+                        
+            if (!$trial) {
+                $trial = $this->trialService->createTrial($user, $problem);
+                $this->trialService->insertTrial($trial);
+            }
+            
+            $trial->file = $submission->submitted_file;						
+            
+            $trial->language = $submission->language;	
+            $trial->filename = $submission->filename;
+            $trial->main_class = $submission->main_class_name;
+            $trial->package_name = $submission->package_name;
+            $trial->last_edit_time = new \DateTime("now");
+            
+            return $this->redirectToRoute("assignment", 
+            [
+                "sectionId" => $section->id, 
+                "assignmentId" => $assignment->id, 
+                "problemId" => $problem->id
+            ]);
+        }
+        
+        // get all userSectionRoles
+        $userSectionRoles = $this->userSectionRoleService->getUserSectionRolesOfSection($section);
+
+        $sectionTakers = [];
+        $sectionTeachers = [];
+        $sectionHelpers = [];
+        $sectionJudges = [];
+
+        foreach ($userSectionRoles as $usr) {
+            $user = $usr->user;
+            $roleName = $usr->role->role_name;
+            switch ($roleName) {
+                case Constants::HELPS_ROLE:
+                    $sectionHelpers[] = $usr->user;
+                    break;
+                case Constants::JUDGES_ROLE:
+                    $sectionJudges[] = $usr->user;
+                    break;
+                case Constants::TAKES_ROLE:
+                    $sectionTakers[] = $usr->user;
+                    break;
+                case Constants::TEACHES_ROLE:
+                    $sectionTeachers[] = $usr->user;
+                    break;
+                default:
+                    return $this->returnForbiddenResponse("ROLE ".$roleName." DOES NOT EXIST ON USER ".$user->getFullName());
+            }
+        }
+        
+        return $this->render("problem/index.html.twig", [
+            "ace_modes" => $aceModes,
+            "all_submissions" => $allSubmissions,
+            "assignment" => $assignment,
+            "attempts_remaining" => $attemptsRemaining,
+            "best_submission" => $bestSubmission,
+            "filetypes" => $fileTypes,
+            "grader" => $this->graderService,
+            "grades" => null,
+            "languages" => $languages,
+            "problem" => $problem,
+            "section" => $assignment->section,
+            "section_takers" => $sectionTakers,
+            "team" => $team,
+            "trial" => $trial,
+            "user" => $user,
+            "user_impersonators" => $sectionTakers,
+            "usersectionrole" => $userSectionRole
+        ]);
+    }
+
      public function editAction($sectionId, $assignmentId, $problemId) {
+         $this->logError("Made it");
         /* Validate the user */
         $user = $this->userService->getCurrentUser();
         if (!$user) {
@@ -141,7 +323,9 @@ class ProblemController extends Controller {
         }
         
         $recommendedSlaves = [];
-        $recommendedSlaves = $this->problemService->getProblemsByObject(["name" => $problem->name]);
+        if ($problem) {
+            $recommendedSlaves = $this->problemService->getProblemsByObject(["name" => $problem->name]);
+        }
 
         return $this->render("problem/edit.html.twig", [
             "ace_modes" => $aceModes,
