@@ -53,3 +53,7 @@ nav.nav-left a {
 nav.nav-left a:hover {
     text-decoration: none;
 }
+
+#Terms {
+    width: auto;
+}

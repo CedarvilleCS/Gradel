@@ -6,6 +6,7 @@
 <nav class="nav-left">
 	<div class="large-link">
 		<a href="{{path('homepage')}}">Home</a>
+		<span id="ChosenSemester"></span>
 	</div>
 	<div id="SideNavContent"></div>
 	<div id="PastLink" class="large-link">
@@ -14,11 +15,12 @@
 	</div>
 	<div class="past pastDropdownContainer">
 		<label for="Terms">Term: </label>
-		<select id="Terms">
+		<select id="Terms" onchange="changeSelectedTerm(this)">
 		</select>
 	</div>
 
 	<div id="SideNavData" data-path="{{path('sidenav_data')}}"
+						  data-semesters-path="{{ path('sidenav_semester') }}"
 						  data-white-chevron="{{ asset('images/white_chevron.png') }}"
 	style="display:none;"></div>
 </nav>
