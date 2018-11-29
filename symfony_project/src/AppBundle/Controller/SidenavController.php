@@ -45,7 +45,11 @@ class SidenavController extends Controller {
         
         /* get all of the non-deleted sections
 		   they must start in at least 30 days and have ended at most 14 days ago to show up*/
-		$sectionsActive = $this->sectionService->getNonDeletedSectionsForHome();
+		$chosenSemester = $this->session->get("chosenSemester");
+		if (!$chosenSemester) {
+			return $this->returnForbiddenResponse("CHOSEN SEMESTER DOES NOT EXIST");
+		}
+		$sectionsActive = $this->sectionService->getSectionsBySemester($chosenSemester);
 	  
 		/* get the user section role entities using the user entity and active sections */
 		$userSectionRoles = $this->userSectionRoleService->getUserSectionRolesForHome($user, $sectionsActive);

@@ -33,7 +33,7 @@ class SectionService {
 		return $sections->getResult();
 	}
 
-	public function getSectionsBySemesterAndYear(){
+	public function getSectionsBySemesterAndYear() {
 		$builder = $this->entityManager->createQueryBuilder();
 		$builder->select("s")
 				->from("AppBundle\Entity\Section", "s")
