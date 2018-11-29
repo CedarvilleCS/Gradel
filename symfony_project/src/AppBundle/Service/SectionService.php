@@ -25,7 +25,9 @@ class SectionService {
 		$builder->select("s")
 				->from("AppBundle\Entity\Section", "s")
 				->where("s.semester = (?1)")
-				->setParameter(1, $semester);
+				->andWhere("s.is_deleted = (?2)")
+				->setParameter(1, $semester)
+				->setParameter(2, 0);
 
 		$sections = $builder->getQuery();
 		return $sections->getResult();
