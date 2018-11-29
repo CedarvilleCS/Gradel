@@ -38,6 +38,9 @@
                     <a class="floatingLink" href="{{path('section_edit', {'sectionId': section.id})}}">
                         <div class="floatingButton">Edit Section</div>
                     </a>
+                    <a class="floatingLink" href="{{path('assignment_edit', {'sectionId': section.id})}}">
+                        <div class="floatingButton">Create Assignment</div>
+                    </a>
                 {% endif %}
                 <a id="download" class="disabledFloatingLink" download="{{ section.name }} grades.csv">
                     <div class="floatingButton">Download Grades</div>
