@@ -72,8 +72,20 @@
                                         <a href="{{path('assignment', {'sectionId': section.id, 'assignmentId': assignment.id})}}" class="assignmentLink">{{assignment.name}}</a>
                                     </div>
                                     <div class="assignmentInfo">
-                                        <div>Due:
+                                        {% if "now"|date("m/d/Y") < assignment.start_time|date('m/d/Y') %}
+                                            <div> Opens:
+                                            {{assignment.start_time|date('m/d/Y')}}</div>
+                                        
+                                        {% elseif "now"|date("m/d/Y") < assignment.end_time|date('m/d/Y') %}
+                                            <div> Due:
                                             {{assignment.end_time|date('m/d/Y')}}</div>
+                                        
+                                        {% elseif "now"|date("m/d/Y") < assignment.end_time|date('m/d/Y') %}
+                                            <div> Closes:
+                                            {{assignment.cutoff_time|date('m/d/Y')}}</div>
+                                        {% else %}
+                                            <div> Closed </div>                                        
+                                        {% endif %}
                                         <div>Weight:
                                             {{assignment.weight}}</div>
                                         {% for problem in assignment.problems %}
@@ -84,11 +96,12 @@
                                                     {{problem.numberOfCompletedStudents}}/{{section_takers | length}}
                                                     Students Completed
                                                 {% else %}
-                                                    {% set colorClass = 'green' %}
                                                     {% if problem.userTestCaseInfo.numberOfCorrectTestCases == 0 %}
                                                         {% set colorClass = 'red' %}
                                                     {% elseif problem.userTestCaseInfo.numberOfCorrectTestCases < problem.userTestCaseInfo.numberOfTestCases %}
                                                         {% set colorClass = 'yellow' %}
+                                                    {% else %}
+                                                        {% set colorClass = 'green' %}
                                                     {% endif %}
                                                     <span class="{{ colorClass }}">{{problem.userTestCaseInfo.numberOfCorrectTestCases}}/{{problem.userTestCaseInfo.numberOfTestCases}}</span>
                                                 {% endif %}
