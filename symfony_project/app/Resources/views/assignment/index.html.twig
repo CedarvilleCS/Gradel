@@ -39,6 +39,20 @@
 <body>
     {{ include('template/top-nav.html.twig') }}
 	{{ include('template/section-nav.html.twig') }}
+	<div id="SitePosition"
+             class="hidden"
+             data-pos='{
+                 "start": {
+                     "id": "Section-{{section.id}}",
+                     "next": {
+						"id": "Assignment-{{assignment.id}}",
+						"next": {
+							"id": "Problem-{{problem.id}}",
+							"next": null
+						}
+					}
+                 }
+             }'></div>
 	
 	{% if grader.isTeaching(app.user, assignment.section) or is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") %}
 		<div class="floatingControls">
