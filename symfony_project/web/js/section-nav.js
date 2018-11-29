@@ -24,6 +24,10 @@ $.get(viewData.path, function (data) {
         if (section.assignments.length > 0) {
             html +=         `<img id="Chevron-Section-${section.id}" class="nav-chevron" onclick="chevronClick(this, 'section-${section.id}')" src="${asset('images/white_chevron.png')}" />`;
         }
+        else {
+            //Empty div here for css-grid to align things correctly
+            html +=         `<div></div>`
+        }
         html +=             `<a id="Link-Section-${section.id}" href="${path({'section': section.id})}">${section.name}</a>
                         </div>`;
         section.assignments.forEach((assignment, assignmentIndex) => {
@@ -54,6 +58,10 @@ $.get(viewData.path, function (data) {
                         <div class="nav-chevron-title-container">`;
             if (section.assignments.length > 0) {
                 html +=     `<img id="Chevron-Section-${section.id}" class="nav-chevron" onclick="chevronClick(this, 'section-${section.id}')" src="${asset('images/white_chevron.png')}" />`;
+            }
+            else {
+                //Empty div here for css-grid to align things correctly
+                html +=         `<div></div>`
             }
         html +=             `<a id="Link-Section-${section.id}" href="${path({'section': section.id})}">${section.name}</a>
                         </div>`;
@@ -127,4 +135,16 @@ $.get(viewData.path, function (data) {
             tail = tail['next'];
         }
     }
+    
+    $.get(viewData.semestersPath, function(semesterData) {
+        document.getElementById('ChosenSemester').innerHTML = ` | ${semesterData.chosenSemester.term} ${semesterData.chosenSemester.year}`;
+        let termsDropdown = document.getElementById('Terms');
+        semesterData.semesters.forEach((value, index) => {
+            termsDropdown.innerHTML += `<option value="${value.id}" ${(semesterData.chosenSemester.id === value.id ? 'selected' : '')}>${value.term} ${value.year}</option>`
+        });
+    });
 });
+
+function changeSelectedTerm(element) {
+    window.location = path({home: element.value});
+}

@@ -5,11 +5,13 @@ namespace AppBundle\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Config\Definition\Exception\Exception;
 
+use JsonSerializable;
+
 /**
  * @ORM\Entity
  * @ORM\Table(name="semester")
  */
-class Semester {
+class Semester implements JsonSerializable {
     public function __construct(){
         $a = func_get_args();
         $i = func_num_args();
@@ -48,7 +50,16 @@ class Semester {
     /**
 	* @ORM\Column(type="boolean")
 	*/
-	public $is_current_semester;
+    public $is_current_semester;
+    
+    public function jsonSerialize(){
+		return [
+			'id' => $this->id,
+			'term' => $this->term,
+            'year' => $this->year,
+            'is_current_semester' => $this->is_current_semester
+		];
+	}
 }
 
 ?>

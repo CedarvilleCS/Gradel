@@ -1,10 +1,9 @@
 # HOMEPAGE ROUTES
 homepage:
-    path:   '/home/{term}/{year}'
+    path:   '/home/{semesterId}'
     defaults: 
       _controller: AppBundle:Home:home
-      term: -1
-      year: -1
+      semesterId: 0
     
 alt_homepage:
     path:   '/'
@@ -84,6 +83,11 @@ section_modify:
 sidenav_data:
   path: 'sidenav'
   defaults: {_controller: AppBundle:Sidenav:data}
+  methods: [GET]
+
+sidenav_semester:
+  path: 'sidenav/semesters'
+  defaults: {_controller: AppBundle:Sidenav:semesters}
   methods: [GET]
   
 # problem routes

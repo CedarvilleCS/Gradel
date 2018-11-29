@@ -21,6 +21,7 @@ nav.nav-left .large-link {
 
 nav.nav-left #PastLink {
     padding-top: 100px;
+    display: flex;
 }
 
 nav.nav-left .nav-chevron-title-container {
@@ -40,10 +41,19 @@ nav.nav-left .nav-problem {
     display: none;
 }
 
+.pastDropdownContainer {
+    display: none;
+    margin-left: 40px;
+}
+
 nav.nav-left a {
     text-decoration: underline;
 }
 
 nav.nav-left a:hover {
     text-decoration: none;
+}
+
+#Terms {
+    width: auto;
 }

@@ -7,6 +7,7 @@ use AppBundle\Constants;
 use AppBundle\Service\SectionService;
 use AppBundle\Service\UserSectionRoleService;
 use AppBundle\Service\UserService;
+use AppBundle\Service\SemesterService;
 
 use Auth0\SDK\Auth0;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
@@ -14,21 +15,28 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
 use Psr\Log\LoggerInterface;
 
 class SidenavController extends Controller {
     private $logger;
-    private $sectionService;
+	private $sectionService;
+	private $session;
     private $userSectionRoleService;
+    private $semesterService;
     private $userService;
 
     public function __construct(LoggerInterface $logger,
-                                SectionService $sectionService,
+								SectionService $sectionService,
+								SemesterService $semesterService,
+								SessionInterface $session,
                                 UserSectionRoleService $userSectionRoleService,
                                 UserService $userService) {
         $this->logger = $logger;
-        $this->sectionService = $sectionService;
+		$this->sectionService = $sectionService;
+		$this->semesterService = $semesterService;
+		$this->session = $session;
         $this->userSectionRoleService = $userSectionRoleService;
         $this->userService = $userService;
 	}
@@ -41,7 +49,11 @@ class SidenavController extends Controller {
         
         /* get all of the non-deleted sections
 		   they must start in at least 30 days and have ended at most 14 days ago to show up*/
-		$sectionsActive = $this->sectionService->getNonDeletedSectionsForHome();
+		$chosenSemester = $this->session->get("chosenSemester");
+		if (!$chosenSemester) {
+			return $this->returnForbiddenResponse("CHOSEN SEMESTER DOES NOT EXIST");
+		}
+		$sectionsActive = $this->sectionService->getSectionsBySemester($chosenSemester);
 	  
 		/* get the user section role entities using the user entity and active sections */
 		$userSectionRoles = $this->userSectionRoleService->getUserSectionRolesForHome($user, $sectionsActive);
@@ -51,9 +63,9 @@ class SidenavController extends Controller {
 		foreach ($userSectionRoles as $userSectionRole) {	
 			if ($userSectionRole->role->role_name == Constants::TAKES_ROLE) {
 				$assignmentsJSON = [];
-				foreach($userSectionRole->section->assignments as $assignment) {
+				foreach ($userSectionRole->section->assignments as $assignment) {
 					$problemsJSON = [];
-					foreach($assignment->problems as $problem) {
+					foreach ($assignment->problems as $problem) {
 						$problemsJSON[] = array(
 							"id" => $problem->id,
 							"name" => $problem->name,
@@ -74,9 +86,9 @@ class SidenavController extends Controller {
 			} else if ($userSectionRole->role->role_name == Constants::TEACHES_ROLE || 
 			           $userSectionRole->role->role_name == Constants::JUDGES_ROLE) {
 				$assignmentsJSON = [];
-				foreach($userSectionRole->section->assignments as $assignment) {
+				foreach ($userSectionRole->section->assignments as $assignment) {
 					$problemsJSON = [];
-					foreach($assignment->problems as $problem) {
+					foreach ($assignment->problems as $problem) {
 						$problemsJSON[] = array(
 							"id" => $problem->id,
 							"name" => $problem->name,
@@ -98,10 +110,24 @@ class SidenavController extends Controller {
 		}
 
 		return new JsonResponse([
-            'sections_taking' => $sectionsTaking,
-            'sections_teaching' => $sectionsTeaching
+            "sections_taking" => $sectionsTaking,
+            "sections_teaching" => $sectionsTeaching
         ]);
-    }
+	}
+	
+	public function semestersAction() {
+		$user = $this->userService->getCurrentUser();
+		if (!get_class($user)) {
+			return $this->returnForbiddenResponse("USER DOES NOT EXIST");
+		}
+		
+		$semesters = $this->semesterService->getAllSemesters();
+
+		return new JsonResponse([
+			"chosenSemester" => $this->session->get("chosenSemester"),
+            "semesters" => $semesters
+        ]);
+	}
 
     private function returnForbiddenResponse($message){		
 		$response = new Response($message);
