@@ -85,6 +85,11 @@ sidenav_data:
   path: 'sidenav'
   defaults: {_controller: AppBundle:Sidenav:data}
   methods: [GET]
+
+sidenav_semester:
+  path: 'sidenav/semesters'
+  defaults: {_controller: AppBundle:Sidenav:semesters}
+  methods: [GET]
   
 # problem routes
 problem_edit:

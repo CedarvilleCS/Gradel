@@ -101,7 +101,20 @@ class SidenavController extends Controller {
             'sections_taking' => $sectionsTaking,
             'sections_teaching' => $sectionsTeaching
         ]);
-    }
+	}
+	
+	public function semestersAction() {
+		$user = $this->userService->getCurrentUser();
+		if (!get_class($user)) {
+			return $this->returnForbiddenResponse("USER DOES NOT EXIST");
+		}
+		
+		$semesters = $this->semesterService->getAllSemesters();
+
+		return new JsonResponse([
+            'semesters' => $semesters
+        ]);		
+	}
 
     private function returnForbiddenResponse($message){		
 		$response = new Response($message);

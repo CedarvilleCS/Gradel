@@ -13,7 +13,7 @@ use \DateTime;
  * @ORM\Entity
  * @ORM\Table(name="section")
  */
-class Section implements JsonSerializable{
+class Section implements JsonSerializable {
 
 	public function __construct(){
 

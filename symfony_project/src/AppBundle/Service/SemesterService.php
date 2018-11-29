@@ -13,6 +13,10 @@ class SemesterService {
         $this->entityManager = $entityManager;
     }
 
+    public function getAllSemesters() {
+        return $this->entityManager->getRepository("AppBundle\Entity\Semester")->findAll();
+    }
+
     public function getCurrentSemester() {
         $builder = $this->entityManager->createQueryBuilder();
         $builder->select("s")
