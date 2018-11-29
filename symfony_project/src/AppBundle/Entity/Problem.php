@@ -242,12 +242,12 @@ class Problem implements JsonSerializable{
 	*/
 	public $allow_upload = true;
 
-	public $testCaseInfo = [];
+	public $userTestCaseInfo = [];
 
 	public $numberOfCompletedStudents = 0;
 
 	public function __toString() {
-		return $this->testCaseInfo;
+		return $this->userTestCaseInfo->numberOfCorrectTestCases."/".$this->userTestCaseInfo->numberOfTestCases;
 	}
 	
 	public function jsonSerialize(){

@@ -90,7 +90,7 @@
                                             {{assignment.weight}}</div>
                                         {% for problem in assignment.problems %}
                                             <div>
-                                                <a href="{{path('assignment', {'sectionId': section.id, 'assignmentId': assignment.id, 'problemId': problem.id})}}" class="assignmentLink">{{problem.name}}</a>
+                                                <a href="{{path('problem', {'sectionId': section.id, 'assignmentId': assignment.id, 'problemId': problem.id})}}" class="assignmentLink">{{problem.name}}</a>
                                                 |
                                                 {% if isTeaching %}
                                                     {{problem.numberOfCompletedStudents}}/{{section_takers | length}}

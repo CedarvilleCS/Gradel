@@ -288,15 +288,14 @@ class Assignment implements JsonSerializable{
      */
 	public $contest_languages;
 
-	public function __toString() {
-		return "".$this->id;
-	}
+	public $numberOfCompletedStudents = 0;
 	
 	public function jsonSerialize(){
 		return [
 			'name' => $this->name,			
 			'weight' => $this->weight,
 			'teams' => $this->teams->toArray(),
+			'numberOfCompletedStudents' => $this->numberOfCompletedStudents
 		];
 	}
 
