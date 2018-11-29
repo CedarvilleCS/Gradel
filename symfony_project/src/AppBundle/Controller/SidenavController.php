@@ -14,21 +14,25 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
 use Psr\Log\LoggerInterface;
 
 class SidenavController extends Controller {
     private $logger;
-    private $sectionService;
+	private $sectionService;
+	private $session;
     private $userSectionRoleService;
     private $userService;
 
     public function __construct(LoggerInterface $logger,
-                                SectionService $sectionService,
+								SectionService $sectionService,
+								SessionInterface $session,
                                 UserSectionRoleService $userSectionRoleService,
                                 UserService $userService) {
         $this->logger = $logger;
-        $this->sectionService = $sectionService;
+		$this->sectionService = $sectionService;
+		$this->session = $session;
         $this->userSectionRoleService = $userSectionRoleService;
         $this->userService = $userService;
 	}
@@ -98,8 +102,8 @@ class SidenavController extends Controller {
 		}
 
 		return new JsonResponse([
-            'sections_taking' => $sectionsTaking,
-            'sections_teaching' => $sectionsTeaching
+            "sections_taking" => $sectionsTaking,
+            "sections_teaching" => $sectionsTeaching
         ]);
 	}
 	
@@ -112,7 +116,8 @@ class SidenavController extends Controller {
 		$semesters = $this->semesterService->getAllSemesters();
 
 		return new JsonResponse([
-            'semesters' => $semesters
+			"chosenSemester" => $this->session->get("chosenSemester"),
+            "semesters" => $semesters
         ]);		
 	}
 

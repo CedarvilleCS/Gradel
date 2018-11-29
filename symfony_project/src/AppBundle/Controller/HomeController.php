@@ -29,6 +29,7 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
 class HomeController extends Controller {
     private $assignmentService;
@@ -36,6 +37,7 @@ class HomeController extends Controller {
     private $logger;
     private $sectionService;
     private $semesterService;
+    private $session;
     private $userSectionRoleService;
     private $userService;
 
@@ -44,6 +46,7 @@ class HomeController extends Controller {
                                 LoggerInterface $logger,
                                 SectionService $sectionService,
                                 SemesterService $semesterService,
+                                SessionInterface $session,
                                 UserSectionRoleService $userSectionRoleService,
                                 UserService $userService) {
         $this->assignmentService = $assignmentService;
@@ -51,26 +54,28 @@ class HomeController extends Controller {
         $this->logger = $logger;
         $this->sectionService = $sectionService;
         $this->semesterService = $semesterService;
+        $this->session = $session;
         $this->userSectionRoleService = $userSectionRoleService;
         $this->userService = $userService;
     }
     
     public function homeAction($year, $term) {
+        $user = $this->userService->getCurrentUser();
+          if (!get_class($user)) {
+            return $this->returnForbiddenResponse("USER DOES NOT EXIST");
+        }
+        
         if ($year == -1 || $term == -1) {
             $semester = $this->semesterService->getCurrentSemester();
             $year = $semester->year;
             $term = $semester->term;
         }
 
-        $user = $this->userService->getCurrentUser();
-          if (!get_class($user)) {
-            return $this->returnForbiddenResponse("USER DOES NOT EXIST");
-        }
-        
         $semester = $this->semesterService->getSemesterByTermAndYear($term, $year);
         if (!$semester) {
             return $this->returnForbiddenResponse("SEMESTER ".$term." ".$year." DOES NOT EXIST");
         }
+        $this->session->set('chosenSemester', $semester);
 
         /* get all of the non-deleted sections
            they must start in at least 30 days and have ended at most 14 days ago to show up*/
