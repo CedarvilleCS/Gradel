@@ -122,7 +122,7 @@ class SidenavController extends Controller {
 		return new JsonResponse([
 			"chosenSemester" => $this->session->get("chosenSemester"),
             "semesters" => $semesters
-        ]);		
+        ]);
 	}
 
     private function returnForbiddenResponse($message){		
