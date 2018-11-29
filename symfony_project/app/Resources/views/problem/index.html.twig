@@ -71,8 +71,26 @@
 		<div class="main_content">
 			<div class="card">
 				<div class="sectionHeaderContainer">
-					<div class="sectionHeader">{{problem.name}} | <a href="{{path('assignment', {'sectionId': problem.assignment.section.id, 'assignmentId': problem.assignment.id})}}" class="headerLink">{{problem.assignment.name}}</a></div>
-					<div class="sectionSubHeader">Due: {{problem.assignment.end_time|date('m/d/Y')}}</div>
+					<div class="sectionHeader">
+						{{problem.name}} | <a href="{{path('assignment', {'sectionId': problem.assignment.section.id, 'assignmentId': problem.assignment.id})}}" class="headerLink">{{problem.assignment.name}}</a>
+					</div>
+					
+					<div class="sectionSubHeader">
+						{% if "now"|date("m/d/Y") < assignment.start_time|date('m/d/Y') %}
+							<div> Opens:
+							{{assignment.start_time|date('m/d/Y')}}</div>
+						
+						{% elseif "now"|date("m/d/Y") < assignment.end_time|date('m/d/Y') %}
+							<div> Due:
+							{{assignment.end_time|date('m/d/Y')}}</div>
+						
+						{% elseif "now"|date("m/d/Y") < assignment.end_time|date('m/d/Y') %}
+							<div> Closes:
+							{{assignment.cutoff_time|date('m/d/Y')}}</div>
+						{% else %}
+							<div> Closed </div>                                        
+						{% endif %}
+					</div>
 				</div>
 			</div>
 
