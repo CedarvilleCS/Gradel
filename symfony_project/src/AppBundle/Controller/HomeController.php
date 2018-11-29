@@ -63,7 +63,6 @@ class HomeController extends Controller {
         $sectionsActive = $this->sectionService->getNonDeletedSectionsForHome();
       
         /* get the user section role entities using the user entity and active sections */
-        $this->logError("made it");
         $userSectionRoles = $this->userSectionRoleService->getUserSectionRolesForHome($user, $sectionsActive);
         
         $sections = [];
