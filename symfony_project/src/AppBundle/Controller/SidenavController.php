@@ -7,6 +7,7 @@ use AppBundle\Constants;
 use AppBundle\Service\SectionService;
 use AppBundle\Service\UserSectionRoleService;
 use AppBundle\Service\UserService;
+use AppBundle\Service\SemesterService;
 
 use Auth0\SDK\Auth0;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
@@ -23,15 +24,18 @@ class SidenavController extends Controller {
 	private $sectionService;
 	private $session;
     private $userSectionRoleService;
+    private $semesterService;
     private $userService;
 
     public function __construct(LoggerInterface $logger,
 								SectionService $sectionService,
+								SemesterService $semesterService,
 								SessionInterface $session,
                                 UserSectionRoleService $userSectionRoleService,
                                 UserService $userService) {
         $this->logger = $logger;
 		$this->sectionService = $sectionService;
+		$this->semesterService = $semesterService;
 		$this->session = $session;
         $this->userSectionRoleService = $userSectionRoleService;
         $this->userService = $userService;

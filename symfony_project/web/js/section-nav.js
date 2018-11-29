@@ -127,4 +127,17 @@ $.get(viewData.path, function (data) {
             tail = tail['next'];
         }
     }
+
+    $.get(viewData.semestersPath, function(semesterData) {
+        console.log(semesterData);
+        document.getElementById('ChosenSemester').innerHTML = ` | ${semesterData.chosenSemester.term} ${semesterData.chosenSemester.year}`;
+        let termsDropdown = document.getElementById('Terms');
+        semesterData.semesters.forEach((value, index) => {
+            termsDropdown.innerHTML += `<option value="${value.id}" ${(semesterData.chosenSemester.id === value.id ? 'selected' : '')}>${value.term} ${value.year}</option>`
+        });
+    });
 });
+
+function changeSelectedTerm(element) {
+    console.log(element.value);
+}
