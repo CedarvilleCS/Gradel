@@ -24,6 +24,14 @@ nav.nav-left #PastLink {
     display: flex;
 }
 
+#PastText {
+    cursor: pointer;
+}
+
+#PastText:hover {
+    text-decoration: underline;
+}
+
 nav.nav-left .nav-chevron-title-container {
     display: grid;
     grid-template-columns: 25px auto;
