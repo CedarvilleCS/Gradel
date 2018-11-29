@@ -19,7 +19,18 @@ class SectionService {
 	public function createEmptySection() {
 		return new Section();
 	}
-	
+
+	public function getSectionsBySemester($semester){
+		$builder = $this->entityManager->createQueryBuilder();
+		$builder->select("s")
+				->from("AppBundle\Entity\Section", "s")
+				->where("s.semester = (?1)")
+				->setParameter(1, $semester);
+
+		$sections = $builder->getQuery();
+		return $sections->getResult();
+	}
+
 	public function getSectionsBySemesterAndYear(){
 		$builder = $this->entityManager->createQueryBuilder();
 		$builder->select("s")

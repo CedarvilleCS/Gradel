@@ -76,6 +76,44 @@ class AssignmentController extends Controller {
         $user = $this->userService->getCurrentUser();
         if (!get_class($user)) {
             $this->returnForbiddenResponse("USER DOES NOT EXIST");
+      }
+        
+        // get the section
+        if (!isset($sectionId) || !($sectionId > 0)) {
+            $this->returnForbiddenResponse("SECTION ID WAS NOT PROVIDED OR FORMATTED PROPERLY");
+        }
+        
+        $section = $this->sectionService->getSectionById($sectionId);
+        if (!$section) {
+            $this->returnForbiddenResponse("SECTION ".$sectionId." DOES NOT EXIST");
+        }
+        
+        // REDIRECT TO CONTEST IF NEED BE
+        if ($section->course->is_contest) {
+            if (!isset($problemId)) {
+                return $this->redirectToRoute("contest", 
+                [
+                    "contestId" => $sectionId,
+                    "roundId" => $assignmentId
+                ]);
+            } else {
+                return $this->redirectToRoute("contest_problem", 
+                [
+                    "contestId" => $sectionId, 
+                    "roundId" => $assignmentId, 
+                    "problemId" => $problemId
+                ]);
+            }
+        }
+        
+        // get the assignment
+        if (!isset($assignmentId) || !($assignmentId > 0)) {
+            $this->returnForbiddenResponse("ASSIGNMENT ID WAS NOT PROVIDED OR FORMATTED PROPERLY");
+        }
+        
+        $assignment = $this->assignmentService->getAssignmentById($assignmentId);
+        if (!$assignment) {
+            $this->returnForbiddenResponse("ASSIGNMENT ".$assignmentId." DOES NOT EXIST");
         }
 
         if (!isset($assignmentId) || $assignmentId == 0) {

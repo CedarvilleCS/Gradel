@@ -7,11 +7,17 @@ use Doctrine\ORM\EntityManagerInterface;
 use \DateTime;
 use \DateInterval;
 
+use AppBundle\Entity\Team;
+
 class TeamService {
     private $entityManager;
 
     public function __construct(EntityManagerInterface $entityManager) {
         $this->entityManager = $entityManager;
+	}
+
+	public function createEmptyTeam() {
+		return new Team();
 	}
 
 	public function deleteTeam($team, $shouldFlush = true) {

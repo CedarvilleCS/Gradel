@@ -5,6 +5,8 @@ namespace AppBundle\Service;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
+use AppBundle\Entity\User;
+
 class UserService {
     private $container;
     private $entityManager;
