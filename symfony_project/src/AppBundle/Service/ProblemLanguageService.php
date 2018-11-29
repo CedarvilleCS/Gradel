@@ -16,8 +16,8 @@ class ProblemLanguageService {
 	public function createProblemLanguage($problem, $language) {
 		$problemLanguage = new ProblemLanguage();
 
-		$problemLanguage->language = $language;
 		$problemLanguage->problem = $problem;
+		$problemLanguage->language = $language;
 
 		return $problemLanguage;
 	}

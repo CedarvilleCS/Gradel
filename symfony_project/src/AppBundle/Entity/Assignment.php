@@ -287,6 +287,10 @@ class Assignment implements JsonSerializable{
      *      )
      */
 	public $contest_languages;
+
+	public function __toString() {
+		return "".$this->id;
+	}
 	
 	public function jsonSerialize(){
 		return [

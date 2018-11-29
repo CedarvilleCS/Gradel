@@ -17,8 +17,7 @@ class AssignmentService {
 	}
 
 	public function createEmptyAssignment() {
-		$assignment = new Assignment();
-		return $assignment;
+		return new Assignment();
 	}
 
 	public function deleteAssignment($assignment, $shouldFlush = true) {

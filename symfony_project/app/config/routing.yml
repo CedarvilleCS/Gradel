@@ -1,8 +1,11 @@
 # HOMEPAGE ROUTES
 homepage:
-    path:   '/home'
-    defaults:  { _controller: AppBundle:Home:home}
-
+    path:   '/home/{term}/{year}'
+    defaults: 
+      _controller: AppBundle:Home:home
+      term: -1
+      year: -1
+    
 alt_homepage:
     path:   '/'
     defaults: { _controller: AppBundle:Home:home}
@@ -47,6 +50,7 @@ submission_search:
     _controller: AppBundle:Section:searchSubmissions
   methods: [POST]
 
+#edit sections is not working
 section_edit:
   path: '/section/edit/{sectionId}'
   defaults:
@@ -58,9 +62,10 @@ section_delete:
   path: '/section/delete/{sectionId}'
   defaults: {_controller: AppBundle:Section:deleteSection}
   methods: [GET]
-  
+
+#section clone not working  
 section_clone:
-  path: '/section/clone/{sectionId}/name/{name}/semester/{semester}/year/{year}/numberOfClones/{numberOfClones}'
+  path: '/section/clone/{sectionId}/name/{name}/term/{term}/year/{year}/numberOfClones/{numberOfClones}'
   defaults: {_controller: AppBundle:Section:cloneSection}
   methods: [GET]
 
@@ -69,6 +74,7 @@ section:
   defaults: {_controller: AppBundle:Section:section}
   methods: [GET]
 
+#section modifyPost not working
 section_modify:
   path: '/modify/section'
   defaults: {_controller: AppBundle:Section:modifyPost}

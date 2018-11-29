@@ -113,7 +113,7 @@ class ContestCompilationController extends Controller {
             'submission_id' => $submission->id,		
         ]));
 
-        return returnOkResponse($response);
+        return $this->returnOkResponse($response);
     } 
 
     public function contestQuickAction(Request $request) {

@@ -557,7 +557,6 @@
 				
 				$('#startdatepicker').val('01/01/'+year);				
 				$('#enddatepicker').val('05/10/'+year);
-				
 				$('#semester').val("Spring");
 				
 			} else if(month <= 7 || month == "Summer"){
@@ -585,13 +584,13 @@
 	function populateForm(){
 		
 		for (const c of $('#selectable-semester').children()) {
-			if (c.innerHTML == "{{section.semester}}") {
+			if (c.innerHTML == "{{section.semester.term}}") {
 				$(c).addClass("ui-selected");
 			}
 		}
 
 		for (const c of $('#selectable-year').children()) {
-			if (c.innerHTML == "{{section.year}}") {
+			if (c.innerHTML == "{{section.semester.year}}") {
 				$(c).addClass("ui-selected");
 			}
 		}
@@ -603,10 +602,10 @@
 		$('#name').val("{{section.name}}");
 
 		// set the semester
-		$('#semester').val("{{section.semester}}");
+		$('#semester').val("{{section.semester.term}}");
 
 		// set the year
-		$('#year').val("{{section.year}}");
+		$('#year').val("{{section.semester.year}}");
 
 		// set the teachers csv
 		{% for std in section_teacher_roles %}

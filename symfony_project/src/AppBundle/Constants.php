@@ -31,6 +31,17 @@ class Constants
     const BOTH_TESTCASE_OUTPUT_LEVEL = "Both";
     const NONE_TESTCASE_OUTPUT_LEVEL = "None";
     const OUTPUT_TESTCASE_OUTPUT_LEVEL = "Output";
+
+    const SCOREBOARD_FREEZE_ACTION = "freeze";
+    const SCOREBOARD_UNFREEZE_ACTION = "unfreeze";
+
+    const SUBMISSION_JUDGING_WRONG = "wrong";
+    const SUBMISSION_JUDGING_CORRECT = "correct";
+    const SUBMISSION_JUDGING_DELETE = "delete";
+    const SUBMISSION_JUDGING_FORMATTING = "formatting";
+    const SUBMISSION_JUDGING_MESSAGE = "message";
+    const SUBMISSION_JUDGING_CLAIMED = "claimed";
+    const SUBMISSION_JUDGING_UNCLAIMED = "unclaimed";
 }
 
 ?>
