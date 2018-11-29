@@ -1,10 +1,9 @@
 # HOMEPAGE ROUTES
 homepage:
-    path:   '/home/{term}/{year}'
+    path:   '/home/{semesterId}'
     defaults: 
       _controller: AppBundle:Home:home
-      term: -1
-      year: -1
+      semesterId: 0
     
 alt_homepage:
     path:   '/'

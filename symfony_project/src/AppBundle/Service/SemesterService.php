@@ -27,6 +27,10 @@ class SemesterService {
         return $semester[0];
     }
 
+    public function getSemesterById($semesterId) {
+        return $this->entityManager->find("AppBundle\Entity\Semester", $semesterId);
+    }
+
     public function getSemesterByTermAndYear($term, $year) {
         $builder = $this->entityManager->createQueryBuilder();
         $builder->select("s")

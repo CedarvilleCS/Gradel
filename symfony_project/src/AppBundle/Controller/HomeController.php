@@ -59,21 +59,20 @@ class HomeController extends Controller {
         $this->userService = $userService;
     }
     
-    public function homeAction($year, $term) {
+    public function homeAction($semesterId) {
         $user = $this->userService->getCurrentUser();
           if (!get_class($user)) {
             return $this->returnForbiddenResponse("USER DOES NOT EXIST");
         }
         
-        if ($year == -1 || $term == -1) {
+        if ($semesterId <= 0) {
             $semester = $this->semesterService->getCurrentSemester();
-            $year = $semester->year;
-            $term = $semester->term;
+        } else {
+            $semester = $this->semesterService->getSemesterById($semesterId);
         }
-
-        $semester = $this->semesterService->getSemesterByTermAndYear($term, $year);
+        
         if (!$semester) {
-            return $this->returnForbiddenResponse("SEMESTER ".$term." ".$year." DOES NOT EXIST");
+            return $this->returnForbiddenResponse("SEMESTER ".$semesterId." DOES NOT EXIST");
         }
         $this->session->set('chosenSemester', $semester);
 
