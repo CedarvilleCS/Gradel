@@ -39,7 +39,7 @@
 			<a id="delete-btn" class="floatingLink">
 				<div class="floatingButton deleteButton deleteWarning">{% if section.is_deleted %} Reinstate {% else %} Delete {% endif %}</div>
 			</a>
-			<a id="clone-btn" class="floatingLink" href="{{ path('section_clone', {'sectionId': section.id, 'name': section.name, 'semester': section.semester, 'year': section.year, 'numberOfClones': 1}) }}">
+			<a id="clone-btn" class="floatingLink">
 				<div class="floatingButton">Clone</div>
 			</a>
 		{% endif %}
@@ -170,9 +170,55 @@
 					</th> </tr>
 					</table>
 				</div>
-		</div>
+			</div>
 
 	</section>
+
+	<div id="cloneDialog">
+		<div id = "dialogHeader">
+			<p>Section Clone </p>
+		</div>
+		<div id = "dialogBody">
+			<div id = "row1">
+				<div>
+					<label for="name">Section Name </label><input id="cloneName" name="name" type="text" value="" size = "20">
+				</div>
+				<div>
+					<label for = "numberOfClones">How Many clones </label><input type = "text" id = "numberOfClones" size = "3" maxlength = "2">
+				</div>
+			</div>
+			<div id = "row2">
+				<div id = "section1">
+					<label>Semester</label>
+						<table>
+							<tbody><tr id="selectableSemester" class="ui-selectable">
+								<th class="ui-widget-content ui-selectee">Fall</th>
+								<th class="ui-widget-content ui-selectee">Spring</th>
+								<th class="ui-widget-content ui-selectee">Summer</th>
+							</tr>
+						</tbody></table>
+				</div>
+				<div id = "section2">        
+					<label>Year</label>
+						<table>
+							<tbody>
+							<tr id="selectableYear" class="ui-selectable">
+								{% for yr in ("now"|date("Y"))-1..("now"|date("Y"))+3 %}
+									<th class="ui-widget-content">{{yr}}</th>
+								{% endfor %}
+							</tr>
+						</tbody></table>
+				</div>
+			</div>
+		</div>
+
+		<div id="row4">
+			<div id="cloneCancel"><a href="#">Cancel</a></div>
+			<div id="cloneSave"><a>Save</a></div> 
+		</div>
+		<div id="sectionData" data-id="{{section.id}}"></div>
+	</div>
+
 </body>
 
 {% endblock %}
@@ -180,8 +226,9 @@
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('styles/styles.css') }}" />
+	<link rel="stylesheet" href="{{ asset('styles/toastr.css') }}" />
     <link rel="stylesheet" href="{{ asset('styles/card.css') }}" />
-
+	<link rel="stylesheet" href="{{ asset('styles/clone.css') }}" />
 	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
 	<link rel="stylesheet" href="{{ asset('contest-edit.css') }}" />
@@ -209,6 +256,8 @@
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 	<script src="{{ asset('js/cards.js') }}"></script>
+	<script src="{{ asset('js/toastr/toastr.js') }}"></script>
+	<script src="{{ asset('js/clone.js') }}"></script>
 	<script src="{{ asset('js/validation.js') }}"></script>
 
 	{# asynchronous file upload #}
@@ -436,7 +485,7 @@
 				window.location = data["redirect_url"];
 			}).fail(function(data) {
 
-				alert(data["responseText"]);
+				alert(data["responseText"]);c
 				$(this).prop('disabled', false);
 			});
 		});
