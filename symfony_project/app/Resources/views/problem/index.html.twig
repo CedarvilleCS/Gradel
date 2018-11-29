@@ -39,20 +39,26 @@
 <body>
     {{ include('template/top-nav.html.twig') }}
 	{{ include('template/section-nav.html.twig') }}
+	<div id="SitePosition"
+             class="hidden"
+             data-pos='{
+                 "start": {
+                     "id": "Section-{{section.id}}",
+                     "next": {
+						"id": "Assignment-{{assignment.id}}",
+						"next": {
+							"id": "Problem-{{problem.id}}",
+							"next": null
+						}
+					}
+                 }
+             }'></div>
 	
 	{% if grader.isTeaching(app.user, assignment.section) or is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") %}
 		<div class="floatingControls">
 			{# edit problem button #}
 			<a class="floatingLink" href="{{path('problem_edit', {'sectionId': section.id, 'assignmentId': assignment.id, 'problemId': problem.id})}}">
 				<div class="floatingButton">Edit Problem</div>
-			</a>
-			{# add problem button #}
-			<a class="floatingLink" href="{{path('problem_edit', {"sectionId": section.id, 'assignmentId': assignment.id})}}">
-				<div class="floatingButton">Create Problem</div>
-			</a>
-			{# edit assignment button #}
-			<a class="floatingLink" href="{{path('assignment_edit', {'sectionId': section.id, 'assignmentId': assignment.id})}}">
-				<div class="floatingButton">Edit Assignment</div>
 			</a>
 		</div>
 	{% endif %}

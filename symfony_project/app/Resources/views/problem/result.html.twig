@@ -25,212 +25,224 @@
 
 <body>
 	{{ include('template/top-nav.html.twig') }}
-	
 	{{ include('template/section-nav.html.twig') }}
+	<div id="SitePosition"
+             class="hidden"
+             data-pos='{
+                 "start": {
+                     "id": "Section-{{section.id}}",
+                     "next": {
+						"id": "Assignment-{{assignment.id}}",
+						"next": {
+							"id": "Problem-{{problem.id}}",
+							"next": null
+						}
+					}
+                 }
+             }'></div>
 
 	<section id="main">
-	
-		<div class="card">
-			<div style="display: flex; flex-direction: row; justify-content: space-between">
-				<h2 style="margin: 0px">{{submission.problem.name}}</h2>
-				
-				{% if is_granted("ROLE_SUPER") or grader.isTeaching(app.user, submission.problem.assignment.section) %}
-				<a title="Delete Submission" href="{{path('result_delete', {'submissionId': submission.id})}}">
-					<img src="{{ asset('images/trash.png') }}">
-				</a>
-				{% endif %}
-			</div>
-			
-			<div id="submissionOverview" class="card-contents">
-				<h3 style="margin-top: 2px; margin-bottom: 2px; color: {{submission.isCorrect() ? 'green' : 'red'}}">
-					RESULT: <span> {{submission.getResultString()}} </span>
-
+		<div class="main_content">
+			<div class="card">
+				<div style="display: flex; flex-direction: row; justify-content: space-between">
+					<h2 style="margin: 0px">{{submission.problem.name}}</h2>
 					
-				</h3>				
-				
-				
-
-				<div>
-				{% if submission.questionable_behavior %}
-					POSSIBLE MALICIOUS BEHAVIOR DETECTED
-				{% endif %}
-				
-				{% if submission.compiler_output %}
-					<h2> COMPILER OUTPUT </h2>
-					<textarea disabled id='compiler-output'>{{submission.compiler_output}}</textarea>
-				{% endif %}
+					{% if is_granted("ROLE_SUPER") or grader.isTeaching(app.user, submission.problem.assignment.section) %}
+					<a title="Delete Submission" href="{{path('result_delete', {'submissionId': submission.id})}}">
+						<img src="{{ asset('images/trash.png') }}">
+					</a>
+					{% endif %}
 				</div>
+				
+				<div id="submissionOverview" class="card-contents">
+					<h3 style="margin-top: 2px; margin-bottom: 2px; color: {{submission.isCorrect() ? 'green' : 'red'}}">
+						RESULT: <span> {{submission.getResultString()}} </span>
+
+						
+					</h3>				
+					
+					
+
+					<div>
+					{% if submission.questionable_behavior %}
+						POSSIBLE MALICIOUS BEHAVIOR DETECTED
+					{% endif %}
+					
+					{% if submission.compiler_output %}
+						<h2> COMPILER OUTPUT </h2>
+						<textarea disabled id='compiler-output'>{{submission.compiler_output}}</textarea>
+					{% endif %}
+					</div>
+										
+					<div id="feedback-holder">
+						{% if feedback.display_markers and not submission.compiler_error and not submission.questionable_behavior and submission.testcaseresults|length > 0%}
+						<div id="testcase-markers-container">
+							<h3 style="margin-bottom: 4px">TESTCASES:</h3>				
+								{% if feedback.show_output and submission.testcaseresults|length > 0 %}
+								<small> <i> Note that this is resizable </i> </small>
+								<div id="testcase-markers" onresize="resized()">							
+									<ul>
+										{% set failed = false %}
+										{% for tcr in submission.testcaseresults %}						
+										
+											{% if not failed or not feedback.stop_on_first_fail %}
+											{% if not tcr.testcase.is_extra_credit or feedback.extra_testcases_display %}
+											
+											{% if tcr.is_correct %}
+												{% set classname = 'correct'%}
+											{% else %}
+												{% set classname = 'incorrect'%}
+											{% endif %}
+											
+											<li id="{{classname}}"> <a href="#testcase-tab-{{tcr.id}}">
+												{% if tcr.is_correct %}
+													<span style="color:green; font-size: 20px;"> &#x2713;</span> 				
+												{% else %}
+													{% set failed = true %}
+													<span style="color:red; font-size: 20px;"> &#x2718;</span>
+												{% endif %}
+											</a></li>	
+											
+											{% endif %}
+											{% endif %}
+										
+										{% endfor %}
+									</ul>
 									
-				<div id="feedback-holder">
-					{% if feedback.display_markers and not submission.compiler_error and not submission.questionable_behavior and submission.testcaseresults|length > 0%}
-					<div id="testcase-markers-container">
-						<h3 style="margin-bottom: 4px">TESTCASES:</h3>				
-							{% if feedback.show_output and submission.testcaseresults|length > 0 %}
-							<small> <i> Note that this is resizable </i> </small>
-							<div id="testcase-markers" onresize="resized()">							
-								<ul>
 									{% set failed = false %}
-									{% for tcr in submission.testcaseresults %}						
+									
+									{% for tcr in submission.testcaseresults %}
 									
 										{% if not failed or not feedback.stop_on_first_fail %}
 										{% if not tcr.testcase.is_extra_credit or feedback.extra_testcases_display %}
 										
-										{% if tcr.is_correct %}
-											{% set classname = 'correct'%}
-										{% else %}
-											{% set classname = 'incorrect'%}
+										{% if not tcr.is_correct %}
+											{% set failed = true %}
 										{% endif %}
 										
-										<li id="{{classname}}"> <a href="#testcase-tab-{{tcr.id}}">
-											{% if tcr.is_correct %}
-												<span style="color:green; font-size: 20px;"> &#x2713;</span> 				
-											{% else %}
-												{% set failed = true %}
-												<span style="color:red; font-size: 20px;"> &#x2718;</span>
-											{% endif %}
-										</a></li>	
+										<div id="testcase-tab-{{tcr.id}}">
+											<div class="testcase-data">
+												{% if feedback.show_input %}
+												<div id="testcase-input">
+												
+													<div style="height: 100%">
+													{% if tcr.testcase.input %}
+													
+													<div {{(tcr.testcase.command_line_input) ? "style='height:50%'" : ""}}>
+														<div class="testcase-data-heading">Input:</div>
+														<textarea {{(tcr.testcase.command_line_input) ? "id='input-textarea'" : "" }} disabled>{{tcr.testcase.input}}</textarea>
+													</div>
+													{% endif %}
+													
+													{% if tcr.testcase.command_line_input %}
+													<div {{(tcr.testcase.input) ? "style='height:50%'" : ""}}>
+														<div class="testcase-data-heading">Command-Line Arguments:</div>
+														<textarea  {{(tcr.testcase.input) ? "id='command-line-textarea'" : "" }} disabled>{{tcr.testcase.command_line_input}}</textarea>
+													</div>
+													{% endif %}
+													</div>
+													
+												</div>
+												{% endif %}
+												
+												
+												{% if tcr.testcase.correct_output and feedback.show_output %}
+												<div id="testcase-outputexp" {{(feedback.show_input) ? "" : "style='width:50%'"}}>
+													<div class="testcase-data-heading">Expected Output:</div>
+													<textarea disabled>{{tcr.testcase.correct_output}}</textarea>
+												</div>
+												{% endif %}
+												
+												
+												<div id="testcase-outputyrs" {{(feedback.show_input) ? "" : "style='width:50%'"}}>
+												{% if not tcr.runtime_error %}
+												
+													<div class="testcase-data-heading">Your Standard Output:</div>
+													<textarea id="{{tcr.id}}" disabled>{{tcr.std_output}}</textarea>
+													
+												{% else %}
+												
+													<div class="testcase-data-heading">Your Runtime Output:</div>
+													<textarea disabled>{{tcr.runtime_output}}</textarea>													
+													
+												{% endif %}
+												</div>
+											</div>
+										</div>
 										
 										{% endif %}
 										{% endif %}
 									
 									{% endfor %}
-								</ul>
-								
-								{% set failed = false %}
-								
-								{% for tcr in submission.testcaseresults %}
-								
-									{% if not failed or not feedback.stop_on_first_fail %}
-									{% if not tcr.testcase.is_extra_credit or feedback.extra_testcases_display %}
-									
-									{% if not tcr.is_correct %}
-										{% set failed = true %}
-									{% endif %}
-									
-									<div id="testcase-tab-{{tcr.id}}">
-										<div class="testcase-data">
-											{% if feedback.show_input %}
-											<div id="testcase-input">
-											
-												<div style="height: 100%">
-												{% if tcr.testcase.input %}
-												
-												<div {{(tcr.testcase.command_line_input) ? "style='height:50%'" : ""}}>
-													<div class="testcase-data-heading">Input:</div>
-													<textarea {{(tcr.testcase.command_line_input) ? "id='input-textarea'" : "" }} disabled>{{tcr.testcase.input}}</textarea>
-												</div>
-												{% endif %}
-												
-												{% if tcr.testcase.command_line_input %}
-												<div {{(tcr.testcase.input) ? "style='height:50%'" : ""}}>
-													<div class="testcase-data-heading">Command-Line Arguments:</div>
-													<textarea  {{(tcr.testcase.input) ? "id='command-line-textarea'" : "" }} disabled>{{tcr.testcase.command_line_input}}</textarea>
-												</div>
-												{% endif %}
-												</div>
-												
-											</div>
-											{% endif %}
-											
-											
-											{% if tcr.testcase.correct_output and feedback.show_output %}
-											<div id="testcase-outputexp" {{(feedback.show_input) ? "" : "style='width:50%'"}}>
-												<div class="testcase-data-heading">Expected Output:</div>
-												<textarea disabled>{{tcr.testcase.correct_output}}</textarea>
-											</div>
-											{% endif %}
-											
-											
-											<div id="testcase-outputyrs" {{(feedback.show_input) ? "" : "style='width:50%'"}}>
-											{% if not tcr.runtime_error %}
-											
-												<div class="testcase-data-heading">Your Standard Output:</div>
-												<textarea id="{{tcr.id}}" disabled>{{tcr.std_output}}</textarea>
-												
-											{% else %}
-											
-												<div class="testcase-data-heading">Your Runtime Output:</div>
-												<textarea disabled>{{tcr.runtime_output}}</textarea>													
-												
-											{% endif %}
-											</div>
-										</div>
-									</div>
-									
-									{% endif %}
-									{% endif %}
-								
-								{% endfor %}
-						
-							</div>
-							<i style="color: red"><small>Note that expected output may contain regex patterns that could match a variety of strings.</small></i>							
-							{% else %}
-							<div id="testcase-markers-no-out">
-								{% for tcr in submission.testcaseresults %}						
-									
-									{% if not tcr.testcase.is_extra_credit or feedback.extra_testcases_display %}
-									
-									{% if tcr.is_correct %}
-										<span style="color: green; font-size: 20px;"> &#x2713;</span> 				
-									{% else %}
-										<span style="color:red; font-size: 20px;"> &#x2718;</span>
-									{% endif %}
-									
-									{% endif %}
-								
-								{% endfor %}						
 							
-							</div>		
-							{% endif %}
-					</div>
-					{% endif %}
-					
-					{% if feedback.response|length > 0 %}
-					<div id="feedback"> 
-						<h3> TIPS: </h3>
-						<ul id="tips-list">
+								</div>
+								<i style="color: red"><small>Note that expected output may contain regex patterns that could match a variety of strings.</small></i>							
+								{% else %}
+								<div id="testcase-markers-no-out">
+									{% for tcr in submission.testcaseresults %}						
+										
+										{% if not tcr.testcase.is_extra_credit or feedback.extra_testcases_display %}
+										
+										{% if tcr.is_correct %}
+											<span style="color: green; font-size: 20px;"> &#x2713;</span> 				
+										{% else %}
+											<span style="color:red; font-size: 20px;"> &#x2718;</span>
+										{% endif %}
+										
+										{% endif %}
+									
+									{% endfor %}						
+								
+								</div>		
+								{% endif %}
+						</div>
+						{% endif %}
 						
-						</ul>
+						{% if feedback.response|length > 0 %}
+						<div id="feedback"> 
+							<h3> TIPS: </h3>
+							<ul id="tips-list">
+							
+							</ul>
+						</div>
+						{% endif %}
 					</div>
-					{% endif %}
-				</div>
-				
-				<h2 style="">SUBMITTED CODE</h2>
-				
-				<div style="display: flex; justify-content: space-between; margin-right: 25px;">
+					
+					<h2 style="">SUBMITTED CODE</h2>
+					
+					<div style="display: flex; justify-content: space-between; margin-right: 25px;">
 
+						<div id="loading-container" style="display:none;">
+							<img id="loadingGif" style="height: 60px" src="{{asset('images/beoload.gif')}}" alt="Loading..."/>
+							<h3 style="margin: 0px"> Resubmitting Code... </h3>
+						</div>
+					
+						<div id="full-edit-btn" style="margin-bottom: 5px">
+							Return and Review
+						</div>
+						
+						<div id="quick-edit-btn" style="margin-bottom: 5px">
+							Quick Resubmit
+						</div>
+					
+					</div>
+					
+					
+					<div id='edit-note' style='display: none'> <small style="color: red; font-style: italics"> Note that editing and resubmitting this code will override your saved code on the problem page </small> </div>
+
+					{# the editor text area #}
+					{{ block('editor_html', 'ace/sessions.twig') }}
+					
+					<h3 style="margin-top: 10px; margin-bottom: 0px">Submission ID: {{submission.id}}</h3>
+					
+					
 					<div id="loading-container" style="display:none;">
 						<img id="loadingGif" style="height: 60px" src="{{asset('images/beoload.gif')}}" alt="Loading..."/>
 						<h3 style="margin: 0px"> Resubmitting Code... </h3>
 					</div>
-				
-					<div id="full-edit-btn" style="margin-bottom: 5px">
-						Return and Review
-					</div>
-					
-					<div id="quick-edit-btn" style="margin-bottom: 5px">
-						Quick Resubmit
-					</div>
-				
 				</div>
-				
-				
-				<div id='edit-note' style='display: none'> <small style="color: red; font-style: italics"> Note that editing and resubmitting this code will override your saved code on the problem page </small> </div>
-
-				{# the editor text area #}
-				{{ block('editor_html', 'ace/sessions.twig') }}
-				
-				<h3 style="margin-top: 10px; margin-bottom: 0px">Submission ID: {{submission.id}}</h3>
-				
-				
-				<div id="loading-container" style="display:none;">
-					<img id="loadingGif" style="height: 60px" src="{{asset('images/beoload.gif')}}" alt="Loading..."/>
-					<h3 style="margin: 0px"> Resubmitting Code... </h3>
-				</div>
-				
 			</div>
 		</div>
-		
 	</section>
 	
 	</body>
