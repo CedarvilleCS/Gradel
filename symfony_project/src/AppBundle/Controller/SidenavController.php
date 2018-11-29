@@ -59,9 +59,9 @@ class SidenavController extends Controller {
 		foreach ($userSectionRoles as $userSectionRole) {	
 			if ($userSectionRole->role->role_name == Constants::TAKES_ROLE) {
 				$assignmentsJSON = [];
-				foreach($userSectionRole->section->assignments as $assignment) {
+				foreach ($userSectionRole->section->assignments as $assignment) {
 					$problemsJSON = [];
-					foreach($assignment->problems as $problem) {
+					foreach ($assignment->problems as $problem) {
 						$problemsJSON[] = array(
 							"id" => $problem->id,
 							"name" => $problem->name,
@@ -82,9 +82,9 @@ class SidenavController extends Controller {
 			} else if ($userSectionRole->role->role_name == Constants::TEACHES_ROLE || 
 			           $userSectionRole->role->role_name == Constants::JUDGES_ROLE) {
 				$assignmentsJSON = [];
-				foreach($userSectionRole->section->assignments as $assignment) {
+				foreach ($userSectionRole->section->assignments as $assignment) {
 					$problemsJSON = [];
-					foreach($assignment->problems as $problem) {
+					foreach ($assignment->problems as $problem) {
 						$problemsJSON[] = array(
 							"id" => $problem->id,
 							"name" => $problem->name,
