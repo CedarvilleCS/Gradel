@@ -16,7 +16,6 @@ var viewData = document.getElementById('SideNavData').dataset;
 //This ajax callback function has a lot of weird non-standard formatting, however this is so that you can read the HTML it generates more easily
 $.get(viewData.path, function (data) {
     var html = '';
-    console.log(data.sections_teaching);
     //List all of the sections being taken
     data.sections_taking.forEach((section, sectionIndex) => {
         html += `<div class="section-nav-container">
