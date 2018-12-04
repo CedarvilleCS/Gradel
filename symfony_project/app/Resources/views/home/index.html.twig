@@ -29,13 +29,12 @@
 								<div class="section-title">
 									<a href="{{path('section', {'sectionId':section.id})}}">{{section.name}}</a>
 								</div>
-								{% set oldDate = '' %}
 								{% for asgn in section.assignments %}
-									{% set newDate = asgn.end_time|date('m/d/Y') %}
-									{% set oldDate = newDate %}
-									<div class="section-card-content">
-										Next Assignment: <a href="{{path('assignment', {'sectionId':asgn.section.id, 'assignmentId':asgn.id})}}">{{asgn.name}}</a>
-									</div>
+									{% if "now"|date("m/d/Y") < asgn.end_time|date('m/d/Y') %}
+										<div class="section-card-content">
+											Next Assignment: <a href="{{path('assignment', {'sectionId':asgn.section.id, 'assignmentId':asgn.id})}}">{{asgn.name}}</a>
+										</div>
+									{% endif %}
 								{% endfor %}				
 							</div>
 						{% endfor %}
@@ -48,13 +47,12 @@
 								<div class="section-title">
 									<a href="{{path('section', {'sectionId':section.id})}}">{{section.name}}</a>
 								</div>
-								{% set oldDate = '' %}
 								{% for asgn in section.assignments %}
-									{% set newDate = asgn.end_time|date('m/d/Y') %}
-									{% set oldDate = newDate %}
-									<div class="section-card-content">
-										Next Assignment: <a href="{{path('assignment', {'sectionId':asgn.section.id, 'assignmentId':asgn.id})}}">{{asgn.name}}</a>
-									</div>
+									{% if "now"|date("m/d/Y") < asgn.end_time|date('m/d/Y') %}
+										<div class="section-card-content">
+											Next Assignment: <a href="{{path('assignment', {'sectionId':asgn.section.id, 'assignmentId':asgn.id})}}">{{asgn.name}}</a>
+										</div>
+									{% endif %}
 								{% endfor %}				
 							</div>
 						{% endfor %}
