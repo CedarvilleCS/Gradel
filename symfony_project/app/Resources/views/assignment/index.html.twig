@@ -91,7 +91,7 @@
 			</div>
 			<div class="card">
 				<div class="btn-close" onclick="collapseCard('Problem')">
-					<h2 style="margin: 0px">Problem | {{user.numberOfCompletedProblems}}/{{assignment.problems | length}} Completed<span style="float: right">
+					<h2 style="margin: 0px">Problem {% if  not (grader.isTeaching(app.user, assignment.section) or is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN")) %}| {{user.numberOfCompletedProblems}}/{{assignment.problems | length}} Completed{% endif %}<span style="float: right">
 							<i class="fa fa-angle-down"></i></span></h2>
 				</div>
 				<div id="Problem">
@@ -104,15 +104,17 @@
 								<div class="assignmentInfo">
 									<div>Description:
 										{{problem.description}}</div>
-									<div>Score:
-										{% set colorClass = 'green' %}
-										{% if problem.userTestCaseInfo.numberOfCorrectTestCases == 0 %}
-											{% set colorClass = 'red' %}
-										{% elseif problem.userTestCaseInfo.numberOfCorrectTestCases < problem.userTestCaseInfo.numberOfTestCases %}
-											{% set colorClass = 'yellow' %}
-										{% endif %}
-										<span class="{{ colorClass }}">{{problem.userTestCaseInfo.numberOfCorrectTestCases}}/{{problem.userTestCaseInfo.numberOfTestCases}}</span>
-									</div>
+									{% if  not (grader.isTeaching(app.user, assignment.section) or is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN")) %}
+										<div>Score:
+											{% set colorClass = 'green' %}
+											{% if problem.userTestCaseInfo.numberOfCorrectTestCases == 0 %}
+												{% set colorClass = 'red' %}
+											{% elseif problem.userTestCaseInfo.numberOfCorrectTestCases < problem.userTestCaseInfo.numberOfTestCases %}
+												{% set colorClass = 'yellow' %}
+											{% endif %}
+											<span class="{{ colorClass }}">{{problem.userTestCaseInfo.numberOfCorrectTestCases}}/{{problem.userTestCaseInfo.numberOfTestCases}}</span>
+										</div>
+									{% endif %}
 								</div>
 							</div>
 						</div>

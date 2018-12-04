@@ -55,14 +55,6 @@
 				</div>
 				
 				<div id="submissionOverview" class="card-contents">
-					<h3 style="margin-top: 2px; margin-bottom: 2px; color: {{submission.isCorrect() ? 'green' : 'red'}}">
-						RESULT: <span> {{submission.getResultString()}} </span>
-
-						
-					</h3>				
-					
-					
-
 					<div>
 					{% if submission.questionable_behavior %}
 						POSSIBLE MALICIOUS BEHAVIOR DETECTED
