@@ -50,7 +50,7 @@ class SemesterService {
 		}
     }
 
-    public function createSemesterByTermAndYear($term, $year, $isCurrentSemester){
+    public function createSemesterByTermAndYear($term, $year, $isCurrentSemester = false){
         $semester = new Semester($term, $year, $isCurrentSemester);
         return $semester;
     }

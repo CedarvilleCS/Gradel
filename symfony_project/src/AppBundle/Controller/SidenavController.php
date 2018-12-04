@@ -5,9 +5,9 @@ namespace AppBundle\Controller;
 use AppBundle\Constants;
 
 use AppBundle\Service\SectionService;
+use AppBundle\Service\SemesterService;
 use AppBundle\Service\UserSectionRoleService;
 use AppBundle\Service\UserService;
-use AppBundle\Service\SemesterService;
 
 use Auth0\SDK\Auth0;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
