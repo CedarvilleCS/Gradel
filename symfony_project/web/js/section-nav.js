@@ -13,9 +13,10 @@ function chevronClick(element, selection) {
     }
 }
 var viewData = document.getElementById('SideNavData').dataset;
-//This ajax callback function has a lot of wierd non-standard formatting, however this is so that you can read the HTML it generates more easily
+//This ajax callback function has a lot of weird non-standard formatting, however this is so that you can read the HTML it generates more easily
 $.get(viewData.path, function (data) {
     var html = '';
+    console.log(data.sections_teaching);
     //List all of the sections being taken
     data.sections_taking.forEach((section, sectionIndex) => {
         html += `<div class="section-nav-container">
@@ -74,11 +75,11 @@ $.get(viewData.path, function (data) {
                 //Empty div here for css-grid to align things correctly
                 html +=         `<div></div>`;
             }
-            html +=             `<a id="Link-Assignment-${assignment.id}" href="${path({'section': section.id, 'assignment': assignment.id}, 'problem')}">${assignment.name}</a>
+            html +=             `<a id="Link-Assignment-${assignment.id}" href="${path({'section': section.id, 'assignment': assignment.id})}">${assignment.name}</a>
                             </div>`;
             assignment.problems.forEach((problem, problemIndex) => {
                 html +=     `<div id="Problem-${problem.id}" class="nav-problem assignment-${assignment.id}">
-                                <a id="Link-Problem-${problem.id}" href="${path({'section': section.id, 'assignment': assignment.id, 'problem': problem.id})}}">${problem.name}</a>
+                                <a id="Link-Problem-${problem.id}" href="${path({'section': section.id, 'assignment': assignment.id, 'problem': problem.id})}">${problem.name}</a>
                             </div>`;
             });
             html +=     `</div>`;
