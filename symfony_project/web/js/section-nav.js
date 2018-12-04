@@ -138,6 +138,9 @@ $.get(viewData.path, function (data) {
     
     $.get(viewData.semestersPath, function(semesterData) {
         document.getElementById('ChosenSemester').innerHTML = ` | ${semesterData.chosenSemester.term} ${semesterData.chosenSemester.year}`;
+        document.getElementById('HomeLink').href += `/${semesterData.chosenSemester.id}`;
+        document.getElementById('logo').href += `/${semesterData.chosenSemester.id}`;
+        document.getElementById('logoword').href += `/${semesterData.chosenSemester.id}`;
         let termsDropdown = document.getElementById('Terms');
         semesterData.semesters.forEach((value, index) => {
             termsDropdown.innerHTML += `<option value="${value.id}" ${(semesterData.chosenSemester.id === value.id ? 'selected' : '')}>${value.term} ${value.year}</option>`
