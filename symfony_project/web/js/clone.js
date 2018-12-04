@@ -9,7 +9,7 @@ $('#cloneDialog').dialog({
     of: window   
 });
 
-$('#clone-btn').button().on('click', function() {
+$('#clone-btn').on('click', function() {
     $('#cloneDialog').dialog('open');
 });
 
