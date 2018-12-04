@@ -324,15 +324,19 @@ class SectionController extends Controller {
 
         $semester = $this->semesterService->getSemesterByTermAndYear($term, $year);
         if ($semester == NULL) {
-            $this->semesterService->createSemesterByTermAndYear($term, $year);
+            $semester = $this->semesterService->createSemesterByTermAndYear($term, $year);
+            $this->semesterService->insertSemester($semester);
         }
 
+        $teachesRole = $this->roleService->getRoleByRoleName(Constants::TEACHES_ROLE);
         for ($i = 1; $i <= $numberOfClones; $i++) {
             $newSection = clone $section;
             $newSection->semester = $semester;
             $newSection->name = $name."-".str_pad($i, 2, "0", STR_PAD_LEFT);
+            $newSection->user_roles = [$this->userSectionRoleService->createUserSectionRole($user, $newSection, $teachesRole)];
             $this->sectionService->insertSection($newSection);
         }
+
         return $this->redirectToRoute("section_edit",
         [
             "sectionId" => $newSection->id

@@ -56,22 +56,8 @@ class Section implements JsonSerializable {
 				$assignmentsClone->add($assignmentClone);
 			}
 			$this->assignments = $assignmentsClone;
-			
-			
-			# clone user roles
-			$usrsClone = new ArrayCollection();
-			
-			foreach($this->user_roles as $usr){
-				
-				if($usr->role->role_name == "Teaches"){
-				
-					$usrClone = clone $usr;
-					$usrClone->section = $this;
-					
-					$usrsClone->add($usrClone);
-				}
-			}
-			$this->user_roles = $usrsClone;			
+		
+			$this->user_roles = new ArrayCollection();			
 		}		
 	}
 	
@@ -147,9 +133,9 @@ class Section implements JsonSerializable {
 	public $assignments;
 	
 	/**
-  * @ORM\OneToMany(targetEntity="UserSectionRole", mappedBy="section", cascade={"persist", "remove"}, orphanRemoval=true)
-  */
-  public $user_roles;
+	 * @ORM\OneToMany(targetEntity="UserSectionRole", mappedBy="section", cascade={"persist", "remove"}, orphanRemoval=true)
+	*/
+	public $user_roles;
 
 	/**
 	* @ORM\ManyToOne(targetEntity="Course", inversedBy="sections")
