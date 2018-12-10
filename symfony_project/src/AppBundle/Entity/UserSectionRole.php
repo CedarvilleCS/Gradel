@@ -58,8 +58,7 @@ class UserSectionRole implements JsonSerializable{
 	*/
 	public $role;
 	
-		
-	public function jsonSerialize(){
+	public function jsonSerialize() {
 		return [
 			'user' => $this->user,
 			'role' => $this->role->role_name,

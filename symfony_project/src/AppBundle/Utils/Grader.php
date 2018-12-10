@@ -26,6 +26,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
+use Psr\Log\LoggerInterface;
+
 class Grader  {
 	
 	public $em;
@@ -36,12 +38,10 @@ class Grader  {
 			throw new Exception('The Grader class must be given a EntityManager but was given '.get_class($em));
 		}
 		
-		$this->em = $em;		
+		$this->em = $em;
 	}
 	
-	
 	private function isRole($user, $section, $role){
-
 		$qb = $this->em->createQueryBuilder();
 		$qb->select('usr')
 			->from('AppBundle\Entity\UserSectionRole', 'usr')
@@ -66,7 +66,6 @@ class Grader  {
 	}
 	
 	public function isTaking($user, $section){
-		
 		$role = $this->em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));		
 		
 		return $this->isRole($user, $section, $role);		
@@ -961,7 +960,7 @@ class Grader  {
 			
 			return ($a['num_correct'] > $b['num_correct']) ? -1 : 1;
 		}
-	}	
+	}
 }
 
 ?>

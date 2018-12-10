@@ -8,317 +8,324 @@
 {% block body %}
 <body>
   {{ include('template/top-nav.html.twig') }}
-
+  {{ include('template/section-nav.html.twig') }}
+  <div id="SitePosition"
+             class="hidden"
+             data-pos='{
+                 "start": {
+                     "id": "Section-{{section.id}}",
+                     "next": {
+						"id": "Assignment-{{assignment.id}}",
+						"next": {
+							"id": "Problem-{{problem.id}}",
+							"next": null
+						}
+					}
+                 }
+             }'></div>
 
   {# Left Nav Bar #}
-  <nav class="nav-left">
-		<div class="btn btn-center" id="save-btn">Save</div>
-
-		<div class="btn btn-center" id="cancel-btn">Cancel</div>
-	  
-		{% if problem is not null %}
-			<a id="delete-btn" class="btn"><div class="btn btn-center btn-delete">Delete</div></a>
-			
-			<ol style="padding-top: 0px">
-				<li id="delete-warning" style="padding-top: 0px"></li>
-			</ol>
-		{% endif %}
-  </nav>
-
-  {{ include('template/path-nav.html.twig') }}
+  <div class="floatingControls">
+	<a id="save-btn" class="floatingLink">
+		<div class="floatingButton">Save</div>
+	</a>
+	<a id="cancel-btn" class="floatingLink">
+		<div class="floatingButton">Cancel</div>
+	</a>	  
+	{% if problem is not null %}
+		<a id="delete-btn" class="floatingLink">
+			<div class="floatingButton deleteButton deleteWarning">Delete</div>
+		</a>
+	{% endif %}
+  </div>
 
   {# Main Section #}
   <section id="main">
-
-    {# Cards #}
-	<div class="parallel-cards">
-		<div class="card" style="flex-grow:3">
-		
-			<div class="btn-close">
-				<h2 style="margin: 0px">
-				{% if problem is not null %}
-					Edit {{problem.name}}
-				{% else %}
-					New Problem
-				{% endif %}
-				</h2>
-			</div>
-		
-		<div id="requiredFields" class="card-contents">				
-			<div>
-				<table>
-					<tr>
-					  <th colspan="4">
-						<label for="name">Name</label>
-						<input id="name" name="name" type="text" value="{{problem.name}}">
-					  </th>
-					</tr>
-					<tr>
-					  <th colspan="4">
-						<div style="display: inline-block; position">
-							<label for="description">Description</label>
-							<a title="Click for a markdown tutorial" target="_blank" href="http://commonmark.org/help/">
-								<img class="info-icon" src="{{ asset('images/info.png') }}">
-							</a>
-						</div>
-						<textarea rows=20 id="description" name="description" class="problem_creation" type="text">{{problem.description}}</textarea>
-						
-						
-					  </th>
-					</tr>
-					<tr>
-					  <th colspan="1">
-						
-						<div style="display: flex; flex-direction: row; justify-content: space-between">
-							<h3 style="margin: 0px">Languages</h3>
-							<div id="language-pool">
-							{# add all the languages not currently used by the problem to this pool #}
-							{% for l in languages %}
-								<div id="{{l.id}}" name="{{l.name}}" class="language">{{l.name}}</div>
-							{% endfor %}
+	<div class="main_content">
+		{# Cards #}
+		<div class="parallel-cards">
+			<div class="card card-parallel-main">
+			
+				<div class="btn-close">
+					<h2 style="margin: 0px">
+					{% if problem is not null %}
+						Edit {{problem.name}}
+					{% else %}
+						New Problem
+					{% endif %}
+					</h2>
+				</div>
+			
+			<div id="requiredFields" class="card-contents">				
+				<div>
+					<table>
+						<tr>
+						<th colspan="4">
+							<label for="name">Name</label>
+							<input id="name" name="name" type="text" value="{{problem.name}}">
+						</th>
+						</tr>
+						<tr>
+						<th colspan="4">
+							<div style="display: inline-block; position">
+								<label for="description">Description</label>
+								<a title="Click for a markdown tutorial" target="_blank" href="http://commonmark.org/help/">
+									<img class="info-icon" src="{{ asset('images/info.png') }}">
+								</a>
 							</div>
-						</div>
-						<div id="language-container">
-							<ul>
-							</ul>													
-						</div>
-					  </th>					 
-					</tr>
-					<tr>
-					  <th colspan="1">
-					  	  <label for="weight">Weight</label>
-						  <input id="weight" name="weight" type="text" style="width: 100px" value="{{(problem) ? problem.weight : 1}}">
-					  
-						  <label for="time_limit">Time Limit (ms)</label>
-						  <input type="text" id="time_limit" style="width: 100px" value="{{(problem) ? problem.time_limit: 1000}}">					  
-					  </th>
-					</tr>
-					<tr>
-					  <th colspan="1">
-					 	
-						<div id="allow-multiple-container" class="toggle-container">
-							<label for="allow-multiple" style="font-weight: bold">Allow Additional Files</label>
-							<label class="switch">
-								<input id="allow-multiple" type="checkbox" name="allow-multiple" {{(problem) ? ((problem.allow_multiple) ? "checked" : "") : "checked"}}>
-								<span class="slider round"></span>
-							</label>
-						</div>
-
-						<div id="allow-upload-container" class="toggle-container">
-							<label for="allow-upload" style="font-weight: bold">Allow Uploading Files</label>
-							<label class="switch">
-								<input id="allow-upload" type="checkbox" name="allow-upload" {{(problem) ? ((problem.allow_upload) ? "checked" : "") : "checked"}}>
-								<span class="slider round"></span>
-							</label>
-						</div>
-
-						{% if not problem.master %}
-						  
-							<label for="linked_probs">Slave Problems </label>
-							<input type="text" id="linked_probs" style="width: 200px" value="{% for slave in problem.slaves %}{{slave.id}}{{(loop.last)?'':',&nbsp;'}}{% endfor %}">
-							<div id="recommended-slaves" style="margin-top:15px">
-								Recommended Slaves
+							<textarea rows=20 id="description" name="description" class="problem_creation" type="text">{{problem.description}}</textarea>
+							
+							
+						</th>
+						</tr>
+						<tr>
+						<th colspan="1">
+							
+							<div style="display: flex; flex-direction: row; justify-content: space-between">
+								<h3 style="margin: 0px">Languages</h3>
+								<div id="language-pool">
+								{# add all the languages not currently used by the problem to this pool #}
+								{% for l in languages %}
+									<div id="{{l.id}}" name="{{l.name}}" class="language">{{l.name}}</div>
+								{% endfor %}
+								</div>
+							</div>
+							<div id="language-container">
 								<ul>
-									{% set noreco = true %}
-									{% for recommended in recommendedSlaves %}
-									
-									{% if recommended != problem and recommended not in problem.slaves %}
-									{% set noreco = false %}
-									<li> <a href="{{path('assignment', {'problemId': recommended.id, 'assignmentId': recommended.assignment.id, 'sectionId': recommended.assignment.section.id})}}"> {{recommended.id}} - <i>{{recommended.assignment.section.name}}</i> <small>{{recommended.name}}</small> </a> </li>
-									
-									{% endif %}
-									
-									{% endfor %}
-									
-									{{ (noreco) ? '<li>None to recommend</li>' : '' }}
-								</ul>
+								</ul>													
 							</div>
-						{% endif %}
-					  
-					  </th>
-					</tr>
-					  
-				  </table>
-				</div>
-			</div>
-		</div>
-		
-		
-		<div class="serial-cards">
-			<div class="card">
-				<div class="btn-close">
-					<h2 style="margin: 0px">
-						Grading Options
-					</h2>
-				</div>
-				
-				<div id="optional-grading" class="card-contents">
-					<table>
-						<tr> <th>
-							<label for="total_attempts">Total Attempts</label>
-							<input id="total_attempts" name="total_attempts" type="text" value="{{(problem) ? problem.total_attempts : 0}}">
-						  
-							<label for="pen_attempts">Attempts Before Penalty</label>
-							<input id="pen_attempts" name="pen_attempts" type="text" value="{{ (problem) ? problem.attempts_before_penalty : 0}}">
-						  
-							<label for="penalty">Penalty Per Attempt</label>
-							<input id="penalty" name="penalty" type="text" value="{{ (problem) ? problem.penalty_per_attempt : '0.00'}}">
-							
-							
-							<div id="extra-credit-container" class="toggle-container">
-								<label for="extra-credit">Extra Credit</label>
-								<label class="switch">
-									<input id="extra-credit" type="checkbox" name="extra-credit" {{(problem) ? (problem.is_extra_credit) ? "checked" : "" : "" }}>
-									<span class="slider round"></span>
-								</label>
-							</div>
-						</th> </tr>
-					</table>
-				</div>
-			</div>
-			
-			<div class="card">
-				<div class="btn-close">
-					<h2 style="margin: 0px">
-						Submission Feedback Options
-					</h2>
-				</div>
-				
-				<div id="optional-feedback" class="card-contents">
-					<table>
-						<tr> <th>
-							<label for="">Helpful Tips/Feedback Level</label>
-							<select id="response-level">
-								<option {{(problem.response_level == "None") ? "selected" : ""}} value="None">None</option>
-								<option {{(problem.response_level == "Short") ? "selected" : ""}} value="Short">Short Response</option>
-								<option {{(problem) ? (problem.response_level == "Long") ? "selected" : "" : "selected"}} value="Long">Long Response</option>
-							</select>
-							
-							<div id="display-testcase-container" class="toggle-container">
-								<label for="display-testcase">Testcase Results</label>
-								<label class="switch">
-									<input id="display-testcase" type="checkbox" name="display-testcase" {{(problem) ? (problem.display_testcaseresults) ? "checked" : "" : "checked" }}>
-									<span class="slider round"></span>
-								</label>
-							</div>
-							
-							<div id="output-level-container">
-								<label for="output-level">Testcase Content Output Level</label>
-								<select id="output-level">
-									<option {{(problem.testcase_output_level == "None") ? "selected" : ""}} value="None">None</option>
-									<option {{(problem.testcase_output_level == "Output") ? "selected" : ""}} value="Output">Expected Testcase Output</option>
-									<option {{(problem) ? (problem.testcase_output_level == "Both") ? "selected" : "" : "selected"}} value="Both">Expected Testcase Output and Testcase Input</option>
-								</select>
-							</div>
-							
-							<div id="stop-fail-container" class="toggle-container">
-								<label for="stop-fail">Stop On First Failed Testcase</label>
-								<label class="switch">
-									<input id="stop-fail" type="checkbox" name="stop-fail" {{(problem.stop_on_first_fail) ? "checked" : ""}}>
-									<span class="slider round"></span>
-								</label>
-							</div>
-							
-							
-							<div id="display-extra-container" class="toggle-container">
-								<label for="display-extra">Display Extra Credit Testcases </label>
-								<label class="switch">
-									<input id="display-extra" type="checkbox" name="display-extra" {{(problem) ? (problem.extra_testcases_display) ? "checked" : "" : "checked"}}>
-									<span class="slider round"></span>
-								</label>
-							</div>
-					  
-						</th> </tr>
-					</table>
-				</div>
-			</div>
-		</div>
-	</div>
-	
-	<div class="parallel-cards">
-	
-		<div id="validator-card" class="card" style="flex-grow: 10">
-			<div class="btn-close" onclick="collapseCardValidator()">
-				<h2 style="margin: 0px">Validation Options
-					<span style="float: right"><i class="fa fa-angle-down"></i></span>
-				</h2>
-			</div>
-			
-			<div id="validator-options" class="card-contents">
-				
-				<div style="display: flex; flex-direction: column; justify-content: space-between">
-
-					<div>
-						<div id="use-custom-container" class="toggle-container">
-							<label for="use-custom" style="font-weight: bold">Use Custom Validator</label>
-							<label class="switch">
-								<input id="use-custom" type="checkbox" name="use-custom" {{(problem.custom_validator) ? "checked" : ""}}>
-								<span class="slider round"></span>
-							</label>
-						</div>
+						</th>					 
+						</tr>
+						<tr>
+						<th colspan="1">
+							<label for="weight">Weight</label>
+							<input id="weight" name="weight" type="text" style="width: 100px" value="{{(problem) ? problem.weight : 1}}">
 						
-						<div id="custom-validator-editor" style="height:490px" class="ace-container">{% if problem.custom_validator %}{{ problem.deblobinateCustomValidator()|nl2br }}{% endif %}</div>
-					</div>
+							<label for="time_limit">Time Limit (ms)</label>
+							<input type="text" id="time_limit" style="width: 100px" value="{{(problem) ? problem.time_limit: 1000}}">					  
+						</th>
+						</tr>
+						<tr>
+						<th colspan="1">
+							
+							<div id="allow-multiple-container" class="toggle-container">
+								<label for="allow-multiple" style="font-weight: bold">Allow Additional Files</label>
+								<label class="switch">
+									<input id="allow-multiple" type="checkbox" name="allow-multiple" {{(problem) ? ((problem.allow_multiple) ? "checked" : "") : "checked"}}>
+									<span class="slider round"></span>
+								</label>
+							</div>
 
+							<div id="allow-upload-container" class="toggle-container">
+								<label for="allow-upload" style="font-weight: bold">Allow Uploading Files</label>
+								<label class="switch">
+									<input id="allow-upload" type="checkbox" name="allow-upload" {{(problem) ? ((problem.allow_upload) ? "checked" : "") : "checked"}}>
+									<span class="slider round"></span>
+								</label>
+							</div>
+
+							{% if not problem.master %}
+							
+								<label for="linked_probs">Slave Problems </label>
+								<input type="text" id="linked_probs" style="width: 200px" value="{% for slave in problem.slaves %}{{slave.id}}{{(loop.last)?'':',&nbsp;'}}{% endfor %}">
+								<div id="recommended-slaves" style="margin-top:15px">
+									Recommended Slaves
+									<ul>
+										{% set noreco = true %}
+										{% for recommended in recommendedSlaves %}
+										
+										{% if recommended != problem and recommended not in problem.slaves %}
+										{% set noreco = false %}
+										<li> <a href="{{path('assignment', {'problemId': recommended.id, 'assignmentId': recommended.assignment.id, 'sectionId': recommended.assignment.section.id})}}"> {{recommended.id}} - <i>{{recommended.assignment.section.name}}</i> <small>{{recommended.name}}</small> </a> </li>
+										
+										{% endif %}
+										
+										{% endfor %}
+										
+										{{ (noreco) ? '<li>None to recommend</li>' : '' }}
+									</ul>
+								</div>
+							{% endif %}
+						
+						</th>
+						</tr>
+						
+					</table>
+					</div>
 				</div>
 			</div>
-		</div>
-		
-		<div id="generator-card" class="card" style="flex-grow: 8.33">
-		
-			<div class="btn-close" onclick="collapseCardGenerator()">
-				<h2 style="margin: 0px">Generate Output
-					<span style="float: right"><i class="fa fa-angle-down"></i></span>
-				</h2>
-			</div>
+			
+			
+			<div class="serial-cards">
+				<div class="card">
+					<div class="btn-close">
+						<h2 style="margin: 0px">
+							Grading Options
+						</h2>
+					</div>
+					
+					<div id="optional-grading" class="card-contents">
+						<table>
+							<tr> <th>
+								<label for="total_attempts">Total Attempts</label>
+								<input id="total_attempts" name="total_attempts" type="text" value="{{(problem) ? problem.total_attempts : 0}}">
+							
+								<label for="pen_attempts">Attempts Before Penalty</label>
+								<input id="pen_attempts" name="pen_attempts" type="text" value="{{ (problem) ? problem.attempts_before_penalty : 0}}">
+							
+								<label for="penalty">Penalty Per Attempt</label>
+								<input id="penalty" name="penalty" type="text" value="{{ (problem) ? problem.penalty_per_attempt : '0.00'}}">
 								
-			<div id="generator-options" class="card-contents">
-			
-				<p>Enter in a solution for this problem to generate output.</p>
-			
-				{# the ACE editor text area #}
-				<!--
-				<div id="output-generator-editor" class="ace-container"></div>
-				<br/> 
-				-->
-
-				{{ block('editor_html', 'ace/sessions.twig') }}
-
-				{# file upload#}
-				<form id="output-generator-form" action="{{path('get_contents')}}" method="post">
-					<input type="file" name="file" class="file" id="file" value="Upload File">
-				</form>
-
-				<div id="submissionForm">
-
-					<br/>Language: 
-					<select id="languageSelect" name="language">
-						{% for lang in languages %}
-							{% if lang.name != "No Language Restriction" %}
-								<option value={{lang.id}}>{{lang.name}}</option>
-							{% endif %}
-						{% endfor %}
-					</select>
-					<br>
-					<div id="mainClassInput" style="display:none"><label for="main_class">Main Class: </label><input type="text" name="main_class" id="main_class_input"></div>
-					<div id="packgNameInput" style="display:none"><label for="package_name">Package Name: </label><input type="text" name="package_name" id="package_name_input"></div>
-					<br/>
-					<div class="btn" style="width: 300px" id="generator-button"> Generate </div>
-					<div id="generator-loading-container" style="display: none">
-						<img id="generator-loading-gif" style="height: 60px" src="{{asset('images/beoload.gif')}}" alt="Loading..."/>
-						<h3 style="margin: 0px"> Generating Output... </h3>
+								
+								<div id="extra-credit-container" class="toggle-container">
+									<label for="extra-credit">Extra Credit</label>
+									<label class="switch">
+										<input id="extra-credit" type="checkbox" name="extra-credit" {{(problem) ? (problem.is_extra_credit) ? "checked" : "" : "" }}>
+										<span class="slider round"></span>
+									</label>
+								</div>
+							</th> </tr>
+						</table>
 					</div>
 				</div>
 				
+				<div class="card">
+					<div class="btn-close">
+						<h2 style="margin: 0px">
+							Submission Feedback Options
+						</h2>
+					</div>
+					
+					<div id="optional-feedback" class="card-contents">
+						<table>
+							<tr> <th>
+								<label for="">Helpful Tips/Feedback Level</label>
+								<select id="response-level">
+									<option {{(problem.response_level == "None") ? "selected" : ""}} value="None">None</option>
+									<option {{(problem.response_level == "Short") ? "selected" : ""}} value="Short">Short Response</option>
+									<option {{(problem) ? (problem.response_level == "Long") ? "selected" : "" : "selected"}} value="Long">Long Response</option>
+								</select>
+								
+								<div id="display-testcase-container" class="toggle-container">
+									<label for="display-testcase">Testcase Results</label>
+									<label class="switch">
+										<input id="display-testcase" type="checkbox" name="display-testcase" {{(problem) ? (problem.display_testcaseresults) ? "checked" : "" : "checked" }}>
+										<span class="slider round"></span>
+									</label>
+								</div>
+								
+								<div id="output-level-container">
+									<label for="output-level">Testcase Content Output Level</label>
+									<select id="output-level">
+										<option {{(problem.testcase_output_level == "None") ? "selected" : ""}} value="None">None</option>
+										<option {{(problem.testcase_output_level == "Output") ? "selected" : ""}} value="Output">Expected Testcase Output</option>
+										<option {{(problem) ? (problem.testcase_output_level == "Both") ? "selected" : "" : "selected"}} value="Both">Expected Testcase Output and Testcase Input</option>
+									</select>
+								</div>
+								
+								<div id="stop-fail-container" class="toggle-container">
+									<label for="stop-fail">Stop On First Failed Testcase</label>
+									<label class="switch">
+										<input id="stop-fail" type="checkbox" name="stop-fail" {{(problem.stop_on_first_fail) ? "checked" : ""}}>
+										<span class="slider round"></span>
+									</label>
+								</div>
+								
+								
+								<div id="display-extra-container" class="toggle-container">
+									<label for="display-extra">Display Extra Credit Testcases </label>
+									<label class="switch">
+										<input id="display-extra" type="checkbox" name="display-extra" {{(problem) ? (problem.extra_testcases_display) ? "checked" : "" : "checked"}}>
+										<span class="slider round"></span>
+									</label>
+								</div>
+						
+							</th> </tr>
+						</table>
+					</div>
+				</div>
 			</div>
 		</div>
 		
+		<div class="parallel-cards">
+		
+			<div id="validator-card" class="card" style="flex-grow: 10">
+				<div class="btn-close" onclick="collapseCardValidator()">
+					<h2 style="margin: 0px">Validation Options
+						<span style="float: right"><i class="fa fa-angle-down"></i></span>
+					</h2>
+				</div>
+				
+				<div id="validator-options" class="card-contents">
+					
+					<div style="display: flex; flex-direction: column; justify-content: space-between">
+
+						<div>
+							<div id="use-custom-container" class="toggle-container">
+								<label for="use-custom" style="font-weight: bold">Use Custom Validator</label>
+								<label class="switch">
+									<input id="use-custom" type="checkbox" name="use-custom" {{(problem.custom_validator) ? "checked" : ""}}>
+									<span class="slider round"></span>
+								</label>
+							</div>
+							
+							<div id="custom-validator-editor" style="height:490px" class="ace-container">{% if problem.custom_validator %}{{ problem.deblobinateCustomValidator()|nl2br }}{% endif %}</div>
+						</div>
+
+					</div>
+				</div>
+			</div>
+			
+			<div id="generator-card" class="card" style="flex-grow: 8.33">
+			
+				<div class="btn-close" onclick="collapseCardGenerator()">
+					<h2 style="margin: 0px">Generate Output
+						<span style="float: right"><i class="fa fa-angle-down"></i></span>
+					</h2>
+				</div>
+									
+				<div id="generator-options" class="card-contents">
+				
+					<p>Enter in a solution for this problem to generate output.</p>
+				
+					{# the ACE editor text area #}
+					<!--
+					<div id="output-generator-editor" class="ace-container"></div>
+					<br/> 
+					-->
+
+					{{ block('editor_html', 'ace/sessions.twig') }}
+
+					{# file upload#}
+					<form id="output-generator-form" action="{{path('get_contents')}}" method="post">
+						<input type="file" name="file" class="file" id="file" value="Upload File">
+					</form>
+
+					<div id="submissionForm">
+
+						<br/>Language: 
+						<select id="languageSelect" name="language">
+							{% for lang in languages %}
+								{% if lang.name != "No Language Restriction" %}
+									<option value={{lang.id}}>{{lang.name}}</option>
+								{% endif %}
+							{% endfor %}
+						</select>
+						<br>
+						<div id="mainClassInput" style="display:none"><label for="main_class">Main Class: </label><input type="text" name="main_class" id="main_class_input"></div>
+						<div id="packgNameInput" style="display:none"><label for="package_name">Package Name: </label><input type="text" name="package_name" id="package_name_input"></div>
+						<br/>
+						<div class="btn" style="width: 300px" id="generator-button"> Generate </div>
+						<div id="generator-loading-container" style="display: none">
+							<img id="generator-loading-gif" style="height: 60px" src="{{asset('images/beoload.gif')}}" alt="Loading..."/>
+							<h3 style="margin: 0px"> Generating Output... </h3>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div id="testcase-cards" class="parallel-cards"></div>
 	</div>
-	
-	<div id="testcase-cards" class="parallel-cards">	
-	
-	</div>
-	
   </section>
 </body>
 {% endblock %}
@@ -355,6 +362,7 @@
   
   <script src="{{ asset('js/cards.js') }}"></script>	
   <script src="{{ asset('js/validation.js') }}"></script>
+  <script src="{{ asset('js/floating-control.js') }}"></script>
   
   
   <script>
@@ -659,7 +667,7 @@
 					window.location = "{{path('problem_delete', {'sectionId': problem.assignment.section.id, 'assignmentId': problem.assignment.id, 'problemId': problem.id})}}";
 					
 				} else {
-					$('#delete-warning').html("Are you sure?<br/>Click again to delete.");
+					$('.deleteWarning').html("Are you sure? Click again to delete");
 				}
 			
 				warned++;

@@ -1,0 +1,67 @@
+nav.nav-left {
+    grid-area: nav-left;
+    overflow-y: auto;
+    border-right: 1px solid grey;
+    background-color: grey;
+    color: white;
+    padding: 10px;
+    font-size: 14pt;
+}
+
+nav.nav-left.hidden_hamburger {
+    display: none;
+    width: 0;
+    transition: width 350ms ease-in-out;
+}
+
+nav.nav-left .large-link {
+    font-size: 16pt;
+    font-weight: bold;
+}
+
+nav.nav-left #PastLink {
+    padding-top: 100px;
+    display: flex;
+}
+
+#PastText {
+    cursor: pointer;
+}
+
+#PastText:hover {
+    text-decoration: underline;
+}
+
+nav.nav-left .nav-chevron-title-container {
+    display: grid;
+    grid-template-columns: 25px auto;
+}
+
+nav.nav-left .nav-chevron {
+    height: 25px;
+    width: 25px;
+    cursor: pointer;
+}
+
+nav.nav-left .nav-assignment,
+nav.nav-left .nav-problem {
+    margin-left: 40px;
+    display: none;
+}
+
+.pastDropdownContainer {
+    display: none;
+    margin-left: 40px;
+}
+
+nav.nav-left a {
+    text-decoration: underline;
+}
+
+nav.nav-left a:hover {
+    text-decoration: none;
+}
+
+#Terms {
+    width: auto;
+}

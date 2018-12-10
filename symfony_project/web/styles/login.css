@@ -6,7 +6,7 @@ html, body {
 }
 
 .main {
-    background-color: #71AB62;
+    background-color: white;
 	height: 100%;
 	width: 100%;
 }
@@ -25,17 +25,18 @@ strong#name{
 
 .card {
 	font-family: "Roboto", sans-serif;
-    background-color:white;
+    background-color: #003963;
 	position: relative;
 	top: 20%;
 	margin: auto;
     width: 25%;
-    padding: 20px;
+    padding: 30px;
     /* Shadow */
     -webkit-box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
     -moz-box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
     box-shadow: 3px 3px 10px -4px rgba(0,0,0,0.64);
-	text-align: center;
+    text-align: center;
+    border-radius: 20px
 }
 
 .card-contents {
@@ -60,14 +61,15 @@ strong#name{
     font-family: "Roboto", sans-serif;
     text-transform: uppercase;
     outline: 0;
-    background: #4CAF50;
+    background: #FDB813;
     width: 40%;
     border: 0;
     padding: 15px;
     color: #FFFFFF;
-    font-size: 14px;
+    font-size: 24px;
     -webkit-transition: all 0.3 ease;
     transition: all 0.3 ease;
     cursor: pointer;
+    border-radius: 5px;
 }
 

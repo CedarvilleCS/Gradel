@@ -13,7 +13,7 @@ use \DateTime;
  * @ORM\Entity
  * @ORM\Table(name="section")
  */
-class Section implements JsonSerializable{
+class Section implements JsonSerializable {
 
 	public function __construct(){
 
@@ -30,12 +30,11 @@ class Section implements JsonSerializable{
 		$this->user_roles = new ArrayCollection();
 	}
 
-	public function __construct8($crs, $nm, $sem, $yr, $start, $end, $public, $deleted){
+	public function __construct8($crs, $nm, $semester, $start, $end, $public, $deleted){
 		$this->course = $crs;
 		$this->name = $nm;
-		$this->semester = $sem;
-		$this->year = $yr;
 		$this->start_time = $start;
+		$this->semester = $semester;
 		$this->end_time = $end;
 		$this->is_public = $public;
 		$this->is_deleted = $deleted;
@@ -47,8 +46,6 @@ class Section implements JsonSerializable{
 		if($this->id){
 			$this->id = null;
 			
-			$this->name = $this->name." CLONE";
-			
 			# clone assignments
 			$assignmentsClone = new ArrayCollection();
 			
@@ -59,29 +56,15 @@ class Section implements JsonSerializable{
 				$assignmentsClone->add($assignmentClone);
 			}
 			$this->assignments = $assignmentsClone;
-			
-			
-			# clone user roles
-			$usrsClone = new ArrayCollection();
-			
-			foreach($this->user_roles as $usr){
-				
-				if($usr->role->role_name == "Teaches"){
-				
-					$usrClone = clone $usr;
-					$usrClone->section = $this;
-					
-					$usrsClone->add($usrClone);
-				}
-			}
-			$this->user_roles = $usrsClone;			
+		
+			$this->user_roles = new ArrayCollection();			
 		}		
 	}
 	
+	//change to use semester->is_currentsemester
 	public function isActive(){
 		
 		$currTime = new \DateTime("now");
-		
 		return $this->start_time <= $currTime && $currTime < $this->end_time;
   }
   
@@ -150,9 +133,9 @@ class Section implements JsonSerializable{
 	public $assignments;
 	
 	/**
-  * @ORM\OneToMany(targetEntity="UserSectionRole", mappedBy="section", cascade={"persist", "remove"}, orphanRemoval=true)
-  */
-  public $user_roles;
+	 * @ORM\OneToMany(targetEntity="UserSectionRole", mappedBy="section", cascade={"persist", "remove"}, orphanRemoval=true)
+	*/
+	public $user_roles;
 
 	/**
 	* @ORM\ManyToOne(targetEntity="Course", inversedBy="sections")
@@ -165,14 +148,9 @@ class Section implements JsonSerializable{
 	public $name;
 
 	/**
-	* @ORM\Column(type="string", length=255)
+	* @ORM\ManyToOne(targetEntity="Semester", inversedBy="sections")
 	*/
 	public $semester;
-
-	/**
-	* @ORM\Column(type="integer")
-	*/
-	public $year;
 
 	/**
 	* @ORM\Column(type="datetime")

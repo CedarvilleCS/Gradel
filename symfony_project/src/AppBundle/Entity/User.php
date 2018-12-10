@@ -9,7 +9,6 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Config\Definition\Exception\Exception;
 use Doctrine\Common\Collections\ArrayCollection;
 
-
 /**
  * @ORM\Entity
  * @ORM\Table(name="user")
@@ -160,9 +159,17 @@ class User extends BaseUser implements JsonSerializable{
 	/**
      * @ORM\OneToMany(targetEntity="UserSectionRole", mappedBy="user")
      */
-    public $section_roles;
+	public $section_roles;
+
+	public $userTestCaseInfo = [];
+
+	public $numberOfCompletedProblems = 0;
 	
-	public function jsonSerialize(){
+	public function __toString() {
+		return $this->getFullName();
+	}
+	
+	public function jsonSerialize() {
 		
 		$first_name = ($this->first_name) ? $this->first_name : $this->email;
 		$last_name = ($this->last_name) ? $this->last_name : "";
@@ -173,6 +180,8 @@ class User extends BaseUser implements JsonSerializable{
 			'last_name' => $last_name,
 			'email' => $this->email,
 			'full_name' => $this->getFullName(),
+			'numberOfCompletedProblems' => $this->numberOfCompletedProblems,
+			'userTestCaseInfo' => $this->userTestCaseInfo
 		];
 	}
 }

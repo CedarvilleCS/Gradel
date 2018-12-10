@@ -1,8 +1,10 @@
 # HOMEPAGE ROUTES
 homepage:
-    path:   '/home'
-    defaults:  { _controller: AppBundle:Home:home}
-
+    path:   '/home/{semesterId}'
+    defaults: 
+      _controller: AppBundle:Home:home
+      semesterId: 0
+    
 alt_homepage:
     path:   '/'
     defaults: { _controller: AppBundle:Home:home}
@@ -15,6 +17,7 @@ users:
 user_edit:
   path: '/user_edit'
   defaults: {_controller: AppBundle:Users:edit}
+  methods: [POST]
 
 # course routes
 courses:
@@ -46,6 +49,7 @@ submission_search:
     _controller: AppBundle:Section:searchSubmissions
   methods: [POST]
 
+#edit sections is not working
 section_edit:
   path: '/section/edit/{sectionId}'
   defaults:
@@ -57,9 +61,10 @@ section_delete:
   path: '/section/delete/{sectionId}'
   defaults: {_controller: AppBundle:Section:deleteSection}
   methods: [GET]
-  
+
+#section clone not working  
 section_clone:
-  path: '/section/clone/{sectionId}'
+  path: '/section/clone/{sectionId}/name/{name}/term/{term}/year/{year}/numberOfClones/{numberOfClones}'
   defaults: {_controller: AppBundle:Section:cloneSection}
   methods: [GET]
 
@@ -68,17 +73,34 @@ section:
   defaults: {_controller: AppBundle:Section:section}
   methods: [GET]
 
+#section modifyPost not working
 section_modify:
   path: '/modify/section'
   defaults: {_controller: AppBundle:Section:modifyPost}
   methods: [POST]
+
+# sidenav routes
+sidenav_data:
+  path: 'sidenav'
+  defaults: {_controller: AppBundle:Sidenav:data}
+  methods: [GET]
+
+sidenav_semester:
+  path: 'sidenav/semesters'
+  defaults: {_controller: AppBundle:Sidenav:semesters}
+  methods: [GET]
   
 # problem routes
+problem:
+  path: '/section/{sectionId}/assignment/{assignmentId}/problem/{problemId}'
+  defaults:
+    _controller: AppBundle:Problem:problem
+  methods: [GET]
+
 problem_edit:
   path: '/section/{sectionId}/assignment/{assignmentId}/problem/edit/{problemId}'
   defaults: 
     _controller: AppBundle:Problem:edit
-    problemId: 0
   methods: [GET]
 
 problem_delete:
@@ -87,13 +109,13 @@ problem_delete:
   methods: [GET]
 
 problem_result:
-    path: '/result/{submission_id}'
+    path: '/result/{submissionId}'
     defaults: {_controller: AppBundle:Problem:result}
     requirements:
         submission_id: '\d+'
         
 result_delete:
-    path: '/result_delete/{submission_id}'
+    path: '/result_delete/{submissionId}'
     defaults: {_controller: AppBundle:Problem:resultDelete}
     requirements:
         submission_id: '\d+'
@@ -119,10 +141,9 @@ assignment_delete:
   methods: [GET]
   
 assignment:
-  path: '/section/{sectionId}/assignment/{assignmentId}/problem/{problemId}'
+  path: '/section/{sectionId}/assignment/{assignmentId}'
   defaults:
     _controller: AppBundle:Assignment:assignment
-    problemId: 0
   methods: [GET]
 
 assignment_modify:
@@ -143,8 +164,6 @@ assignment_cleartrials:
     _controller: AppBundle:Assignment:clearTrials
   methods: [POST]
 
-
-  
 # CONTEST ROUTES
 contest_result:
   path: '/contest/{contestId}/round/{roundId}/problem/{problemId}/result/{resultId}'

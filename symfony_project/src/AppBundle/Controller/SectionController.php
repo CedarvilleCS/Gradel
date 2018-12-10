@@ -2,763 +2,706 @@
 
 namespace AppBundle\Controller;
 
-use \DateTime;
 use \DateInterval;
+use \DateTime;
 
-use AppBundle\Entity\User;
+use AppBundle\Constants;
+
+use AppBundle\Entity\Assignment;
 use AppBundle\Entity\Course;
-use AppBundle\Entity\UserSectionRole;
 use AppBundle\Entity\Role;
 use AppBundle\Entity\Section;
-use AppBundle\Entity\Assignment;
 use AppBundle\Entity\Submission;
+use AppBundle\Entity\User;
+use AppBundle\Entity\UserSectionRole;
 
-use AppBundle\Utils\Grader;
+use AppBundle\Service\AssignmentService;
+use AppBundle\Service\CourseService;
+use AppBundle\Service\GraderService;
+use AppBundle\Service\RoleService;
+use AppBundle\Service\SectionService;
+use AppBundle\Service\SemesterService;
+use AppBundle\Service\SubmissionService;
+use AppBundle\Service\TeamService;
+use AppBundle\Service\TestCaseService;
+use AppBundle\Service\UserSectionRoleService;
+use AppBundle\Service\UserService;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
+
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 
-use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 
 use Doctrine\ORM\Tools\Pagination\Paginator;
 
 use Psr\Log\LoggerInterface;
 
 class SectionController extends Controller {
+    private $assignmentService;
+    private $courseService;
+    private $graderService;
+    private $logger;
+    private $roleService;
+    private $sectionService;
+    private $semesterService;
+    private $submissionService;
+    private $teamService;
+    private $testCaseService;
+    private $userSectionRoleService;
+    private $userService;
 
-    public function sectionAction($sectionId) {
-
-		$em = $this->getDoctrine()->getManager();
-
-		$user = $this->get('security.token_storage')->getToken()->getUser();
-		
-
-		if(!$user){
-			die("USER DOES NOT EXIST");
-		}
-
-		# VALIDATION
-		$section = $em->find('AppBundle\Entity\Section', $sectionId);
-
-		if(!$section){
-			die("SECTION DOES NOT EXIST!");
-		}
-		
-		# REDIRECT TO CONTEST PATH IF NEED BE
-		if($section->course->is_contest){
-			return $this->redirectToRoute('contest', ['contestId' => $section->id]);
-		}
-		
-
-		# GET ALL ASSIGNMENTS
-		$qb = $em->createQueryBuilder();
-		$qb->select('a')
-			->from('AppBundle\Entity\Assignment', 'a')
-			->where('a.section = ?1')
-			->orderBy('a.start_time', 'ASC')
-			->setParameter(1, $section);
-
-		$query = $qb->getQuery();
-		$assignments = $query->getResult();
-
-		# GET ALL USERS
-		$qb_user = $em->createQueryBuilder();
-		$qb_user->select('usr')
-			->from('AppBundle\Entity\UserSectionRole', 'usr')
-			->where('usr.section = ?1')
-			->setParameter(1, $section);
-
-		$user_query = $qb_user->getQuery();
-		$usersectionroles = $user_query->getResult();
-
-		$section_takers = [];
-		$section_teachers = [];
-		$section_helpers = [];
-		$section_judges = [];
-
-		foreach($usersectionroles as $usr){
-			if($usr->role->role_name == "Takes"){
-				$section_takers[] = $usr->user;
-			} else if($usr->role->role_name == "Teaches"){
-				$section_teachers[] = $usr->user;
-			} else if($usr->role->role_name == "Helps"){
-				$section_helpers[] = $usr->user;
-			} else if($usr->role->role_num == "Judges"){
-				$section_judges[] = $usr->user;
-			}
-		}
-		
-		# GET FUTURE ASSIGNMENTS
-		$twoweeks_date = new DateTime();
-		$twoweeks_date = $twoweeks_date->add(new DateInterval('P2W'));
-
-		$qb_asgn = $em->createQueryBuilder();
-		$qb_asgn->select('a')
-				->from('AppBundle\Entity\Assignment', 'a')
-				->where('a.section = ?1')
-				->andWhere('a.end_time > ?2')
-				->andWhere('a.end_time < ?3')
-				->setParameter(1, $section)
-				->setParameter(2, new DateTime())
-				->setParameter(3, $twoweeks_date)
-				->orderBy('a.end_time', 'ASC');
-
-		$asgn_query = $qb_asgn->getQuery();
-		$future_assigs = $asgn_query->getResult();
-		
-		# GATHER SUBMISSIONS
-		# get all of the problems to get all of the submissions
-		$allprobs = [];
-		foreach($section->assignments as $asgn){
-			foreach($asgn->problems as $prob){
-				$allprobs[] = $prob;
-			}
-		}
-
-		$grader = new Grader($em);
-
-		if($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isTeaching($user, $section) || $grader->isJudging($user, $section)){
-			
-			$submissions = [];
-
-		} else {
-			
-			$submissions = [];
-		}
-		
-		// get assignment grades for the student
-		$grades = [];
-		$subs = [];
-		foreach($section_takers as $section_taker){
-			
-			$correct_sub_ids = [];
-			
-			$grades[$section_taker->id] = $grader->getAllAssignmentGrades($section_taker, $section);
-			
-			foreach ($assignments as $assig){
-				$probs = $assig->problems;
-				$team = $grader->getTeam($section_taker, $assig);
-				
-				foreach($probs as $prob){
-					
-					$qb_submissions = $em->createQueryBuilder();
-					$qb_submissions->select('s')
-							->from('AppBundle\Entity\Submission', 's')
-							->where('s.problem = (?1)')
-							->andWhere('s.team = (?2)')
-							->andWhere('s.best_submission = 1')
-							->setParameter(1, $prob)
-							->setParameter(2, $team);
-					$submission_query = $qb_submissions->getQuery();
-					$submission = $submission_query->getOneOrNullResult();
-					$correct_sub_ids[$assig->id][$prob->id]=$submission->id;
-					
-				}
-			}
-			$subs[$section_taker->id] = $correct_sub_ids;
-			
-		}
-
-
-		// get the users most recent submissions (top 15)
-		$submissions = $em->createQueryBuilder()
-					->select('s')
-					->from('AppBundle\Entity\Submission', 's')
-					->where('s.user = (?1)')
-					->orderBy('s.id', 'DESC')
-					->setParameter(1, $user)
-					->setMaxResults(15)
-					->getQuery()
-					->getResult();
-
-		// array of arrays that contain a main text and a subtext that will be used for autocompleting searches
-		// ['Timothy Smith', 'timothyglensmith@cedarville.edu']
-		// ['Get the Sum', 'Homework #2']
-		// ['Wrong Answer', 'Incorrect']
-		$suggestions = [];
-
-		// get the users
-		foreach($section_takers as $taker){
-			$suggestions[] = [$taker->getFullName(), $taker->getEmail()];
-		}
-
-		// get the teachers
-		foreach($section_teachers as $teacher){
-			$suggestions[] = [$teacher->getFullName(), $teacher->getEmail()];
-		}
-
-		// get the helpers
-		foreach($section_helpers as $helper){
-			$suggestions[] = [$helper->getFullName(), $helper->getEmail()];
-		}
-
-		//  get the problems
-		foreach($allprobs as $prob){
-			$suggestions[] = [$prob->name, $prob->assignment->name];			
-		}
-
-		// get the assignments and teams
-		foreach($section->assignments as $assign){
-			$suggestions[] = [$assign->name, ''];			
-
-			foreach($assign->teams as $tm){
-
-				if($tm->users->count() > 1){
-					$suggestions[] = [$tm->name, ''];
-				}
-			}
-		}
-
-		// get the correct types
-		$suggestions[] = ['Correct', ''];
-		$suggestions[] = ['Incorrect', ''];
-		$suggestions[] = ['Wrong Answer', 'Incorrect'];
-		$suggestions[] = ['Runtime Error', 'Incorrect'];
-		$suggestions[] = ['Time Limit Error', 'Incorrect'];
-		$suggestions[] = ['Compile Error', 'Incorrect'];
-				
-		return $this->render('section/index.html.twig', [
-			'section' => $section,
-			
-			'grader' => new Grader($em),
-			'user' => $user,
-			'team' => $team,
-
-			'grades' => $grades,
-
-			'user_assig_prob_sub' => $subs,
-
-			'submissions' => $submissions,
-			
-			'future_assigs' => $future_assigs,
-
-			'user_impersonators' => $section_takers,
-
-			'section_takers' => $section_takers,
-			'section_teachers' => $section_teachers,
-			'section_helpers' => $section_helpers,
-
-			'search_suggestions' => $suggestions,
-		]);
-	}
-
-    public function editSectionAction($sectionId) {
-
-		$em = $this->getDoctrine()->getManager();
-
-		if($sectionId != 0){
-
-			if(!isset($sectionId) || !($sectionId > 0)){
-				die("SECTION ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
-			}
-
-			$section = $em->find('AppBundle\Entity\Section', $sectionId);
-
-			if(!$section){
-				die("SECTION DOES NOT EXIST");
-			}
-
-			# REDIRECT TO CONTEST IF NEED BE
-			if($section->course->is_contest){
-				return $this->redirectToRoute('contest_edit', ['contestId' => $section->id]);	
-			}
-			
-			
-			$section_taker_roles = [];
-			$section_teacher_roles = [];
-
-
-			$teaches_role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Teaches'));
-			$takes_role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));
-
-			foreach($section->user_roles as $ur){
-
-				if($ur->role == $takes_role){
-					$section_taker_roles[] = $ur;
-				} else if($ur->role == $teaches_role){
-					$section_teacher_roles[] = $ur;
-				}
-
-			}
-		}
-		
-		$builder = $em->createQueryBuilder();
-		$builder->select('c')
-				->from('AppBundle\Entity\Course', 'c')
-				->where('c.is_deleted = false');
-		$query = $builder->getQuery();
-		$courses = $query->getResult();
-
-		$user = $this->get('security.token_storage')->getToken()->getUser();
-		if(!$user){
-			die("USER DOES NOT EXIST");
-		}
-		
-		
-		$users = $em->getRepository("AppBundle\Entity\User")->findAll();
-		$instructors = [];
-
-		foreach ($users as $u) {
-			if($u->hasRole("ROLE_ADMIN") or $u->hasRole("ROLE_SUPER")) {
-				$instructors[] = $u;
-			}
-		}
-
-		return $this->render('section/edit.html.twig', [
-			'courses' => $courses,
-			'users' => $users,
-			'instructors' => $instructors,
-			'section' => $section,
-			'section_taker_roles' => $section_taker_roles,
-			'section_teacher_roles' => $section_teacher_roles,
-		]);
+    public function __construct(AssignmentService $assignmentService,
+                                CourseService $courseService,
+                                GraderService $graderService,
+                                LoggerInterface $logger,
+                                RoleService $roleService,
+                                SectionService $sectionService,
+                                SemesterService $semesterService,
+                                SubmissionService $submissionService,
+                                TeamService $teamService,
+                                TestCaseService $testCaseService,
+                                UserSectionRoleService $userSectionRoleService,
+                                UserService $userService) {
+        $this->assignmentService = $assignmentService;
+        $this->courseService = $courseService;
+        $this->graderService = $graderService;
+        $this->logger = $logger;
+        $this->roleService = $roleService;
+        $this->sectionService = $sectionService;
+        $this->semesterService = $semesterService;
+        $this->submissionService = $submissionService;
+        $this->teamService = $teamService;
+        $this->testCaseService = $testCaseService;
+        $this->userSectionRoleService = $userSectionRoleService;
+        $this->userService = $userService;
     }
 
-	public function cloneSectionAction($sectionId){
-
-		$em = $this->getDoctrine()->getManager();
-
-		$user = $this->get('security.token_storage')->getToken()->getUser();
-		if(!$user){
-			die("USER DOES NOT EXIST");
-		}
-
-		$section = $em->find('AppBundle\Entity\Section', $sectionId);
-
-		if(!$section){
-			die("SECTION DOES NOT EXIST");
-		}
-
-		$newSection = clone $section;
-		$em->persist($newSection);
-
-		$em->flush();
-
-		return $this->redirectToRoute('section_edit', ['sectionId' => $newSection->id]);
-	}
-
-	public function deleteSectionAction($sectionId){
-
-		$em = $this->getDoctrine()->getManager();
-
-		# get the section
-		if(!isset($sectionId) || !($sectionId > 0)){
-			die("SECTION ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
-		}
-		$section = $em->find('AppBundle\Entity\Section', $sectionId);
-
-		if(!$section){
-			die("SECTION DOES NOT EXIST");
-		}
-
-		$user = $this->get('security.token_storage')->getToken()->getUser();
-		if(!$user){
-			die("USER DOES NOT EXIST");
-		}
-
-		# validate the user
-		if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN")){
-			die("YOU ARE NOT ALLOWED TO DELETE THIS SECTION");
-
-		}
-
-		$section->is_deleted = !$section->is_deleted;
-		$em->flush();
-
-		return $this->redirectToRoute('homepage');
-	}
-
-	public function modifyPostAction(Request $request){
-
-		$em = $this->getDoctrine()->getManager();
-
-		# validate the current user
-		$user = $this->get('security.token_storage')->getToken()->getUser();
-		if(!$user){
-			return $this->returnForbiddenResponse("You are not a user.");
-		}
-
-
-		# see which fields were included
-		$postData = $request->request->all();
-
-		# check mandatory fields
-		if(!isset($postData['name']) || trim($postData['name']) == "" || !isset($postData['course']) || !isset($postData['semester']) || !isset($postData['year'])){
-			return $this->returnForbiddenResponse("Not every required field is provided.");
-		} else {
-
-			# validate the year
-			if(!is_numeric(trim($postData['year']))){
-				return $this->returnForbiddenResponse($postData['year']." is not a valid year");
-			}
-
-			# validate the semester
-			if(trim($postData['semester']) != 'Fall' && trim($postData['semester']) != 'Spring' && trim($postData['semester']) != 'Summer'){
-				return $this->returnForbiddenResponse($postData['semester']." is not a valid semester");
-			}
-		}
-
-		# create new section
-		if($postData['section'] == 0){
-			
-			# only super users and admins can make/edit a section
-			if(!$user->hasRole("ROLE_SUPER") && !$user->hasRole("ROLE_ADMIN")){
-				return $this->returnForbiddenResponse("You do not have permission to make a section.");
-			}
-			
-			$section = new Section();
-		} else if(isset($postData['section'])) {
-
-			if(!isset($postData['section']) || !($postData['section'] > 0)){
-				die("SECTION ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
-			}
-			$section = $em->find('AppBundle\Entity\Section', $postData['section']);
-
-			if(!$section){
-				return $this->returnForbiddenResponse("Section ".$postData['section']." does not exist");
-			}
-			
-			$grader = new Grader($em);
-			# only super users and admins can make/edit a section
-			if(! ($user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN") || $grader->isTeaching($user, $section)) ){
-				return $this->returnForbiddenResponse("You do not have permission to edit this section.");
-			}			
-			
-		} else {
-			return $this->returnForbiddenResponse("section not provided");
-		}
-
-		# get the course
-		if(!isset($postData['course']) || !($postData['course'] > 0)){
-			die("COURSE ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
-		}
-
-		$course = $em->find('AppBundle\Entity\Course', $postData['course']);
-		if(!$course){
-			return $this->returnForbiddenResponse("Course provided does not exist.");
-		}
-
-		# set the necessary fields
-		$section->name = trim($postData['name']);
-		$section->course = $course;
-		$section->semester = $postData['semester'];
-		$section->year = (int)trim($postData['year']);
-
-		# see if the dates were provided or if we will do them automatically
-		$dates = $this->getDateTime($postData['semester'], $postData['year']);
-		if(isset($postData['start_time']) && $postData['start_time'] != ''){
-			$customStartTime = DateTime::createFromFormat("m/d/Y H:i:s", $postData['start_time']." 00:00:00");
-
-			if(!$customStartTime || $customStartTime->format("m/d/Y") != $postData['start_time']){
-				return $this->returnForbiddenResponse("Provided invalid start time ". $postData['start_time']);
-			} else {
-				$section->start_time = $customStartTime;
-			}
-
-		} else {
-			$section->start_time = $dates[0];
-		}
-
-		if(isset($postData['end_time']) && $postData['end_time'] != ''){
-			$customEndTime = DateTime::createFromFormat("m/d/Y H:i:s", $postData['end_time']." 23:59:59");
-
-			if(!$customEndTime || $customEndTime->format("m/d/Y") != $postData['end_time']){
-				return $this->returnForbiddenResponse("Provided invalid end time ". $postData['end_time']);
-			} else {
-				$section->end_time = $customEndTime;
-			}
-
-		} else {
-			$section->end_time = $dates[1];
-		}
-
-		# validate that the end time is after the start time
-		if($section->end_time <= $section->start_time){
-			return $this->returnForbiddenResponse("The end time must be after the start time for the section");
-		}
-
-		# default these to false
-		$section->is_deleted = false;
-		$section->is_public = false;
-
-		$em->persist($section);
-
-		# validate the students csv
-		$students = array_unique(json_decode($postData['students']));
-
-		foreach ($students as $student) {
-			if (!filter_var($student, FILTER_VALIDATE_EMAIL)) {
-				return $this->returnForbiddenResponse("Provided student email address ".$student." is not valid");
-			}
-
-			if (in_array($student, $teachers)) {
-				return $this->returnForbiddenResponse("Cannot add " . $student . " as a student. He/she already teaches this section!");
-			}
-		}
-
-		# vallidate teacher csv
-		$teachers = array_unique(json_decode($postData['teachers']));
-
-		foreach ($teachers as $teacher){
-
-			if(!filter_var($teacher, FILTER_VALIDATE_EMAIL)) {
-				return $this->returnForbiddenResponse("Provided teacher email address ".$teacher." is not valid");
-			}
-
-			if (in_array($teacher, $students)) {
-				return $this->returnForbiddenResponse("Cannot add " .$teacher . "as a student. He/she already teaches this section!");
-			}
-		}
-
-		$oldUsers = [];
-
-		if($postData['section'] == 0 && count(json_decode($postData['teachers'])) == 0){
-
-			# add the current user as a role
-			$role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Teaches'));
-			$usr = new UserSectionRole($user, $section, $role);
-			$em->persist($usr);
-
-		} else if($postData['section'] != 0){
-
-			foreach($section->user_roles as $ur){
-				$em->remove($ur);
-
-				$oldUsers[$ur->user->id] = $ur->user;
-			}
-
-			$em->flush();
-		}
-
-		# add students from the students array
-
-		$takes_role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Takes'));
-		foreach ($students as $student) {
-
-			if (!filter_var($student, FILTER_VALIDATE_EMAIL)) {
-				return $this->returnForbiddenResponse("Provided student email address ".$student." is not valid");
-			}
-			
-			
-
-			$stud_user = $em->getRepository('AppBundle\Entity\User')->findOneBy(array('email' => $student));
-
-			if(!$stud_user){
-				$stud_user = new User($student, $student);
-				$em->persist($stud_user);
-			}
-
-			$usr = new UserSectionRole($stud_user, $section, $takes_role);
-			$em->persist($usr);
-
-			unset($oldUsers[$stud_user->id]);
-		}
-
-		# add the teachers from the teachers array
-
-		$teaches_role = $em->getRepository('AppBundle\Entity\Role')->findOneBy(array('role_name' => 'Teaches'));
-		foreach ($teachers as $teacher){
-
-			if(!filter_var($teacher, FILTER_VALIDATE_EMAIL)) {
-				return $this->returnForbiddenResponse("Provided teacher email address ".$teacher." is not valid");
-			}
-
-
-
-			$teach_user = $em->getRepository('AppBundle\Entity\User')->findOneBy(array('email'=>$teacher));
-
-			if(!$teach_user){
-				return $this->returnForbiddenResponse("Teacher with email ".$teacher." does not exist!");
-			}
-
-			if ($grader->isTaking($teach_user, $section)) {
-				return $this->returnForbiddenResponse($student . " is already teaching this course!");
-			}
-
-			$usr = new UserSectionRole($teach_user, $section, $teaches_role);
-			$em->persist($usr);
-
-			unset($oldUsers[$stud_user->id]);
-		}
-
-
-		foreach($oldUsers as $oldUser){
-
-			foreach($section->assignments as $asgn){
-				foreach($asgn->teams as &$team){	
-
-					$team->users->removeElement($oldUser);
-
-					if($team->users->count() == 0){
-						$em->remove($team);
-					} else {
-						$em->persist($team);
-					}
-				}
-			}
-
-		}
-
-		$em->flush();
-
-		# redirect to the section page
-		$url = $this->generateUrl('section', ['sectionId' => $section->id]);
-
-		$response = new Response(json_encode(array('redirect_url' => $url)));
-		$response->headers->set('Content-Type', 'application/json');
-		$response->setStatusCode(Response::HTTP_OK);
-
-		return $response;
-	}
-
-	private function getDateTime($semester, $year){
-
-		if($semester == 'Fall'){
-			return [DateTime::createFromFormat("m/d/Y H:i:s", "08/01/".$year." 00:00:00"),
-					DateTime::createFromFormat("m/d/Y H:i:s", "12/31/".$year." 23:59:59")];
-		} else if($semester == 'Spring'){
-			return [DateTime::createFromFormat("m/d/Y H:i:s", "01/01/".$year." 00:00:00"),
-					DateTime::createFromFormat("m/d/Y H:i:s", "05/31/".$year." 23:59:59")];
-		} else {
-			return [DateTime::createFromFormat("m/d/Y H:i:s", "05/01/".$year." 00:00:00"),
-					DateTime::createFromFormat("m/d/Y H:i:s", "08/31/".$year." 23:59:59")];
-		}
-
-	}
-
-	public function searchSubmissionsAction(Request $request){
-
-
-		$em = $this->getDoctrine()->getManager();
-		$grader = new Grader($em);
-
-		# validate the current user
-		$user = $this->get('security.token_storage')->getToken()->getUser();
-		if(!$user){
-			return $this->returnForbiddenResponse("You are not a user.");
-		}
-
-		$elevatedUser = $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN");
-
-		# see which fields were included
-		$postData = $request->request->all();
-
-		if(!isset($postData['val']) || trim($postData['val']) == ''){
-			return $this->returnForbiddenResponse("val must be provided for searching");			
-		}
-
-		if(!isset($postData['id']) || trim($postData['id']) == ''){
-			return $this->returnForbiddenResponse("section id must be provided for searching");			
-		}
-
-		# VALIDATION
-		$searchVals = explode(';', $postData['val']);
-		$section = $em->find('AppBundle\Entity\Section', $postData['id']);
-		
-		if( !($grader->isTeaching($user, $section) || $grader->isTaking($user, $section) || $grader->isHelping($user, $section) || $elevatedUser) ){
-			return $this->returnForbiddenResponse("You are not allowed to search the submissions of this section");			
-		}
-
-		$elevatedQuery = '';
-		if($elevatedUser){
-			$elevatedQuery = ' OR 1=1';
-		}
-
-		$userTeams = $em->createQueryBuilder()
-						->select('t')
-						->from('AppBundle\Entity\Team', 't')
-						->where(':user MEMBER OF t.users')
-						->setParameter('user', $user)
-						->getQuery()
-						->getResult();
-
-		$data_query = $em->createQueryBuilder()
-				->select('s')
-				->from('AppBundle\Entity\Submission', 's')
-				->where('s.problem IN (?1)')
-				->andWhere('s.team IN (?2)'.$elevatedQuery)
-				->orderBy('s.id', 'DESC')
-				->setParameter(1, $section->getAllProblems())
-				->setParameter(2, $userTeams)
-				->getQuery();
-
-		$results = [];
-
-		foreach($searchVals as $searchVal){					
-			
-			$searchVal = trim($searchVal);
-			
-			$paginator = new Paginator($data_query, true);
-
-			foreach($paginator as $sub){
-
-				if( $sub->id == $searchVal){
-					$results[] = $sub;
-					continue;
-				}
-
-				if( stripos($sub->problem->assignment->name, $searchVal) !== FALSE){
-					$results[] = $sub;
-					continue;
-				}
-
-				if( stripos($sub->problem->name, $searchVal) !== FALSE){
-					$results[] = $sub;
-					continue;
-				}
-
-				if( stripos($sub->user->getFullName(), $searchVal) !== FALSE){
-					$results[] = $sub;
-					continue;
-				}
-
-				if( stripos($sub->user->getEmail(), $searchVal) !== FALSE){
-					$results[] = $sub;
-					continue;
-				}
-
-				$teamStr = $sub->team->name;
-				foreach($sub->team->users as $usr){
-					$teamStr .= ' '.$usr->getFullName().' '.$usr->getEmail();				
-				}
-				
-				if( stripos($teamStr, $searchVal) !== FALSE){
-					$results[] = $sub;
-					continue;	
-				}
-
-				if( $sub->isCorrect() && stripos("Correct", $searchVal) !== FALSE){
-					$results[] = $sub;
-					continue;				
-				} else if( stripos("Correct", $searchVal) !== FALSE ){
-					continue;
-				} else if( !$sub->isCorrect() && stripos($sub->getResultString(), $searchVal) !== FALSE){
-					$results[] = $sub;
-					continue;
-				}	
-
-				$em->clear();
-			}
-		}
-
-		$response = new Response(json_encode([
-			'results' => $results,		
-		]));
-		$response->headers->set('Content-Type', 'application/json');
-		$response->setStatusCode(Response::HTTP_OK);
-
-		return $response;
-	}	
-
-	private function returnForbiddenResponse($message){
-		$response = new Response($message);
-		$response->setStatusCode(Response::HTTP_FORBIDDEN);
-		return $response;
-	}
-	
+    public function sectionAction($sectionId) {
+        $user = $this->userService->getCurrentUser();
+        if (!get_class($user)) {
+            return $this->returnForbiddenResponse("YOU ARE NOT LOGGED IN");
+        }
+        /* Will get the impersonated user if they are making the call */
+        $requestingUser = $this->getUser();
+
+        $section = $this->sectionService->getSectionById($sectionId);
+        if (!$section) {
+            return $this->returnForbiddenResponse("SECTION ".$sectionId." DOES NOT EXIST!");
+        }
+        
+        /* Redirect to contest if need be */
+        if ($section->course->is_contest) {
+            return $this->redirectToRoute("contest", ["contestId" => $section->id]);
+        }
+        
+        /* Get all assignments */
+        $assignments = $this->assignmentService->getAssignmentsBySection($section);
+
+        /* Get all users */
+        $userSectionRoles = $this->userSectionRoleService->getUserSectionRolesOfSection($section);
+
+        $sectionTakers = [];
+        $sectionTeachers = [];
+        $sectionHelpers = [];
+        $sectionJudges = [];
+
+        foreach ($userSectionRoles as $usr) {
+            $user = $usr->user;
+            $roleName = $usr->role->role_name;
+            switch ($roleName) {
+                case Constants::HELPS_ROLE:
+                    $sectionHelpers[] = $usr->user;
+                    break;
+                case Constants::JUDGES_ROLE:
+                    $sectionJudges[] = $usr->user;
+                    break;
+                case Constants::TAKES_ROLE:
+                    $sectionTakers[] = $usr->user;
+                    break;
+                case Constants::TEACHES_ROLE:
+                    $sectionTeachers[] = $usr->user;
+                    break;
+                default:
+                    return $this->returnForbiddenResponse("ROLE ".$roleName." DOES NOT EXIST ON USER ".$user->getFullName());
+            }
+        }
+        
+        /* Get future assignments */
+        $futureAssignments = $this->assignmentService->getAssignmentsSortedByDueDateForSection($section);
+        
+        /* Gather submissions */
+        /* Get all of the problems to get all of the submissions */
+        $allProblems = [];
+        foreach ($section->assignments as $sectionAssignments) {
+            foreach ($sectionAssignments->problems as $problem) {
+                $allProblems[] = $problem;
+            }
+        }
+        
+        /* Get assignment grades for the student */
+        $grades = [];
+        $assignmentProblemSubmissions = [];
+        $team = [];
+        $isTeaching = $this->graderService->isTeaching($requestingUser, $section);
+        
+        foreach ($sectionTakers as $sectionTaker) {
+            $correctSubmissions = [];
+            
+            $grades[$sectionTaker->id] = $this->graderService->getAllAssignmentGrades($sectionTaker, $section);
+            
+            foreach ($assignments as $assignment) {
+                $assignmentProblems = $assignment->problems;
+                $team = $this->graderService->getTeam($sectionTaker, $assignment);
+
+                $teamOrUser = $sectionTaker;
+                $whereClause = "s.user = ?1";
+                
+                if ($team) {
+                    $teamOrUser = $team;
+                    $whereClause = "s.team = ?1";
+                    foreach ($assignmentProblems as $assignmentProblem) {
+                        $bestSubmission = $this->submissionService->getBestSubmissionForTeam($assignmentProblem, $team);
+                        if ($bestSubmission) {
+                            $correctSubmissions[$assignment->id][$assignmentProblem->id] = $bestSubmission->id;
+                        }
+                    }
+                }
+                
+                /* Set user's individual test case info and also aggregate class's stats for problem completion */
+                $totalAssignmentProblems = count($assignmentProblems);
+                foreach ($assignmentProblems as $assignmentProblem) {
+                    $testCaseInfo = $this->testCaseService->getTestCaseInfoFromTeamOrUserAndProblem($teamOrUser, $whereClause, $assignmentProblem);
+                    if ($sectionTaker == $requestingUser) {
+                        $assignmentProblem->userTestCaseInfo = $testCaseInfo;
+                    }
+                    if ($testCaseInfo->numberOfTestCases == $testCaseInfo->numberOfCorrectTestCases) {
+                        ++$assignmentProblem->numberOfCompletedStudents;
+                    }
+                }
+            }
+            $assignmentProblemSubmissions[$sectionTaker->id] = $correctSubmissions;
+        }
+
+        /* Get the users most recent submissions (top 15) */
+        $entityManager = $this->getDoctrine()->getManager();		
+        $recentSubmissions = $this->submissionService->getRecentResultsForUser($user);
+
+        /* Array of arrays that contain a main text and a subtext that will be used for autocompleting searches
+           ["Timothy Smith", "timothyglensmith@cedarville.edu"]
+           ["Get the Sum", "Homework #2"]
+           ["Wrong Answer", "Incorrect"] */
+        $suggestions = [];
+
+        /* Get the users */
+        foreach ($sectionTakers as $sectionTaker) {
+            $suggestions[] = [$sectionTaker->getFullName(), $sectionTaker->getEmail()];
+        }
+
+        /* Get the teachers */
+        foreach ($sectionTeachers as $sectionTeacher) {
+            $suggestions[] = [$sectionTeacher->getFullName(), $sectionTeacher->getEmail()];
+        }
+
+        /* Get the helpers */
+        foreach ($sectionHelpers as $sectionHelper) {
+            $suggestions[] = [$sectionHelper->getFullName(), $sectionHelper->getEmail()];
+        }
+
+        /* Get the problems */
+        foreach ($allProblems as $assignmentProblem) {
+            $suggestions[] = [$assignmentProblem->name, $assignmentProblem->assignment->name, $assignmentProblem->testcase_counts];			
+        }
+
+        /* Get the assignments and teams */
+        foreach ($section->assignments as $sectionAssignment) {
+            $suggestions[] = [$sectionAssignment->name, ""];			
+
+            foreach ($sectionAssignment->teams as $assignmentTeam) {
+                if ($assignmentTeam->users->count() > 1) {
+                    $suggestions[] = [$assignmentTeam->name, ""];
+                }
+            }
+        }
+
+        /* Get the correct types */
+        $suggestions[] = ["Correct", ""];
+        $suggestions[] = ["Incorrect", ""];
+        $suggestions[] = ["Wrong Answer", "Incorrect"];
+        $suggestions[] = ["Runtime Error", "Incorrect"];
+        $suggestions[] = ["Time Limit Error", "Incorrect"];
+        $suggestions[] = ["Compile Error", "Incorrect"];
+                
+        return $this->render("section/index.html.twig", [
+            "future_assigs" => $futureAssignments,
+            "grader" => $this->graderService,
+            "grades" => $grades,
+            "isTeaching" => $isTeaching,
+            "search_suggestions" => $suggestions,
+            "section" => $section,
+            "section_helpers" => $sectionHelpers,
+            "section_takers" => $sectionTakers,
+            "section_teachers" => $sectionTeachers,
+            "submissions" => $recentSubmissions,
+            "team" => $team,
+            "user" => $user,
+            "user_impersonators" => $sectionTakers
+        ]);
+    }
+    
+    public function editSectionAction($sectionId) {
+        $user = $this->userService->getCurrentUser();
+        if (!get_class($user)) {
+            return $this->returnForbiddenResponse("YOU ARE NOT LOGGED IN");
+        }
+
+        if ($sectionId != 0) {
+            if (!isset($sectionId) || !($sectionId > 0)) {
+                return $this->returnForbiddenResponse("SECTION ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
+            }
+
+            $section = $this->sectionService->getSectionById($sectionId);
+            if (!$section) {
+                return $this->returnForbiddenResponse("SECTION ".$sectionId." DOES NOT EXIST");
+            }
+
+            /* Redirect to contest if need be */
+            if ($section->course->is_contest) {
+                return $this->redirectToRoute("contest_edit", ["contestId" => $section->id]);
+            }
+            
+            $sectionTakerRoles = [];
+            $sectionTeacherRoles = [];
+    
+            $teachesRole = $this->roleService->getRoleByRoleName(Constants::TEACHES_ROLE);
+            $takesRole = $this->roleService->getRoleByRoleName(Constants::TAKES_ROLE);
+            
+            foreach ($section->user_roles as $sectionUserRole) {
+                if ($sectionUserRole->role == $takesRole) {
+                    $sectionTakerRoles[] = $sectionUserRole;
+                } else if ($sectionUserRole->role == $teachesRole) {
+                    $sectionTeacherRoles[] = $sectionUserRole;
+                }
+            }
+        }
+        
+        $courses = $this->courseService->getNonDeletedCourses();
+        $users = $this->userService->getAllUsers();
+        $instructors = [];
+
+        foreach ($users as $potentialTeacher) {
+            if ($potentialTeacher->hasRole(Constants::ADMIN_ROLE) or $potentialTeacher->hasRole(Constants::SUPER_ROLE)) {
+                $instructors[] = $potentialTeacher;
+            }
+        }
+
+        return $this->render("section/edit.html.twig", [
+            "courses" => $courses,
+            "users" => $users,
+            "instructors" => $instructors,
+            "section" => $section,
+            "section_taker_roles" => $sectionTakerRoles,
+            "section_teacher_roles" => $sectionTeacherRoles
+        ]);
+    }
+    
+    public function cloneSectionAction($sectionId, $name, $term, $year, $numberOfClones) {
+        $user = $this->userService->getCurrentUser();
+        if (!get_class($user)) {
+            return $this->returnForbiddenResponse("YOU ARE NOT LOGGED IN");
+        }
+
+        $section = $this->sectionService->getSectionById($sectionId);
+        if (!$section) {
+            return $this->returnForbiddenResponse("SECTION ".$sectionId." DOES NOT EXIST");
+        }
+
+        $semester = $this->semesterService->getSemesterByTermAndYear($term, $year);
+        if ($semester == NULL) {
+            $semester = $this->semesterService->createSemesterByTermAndYear($term, $year);
+            $this->semesterService->insertSemester($semester);
+        }
+
+        $teachesRole = $this->roleService->getRoleByRoleName(Constants::TEACHES_ROLE);
+        for ($i = 1; $i <= $numberOfClones; $i++) {
+            $newSection = clone $section;
+            $newSection->semester = $semester;
+            $newSection->name = $name."-".str_pad($i, 2, "0", STR_PAD_LEFT);
+            $newSection->user_roles = [$this->userSectionRoleService->createUserSectionRole($user, $newSection, $teachesRole)];
+            $this->sectionService->insertSection($newSection);
+        }
+
+        return $this->redirectToRoute("section_edit",
+        [
+            "sectionId" => $newSection->id
+        ]);
+    }
+
+    public function deleteSectionAction($sectionId) {
+        $user = $this->userService->getCurrentUser();
+        if (!get_class($user)) {
+            return $this->returnForbiddenResponse("YOU ARE NOT LOGGED IN");
+        }
+        if (!$user->hasRole(Constants::ADMIN_ROLE) && !$user->hasRole(Constants::SUPER_ROLE)) {
+            return $this->returnForbiddenResponse("YOU ARE NOT ALLOWED TO DELETE THIS SECTION");
+        }
+        
+        /* Get the section */
+        if (!isset($sectionId) || !($sectionId > 0)) {
+            return $this->returnForbiddenResponse("SECTION ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
+        }
+        
+        $section = $this->sectionService->getSectionById($sectionId);
+        if (!$section) {
+            return $this->returnForbiddenResponse("SECTION ".$sectionId." DOES NOT EXIST");
+        }
+
+        $section->is_deleted = !$section->is_deleted;
+        $this->sectionService->insertSection($section);
+
+        return $this->redirectToRoute("homepage");
+    }
+
+    public function modifyPostAction(Request $request) {
+        /* Validate the current user */
+        $user = $this->userService->getCurrentUser();
+        if (!get_class($user)) {
+            return $this->returnForbiddenResponse("YOU ARE NOT LOGGED IN");
+        }
+        
+        /* See which fields were included */
+        $postData = $request->request->all();
+        
+        /* Check mandatory fields */
+        $sectionCourse = $postData["course"];
+        $sectionName = $postData["name"];
+        $sectionTerm = $postData["semester"];
+        $sectionYear = $postData["year"];
+
+        if (!isset($sectionName) || trim($sectionName) == "" || !isset($sectionCourse) || !isset($sectionTerm) || !isset($sectionYear)) {
+            return $this->returnForbiddenResponse("NOT EVERY REQUIRED FIELD WAS PROVIDED");
+        } else {
+            /* Validate the year */
+            if (!is_numeric(trim($sectionYear))) {
+                return $this->returnForbiddenResponse($sectionYear." IS NOT A VALID YEAR");
+            }
+            
+             /*Validate the semester */
+            if (trim($sectionTerm) != "Fall" && trim($sectionTerm) != "Spring" && trim($sectionTerm) != "Summer") {
+                return $this->returnForbiddenResponse($sectionTerm." IS NOT A VALID SEMESTER");
+            }
+        }
+
+        /* Create new section */
+        $sectionId = $postData["section"];
+        if ($sectionId == 0) {
+            /* Only super users and admins can make/edit a section */
+            if (!$user->hasRole(Constants::SUPER_ROLE) && !$user->hasRole(Constants::ADMIN_ROLE)) {
+                return $this->returnForbiddenResponse("YOU DO NOT HAVE PERMISSION TO MAKE A SECTION");
+            }
+            
+            $section = $this->sectionService->createEmptySection();
+        } else if (isset($sectionId) || $sectionId > 0) {
+            $section = $this->sectionService->getSectionById($sectionId);
+            
+            if (!$section) {
+                return $this->returnForbiddenResponse("SECTION ".$sectionId." DOES NOT EXIST");
+            }
+            
+            /* Only super users and admins can make/edit a section */
+            if(!($user->hasRole(Constants::SUPER_ROLE) || $user->hasRole(Constants::ADMIN_ROLE) || $this->graderService->isTeaching($user, $section))){
+                return $this->returnForbiddenResponse("YOU DO NOT HAVE PERMISSION TO EDIT THIS SECTION");
+            }
+        } else {
+            return $this->returnForbiddenResponse("SECTION ID WAS NOT PROVIDED OR FORMATTED PROPERLY");
+        }
+        
+        /* Get the course */
+        $courseId = $postData["course"];
+        if (!isset($courseId) || !($courseId > 0)) {
+            return $this->returnForbiddenResponse("COURSE ID WAS NOT PROVIDED OR NOT FORMATTED PROPERLY");
+        }
+        
+        $course = $this->courseService->getCourseById($courseId);
+        if (!$course) {
+            return $this->returnForbiddenResponse("COURSE ".$courseId." DOES NOT EXIST");
+        }
+        
+        /* Set the necessary fields*/
+        $section->name = trim($sectionName);
+        $section->course = $course;
+
+        /*Validate the semester*/
+        $semester = $this->semesterService->getSemesterByTermAndYear($sectionTerm, $sectionYear);
+        if (!$semester){
+            $semester = $this->semesterService->createSemesterByTermAndYear($sectionTerm, $sectionYear, false);
+            $this->semesterService->insertSemester($semester);
+        }
+        $section->semester = $semester;
+        
+        /* See if the dates were provided or if we will do them automatically */
+        $dates = $this->getDateTime($sectionTerm, $sectionYear);
+        $sectionStartTime = $postData["start_time"];
+        if (isset($sectionStartTime) && $sectionStartTime != "") {
+            $customStartTime = DateTime::createFromFormat("m/d/Y H:i:s", $sectionStartTime." 00:00:00");
+            
+            if (!$customStartTime || $customStartTime->format("m/d/Y") != $sectionStartTime) {
+                return $this->returnForbiddenResponse("PROVIDED INVALID START TIME ". $sectionStartTime);
+            } else {
+                $section->start_time = $customStartTime;
+            }
+        } else {
+            $section->start_time = $dates[0];
+        }
+        
+        $sectionEndTime = $postData["end_time"];
+        if (isset($sectionEndTime) && $sectionEndTime != "") {
+            $customEndTime = DateTime::createFromFormat("m/d/Y H:i:s", $sectionEndTime." 23:59:59");
+            
+            if (!$customEndTime || $customEndTime->format("m/d/Y") != $sectionEndTime) {
+                return $this->returnForbiddenResponse("PROVIDED INVALID END TIME ". $sectionEndTime);
+            } else {
+                $section->end_time = $customEndTime;
+            }
+        } else {
+            $section->end_time = $dates[1];
+        }
+        
+        /* validate that the end time is after the start time */
+        if ($section->end_time <= $section->start_time) {
+            return $this->returnForbiddenResponse("THE END TIME MUST BE AFTER THE START TIME FOR THE SECTION");
+        }
+        
+        /* Default these to false */
+        $section->is_deleted = false;
+        $section->is_public = false;
+        
+        $this->sectionService->insertSection($section);
+        
+        $sectionStudents = $postData["students"];
+        /* Validate the students csv */
+        $students = array_unique(json_decode($sectionStudents));
+        
+        foreach ($students as $student) {
+            if (!filter_var($student, FILTER_VALIDATE_EMAIL)) {
+                return $this->returnForbiddenResponse("PROVIDED STUDENT EMAIL ADDRESS ".$student." IS NOT VALID");
+            }
+            
+            if (in_array($student, $teachers)) {
+                return $this->returnForbiddenResponse("CANNOT ADD ".$student." AS A STUDENT BECAUSE THEY ARE ALREADY TAKING THIS SECTION");
+            }
+        }
+        
+        $sectionTeachers = $postData["teachers"];
+        /* Validate teacher csv */
+        $teachers = array_unique(json_decode($sectionTeachers));
+        foreach ($teachers as $teacher) {
+            if (!filter_var($teacher, FILTER_VALIDATE_EMAIL)) {
+                return $this->returnForbiddenResponse("PROVIDED TEACHER EMAIL ADDRESS ".$teacher." IS NOT VALID");
+            }
+            
+            if (in_array($teacher, $students)) {
+                return $this->returnForbiddenResponse("CANNOT ADD " .$teacher . " AS A STUDENT BECAUSE THEY ARE ALREADY TEACHING THIS SECTION");
+            }
+        }
+        
+        $oldUsers = [];
+        
+        if ($sectionId == 0 && count(json_decode($sectionTeachers)) == 0) {
+            /* Add the current user as a role */
+            $role = $this->roleService->getRoleByRoleName(Constants::TEACHES_ROLE);
+            $userSectionRole = $this->userSectionRoleService->createUserSectionRole($user, $section, $role);
+            $entityManager->persist($userSectionRole);
+            $this->userSectionRoleService->insertUserSectionRole($userSectionRole);
+        } else if ($sectionId != 0) {
+            foreach ($section->user_roles as $userRole) {
+                $this->userSectionRoleService->deleteUserSectionRole($userRole);
+                
+                $oldUsers[$userRole->user->id] = $userRole->user;
+            }
+        }
+        
+        /* Add students from the students array */
+        $takesRole = $this->roleService->getRoleByRoleName(Constants::TAKES_ROLE);
+        foreach ($students as $student) {
+            if (!filter_var($student, FILTER_VALIDATE_EMAIL)) {
+                return $this->returnForbiddenResponse("PROVIDED STUDENT EMAIL ".$student." IS NOT VALID");
+            }
+            
+            $studentUser = $this->userService->getUserByObject(["email" => $student]);
+            if (!$studentUser) {
+                $studentUser = $this->userService->createUser($student, $student);
+                $this->userService->insertUser($studentUser);
+            }
+            
+            $studentUserSectionRole = $this->userSectionRoleService->createUserSectionRole($studentUser, $section, $takesRole);
+            $this->userSectionRoleService->insertUserSectionRole($studentUserSectionRole);
+            
+            unset($oldUsers[$studentUser->id]);
+        }
+        
+        /* Add the teachers from the teachers array */
+        
+        $teachesRole = $this->roleService->getRoleByRoleName(Constants::TEACHES_ROLE);
+
+        foreach ($teachers as $teacher) {
+            if (!filter_var($teacher, FILTER_VALIDATE_EMAIL)) {
+                return $this->returnForbiddenResponse("PROVIDED TEACHER EMAIL ADDRESS ".$teacher." IS NOT VALID");
+            }
+            
+            $teacherUser = $this->userService->getUserByObject(["email" => $teacher]);
+            
+            if (!$teacherUser) {
+                return $this->returnForbiddenResponse("TEACHER WITH EMAIL ".$teacher." DOES NOT EXIST");
+            }
+            
+            if ($this->graderService->isTaking($teacherUser, $section)) {
+                return $this->returnForbiddenResponse($student . " IS ALREADY TEACHING THIS COURSE");
+            }
+
+            $teacherUserSectionRole = $this->userSectionRoleService->createUserSectionRole($teacherUser, $section, $teachesRole);
+            $this->userSectionRoleService->insertUserSectionRole($teacherUserSectionRole);
+            
+            unset($oldUsers[$studentUser->id]);
+        }
+        
+        foreach ($oldUsers as $oldUser) {
+            foreach ($section->assignments as $assignments) {
+                foreach ($assignments->teams as &$team) {
+                    $team->users->removeElement($oldUser);
+
+                    if ($team->users->count() == 0) {
+                        $this->teamService->deleteTeam($team);
+                    } else {
+                        $this->teamService->insertTeam($team);
+                    }
+                }
+            }
+        }
+
+        /* Redirect to the section page */
+        $url = $this->generateUrl("section", ["sectionId" => $section->id]);
+
+        $response = new Response(json_encode(["redirect_url" => $url]));
+        return $this->returnOkResponse($response);
+    }
+
+    //switch to using semester object
+    private function getDateTime($semester, $year){
+        switch ($semester) {
+            case "Fall":
+                return [DateTime::createFromFormat("m/d/Y H:i:s", "08/01/".$year." 00:00:00"),
+                        DateTime::createFromFormat("m/d/Y H:i:s", "12/31/".$year." 23:59:59")];
+            case "Spring":
+                return [DateTime::createFromFormat("m/d/Y H:i:s", "01/01/".$year." 00:00:00"),
+                        DateTime::createFromFormat("m/d/Y H:i:s", "05/31/".$year." 23:59:59")];
+            default:
+                return [DateTime::createFromFormat("m/d/Y H:i:s", "05/01/".$year." 00:00:00"),
+                        DateTime::createFromFormat("m/d/Y H:i:s", "08/31/".$year." 23:59:59")];	
+        }
+    }
+
+    public function searchSubmissionsAction(Request $request) {
+        /* Validate the current user */
+        $user = $this->userService->getCurrentUser();
+        if (!get_class($user)) {
+            return $this->returnForbiddenResponse("YOU ARE NOT LOGGED IN");
+        }
+
+        $isElevatedUser = $user->hasRole(Constants::SUPER_ROLE) || $user->hasRole(Constnts::ADMIN_ROLE);
+
+        /* See which fields were included */
+        $postData = $request->request->all();
+        $searchValue = $postData["val"];
+        if (!isset($searchValue) || trim($searchValue) == "") {
+            return $this->returnForbiddenResponse("SEARCH VALUE MUST BE PROVIDED FOR SEARCHING");			
+        }
+
+        $sectionId = $postData["id"];
+        if (!isset($sectionId) || trim($sectionId) == "") {
+            return $this->returnForbiddenResponse("SECTION ID MUST BE PROVIDED FOR SEARCHING");			
+        }
+
+        /* Validation */
+        $searchValues = explode(";", $searchValue);
+        $section = $this->sectionService->getSectionById($sectionId);
+        
+        if (!($this->graderService->isTeaching($user, $section) || 
+              $this->graderService->isTaking($user, $section) || 
+              $this->graderService->isHelping($user, $section) || 
+              $isElevatedUser)) {
+            return $this->returnForbiddenResponse("YOU ARE NOT ALLOWED THE SEARCH THE SUBMISSIONS OF THIS SECTION");
+        }
+
+        $elevatedQuery = "";
+        if ($isElevatedUser) {
+            $elevatedQuery = " OR 1=1";
+        }
+
+        $userTeams = $this->teamService->getTeamsForSectionSearch($user);
+        $submissionDataQuery = $this->submissionService->getSubmissionSearchDataQuery($section->getAllProblems(), $userTeams, $elevatedQuery);
+
+        $results = [];
+        foreach ($searchValues as $searchVal) {
+            $searchVal = trim($searchVal);
+            $paginator = new Paginator($submissionDataQuery, true);
+
+            foreach ($paginator as $paginatedSubmission) {
+                if ($paginatedSubmission->id == $searchVal || 
+                    stripos($paginatedSubmission->problem->assignment->name, $searchVal) !== false ||
+                    stripos($paginatedSubmission->problem->name, $searchVal) !== false ||
+                    stripos($paginatedSubmission->user->getFullName(), $searchVal) !== false ||
+                    stripos($paginatedSubmission->user->getEmail(), $searchVal) !== false ||
+                    $paginatedSubmission->isCorrect() && stripos("Correct", $searchVal) !== false) {
+                    $results[] = $paginatedSubmission;
+                    continue;				
+                } else if (stripos("Correct", $searchVal) !== false) {
+                    continue;
+                } else if (!$paginatedSubmission->isCorrect() && stripos($paginatedSubmission->getResultString(), $searchVal) !== false) {
+                    $results[] = $paginatedSubmission;
+                    continue;
+                }	
+
+                $teamName = $paginatedSubmission->team->name;
+                foreach ($paginatedSubmission->team->users as $teamUser) {
+                    $teamName .= " ".$teamUser->getFullName()." ".$teamUser->getEmail();
+                }
+                
+                if (stripos($teamName, $searchVal) !== false) {
+                    $results[] = $paginatedSubmission;
+                    continue;	
+                }
+            }
+        }
+
+        $response = new Response(json_encode([
+            "results" => $results,		
+        ]));
+        return $this->returnOkResponse($response);
+    }	
+
+    private function logError($message) {
+        $errorMessage = "SectionController: ".$message;
+        $this->logger->error($errorMessage);
+        return $errorMessage;
+    }
+    
+    private function returnForbiddenResponse($message){		
+        $response = new Response($message);
+        $response->setStatusCode(Response::HTTP_FORBIDDEN);
+        $this->logError($message);
+        return $response;
+    }
+
+    private function returnOkResponse($response) {
+        $response->headers->set("Content-Type", "application/json");
+        $response->setStatusCode(Response::HTTP_OK);
+        return $response;
+    }
 }

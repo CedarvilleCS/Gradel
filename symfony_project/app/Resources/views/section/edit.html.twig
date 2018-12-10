@@ -9,13 +9,13 @@
 
 <style>
   #feedback { font-size: 1.4em; }
-  #selectable-semester .ui-selecting { background: #9fd095; }
-  #selectable-semester .ui-selected { background: #71BA62;; color: white; }
+  #selectable-semester .ui-selecting { background: #9FD0FF; }
+  #selectable-semester .ui-selected { background: #71BAFF;; color: white; }
   #selectable-semester { list-style-type: none; margin: 0; padding: 0; width: 60%; }
   #selectable-semester li { margin: 3px; padding: 0.4em; font-size: 14px; height: 18px; }
 
-  #selectable-year .ui-selecting { background: #9fd095; }
-  #selectable-year .ui-selected { background: #71BA62;; color: white; }
+  #selectable-year .ui-selecting { background: #9FD0FF; }
+  #selectable-year .ui-selected { background: #71BAFF;; color: white; }
   #selectable-year { list-style-type: none; margin: 0; padding: 0; width: 60%; }
   #selectable-year li { margin: 3px; padding: 0.4em; font-size: 14px; height: 18px; }
   </style>
@@ -25,39 +25,39 @@
 
 <body>
 	{{ include('template/top-nav.html.twig') }}
-
-    <section id="course-container">
-
-    </section>
+	{{ include('template/section-nav.html.twig') }}
+	<div id="SitePosition"
+             class="hidden"
+             data-pos='{
+                 "start": {
+                     "id": "Section-{{section.id}}",
+                     "next": null
+                 }
+             }'></div>
 
     {# Left Nav for Section Edit#}
-    <nav class="nav-left">
-		<a id="save-btn" class="btn"><div class="btn btn-center">Save</div></a>
-
-		<a id="cancel-btn" class="btn"><div class="btn btn-center">Cancel</div></a>
-
+    <nav class="floatingControls">
+		<a id="save-btn" class="floatingLink">
+			<div class="floatingButton">Save</div>
+		</a>
+		<a id="cancel-btn" class="floatingLink">
+			<div class="floatingButton">Cancel</div>
+		</a>
 		{% if section is not null %}
-		<a id="delete-btn" class="btn"><div class="btn btn-center btn-delete">{% if section.is_deleted %} Reinstate {% else %} Delete {% endif %}</div></a>
-
-		<ol style="padding-top: 0px">
-			<li id="delete-warning" style="padding-top: 0px"></li>
-		</ol>
-
-		{% if section is not null %}
-		<a id="clone-btn" class="btn" href="{{ path('section_clone', {'sectionId': section.id}) }}"><div class="btn btn-center" style="margin-top: 10px;">Clone</div></a>
-		{% endif %}
-
+			<a id="delete-btn" class="floatingLink">
+				<div class="floatingButton deleteButton deleteWarning">{% if section.is_deleted %} Reinstate {% else %} Delete {% endif %}</div>
+			</a>
+			<a id="clone-btn" class="floatingLink">
+				<div class="floatingButton">Clone</div>
+			</a>
 		{% endif %}
     </nav>
 
-	{{ include('template/path-nav.html.twig') }}
 
     {# Main section with the necessary variable#}
 	<section id="main">
-
-		{# Cards #}
-		
-		{# <div class="parallel-cards"> #}
+		<div class="main_content">
+			{# Cards #}
 			<div class="card">
 				<div class="btn-close">
 					<h2 style="margin: 0px">
@@ -176,9 +176,55 @@
 					</th> </tr>
 					</table>
 				</div>
+			</div>
+		</div>
+	</section>
+
+	<div id="cloneDialog">
+		<div id = "dialogHeader">
+			<p>Section Clone </p>
+		</div>
+		<div id = "dialogBody">
+			<div id = "row1">
+				<div>
+					<label for="name">Section Name </label><input id="cloneName" name="name" type="text" value="" size = "20">
+				</div>
+				<div>
+					<label for = "numberOfClones">How Many clones </label><input type = "text" id = "numberOfClones" size = "3" maxlength = "2">
+				</div>
+			</div>
+			<div id = "row2">
+				<div id = "section1">
+					<label>Semester</label>
+						<table>
+							<tbody><tr id="selectableSemester" class="ui-selectable">
+								<th class="ui-widget-content ui-selectee">Fall</th>
+								<th class="ui-widget-content ui-selectee">Spring</th>
+								<th class="ui-widget-content ui-selectee">Summer</th>
+							</tr>
+						</tbody></table>
+				</div>
+				<div id = "section2">        
+					<label>Year</label>
+						<table>
+							<tbody>
+							<tr id="selectableYear" class="ui-selectable">
+								{% for yr in ("now"|date("Y"))-1..("now"|date("Y"))+3 %}
+									<th class="ui-widget-content">{{yr}}</th>
+								{% endfor %}
+							</tr>
+						</tbody></table>
+				</div>
+			</div>
 		</div>
 
-	</section>
+		<div id="row4">
+			<div id="cloneCancel"><a href="#">Cancel</a></div>
+			<div id="cloneSave"><a>Save</a></div> 
+		</div>
+		<div id="sectionData" data-id="{{section.id}}"></div>
+	</div>
+
 </body>
 
 {% endblock %}
@@ -186,11 +232,11 @@
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('styles/styles.css') }}" />
+	<link rel="stylesheet" href="{{ asset('styles/toastr.css') }}" />
     <link rel="stylesheet" href="{{ asset('styles/card.css') }}" />
-
+	<link rel="stylesheet" href="{{ asset('styles/clone.css') }}" />
 	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 	<link rel="stylesheet" href="{{ asset('font-awesome-4.7.0/css/font-awesome.min.css') }}">
-	<link rel="stylesheet" href="{{ asset('contest-edit.css') }}" />
 	<style>
 		select {
 			height: 20px;
@@ -215,10 +261,14 @@
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 	<script src="{{ asset('js/cards.js') }}"></script>
+	<script src="{{ asset('js/toastr/toastr.js') }}"></script>
+	<script src="{{ asset('js/clone.js') }}"></script>
 	<script src="{{ asset('js/validation.js') }}"></script>
 
 	{# asynchronous file upload #}
 	<script src="http://malsup.github.com/jquery.form.js"></script>
+
+	<script src="{{ asset('js/floating-control.js') }}"></script>
 
 	<script>
 
@@ -282,9 +332,9 @@
 					window.location = "{{path('section_delete', {'sectionId': section.id})}}";
 
 				} else if(warned == 1) {
-					$('#delete-warning').html("Are you REALLY sure?<br/>Click again to {% if section.is_deleted %} reinstate {% else %} delete {% endif %}");
+					$('.deleteWarning').html("Are you REALLY sure? Click again to {% if section.is_deleted %} Reinstate {% else %} Delete {% endif %}");
 				} else {
-					$('#delete-warning').html("Are you sure?<br/>Click again to {% if section.is_deleted %} reinstate {% else %} delete {% endif %}");
+					$('.deleteWarning').html("Are you sure? Click again to {% if section.is_deleted %} Reinstate {% else %} Delete {% endif %}");
 				}
 
 				warned++;
@@ -440,7 +490,7 @@
 				window.location = data["redirect_url"];
 			}).fail(function(data) {
 
-				alert(data["responseText"]);
+				alert(data["responseText"]);c
 				$(this).prop('disabled', false);
 			});
 		});
@@ -512,7 +562,6 @@
 				
 				$('#startdatepicker').val('01/01/'+year);				
 				$('#enddatepicker').val('05/10/'+year);
-				
 				$('#semester').val("Spring");
 				
 			} else if(month <= 7 || month == "Summer"){
@@ -540,13 +589,13 @@
 	function populateForm(){
 		
 		for (const c of $('#selectable-semester').children()) {
-			if (c.innerHTML == "{{section.semester}}") {
+			if (c.innerHTML == "{{section.semester.term}}") {
 				$(c).addClass("ui-selected");
 			}
 		}
 
 		for (const c of $('#selectable-year').children()) {
-			if (c.innerHTML == "{{section.year}}") {
+			if (c.innerHTML == "{{section.semester.year}}") {
 				$(c).addClass("ui-selected");
 			}
 		}
@@ -558,10 +607,10 @@
 		$('#name').val("{{section.name}}");
 
 		// set the semester
-		$('#semester').val("{{section.semester}}");
+		$('#semester').val("{{section.semester.term}}");
 
 		// set the year
-		$('#year').val("{{section.year}}");
+		$('#year').val("{{section.semester.year}}");
 
 		// set the teachers csv
 		{% for std in section_teacher_roles %}

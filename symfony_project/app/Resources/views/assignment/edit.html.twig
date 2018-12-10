@@ -23,139 +23,149 @@
 
 <body>
     {{ include('template/top-nav.html.twig') }}
-	
-    {# Left Nav for Assignment Edit #}
-	<nav class="nav-left">
-		<a id="save-btn" class="btn"><div class="btn btn-center">Save</div></a>
+	{{ include('template/section-nav.html.twig') }}
+	<div id="SitePosition"
+             class="hidden"
+             data-pos='{
+                 "start": {
+                     "id": "Section-{{section.id}}",
+                     "next": {
+						"id": "Assignment-{{assignment.id}}",
+						"next": null
+					}
+                 }
+             }'></div>
 
-		<div class="btn btn-center" id="cancel-btn">Cancel</div>
-		
+	 {# Left Nav for Assignment Edit #}
+	<div class="floatingControls">
+		<a id="save-btn" class="floatingLink">
+			<div class="floatingButton">Save</div>
+		</a>
+		<a id="cancel-btn" class="floatingLink">
+			<div class="floatingButton">Cancel</div>
+		</a>
 		{% if assignment is not null %}
-		<a id="delete-btn" class="btn"><div class="btn btn-center btn-delete">Delete</div></a>		
+		<a id="delete-btn" class="floatingLink">
+			<div class="floatingButton deleteButton deleteWarning">Delete</div>
+		</a>		
 		{% endif %}
-		
-		<ol style="padding-top: 0px">
-			<li id="delete-warning" style="padding-top: 0px"></li>
-		</ol>
-
 		{% if assignment is not null %}
-		<a id="subs-btn" class="btn"><div class="btn btn-center btn-delete">Clear Submissions</div></a>	
-		<a id="trials-btn" class="btn"><div class="btn btn-center btn-delete">Clear Saved Code</div></a>		
+		<a id="subs-btn" class="floatingLink">
+			<div class="floatingButton deleteButton">Clear Submissions</div>
+		</a>	
+		<a id="trials-btn" class="floatingLink">
+			<div class="floatingButton deleteButton">Clear Saved Code</div>
+		</a>		
 		{% endif %}
-
-    </nav>
+    </div>
 	
-	{{ include('template/path-nav.html.twig') }}
-
     {# Main section #}
 	<section id="main">
 		{# Cards #}
-
-		<div class="parallel-cards">
-			<div class="card" style="flex-grow:3">
+		<div class="main_content">
+			<div class="parallel-cards">
+				<div class="card" style="flex-grow:3">
+					
+					<div class="btn-close">
+						<h2 style="margin: 0px">
+						{% if assignment is not null %}
+							Edit {{assignment.name}}
+						{% else %}
+							New Assignment
+						{% endif %}					
+						</h2>
+					</div>
 				
-				<div class="btn-close">
-					<h2 style="margin: 0px">
-					{% if assignment is not null %}
-						Edit {{assignment.name}}
-					{% else %}
-						New Assignment
-					{% endif %}					
-					</h2>
-				</div>
-			
-				<div id="requiredFields" class="card-contents">
-					<div>
-						<table>
-							<tr> <th colspan="1">
-									<label for="name">Name</label>
-									<input id="name" name="name" type="text" value="{{assignment.name}}" style="width: 200px">
-								</th>
-							</tr>
-							
-							<tr>
-								<th colspan="2">
-									<label for="startdatepicker">Open Date</label>
-									<input type="text" id="opendatepicker" style="width:150px; margin-right:20px">
+					<div id="requiredFields" class="card-contents">
+						<div>
+							<table>
+								<tr> <th colspan="1">
+										<label for="name">Name</label>
+										<input id="name" name="name" type="text" value="{{assignment.name}}" style="width: 200px">
+									</th>
+								</tr>
+								
+								<tr>
+									<th colspan="2">
+										<label for="startdatepicker">Open Date</label>
+										<input type="text" id="opendatepicker" style="width:150px; margin-right:20px">
 
-									<label for="enddatepicker">Close Date</label>
-									<input type="text" id="closedatepicker" style="width:150px; margin-right:20px">
-									
-									<label for="cutoffdatepicker">Cutoff Date</label>
-									<input type="text" id="cutoffdatepicker" style="width: 150px">
-								</th>
-							</tr>
-							
-							<tr> <th>
-								<div style="display:flex; justify-content:space-between; align-items: center">
-									<span><label for="weight">Weight </label> <input id="weight" name="weight" type="text" style="width: 50px"></span>
-									<div id="other-assignments" style="font-weight: normal"> </div>				
+										<label for="enddatepicker">Close Date</label>
+										<input type="text" id="closedatepicker" style="width:150px; margin-right:20px">
+										
+										<label for="cutoffdatepicker">Cutoff Date</label>
+										<input type="text" id="cutoffdatepicker" style="width: 150px">
+									</th>
+								</tr>
+								
+								<tr> <th>
+									<div style="display:flex; justify-content:space-between; align-items: center">
+										<span><label for="weight">Weight </label> <input id="weight" name="weight" type="text" style="width: 50px"></span>
+										<div id="other-assignments" style="font-weight: normal"> </div>				
+									</div>
+								</th> </tr>
+								
+							</table>
+						</div>
+					</div>
+				</div>
+				
+				<div class="card">
+				
+					<div class="btn-close" onclick="collapseCard('additionalOptions')">
+						<h2 style="margin: 0px">Grading Options
+							<span style="float: right"><i class="fa fa-angle-down"></i></span>
+						</h2>
+					</div>
+				
+					<div id="additionalOptions" class="card-contents" style="margin-top:10px">
+						<table>
+							<tr> <th>						  
+								<label for="penalty">Penalty Per Day Late</label>
+								<input id="penalty" name="penalty" type="text" value="0.00">
+								
+								
+								<div id="extra-credit-container" class="toggle-container">
+									<label for="extracredit">Extra Credit</label>
+									<label class="switch">
+										<input id="extracredit" type="checkbox" name="extracredit">
+										<span class="slider round"></span>
+									</label>
 								</div>
 							</th> </tr>
-							
 						</table>
 					</div>
 				</div>
+				
 			</div>
 			
 			<div class="card">
-			
-				<div class="btn-close" onclick="collapseCard('additionalOptions')">
-					<h2 style="margin: 0px">Grading Options
+				
+				<div class="btn-close" onclick="collapseCard('createTeams')">
+					<h2 style="margin: 0px">Team Creation
 						<span style="float: right"><i class="fa fa-angle-down"></i></span>
 					</h2>
 				</div>
 			
-				<div id="additionalOptions" class="card-contents" style="margin-top:10px">
-					<table>
-						<tr> <th>						  
-							<label for="penalty">Penalty Per Day Late</label>
-							<input id="penalty" name="penalty" type="text" value="0.00">
-							
-							
-							<div id="extra-credit-container" class="toggle-container">
-								<label for="extracredit">Extra Credit</label>
-								<label class="switch">
-									<input id="extracredit" type="checkbox" name="extracredit">
-									<span class="slider round"></span>
-								</label>
-							</div>
-						</th> </tr>
-					</table>
-				</div>
-			</div>
-			
-		</div>
-		
-		<div class="card">
-			
-			<div class="btn-close" onclick="collapseCard('createTeams')">
-				<h2 style="margin: 0px">Team Creation
-					<span style="float: right"><i class="fa fa-angle-down"></i></span>
-				</h2>
-			</div>
-		
-			<div id="createTeams" class="card-contents" style="margin-top: 0px">
-				<div>
-					<div id="team-pool"></div>						
-					<div id="team-picker"></div>
-											
-					<div id="team-name-container" class="toggle-container">
-						<label for="teamnames"> Team Names </label>
-						<label class="switch">
-							<input type="checkbox" id="team-name-checkbox" name="team-name-checkbox" checked>
-							<span class="slider round"></span>
-						</label>
+				<div id="createTeams" class="card-contents" style="margin-top: 0px">
+					<div>
+						<div id="team-pool"></div>						
+						<div id="team-picker"></div>
+												
+						<div id="team-name-container" class="toggle-container">
+							<label for="teamnames"> Team Names </label>
+							<label class="switch">
+								<input type="checkbox" id="team-name-checkbox" name="team-name-checkbox" checked>
+								<span class="slider round"></span>
+							</label>
+						</div>
+						
+						<div class="btn" id="gen-team-button" style="margin-top: 10px; width: 150px"> Distribute Teams </div>
+						
 					</div>
-					
-					<div class="btn" id="gen-team-button" style="margin-top: 10px; width: 150px"> Distribute Teams </div>
-					
 				</div>
 			</div>
 		</div>
-		
-		
-		
 	</section>
 </body>
 
@@ -173,6 +183,7 @@
 
 	<script src="{{ asset('js/cards.js') }}"></script>		
 	<script src="{{ asset('js/validation.js') }}"></script>
+	<script src="{{ asset('js/floating-control.js') }}"></script>
 	
     <script>
 	
@@ -218,7 +229,7 @@
 					window.location = "{{path('assignment_delete', {'sectionId': assignment.section.id, 'assignmentId': assignment.id})}}";
 					
 				} else {
-					$('#delete-warning').html("Are you sure?<br/>Click again to delete.");
+					$('.deleteWarning').html("Are you sure? Click again to delete");
 				}
 			
 				warned++;
@@ -285,14 +296,11 @@
 			
 			/* Client-Side Field Validation */			
 			$('#save-btn').on('click', function(){
-				
-				$('#delete-warning').html("");
-				
 				// compare dates
 				if ($('#closedatepicker').datepicker('getDate') < $('#opendatepicker').datepicker('getDate')){
 					setInvalid($('#closedatepicker'));
 					setInvalid($('#opendatepicker'));
-					$('#delete-warning').append("Close date must be after open date<br><br>");
+					toastr.warning("Close date must be after open date");
 					return false;
 				} else {
 					setValid($('#closedatepicker'));
@@ -301,7 +309,7 @@
 				
 				if ($('#cutoffdatepicker').val() != '' && $('#cutoffdatepicker').datepicker('getDate') < $('#closedatepicker').datepicker('getDate')){
 					setInvalid($('#cutoffdatepicker'));
-					$('#delete-warning').append("Cutoff date must be after close date<br><br>");
+					toastr.warning("Cutoff date must be after close date");
 					return false;
 				} else {
 					setValid($('#cutoffdatepicker'));
@@ -311,7 +319,7 @@
 				var wght = new Number($('#weight').val());
 				if($('#weight').val() === '' || ($('#weight').val() != '' && (wght < 0 || wght % 1 != 0))){						
 					setInvalid($('#weight'));
-					$('#delete-warning').append("Weight must be a positive integer<br><br>");
+					toastr.warning("Weight must be a positive integer");
 					return false;
 				} else {
 					setValid($('#weight'));				
@@ -322,7 +330,7 @@
 				if($('#penalty').val() === '' || !(pen >= 0.0 && pen <= 1.0)){						
 					setInvalid($('#penalty'));
 					
-					$('#delete-warning').append("Penalty per day late must be a value between 0 and 1<br><br>");
+					toastr.warning("Penalty per day late must be a value between 0 and 1");
 					
 					return false;
 				} else {
@@ -334,7 +342,7 @@
 					setInvalid($('#team-picker'));	
 					team_warning = true;
 					
-					$('#delete-warning').append("Not everyone is assigned to a team - Press save again to override<br><br>");
+					toastr.warning("Not everyone is assigned to a team - Press save again to override");
 					
 					return false;
 				} else {
@@ -379,7 +387,7 @@
 					window.location = "{{path('section', {'sectionId': section.id})}}";
 					
 				}).fail(function(data) {				
-					alert(data["responseText"]);					
+					toastr.warning(data["responseText"]);					
 					$('#save-btn').prop('disabled', false);				
 				});				
 			});

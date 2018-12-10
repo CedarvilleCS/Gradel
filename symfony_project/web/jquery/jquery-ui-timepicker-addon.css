@@ -19,14 +19,14 @@
 }
 
 .ui-datepicker-header{
-	background-color: #71BA62;
+	background-color: #71BAFF;
 }
 #ui_tpicker_millisec_label ui_tpicker_unit_hide{
 	visible: false;
 }
 
 .ui-slider-handle{
-	background-color: #71BA62;
+	background-color: #71BAFF;
 }
 
 .ui-state-default{
