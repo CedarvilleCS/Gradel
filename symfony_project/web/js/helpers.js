@@ -14,6 +14,9 @@ function path(parameters = {}, trailingUrl = '') {
     if(trailingUrl !== '') {
         requestPath += `/${trailingUrl}`;
     }
+    if (requestPath[0] === '/' && requestPath[1] === '/') {
+        requestPath = requestPath.slice(1);
+    }
 
     return requestPath;
 }
