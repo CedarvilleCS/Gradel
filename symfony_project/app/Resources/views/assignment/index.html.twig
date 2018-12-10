@@ -102,8 +102,7 @@
 									<a href="{{path('problem', {'sectionId': assignment.section.id, 'assignmentId': assignment.id, 'problemId': problem.id})}}" class="assignmentLink">{{problem.name}}</a>
 								</div>
 								<div class="assignmentInfo">
-									<div>Description:
-										{{problem.description}}</div>
+									<div class="assignmentProblemDescription"><span class="markdownToRender" data-markdown="{{problem.description}}"></span></div>
 									{% if  not (grader.isTeaching(app.user, assignment.section) or is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN")) %}
 										<div>Score:
 											{% set colorClass = 'green' %}
@@ -168,4 +167,5 @@
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 <script src="{{ asset('js/cards.js') }}"></script>
+<script src="{{ asset('js/assignment.js') }}"></script>
 {% endblock %}
