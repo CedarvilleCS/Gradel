@@ -110,6 +110,10 @@ body.hidden_hamburger {
     text-decoration: underline;
 }
 
+#FloatingControlsSpacer {
+    height: 100px;
+}
+
 .nav-path {
     width: 90%;
     margin: auto;
