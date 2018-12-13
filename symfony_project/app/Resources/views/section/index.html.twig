@@ -116,6 +116,7 @@
                         {% endfor %}
                     </div>
                 </div>
+			    <div id="FloatingControlsSpacer"></div>
             </div>
         </div>
     </section>
@@ -129,9 +130,6 @@
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 <script src="{{ asset('js/cards.js') }}"></script>
 
-{% if is_granted("ROLE_SUPER") %}
-    <script src="{{ asset('js/floating-control.js') }}"></script>
-{% endif %}
 {#
 {% if is_granted("ROLE_SUPER")or is_granted("ROLE_ADMIN")or grader.isTeaching(user, section) %}
     <script>

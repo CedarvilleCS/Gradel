@@ -237,7 +237,7 @@
 		{% endif %}
 
 		
-		
+		<div id="FloatingControlsSpacer"></div>		
     </section>
 </body>
 {% endblock %}
@@ -260,8 +260,6 @@
 	{# markdown #}
 	<script src="http://cdn.rawgit.com/showdownjs/showdown/1.8.6/dist/showdown.min.js"></script>
 	
-	<script src="{{ asset('js/floating-control.js') }}"></script>
-
 	<script>
 	
 		var languages = JSON.parse("{{languages|json_encode|e('js')}}");
