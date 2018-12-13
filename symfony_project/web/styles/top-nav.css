@@ -104,6 +104,9 @@
     background-color: inherit;
     font-family: inherit;
     margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .navbar a:hover, .dropdown:hover .dropbtn {
