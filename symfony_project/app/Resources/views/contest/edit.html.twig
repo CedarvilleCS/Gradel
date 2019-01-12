@@ -18,28 +18,27 @@
 
     <link rel="stylesheet" href="{{ asset('styles/team-creation.css') }}">
     <link rel="stylesheet" href="{{ asset('styles/custom-toggle.css') }}">
+
+	<link rel="stylesheet" href="{{ asset('styles/toastr.css')}}">
 {% endblock %}
 
 {% block body %}
 
     <body>
         {{ include('template/top-nav.html.twig') }}
-
-        <section id="course-container"></section>
+        {{ include('template/section-nav.html.twig') }}
 
         {# Left Nav for Section Edit#}
-        <nav class="nav-left">
-            <a id="save-btn" class="btn">
-                <div class="btn btn-center">Save</div>
+        <nav class="floatingControls">
+            <a id="save-btn" class="floatingLink">
+                <div class="floatingButton">Save</div>
             </a>
-
-            <a id="cancel-btn" class="btn">
-                <div class="btn btn-center">Cancel</div>
+            <a id="cancel-btn" class="floatingLink">
+                <div class="floatingButton">Cancel</div>
             </a>
-
             {% if section is not null %}
-                <a id="delete-btn" class="btn">
-                    <div class="btn btn-center btn-delete">
+                <a id="delete-btn" class="floatingLink">
+                    <div class="floatingButton btn-delete">
                         {% if section.is_deleted %}
                             Reinstate
                         {% else %}
@@ -47,11 +46,6 @@
                         {% endif %}
                     </div>
                 </a>
-
-                <ol>
-                    <li id="delete-warning"></li>
-                </ol>
-
             {% endif %}
         </nav>
 
@@ -170,6 +164,7 @@
 
                 </table>
             </div>
+			<div id="FloatingControlsSpacer"></div>
         </div>
     </div>
 </div>
@@ -232,6 +227,8 @@
 <script src="{{ asset('js/validation.js') }}"></script>
 
 <script src="{{ asset('js/contest.js') }}"></script>
+
+<script type="text/javascript" src="{{ asset('js/toastr/toastr.js')}}"></script>
 
 {# asynchronous file upload #}
 <script src="http://malsup.github.com/jquery.form.js"></script>
@@ -495,9 +492,9 @@ $(document).ready(function () {
             window.location = "{{path('section_delete', {'sectionId': section.id})}}";
 
         } else if (warned == 1) {
-            $('#delete-warning').html("Are you REALLY sure?<br/>Click again to {% if section.is_deleted %} reinstate {% else %} delete {% endif %}");
+            $('.btn-delete').html("Are you REALLY sure? Click again to {% if section.is_deleted %} reinstate {% else %} delete {% endif %}");
         } else {
-            $('#delete-warning').html("Are you sure?<br/>Click again to {% if section.is_deleted %} reinstate {% else %} delete {% endif %}");
+            $('.btn-delete').html("Are you sure? Click again to {% if section.is_deleted %} reinstate {% else %} delete {% endif %}");
         }
 
         warned++;
@@ -537,8 +534,6 @@ $('#save-btn').on('click', function () {
 
 var formData = new FormData();
 
-$('#delete-warning').html('');
-
 /* Client-Side Validation */
 
 // section name
@@ -546,7 +541,7 @@ var contest_name = $('#contest-name').val().trim();
 
 if (contest_name == "") {
     setInvalid($('#contest-name'));
-    $('#delete-warning').html("Contest name is not valid.");
+    toastr.warning("Contest name is not valid");
     return false;
 } else {
     setValid($('#contest-name'));
@@ -568,7 +563,7 @@ $('.contest-row').each(function () {
 
     if (name == null || name.trim() == '') {
         setInvalid($(this).find('.contest-name'));
-        $('#delete-warning').html('Every contest must have a name');
+        toastr.warning('Every contest must have a name');
         brokenContest = true;
         return false;
     } else {
@@ -581,7 +576,7 @@ $('.contest-row').each(function () {
 
     if (!start_date || !end_date) {
         setInvalid($(this).find('.start-date, .end-date'));
-        $('#delete-warning').html('Every date must have a value');
+        toastr.warning('Every date must have a value');
         brokenContest = true;
         return false;
     } else {
@@ -590,7 +585,7 @@ $('.contest-row').each(function () {
 
     if (start_date >= end_date) {
         setInvalid($(this).find('.start-date, .end-date'));
-        $('#delete-warning').html('Dates within the contest conflict with each other');
+        toastr.warning('Dates within the contest conflict with each other');
         brokenContest = true;
         return false;
     } else {
@@ -600,7 +595,7 @@ $('.contest-row').each(function () {
     if (last_elem != null && last_date >= start_date) {
         setInvalid($(this).find('.start-date'));
         setInvalid(last_elem);
-        $('#delete-warning').html('Dates from two contests conflict with each other');
+        toastr.warning('Dates from two contests conflict with each other');
         brokenContest = true;
         return false;
     } else {
@@ -615,7 +610,7 @@ $('.contest-row').each(function () {
 
     if (isNaN(hour_freeze) || hour_freeze < 0) {
         setInvalid($(this).find('.hr-freeze'));
-        $('#delete-warning').html('Hours for scoreboard freezing must be a non-negative number');
+        toastr.warning('Hours for scoreboard freezing must be a non-negative number');
         brokenContest = true;
         return false;
     } else {
@@ -624,7 +619,7 @@ $('.contest-row').each(function () {
 
     if (isNaN(min_freeze) || min_freeze < 0) {
         setInvalid($(this).find('.min-freeze'));
-        $('#delete-warning').html('Minutes for scoreboard freezing must be a non-negative number.');
+        toastr.warning('Minutes for scoreboard freezing must be a non-negative number');
         brokenContest = true;
         return false;
     } else {
@@ -655,7 +650,7 @@ console.log(contests);
 
 if (contests.length < 1) {
     setInvalid($('#contests-container'));
-    $('#delete-warning').html('You need at least one contest.');
+    toastr.warning('You need at least one contest');
     return false;
 } else {
     setValid($('#contests-container'));
@@ -676,7 +671,7 @@ if ($('#has-pre').prop('checked')) {
 var pen_per_compile = $('#penalty-per-compile-error').val();
 if (isNaN(pen_per_compile) || pen_per_compile < 0) {
     setInvalid($('#penalty-per-compile-error'));
-    $('#delete-warning').html("Penalty per Compiler Error must be a non-negative integer.");
+    toastr.warning("Penalty per Compiler Error must be a non-negative integer");
     return false;
 } else {
     setValid($('#penalty-per-compile-error'));
@@ -686,7 +681,7 @@ if (isNaN(pen_per_compile) || pen_per_compile < 0) {
 var pen_per_time = $('#penalty-per-time-limit').val();
 if (isNaN(pen_per_time) || pen_per_time < 0) {
     setInvalid($('#penalty-per-time-limit'));
-    $('#delete-warning').html("Penalty per Time Limit Error must be a non-negative integer.");
+    toastr.warning("Penalty per Time Limit Error must be a non-negative integer");
     return false;
 } else {
     setValid($('#penalty-per-time-limit'));
@@ -696,7 +691,7 @@ if (isNaN(pen_per_time) || pen_per_time < 0) {
 var pen_per_runtime = $('#penalty-per-runtime-error').val();
 if (isNaN(pen_per_runtime) || pen_per_runtime < 0) {
     setInvalid($('#penalty-per-runtime-error'));
-    $('#delete-warning').html("Penalty per Runtime Error must be a non-negative integer.");
+    toastr.warning("Penalty per Runtime Error must be a non-negative integer");
     return false;
 } else {
     setValid($('#penalty-per-runtime-error'));
@@ -706,7 +701,7 @@ if (isNaN(pen_per_runtime) || pen_per_runtime < 0) {
 var pen_per_wrong = $('#penalty-per-wrong-answer').val();
 if (isNaN(pen_per_wrong) || pen_per_wrong < 0) {
     setInvalid($('#penalty-per-wrong-answer'));
-    $('#delete-warning').html("Penalty per Wrong Answer must be a non-negative integer.");
+    toastr.warning("Penalty per Wrong Answer must be a non-negative integer");
     return false;
 } else {
     setValid($('#penalty-per-wrong-answer'));
@@ -725,7 +720,7 @@ $('#language-pool .ui-selected').each(function () {
 
 if (languageArr.length < 1) {
     setInvalid($('#language-pool'));
-    $('#delete-warning').html("You must select at least one language");
+    toastr.warning("You must select at least one language");
     return false;
 } else {
     setValid($('#language-pool'));
