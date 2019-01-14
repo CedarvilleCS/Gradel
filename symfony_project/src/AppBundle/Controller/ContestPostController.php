@@ -30,6 +30,7 @@ use AppBundle\Service\ProblemService;
 use AppBundle\Service\QueryService;
 use AppBundle\Service\RoleService;
 use AppBundle\Service\SectionService;
+use AppBundle\Service\SemesterService;
 use AppBundle\Service\SubmissionService;
 use AppBundle\Service\TeamService;
 use AppBundle\Service\TestCaseService;
@@ -65,6 +66,7 @@ class ContestPostController extends Controller {
     private $queryService;
     private $roleService;
     private $sectionService;
+    private $semesterService;
     private $submissionService;
     private $teamService;
     private $testCaseService;
@@ -82,6 +84,7 @@ class ContestPostController extends Controller {
                                 QueryService $queryService,
                                 RoleService $roleService,
                                 SectionService $sectionService,
+                                SemesterService $semesterService,
                                 SubmissionService $submissionService,
                                 TeamService $teamService,
                                 TestCaseService $testCaseService,
@@ -98,6 +101,7 @@ class ContestPostController extends Controller {
         $this->queryService = $queryService;
         $this->roleService = $roleService;
         $this->sectionService = $sectionService;
+        $this->semesterService = $semesterService;
         $this->submissionService = $submissionService;
         $this->teamService = $teamService;
         $this->testCaseService = $testCaseService;
@@ -298,8 +302,7 @@ class ContestPostController extends Controller {
             
             /* Set up the section */
             $section->course = $course;
-            $section->semester = "";
-            $section->year = 0;
+            $section->semester = $this->semesterService->getCurrentSemester();
             $section->is_public = false;
             $section->is_deleted = false;
         }
@@ -475,7 +478,7 @@ class ContestPostController extends Controller {
         }
         
         /* JUDGES */
-        $section->user_roles->clear();	
+        $section->user_roles->clear();
             
         $judges = json_decode($postData["judges"]);
         $judgeRole = $this->roleService->getRoleByRoleName(Constants::JUDGES_ROLE);
@@ -702,7 +705,7 @@ class ContestPostController extends Controller {
                     $preContestProblem->problem_languages->add($preContestProblemLanguage);
                 }
     
-                $this->problemService->insertProblem($preContestProblem);
+                $this->problemService->insertProblem($preContestProblem, false);
             }
 
             $toRemove = $preContest->teams->toArray();
@@ -745,8 +748,7 @@ class ContestPostController extends Controller {
                 $toRemove->removeElement($newTeam);
 
                 $newTeam->assignment = $contest;
-                $entityManager->persist($newTeam);
-                $this->teamService->insertTeam($newTeam);
+                $this->teamService->insertTeam($newTeam, false);
             }
 
             foreach ($toRemove as &$teamToRemove) {
@@ -760,8 +762,8 @@ class ContestPostController extends Controller {
         }
 
         $this->sectionService->insertSection($section);
-
         $entityManager = $this->getDoctrine()->getManager();
+        
         foreach ($section->assignments as &$asgn) {
             $asgn->updateLeaderboard($this->graderService, $entityManager);
         }
