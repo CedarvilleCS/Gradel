@@ -209,7 +209,7 @@ class Assignment implements JsonSerializable{
 		$this->leaderboard->board = json_encode($grader->getLeaderboard2($this, false));
 		$this->leaderboard->board_elevated = json_encode($grader->getLeaderboard2($this, true));
 		
-        $em->persist($this);
+		$em->persist($this);
         $em->flush();
 	}
 
