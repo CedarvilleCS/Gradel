@@ -27,9 +27,16 @@
     <body>
         {{ include('template/top-nav.html.twig') }}
         {{ include('template/section-nav.html.twig') }}
+        <div id="SitePosition"
+             class="hidden"
+             data-pos='{
+                 "start": {
+                     "id": "Section-{{section.id}}",
+                     "next": null
+                 }
+             }'></div>
 
-        {# Left Nav for Section Edit#}
-        <nav class="floatingControls">
+        <div class="floatingControls">
             <a id="save-btn" class="floatingLink">
                 <div class="floatingButton">Save</div>
             </a>
@@ -47,7 +54,7 @@
                     </div>
                 </a>
             {% endif %}
-        </nav>
+        </div>
 
         {# Main section with the necessary variable#}
         <section id="main" class="scrolly">
