@@ -319,7 +319,7 @@ class ContestPostController extends Controller {
         $postContests = (array) json_decode($postData["contests"]);
 
         if (count($postContests) < 1) {
-            return $this->returnForbiddenResponse("Provided contests was empty");
+            return $this->returnForbiddenResponse("PROVIDED CONTESTS WAS EMPTY");
         }
 
         foreach ($postContests as $postContest) {
@@ -385,7 +385,7 @@ class ContestPostController extends Controller {
             
             $contest->start_time = $start_date;
             $contest->end_time = $end_date;
-            $contest->cutoff_time = $end_date;			
+            $contest->cutoff_time = $end_date;		
             $contest->freeze_time = $freeze_date;
 
             $contests[] = $contest;
@@ -399,7 +399,7 @@ class ContestPostController extends Controller {
         $section->start_time = clone $contests[0]->start_time;
         $section->start_time->sub(new DateInterval("P30D"));
         
-        $section->end_time = clone $contests[count($contests)-1]->end_time;	
+        $section->end_time = clone $contests[count($contests) - 1]->end_time;	
         $section->end_time->add(new DateInterval("P14D"));
 
         /* LANGUAGES */
@@ -444,7 +444,7 @@ class ContestPostController extends Controller {
         /* NAME */
         $contestName = $postData["contest_name"];
         if (!isset($contestName) || trim($contestName) == "") {
-            return $this->returnForbiddenResponse("contestId name not provided.");
+            return $this->returnForbiddenResponse("CONTEST NAME NOT PROVIDED.");
         }
         
         $section->name = trim($contestName);
@@ -520,7 +520,7 @@ class ContestPostController extends Controller {
         }
 
         /* TEAMS */
-        $takeRole = $this->roleService->getRoleByRoleName(Constants::TAKES_ROLE);
+        $takesRole = $this->roleService->getRoleByRoleName(Constants::TAKES_ROLE);
 
         $teams = json_decode($postData["teams"]);
         
@@ -578,7 +578,7 @@ class ContestPostController extends Controller {
                     }
                 }
                 
-                $userSectionRole = $this->userSectionRoleService->createUserSectionRole($teamUser, $section, $takeRole);
+                $userSectionRole = $this->userSectionRoleService->createUserSectionRole($teamUser, $section, $takesRole);
                 $section->user_roles->add($userSectionRole);
 
                 if ($allMembers[$teamUser->getEmail()]) {
@@ -687,7 +687,6 @@ class ContestPostController extends Controller {
             $preContest->freeze_time = clone $firstEndDate;
             $preContest->freeze_time->sub(new DateInterval("P0DT1H"));
             
-
             /* PRE CONTEST LANGUAGES */
             $preContest->contest_languages->clear();
             
@@ -733,6 +732,7 @@ class ContestPostController extends Controller {
         
         /* DELETE OLD TEAMS AND CREATE (PERSIST) NEW ONES */
         $count = 0;
+
         foreach ($contests as &$contest) {
             if ($contest->teams) {
                 $toRemove = clone $contest->teams;
@@ -744,13 +744,16 @@ class ContestPostController extends Controller {
                 $contestTeam->assignment = null;
             }
 
-            foreach ($newTeams[$count] as &$newTeam) {
-                $toRemove->removeElement($newTeam);
-
-                $newTeam->assignment = $contest;
-                $this->teamService->insertTeam($newTeam, false);
+            if ($count == 1) {
+                foreach ($newTeams[$count] as &$newTeam) {
+                    $toRemove->removeElement($newTeam);
+                    
+                    $newTeam->assignment = $contest;
+                    
+                    $this->teamService->insertTeam($newTeam, false);
+                }
             }
-
+            
             foreach ($toRemove as &$teamToRemove) {
                 $this->teamService->deleteTeam($teamToRemove);
             }
@@ -762,7 +765,6 @@ class ContestPostController extends Controller {
         }
 
         $this->sectionService->insertSection($section);
-        $entityManager = $this->getDoctrine()->getManager();
         
         foreach ($section->assignments as &$asgn) {
             $asgn->updateLeaderboard($this->graderService, $entityManager);
