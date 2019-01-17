@@ -27,7 +27,10 @@
              data-pos='{
                  "start": {
                      "id": "Section-{{current_contest.section.id}}",
-                     "next": null
+                     "next": {
+						"id": "Assignment-{{current_contest.id}}",
+						"next": null
+					}
                  }
              }'></div>
 
@@ -45,6 +48,9 @@
 		{% if elevatedUser %}
 			<a href="{{path('contest_edit', {'contestId': current_contest.section.id})}}" class="floatingLink">
 				<div class="floatingButton">Edit Contest</div>
+			</a>
+			<a href="{{path('contest_problem_edit', {'contestId': current_contest.section.id, 'roundId': current_contest.id})}}" class="floatingLink">
+				<div class="floatingButton">Create Problem</div>
 			</a>
 		{% endif %}
 		{% if app.request.attributes.get('_route') != "contest_scoreboard" %}
