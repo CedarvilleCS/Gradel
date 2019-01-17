@@ -13,11 +13,11 @@
              class="hidden"
              data-pos='{
                  "start": {
-                     "id": "Section-{{prob.assignment.section.id}}",
+                     "id": "Section-{{problem.assignment.section.id}}",
                      "next": {
-						"id": "Assignment-{{prob.assignment.id}}",
+						"id": "Assignment-{{problem.assignment.id}}",
 						"next": {
-							"id": "Problem-{{prob.id}}",
+							"id": "Problem-{{problem.id}}",
 							"next": null
 						}
 					}
@@ -27,6 +27,9 @@
   <div class="floatingControls">
 		<a id="save-btn" class="floatingLink">
 			<div class="floatingButton">Save</div>
+		</a>
+		<a id="cancel-btn" class="floatingLink">
+			<div class="floatingButton">Cancel</div>
 		</a>
 		{% if problem is not null %}
 			<a id="delete-btn" class="floatingLink">
@@ -451,6 +454,10 @@
 			/* Post the Problem */
 			newProb();		
 		
+		});
+
+		$('#cancel-btn').click(() => {
+			window.history.back();
 		});
 		
 		/* allow tabs in textareas */
