@@ -26,9 +26,22 @@
 
 <body>
     {{ include('template/top-nav.html.twig') }}
-	
-	{{ include('contest/problem-nav.html.twig') }}
-	
+	{{ include('template/section-nav.html.twig') }}
+	<div id="SitePosition"
+             class="hidden"
+             data-pos='{
+                 "start": {
+                     "id": "Section-{{problem.assignment.section.id}}",
+                     "next": {
+						"id": "Assignment-{{problem.assignment.id}}",
+						"next": {
+							"id": "Problem-{{problem.id}}",
+							"next": null
+						}
+					}
+                 }
+             }'></div>
+
 	<section id="main">	
 		<div class="card">
 			<div style="display: flex; flex-direction: column; justify-content: flex-start">
