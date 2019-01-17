@@ -93,6 +93,10 @@
 	border-top: none;
 }
 
+#clarification-form {
+	display: none;
+}
+
 .accepted, .unattempted, .attempted, .unknown {
 	text-align: center;
 	color: #555555;
