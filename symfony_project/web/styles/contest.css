@@ -2,11 +2,6 @@
 	overflow: unset;
 }
 
-#main{	
-	margin-top: 50px;
-	height: calc(100% - 50px);	
-}
-
 #contest-heading, #name-heading, #time-heading, #leaderboard-heading, #problems-heading {
 	text-align: center;	
 }
