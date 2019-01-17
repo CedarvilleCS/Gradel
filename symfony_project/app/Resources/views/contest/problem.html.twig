@@ -57,11 +57,11 @@
              class="hidden"
              data-pos='{
                  "start": {
-                     "id": "Section-{{prob.assignment.section.id}}",
+                     "id": "Section-{{problem.assignment.section.id}}",
                      "next": {
-						"id": "Assignment-{{prob.assignment.id}}",
+						"id": "Assignment-{{problem.assignment.id}}",
 						"next": {
-							"id": "Problem-{{prob.id}}",
+							"id": "Problem-{{problem.id}}",
 							"next": null
 						}
 					}
@@ -69,7 +69,7 @@
              }'></div>
 
         <div class="floatingControls">
-            <a href="{{path('contest_problem_edit', {'contestId': prob.assignment.section.id, 'roundId': prob.assignment.id, 'problemId': prob.id})}}" class="floatingLink">
+            <a href="{{path('contest_problem_edit', {'contestId': problem.assignment.section.id, 'roundId': problem.assignment.id, 'problemId': problem.id})}}" class="floatingLink">
                 <div class="floatingButton">Edit Problem</div>
             </a>
         </div>
