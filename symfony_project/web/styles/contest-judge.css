@@ -14,6 +14,18 @@
 	max-height: 240px;
 }
 
+#notice-form,
+#clarification-form,
+#custom-message-form,
+#delete-form,
+#correct-form,
+#wrong-form,
+#formatting-form,
+#clear-submissions-form,
+#clear-clarifications-form {
+	display: none;
+}
+
 .scrolly {
 	overflow-y: auto;
 }
