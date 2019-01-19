@@ -23,8 +23,44 @@
 
 <body>        
     {{ include('template/top-nav.html.twig') }}    
-	{{ include('contest/problem-nav.html.twig') }}
-	
+	{{ include('template/section-nav.html.twig') }}
+	<div id="SitePosition"
+             class="hidden"
+             data-pos='{
+                 "start": {
+                     "id": "Section-{{current_contest.section.id}}",
+                     "next": {
+						"id": "Assignment-{{current_contest.id}}",
+						"next": null
+					}
+                 }
+             }'></div>
+
+	<div class="floatingControls">
+		{% if elevatedUser and app.request.attributes.get('_route') != "contest_judging" %}
+			<a href="{{path('contest_judging', {'contestId': current_contest.section.id, 'roundId': current_contest.id})}}" class="floatingLink">
+				<div class="floatingButton">Judging Hub</div>
+			</a>
+		{% endif %}
+		{% if app.request.attributes.get('_route') != "contest" %}
+			<a href="{{path('contest', {'contestId': current_contest.section.id, 'roundId': current_contest.id})}}" class="floatingLink">
+				<div class="floatingButton">Contest Hub</div>
+			</a>
+		{% endif %}
+		{% if elevatedUser %}
+			<a href="{{path('contest_edit', {'contestId': current_contest.section.id})}}" class="floatingLink">
+				<div class="floatingButton">Edit Contest</div>
+			</a>
+			<a href="{{path('contest_problem_edit', {'contestId': current_contest.section.id, 'roundId': current_contest.id})}}" class="floatingLink">
+				<div class="floatingButton">Create Problem</div>
+			</a>
+		{% endif %}
+		{% if app.request.attributes.get('_route') != "contest_scoreboard" %}
+			<a href="{{path('contest_scoreboard', {'contestId': current_contest.section.id, 'roundId': current_contest.id})}}" class="floatingLink">
+				<div class="floatingButton">Scoreboard View</div>
+			</a>
+		{% endif %}
+	</div>
 	
 	<section id="main" class="scrolly">
 		
@@ -120,7 +156,7 @@
 
 				</div>	
 		</div>
-					
+		<div id="FloatingControlsSpacer"></div>	
 	</section>
 	
 	{# notice dialog #}	

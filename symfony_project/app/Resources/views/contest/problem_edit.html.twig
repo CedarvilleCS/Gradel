@@ -9,20 +9,20 @@
 <body>
   {{ include('template/top-nav.html.twig') }}
   {{ include('template/section-nav.html.twig') }}
-  <div id="SitePosition"
-             class="hidden"
-             data-pos='{
-                 "start": {
-                     "id": "Section-{{problem.assignment.section.id}}",
-                     "next": {
-						"id": "Assignment-{{problem.assignment.id}}",
+	<div id="SitePosition"
+				class="hidden"
+				data-pos='{
+					"start": {
+						"id": "Section-{{contest.section.id}}",
 						"next": {
-							"id": "Problem-{{problem.id}}",
-							"next": null
+							"id": "Assignment-{{contest.id}}",
+							"next": {
+								"id": "Problem-{{problem.id}}",
+								"next": null
+							}
 						}
 					}
-                 }
-             }'></div>
+				}'></div>
 
   <div class="floatingControls">
 		<a id="save-btn" class="floatingLink">
@@ -134,7 +134,7 @@
 	<div id="testcase-cards" class="parallel-cards">	
 	
 	</div>
-	
+	<div id="FloatingControlsSpacer"></div>
   </section>
 </body>
 {% endblock %}
