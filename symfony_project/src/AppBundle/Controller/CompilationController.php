@@ -174,8 +174,11 @@ class CompilationController extends Controller {
 
         /* INITIALIZE THE SUBMISSION */
         /* create an entity for the current submission from the trial */
+        $this->logError("Made it");
         $submission = $this->submissionService->createSubmissionFromTrialAndTeamForCompilationSubmit($trial, $team);
+        $this->logError($trial->id);
         $this->submissionService->insertSubmission($submission);
+        $this->logError("Made it again");
         
         /* SETTING UP FOLDERS */
         $subDirectory = $webDirectory."compilation/submissions/".$submission->id."/";
