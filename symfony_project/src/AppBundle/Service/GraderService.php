@@ -99,17 +99,15 @@ class GraderService {
 		$query_team = $qb_teams->getQuery();
 		$team_entities = $query_team->getResult();
 		
-		# loop over all the teams for this assignment and figure out which team the user is a part of
-		$team = null;
-		
+		# loop over all the teams for this assignment and figure out which team the user is a part of		
 		foreach($team_entities as $tm) {
 			foreach($tm->users as $us) {
 				if($user->id == $us->id) {
-					$team = $tm;
+					return $tm;
 				}
 			}
 		}
-		return $team;
+		return null;
 	}
 	
 	public function getNumTotalAttempts($user, $problem){
