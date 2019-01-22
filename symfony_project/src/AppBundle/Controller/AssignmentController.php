@@ -430,26 +430,26 @@ class AssignmentController extends Controller {
                     return $this->returnForbiddenResponse($team->name." DID NOT HAVE ANY USERS PROVIDED");
                 }
                 
-                $this->teamService->insertTeam($team);
+                $this->teamService->insertTeam($team, false);
                 $modTeams->add($team->id);
             } else {
                 $team = new Team($teamNamesJson[$count], $assignment);
             
-                foreach ($teamJson as $userId) {						
+                foreach ($teamJson as $userId) {
                     $temp_user = $this->userService->getUserById($userId);
 
                     if (!$temp_user || !in_array($temp_user, $sectionTakers)) {
                         return $this->returnForbiddenResponse("USER ".$userId." DOES NOT TAKE THIS CLASS");
                     }
 
-                    $team->users[] = $temp_user;				
+                    $team->users[] = $temp_user;
                 }
                 
                 if (count($team->users) == 0) {
                     return $this->returnForbiddenResponse($team->name." DID NOT HAVE ANY USERS PROVIDED");
                 }
                 
-                $this->teamService->insertTeam($team);
+                $this->teamService->insertTeam($team, false);
             }
             
             $count++;
@@ -458,7 +458,7 @@ class AssignmentController extends Controller {
         // remove the old teams that no longer exist
         foreach ($oldTeams as $oldTeam){
             if (!$modTeams->contains($oldTeam->id)) {
-                $this->teamService->deleteTeam($oldTeam);
+                $this->teamService->deleteTeam($oldTeam, false);
             }
         }
 
