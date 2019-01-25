@@ -383,8 +383,7 @@
 					teamids: JSON.stringify(teamarray[2])
 					
 				}, function(data) {			
-					console.log(data);					
-					window.location = "{{path('section', {'sectionId': section.id})}}";
+					window.location = `${path({'section': data.assignment.sectionId, 'assignment': data.assignment.id})}`;
 					
 				}).fail(function(data) {				
 					toastr.warning(data["responseText"]);					
