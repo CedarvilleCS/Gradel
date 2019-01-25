@@ -1,4 +1,5 @@
 #include <string>
+#include <regex>
 
 #ifndef CUSTOM_VALIDATE
 #define CUSTOM_VALIDATE
