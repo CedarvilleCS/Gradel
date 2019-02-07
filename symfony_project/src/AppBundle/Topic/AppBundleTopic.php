@@ -33,22 +33,32 @@ use AppBundle\Entity\Feedback;
 use AppBundle\Entity\TestcaseResult;
 use AppBundle\Entity\Query;
 
+use AppBundle\Service\GraderService;
 
 use Doctrine\ORM\EntityManager;
 
+use Psr\Log\LoggerInterface;
+
 class AppBundleTopic implements TopicInterface
 {
+    private $graderService;
+    private $logger;
+    private $numUsers;
     protected $clientManipulator;
     protected $em;
-    private $numUsers;
 
     /**
      * @param ClientManipulatorInterface $clientManipulator
      */
-    public function __construct(ClientManipulatorInterface $clientManipulator, EntityManager $em)
+    public function __construct(ClientManipulatorInterface $clientManipulator,
+                                EntityManager $em, 
+                                GraderService $graderService, 
+                                LoggerInterface $logger)
     {
         $this->clientManipulator = $clientManipulator;
         $this->em = $em;
+        $this->graderService = $graderService;
+        $this->logger = $logger;
         $this->numUsers = 0;
     }
     /**
@@ -61,13 +71,13 @@ class AppBundleTopic implements TopicInterface
      */
     public function onSubscribe(ConnectionInterface $connection, Topic $topic, WampRequest $request)
     {
+        $this->logError("OnSubscribe");
         //this will broadcast the message to ALL subscribers of this topic.
         $user = $this->clientManipulator->getClient($connection);
 
         $this->numUsers += 1;
 
-        //$topic->broadcast(['msg' => $this->numUsers . ' total users']);
-        
+        $topic->broadcast(['msg' => $this->numUsers . ' total users']);
     }
 
     /**
@@ -80,10 +90,11 @@ class AppBundleTopic implements TopicInterface
      */
     public function onUnSubscribe(ConnectionInterface $connection, Topic $topic, WampRequest $request)
     {
+        $this->logError("OnUnSubscribe");
         //this will broadcast the message to ALL subscribers of this topic.
         $this->numUsers -= 1;
 
-        //$topic->broadcast(['msg' => $connection->resourceId . " has left " . $topic->getId()]);
+        $topic->broadcast(['msg' => $connection->resourceId . " has left " . $topic->getId()]);
     }
 
 
@@ -100,6 +111,7 @@ class AppBundleTopic implements TopicInterface
      */
     public function onPublish(ConnectionInterface $connection, Topic $topic, WampRequest $request, $event, array $exclude, array $eligible)
     {
+        $this->logError("OnPublish");
         $this->em->clear();
         
         $user = $this->clientManipulator->getClient($connection);
@@ -143,9 +155,7 @@ class AppBundleTopic implements TopicInterface
             return;
         }
 
-        $grader = new Grader($this->em);
-
-        if( $key != "gradeldb251" && (!isset($user) || !method_exists($user, 'hasRole') || !($grader->isTaking($user, $contest->section) || $grader->isJudging($user, $contest->section) || $user->hasRole("ROLE_SUPER"))) ){
+        if( $key != "gradeldb251" && (!isset($user) || !method_exists($user, 'hasRole') || !($this->graderService->isTaking($user, $contest->section) || $this->graderService->isJudging($user, $contest->section) || $user->hasRole("ROLE_SUPER"))) ){
             dump("Not allowed to access this");
             return;
         }
@@ -177,7 +187,7 @@ class AppBundleTopic implements TopicInterface
                 
               if($contest->leaderboard){
                 // send the scoreboard info 
-                if($user->hasRole("ROLE_SUPER") || $grader->isJudging($user, $contest->section)){
+                if($user->hasRole("ROLE_SUPER") || $this->graderService->isJudging($user, $contest->section)){
                   $leaderboard = $contest->leaderboard->getJSONElevatedBoard();
                 } else {
                   $leaderboard = $contest->leaderboard->getJSONBoard();
@@ -192,7 +202,7 @@ class AppBundleTopic implements TopicInterface
                 // see if the contest has started
                 if($contest->isOpened()){
 
-                    $contest->updateLeaderboard($grader, $this->em);
+                    $contest->updateLeaderboard($this->graderService, $this->em);
 
                     $this->broadcastMessage([$user->getUsername()], $topic, $this->buildMessage(null, 'start'));
                 }
@@ -225,12 +235,12 @@ class AppBundleTopic implements TopicInterface
 
               				
               # get the queries
-              if($grader->isJudging($user, $contest->section) || $user->hasRole("ROLE_SUPER")){
+              if($this->graderService->isJudging($user, $contest->section) || $user->hasRole("ROLE_SUPER")){
                 $extra_query = "OR 1=1";
                 $team = null;
               } else {
                 $extra_query = "";
-                $team = $grader->getTeam($user, $contest);
+                $team = $this->graderService->getTeam($user, $contest);
               }
 
               // send the clarifications
@@ -253,9 +263,9 @@ class AppBundleTopic implements TopicInterface
                 
                 $problems = [];
 
-                $elevated = $user->hasRole("ROLE_SUPER") || $grader->isJudging($user, $contest->section);
+                $elevated = $user->hasRole("ROLE_SUPER") || $this->graderService->isJudging($user, $contest->section);
               
-                $team = $grader->getTeam($user, $contest);
+                $team = $this->graderService->getTeam($user, $contest);
 
                 if($contest->isOpened() || $elevated){
                     foreach($contest->problems as $prob){
@@ -277,9 +287,9 @@ class AppBundleTopic implements TopicInterface
               // send a list of problems
               $checklist = [];
              
-              $elevated = $user->hasRole("ROLE_SUPER") || $grader->isJudging($user, $contest->section);
+              $elevated = $user->hasRole("ROLE_SUPER") || $this->graderService->isJudging($user, $contest->section);
               
-              $team = $grader->getTeam($user, $contest);
+              $team = $this->graderService->getTeam($user, $contest);
 
               if($contest->isOpened() || $elevated){
                 foreach($contest->problems as $prob){
@@ -287,7 +297,7 @@ class AppBundleTopic implements TopicInterface
                   $problem = [];
 
                   if($team){
-                    $score = $grader->getProblemScore($team, $prob, true);
+                    $score = $this->graderService->getProblemScore($team, $prob, true);
                   } else {
                     $score = null;
                   }
@@ -322,7 +332,7 @@ class AppBundleTopic implements TopicInterface
     }
 
     public function broadcastMessage($recipients, $topic, $message) {
-
+        $this->logError("broadcastMessage");
         $users = $this->clientManipulator->getAll($topic);
 
         foreach($users as $u) {
@@ -339,7 +349,7 @@ class AppBundleTopic implements TopicInterface
     }
 
     public function buildMessage($msg, $type, $submissionId = -1) {
-       
+        $this->logError("buildMessage");
         $message = [];
        
         $message['msg'] = $msg;
@@ -355,6 +365,7 @@ class AppBundleTopic implements TopicInterface
 
     public function onPush(Topic $topic, WampRequest $request, $data, $provider)
     {
+        $this->logError("onPush");
         dump("Pushing");
     }
 
@@ -365,5 +376,11 @@ class AppBundleTopic implements TopicInterface
     public function getName()
     {
         return 'appbundle.topic';
+    }
+
+    private function logError($message) {
+        $errorMessage = "AppBundleTopic: ".$message;
+        $this->logger->error($errorMessage);
+        return $errorMessage;
     }
 }
