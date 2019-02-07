@@ -14,12 +14,13 @@
       toastr.options.extendedTimeOut = 120000
       toastr.options.positionClass = "toast-bottom-full-width";
 
-      var webSocket = WS.connect("{{socket_domain ~ ':' ~ socket_port ~ '/'}}");
+      var webSocket = WS.connect("{{socket_domain ~ ':' ~ socket_port}}");
       console.log("Establishing Websocket...");
 
       webSocket.on("socket/connect", function(session){
           //session is an Autobahn JS WAMP session.
         console.log("SUCCESSFULLY CONNECTED");
+        sessionGlob = session;
 
         session.subscribe("appbundle/channel", function(uri, payload){
           try {
@@ -32,8 +33,6 @@
           }
 
         });
-    
-        sessionGlob = session;
 
         if(typeof onConnectFunction === "function"){
           onConnectFunction();       
@@ -47,32 +46,61 @@
       })
     }
 
-    function requestScoreboard(){      
-      sessionGlob.publish("appbundle/channel", {'type': 'scoreboard', 'contestId': {{(current_contest) ? current_contest.id : section.assignments[0].id}}, 'passKey': 'upstream'});
+    function requestScoreboard(){
+      console.log(sessionGlob);
+      sessionGlob.publish("appbundle/channel", {
+        type: 'scoreboard',
+        contestId: {{(current_contest) ? current_contest.id : section.assignments[0].id}},
+        passKey: 'upstream'
+      });
     }
 
     function requestClarifications(){      
-      sessionGlob.publish("appbundle/channel", {'type': 'clarifications', 'contestId': {{(current_contest) ? current_contest.id : section.assignments[0].id}}, 'passKey': 'upstream'});
+      sessionGlob.publish("appbundle/channel", {
+        type: 'clarifications',
+        contestId: {{(current_contest) ? current_contest.id : section.assignments[0].id}},
+        passKey: 'upstream'
+      });
     }
 
     function requestChecklist(){      
-      sessionGlob.publish("appbundle/channel", {'type': 'checklist', 'contestId': {{(current_contest) ? current_contest.id : section.assignments[0].id}}, 'passKey': 'upstream'});
+      sessionGlob.publish("appbundle/channel", {
+        type: 'checklist', 
+        contestId: {{(current_contest) ? current_contest.id : section.assignments[0].id}},
+        passKey: 'upstream'
+      });
     }
 
     function requestFrozen(){
-      sessionGlob.publish("appbundle/channel", {'type': 'check-frozen', 'contestId': {{(current_contest) ? current_contest.id : section.assignments[0].id}}, 'passKey': 'upstream'});
+      sessionGlob.publish("appbundle/channel", {
+        type: 'check-frozen', 
+        contestId: {{(current_contest) ? current_contest.id : section.assignments[0].id}}, 
+        passKey: 'upstream'
+      });
     }
 
     function requestStart(){
-      sessionGlob.publish("appbundle/channel", {'type': 'check-start', 'contestId': {{(current_contest) ? current_contest.id : section.assignments[0].id}}, 'passKey': 'upstream'});
+      sessionGlob.publish("appbundle/channel", {
+        type: 'check-start', 
+        contestId: {{(current_contest) ? current_contest.id : section.assignments[0].id}}, 
+        passKey: 'upstream'
+      });
     }
 
     function requestProblems(){
-      sessionGlob.publish("appbundle/channel", {'type': 'problem-nav', 'contestId': {{(current_contest) ? current_contest.id : section.assignments[0].id}}, 'passKey': 'upstream'});
+      sessionGlob.publish("appbundle/channel", {
+        type: 'problem-nav', 
+        contestId: {{(current_contest) ? current_contest.id : section.assignments[0].id}}, 
+        passKey: 'upstream'
+      });
     }
 
     function requestVars(){
-      sessionGlob.publish("appbundle/channel", {'type': 'check-vars', 'contestId': {{(current_contest) ? current_contest.id : section.assignments[0].id}}, 'passKey': 'upstream'});
+      sessionGlob.publish("appbundle/channel", {
+        type: 'check-vars', 
+        contestId: {{(current_contest) ? current_contest.id : section.assignments[0].id}}, 
+        passKey: 'upstream'
+      });
     }
 
 </script>

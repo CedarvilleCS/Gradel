@@ -49,7 +49,19 @@
 
 <body>        
     {{ include('template/top-nav.html.twig') }}
-	
+    {{ include('template/section-nav.html.twig') }}
+	<div id="SitePosition"
+             class="hidden"
+             data-pos='{
+                 "start": {
+                     "id": "Section-{{current_contest.section.id}}",
+                     "next": {
+						"id": "Assignment-{{current_contest.id}}",
+						"next": null
+					}
+                 }
+             }'></div>
+			 
 	<section id="main" style="width: 100%">
 		
 		<div class="card" style="text-align: center;">		

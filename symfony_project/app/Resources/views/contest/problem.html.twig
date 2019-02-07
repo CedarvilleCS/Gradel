@@ -52,8 +52,27 @@
 
     <body>
         {{ include('template/top-nav.html.twig') }}
+        {{ include('template/section-nav.html.twig') }}
+        <div id="SitePosition"
+             class="hidden"
+             data-pos='{
+                 "start": {
+                     "id": "Section-{{problem.assignment.section.id}}",
+                     "next": {
+						"id": "Assignment-{{problem.assignment.id}}",
+						"next": {
+							"id": "Problem-{{problem.id}}",
+							"next": null
+						}
+					}
+                 }
+             }'></div>
 
-        {{ include('contest/problem-nav.html.twig') }}
+        <div class="floatingControls">
+            <a href="{{path('contest_problem_edit', {'contestId': problem.assignment.section.id, 'roundId': problem.assignment.id, 'problemId': problem.id})}}" class="floatingLink">
+                <div class="floatingButton">Edit Problem</div>
+            </a>
+        </div>
 
         <section id="main" class="scrolly">
 
@@ -296,7 +315,7 @@
                             </div>
                         </div>
                     {% endif %}
-
+                    <div id="FloatingControlsSpacer"></div>
                 </section>
 
                 {# clarification dialog #}

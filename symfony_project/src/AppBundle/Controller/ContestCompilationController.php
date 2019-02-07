@@ -69,6 +69,7 @@ class ContestCompilationController extends Controller {
             // password to allow the contest to run the submit controller
             'forwarded' => "secret_code",
         ]);
+        $this->logError("Something please");
 
         $submissionId = json_decode($response->getContent())->submission_id;
 

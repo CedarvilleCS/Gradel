@@ -17,7 +17,7 @@ gos_web_socket:
         host: 0.0.0.0  #The host ip to bind to
         router:
           resources:
-            - "routing.yml"
+            - "../Resources/routing.yml"
     client:
         session_handler: session.handler.pdo
         firewall: main

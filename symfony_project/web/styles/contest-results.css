@@ -68,6 +68,13 @@
 	cursor: pointer;
 }
 
+#custom-message-form,
+#delete-form,
+#correct-form,
+#wrong-form,
+#formatting-form {
+	display: none;
+}
 
 #untested{
 	height: 30px;
