@@ -784,7 +784,7 @@ class ContestPostController extends Controller {
     }
     
     public function postQuestionAction(Request $request) {
-        $user = $this->getCurrentUser();
+        $user = $this->userService->getCurrentUser();
         if (!get_class($user)) {
             $this->returnForbiddenResponse("USER DOES NOT EXIST");
         }
