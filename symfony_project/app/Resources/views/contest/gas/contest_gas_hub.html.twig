@@ -1,15 +1,17 @@
 <script>
 
 function onConnectFunction(){
+	console.log("Requesting...");
 	requestScoreboard();
 	requestClarifications();
 	requestChecklist();
 	requestVars();
 	requestProblems();
+	console.log("Done requesting...");
 } 
 
 function handleMessage(data) {
-      
+    console.log("handling message");
     type = data.type;
     submissionId = data.submissionId;
     message = data.msg;
