@@ -327,7 +327,7 @@ class ContestPostController extends Controller {
         }
 
         foreach ($postContests as $postContest) {
-            if ($postContest->id) {
+            if ($postContest->id || $postContest->id != 0) {
                 $contest = $this->contestService->getContestById($postContest->id);
                 if (!$contest || $contest->section != $section) {
                     return $this->returnForbiddenResponse("ASSIGNMENT ".$postContest->id." DOES NOT EXIST");
@@ -503,7 +503,6 @@ class ContestPostController extends Controller {
                         "email" => $judge->name,
                     ]);
 
-                    
                     if (!$judgeUser) {
                         $judgeUser = $this->userService->createUser($judge->name, $judge->name);
                         $this->userService->insertUser($judgeUser);
@@ -530,8 +529,8 @@ class ContestPostController extends Controller {
         
         $allMembers = [];
 
-        $newTeams = [];	
-        foreach ($contests as $contest) {
+        $newTeams = [];
+        foreach ($contests as $cntst) {
             $newTeams[] = new ArrayCollection();
         }
 
