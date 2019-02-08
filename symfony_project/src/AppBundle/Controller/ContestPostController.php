@@ -52,12 +52,14 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 
 class ContestPostController extends Controller {
     private $assignmentService;
     private $contestService;
     private $courseService;
+    private $entityManager;
     private $graderService;
     private $languageService;
     private $logger;
@@ -76,6 +78,7 @@ class ContestPostController extends Controller {
     public function __construct(AssignmentService $assignmentService,
                                 ContestService $contestService,
                                 CourseService $courseService,
+                                EntityManagerInterface $entityManager,
                                 GraderService $graderService,
                                 LanguageService $languageService,
                                 LoggerInterface $logger,
@@ -93,6 +96,7 @@ class ContestPostController extends Controller {
         $this->assignmentService = $assignmentService;
         $this->contestService = $contestService;
         $this->courseService = $courseService;
+        $this->entityManager = $entityManager;
         $this->graderService = $graderService;
         $this->languageService = $languageService;
         $this->logger = $logger;
@@ -655,7 +659,7 @@ class ContestPostController extends Controller {
             $section->end_time = clone $postContest->end_time;
 
             unset($contestsToRemove[$postContest->id]);
-            $entityManager->persist($postContest);	
+            $this->entityManager->persist($postContest);
         }
 
         /* PRE-CONTEST CREATION */
@@ -727,31 +731,29 @@ class ContestPostController extends Controller {
             }
 
             unset($contestsToRemove[$preContest->id]);
-            $entityManager->persist($preContest);
+            $this->entityManager->persist($preContest);
         }
         
         /* DELETE OLD TEAMS AND CREATE (PERSIST) NEW ONES */
         $count = 0;
 
-        foreach ($contests as &$contest) {
+        foreach ($contests as &$cntst) {
             if ($contest->teams) {
-                $toRemove = clone $contest->teams;
+                $toRemove = clone $cntst->teams;
             } else {
                 $toRemove = new ArrayCollection();
             }
 
-            foreach ($contest->teams as &$contestTeam) {
+            foreach ($cntst->teams as &$contestTeam) {
                 $contestTeam->assignment = null;
             }
 
-            if ($count == 1) {
-                foreach ($newTeams[$count] as &$newTeam) {
-                    $toRemove->removeElement($newTeam);
-                    
-                    $newTeam->assignment = $contest;
-                    
-                    $this->teamService->insertTeam($newTeam, false);
-                }
+            foreach ($newTeams[$count] as &$newTeam) {
+                $toRemove->removeElement($newTeam);
+                
+                $newTeam->assignment = $cntst;
+                
+                $this->teamService->insertTeam($newTeam, false);
             }
             
             foreach ($toRemove as &$teamToRemove) {
@@ -765,6 +767,7 @@ class ContestPostController extends Controller {
         }
 
         $this->sectionService->insertSection($section);
+        //$this->entityManager->clear();
         
         foreach ($section->assignments as &$asgn) {
             $asgn->updateLeaderboard($this->graderService, $entityManager);
@@ -1172,7 +1175,7 @@ class ContestPostController extends Controller {
             
             $query->answer = $answerId;
             $queryId = $query->id;        
-            $entityManager->flush();
+            $this->entityManager->flush();
             
             /* Push a clarification message */
             $pusher->sendClarification($query);
