@@ -330,7 +330,7 @@ var createHtml = $('<div>', {
 createHtml.append(`Add Another Contest`);
 
 createHtml.click(function () {
-    createContest(0, "New Contest", null, null, "1", "00");
+    createContest(0, "New Contest", null, null, "1", "00", false);
 
     $('.team').each(function () {
         var arrIds = $(this).attr('id').split(",");
@@ -344,7 +344,7 @@ createHtml.click(function () {
 $('#contests-container').append(createHtml);
 }
 
-function createContest(id, name, start_date, end_date, hrs, mins) {
+function createContest(id, name, start_date, end_date, hrs, mins, no_delete) {
 
 if (start_date == null) {
     start_date = new Date().toLocaleString();
@@ -360,12 +360,15 @@ var newContestHtml = $("<div>", {
     "id": id,
     "data-index": numContests + 1
 });
+let deleteContestButton = '';
+if (!no_delete) {
+    deleteContestButton = `<div class="delete-contest-btn">
+                               <img src="{{asset('images/trash.png')}}">
+                           </div>`;
+}
 newContestHtml.append(`<input class='contest-name' value="` + escapeHTML(name) + `">
 
-								<div class="delete-contest-btn">
-									<img src="{{asset('images/trash.png')}}">
-								</div>
-
+								${deleteContestButton}
 
 								<label>Start At</label>
 								<input type='text' class='start-date'>
@@ -485,8 +488,8 @@ $(document).ready(function () {
     // distribute the teams evenly
     $('#gen-team-button').click();
 
-    createContest(0, "Practice Contest", null, null, "0", "00");
-    createContest(0, "Actual Contest", null, null, "1", "00");
+    createContest(0, "Practice Contest", null, null, "0", "00", true);
+    createContest(0, "Actual Contest", null, null, "1", "00", true);
 {% endif %}
 
 {% if section is not null %}
@@ -866,11 +869,14 @@ function populateForm() {
     $('#has-pre').attr('data-id', "0");
     $('#has-post').attr('data-id', "0");
 
-    // set the contests info{% for asgn in section.assignments %}
-
+    // set the contests info
+    {% for asgn in section.assignments %}
         {% if not asgn.post_contest and not asgn.pre_contest %}
-
-            createContest({{asgn.id}}, "{{asgn.name}}", "{{asgn.start_time|date('m/d/Y h:i A')}}", "{{asgn.end_time|date('m/d/Y h:i A')}}", "{{asgn.getFreezeHour()}}", "{{asgn.getFreezeMinute()}}");
+            {% if loop.index0 < 2 %}
+                createContest({{asgn.id}}, "{{asgn.name}}", "{{asgn.start_time|date('m/d/Y h:i A')}}", "{{asgn.end_time|date('m/d/Y h:i A')}}", "{{asgn.getFreezeHour()}}", "{{asgn.getFreezeMinute()}}", true);
+            {% else %}
+                createContest({{asgn.id}}, "{{asgn.name}}", "{{asgn.start_time|date('m/d/Y h:i A')}}", "{{asgn.end_time|date('m/d/Y h:i A')}}", "{{asgn.getFreezeHour()}}", "{{asgn.getFreezeMinute()}}", false);
+            {% endif %}
         {% elseif asgn.post_contest %}
             $('#has-post').prop('checked', true);
             $('#has-post').attr('data-id', "{{asgn.id}}");
@@ -878,7 +884,6 @@ function populateForm() {
             $('#has-pre').prop('checked', true);
             $('#has-pre').attr('data-id', "{{asgn.id}}");
         {% endif %}
-
     {% endfor %}
 
     // set the teams
