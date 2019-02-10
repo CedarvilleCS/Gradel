@@ -60,6 +60,19 @@ class QueryService{
         return $this->entityManager->find("AppBundle\Entity\Query", $queryId);
     }
 
+    public function getQueriesForContestPagesProblem($query, $problem, $team) {
+        $builder = $this->entityManager->createQueryBuilder();
+        $builder->select('q')
+            ->from('AppBundle\Entity\Query', 'q')
+            ->where('q.problem = (?1)')
+            ->andWhere('q.asker = ?2 OR q.asker IS NULL '.$query)
+            ->orderBy('q.timestamp', 'ASC')
+            ->setParameter(1, $problem)
+            ->setParameter(2, $team);
+        $query = $builder->getQuery();
+        return $query->getResult();
+    }
+
     public function insertQuery($query, $shouldFlush = true) {
         $this->entityManager->persist($query);
         if ($shouldFlush) {
