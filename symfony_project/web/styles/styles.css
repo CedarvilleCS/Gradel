@@ -57,7 +57,7 @@ body.hidden_hamburger {
     position: fixed;
     bottom: 25px;
     right: 45px;
-    z-index: 100;
+    z-index: 200;
     display: flex;
     border: 2px solid #003963;
     border-radius: 5px;
