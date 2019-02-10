@@ -135,6 +135,10 @@ class SubmissionService {
 		return $this->entityManager->find("AppBundle\Entity\Submission", $submissionId);
 	}
 
+	public function getSubmissionsByObject($object, $sort = []) {
+		return $this->entityManager->getRepository('AppBundle\Entity\Submission')->findBy($object, $sort);
+	}
+
 	public function insertSubmission($submission, $shouldFlush = true) {
 		$this->entityManager->persist($submission);
 		if ($shouldFlush) {

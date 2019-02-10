@@ -79,6 +79,10 @@ class UserSectionRoleService {
 		return $userSectionRoleQuery->getResult();
 	}
 
+	public function getUserSectionRolesByObject($object) {
+		return $this->entityManager->getRepository('AppBundle\Entity\UserSectionRole')->findBy($object);
+	}
+
 	public function insertUserSectionRole($userSectionRole, $shouldFlush = true) {
 		$this->entityManager->persist($userSectionRole);
 		if ($shouldFlush) {
