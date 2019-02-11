@@ -686,6 +686,9 @@
 			// problem name
 			if ($.trim($('#requiredFields #name').val())  === '') {						
 				setInvalid($('#requiredFields #name'));
+				$('#requiredFields #name').on('input',function(e){
+					setValid($('#requiredFields #name'));
+				});
 				return false;
 			} else {
 				setValid($('#requiredFields #name'));
@@ -694,6 +697,9 @@
 			// description
 			if ($.trim($('#requiredFields #description').val())  === '') {						
 				setInvalid($('#requiredFields #description'));
+				$('#requiredFields #description').on('input',function(e){
+					setValid($('#requiredFields #description'));
+				});
 				return false;
 			} else {
 				setValid($('#requiredFields #description'));
@@ -703,6 +709,9 @@
 			var wght = new Number($('#requiredFields #weight').val());
 			if($('#requiredFields #weight').val() === '' || ($('#requiredFields #weight').val() != '' && (wght < 0 || wght % 1 != 0))){						
 				setInvalid($('#requiredFields #weight'));
+				$('#requiredFields #weight').on('input',function(e){
+					setValid($('#requiredFields #weight'));
+				});
 				return false;
 			} else {
 				setValid($('#requiredFields #weight'));				
@@ -712,6 +721,9 @@
 			var tml = new Number($('#requiredFields #time_limit').val());
 			if($('#requiredFields #time_limit').val() === '' || ($('#requiredFields #time_limit').val() != '' && (tml < 1 || tml % 1 != 0))){						
 				setInvalid($('#requiredFields #time_limit'));
+				$('#requiredFields #time_limit').on('input',function(e){
+					setValid($('#requiredFields #time_limit'));
+				});
 				return false;
 			} else {
 				setValid($('#requiredFields #time_limit'));				
@@ -721,6 +733,9 @@
 			var att = new Number($('#optional-grading #total_attempts').val());
 			if($('#optional-grading #total_attempts').val() === '' || ($('#optional-grading #total_attempts').val() != '' && (att < 0 || att % 1 != 0))){						
 				setInvalid($('#optional-grading #total_attempts'));
+				$('#optional-grading #total_attempts').on('input',function(e){
+					setValid($('#optional-grading #total_attempts'));
+				});
 				return false;
 			} else {
 				setValid($('#optional-grading #total_attempts'));				
@@ -730,6 +745,9 @@
 			var pen = new Number($('#optional-grading #pen_attempts').val());
 			if($('#optional-grading #pen_attempts').val() === '' || ($('#optional-grading #pen_attempts').val() != '' && (pen < 0 || pen % 1 != 0)) || att < pen){						
 				setInvalid($('#optional-grading #pen_attempts'));
+				$('#optional-grading #pen_attempts').on('input',function(e){
+					setValid($('#optional-grading #pen_attempts'));
+				});
 				return false;
 			} else {
 				setValid($('#optional-grading #pen_attempts'));				
@@ -739,6 +757,9 @@
 			var ppa = new Number($('#optional-grading #penalty').val());
 			if($('#optional-grading #penalty').val() === '' || ppa < 0 || ppa > 1){						
 				setInvalid($('#optional-grading #penalty'));
+				$('#optional-grading #penalty').on('input',function(e){
+					setValid($('#optional-grading #penalty'));
+				});
 				return false;
 			} else {
 				setValid($('#optional-grading #penalty'));				
@@ -756,7 +777,13 @@
 				
 				if(input === '' && args === ''){
 					setInvalid($(this).find('.input'));
+					$(this).find('.input').on('input',function(e){
+						setValid($(this).find('.input'));
+					});
 					setInvalid($(this).find('.args'));
+					$(this).find('.args').on('input',function(e){
+						setValid($(this).find('.args'));
+					});
 					testcases_valid = false;
 				} else {
 					setValid($(this).find('.input'));
@@ -765,6 +792,9 @@
 				
 				if(output === ''){
 					setInvalid($(this).find('.output'));
+					$(this).find('.output').on('input',function(e){
+						setValid($(this).find('.output'));
+					});
 					testcases_valid = false;
 				} else {
 					setValid($(this).find('.output'));
@@ -772,6 +802,9 @@
 				
 				if(weight < 0 || weight % 1 != 0){
 					setInvalid($(this).find('.weight'));
+					$(this).find('.weight').on('input',function(e){
+						setValid($(this).find('.weight'));
+					});
 					testcases_valid = false;
 				} else {
 					setValid($(this).find('.weight'));
@@ -1124,6 +1157,9 @@
 		if(languageText == 'Java' && main_class == '') {
 			
 			setInvalid($('#main_class_input'));
+			$('#main_class_input'));.on('input',function(e){
+				setValid($('#main_class_input')););
+			});
 			return false;
 			
 		} else if(languageText != 'Java'){

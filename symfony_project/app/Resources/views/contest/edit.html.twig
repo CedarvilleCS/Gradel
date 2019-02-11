@@ -551,6 +551,9 @@ var contest_name = $('#contest-name').val().trim();
 
 if (contest_name == "") {
     setInvalid($('#contest-name'));
+    $('#contest-name').on('input',function(e){
+      setValid($('#contest-name'));
+    });
     toastr.warning("Contest name is not valid");
     return false;
 } else {
@@ -572,7 +575,11 @@ $('.contest-row').each(function () {
     var name = $(this).find('.contest-name').val();
 
     if (name == null || name.trim() == '') {
-        setInvalid($(this).find('.contest-name'));
+        var contestName = $(this).find('.contest-name');
+        setInvalid(contestName);
+        contestName.on('input',function(e){
+            setValid(contestName);
+        });
         toastr.warning('Every contest must have a name');
         brokenContest = true;
         return false;
@@ -585,7 +592,11 @@ $('.contest-row').each(function () {
     var end_date = $(this).find('.end-date').datepicker('getDate');
 
     if (!start_date || !end_date) {
-        setInvalid($(this).find('.start-date, .end-date'));
+        var startEnd = $(this).find('.start-date, .end-date');
+        setInvalid(startEnd);
+        startEnd.on('input',function(e){
+            setValid(startEnd);
+        });
         toastr.warning('Every date must have a value');
         brokenContest = true;
         return false;
@@ -594,7 +605,11 @@ $('.contest-row').each(function () {
     }
 
     if (start_date >= end_date) {
-        setInvalid($(this).find('.start-date, .end-date'));
+        var greaterStartEnd = $(this).find('.start-date, .end-date');
+        setInvalid(greaterStartEnd);
+        greaterStartEnd.on('input',function(e){
+            setValid(greaterStartEnd);
+        });
         toastr.warning('Dates within the contest conflict with each other');
         brokenContest = true;
         return false;
@@ -603,8 +618,15 @@ $('.contest-row').each(function () {
     }
 
     if (last_elem != null && last_date >= start_date) {
-        setInvalid($(this).find('.start-date'));
+        var nullStartEnd = $(this).find('.start-date');
+        setInvalid(nullStartEnd);
+        nullStartEnd.on('input',function(e){
+            setValid(nullStartEnd);
+        });
         setInvalid(last_elem);
+        last_elem.on('input',function(e){
+            setValid(last_elem);
+        });
         toastr.warning('Dates from two contests conflict with each other');
         brokenContest = true;
         return false;
@@ -619,7 +641,11 @@ $('.contest-row').each(function () {
     var min_freeze = $(this).find('.min-freeze').val();
 
     if (isNaN(hour_freeze) || hour_freeze < 0) {
-        setInvalid($(this).find('.hr-freeze'));
+        var hrFreeze = $(this).find('.hr-freeze');
+        setInvalid(hrFreeze);
+        hrFreeze.on('input',function(e){
+            setValid(hrFreeze);
+        });
         toastr.warning('Hours for scoreboard freezing must be a non-negative number');
         brokenContest = true;
         return false;
@@ -628,7 +654,11 @@ $('.contest-row').each(function () {
     }
 
     if (isNaN(min_freeze) || min_freeze < 0) {
-        setInvalid($(this).find('.min-freeze'));
+        var minFreeze = $(this).find('.min-freeze');
+        setInvalid(minFreeze);
+        minFreeze.on('input',function(e){
+            setValid(minFreeze);
+        });
         toastr.warning('Minutes for scoreboard freezing must be a non-negative number');
         brokenContest = true;
         return false;
@@ -660,6 +690,9 @@ console.log(contests);
 
 if (contests.length < 1) {
     setInvalid($('#contests-container'));
+    $('#contests-container').on('input',function(e){
+        setValid($('#contests-container'));
+    });
     toastr.warning('You need at least one contest');
     return false;
 } else {
@@ -681,6 +714,9 @@ if ($('#has-pre').prop('checked')) {
 var pen_per_compile = $('#penalty-per-compile-error').val();
 if (isNaN(pen_per_compile) || pen_per_compile < 0) {
     setInvalid($('#penalty-per-compile-error'));
+    $('#penalty-per-compile-error').on('input',function(e){
+        setValid($('#penalty-per-compile-error'));
+    });
     toastr.warning("Penalty per Compiler Error must be a non-negative integer");
     return false;
 } else {
@@ -691,6 +727,9 @@ if (isNaN(pen_per_compile) || pen_per_compile < 0) {
 var pen_per_time = $('#penalty-per-time-limit').val();
 if (isNaN(pen_per_time) || pen_per_time < 0) {
     setInvalid($('#penalty-per-time-limit'));
+    $('#penalty-per-time-limit').on('input',function(e){
+            setValid($('#penalty-per-time-limit'));
+        });
     toastr.warning("Penalty per Time Limit Error must be a non-negative integer");
     return false;
 } else {
@@ -701,6 +740,9 @@ if (isNaN(pen_per_time) || pen_per_time < 0) {
 var pen_per_runtime = $('#penalty-per-runtime-error').val();
 if (isNaN(pen_per_runtime) || pen_per_runtime < 0) {
     setInvalid($('#penalty-per-runtime-error'));
+    $('#penalty-per-runtime-error').on('input',function(e){
+        setValid($('#penalty-per-runtime-error'));
+    });
     toastr.warning("Penalty per Runtime Error must be a non-negative integer");
     return false;
 } else {
@@ -711,6 +753,9 @@ if (isNaN(pen_per_runtime) || pen_per_runtime < 0) {
 var pen_per_wrong = $('#penalty-per-wrong-answer').val();
 if (isNaN(pen_per_wrong) || pen_per_wrong < 0) {
     setInvalid($('#penalty-per-wrong-answer'));
+    $('#penalty-per-wrong-answer').on('input',function(e){
+        setValid($('#penalty-per-wrong-answer'));
+    });
     toastr.warning("Penalty per Wrong Answer must be a non-negative integer");
     return false;
 } else {
@@ -730,6 +775,9 @@ $('#language-pool .ui-selected').each(function () {
 
 if (languageArr.length < 1) {
     setInvalid($('#language-pool'));
+    $('#language-pool').on('input',function(e){
+        setValid($('#language-pool'));
+    });
     toastr.warning("You must select at least one language");
     return false;
 } else {
@@ -766,7 +814,11 @@ $('#team-picker .team').each(function () {
     var workstation_number = $(this).find('#workstation-number').spinner('value');
 
     if (workstation_number == null) {
-        setInvalid($(this).find('#workstation-number'));
+        var workstationNum = $(this).find('#workstation-number');
+        setInvalid(workstationNum);
+        workstationNum.on('input',function(e){
+            setValid(workstationNum);
+        });
         brokenTeams = true;
     } else {
         setValid($(this).find('#workstation-number'));

@@ -365,6 +365,9 @@
 			// problem name
 			if ($.trim($('#requiredFields #name').val())  === '') {						
 				setInvalid($('#requiredFields #name'));
+				$('#requiredFields #name').on('input',function(e){
+					setValid($('#requiredFields #name'));
+				});
 				toastr.warning("Problem name cannot be empty.");
 				return false;
 			} else {
@@ -374,6 +377,9 @@
 			// description
 			if ($.trim($('#requiredFields #description').val())  === '') {						
 				setInvalid($('#requiredFields #description'));
+				$('#requiredFields #description').on('input',function(e){
+					setValid($('#requiredFields #description'));
+				});
 				toastr.warning("Description cannot be empty.");
 				return false;
 			} else {
@@ -392,7 +398,11 @@
 				
 				
 				if(input === ''){
-					setInvalid($(this).find('.input'));
+					var invalidInput = $(this).find('.input');
+					setInvalid(invalidInput);
+					invalidInput.on('input',function(e){
+						setValid(invalidInput);
+					});
 					inputErrs.push(index);
 					testcases_valid = false;
 				} else {
@@ -400,7 +410,11 @@
 				}
 				
 				if(output === ''){
-					setInvalid($(this).find('.output'));
+					var invalidOutput = $(this).find('.output');
+					setInvalid(invalidOutput);
+					invalidOutput.on('input',function(e){
+						setValid(invalidOutput);
+					});
 					outputErrs.push(index);
 					testcases_valid = false;
 				} else {
@@ -656,6 +670,9 @@
 		if(languageText == 'Java' && main_class == '') {
 			
 			setInvalid($('#main_class_input'));
+			$('#main_class_input').on('input',function(e){
+				setValid($('#main_class_input'));
+			});
 			return false;
 			
 		} else if(languageText != 'Java'){

@@ -425,6 +425,9 @@
 			// section name
 			if ($.trim($('#name').val())  === '') {
 				setInvalid($('#name'));
+				$('#name').on('input',function(e){
+					setValid($('#name'));
+				});
 				return false;
 			} else {
 				setValid($('#name'));
@@ -433,7 +436,13 @@
 			// make sure that if one date is provided, the other one is too
 			if ($('#enddatepicker').val() == '' && $('#startdatepicker').val() != '' || $('#enddatepicker').val() != '' && $('#startdatepicker').val() == ''){
 				setInvalid($('#startdatepicker'));
+				$('#startdatepicker').on('input',function(e){
+					setValid($('#startdatepicker'));
+				});
 				setInvalid($('#enddatepicker'));
+				$('#enddatepicker').on('input',function(e){
+					setValid($('#enddatepicker'));
+				});
 				return false;
 			} else {
 				setValid($('#startdatepicker'));
@@ -443,6 +452,9 @@
 			// make sure that the dates make sense if they provided them
 			if ($('#enddatepicker').datepicker('getDate') < $('#startdatepicker').datepicker('getDate')){
 				setInvalid($('#enddatepicker'));
+				$('#enddatepicker').on('input',function(e){
+					setValid($('#enddatepicker'));
+				});
 				return false;
 			} else {
 				setValid($('#enddatepicker'));
