@@ -326,7 +326,7 @@
 
 			if(question == ""){
 				setInvalid($('#clarification-form #question'));
-				$('#clarification-form #question').on('change',function(e){
+				$('#clarification-form #question').on('input',function(e){
 					setValid($('#clarification-form #question'));
 				});
 				return false;

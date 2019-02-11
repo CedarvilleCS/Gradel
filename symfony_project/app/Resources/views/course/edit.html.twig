@@ -119,7 +119,7 @@
 				// course name
 				if ($.trim($('#name').val())  === '') {						
 					setInvalid($('#name'));
-					$('#name').on('change',function(e){
+					$('#name').on('input',function(e){
 						setValid($('#name'));
 					});
 					return false;
@@ -130,7 +130,7 @@
 				// course code
 				if ($.trim($('#code').val())  === '') {						
 					setInvalid($('#code'));
-					$('#code').on('change',function(e){
+					$('#code').on('input',function(e){
 						setValid($('#code'));
 					});
 					return false;
@@ -141,7 +141,7 @@
 				// course description
 				if ($.trim($('#description').val())  === '') {						
 					setInvalid($('#description'));
-					$('#description').on('change',function(e){
+					$('#description').on('input',function(e){
 						setValid($('#description'));
 					});
 					return false;
