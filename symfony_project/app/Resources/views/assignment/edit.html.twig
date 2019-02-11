@@ -299,11 +299,11 @@
 				// compare dates
 				if ($('#closedatepicker').datepicker('getDate') < $('#opendatepicker').datepicker('getDate')){
 					setInvalid($('#closedatepicker'));
-					$('#closedatepicker').on('input',function(e){
+					$('#closedatepicker').on('change',function(e){
 						setValid($('#closedatepicker'));
 					});
 					setInvalid($('#opendatepicker'));
-					$('#opendatepicker').on('input',function(e){
+					$('#opendatepicker').on('change',function(e){
 						setValid($('#opendatepicker'));
 					});
 					toastr.warning("Close date must be after open date");
@@ -315,7 +315,7 @@
 				
 				if ($('#cutoffdatepicker').val() != '' && $('#cutoffdatepicker').datepicker('getDate') < $('#closedatepicker').datepicker('getDate')){
 					setInvalid($('#cutoffdatepicker'));
-					$('#cutoffdatepicker').on('input',function(e){
+					$('#cutoffdatepicker').on('change',function(e){
 						setValid($('#cutoffdatepicker'));
 					});
 					toastr.warning("Cutoff date must be after close date");

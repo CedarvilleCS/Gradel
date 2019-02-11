@@ -776,13 +776,15 @@
 				const weight = $(this).find('.weight').val();
 				
 				if(input === '' && args === ''){
-					setInvalid($(this).find('.input'));
-					$(this).find('.input').on('input',function(e){
-						setValid($(this).find('.input'));
+					var currInput = $(this).find('.input');
+					setInvalid(currInput);
+					currInput.on('input',function(e){
+						setValid(currInput);
 					});
-					setInvalid($(this).find('.args'));
-					$(this).find('.args').on('input',function(e){
-						setValid($(this).find('.args'));
+					var currArgs = $(this).find('.args');
+					setInvalid();
+					currArgs.on('input',function(e){
+						setValid(currArgs);
 					});
 					testcases_valid = false;
 				} else {
@@ -791,9 +793,10 @@
 				}
 				
 				if(output === ''){
-					setInvalid($(this).find('.output'));
-					$(this).find('.output').on('input',function(e){
-						setValid($(this).find('.output'));
+					var currOutput = $(this).find('.output');
+					setInvalid(currOutput);
+					currOutput.on('input',function(e){
+						setValid(currOutput);
 					});
 					testcases_valid = false;
 				} else {
@@ -801,9 +804,10 @@
 				}
 				
 				if(weight < 0 || weight % 1 != 0){
-					setInvalid($(this).find('.weight'));
-					$(this).find('.weight').on('input',function(e){
-						setValid($(this).find('.weight'));
+					var currWeight = $(this).find('.weight');
+					setInvalid(currWeight);
+					currWeight.on('input',function(e){
+						setValid(currWeight);
 					});
 					testcases_valid = false;
 				} else {

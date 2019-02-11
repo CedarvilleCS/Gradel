@@ -775,7 +775,7 @@ $('#language-pool .ui-selected').each(function () {
 
 if (languageArr.length < 1) {
     setInvalid($('#language-pool'));
-    $('#language-pool').on('input',function(e){
+    $('#language-pool').on('change',function(e){
         setValid($('#language-pool'));
     });
     toastr.warning("You must select at least one language");
