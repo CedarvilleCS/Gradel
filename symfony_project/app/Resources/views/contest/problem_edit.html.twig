@@ -365,7 +365,7 @@
 			// problem name
 			if ($.trim($('#requiredFields #name').val())  === '') {						
 				setInvalid($('#requiredFields #name'));
-				$('#requiredFields #name').on('input',function(e){
+				$('#requiredFields #name').on('change',function(e){
 					setValid($('#requiredFields #name'));
 				});
 				toastr.warning("Problem name cannot be empty.");
@@ -377,7 +377,7 @@
 			// description
 			if ($.trim($('#requiredFields #description').val())  === '') {						
 				setInvalid($('#requiredFields #description'));
-				$('#requiredFields #description').on('input',function(e){
+				$('#requiredFields #description').on('change',function(e){
 					setValid($('#requiredFields #description'));
 				});
 				toastr.warning("Description cannot be empty.");
@@ -400,7 +400,7 @@
 				if(input === ''){
 					var invalidInput = $(this).find('.input');
 					setInvalid(invalidInput);
-					invalidInput.on('input',function(e){
+					invalidInput.on('change',function(e){
 						setValid(invalidInput);
 					});
 					inputErrs.push(index);
@@ -412,7 +412,7 @@
 				if(output === ''){
 					var invalidOutput = $(this).find('.output');
 					setInvalid(invalidOutput);
-					invalidOutput.on('input',function(e){
+					invalidOutput.on('change',function(e){
 						setValid(invalidOutput);
 					});
 					outputErrs.push(index);
@@ -670,7 +670,7 @@
 		if(languageText == 'Java' && main_class == '') {
 			
 			setInvalid($('#main_class_input'));
-			$('#main_class_input').on('input',function(e){
+			$('#main_class_input').on('change',function(e){
 				setValid($('#main_class_input'));
 			});
 			return false;

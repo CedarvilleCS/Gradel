@@ -728,7 +728,7 @@
 
                         if (question == "") {
                             setInvalid($('#clarification-form #question'));
-                            $('#clarification-form #question').on('input',function(e){
+                            $('#clarification-form #question').on('change',function(e){
                                 setValid($('#clarification-form #question'));
                             });
                             return false;
@@ -830,7 +830,7 @@
                             if (languageText == 'Java' && main_class == '') {
 
                                 setInvalid($('#main_class_input'));
-                                $('#main_class_input').on('input',function(e){
+                                $('#main_class_input').on('change',function(e){
                                     setValid($('#main_class_input'));
                                 });
                                 return false;
@@ -882,7 +882,7 @@
                             if (languageText == 'Java' && main_class == '') {
 
                                 setInvalid($('#main_class_input'));
-                                $('#main_class_input').on('input',function(e){
+                                $('#main_class_input').on('change',function(e){
                                     setValid($('#main_class_input'));
                                 });
                                 return false;

@@ -605,7 +605,10 @@
 
 			if(languageText == 'Java' && main_class == '') {
 			
-				setInvalid($('#main_class_input'));				
+				setInvalid($('#main_class_input'));
+				$('#main_class_input').on('change',function(e){
+					setValid($('#main_class_input'));
+				});			
 				return false;
 				
 			} else if(languageText != 'Java'){

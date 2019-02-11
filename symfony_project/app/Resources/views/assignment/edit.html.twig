@@ -299,11 +299,11 @@
 				// compare dates
 				if ($('#closedatepicker').datepicker('getDate') < $('#opendatepicker').datepicker('getDate')){
 					setInvalid($('#closedatepicker'));
-					$('#closedatepicker').on('input',function(e){
+					$('#closedatepicker').on('change',function(e){
 						setValid($('#closedatepicker'));
 					});
 					setInvalid($('#opendatepicker'));
-					$('#opendatepicker').on('input',function(e){
+					$('#opendatepicker').on('change',function(e){
 						setValid($('#opendatepicker'));
 					});
 					toastr.warning("Close date must be after open date");
@@ -315,7 +315,7 @@
 				
 				if ($('#cutoffdatepicker').val() != '' && $('#cutoffdatepicker').datepicker('getDate') < $('#closedatepicker').datepicker('getDate')){
 					setInvalid($('#cutoffdatepicker'));
-					$('#cutoffdatepicker').on('input',function(e){
+					$('#cutoffdatepicker').on('change',function(e){
 						setValid($('#cutoffdatepicker'));
 					});
 					toastr.warning("Cutoff date must be after close date");
@@ -328,7 +328,7 @@
 				var wght = new Number($('#weight').val());
 				if($('#weight').val() === '' || ($('#weight').val() != '' && (wght < 0 || wght % 1 != 0))){						
 					setInvalid($('#weight'));
-					$('#weight').on('input',function(e){
+					$('#weight').on('change',function(e){
 						setValid($('#weight'));
 					});
 					toastr.warning("Weight must be a positive integer");
@@ -341,7 +341,7 @@
 				var pen = new Number($('#penalty').val());
 				if($('#penalty').val() === '' || !(pen >= 0.0 && pen <= 1.0)){						
 					setInvalid($('#penalty'));
-					$('#penalty').on('input',function(e){
+					$('#penalty').on('change',function(e){
 						setValid($('#penalty'));
 					});
 					
@@ -355,7 +355,7 @@
 				// teams
 				if(!validateTeams() && !team_warning){
 					setInvalid($('#team-picker'));
-					$('#team-picker').on('input',function(e){
+					$('#team-picker').on('change',function(e){
 						setValid($('#team-picker'));
 					});	
 					team_warning = true;
