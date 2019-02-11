@@ -68,11 +68,13 @@
                  }
              }'></div>
 
-        <div class="floatingControls">
-            <a href="{{path('contest_problem_edit', {'contestId': problem.assignment.section.id, 'roundId': problem.assignment.id, 'problemId': problem.id})}}" class="floatingLink">
-                <div class="floatingButton">Edit Problem</div>
-            </a>
-        </div>
+        {% if elevatedUser %}
+            <div class="floatingControls">
+                <a href="{{path('contest_problem_edit', {'contestId': problem.assignment.section.id, 'roundId': problem.assignment.id, 'problemId': problem.id})}}" class="floatingLink">
+                    <div class="floatingButton">Edit Problem</div>
+                </a>
+            </div>
+        {% endif %}
 
         <section id="main" class="scrolly">
 
@@ -80,7 +82,7 @@
 
                 <div id="courseInfo" class="card-contents">
 
-                    {% if elevatedUser or(contest_open and problem.assignment.cutoff_time | date('U') > "now" | date('U')) %}
+                    {% if elevatedUser or (contest_open and problem.assignment.cutoff_time | date('U') > "now" | date('U')) %}
 
                         <div class="markdown-container">
 
