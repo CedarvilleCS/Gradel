@@ -317,7 +317,7 @@ class ContestPagesController extends Controller {
             $extra_query = "";
         }
         
-        $qb_queries = $this->queryService->getQueriesForContestPagesProblem($extra_query, $problem, $team);
+        $queries = $this->queryService->getQueriesForContestPagesProblem($extra_query, $problem, $team);
         
         /* Set open/not open */
         $currTime = new \DateTime("now");
