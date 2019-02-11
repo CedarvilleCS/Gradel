@@ -299,7 +299,13 @@
 				// compare dates
 				if ($('#closedatepicker').datepicker('getDate') < $('#opendatepicker').datepicker('getDate')){
 					setInvalid($('#closedatepicker'));
+					$('#closedatepicker').on('change',function(e){
+						setValid($('#closedatepicker'));
+					});
 					setInvalid($('#opendatepicker'));
+					$('#opendatepicker').on('change',function(e){
+						setValid($('#opendatepicker'));
+					});
 					toastr.warning("Close date must be after open date");
 					return false;
 				} else {
@@ -309,6 +315,9 @@
 				
 				if ($('#cutoffdatepicker').val() != '' && $('#cutoffdatepicker').datepicker('getDate') < $('#closedatepicker').datepicker('getDate')){
 					setInvalid($('#cutoffdatepicker'));
+					$('#cutoffdatepicker').on('change',function(e){
+						setValid($('#cutoffdatepicker'));
+					});
 					toastr.warning("Cutoff date must be after close date");
 					return false;
 				} else {
@@ -319,6 +328,9 @@
 				var wght = new Number($('#weight').val());
 				if($('#weight').val() === '' || ($('#weight').val() != '' && (wght < 0 || wght % 1 != 0))){						
 					setInvalid($('#weight'));
+					$('#weight').on('input',function(e){
+						setValid($('#weight'));
+					});
 					toastr.warning("Weight must be a positive integer");
 					return false;
 				} else {
@@ -329,6 +341,9 @@
 				var pen = new Number($('#penalty').val());
 				if($('#penalty').val() === '' || !(pen >= 0.0 && pen <= 1.0)){						
 					setInvalid($('#penalty'));
+					$('#penalty').on('input',function(e){
+						setValid($('#penalty'));
+					});
 					
 					toastr.warning("Penalty per day late must be a value between 0 and 1");
 					
@@ -339,7 +354,10 @@
 				
 				// teams
 				if(!validateTeams() && !team_warning){
-					setInvalid($('#team-picker'));	
+					setInvalid($('#team-picker'));
+					$('#team-picker').on('input',function(e){
+						setValid($('#team-picker'));
+					});	
 					team_warning = true;
 					
 					toastr.warning("Not everyone is assigned to a team - Press save again to override");
@@ -383,8 +401,7 @@
 					teamids: JSON.stringify(teamarray[2])
 					
 				}, function(data) {			
-					console.log(data);					
-					window.location = "{{path('section', {'sectionId': section.id})}}";
+					window.location = `${path({'section': data.assignment.sectionId, 'assignment': data.assignment.id})}`;
 					
 				}).fail(function(data) {				
 					toastr.warning(data["responseText"]);					
