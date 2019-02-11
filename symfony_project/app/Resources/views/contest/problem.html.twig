@@ -728,6 +728,9 @@
 
                         if (question == "") {
                             setInvalid($('#clarification-form #question'));
+                            $('#clarification-form #question').on('input',function(e){
+                                setValid($('#clarification-form #question'));
+                            });
                             return false;
                         } else {
                             setValid($('#clarification-form #question'));
@@ -827,6 +830,9 @@
                             if (languageText == 'Java' && main_class == '') {
 
                                 setInvalid($('#main_class_input'));
+                                $('#main_class_input').on('input',function(e){
+                                    setValid($('#main_class_input'));
+                                });
                                 return false;
 
                             } else if (languageText != 'Java') {
@@ -876,6 +882,9 @@
                             if (languageText == 'Java' && main_class == '') {
 
                                 setInvalid($('#main_class_input'));
+                                $('#main_class_input').on('input',function(e){
+                                    setValid($('#main_class_input'));
+                                });
                                 return false;
 
                             } else if (languageText != 'Java') {
