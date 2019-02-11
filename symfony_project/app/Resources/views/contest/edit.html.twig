@@ -594,7 +594,7 @@ $('.contest-row').each(function () {
     if (!start_date || !end_date) {
         var startEnd = $(this).find('.start-date, .end-date');
         setInvalid(startEnd);
-        startEnd.on('change',function(e){
+        startEnd.on('input',function(e){
             setValid(startEnd);
         });
         toastr.warning('Every date must have a value');
@@ -607,7 +607,7 @@ $('.contest-row').each(function () {
     if (start_date >= end_date) {
         var greaterStartEnd = $(this).find('.start-date, .end-date');
         setInvalid(greaterStartEnd);
-        greaterStartEnd.on('change',function(e){
+        greaterStartEnd.on('input',function(e){
             setValid(greaterStartEnd);
         });
         toastr.warning('Dates within the contest conflict with each other');
@@ -620,11 +620,11 @@ $('.contest-row').each(function () {
     if (last_elem != null && last_date >= start_date) {
         var nullStartEnd = $(this).find('.start-date');
         setInvalid(nullStartEnd);
-        nullStartEnd.on('change',function(e){
+        nullStartEnd.on('input',function(e){
             setValid(nullStartEnd);
         });
         setInvalid(last_elem);
-        last_elem.on('change',function(e){
+        last_elem.on('input',function(e){
             setValid(last_elem);
         });
         toastr.warning('Dates from two contests conflict with each other');
