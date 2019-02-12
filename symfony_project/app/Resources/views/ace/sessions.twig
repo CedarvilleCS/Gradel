@@ -211,14 +211,14 @@
 
 		{% if not result_route and not edit_route %}
 		$("#file-markers ul").append(
-			"<li class='tabs' id='test-code-tab-user-" + num_tabs + "-marker'><a href='#test-code-tab-user-" + num_tabs + "'>" 
+			"<li class='tabs' id='test-code-tab-user-" + num_tabs + "-marker'><a>" 
 				+ "<input class='tab-filename' readonly='true' {% if problem.allow_multiple %} ondblclick='this.readOnly=\"\";' onblur='this.readOnly=\"true\"' {% endif %} type='text' value='filename" + num_tabs + getFiletype() + "'></a>"
 				+ '<input type="hidden" name="ACE" id="ACE' + num_tabs + '">'
 			+ "</li>"
 		);
 		{% else %}
 		$("#file-markers ul").append(
-			"<li class='tabs' id='test-code-tab-user-" + num_tabs + "-marker'><a href='#test-code-tab-user-" + num_tabs + "'>" 
+			"<li class='tabs' id='test-code-tab-user-" + num_tabs + "-marker'><a>" 
 				+ "<input class='tab-filename' readonly='true' {% if problem.allow_multiple %} ondblclick='this.readOnly=\"\";' onblur='this.readOnly=\"true\"' {% endif %} type='text' value='filename" + num_tabs + ".file'></a>"
 				+ '<input type="hidden" name="ACE" id="ACE' + num_tabs + '">'
 			+ "</li>"
