@@ -305,11 +305,10 @@ class Generator  {
 		$submission->exceeded_time_limit = $submission_is_timelimit; 
 		$submission->max_runtime = $submission_max_runtime;
 		$submission->percentage = $submission_percentage;
-		if ($testcase_is_correct ) {
+
+		if ($correct_testcase_count == $problem->testcases->count()) {
 			$submission->judge_message = "Correct";
 		}
-
-		$solvedAllTestcases = ($correct_testcase_count == $problem->testcases->count());
 		
 		/* return 1 on success */
 		return 1;		

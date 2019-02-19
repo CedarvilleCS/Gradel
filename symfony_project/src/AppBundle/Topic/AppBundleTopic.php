@@ -71,7 +71,6 @@ class AppBundleTopic implements TopicInterface
      */
     public function onSubscribe(ConnectionInterface $connection, Topic $topic, WampRequest $request)
     {
-        $this->logError("OnSubscribe");
         //this will broadcast the message to ALL subscribers of this topic.
         $user = $this->clientManipulator->getClient($connection);
 
@@ -90,7 +89,6 @@ class AppBundleTopic implements TopicInterface
      */
     public function onUnSubscribe(ConnectionInterface $connection, Topic $topic, WampRequest $request)
     {
-        $this->logError("OnUnSubscribe");
         //this will broadcast the message to ALL subscribers of this topic.
         $this->numUsers -= 1;
 
@@ -111,7 +109,6 @@ class AppBundleTopic implements TopicInterface
      */
     public function onPublish(ConnectionInterface $connection, Topic $topic, WampRequest $request, $event, array $exclude, array $eligible)
     {
-        $this->logError("OnPublish");
         $this->em->clear();
         
         $user = $this->clientManipulator->getClient($connection);
@@ -332,7 +329,6 @@ class AppBundleTopic implements TopicInterface
     }
 
     public function broadcastMessage($recipients, $topic, $message) {
-        $this->logError("broadcastMessage");
         $users = $this->clientManipulator->getAll($topic);
 
         foreach($users as $u) {
@@ -349,7 +345,6 @@ class AppBundleTopic implements TopicInterface
     }
 
     public function buildMessage($msg, $type, $submissionId = -1) {
-        $this->logError("buildMessage");
         $message = [];
        
         $message['msg'] = $msg;
@@ -365,7 +360,6 @@ class AppBundleTopic implements TopicInterface
 
     public function onPush(Topic $topic, WampRequest $request, $data, $provider)
     {
-        $this->logError("onPush");
         dump("Pushing");
     }
 

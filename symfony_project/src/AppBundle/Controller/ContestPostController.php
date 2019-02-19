@@ -455,6 +455,7 @@ class ContestPostController extends Controller {
             
         /* PENALTY POINTS */
         $penaltyPerWrongAnswer = trim($postData["pen_per_wrong"]);
+        $this->logError(json_encode($postData));
         if (!is_numeric($penaltyPerWrongAnswer) || $penaltyPerWrongAnswer < 0 || $penaltyPerWrongAnswer != round($penaltyPerWrongAnswer)) {	
             return $this->returnForbiddenResponse("THE PROVIDED PENALTY PER WRONG ANSWER ".$penaltyPerWrongAnswer." IS NOT PERMITTED");
         }
