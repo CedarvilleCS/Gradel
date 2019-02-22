@@ -256,7 +256,6 @@ class ProblemController extends Controller {
     }
 
      public function editAction($sectionId, $assignmentId, $problemId) {
-         $this->logError("Made it");
         /* Validate the user */
         $user = $this->userService->getCurrentUser();
         if (!$user) {
