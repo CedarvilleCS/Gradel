@@ -125,9 +125,9 @@
 	
 	var freeze = {{current_contest.freeze_time|date('U')}} - {{current_contest.start_time|date('U')}}; // time into contest that it freezes
 	
-	var frozen = (Math.floor(Date.now()/1000) >= {{current_contest.freeze_time|date('U')}}) ? true : false;
-	{% if elevatedUser %}
-		frozen = false;
+	var frozen = false;
+	{% if not elevatedUser %}
+		frozen = (Math.floor(Date.now()/1000) >= {{current_contest.freeze_time|date('U')}}) ? true : false;
 	{% endif %}
 
 	$(document).ready( function() {
