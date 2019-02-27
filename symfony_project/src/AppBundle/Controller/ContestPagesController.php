@@ -100,13 +100,13 @@ class ContestPagesController extends Controller {
         $user = $this->userService->getCurrentUser();
 
         if (!$user) {
-            return returnForbiddenResponse("USER DOES NOT EXIST");
+            return $this->returnForbiddenResponse("USER DOES NOT EXIST");
         }
 
         /* VALIDATION */
         $section = $this->sectionService->getSectionById($contestId);
         if (!$section || !$section->course->is_contest) {
-            return returnForbiddenResponse("CONTEST DOES NOT EXIST!");
+            return $this->returnForbiddenResponse("CONTEST DOES NOT EXIST!");
         }
         
         $elevatedUser = $this->graderService->isJudging($user, $section) || $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN");
@@ -144,7 +144,7 @@ class ContestPagesController extends Controller {
         }
     
         if (!$current || $current->section != $section) {
-            return returnForbiddenResponse("ROUND DOES NOT EXIST");
+            return $this->returnForbiddenResponse("ROUND DOES NOT EXIST");
         }
 
         /* Check to see if you need to populate the post contest */
@@ -232,23 +232,23 @@ class ContestPagesController extends Controller {
     public function problemAction($contestId, $roundId, $problemId) {
         $user = $this->userService->getCurrentUser();
         if (!$user) {
-            return returnForbiddenResponse("USER DOES NOT EXIST");
+            return $this->returnForbiddenResponse("USER DOES NOT EXIST");
         }
 
         /* VALIDATION */
         $section = $this->sectionService->getSectionById($contestId);
         if (!$section || !$section->course->is_contest) {
-            return returnForbiddenResponse("404 - CONTEST DOES NOT EXIST!");
+            return $this->returnForbiddenResponse("404 - CONTEST DOES NOT EXIST!");
         }
         
         $round = $this->contestService->getContestById($roundId);
         if (!$round || $round->section != $section) {
-            return returnForbiddenResponse("404 - ASSIGNMENT DOES NOT EXIST!");
+            return $this->returnForbiddenResponse("404 - ASSIGNMENT DOES NOT EXIST!");
         }
         
         $problem = $this->problemService->getProblemById($problemId);
         if (!$problem || $problem->assignment != $round) {
-            return returnForbiddenResponse("404 - PROBLEM DOES NOT EXIST!");
+            return $this->returnForbiddenResponse("404 - PROBLEM DOES NOT EXIST!");
         }
 
         $elevatedUser = $this->graderService->isJudging($user, $section) || $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN");
@@ -317,7 +317,7 @@ class ContestPagesController extends Controller {
             $extra_query = "";
         }
         
-        $qb_queries = $this->queryService->getQueriesForContestPagesProblem($extra_query, $problem, $team);
+        $queries = $this->queryService->getQueriesForContestPagesProblem($extra_query, $problem, $team);
         
         /* Set open/not open */
         $currTime = new \DateTime("now");
@@ -349,7 +349,7 @@ class ContestPagesController extends Controller {
             }
             
             if (!$elevatedUser && !($sameTeam || $sameUser || $submission->problem == $problem)) {
-                return returnForbiddenResponse("YOU ARE NOT ALLOWED TO EDIT THE SUBMISSION ON THIS PROBLEM");
+                return $this->returnForbiddenResponse("YOU ARE NOT ALLOWED TO EDIT THE SUBMISSION ON THIS PROBLEM");
             }
             
             if (!$trial) {
@@ -392,12 +392,12 @@ class ContestPagesController extends Controller {
     public function judgingAction($contestId, $roundId) {
         $user = $this->userService->getCurrentUser();
         if (!$user) {
-            return returnForbiddenResponse("USER DOES NOT EXIST");
+            return $this->returnForbiddenResponse("USER DOES NOT EXIST");
         }
 
         $section = $this->sectionService->getSectionById($contestId);
         if (!$section || !$section->course->is_contest) {
-            return returnForbiddenResponse("CONTEST DOES NOT EXIST!");
+            return $this->returnForbiddenResponse("CONTEST DOES NOT EXIST!");
         }
         
         $allContests = $section->assignments;
@@ -406,7 +406,7 @@ class ContestPagesController extends Controller {
         $current = $this->contestService->getContestById($roundId);
         
         if (!$current || $current->section != $section) {
-            return returnForbiddenResponse("404 - CONTEST DOES NOT EXIST");
+            return $this->returnForbiddenResponse("404 - CONTEST DOES NOT EXIST");
         }	
         
         $elevatedUser = $this->graderService->isJudging($user, $section) || $user->hasRole("ROLE_SUPER") || $user->hasRole("ROLE_ADMIN");
@@ -502,23 +502,23 @@ class ContestPagesController extends Controller {
     public function problemEditAction($contestId, $roundId, $problemId) {
         $user = $this->userService->getCurrentUser();
         if (!$user) {
-            return returnForbiddenResponse("USER DOES NOT EXIST");
+            return $this->returnForbiddenResponse("USER DOES NOT EXIST");
         }
         
         $section = $this->sectionService->getSectionById($contestId);
         if (!$section || !$section->course->is_contest) {
-            return returnForbiddenResponse("SECTION (CONTEST) DOES NOT EXIST!");
+            return $this->returnForbiddenResponse("SECTION (CONTEST) DOES NOT EXIST!");
         }
         
         $contest = $this->contestService->getContestById($roundId);
         if (!$contest || $contest->section != $section) {
-            return returnForbiddenResponse("ASSIGNMENT (ROUND) DOES NOT EXIST!");
+            return $this->returnForbiddenResponse("ASSIGNMENT (ROUND) DOES NOT EXIST!");
         }
         
         if ($problemId != 0) {
             $problem = $this->problemService->getProblemById($problemId);
             if (!$problem || $problem->assignment != $contest) {
-                return returnForbiddenResponse("PROBLEM DOES NOT EXIST!");
+                return $this->returnForbiddenResponse("PROBLEM DOES NOT EXIST!");
             }
         } else {
             $problem = null;			
@@ -560,7 +560,7 @@ class ContestPagesController extends Controller {
     public function contestEditAction($contestId) {
         $user = $this->userService->getCurrentUser();
         if (!$user) {
-            return returnForbiddenResponse("USER DOES NOT EXIST");
+            return $this->returnForbiddenResponse("USER DOES NOT EXIST");
         }
 
         /* VALIDATION */
@@ -568,7 +568,7 @@ class ContestPagesController extends Controller {
             $section = $this->sectionService->getSectionById($contestId);
 
             if (!$section || !$section->course->is_contest) {
-                return returnForbiddenResponse("404 - SECTION (CONTEST) DOES NOT EXIST!");
+                return $this->returnForbiddenResponse("404 - SECTION (CONTEST) DOES NOT EXIST!");
             }
             
             $course = $section->course;
@@ -623,27 +623,27 @@ class ContestPagesController extends Controller {
     public function resultAction($contestId, $roundId, $problemId, $resultId) {
         $user = $this->userService->getCurrentUser();
         if (!$user) {
-            return returnForbiddenResponse("USER DOES NOT EXIST");
+            return $this->returnForbiddenResponse("USER DOES NOT EXIST");
         }
         
         $section = $this->sectionService->getSectionById($contestId);
         if (!$section || !$section->course->is_contest) {
-            return returnForbiddenResponse("404 - CONTEST DOES NOT EXIST!");
+            return $this->returnForbiddenResponse("404 - CONTEST DOES NOT EXIST!");
         }
         
         $round = $this->contestService->getContestById($roundId);
         if (!$round || $round->section != $section) {
-            return returnForbiddenResponse("404 - ASSIGNMENT DOES NOT EXIST!");
+            return $this->returnForbiddenResponse("404 - ASSIGNMENT DOES NOT EXIST!");
         }
         
         $problem = $this->problemService->getProblemById($problemId);
         if (!$problem || $problem->assignment != $round) {
-            return returnForbiddenResponse("404 - PROBLEM DOES NOT EXIST!");
+            return $this->returnForbiddenResponse("404 - PROBLEM DOES NOT EXIST!");
         }	
 
         $submission = $this->submissionService->getSubmissionById($resultId);
         if (!$submission || $submission->problem != $problem || !$submission->is_completed) {
-            return returnForbiddenResponse("404 - SUBMISSION DOES NOT EXIST");
+            return $this->returnForbiddenResponse("404 - SUBMISSION DOES NOT EXIST");
         }
 
         $elevatedUser = $this->graderService->isJudging($user, $section) || $user->hasRole(Constants::SUPER_ROLE) || $user->hasRole(Constants::ADMIN_ROLE);
@@ -674,19 +674,19 @@ class ContestPagesController extends Controller {
     public function scoreboardAction($contestId, $roundId) {
         $user = $this->userService->getCurrentUser();
         if (!$user) {
-            return returnForbiddenResponse("404 - USER DOES NOT EXIST");
+            return $this->returnForbiddenResponse("404 - USER DOES NOT EXIST");
         }
 
         /* VALIDATION */
         $section = $this->sectionService->getSectionById($contestId);
 
         if (!$section || !$section->course->is_contest) {
-            return returnForbiddenResponse("404 - CONTEST DOES NOT EXIST!");
+            return $this->returnForbiddenResponse("404 - CONTEST DOES NOT EXIST!");
         }
         
         $round = $this->contestService->getContestById($roundId);
         if (!$round || $round->section != $section) {
-            return returnForbiddenResponse("404 - ROUND DOES NOT EXIST!");
+            return $this->returnForbiddenResponse("404 - ROUND DOES NOT EXIST!");
         }
         
         if (is_object($user)) {
