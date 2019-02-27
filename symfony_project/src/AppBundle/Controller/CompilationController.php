@@ -174,11 +174,8 @@ class CompilationController extends Controller {
 
         /* INITIALIZE THE SUBMISSION */
         /* create an entity for the current submission from the trial */
-        $this->logError("Made it");
         $submission = $this->submissionService->createSubmissionFromTrialAndTeamForCompilationSubmit($trial, $team);
-        $this->logError($trial->id);
         $this->submissionService->insertSubmission($submission);
-        $this->logError("Made it again");
         
         /* SETTING UP FOLDERS */
         $subDirectory = $webDirectory."compilation/submissions/".$submission->id."/";
@@ -481,7 +478,7 @@ class CompilationController extends Controller {
         $outputFileDirectory = $subDirectory."output_files/";
         $argFileDirectory = $subDirectory."arg_files/";
         
-        $userOutputDirectory = $subDirectory."user_output/";		
+        $userOutputDirectory = $subDirectory."user_output/";
         
         /* Create all of the folders */
         /* Make the directory for the submission output */
@@ -550,7 +547,7 @@ class CompilationController extends Controller {
             
         if ($response !== true) {
             return $this->returnForbiddenResponse($response."");
-        }		
+        }
         
         /* Make a zip file and set file = fopen(zip location) */
         $file = fopen($targetFile, "r");		
@@ -648,7 +645,6 @@ class CompilationController extends Controller {
         /* PARSE FOR SUBMISSION */
         $testcases = [];
         $submissionGeneratorResult = $generator->generateOutput($testcases, $submission, count($problem->testcases));
-
         if ($submissionGeneratorResult != 1) {
             return $this->returnForbiddenResponse($submissionGeneratorResult."");
         }
@@ -656,10 +652,15 @@ class CompilationController extends Controller {
         /* Remove temporary folders and databases */
         $this->cleanUp($submission, $problem, $subDirectory, $uploadsDirectory);
 
+        $testcases = json_encode($testcases);
+        if ($testcases === false) {
+            return $this->returnForbiddenResponse("YOUR OUTPUT CONTAINED A BAD VALUE");
+        }
+
         /* Return the testcases of the result */
-        $response = new Response(json_encode([
-            "testcases" => $testcases,	
-        ]));
+        $response = new Response([
+            "testcases" => $testcases
+        ]);
 
         return $this->returnOkResponse($response);
     }
