@@ -19,6 +19,7 @@ use AppBundle\Service\AssignmentService;
 use AppBundle\Service\CourseService;
 use AppBundle\Service\GraderService;
 use AppBundle\Service\RoleService;
+use AppBundle\Service\ProblemService;
 use AppBundle\Service\SectionService;
 use AppBundle\Service\SemesterService;
 use AppBundle\Service\SubmissionService;
@@ -48,6 +49,7 @@ class SectionController extends Controller {
     private $courseService;
     private $graderService;
     private $logger;
+    private $problemService;
     private $roleService;
     private $sectionService;
     private $semesterService;
@@ -61,6 +63,7 @@ class SectionController extends Controller {
                                 CourseService $courseService,
                                 GraderService $graderService,
                                 LoggerInterface $logger,
+                                ProblemService $problemService,
                                 RoleService $roleService,
                                 SectionService $sectionService,
                                 SemesterService $semesterService,
@@ -73,6 +76,7 @@ class SectionController extends Controller {
         $this->courseService = $courseService;
         $this->graderService = $graderService;
         $this->logger = $logger;
+        $this->problemService = $problemService;
         $this->roleService = $roleService;
         $this->sectionService = $sectionService;
         $this->semesterService = $semesterService;
@@ -600,8 +604,11 @@ class SectionController extends Controller {
                         }
                     }
                     if ($isInSlave) {
+                        foreach ($slaveAssignment->problems as $slaveProblem) {
+                            $this->problemService->deleteProblem($slaveProblem, false);
+                        }
                         $this->assignmentService->deleteAssignment($slaveAssignment, false);
-                        $sectionSlave->assignments->remove($slaveAssignment);
+                        // $sectionSlave->assignments->remove($slaveAssignment);
                     }
 
                     $masterAssignmentToClone->section = $sectionSlave;

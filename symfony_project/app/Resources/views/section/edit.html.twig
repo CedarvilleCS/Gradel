@@ -38,7 +38,7 @@
     {# Left Nav for Section Edit#}
     <nav class="floatingControls">
 		<a id="save-btn" class="floatingLink">
-			<div class="floatingButton">Save</div>
+			<div class="floatingButton">Save {% if not section.master %} - Will update slaves {% endif %}</div>
 		</a>
 		<a id="cancel-btn" class="floatingLink">
 			<div class="floatingButton">Cancel</div>
