@@ -585,6 +585,36 @@ class SectionController extends Controller {
             }
         }
 
+        if ($section->master_id == null && !$section->course->is_contest && count($section->slaves) > 0) {
+            $this->logError("Updating slaves");
+
+            foreach ($section->slaves as $sectionSlave) {
+                /* Assignments */
+                foreach ($section->assignments as $masterAssignment) {
+                    $isInSlave = false;
+                    $masterAssignmentToClone = clone $masterAssignment;
+                    foreach ($sectionSlave->assignments as $slaveAssignment) {
+                        if ($slaveAssignment->name == $masterAssignment->name) {
+                            $isInSlave = true;
+                            break;
+                        }
+                    }
+                    if ($isInSlave) {
+                        $this->assignmentService->deleteAssignment($slaveAssignment, false);
+                        $sectionSlave->assignments->remove($slaveAssignment);
+                    }
+
+                    $masterAssignmentToClone->section = $sectionSlave;
+                    $this->assignmentService->insertAssignment($masterAssignmentToClone);
+                }
+
+                /* Course */
+                $sectionSlave->course = $section->course;
+
+                $this->sectionService->insertSection($sectionSlave);
+            }
+        }
+
         /* Redirect to the section page */
         $url = $this->generateUrl("section", ["sectionId" => $section->id]);
 
