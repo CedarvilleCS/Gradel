@@ -153,6 +153,17 @@ class Section implements JsonSerializable {
 	public $semester;
 
 	/**
+	* @ORM\ManyToOne(targetEntity="Section", inversedBy="slaves")
+	*/
+	public $master;
+
+	/**
+	* @ORM\OneToMany(targetEntity="Section", mappedBy="master")
+	* @ORM\OrderBy({"id" = "ASC"})
+	*/
+	public $slaves;
+
+	/**
 	* @ORM\Column(type="datetime")
 	*/
 	public $start_time;
