@@ -652,15 +652,15 @@ class CompilationController extends Controller {
         /* Remove temporary folders and databases */
         $this->cleanUp($submission, $problem, $subDirectory, $uploadsDirectory);
 
-        $testcases = json_encode($testcases);
+        $testcases = json_encode([
+            "testcases" => $testcases
+        ]);
         if ($testcases === false) {
             return $this->returnForbiddenResponse("YOUR OUTPUT CONTAINED A BAD VALUE");
         }
 
         /* Return the testcases of the result */
-        $response = new Response([
-            "testcases" => $testcases
-        ]);
+        $response = new Response($testcases);
 
         return $this->returnOkResponse($response);
     }
