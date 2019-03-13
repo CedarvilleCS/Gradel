@@ -326,6 +326,9 @@
 
 			if(question == ""){
 				setInvalid($('#clarification-form #question'));
+				$('#clarification-form #question').on('input',function(e){
+					setValid($('#clarification-form #question'));
+				});
 				return false;
 			} else {
 				setValid($('#clarification-form #question'));

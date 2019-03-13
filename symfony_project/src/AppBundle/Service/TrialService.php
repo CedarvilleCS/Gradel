@@ -43,6 +43,10 @@ class TrialService {
 		return $this->entityManager->find("AppBundle\Entity\Trial", $trialId);
 	}
 
+	public function getTrialByObject($object) {
+		return $this->entityManager->getRepository('AppBundle\Entity\Trial')->findOneBy($object);
+	}
+
 	public function deleteTrialsByProblem($problem, $shouldFlush = true){
 		$builder = $this->entityManager->createQueryBuilder()
 			->select("t")

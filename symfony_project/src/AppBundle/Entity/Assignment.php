@@ -292,6 +292,8 @@ class Assignment implements JsonSerializable{
 	
 	public function jsonSerialize(){
 		return [
+			'id' => $this->id,
+			'sectionId' => $this->section->id,
 			'name' => $this->name,			
 			'weight' => $this->weight,
 			'teams' => $this->teams->toArray(),
