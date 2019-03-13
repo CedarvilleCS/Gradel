@@ -925,7 +925,6 @@
 
                                 });
 
-                                console.log(JSON.stringify(tcs));
                                 submitData.append('testcases', JSON.stringify(tcs));
 
                                 $('#loading-container-test').show();
@@ -938,13 +937,7 @@
                                     processData: false,
                                     contentType: false,
                                     success: function (data) {
-
-                                        console.log(data);
-
-                                        // save the testcase data to the output textboxes
-
                                         $(".test-case").each(function (index) {
-
                                             $(this).find('.output').val(addReturnKey(data['testcases'][index]));
 
                                             if ($(this).find('.output').val() != $(this).find('.exp-output').val()) {
@@ -968,7 +961,7 @@
                                     },
                                     error: function (data) {
                                         alert(data['responseText']);
-                                        console.log(data['responseText']);
+                                        console.error(data['responseText']);
 
                                         $('#loading-container-test').hide();
                                         $('#generate-output-button').show();
