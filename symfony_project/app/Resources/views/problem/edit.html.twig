@@ -419,7 +419,7 @@
 	}
 
 	function setLanguage(language){
-
+		window.aler(language);
 		// set the language selector
 		var selectObject = document.getElementById('languageSelect');
 		for(var i=0; i<selectObject.length; i++){
@@ -615,23 +615,16 @@
 			{% set found_pl = null %}
 
 			{% for pl in problem.problem_languages %}
-				
 				{% if l == pl.language %}
 					{% set found_pl = pl %}
-					{% set found_l = l %}
-				{% endif %}									
-			
-			{% else %}								
-			
-				{% set found_l = l %}
-			
+					{% set found_l = l %}					
+				{% endif %}
 			{% endfor %}
 		
 			{% if found_l is not null %}
 				$('.language#{{found_l.id}}').click();
 				$('#language-container #language-tab-{{found_l.id}} .compile-options').val("{{found_pl.compilation_options}}");
 			{% endif %}
-			
 		{% endfor %}
 			
 		
