@@ -403,6 +403,12 @@ textarea.problem_creation{
 	height: auto;
 }
 
+.languageSelectInstructions {
+    font-size: 10pt;
+    font-stretch: italic;
+    color: gray;
+}
+
 form{
 	margin-bottom: 0px;
 }
