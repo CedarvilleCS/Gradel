@@ -367,6 +367,7 @@ class SectionController extends Controller {
         }
 
         $section->is_deleted = !$section->is_deleted;
+        $section->master_id = null;
         $this->sectionService->insertSection($section);
 
         return $this->redirectToRoute("homepage");
@@ -589,9 +590,7 @@ class SectionController extends Controller {
             }
         }
 
-        if ($section->master_id == null && !$section->course->is_contest && count($section->slaves) > 0) {
-            $this->logError("Updating slaves");
-
+        if ($section->is_master && !$section->course->is_contest && count($section->slaves) > 0) {
             foreach ($section->slaves as $sectionSlave) {
                 /* Assignments */
                 foreach ($section->assignments as $masterAssignment) {
@@ -608,7 +607,6 @@ class SectionController extends Controller {
                             $this->problemService->deleteProblem($slaveProblem, false);
                         }
                         $this->assignmentService->deleteAssignment($slaveAssignment, false);
-                        // $sectionSlave->assignments->remove($slaveAssignment);
                     }
 
                     $masterAssignmentToClone->section = $sectionSlave;
