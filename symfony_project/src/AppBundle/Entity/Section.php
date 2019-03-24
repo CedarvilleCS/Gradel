@@ -181,6 +181,11 @@ class Section implements JsonSerializable {
 	/**
 	* @ORM\Column(type="boolean")
 	*/
+	public $is_master;
+
+	/**
+	* @ORM\Column(type="boolean")
+	*/
 	public $is_public;
 	
 	public function jsonSerialize(){
