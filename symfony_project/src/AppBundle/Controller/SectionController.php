@@ -388,6 +388,9 @@ class SectionController extends Controller {
         $sectionName = $postData["name"];
         $sectionTerm = $postData["semester"];
         $sectionYear = $postData["year"];
+        $sectionNumberOfSlaves = $postData["numberOfSlaves"];
+        $sectionIsMaster = $postData["isMaster"];
+        $this->logError($sectionIsMaster);
 
         if (!isset($sectionName) || trim($sectionName) == "" || !isset($sectionCourse) || !isset($sectionTerm) || !isset($sectionYear)) {
             return $this->returnForbiddenResponse("NOT EVERY REQUIRED FIELD WAS PROVIDED");

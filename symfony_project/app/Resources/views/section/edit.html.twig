@@ -130,6 +130,33 @@
 
 			<div class="card">
 				<div class="card-content">
+					{% if section.id is null %}
+					<table>
+						<tr>
+							<th>
+								<label>Number of Slaves</label>
+								<form id="slaveForm">
+									<input type="number" name="numberOfSlaves" id="numberOfSlavesInput" value="1" min="1" max="1000">
+								</form>
+							</th>
+						</tr>
+					</table>
+					{% endif %}
+				</div>
+
+				{% if section.is_master %}
+				<table>
+					<tr>
+						<th>
+							<label>This is a master section with {{section.slaves|length}} slaves</label>
+						</th>
+					</tr>
+				</table>
+				{% endif %}
+			</div>
+
+			<div class="card">
+				<div class="card-content">
 					<table>
 						<tr> <th>
 							<label>Add Student</label>
@@ -460,6 +487,21 @@
 				setValid($('#enddatepicker'));
 			}
 
+			let isMaster = false;
+			{% if section.is_master %}
+			isMaster = true;
+			{% endif %}
+			{% if section.id is null %}
+			let numberOfSlaves = $('#numberOfSlavesInput').val();
+			console.log('Number of slaves: ' + numberOfSlaves);
+			if (numberOfSlaves < 1) {
+				setInvalid($('#numberOfSlavesInput'));
+			} else {
+				setValid($('#numberOfSlavesInput'));
+			}
+			isMaster = true;
+			{% endif %}
+
 			/* Array of Teachers */
 			var teachers = document.getElementById('teacher-csv').value.split(",");
 			for(var i=0; i<teachers.length; i++){
@@ -489,6 +531,8 @@
 				course: $('#course').val(),
 				semester: $('#selectable-semester').children(".ui-selected").html(),
 				year: $('#selectable-year').children(".ui-selected").html(),
+				numberOfSlaves: numberOfSlaves,
+				isMaster: isMaster,
 				teachers: JSON.stringify(teachers),
 				students: JSON.stringify(students),
 				start_time: $('#startdatepicker').val(),
@@ -501,7 +545,7 @@
 				window.location = data["redirect_url"];
 			}).fail(function(data) {
 
-				alert(data["responseText"]);c
+				alert(data["responseText"]);
 				$(this).prop('disabled', false);
 			});
 		});
