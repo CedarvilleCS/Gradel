@@ -39,6 +39,8 @@
 <body>
     {{ include('template/top-nav.html.twig') }}
 	{{ include('template/section-nav.html.twig') }}
+
+	
 	<div id="SitePosition"
              class="hidden"
              data-pos='{
@@ -53,15 +55,25 @@
 					}
                  }
              }'></div>
-	
-	{% if grader.isTeaching(app.user, assignment.section) or is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") %}
-		<div class="floatingControls">
+
+	<div class="floatingControls">	
+		{% if grader.isTeaching(app.user, assignment.section) or is_granted("ROLE_SUPER") or is_granted("ROLE_ADMIN") %}
 			{# edit problem button #}
 			<a class="floatingLink" href="{{path('problem_edit', {'sectionId': section.id, 'assignmentId': assignment.id, 'problemId': problem.id})}}">
 				<div class="floatingButton">Edit Problem</div>
 			</a>
+		{% endif %}
+		<a class="floatingLink" id="submissionButton">
+			<div class="floatingButton">Submit</div>
+		</a>
+		{# Download the text from the ACE editor #}
+		<a id="download" download="code.cpp" onclick="downloadACECode();">
+			<div class="floatingButton">Download File</div>
+		</a>
+		<div id="loading-container"  style="display: none">
+			<img id="loadingGif" style="height: 48px" src="{{asset('images/beoload.gif')}}" alt="Loading..."/>
 		</div>
-	{% endif %}
+	</div>
 
     <section id="main">
 
@@ -159,21 +171,7 @@
 							<br>
 							<div id="mainClassInput" style="display:none"><label for="main_class">Main Class: </label><input type="text" name="main_class" id="main_class_input" value="{{(trial) ? trial.main_class}}"></div>
 							<br/>
-							<input type="hidden" name="ACE" id="ACE">
-
-							<div style="display: flex; flex-direction: row; justify-content: space-between; width: 100%">
-								<div class="btn" style="width: 100px" id="submissionButton"> Submit </div>
-								<!--<div class="btn" style="width: 70px; font-size: 0.7em; line-height: 14px; background: red; cursor: pointer" id="clearButton"> Reset Code </div>-->
-								{# Download the text from the ACE editor #}
-								<a id="download" download="code.cpp" onclick="downloadACECode();">
-									<div class="btn" style="width: 150px;">Download File</div>
-								</a>
-							</div>
-
-							<div id="loading-container" style="display: none">
-								<img id="loadingGif" style="height: 60px" src="{{asset('images/beoload.gif')}}" alt="Loading..."/>
-								<h3 style="margin: 0px"> Submitting Code... </h3>
-							</div>
+							<input type="hidden" name="ACE" id="ACE"></input>
 						</div>
 
 					{% elseif attempts_remaining == 0 %}
@@ -528,7 +526,6 @@
 		{% endif %}
 
 		$('#submissionButton').click( function() {	
-			$('#download').hide();
 			updateTrial("submit");			
 		});
 				
@@ -621,6 +618,7 @@
 			formData.append('trial_id', trialId);
 
 			$('#loading-container').show();
+			$('#download').hide();
 			$('#submissionButton').hide();
 			
 			$.ajax({
