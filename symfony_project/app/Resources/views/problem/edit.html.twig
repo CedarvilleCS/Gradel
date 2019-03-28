@@ -363,6 +363,8 @@
   
   <script src="{{ asset('js/cards.js') }}"></script>	
   <script src="{{ asset('js/validation.js') }}"></script>  
+
+	<script src="{{ asset('js/unicode_return.js') }}"></script>
   
   <script>
 
@@ -761,10 +763,9 @@
 			var testcases_valid = true;
 			// testcases
 			$(".test-case").each(function() {
-				
-				const input = $(this).find('.input').val();
+				const input = removeReturnKey($(this).find('.input').val()).trim();
 				const args = $(this).find('.args').val();
-				const output = $(this).find('.output').val();
+				const output = removeReturnKey($(this).find('.output').val()).trim();
 				
 				const weight = $(this).find('.weight').val();
 				
@@ -976,6 +977,11 @@
 		</div>`;
 		
 		$("#testcase-cards").append(newTestCard);
+
+		$('.testcase-card textarea').off('keyup');
+		$('.testcase-card textarea').keyup( function() {
+			$(this).val(addReturnKey($(this).val()));
+		}).keyup();
 		
 		$('.testCardAdder').remove();
 		
@@ -1102,9 +1108,9 @@
 		var testcases = document.getElementsByClassName("test-case");
 		tcs = [];
 		for (testcase of testcases) {
-			const input = $("#"+testcase.id).find("."+"input").val();
+			const input = removeReturnKey($("#"+testcase.id).find("."+"input").val());
 			const args = $("#"+testcase.id).find("."+"args").val();
-			const output = $("#"+testcase.id).find("." + "output").val();
+			const output = removeReturnKey($("#"+testcase.id).find("." + "output").val());
 			const short_fb = $("#"+testcase.id).find("."+"shortFeedback").val();
 			const long_fb = $('#'+testcase.id).find("." + "longFeedback").val();
 			const weight = $('#' + testcase.id).find("." + "weight").val();
@@ -1181,7 +1187,7 @@
 		var testcases = document.getElementsByClassName("test-case");
 		tcs = [];
 		for (testcase of testcases) {
-			const input = $("#"+testcase.id).find("."+"input").val();
+			const input = removeReturnKey($("#"+testcase.id).find("."+"input").val());
 			const args = $("#"+testcase.id).find("."+"args").val();
 			const tc = {"input": input, "args": args, "output": "", "weight": 1, "short_response": "", "long_response": "", "extra_credit": "false"};
 			tcs.push(tc);
@@ -1206,7 +1212,7 @@
 				// save the testcase data to the output textboxes
 				$(".test-case").each(function(index) {
 					
-					$(this).find('.output').val(data['testcases'][index]);	
+					$(this).find('.output').val(addReturnKey(data['testcases'][index]));
 				});
 				
 				$('#generator-loading-container').hide();
@@ -1300,9 +1306,9 @@
 		var testcases = document.getElementsByClassName("test-case");
 		tcs = [];
 		for (testcase of testcases) {
-			const input = $("#"+testcase.id).find("."+"input").val();
+			const input = removeReturnKey($("#"+testcase.id).find("."+"input").val());
 			const args = $("#"+testcase.id).find("."+"args").val();
-			const output = $("#"+testcase.id).find("." + "output").val();
+			const output = removeReturnKey($("#"+testcase.id).find("." + "output").val());
 			const short_fb = $("#"+testcase.id).find("."+"shortFeedback").val();
 			const long_fb = $('#'+testcase.id).find("." + "longFeedback").val();
 			const weight = $('#' + testcase.id).find("." + "weight").val();
