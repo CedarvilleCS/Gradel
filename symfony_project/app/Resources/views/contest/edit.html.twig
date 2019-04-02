@@ -271,8 +271,7 @@ $('#team-pool').append(userHTML);
 updateActions();
 }
 
-function createTeam(ids, team) {
-
+function createTeam(ids, team, isNew) {
 var id = "";
 var numContests = $('.contest-row').length;
 if (ids == null) {
@@ -289,8 +288,10 @@ id = ids.join(",");
 
 var name = (team != null) ? team.name : "Team Name";
 
+let teamClasses = isNew ? "team isNewTeam" : "team isOldTeam";
+
 var newTeam = $("<div>", {
-    "class": "team",
+    "class": teamClasses,
     "id": id
 });
 newTeam.html("<input type='text' id='team-name' value='" + escapeHTML(name).replace(/'/g, "&#39") + "'> <div class='container' style='min-height: 25px'> </div> <div class='workstation-number-container'>Workstation # <input id='workstation-number' name='value'></div>");
@@ -431,7 +432,7 @@ $('.user').draggable({
     revertDuration: 0,
     start: function () {
 
-        createTeam(null, null);
+        createTeam(null, null, true);
 
         $('#judge-picker').css('outline', '3pt solid #abef9d');
         $('.team').css('outline', '3pt solid #abef9d');
@@ -443,8 +444,8 @@ $('.user').draggable({
         $('#judge-picker').css('outline', 'none');
         $('.team').css('outline', 'none');
 
-        // remove any teams with users
-        $(".team:not(:has(.user))").remove();
+        // remove any new teams with no users
+        $(".isNewTeam:not(:has(.user))").remove();
 
         $('#judge-picker').css('min-height', $('#team-picker').height());
     }
@@ -452,7 +453,7 @@ $('.user').draggable({
 
 $('.user').contextmenu(function (event) {
     $(this).appendTo('#team-pool');
-    $(".team:not(:has(.user))").remove();
+    $(".isNewTeam:not(:has(.user))").remove();
 
     return false;
 });
@@ -963,7 +964,7 @@ function populateForm() {
 
                 {% endfor %}
 
-                createTeam(ids, JSON.parse("{{team|json_encode|e('js')}}"));
+                createTeam(ids, JSON.parse("{{team|json_encode|e('js')}}"), false);
 
             {% endfor %}
 
