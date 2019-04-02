@@ -502,8 +502,6 @@ class SectionController extends Controller {
         $section->is_deleted = false;
         $section->is_public = false;
         /* Have to use the actual values true and false or else the database will not notice true */
-        $this->logError("Is master? ");
-        $this->logError($sectionIsMaster);
         $section->is_master = (int) filter_var($sectionIsMaster, FILTER_VALIDATE_BOOLEAN);
 
         $isNewSection = $sectionId == 0;

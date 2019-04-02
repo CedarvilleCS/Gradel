@@ -412,7 +412,6 @@
 				success:		function(responseText, statusText, xhr, $form) {
 
 					var file = responseText['files'][0];
-					console.log(responseText);
 
 					$('#student-csv').val(atob(file["contents"]));
 					$('#studentCSVForm').hide();
@@ -421,7 +420,6 @@
 
 				},
 				error:			function(xhr, textStatus, errorThrown) {
-					console.log(xhr);
 					alert(xhr['responseText']);
 				}
 			});
@@ -449,7 +447,6 @@
 				success:		function(responseText, statusText, xhr, $form) {
 
 					var file = responseText['files'][0];
-					console.log(responseText);
 
 					$('#teacher-csv').val(atob(file["contents"]));
 					$('#teacherCSVForm').hide();
@@ -458,7 +455,6 @@
 
 				},
 				error:			function(xhr, textStatus, errorThrown) {
-					console.log(xhr);
 					alert(xhr['responseText']);
 				}
 			});
@@ -528,7 +524,6 @@
 			{% elseif not section.is_master %}
 				removeFromMaster = $('#removeFromMasterInput').is(":checked");
 			{% endif %}
-			console.log(isMaster);
 
 			/* Array of Teachers */
 			var teachers = document.getElementById('teacher-csv').value.split(",");
@@ -554,7 +549,6 @@
 			}
 
 			/* Post to the Symfony Route */
-			console.log(isMaster);
 			$.post( "{{path('section_modify')}}", {
 				name: $.trim($('#name').val()),
 				course: $('#course').val(),
@@ -570,8 +564,6 @@
 				section: {% if section is not null %} {{section.id}} {% else %} 0 {% endif %}
 
 			}, function(data) {
-				console.log(data);
-
 				window.location = data["redirect_url"];
 			}).fail(function(data) {
 
