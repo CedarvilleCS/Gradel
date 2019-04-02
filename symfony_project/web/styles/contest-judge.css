@@ -498,3 +498,8 @@ textarea {
 	position:absolute;
 	top:-1000px;
 }
+
+.floatingControls {
+	/* Decreased here so that the title tooltip on the clarifications dialog won't be covered by the floating controls */
+	z-index: 100;
+}

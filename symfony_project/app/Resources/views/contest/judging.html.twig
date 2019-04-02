@@ -714,7 +714,9 @@
 			$('.clarification').off( 'dblclick' );
 			$('.clarification').dblclick( function() {
 			
-				$('#clarification-form').dialog('option', 'title', $(this).find('.name').text() + " " + $(this).find('.question').text());
+				let dialogTitleText = $(this).find('.name').text() + " " + $(this).find('.question').text();
+				$('#clarification-form').dialog('option', 'title', dialogTitleText);
+				$('#clarification-form').dialog().parent().find('.ui-dialog-title').attr('title', dialogTitleText)
 				var clar_id = $(this).attr('id');
 				$('#clarification-form').val(clar_id);
 				clarificationMessageDialog.dialog("open");	
@@ -757,8 +759,9 @@
 			
 			$('#recent-clarifications .query').dblclick( function() {
 				$('#answer').val($(this).attr('data-answer'));
-				
-				$('#clarification-form').dialog('option', 'title', $(this).text());
+				let dialogTitle = $(this).text();
+				$('#clarification-form').dialog('option', 'title', dialogTitle);
+				$('#clarification-form').dialog().parent().find('.ui-dialog-title').attr('title', dialogTitle)
 				var clar_id = $(this).attr('id');
 				$('#clarification-form').val(clar_id);
 				clarificationMessageDialog.dialog( "open" );
