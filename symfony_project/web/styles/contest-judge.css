@@ -24,6 +24,7 @@
 #clear-submissions-form,
 #clear-clarifications-form {
 	display: none;
+	width: 600px;
 }
 
 .scrolly {
@@ -493,6 +494,7 @@ textarea {
 }
 
 .submit-button {
+	display: none;
 	position:absolute;
 	top:-1000px;
 }
