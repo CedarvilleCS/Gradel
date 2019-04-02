@@ -316,7 +316,7 @@ class SectionController extends Controller {
         ]);
     }
     
-    public function cloneSectionAction($sectionId, $name, $term, $year, $numberOfClones) {
+    public function cloneSectionAction($sectionId, $name, $term, $year, $numberOfSlaves) {
         $user = $this->userService->getCurrentUser();
         if (!get_class($user)) {
             return $this->returnForbiddenResponse("YOU ARE NOT LOGGED IN");
@@ -332,13 +332,22 @@ class SectionController extends Controller {
             $semester = $this->semesterService->createSemesterByTermAndYear($term, $year);
             $this->semesterService->insertSemester($semester);
         }
-
+        
         $teachesRole = $this->roleService->getRoleByRoleName(Constants::TEACHES_ROLE);
-        for ($i = 1; $i <= $numberOfClones; $i++) {
-            $newSection = clone $section;
-            $newSection->semester = $semester;
-            $newSection->name = $name."-".str_pad($i, 2, "0", STR_PAD_LEFT);
+        
+        $newMasterSection = clone $section;
+        $newMasterSection->name = $name;
+        $newMasterSection->is_master = true;
+        $newMasterSection->semester = $semester;
+        $newMasterSection->user_roles = [$this->userSectionRoleService->createUserSectionRole($user, $newMasterSection, $teachesRole)];
+        $this->sectionService->insertSection($newMasterSection);
+
+        for ($i = 0; $i < $numberOfSlaves; $i++) {
+            $newSection = clone $newMasterSection;
+            $newSection->name = $name."-".str_pad($i + 1, 2, "0", STR_PAD_LEFT);
             $newSection->user_roles = [$this->userSectionRoleService->createUserSectionRole($user, $newSection, $teachesRole)];
+            $newSection->master = $newMasterSection;
+            $newSection->is_master = false;
             $this->sectionService->insertSection($newSection);
         }
 

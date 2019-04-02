@@ -48,7 +48,7 @@
 				<div class="floatingButton deleteButton deleteWarning">{% if section.is_deleted %} Reinstate {% else %} Delete {% if section.is_master %} - Will delete slaves {% endif %} {% endif %}</div>
 			</a>
 			<a id="clone-btn" class="floatingLink">
-				<div class="floatingButton">Clone</div>
+				<div class="floatingButton">Clone with slaves</div>
 			</a>
 		{% endif %}
     </nav>
@@ -238,10 +238,12 @@
 		<div id = "dialogBody">
 			<div id = "row1">
 				<div>
-					<label for="name">Section Name </label><input id="cloneName" name="name" type="text" value="" size = "20">
+					<label for="name">Section Name </label>
+					<input id="cloneName" name="name" type="text" value="" size = "20">
 				</div>
 				<div>
-					<label for = "numberOfClones">How Many clones </label><input type = "text" id = "numberOfClones" size = "3" maxlength = "2">
+					<label for="numberOfSlaves">How many slaves?</label>
+					<input type = "text" id = "numberOfSlaves" size = "3" maxlength = "2">
 				</div>
 			</div>
 			<div id = "row2">

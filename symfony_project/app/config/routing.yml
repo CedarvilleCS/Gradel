@@ -64,7 +64,7 @@ section_delete:
 
 #section clone not working  
 section_clone:
-  path: '/section/clone/{sectionId}/name/{name}/term/{term}/year/{year}/numberOfClones/{numberOfClones}'
+  path: '/section/clone/{sectionId}/name/{name}/term/{term}/year/{year}/numberOfSlaves/{numberOfSlaves}'
   defaults: {_controller: AppBundle:Section:cloneSection}
   methods: [GET]
 
