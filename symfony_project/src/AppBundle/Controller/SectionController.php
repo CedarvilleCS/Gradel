@@ -309,6 +309,7 @@ class SectionController extends Controller {
             "courses" => $courses,
             "users" => $users,
             "instructors" => $instructors,
+            "master" => $section->master,
             "section" => $section,
             "section_taker_roles" => $sectionTakerRoles,
             "section_teacher_roles" => $sectionTeacherRoles
@@ -366,8 +367,15 @@ class SectionController extends Controller {
             return $this->returnForbiddenResponse("SECTION ".$sectionId." DOES NOT EXIST");
         }
 
-        $section->is_deleted = !$section->is_deleted;
+        $section->is_deleted = true;
         $section->master_id = null;
+        
+        if ($section->is_master) {
+            foreach ($section->slaves as $slave) {
+                $slave->is_deleted = true;
+            }    
+        }
+
         $this->sectionService->insertSection($section);
 
         return $this->redirectToRoute("homepage");
@@ -390,7 +398,7 @@ class SectionController extends Controller {
         $sectionYear = $postData["year"];
         $sectionNumberOfSlaves = $postData["numberOfSlaves"];
         $sectionIsMaster = $postData["isMaster"];
-        $this->logError($sectionIsMaster);
+        $sectionRemoveFromMaster = $postData["removeFromMaster"];
 
         if (!isset($sectionName) || trim($sectionName) == "" || !isset($sectionCourse) || !isset($sectionTerm) || !isset($sectionYear)) {
             return $this->returnForbiddenResponse("NOT EVERY REQUIRED FIELD WAS PROVIDED");
@@ -403,6 +411,10 @@ class SectionController extends Controller {
              /*Validate the semester */
             if (trim($sectionTerm) != "Fall" && trim($sectionTerm) != "Spring" && trim($sectionTerm) != "Summer") {
                 return $this->returnForbiddenResponse($sectionTerm." IS NOT A VALID SEMESTER");
+            }
+
+            if ($sectionNumberOfSlaves != null && !is_numeric(trim($sectionNumberOfSlaves))) {
+                return $this->returnForbiddenResponse($sectionNumberOfSlaves." IS NOT A VALID NUMBER OF SLAVES");
             }
         }
 
@@ -489,6 +501,16 @@ class SectionController extends Controller {
         /* Default these to false */
         $section->is_deleted = false;
         $section->is_public = false;
+        /* Have to use the actual values true and false or else the database will not notice true */
+        $this->logError("Is master? ");
+        $this->logError($sectionIsMaster);
+        $section->is_master = (int) filter_var($sectionIsMaster, FILTER_VALIDATE_BOOLEAN);
+
+        $isNewSection = $sectionId == 0;
+
+        if (!$section->is_master && $sectionRemoveFromMaster) {
+            $section->master = null;
+        }
         
         $this->sectionService->insertSection($section);
         
@@ -577,6 +599,32 @@ class SectionController extends Controller {
             $this->userSectionRoleService->insertUserSectionRole($teacherUserSectionRole);
             
             unset($oldUsers[$studentUser->id]);
+        }
+
+        if ($isNewSection && $sectionNumberOfSlaves && $section->is_master) {
+            for ($i = 0; $i < $sectionNumberOfSlaves; ++$i) {
+                $newSlaveSection = clone $section;
+                $newSlaveSection->is_master = false;
+                $newSlaveSection->master = $section;
+                $newSlaveSection->name = $section->name."-".str_pad($i + 1, 2, "0", STR_PAD_LEFT);
+                $this->sectionService->insertSection($newSlaveSection);
+
+                /* Set teachers for slaves */ 
+                foreach ($teachers as $teacher) {
+                    if (!filter_var($teacher, FILTER_VALIDATE_EMAIL)) {
+                        return $this->returnForbiddenResponse("PROVIDED TEACHER EMAIL ADDRESS ".$teacher." IS NOT VALID");
+                    }
+                    
+                    $teacherUser = $this->userService->getUserByObject(["email" => $teacher]);
+                    
+                    if (!$teacherUser) {
+                        return $this->returnForbiddenResponse("TEACHER WITH EMAIL ".$teacher." DOES NOT EXIST");
+                    }
+        
+                    $teacherUserSectionRole = $this->userSectionRoleService->createUserSectionRole($teacherUser, $newSlaveSection, $teachesRole);
+                    $this->userSectionRoleService->insertUserSectionRole($teacherUserSectionRole);
+                }
+            }
         }
         
         foreach ($oldUsers as $oldUser) {

@@ -38,14 +38,14 @@
     {# Left Nav for Section Edit#}
     <nav class="floatingControls">
 		<a id="save-btn" class="floatingLink">
-			<div class="floatingButton">Save {% if not section.master %} - Will update slaves {% endif %}</div>
+			<div class="floatingButton">Save {% if section.is_master %} - Will update slaves {% endif %}</div>
 		</a>
 		<a id="cancel-btn" class="floatingLink">
 			<div class="floatingButton">Cancel</div>
 		</a>
 		{% if section is not null %}
 			<a id="delete-btn" class="floatingLink">
-				<div class="floatingButton deleteButton deleteWarning">{% if section.is_deleted %} Reinstate {% else %} Delete {% endif %}</div>
+				<div class="floatingButton deleteButton deleteWarning">{% if section.is_deleted %} Reinstate {% else %} Delete {% if section.is_master %} - Will delete slaves {% endif %} {% endif %}</div>
 			</a>
 			<a id="clone-btn" class="floatingLink">
 				<div class="floatingButton">Clone</div>
@@ -134,9 +134,16 @@
 					<table>
 						<tr>
 							<th>
-								<label>Number of Slaves</label>
+								<label>Master-Slave</label>
 								<form id="slaveForm">
-									<input type="number" name="numberOfSlaves" id="numberOfSlavesInput" value="1" min="1" max="1000">
+									<div>
+										<label for="isMasterInput">Is this a master section?</label>
+										<input type="checkbox" name="isMaster" id="isMasterInput">
+									</div>
+									<div>
+										<label for="numberOfSlavesInput">How many slaves should it have?</label>
+										<input type="number" name="numberOfSlaves" id="numberOfSlavesInput" value="1" min="1" max="1000">
+									</div>
 								</form>
 							</th>
 						</tr>
@@ -149,6 +156,22 @@
 					<tr>
 						<th>
 							<label>This is a master section with {{section.slaves|length}} slaves</label>
+						</th>
+					</tr>
+				</table>
+				{% elseif master %}
+				<table>
+					<tr>
+						<th>
+							<div>
+								<label>The master section is <a style="text-decoration: underline;" href="{{path('section', {'sectionId':master.id})}}">{{master.name}}</a>.</label>
+							</div>
+							<div>
+								<form id="masterRemovalForm">
+									<label for="removeFromMasterInput">Remove from the master section?</label>
+									<input type="checkbox" name="removeFromMaster" id="removeFromMasterInput">
+								</form>
+							</div>
 						</th>
 					</tr>
 				</table>
@@ -382,9 +405,7 @@
 			$(this).ajaxSubmit({
 
 				beforeSubmit: 	function(formData, jqForm, options){
-
 					/* CLIENT-SIDE VALIDATION */
-					console.log("THIS IS WHERE I AM");
 					return true;
 
 				},
@@ -491,16 +512,23 @@
 			{% if section.is_master %}
 			isMaster = true;
 			{% endif %}
+
+			let numberOfSlaves = 0;
+			let removeFromMaster = false;
 			{% if section.id is null %}
-			let numberOfSlaves = $('#numberOfSlavesInput').val();
-			console.log('Number of slaves: ' + numberOfSlaves);
-			if (numberOfSlaves < 1) {
-				setInvalid($('#numberOfSlavesInput'));
-			} else {
-				setValid($('#numberOfSlavesInput'));
+			isMaster = $('#isMasterInput').is(":checked");
+			if (isMaster) {
+				numberOfSlaves = $('#numberOfSlavesInput').val();
+				if (numberOfSlaves < 1) {
+					setInvalid($('#numberOfSlavesInput'));
+				} else {
+					setValid($('#numberOfSlavesInput'));
+				}
 			}
-			isMaster = true;
+			{% elseif not section.is_master %}
+				removeFromMaster = $('#removeFromMasterInput').is(":checked");
 			{% endif %}
+			console.log(isMaster);
 
 			/* Array of Teachers */
 			var teachers = document.getElementById('teacher-csv').value.split(",");
@@ -526,6 +554,7 @@
 			}
 
 			/* Post to the Symfony Route */
+			console.log(isMaster);
 			$.post( "{{path('section_modify')}}", {
 				name: $.trim($('#name').val()),
 				course: $('#course').val(),
@@ -534,6 +563,7 @@
 				numberOfSlaves: numberOfSlaves,
 				isMaster: isMaster,
 				teachers: JSON.stringify(teachers),
+				removeFromMaster: removeFromMaster,
 				students: JSON.stringify(students),
 				start_time: $('#startdatepicker').val(),
 				end_time: $('#enddatepicker').val(),

@@ -193,6 +193,7 @@ class Section implements JsonSerializable {
 			'name' => $this->name,			
 			'assignments' => $this->assignments->toArray(),
 			'user_roles' => $this->user_roles->toArray(),
+			'is_master' => $this->is_master
 		];
 	}
 
