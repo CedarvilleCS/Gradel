@@ -544,10 +544,6 @@ class ContestPostController extends Controller {
                 return $this->returnForbiddenResponse("TEAM DOES NOT HAVE ENOUGH IDS");
             }
 
-            if (count($team->members) < 1) {
-                return $this->returnForbiddenResponse("TEAM DOES NOT HAVE ENOUGH MEMBERS");
-            }
-
             /* GET AN ARRAY OF ALL MEMBERS */
             $members = [];
             foreach ($team->members as $member) {
