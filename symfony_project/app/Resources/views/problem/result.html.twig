@@ -323,7 +323,7 @@
 		$('#quick-edit-btn').button('disable');
 								
 		$('#full-edit-btn').button().click( function() {
-			window.location = "{{path('assignment', {'sectionId': submission.problem.assignment.section.id, 'assignmentId': submission.problem.assignment.id, 'problemId': submission.problem.id, 'submissionId': submission.id} )}}";
+			window.location = "{{path('problem', {'sectionId': submission.problem.assignment.section.id, 'assignmentId': submission.problem.assignment.id, 'problemId': submission.problem.id} )}}";
 		});
 		 
 		

@@ -80,8 +80,8 @@
 							<div> Due:
 							{{assignment.end_time|date('m/d/Y')}}</div>
 						
-						{% elseif "now"|date("m/d/Y") < assignment.end_time|date('m/d/Y') %}
-							<div> Closes:
+						{% elseif "now"|date("m/d/Y") < assignment.cutoff_time|date('m/d/Y') %}
+							<div> Cut-Off Date:
 							{{assignment.cutoff_time|date('m/d/Y')}}</div>
 						{% else %}
 							<div> Closed </div>                                        
