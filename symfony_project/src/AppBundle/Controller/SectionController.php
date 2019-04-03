@@ -377,7 +377,7 @@ class SectionController extends Controller {
         }
 
         $section->is_deleted = true;
-        $section->master_id = null;
+        $section->master = null;
         
         if ($section->is_master) {
             foreach ($section->slaves as $slave) {
