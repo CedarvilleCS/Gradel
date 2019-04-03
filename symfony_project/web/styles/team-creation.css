@@ -39,6 +39,10 @@
 	margin: 5px;
 }
 
+.team.isOldTeam {
+	background: #605D9E;
+}
+
 .team #team-name{
 	width: 100%;
 	color: white;
