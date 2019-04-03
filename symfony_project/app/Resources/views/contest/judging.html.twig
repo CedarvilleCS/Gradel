@@ -924,6 +924,9 @@
 			var pending_clars = JSON.parse("{{ pending_clars | json_encode | e('js') }}");
 			var finished_clars = JSON.parse("{{ finished_clars | json_encode | e('js') }}");
 
+			console.log(pending_clars);
+			console.log(finished_clars);
+
 			addClarifications(pending_clars);
 			addAnswereds(finished_clars);
 
@@ -960,9 +963,11 @@
 			var question = (clarification.question) ? clarification.question : "Judge Notice";
 			var answer = clarification.answer;
 			
-			var name = (clarification.problem) ? clarification.problem.name.substring(0,1) : "~";
+			var clarName = ((clarification.asker) ? escapeHTML(clarification.asker.name) : 'Judge Submitted');
+			var problemName = (clarification.problem) ? "[" + clarification.problem.name + "]" : "[General]";
+			var probAssignName = '[' + clarification.answerer.full_name + '] - ' + '[' + clarName + '] - ' + problemName;
 			
-			var clarHTML = `<div class='query' id='` + clarification.id + `' data-answer="` + escapeHTML(answer) + `" title="` + escapeHTML(answer) + `">` + `[` + escapeHTML(name) + `] ` + escapeHTML(question) + `</div>`;
+			var clarHTML = `<div class='query' id='` + clarification.id + `' data-answer="` + escapeHTML(answer) + `" title="` + escapeHTML(answer) + `">` + escapeHTML(probAssignName) + ` ` + escapeHTML(question) + `</div>`;
 			$('#recent-clarifications').append(clarHTML);
 			
 			if (clarification.answerer != null && clarification.answerer.email == '{{app.user}}') { 
