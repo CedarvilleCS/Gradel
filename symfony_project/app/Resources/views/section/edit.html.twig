@@ -72,10 +72,7 @@
 				<div id="requiredFields" class="card-contents">
 					<div>
 						<table>
-
-
 							<tr>
-
 								<th colspan>
 									<label for="course">Course</label>
 									<select name="course" id="course">
@@ -94,6 +91,7 @@
 
 								<th colspan>
 									<label>Semester</label>
+									{% if section.is_master or section.master == null %}
 									<table>
 										<tr id="selectable-semester">
 											<th class="ui-widget-content">Fall</th>
@@ -101,10 +99,14 @@
 											<th class="ui-widget-content">Summer</th>
 										</tr>
 									</table>
+									{% elseif section.semester != null %}
+									<span>- {{section.semester.term}}</span>
+									{% endif %}
 								</th>
 
 								<th colspan>
 									<label>Year</label>
+									{% if section.is_master or section.master == null %}
 									<table>
 										<tr id="selectable-year">
 										{% for yr in ("now"|date("Y"))-1..("now"|date("Y"))+3 %}
@@ -112,6 +114,9 @@
 										{% endfor %}
 										</tr>
 									</table>
+									{% elseif section.semester != null%}
+									<span>- {{section.semester.year}}</span>
+									{% endif %}
 								</th>
 							</tr>
 
@@ -249,13 +254,15 @@
 			<div id = "row2">
 				<div id = "section1">
 					<label>Semester</label>
-						<table>
-							<tbody><tr id="selectableSemester" class="ui-selectable">
+					<table>
+						<tbody>
+							<tr id="selectableSemester" class="ui-selectable">
 								<th class="ui-widget-content ui-selectee">Fall</th>
 								<th class="ui-widget-content ui-selectee">Spring</th>
 								<th class="ui-widget-content ui-selectee">Summer</th>
 							</tr>
-						</tbody></table>
+						</tbody>
+					</table>
 				</div>
 				<div id = "section2">        
 					<label>Year</label>
@@ -466,7 +473,6 @@
 
 		{# Save Button #}
 		$('#save-btn').on('click', function(){
-
 			/* Client-Side Validation */
 			// section name
 			if ($.trim($('#name').val())  === '') {
@@ -549,13 +555,22 @@
 			} else {
 				$(this).prop('disabled', true);
 			}
+			console.log("somewhere");
+
+			let semester = $('#selectable-semester').children(".ui-selected").html();
+			let year = $('#selectable-year').children(".ui-selected").html();
+
+			{% if not section.is_master and section.master != null %}
+			semester = "{{section.semester.term}}";
+			year = {{section.semester.year}};
+			{% endif %}
 
 			/* Post to the Symfony Route */
 			$.post( "{{path('section_modify')}}", {
 				name: $.trim($('#name').val()),
 				course: $('#course').val(),
-				semester: $('#selectable-semester').children(".ui-selected").html(),
-				year: $('#selectable-year').children(".ui-selected").html(),
+				semester: semester,
+				year: year,
 				numberOfSlaves: numberOfSlaves,
 				isMaster: isMaster,
 				teachers: JSON.stringify(teachers),

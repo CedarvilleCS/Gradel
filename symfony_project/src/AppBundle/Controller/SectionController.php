@@ -406,8 +406,8 @@ class SectionController extends Controller {
         $sectionTerm = $postData["semester"];
         $sectionYear = $postData["year"];
         $sectionNumberOfSlaves = $postData["numberOfSlaves"];
-        $sectionIsMaster = $postData["isMaster"];
-        $sectionRemoveFromMaster = $postData["removeFromMaster"];
+        $sectionIsMaster = ($postData["isMaster"] === "true");
+        $sectionRemoveFromMaster = ($postData["removeFromMaster"] === "true");
 
         if (!isset($sectionName) || trim($sectionName) == "" || !isset($sectionCourse) || !isset($sectionTerm) || !isset($sectionYear)) {
             return $this->returnForbiddenResponse("NOT EVERY REQUIRED FIELD WAS PROVIDED");
@@ -462,17 +462,25 @@ class SectionController extends Controller {
             return $this->returnForbiddenResponse("COURSE ".$courseId." DOES NOT EXIST");
         }
         
+        $isNewSection = $sectionId == 0;
         /* Set the necessary fields*/
         $section->name = trim($sectionName);
         $section->course = $course;
+        /* Have to use the actual values true and false or else the database will not notice true */
+        $section->is_master = $sectionIsMaster;
+        if ($section->is_master && $sectionRemoveFromMaster) {
+            $section->master = null;
+        }
 
         /*Validate the semester*/
         $semester = $this->semesterService->getSemesterByTermAndYear($sectionTerm, $sectionYear);
-        if (!$semester){
-            $semester = $this->semesterService->createSemesterByTermAndYear($sectionTerm, $sectionYear, false);
-            $this->semesterService->insertSemester($semester);
+        if ($section->master == null) {
+            if (!$semester){
+                $semester = $this->semesterService->createSemesterByTermAndYear($sectionTerm, $sectionYear, false);
+                $this->semesterService->insertSemester($semester);
+            }
+            $section->semester = $semester;
         }
-        $section->semester = $semester;
         
         /* See if the dates were provided or if we will do them automatically */
         $dates = $this->getDateTime($sectionTerm, $sectionYear);
@@ -510,14 +518,8 @@ class SectionController extends Controller {
         /* Default these to false */
         $section->is_deleted = false;
         $section->is_public = false;
-        /* Have to use the actual values true and false or else the database will not notice true */
-        $section->is_master = (int) filter_var($sectionIsMaster, FILTER_VALIDATE_BOOLEAN);
 
         $isNewSection = $sectionId == 0;
-
-        if (!$section->is_master && $sectionRemoveFromMaster) {
-            $section->master = null;
-        }
         
         $this->sectionService->insertSection($section);
         
@@ -673,6 +675,7 @@ class SectionController extends Controller {
 
                 /* Course */
                 $sectionSlave->course = $section->course;
+                $sectionSlave->semester = $section->semester;
 
                 $this->sectionService->insertSection($sectionSlave);
             }
