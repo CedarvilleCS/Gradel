@@ -315,6 +315,11 @@ textarea {
 	z-index: 100;
 }
 
+.marker-hover.gridHover {
+	width: 615px;
+	grid-template-columns: auto auto auto;
+}
+
 
 
 .marker.correct {

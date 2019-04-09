@@ -667,7 +667,13 @@
 			
 			$('.marker').off('mouseover');
 			$('.marker').on('mouseover', function() {			
-				$(this).find('.marker-hover').show().css('display', 'flex');			
+				let markerHover = $(this).find('.marker-hover');
+				if(markerHover.hasClass('gridHover')) {
+					markerHover.show().css('display', 'grid');
+				}
+				else {
+					markerHover.show().css('display', 'flex');
+				}
 			});
 			
 			$('.marker').off('mouseout');
@@ -811,14 +817,18 @@
 						for(var j=0; j<sub.testcaseresults.length; j++){
 							
 							var tcr = sub.testcaseresults[j];
-							
 							middleStuff += `<div class="marker ` + ((tcr.is_correct) ? 'correct' : 'wrong') + `">\n` + 
 							
 							
 								((tcr.is_correct) ? '&#x2713;\n' : '&#x2718;\n') +
 								
-								`<div class="marker-hover">\n` +
+								`<div class="marker-hover gridHover">\n` +
 								
+									`<div>\n` +
+									`Input:\n` +
+									`<textarea disabled>` + escapeHTML(addReturnKey(tcr.testcase.input)) + ` </textarea>\n` +
+									`</div>\n` +
+
 									`<div>\n` +
 									`Expected Output:\n` +
 									`<textarea class="expected" disabled>` + escapeHTML(addReturnKey(tcr.testcase.correct_output)) + ` </textarea>\n` +
@@ -833,7 +843,7 @@
 							`</div>\n`;
 						
 						}
-						
+		
 						for(var k=sub.testcaseresults.length; k < sub.problem.testcases.length; k++){
 							middleStuff += `<div class="marker untested">`  + '&#63;\n' + `<div class="marker-hover" id="untested">\n` + `Untested.` +`</div>\n`+`</div>\n`;
 						}
