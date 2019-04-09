@@ -68,13 +68,19 @@
                  }
              }'></div>
 
-        {% if elevatedUser %}
-            <div class="floatingControls">
+        <div class="floatingControls">
+            {% if elevatedUser %}
                 <a href="{{path('contest_problem_edit', {'contestId': problem.assignment.section.id, 'roundId': problem.assignment.id, 'problemId': problem.id})}}" class="floatingLink">
                     <div class="floatingButton">Edit Problem</div>
                 </a>
-            </div>
-        {% endif %}
+            {% endif %}
+            <a class="floatingLink" id="submissionButton">
+                <div class="floatingButton">Submit</div>
+            </a>
+            <div id="loading-container"  style="display: none">
+			    <img id="loadingGif" style="height: 48px" src="{{asset('images/beoload.gif')}}" alt="Loading..."/>
+		    </div>
+        </div>
 
         <section id="main" class="scrolly">
 
@@ -85,16 +91,14 @@
                     {% if elevatedUser or (contest_open and problem.assignment.cutoff_time | date('U') > "now" | date('U')) %}
 
                         <div class="markdown-container">
-
                             {% if not current_contest.pre_contest and not current_contest.post_contest %}
                                 <div id="clarification-button">Ask for Clarification</div>
                             {% endif %}
-
                             <div id="markdown-header">
                                 <h1>{{problem.name}}</h1>
                             </div>
-                            <div id="markdown"></div>
                             <div id="markdown-collapser">Hide Description</div>
+                            <div id="markdown"></div>
                         </div>
 
                         {% if queries | length > 0 %}
@@ -159,15 +163,6 @@
                                 </label><input type="text" name="package_name" id="package_name_input" value="{{trial.package_name}}"></div>
                             <br/>
                             <input type="hidden" name="ACE" id="ACE">
-                            <div class="btn" style="width: 100px" id="submissionButton">
-                                Submit
-                            </div>
-                            <div id="loading-container" style="display: none">
-                                <img id="loadingGif" style="height: 60px" src="{{asset('images/beoload.gif')}}" alt="Loading..."/>
-                                <h3 style="margin: 0px">
-                                    Submitting Code...
-                                </h3>
-                            </div>
                         </div>
 
                     {% else %}

@@ -735,7 +735,7 @@ class ProblemController extends Controller {
             $this->problemService->insertProblem($slave);
         }
 
-        $url = $this->generateUrl("assignment", [
+        $url = $this->generateUrl("problem", [
             "sectionId" => $problem->assignment->section->id, 
             "assignmentId" => $problem->assignment->id, 
             "problemId" => $problem->id
