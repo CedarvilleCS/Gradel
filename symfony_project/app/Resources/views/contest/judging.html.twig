@@ -276,20 +276,25 @@
 				$('.review').each(function( index ){
 					
 					var rev = currReviews[$(this).attr('id')];
-
-					var search = rev.result_string + " " + rev.problem.name + " " + rev.language.name + " " + rev.team.name + " " + rev.team.member_string + " " + rev.reviewer.full_name;
+					var search = '';
+					if(rev) {
+						search = rev.result_string + " " + (rev.problem ? rev.problem.name : '') + " "
+						+ (rev.language ? rev.language.name : '') + " " + (rev.team ? rev.team.name : '') + " "
+						+ (rev.team ? rev.team.member_string : '') + " " + (rev.reviewer ? rev.reviewer.full_name : '');	
+					}
+					
 					search = search.toLowerCase();
 					
 					var num = search.indexOf(filter.toLowerCase());								
 					if (filter != '') {
-					if (num >= 0) {
-						this.style.display = "flex";
-					} else {
-						this.style.display = "none";
-					}			
+						if (num >= 0) {
+							this.style.display = "flex";
+						} else {
+							this.style.display = "none";
+						}			
 					}
 					else {  
-					this.style.display = "flex";
+						this.style.display = "flex";
 					}
 				});
 			});
