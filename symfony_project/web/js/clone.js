@@ -18,25 +18,25 @@ $('#cloneCancel' ).button().on('click', function() {
 });
 
 $('#cloneSave').on('click', function() {
-    var cloneId = document.getElementById('sectionData').dataset.id;
-    var cloneName = $('#cloneName').val();
-    var cloneSemester = document.querySelector('#selectableSemester > .ui-selected').innerHTML;
-    var cloneYear = document.querySelector('#selectableYear > .ui-selected').innerHTML;
-    var numberOfClones = $('#numberOfClones').val();
+    let cloneId = document.getElementById('sectionData').dataset.id;
+    let cloneName = $('#cloneName').val();
+    let cloneSemester = document.querySelector('#selectableSemester > .ui-selected').innerHTML;
+    let cloneYear = document.querySelector('#selectableYear > .ui-selected').innerHTML;
+    let numberOfSlaves = $('#numberOfSlaves').val();
 
-    if (cloneName && cloneSemester && cloneYear && numberOfClones && numberOfClones > 0) {   
-        var requestPath = path({
+    if (cloneName && cloneSemester && cloneYear && numberOfSlaves && numberOfSlaves > 0) {   
+        let requestPath = path({
             'section/clone': cloneId,
             name: cloneName,
             term: cloneSemester,
             year: cloneYear,
-            numberOfClones: numberOfClones
+            numberOfSlaves: numberOfSlaves
         });
         $.ajax({
             url: requestPath,
             type: 'GET',
             success: function(data) {
-                toastr.info(`${numberOfClones} clones were made`);
+                toastr.info(`${numberOfSlaves} slaves were made`);
             },
             error: function(error) {
                 toastr.error('Cloning was unsuccessful')

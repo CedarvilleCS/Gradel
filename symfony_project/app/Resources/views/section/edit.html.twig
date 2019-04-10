@@ -38,17 +38,17 @@
     {# Left Nav for Section Edit#}
     <nav class="floatingControls">
 		<a id="save-btn" class="floatingLink">
-			<div class="floatingButton">Save</div>
+			<div class="floatingButton">Save {% if section.is_master %} - Will update slaves {% endif %}</div>
 		</a>
 		<a id="cancel-btn" class="floatingLink">
 			<div class="floatingButton">Cancel</div>
 		</a>
 		{% if section is not null %}
 			<a id="delete-btn" class="floatingLink">
-				<div class="floatingButton deleteButton deleteWarning">{% if section.is_deleted %} Reinstate {% else %} Delete {% endif %}</div>
+				<div class="floatingButton deleteButton deleteWarning">{% if section.is_deleted %} Reinstate {% else %} Delete {% if section.is_master %} - Will delete slaves {% endif %} {% endif %}</div>
 			</a>
 			<a id="clone-btn" class="floatingLink">
-				<div class="floatingButton">Clone</div>
+				<div class="floatingButton">Clone with slaves</div>
 			</a>
 		{% endif %}
     </nav>
@@ -72,10 +72,7 @@
 				<div id="requiredFields" class="card-contents">
 					<div>
 						<table>
-
-
 							<tr>
-
 								<th colspan>
 									<label for="course">Course</label>
 									<select name="course" id="course">
@@ -94,6 +91,7 @@
 
 								<th colspan>
 									<label>Semester</label>
+									{% if section.is_master or section.master == null %}
 									<table>
 										<tr id="selectable-semester">
 											<th class="ui-widget-content">Fall</th>
@@ -101,10 +99,14 @@
 											<th class="ui-widget-content">Summer</th>
 										</tr>
 									</table>
+									{% elseif section.semester != null %}
+									<span>- {{section.semester.term}}</span>
+									{% endif %}
 								</th>
 
 								<th colspan>
 									<label>Year</label>
+									{% if section.is_master or section.master == null %}
 									<table>
 										<tr id="selectable-year">
 										{% for yr in ("now"|date("Y"))-1..("now"|date("Y"))+3 %}
@@ -112,6 +114,9 @@
 										{% endfor %}
 										</tr>
 									</table>
+									{% elseif section.semester != null%}
+									<span>- {{section.semester.year}}</span>
+									{% endif %}
 								</th>
 							</tr>
 
@@ -126,6 +131,56 @@
 						</table>
 					</div>
 				</div>
+			</div>
+
+			<div class="card">
+				<div class="card-content">
+					{% if section.id is null %}
+					<table>
+						<tr>
+							<th>
+								<label>Master-Slave</label>
+								<form id="slaveForm">
+									<div>
+										<label for="isMasterInput">Is this a master section?</label>
+										<input type="checkbox" name="isMaster" id="isMasterInput">
+									</div>
+									<div>
+										<label for="numberOfSlavesInput">How many slaves should it have?</label>
+										<input type="number" name="numberOfSlaves" id="numberOfSlavesInput" value="1" min="1" max="1000">
+									</div>
+								</form>
+							</th>
+						</tr>
+					</table>
+					{% endif %}
+				</div>
+
+				{% if section.is_master %}
+				<table>
+					<tr>
+						<th>
+							<label>This is a master section with {{section.slaves|length}} slaves</label>
+						</th>
+					</tr>
+				</table>
+				{% elseif master %}
+				<table>
+					<tr>
+						<th>
+							<div>
+								<label>The master section is <a style="text-decoration: underline;" href="{{path('section', {'sectionId':master.id})}}">{{master.name}}</a>.</label>
+							</div>
+							<div>
+								<form id="masterRemovalForm">
+									<label for="removeFromMasterInput">Remove from the master section?</label>
+									<input type="checkbox" name="removeFromMaster" id="removeFromMasterInput">
+								</form>
+							</div>
+						</th>
+					</tr>
+				</table>
+				{% endif %}
 			</div>
 
 			<div class="card">
@@ -188,22 +243,26 @@
 		<div id = "dialogBody">
 			<div id = "row1">
 				<div>
-					<label for="name">Section Name </label><input id="cloneName" name="name" type="text" value="" size = "20">
+					<label for="name">Section Name </label>
+					<input id="cloneName" name="name" type="text" value="" size = "20">
 				</div>
 				<div>
-					<label for = "numberOfClones">How Many clones </label><input type = "text" id = "numberOfClones" size = "3" maxlength = "2">
+					<label for="numberOfSlaves">How many slaves?</label>
+					<input type = "text" id = "numberOfSlaves" size = "3" maxlength = "2">
 				</div>
 			</div>
 			<div id = "row2">
 				<div id = "section1">
 					<label>Semester</label>
-						<table>
-							<tbody><tr id="selectableSemester" class="ui-selectable">
+					<table>
+						<tbody>
+							<tr id="selectableSemester" class="ui-selectable">
 								<th class="ui-widget-content ui-selectee">Fall</th>
 								<th class="ui-widget-content ui-selectee">Spring</th>
 								<th class="ui-widget-content ui-selectee">Summer</th>
 							</tr>
-						</tbody></table>
+						</tbody>
+					</table>
 				</div>
 				<div id = "section2">        
 					<label>Year</label>
@@ -355,16 +414,13 @@
 			$(this).ajaxSubmit({
 
 				beforeSubmit: 	function(formData, jqForm, options){
-
 					/* CLIENT-SIDE VALIDATION */
-					console.log("THIS IS WHERE I AM");
 					return true;
 
 				},
 				success:		function(responseText, statusText, xhr, $form) {
 
 					var file = responseText['files'][0];
-					console.log(responseText);
 
 					$('#student-csv').val(atob(file["contents"]));
 					$('#studentCSVForm').hide();
@@ -373,7 +429,6 @@
 
 				},
 				error:			function(xhr, textStatus, errorThrown) {
-					console.log(xhr);
 					alert(xhr['responseText']);
 				}
 			});
@@ -401,7 +456,6 @@
 				success:		function(responseText, statusText, xhr, $form) {
 
 					var file = responseText['files'][0];
-					console.log(responseText);
 
 					$('#teacher-csv').val(atob(file["contents"]));
 					$('#teacherCSVForm').hide();
@@ -410,7 +464,6 @@
 
 				},
 				error:			function(xhr, textStatus, errorThrown) {
-					console.log(xhr);
 					alert(xhr['responseText']);
 				}
 			});
@@ -420,7 +473,6 @@
 
 		{# Save Button #}
 		$('#save-btn').on('click', function(){
-
 			/* Client-Side Validation */
 			// section name
 			if ($.trim($('#name').val())  === '') {
@@ -460,6 +512,27 @@
 				setValid($('#enddatepicker'));
 			}
 
+			let isMaster = false;
+			{% if section.is_master %}
+			isMaster = true;
+			{% endif %}
+
+			let numberOfSlaves = 0;
+			let removeFromMaster = false;
+			{% if section.id is null %}
+			isMaster = $('#isMasterInput').is(":checked");
+			if (isMaster) {
+				numberOfSlaves = $('#numberOfSlavesInput').val();
+				if (numberOfSlaves < 1) {
+					setInvalid($('#numberOfSlavesInput'));
+				} else {
+					setValid($('#numberOfSlavesInput'));
+				}
+			}
+			{% elseif not section.is_master %}
+				removeFromMaster = $('#removeFromMasterInput').is(":checked");
+			{% endif %}
+
 			/* Array of Teachers */
 			var teachers = document.getElementById('teacher-csv').value.split(",");
 			for(var i=0; i<teachers.length; i++){
@@ -482,26 +555,36 @@
 			} else {
 				$(this).prop('disabled', true);
 			}
+			console.log("somewhere");
+
+			let semester = $('#selectable-semester').children(".ui-selected").html();
+			let year = $('#selectable-year').children(".ui-selected").html();
+
+			{% if not section.is_master and section.master != null %}
+			semester = "{{section.semester.term}}";
+			year = {{section.semester.year}};
+			{% endif %}
 
 			/* Post to the Symfony Route */
 			$.post( "{{path('section_modify')}}", {
 				name: $.trim($('#name').val()),
 				course: $('#course').val(),
-				semester: $('#selectable-semester').children(".ui-selected").html(),
-				year: $('#selectable-year').children(".ui-selected").html(),
+				semester: semester,
+				year: year,
+				numberOfSlaves: numberOfSlaves,
+				isMaster: isMaster,
 				teachers: JSON.stringify(teachers),
+				removeFromMaster: removeFromMaster,
 				students: JSON.stringify(students),
 				start_time: $('#startdatepicker').val(),
 				end_time: $('#enddatepicker').val(),
 				section: {% if section is not null %} {{section.id}} {% else %} 0 {% endif %}
 
 			}, function(data) {
-				console.log(data);
-
 				window.location = data["redirect_url"];
 			}).fail(function(data) {
 
-				alert(data["responseText"]);c
+				alert(data["responseText"]);
 				$(this).prop('disabled', false);
 			});
 		});
