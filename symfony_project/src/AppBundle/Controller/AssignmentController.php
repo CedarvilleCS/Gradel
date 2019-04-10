@@ -251,6 +251,19 @@ class AssignmentController extends Controller {
             !$this->graderService->isJudging($user, $assignment->section)) {
             $this->returnForbiddenResponse("YOU ARE NOT ALLOWED TO DELETE ASSIGNMENT ".$assignmentId);
         }
+
+        $section = $this->sectionService->getSectionById($sectionId);
+        if ($section->is_master) {
+            $slaves = $section->slaves;
+            foreach ($slaves as $slave) {
+                $slaveAssignments = $slave->assignments;
+                foreach ($slaveAssignments as $slaveAssignment) {
+                    if ($slaveAssignment->name == $assignment->name) {
+                        $this->assignmentService->deleteAssignment($slaveAssignment, false);
+                    }
+                }
+            }
+        }
         
         $this->assignmentService->deleteAssignment($assignment);
         

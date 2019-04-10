@@ -19,6 +19,7 @@ use AppBundle\Service\AssignmentService;
 use AppBundle\Service\CourseService;
 use AppBundle\Service\GraderService;
 use AppBundle\Service\RoleService;
+use AppBundle\Service\ProblemService;
 use AppBundle\Service\SectionService;
 use AppBundle\Service\SemesterService;
 use AppBundle\Service\SubmissionService;
@@ -48,6 +49,7 @@ class SectionController extends Controller {
     private $courseService;
     private $graderService;
     private $logger;
+    private $problemService;
     private $roleService;
     private $sectionService;
     private $semesterService;
@@ -61,6 +63,7 @@ class SectionController extends Controller {
                                 CourseService $courseService,
                                 GraderService $graderService,
                                 LoggerInterface $logger,
+                                ProblemService $problemService,
                                 RoleService $roleService,
                                 SectionService $sectionService,
                                 SemesterService $semesterService,
@@ -73,6 +76,7 @@ class SectionController extends Controller {
         $this->courseService = $courseService;
         $this->graderService = $graderService;
         $this->logger = $logger;
+        $this->problemService = $problemService;
         $this->roleService = $roleService;
         $this->sectionService = $sectionService;
         $this->semesterService = $semesterService;
@@ -305,13 +309,14 @@ class SectionController extends Controller {
             "courses" => $courses,
             "users" => $users,
             "instructors" => $instructors,
+            "master" => $section->master,
             "section" => $section,
             "section_taker_roles" => $sectionTakerRoles,
             "section_teacher_roles" => $sectionTeacherRoles
         ]);
     }
     
-    public function cloneSectionAction($sectionId, $name, $term, $year, $numberOfClones) {
+    public function cloneSectionAction($sectionId, $name, $term, $year, $numberOfSlaves) {
         $user = $this->userService->getCurrentUser();
         if (!get_class($user)) {
             return $this->returnForbiddenResponse("YOU ARE NOT LOGGED IN");
@@ -327,13 +332,22 @@ class SectionController extends Controller {
             $semester = $this->semesterService->createSemesterByTermAndYear($term, $year);
             $this->semesterService->insertSemester($semester);
         }
-
+        
         $teachesRole = $this->roleService->getRoleByRoleName(Constants::TEACHES_ROLE);
-        for ($i = 1; $i <= $numberOfClones; $i++) {
-            $newSection = clone $section;
-            $newSection->semester = $semester;
-            $newSection->name = $name."-".str_pad($i, 2, "0", STR_PAD_LEFT);
+        
+        $newMasterSection = clone $section;
+        $newMasterSection->name = $name;
+        $newMasterSection->is_master = true;
+        $newMasterSection->semester = $semester;
+        $newMasterSection->user_roles = [$this->userSectionRoleService->createUserSectionRole($user, $newMasterSection, $teachesRole)];
+        $this->sectionService->insertSection($newMasterSection);
+
+        for ($i = 0; $i < $numberOfSlaves; $i++) {
+            $newSection = clone $newMasterSection;
+            $newSection->name = $name."-".str_pad($i + 1, 2, "0", STR_PAD_LEFT);
             $newSection->user_roles = [$this->userSectionRoleService->createUserSectionRole($user, $newSection, $teachesRole)];
+            $newSection->master = $newMasterSection;
+            $newSection->is_master = false;
             $this->sectionService->insertSection($newSection);
         }
 
@@ -362,7 +376,15 @@ class SectionController extends Controller {
             return $this->returnForbiddenResponse("SECTION ".$sectionId." DOES NOT EXIST");
         }
 
-        $section->is_deleted = !$section->is_deleted;
+        $section->is_deleted = true;
+        $section->master = null;
+        
+        if ($section->is_master) {
+            foreach ($section->slaves as $slave) {
+                $slave->is_deleted = true;
+            }    
+        }
+
         $this->sectionService->insertSection($section);
 
         return $this->redirectToRoute("homepage");
@@ -383,6 +405,9 @@ class SectionController extends Controller {
         $sectionName = $postData["name"];
         $sectionTerm = $postData["semester"];
         $sectionYear = $postData["year"];
+        $sectionNumberOfSlaves = $postData["numberOfSlaves"];
+        $sectionIsMaster = ($postData["isMaster"] === "true");
+        $sectionRemoveFromMaster = ($postData["removeFromMaster"] === "true");
 
         if (!isset($sectionName) || trim($sectionName) == "" || !isset($sectionCourse) || !isset($sectionTerm) || !isset($sectionYear)) {
             return $this->returnForbiddenResponse("NOT EVERY REQUIRED FIELD WAS PROVIDED");
@@ -395,6 +420,10 @@ class SectionController extends Controller {
              /*Validate the semester */
             if (trim($sectionTerm) != "Fall" && trim($sectionTerm) != "Spring" && trim($sectionTerm) != "Summer") {
                 return $this->returnForbiddenResponse($sectionTerm." IS NOT A VALID SEMESTER");
+            }
+
+            if ($sectionNumberOfSlaves != null && !is_numeric(trim($sectionNumberOfSlaves))) {
+                return $this->returnForbiddenResponse($sectionNumberOfSlaves." IS NOT A VALID NUMBER OF SLAVES");
             }
         }
 
@@ -433,17 +462,25 @@ class SectionController extends Controller {
             return $this->returnForbiddenResponse("COURSE ".$courseId." DOES NOT EXIST");
         }
         
+        $isNewSection = $sectionId == 0;
         /* Set the necessary fields*/
         $section->name = trim($sectionName);
         $section->course = $course;
+        /* Have to use the actual values true and false or else the database will not notice true */
+        $section->is_master = $sectionIsMaster;
+        if ($section->is_master && $sectionRemoveFromMaster) {
+            $section->master = null;
+        }
 
         /*Validate the semester*/
         $semester = $this->semesterService->getSemesterByTermAndYear($sectionTerm, $sectionYear);
-        if (!$semester){
-            $semester = $this->semesterService->createSemesterByTermAndYear($sectionTerm, $sectionYear, false);
-            $this->semesterService->insertSemester($semester);
+        if ($section->master == null) {
+            if (!$semester){
+                $semester = $this->semesterService->createSemesterByTermAndYear($sectionTerm, $sectionYear, false);
+                $this->semesterService->insertSemester($semester);
+            }
+            $section->semester = $semester;
         }
-        $section->semester = $semester;
         
         /* See if the dates were provided or if we will do them automatically */
         $dates = $this->getDateTime($sectionTerm, $sectionYear);
@@ -481,6 +518,8 @@ class SectionController extends Controller {
         /* Default these to false */
         $section->is_deleted = false;
         $section->is_public = false;
+
+        $isNewSection = $sectionId == 0;
         
         $this->sectionService->insertSection($section);
         
@@ -570,6 +609,32 @@ class SectionController extends Controller {
             
             unset($oldUsers[$studentUser->id]);
         }
+
+        if ($isNewSection && $sectionNumberOfSlaves && $section->is_master) {
+            for ($i = 0; $i < $sectionNumberOfSlaves; ++$i) {
+                $newSlaveSection = clone $section;
+                $newSlaveSection->is_master = false;
+                $newSlaveSection->master = $section;
+                $newSlaveSection->name = $section->name."-".str_pad($i + 1, 2, "0", STR_PAD_LEFT);
+                $this->sectionService->insertSection($newSlaveSection);
+
+                /* Set teachers for slaves */ 
+                foreach ($teachers as $teacher) {
+                    if (!filter_var($teacher, FILTER_VALIDATE_EMAIL)) {
+                        return $this->returnForbiddenResponse("PROVIDED TEACHER EMAIL ADDRESS ".$teacher." IS NOT VALID");
+                    }
+                    
+                    $teacherUser = $this->userService->getUserByObject(["email" => $teacher]);
+                    
+                    if (!$teacherUser) {
+                        return $this->returnForbiddenResponse("TEACHER WITH EMAIL ".$teacher." DOES NOT EXIST");
+                    }
+        
+                    $teacherUserSectionRole = $this->userSectionRoleService->createUserSectionRole($teacherUser, $newSlaveSection, $teachesRole);
+                    $this->userSectionRoleService->insertUserSectionRole($teacherUserSectionRole);
+                }
+            }
+        }
         
         foreach ($oldUsers as $oldUser) {
             foreach ($section->assignments as $assignments) {
@@ -582,6 +647,37 @@ class SectionController extends Controller {
                         $this->teamService->insertTeam($team);
                     }
                 }
+            }
+        }
+
+        if ($section->is_master && !$section->course->is_contest && count($section->slaves) > 0) {
+            foreach ($section->slaves as $sectionSlave) {
+                /* Assignments */
+                foreach ($section->assignments as $masterAssignment) {
+                    $isInSlave = false;
+                    $masterAssignmentToClone = clone $masterAssignment;
+                    foreach ($sectionSlave->assignments as $slaveAssignment) {
+                        if ($slaveAssignment->name == $masterAssignment->name) {
+                            $isInSlave = true;
+                            break;
+                        }
+                    }
+                    if ($isInSlave) {
+                        foreach ($slaveAssignment->problems as $slaveProblem) {
+                            $this->problemService->deleteProblem($slaveProblem, false);
+                        }
+                        $this->assignmentService->deleteAssignment($slaveAssignment, false);
+                    }
+
+                    $masterAssignmentToClone->section = $sectionSlave;
+                    $this->assignmentService->insertAssignment($masterAssignmentToClone);
+                }
+
+                /* Course */
+                $sectionSlave->course = $section->course;
+                $sectionSlave->semester = $section->semester;
+
+                $this->sectionService->insertSection($sectionSlave);
             }
         }
 

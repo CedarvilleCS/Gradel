@@ -37,3 +37,11 @@
 .diff {
 	overflow: auto;
 }
+
+#question {
+	width: 100%;
+}
+
+.submit-button {
+	display: none;
+}

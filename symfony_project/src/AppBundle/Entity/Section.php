@@ -153,6 +153,17 @@ class Section implements JsonSerializable {
 	public $semester;
 
 	/**
+	* @ORM\ManyToOne(targetEntity="Section", inversedBy="slaves")
+	*/
+	public $master;
+
+	/**
+	* @ORM\OneToMany(targetEntity="Section", mappedBy="master")
+	* @ORM\OrderBy({"id" = "ASC"})
+	*/
+	public $slaves;
+
+	/**
 	* @ORM\Column(type="datetime")
 	*/
 	public $start_time;
@@ -170,6 +181,11 @@ class Section implements JsonSerializable {
 	/**
 	* @ORM\Column(type="boolean")
 	*/
+	public $is_master;
+
+	/**
+	* @ORM\Column(type="boolean")
+	*/
 	public $is_public;
 	
 	public function jsonSerialize(){
@@ -177,6 +193,7 @@ class Section implements JsonSerializable {
 			'name' => $this->name,			
 			'assignments' => $this->assignments->toArray(),
 			'user_roles' => $this->user_roles->toArray(),
+			'is_master' => $this->is_master
 		];
 	}
 
