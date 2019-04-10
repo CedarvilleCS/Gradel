@@ -276,20 +276,25 @@
 				$('.review').each(function( index ){
 					
 					var rev = currReviews[$(this).attr('id')];
-
-					var search = rev.result_string + " " + rev.problem.name + " " + rev.language.name + " " + rev.team.name + " " + rev.team.member_string + " " + rev.reviewer.full_name;
+					var search = '';
+					if(rev) {
+						search = rev.result_string + " " + (rev.problem ? rev.problem.name : '') + " "
+						+ (rev.language ? rev.language.name : '') + " " + (rev.team ? rev.team.name : '') + " "
+						+ (rev.team ? rev.team.member_string : '') + " " + (rev.reviewer ? rev.reviewer.full_name : '');	
+					}
+					
 					search = search.toLowerCase();
 					
 					var num = search.indexOf(filter.toLowerCase());								
 					if (filter != '') {
-					if (num >= 0) {
-						this.style.display = "flex";
-					} else {
-						this.style.display = "none";
-					}			
+						if (num >= 0) {
+							this.style.display = "flex";
+						} else {
+							this.style.display = "none";
+						}			
 					}
 					else {  
-					this.style.display = "flex";
+						this.style.display = "flex";
 					}
 				});
 			});
@@ -309,7 +314,7 @@
 			noticeMessageDialog = $("#notice-form").dialog({
 				autoOpen: false,
 				modal: true,
-				width: "auto",
+				width: 600,
 				height: "auto",
 				buttons: {
 					"Post Notice": function () {
@@ -344,7 +349,7 @@
 			clearSubsDialog = $("#clear-submissions-form").dialog({
 				autoOpen: false,
 				modal: true,
-				width: "auto",
+				width: 600,
 				height: "auto",
 				buttons: {
 					"Clear Submissions": function () {
@@ -378,7 +383,7 @@
 			clearClarsDialog = $("#clear-clarifications-form").dialog({
 				autoOpen: false,
 				modal: true,
-				width: "auto",
+				width: 600,
 				height: "auto",
 				buttons: {
 					"Clear Clarifications": function () {
@@ -412,7 +417,7 @@
 			clarificationMessageDialog = $("#clarification-form").dialog({
 				autoOpen: false,
 				modal: true,
-				width: "auto",
+				width: 600,
 				height: "auto",
 				buttons: {
 					"Answer for User": function () {
@@ -490,7 +495,7 @@
 				resizable: false,
 				modal: true,
 				autoOpen: false,
-				width: "auto",
+				width: 600,
 				height: "auto",
 				buttons: {
 					"Delete Submission": function() {
@@ -514,7 +519,7 @@
 				resizable: false,
 				modal: true,
 				autoOpen: false,
-				width: "auto",
+				width: 600,
 				height: "auto",
 				buttons: {
 					"Mark Correct": function() {
@@ -538,7 +543,7 @@
 				resizable: false,
 				modal: true,
 				autoOpen: false,
-				width: "auto",
+				width: 600,
 				height: "auto",
 				buttons: {
 					"Mark Wrong Answer": function() {
@@ -562,7 +567,7 @@
 				resizable: false,
 				modal: true,
 				autoOpen: false,
-				width: "auto",
+				width: 600,
 				height: "auto",
 				buttons: {
 					"Mark Wrong Formatting": function() {
@@ -667,7 +672,13 @@
 			
 			$('.marker').off('mouseover');
 			$('.marker').on('mouseover', function() {			
-				$(this).find('.marker-hover').show().css('display', 'flex');			
+				let markerHover = $(this).find('.marker-hover');
+				if(markerHover.hasClass('gridHover')) {
+					markerHover.show().css('display', 'grid');
+				}
+				else {
+					markerHover.show().css('display', 'flex');
+				}
 			});
 			
 			$('.marker').off('mouseout');
@@ -714,7 +725,9 @@
 			$('.clarification').off( 'dblclick' );
 			$('.clarification').dblclick( function() {
 			
-				$('#clarification-form').dialog('option', 'title', $(this).find('.name').text() + " " + $(this).find('.question').text());
+				let dialogTitleText = $(this).find('.name').text() + " " + $(this).find('.question').text();
+				$('#clarification-form').dialog('option', 'title', dialogTitleText);
+				$('#clarification-form').dialog().parent().find('.ui-dialog-title').attr('title', dialogTitleText)
 				var clar_id = $(this).attr('id');
 				$('#clarification-form').val(clar_id);
 				clarificationMessageDialog.dialog("open");	
@@ -757,8 +770,9 @@
 			
 			$('#recent-clarifications .query').dblclick( function() {
 				$('#answer').val($(this).attr('data-answer'));
-				
-				$('#clarification-form').dialog('option', 'title', $(this).text());
+				let dialogTitle = $(this).text();
+				$('#clarification-form').dialog('option', 'title', dialogTitle);
+				$('#clarification-form').dialog().parent().find('.ui-dialog-title').attr('title', dialogTitle)
 				var clar_id = $(this).attr('id');
 				$('#clarification-form').val(clar_id);
 				clarificationMessageDialog.dialog( "open" );
@@ -808,14 +822,18 @@
 						for(var j=0; j<sub.testcaseresults.length; j++){
 							
 							var tcr = sub.testcaseresults[j];
-							
 							middleStuff += `<div class="marker ` + ((tcr.is_correct) ? 'correct' : 'wrong') + `">\n` + 
 							
 							
 								((tcr.is_correct) ? '&#x2713;\n' : '&#x2718;\n') +
 								
-								`<div class="marker-hover">\n` +
+								`<div class="marker-hover gridHover">\n` +
 								
+									`<div>\n` +
+									`Input:\n` +
+									`<textarea disabled>` + escapeHTML(addReturnKey(tcr.testcase.input)) + ` </textarea>\n` +
+									`</div>\n` +
+
 									`<div>\n` +
 									`Expected Output:\n` +
 									`<textarea class="expected" disabled>` + escapeHTML(addReturnKey(tcr.testcase.correct_output)) + ` </textarea>\n` +
@@ -830,7 +848,7 @@
 							`</div>\n`;
 						
 						}
-						
+		
 						for(var k=sub.testcaseresults.length; k < sub.problem.testcases.length; k++){
 							middleStuff += `<div class="marker untested">`  + '&#63;\n' + `<div class="marker-hover" id="untested">\n` + `Untested.` +`</div>\n`+`</div>\n`;
 						}
@@ -921,6 +939,9 @@
 			var pending_clars = JSON.parse("{{ pending_clars | json_encode | e('js') }}");
 			var finished_clars = JSON.parse("{{ finished_clars | json_encode | e('js') }}");
 
+			console.log(pending_clars);
+			console.log(finished_clars);
+
 			addClarifications(pending_clars);
 			addAnswereds(finished_clars);
 
@@ -957,9 +978,11 @@
 			var question = (clarification.question) ? clarification.question : "Judge Notice";
 			var answer = clarification.answer;
 			
-			var name = (clarification.problem) ? clarification.problem.name.substring(0,1) : "~";
+			var clarName = ((clarification.asker) ? escapeHTML(clarification.asker.name) : 'Judge Submitted');
+			var problemName = (clarification.problem) ? "[" + clarification.problem.name + "]" : "[General]";
+			var probAssignName = '[' + clarification.answerer.full_name + '] - ' + '[' + clarName + '] - ' + problemName;
 			
-			var clarHTML = `<div class='query' id='` + clarification.id + `' data-answer="` + escapeHTML(answer) + `" title="` + escapeHTML(answer) + `">` + `[` + escapeHTML(name) + `] ` + escapeHTML(question) + `</div>`;
+			var clarHTML = `<div class='query' id='` + clarification.id + `' data-answer="` + escapeHTML(answer) + `" title="` + escapeHTML(answer) + `">` + escapeHTML(probAssignName) + ` ` + escapeHTML(question) + `</div>`;
 			$('#recent-clarifications').append(clarHTML);
 			
 			if (clarification.answerer != null && clarification.answerer.email == '{{app.user}}') { 
