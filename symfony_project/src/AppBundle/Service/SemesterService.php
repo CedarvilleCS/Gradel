@@ -54,6 +54,15 @@ class SemesterService {
         $semester = new Semester($term, $year, $isCurrentSemester);
         return $semester;
     }
+
+    public function updateCurrentSemesterByTermAndYear($term, $year){
+        $semester = $this->getCurrentSemester();
+        $semester->is_current_semester = 0;
+
+        $semester = $this->getSemesterByTermAndYear($term, $year);
+        $semester->is_current_semester = 1;
+        $this->entityManager->flush();
+    }
 }
 
 ?>
