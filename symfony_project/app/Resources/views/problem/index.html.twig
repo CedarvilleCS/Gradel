@@ -152,8 +152,8 @@
 							
 							{# file upload#}
 							{% if problem.allow_upload %}
-							<form id="submissionUploadForm" action="{{path('get_contents')}}" method="post" style="margin-top: 5px">
-								<input type="file" accept=".zip,.c,.cpp,.java,.php,.py" name="file" id="file" value="Upload File" style="width: 180px">
+							<form id="submissionUploadForm" action="{{path('get_contents')}}" method="post" style="margin-top: 5px" enctype="multipart/form-data">
+								<input type="file" accept=".zip,.c,.cpp,.java,.php,.py" name="file[]" id="file" value="Upload File" style="width: 180px" multiple>
 							</form>
 							{% endif %}
 							

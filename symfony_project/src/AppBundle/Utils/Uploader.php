@@ -47,15 +47,12 @@ class Uploader  {
 		This function returns the contents of the file as
 		base64-encoded string and the name of the file
 	*/
-	public function getFileContents($file){
-
-		
-				
-		if(pathinfo($file['name'], PATHINFO_EXTENSION) == 'zip'){
+	public function getFileContents($files, $index){
+		if(pathinfo($files['name'][$index], PATHINFO_EXTENSION) == 'zip'){
 			
 			# ZIP
 			$zipper = new Zipper();
-			$contents = $zipper->getZipContents($file["tmp_name"]);
+			$contents = $zipper->getZipContents($files["tmp_name"][$index]);
 			
 			if($contents === false){
 				return false;
@@ -66,8 +63,8 @@ class Uploader  {
 		} else {
 			
 			# Get the file contents and name
-			$fileContents = base64_encode(file_get_contents($file["tmp_name"]));
-			$fileName = basename($file["name"]);
+			$fileContents = base64_encode(file_get_contents($files["tmp_name"][$index]));
+			$fileName = basename($files["name"][$index]);
 
 			# return an array of the contents and name
 			return [["contents" => $fileContents, "name" => $fileName]];		

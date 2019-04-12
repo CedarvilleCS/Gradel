@@ -72,22 +72,21 @@
 	}
 	
 	function populateSessions(files){
-		
 		clearAceSessions();					
-		for(var i=0; i<files.length; i++){
-			
+        for(var i=0; i<files.length; i++){
+            let file = files[i][0];
 			addAceSession();
 			
 			editor.setSession(ace_sessions[i+1]);
 			
 			try{
-				editor.setValue(atob(files[i]['contents']), -1);
+				editor.setValue(atob(file.contents), -1);
 			} catch(e) {
-				editor.setValue(files[i]['contents'], -1);
+				editor.setValue(file.contents, -1);
 			}
 			
-			$('#test-code-tab-user-'+(i+1)+'-marker').find('a input').val(files[i]['name']);
-			$('#test-code-tab-user-'+(i+1)+'-marker').find('a input').attr('size', Math.max(5, files[i]['name'].length));
+			$('#test-code-tab-user-'+(i+1)+'-marker').find('a input').val(file.name);
+			$('#test-code-tab-user-'+(i+1)+'-marker').find('a input').attr('size', Math.max(5, file.name.length));
 		}
 	}
 	
