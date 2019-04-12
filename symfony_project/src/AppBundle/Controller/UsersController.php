@@ -74,7 +74,7 @@ class UsersController extends Controller {
         ]);
     }
 
-    public function editAction(Request $request) {
+    public function modifyPostAction(Request $request) {
         $currentUser = $this->userService->getCurrentUser();
         if (!get_class($currentUser)) {
             return $this->returnForbiddenResponse("YOU ARE NOT LOGGED IN");
