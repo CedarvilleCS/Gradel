@@ -500,9 +500,7 @@
 				},
 				success:		function(responseText, statusText, xhr, $form) {
 										
-					var file = responseText['files'][0];
-			
-					console.log(responseText);
+					var file = responseText.files[0][0];
 					
 					{# editor get contents success #}
 					{{ block('editor_onsubmission', 'ace/sessions.twig') }}
