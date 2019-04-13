@@ -140,7 +140,7 @@
 
                         {# file upload#}
                         <form id="submissionUploadForm" action="{{path('get_contents')}}" method="post">
-                            <input type="file" accept=".zip,.c,.cpp,.java,.php,.py" name="file" id="file" value="Upload File">
+                            <input type="file" accept=".zip,.c,.cpp,.java,.php,.py" name="file[]" id="file" value="Upload File" multiple>
                         </form>
 
                         {# Language selection and hidden field to submit ACE contents #}
@@ -688,12 +688,14 @@
 
                         },
                         success: function (responseText, statusText, xhr, $form) {
-
-                            var file = responseText['files'][0];
+                            var file = responseText.files[0];
+                            if (file.length !== undefined) {
+                                file = file[0];
+                            }
 
                             {{ block('editor_onsubmission', 'ace/sessions.twig') }}
 
-                                if (!setLanguageFromFilename(file['name']) && getExtension(file['name']) != 'zip') {
+                                if (!setLanguageFromFilename(file.name) && getExtension(file.name) != 'zip') {
                                     autoSetLanguage();
                                 }
 
@@ -702,7 +704,7 @@
                             },
                             error: function (xhr, textStatus, errorThrown) {
                                 console.log(xhr);
-                                alert(xhr['responseText']);
+                                alert(xhr.responseText);
                             }
                         });
 
