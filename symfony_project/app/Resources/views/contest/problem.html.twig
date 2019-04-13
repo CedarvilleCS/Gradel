@@ -421,10 +421,12 @@
                             setLanguage(language);
 
                             // set the main class
-                            document.getElementById('main_class_input').value = classname;
+                            if (language === "Java") {
+                                document.getElementById('main_class_input').value = classname;
+                            }
 
                             // toggle the java inputs
-                            toggleJavaInputs(language == "Java", ext == "zip");
+                            toggleJavaInputs(language === "Java", ext == "zip");
                         }
 
                         function setLanguage(language) {
@@ -438,7 +440,7 @@
                                 }
                             } {# template for updating the sessions #}{{ block('editor_setlanguage', 'ace/sessions.twig') }}
 
-                            toggleJavaInputs(language == "Java");
+                            toggleJavaInputs(language === "Java");
 
                             currLanguage = language;
                         }
@@ -447,19 +449,9 @@
 
                             var deter = hljs.highlightAuto(editor.getValue(), ["python", "cpp", "java", "php"]);
                             var lang = deter.language;
-
-                            if (deter.second_best) {
-                                var second = deter.second_best.language;
-                            }
-
                             var language = "";
 
-                            if (second == "java") {
-                                language = "Java";
-                            } else if (second == "python") {
-                                language = "Python 3";
-                            } else {
-
+                            if (lang) {
                                 if (lang == "cpp") {
                                     language = "C++";
                                 } else if (lang == "python") {
@@ -469,8 +461,30 @@
                                 } else if (lang == "java") {
                                     language = "Java";
                                 }
-                            }
+                            } else {
+                                let second = null
+                                if (deter.second_best) {
+                                    second = deter.second_best.language;
+                                }
 
+                                language = "";
+
+                                if (second == "java") {
+                                    language = "Java";
+                                } else if (second == "python") {
+                                    language = "Python 3";
+                                } else {
+                                    if (lang == "cpp") {
+                                        language = "C++";
+                                    } else if (lang == "python") {
+                                        language = "Python 3";
+                                    } else if (lang == "php") {
+                                        language = "PHP";
+                                    } else if (lang == "java") {
+                                        language = "Java";
+                                    }
+                                }
+                            }
                             setLanguage(language);
                         }
 
@@ -703,7 +717,7 @@
 
                             },
                             error: function (xhr, textStatus, errorThrown) {
-                                console.log(xhr);
+                                console.error(xhr);
                                 alert(xhr.responseText);
                             }
                         });
@@ -748,8 +762,8 @@
                                 console.log(data);
                             },
                             error: function (data) {
-                                alert(data['responseText']);
-                                console.log(data['responseText']);
+                                alert(data.responseText);
+                                console.error(data.responseText);
                             }
                         });
 
@@ -797,18 +811,18 @@
                                 success: function (data) {
                                     console.log(data);
                                     $('#trial-status').text("Code saved.");
-                                    trialId = data['trial_id'];
+                                    trialId = data.trial_id;
 
                                     if (submitAfter == "submit") {
                                         submitSolution();
                                     }
                                 },
                                 error: function (data) {
-                                    //alert(data['responseText']);
-                                    console.log(data['responseText']);
-                                    $('#trial-status').text(data['responseText']);
+                                    alert(data.responseText);
+                                    console.error(data.responseText);
+                                    $('#trial-status').text(data.responseText);
 
-                                    if (data['continue'] && submitAfter == "submit") {
+                                    if (data.continue && submitAfter == "submit") {
                                         submitSolution();
                                     }
                                 }
@@ -855,11 +869,11 @@
                                 success: function (data) {
 
                                     console.log(data);
-                                    window.location = data["redirect_url"];
+                                    window.location = data.redirect_url;
                                 },
                                 error: function (data) {
-                                    alert(data['responseText']);
-                                    console.log(data['responseText']);
+                                    alert(data.responseText);
+                                    console.error(data.responseText);
 
                                     $('#loading-container').hide();
                                     $('#submissionButton').show();
@@ -935,7 +949,7 @@
                                     contentType: false,
                                     success: function (data) {
                                         $(".test-case").each(function (index) {
-                                            $(this).find('.output').val(addReturnKey(data['testcases'][index]));
+                                            $(this).find('.output').val(addReturnKey(data.testcases[index]));
 
                                             if ($(this).find('.output').val() != $(this).find('.exp-output').val()) {
 
@@ -957,8 +971,8 @@
                                         $(".test-case").prettyTextDiff({cleanup: true});
                                     },
                                     error: function (data) {
-                                        alert(data['responseText']);
-                                        console.error(data['responseText']);
+                                        alert(data.responseText);
+                                        console.error(data.responseText);
 
                                         $('#loading-container-test').hide();
                                         $('#generate-output-button').show();

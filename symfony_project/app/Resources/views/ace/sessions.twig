@@ -14,6 +14,8 @@
 
 {% block editor_javascript %}
 
+	console.log(code_for_langs);
+
 	// set default stuff for the ace editor
 	var editor = ace.edit("editor");
 	editor.$blockScrolling = Infinity;
@@ -118,7 +120,8 @@
 		
 		var num_tabs = $("#file-markers ul li").length;
 		
-		if(num_tabs == 1){
+		if(num_tabs <= 1){
+			currLanguage = $('#languageSelect option:selected').text();
 			populateSessions(code_for_langs[currLanguage], true);
 			setLanguage(currLanguage);
 			$('#trial-status').text("Reset code to default code.");
