@@ -277,18 +277,15 @@
 		});
 
 		$("#save-btn").click((e) => {
-			$.ajax({
-				type: "POST",
-				url: "{{path('user_edit')}}",
-				data: userActions,
-				success: (data) => {
+			$.post("{{path('user_edit')}}", 
+				userActions,
+				function(data) {
 					console.log(data);
-				},
-				error: (data) => {
-					console.log(data);
+                    window.location.reload();
 				}
-			})
-			window.location.reload();
+            ).fail(function(data) {
+				console.log(data);
+			});
 		});
 
 	</script>
