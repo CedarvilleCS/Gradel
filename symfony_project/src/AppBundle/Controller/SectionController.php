@@ -468,7 +468,7 @@ class SectionController extends Controller {
         $section->course = $course;
         /* Have to use the actual values true and false or else the database will not notice true */
         $section->is_master = $sectionIsMaster;
-        if ($section->is_master && $sectionRemoveFromMaster) {
+        if ($sectionRemoveFromMaster) {
             $section->master = null;
         }
 
