@@ -110,7 +110,7 @@ class TrialController extends Controller {
                     return $this->returnForbiddenResponse("YOUR FILENAME CANNOT BE BLANK");
                 }
                 
-                if (preg_match("/^[a-zA-Z0-9-_]+\.[a-zA-Z]+$/", $aceDatum->filename) <= 0) {
+                if (preg_match("/^[a-zA-Z0-9-_]+\.[a-zA-Z- ]+$/", $aceDatum->filename) <= 0) {
                     return $this->returnForbiddenResponse("YOUR FILENAME IS INVALID");
                 }
                 
