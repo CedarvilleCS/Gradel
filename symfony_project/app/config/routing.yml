@@ -15,8 +15,8 @@ users:
   defaults: {_controller: AppBundle:Users:users}
 
 user_edit:
-  path: '/user_edit'
-  defaults: {_controller: AppBundle:Users:edit}
+  path: '/user/edit'
+  defaults: {_controller: AppBundle:Users:modifyPost}
   methods: [POST]
 
 # course routes

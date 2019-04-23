@@ -167,15 +167,25 @@ class Submission implements JsonSerializable {
 		return $this->compiler_error || $this->runtime_error || $this->exceeded_time_limit;		
 	}
 	
-	public function isCorrect($raw = false){		
+	public function isCorrect($raw = false){
 		$passedTestcases = $this->getNumTestCasesCorrect();
-		$testcases = 0;
+
+		if($raw != true){
+			
+			if($this->correct_override) return true;		
+			if($this->wrong_override) return false;
+		}
+		
+		if($this->isError()){
+			return false;
+		}
 
 		if ($this->problem->testcase_counts[$this->version]) {
 			$testcases = $this->problem->testcase_counts[$this->version];
+			return $passedTestcases == $testcases;
 		}
-		
-		return $passedTestcases == $testcases;
+
+		return $passedTestcases > 0;
 	}
 
 	# clone method override

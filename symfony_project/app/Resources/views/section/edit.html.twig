@@ -579,11 +579,9 @@
 				start_time: $('#startdatepicker').val(),
 				end_time: $('#enddatepicker').val(),
 				section: {% if section is not null %} {{section.id}} {% else %} 0 {% endif %}
-
 			}, function(data) {
 				window.location = data["redirect_url"];
 			}).fail(function(data) {
-
 				alert(data["responseText"]);
 				$(this).prop('disabled', false);
 			});

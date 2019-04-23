@@ -70,7 +70,7 @@ class HomeController extends Controller {
         } else {
             $semester = $this->semesterService->getSemesterById($semesterId);
         }
-        
+
         if (!$semester) {
             return $this->returnForbiddenResponse("SEMESTER ".$semesterId." DOES NOT EXIST");
         }

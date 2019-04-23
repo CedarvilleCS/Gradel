@@ -14,6 +14,8 @@
 
 {% block editor_javascript %}
 
+	console.log(code_for_langs);
+
 	// set default stuff for the ace editor
 	var editor = ace.edit("editor");
 	editor.$blockScrolling = Infinity;
@@ -24,6 +26,7 @@
 	var EditSession = ace.require("ace/edit_session").EditSession;
 	var UndoManager = ace.require("ace/undomanager").UndoManager;
 	var ace_sessions = [];	
+    var file_names = [];
 	var curr_session;
 
 	// not working
@@ -39,11 +42,6 @@
 	
 	// file tabs
 	$('#file-markers').tabs();	
-	var tabCount = $('#file-markers >ul >li').length;
-	if(tabCount < 1){
-		addAceSession();
-		$( "#file-markers" ).tabs({ active: 0 });
-	}
 	
 	function addAddFileButton(){
 
@@ -71,28 +69,45 @@
 		$('#add-file-button').remove();
 	}
 	
-	function populateSessions(files){
-		
-		clearAceSessions();					
-		for(var i=0; i<files.length; i++){
-			
+	function populateSessions(files, removedLastTab = false){
+        if (removedLastTab) {
+            clearAceSessions();
+        }
+        for(var i=0; i<files.length; i++){
+            let file = files[i];
 			addAceSession();
-			
-			editor.setSession(ace_sessions[i+1]);
+            let sessionIndex = i+1;
+            if (removedLastTab) {
+                ace_sessions.length - 1;
+            }
+            if (file.length !== undefined) {
+                file = file[0];
+                sessionIndex = ace_sessions.length - 1;
+                isUploaded = true;
+            }
+    		editor.setSession(ace_sessions[sessionIndex]);
 			
 			try{
-				editor.setValue(atob(files[i]['contents']), -1);
+				editor.setValue(atob(file.contents), -1);
 			} catch(e) {
-				editor.setValue(files[i]['contents'], -1);
+				editor.setValue(file.contents, -1);
 			}
+            let fileName = file.name;
+            for (let file_name of file_names) {
+                if (file_name === fileName) {
+                    fileName += " - Copy"                    
+                }
+            }
 			
-			$('#test-code-tab-user-'+(i+1)+'-marker').find('a input').val(files[i]['name']);
-			$('#test-code-tab-user-'+(i+1)+'-marker').find('a input').attr('size', Math.max(5, files[i]['name'].length));
+			$('#test-code-tab-user-'+(sessionIndex)+'-marker').find('a input').val(fileName);
+			$('#test-code-tab-user-'+(sessionIndex)+'-marker').find('a input').attr('size', Math.max(5, fileName.length));
+            file_names[sessionIndex] = fileName;
 		}
 	}
 	
 	function clearAceSessions(){
 		ace_sessions = [];
+        file_names = [];
 		
 		$('#file-markers ul li').remove();			
 	}
@@ -105,8 +120,9 @@
 		
 		var num_tabs = $("#file-markers ul li").length;
 		
-		if(num_tabs == 1){
-			populateSessions(code_for_langs[currLanguage]);
+		if(num_tabs <= 1){
+			currLanguage = $('#languageSelect option:selected').text();
+			populateSessions(code_for_langs[currLanguage], true);
 			setLanguage(currLanguage);
 			$('#trial-status').text("Reset code to default code.");
 			return;
@@ -119,6 +135,7 @@
 		$('#test-code-tab-user-' + index + '-marker').remove();
 		
 		var temp_sessions = [];
+        var temp_file_names = [];
 		var mod = 0;
 		var found = false;
 		
@@ -133,10 +150,14 @@
 				mod = 1;
 			}
 			temp_sessions[i-mod] = ace_sessions[i];				
+            temp_file_names[i-mod] = file_names[i];
+            
 		}
 		
 		ace_sessions = [];
 		ace_sessions = temp_sessions;
+        file_names = [];
+        file_names = temp_file_names;
 		
 		$('.tabs').each( function(ind) {				
 			$(this).attr('id', 'test-code-tab-user-'+(ind+1)+'-marker');	
@@ -269,7 +290,6 @@
 			if(onloadValue[i] == null || editor.getSession().getValue() != onloadValue[i]){
 				changed = true;	
 			}
-			curr_session = i;
 		}
 		editor.setSession(current_session);	
 
@@ -321,7 +341,7 @@
 	// Update the language for all files	
 	
 	if(!codeUpdated()){
-		populateSessions(code_for_langs[language]);
+		//populateSessions(code_for_langs[language]);
 
 		var current_session = editor.getSession();
 		for(var i = 1; i < ace_sessions.length; i++) {
@@ -364,7 +384,6 @@
 
 	{% if result_route and submission %}	
 	var files = JSON.parse("{{submission.getSubmissionFileContents()|json_encode|e('js')}}");
-	console.log(files);
 	populateSessions(files);	
 	
 	$('#quick-edit-btn').button('enable');

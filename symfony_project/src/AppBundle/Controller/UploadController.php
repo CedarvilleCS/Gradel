@@ -48,34 +48,38 @@ class UploadController extends Controller {
         Returns 1 on success
     */
     public function getContentsAction(Request $request) {
-        $uploadedFile = $_FILES["file"];
-        if (!isset($uploadedFile["error"]) || is_array($uploadedFile["error"])) {
-            return $this->returnForbiddenResponse("FILE MUST BE SMALLER THAN 1MB");
-        }
-        
-        switch ($uploadedFile["error"]) {
-            case UPLOAD_ERR_OK:
-                break;
-            case UPLOAD_ERR_NO_FILE:
-                return $this->returnForbiddenResponse("NO FILE SENT");
-            case UPLOAD_ERR_INI_SIZE:
-            case UPLOAD_ERR_FORM_SIZE:
+        $fileInfos = [];
+        $uploadedFiles = $_FILES["file"];
+        $numberOfFiles = count($uploadedFiles["name"]);
+        for ($i = 0; $i < $numberOfFiles; $i++) {
+            if (!isset($uploadedFiles["error"][$i]) || is_array($uploadedFiles["error"][$i])) {
                 return $this->returnForbiddenResponse("FILE MUST BE SMALLER THAN 1MB");
-            default:
-                return $this->returnForbiddenResponse("UNKOWN ERRORS");
-        }
+            }
         
-        if ($uploadedFile["size"] > 1024 * 1024) {
-            return $this->returnForbiddenResponse("FILE MUST BE SMALLER THAN 1MB");
-        }
+            switch ($uploadedFiles["error"][$i]) {
+                case UPLOAD_ERR_OK:
+                    break;
+                case UPLOAD_ERR_NO_FILE:
+                    return $this->returnForbiddenResponse("NO FILE SENT");
+                case UPLOAD_ERR_INI_SIZE:
+                case UPLOAD_ERR_FORM_SIZE:
+                    return $this->returnForbiddenResponse("FILE MUST BE SMALLER THAN 1MB");
+                default:
+                    return $this->returnForbiddenResponse("UNKOWN ERRORS");
+            }
         
-        $webDirectory = $this->get("kernel")->getProjectDir()."/";
-        $uploader = new Uploader($webDirectory);
+            if ($uploadedFiles["size"][$i] > 1024 * 1024) {
+                return $this->returnForbiddenResponse("FILE MUST BE SMALLER THAN 1MB");
+            }
+        
+            $webDirectory = $this->get("kernel")->getProjectDir()."/";
+            $uploader = new Uploader($webDirectory);
 
-        $fileInfo = $uploader->getFileContents($uploadedFile);
+            $fileInfos[] = $uploader->getFileContents($uploadedFiles, $i);
+        }
         
         $response = new Response(json_encode([
-            "files" => $fileInfo
+            "files" => $fileInfos
         ]));
         return $this->returnOkResponse($response);
     }
