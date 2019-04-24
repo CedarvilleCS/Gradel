@@ -92,7 +92,7 @@
 	width: 350px;
 	top: 50px;
         right: 45px;
-	background: #71BA62;
+	background: white;
 	border: 3pt solid grey;
 	display: none;
 	border-radius: 10px;
@@ -105,7 +105,7 @@
 	z-index: 10;
 }
 #clar_stats, #review_stats {
-  background: #E2E2E2;
+  background: #003963;
   z-index: 11;
   margin-top: 5px;
   font-size: 0.9em;
