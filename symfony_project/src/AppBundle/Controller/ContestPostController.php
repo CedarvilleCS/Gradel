@@ -309,6 +309,8 @@ class ContestPostController extends Controller {
             $section->semester = $this->semesterService->getCurrentSemester();
             $section->is_public = false;
             $section->is_deleted = false;
+            $section->master = null;
+            $section->is_master = false;
         }
 
         /* CONTESTS */
