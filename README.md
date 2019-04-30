@@ -11,7 +11,7 @@ sudo apt-get install git vim -y
 ```
 
 ## Setup
-A setup script has been made in `symfony_project` called `setup.sh`. It should perform all of the strictly code related operations stated here to set up the environment for Gradel.
+A setup script has been made in `symfony_project` called `setup.sh`. It should perform all of the strictly code related operations stated here to set up the environment for Gradel. After running `sudo setup.sh`, run `sudo setup_permissions.sh` in the top directory to set up all necessary file permissions.
 
 #### Installing Composer
 Composer is a PHP-based installer that Symfony uses heavily.
