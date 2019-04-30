@@ -10,6 +10,9 @@ sudo apt-get update
 sudo apt-get install git vim -y
 ```
 
+## Setup
+A setup script has been made in `symfony_project` called `setup.sh`. It should perform all of the strictly code related operations stated here to set up the environment for Gradel.
+
 #### Installing Composer
 Composer is a PHP-based installer that Symfony uses heavily.
 Follow the instructions (here)[https://getcomposer.org/download/] to install Composer.
