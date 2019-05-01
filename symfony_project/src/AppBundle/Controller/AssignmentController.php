@@ -156,6 +156,7 @@ class AssignmentController extends Controller {
 
         return $this->render("assignment/index.html.twig", [
             "assignment" => $assignment,
+            "section" => $section,
             "section_takers" => $sectionTakers,
             "user" => $user,
             "user_impersonators" => $sectionTakers,
